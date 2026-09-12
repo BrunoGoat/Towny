@@ -181,9 +181,11 @@ class BoardPlan {
           lean:
               (hash01(semilla, 26) < 0.5 ? -1 : 1) *
               (0.03 + hash01(semilla, 24) * 0.085),
-          paper: said[i].kind == NoticeKind.pueblo
-              ? villagePaper
-              : _papers[hashInt(_papers.length, semilla, 25)],
+          paper: switch (said[i].kind) {
+            NoticeKind.pueblo => villagePaper,
+            NoticeKind.mine => minePaper,
+            _ => _papers[hashInt(_papers.length, semilla, 25)],
+          },
         ),
       );
     }
@@ -212,6 +214,19 @@ class BoardPlan {
   /// El de los papeles del pueblo: el más viejo de los tres, para que un bando
   /// sobre una cabra no se confunda con lo que el tablón sabe de vos.
   static const Color villagePaper = Color(0xFFD8C8A2);
+
+  /// Los tres de siempre, para que un test pueda exigir que ninguno de ellos
+  /// se confunda con el del pueblo ni con el tuyo.
+  @visibleForTesting
+  static List<Color> get debugPapers => _papers;
+
+  /// Y el de las tuyas: una hoja limpia, la más clara del tablón.
+  ///
+  /// Recién clavada y sin envejecer, porque es lo que es — la escribiste vos,
+  /// hoy o la semana pasada, no lleva ahí desde que se fundó el pueblo. Es el
+  /// tono el que hace el trabajo: entre tres pergaminos viejos y un bando más
+  /// viejo todavía, una hoja blanca se ve desde la otra punta de la plaza.
+  static const Color minePaper = Color(0xFFF7F1E2);
 
   /// Los colores del modelo de la plaza, sin tocar.
   static const Color wood = Color(0xFFC9B896);

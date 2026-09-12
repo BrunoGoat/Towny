@@ -38,6 +38,18 @@ enum NoticeKind {
   /// sabe de alguien, y una cabra no se sabe de nadie— sino de
   /// `data/gossip.dart`, y lo pone el tablón.
   pueblo,
+
+  /// Lo que clavás vos.
+  ///
+  /// Es la única clase de nota que la app no escribe. Las demás son lo que el
+  /// pueblo averiguó de vos —y no se inventa ninguna sin cuentas detrás— o lo
+  /// que el pueblo tiene clavado por su cuenta; ésta es tuya, dice lo que
+  /// quieras, y no pretende ser verdad sobre nada.
+  ///
+  /// Por eso va en papel distinto y con otra letra: un tablón donde tus
+  /// recordatorios se confunden con lo que el pueblo dedujo de tus horarios es
+  /// un tablón en el que ya no se sabe quién habla.
+  mine,
 }
 
 /// One thing the town noticed.

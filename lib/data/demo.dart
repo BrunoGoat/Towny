@@ -132,6 +132,14 @@ Habit _entrenar(DateTime today) {
     slot: 0,
     createdAt: today.subtract(const Duration(days: _span)),
     pieces: pieces,
+    // Un par clavadas por quien usa la app, que es una clase de nota más y
+    // hace falta verla al lado de las otras dos para saber si se distinguen.
+    notes: [
+      '${today.subtract(const Duration(days: 2)).millisecondsSinceEpoch}'
+          '|Bajar el peso del banco, la espalda.',
+      '${today.subtract(const Duration(days: 19)).millisecondsSinceEpoch}'
+          '|Los martes cambiar de gimnasio.',
+    ],
   );
 }
 

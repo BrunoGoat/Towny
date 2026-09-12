@@ -116,10 +116,11 @@ void main() {
         at: hoy,
       );
       final tipos = {for (final n in notas) n.kind};
-      // Todas menos las del pueblo, que no salen de acá: una cabra perdida no
-      // es algo que se sepa de nadie.
+      // Todas menos las dos que no salen de acá: una cabra perdida no es algo
+      // que se sepa de nadie, y una nota tuya no la deduce el pueblo — la
+      // escribís vos y sale del propio hábito.
       for (final quiere in NoticeKind.values) {
-        if (quiere == NoticeKind.pueblo) continue;
+        if (quiere == NoticeKind.pueblo || quiere == NoticeKind.mine) continue;
         expect(
           tipos,
           contains(quiere),

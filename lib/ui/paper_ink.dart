@@ -29,11 +29,13 @@ class PaperInk {
     : font = _resolve(
         notice,
         font ??
-            NoteFont.porNombre(
-              notice.kind == NoticeKind.pueblo
-                  ? Appearance.villageFont
-                  : Appearance.noteFont,
-            ) ??
+            NoteFont.porNombre(switch (notice.kind) {
+              NoticeKind.pueblo => Appearance.villageFont,
+              // La tuya siempre la misma, y no una de las de «varias manos»:
+              // todo lo que clavás lo escribe la misma persona, que sos vos.
+              NoticeKind.mine => NoteFont.rotulador.name,
+              _ => Appearance.noteFont,
+            }) ??
             NoteFont.sistema,
       ),
       scale =
@@ -69,7 +71,12 @@ class PaperInk {
   /// dos porque cabía mejor. Las notas del tablón sí son lo otro —lo que el
   /// pueblo dice de vos, y debajo las cuentas de las que lo sacó— y ahí la
   /// raya separa dos cosas que de verdad son distintas.
-  bool get corrido => notice.kind == NoticeKind.pueblo;
+  ///
+  /// Y una nota tuya también: «comprar cal» no es una afirmación con su
+  /// prueba debajo. Lo que va en el sitio de las cuentas es desde cuándo está
+  /// clavada, que se lee al descolgarla y no desde el tablón.
+  bool get corrido =>
+      notice.kind == NoticeKind.pueblo || notice.kind == NoticeKind.mine;
 
   /// El rectángulo en el que se maqueta. Su proporción es la de la hoja
   /// ([BoardPlan.paperW] contra [BoardPlan.paperH]), o el texto saldría

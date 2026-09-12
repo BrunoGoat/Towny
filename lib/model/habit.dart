@@ -22,10 +22,12 @@ class Habit {
     List<Piece>? pieces,
     List<String>? chronicle,
     List<String>? folk,
+    List<String>? notes,
   }) : character = character ?? TownCharacter.forSlot(slot).order,
        pieces = pieces ?? [],
        chronicle = chronicle ?? [],
-       folk = folk ?? [];
+       folk = folk ?? [],
+       notes = notes ?? [];
 
   /// Never reused and never changed: it is what a saved town is filed under.
   final String id;
@@ -75,6 +77,12 @@ class Habit {
   /// cara. Ver [Villager].
   final List<String> folk;
 
+  /// Lo que clavaste vos en el tablón: una línea por nota, `milisegundos|texto`.
+  ///
+  /// La más nueva primero, que es como se clava en un tablón de verdad — lo
+  /// último que alguien escribió queda encima de lo de la semana pasada.
+  final List<String> notes;
+
   int get total => pieces.length;
 
   DateTime? get lastPlacedAt => pieces.isEmpty ? null : pieces.last.placedAt;
@@ -121,6 +129,7 @@ class Habit {
     'p': pieces.map((p) => p.toJson()).toList(),
     'w': chronicle,
     'f': folk,
+    'm': notes,
   };
 
   static Habit fromJson(Map<String, dynamic> j) {
@@ -154,6 +163,7 @@ class Habit {
       // de las piezas que remataron cada casa, así que nadie pierde su
       // cumpleaños por haber empezado a usar la app antes de que existiera.
       folk: [for (final e in (j['f'] as List?) ?? []) e.toString()],
+      notes: [for (final e in (j['m'] as List?) ?? []) e.toString()],
       // A save from before towns could be chosen keeps the one its plot was
       // given, so nobody's town changes shape under them.
       character: (j['ch'] as num?)?.toInt(),

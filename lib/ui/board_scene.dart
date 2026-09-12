@@ -10,6 +10,7 @@ import '../engine/renderer.dart';
 import '../engine/shooting_star.dart';
 import '../engine/star_draw.dart';
 import '../model/board_seen.dart';
+import '../model/findings.dart';
 import '../model/habit.dart';
 import 'board_plan.dart';
 import '../data/symbols.dart';
@@ -75,9 +76,14 @@ class BoardScene extends StatefulWidget {
     required this.palette,
     required this.hourOfDay,
     required this.onLeave,
+    this.onUnpin,
     this.letra = 0,
     this.motion,
   });
+
+  /// Quitar del tablón una nota tuya, por lo que dice. Nulo cuando el tablón
+  /// es de sólo lectura — el de mentira de los ajustes.
+  final void Function(String said)? onUnpin;
 
   /// Para los tests: el objeto que se mueve, para poder mirarlo desde fuera.
   final BoardMotion? motion;
@@ -380,6 +386,20 @@ class _BoardSceneState extends State<BoardScene>
             _cam.travel = _cam.travelTarget;
           }
         }
+        // Quitar la nota, sólo mientras hay una tuya descolgada.
+        //
+        // Aquí y no en el tablón: una nota se quita después de leerla, y para
+        // leerla hay que descolgarla. Un botón de quitar al lado de cada papel
+        // clavado sería un tablón con diez cruces encima.
+        final abierta = _m.open;
+        final quitar =
+            widget.onUnpin != null &&
+                abierta != null &&
+                _m.openK > 0.55 &&
+                abierta < widget.plan.papers.length &&
+                widget.plan.papers[abierta].notice.kind == NoticeKind.mine
+            ? widget.plan.papers[abierta].notice.said
+            : null;
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
           onScaleUpdate: _drag,
@@ -406,6 +426,36 @@ class _BoardSceneState extends State<BoardScene>
               },
               repaint: _frame,
             ),
+            child: quitar == null
+                ? null
+                : SafeArea(
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 22),
+                        child: TextButton.icon(
+                          onPressed: () => widget.onUnpin!(quitar),
+                          icon: const Icon(Icons.delete_outline, size: 17),
+                          label: const Text('Quitarla del tablón'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.white.withValues(
+                              alpha: 0.92,
+                            ),
+                            backgroundColor: Colors.black.withValues(
+                              alpha: 0.32,
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
           ),
         );
       },

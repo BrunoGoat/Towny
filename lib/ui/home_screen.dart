@@ -189,6 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
             valley: store.habits,
             habit: store.habit,
             theme: _theme,
+            store: store,
           ),
         )
         // Al volver se repinta: dentro se habrán leído notas, y el punto del
@@ -544,6 +545,7 @@ class _HomeScreenState extends State<HomeScreen> {
         valley: store.habits,
         habit: store.habits[town],
         theme: _theme,
+        store: store,
       ),
     );
   }

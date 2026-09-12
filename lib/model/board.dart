@@ -41,13 +41,72 @@ List<Notice> boardNotices(
   // Pero lo que el pueblo sabe de vos va primero y no se recorta nunca: si hay
   // ocho notas de verdad, caben dos bandos y se clavan dos. Un bando sobre una
   // cabra no puede dejar fuera lo que el tablón averiguó.
-  final hueco = BoardPlan.capacity - said.length - (said.isEmpty ? 1 : 0);
+  // Y delante de todo, lo tuyo. Es tu tablón: lo que clavaste vos no lo puede
+  // dejar fuera ni una nota del pueblo ni un bando sobre una cabra.
+  //
+  // Y el tablón tiene un tope de hojas: si entre lo tuyo y lo que averiguó no
+  // caben, lo que se recorta es lo del pueblo, que seguirá ahí mañana. Una
+  // nota que clavaste y no aparece es un tablón roto.
+  final mias = myNotices(h);
+  final vacio = said.isEmpty && mias.isEmpty;
+  final paraNotas = math.max(
+    0,
+    BoardPlan.capacity - mias.length - (vacio ? 1 : 0),
+  );
+  final suyas = said.take(paraNotas).toList();
+  final hueco =
+      BoardPlan.capacity - mias.length - suyas.length - (vacio ? 1 : 0);
   final cuantos = quiere.clamp(0, math.max(0, hueco)).toInt();
   return [
-    if (said.isEmpty) emptyNotice(h),
-    ...said,
+    ...mias,
+    if (vacio) emptyNotice(h),
+    ...suyas,
     ...villageNotices(now, town: h.slot, count: cuantos),
   ];
+}
+
+/// Cuántas notas tuyas caben clavadas a la vez.
+///
+/// El tablón es del pueblo tanto como tuyo: llenarlo entero de recordatorios
+/// deja fuera lo que averiguó de vos, que es la mitad de para lo que existe.
+/// Las que no caben no se pierden — siguen guardadas y vuelven a asomar en
+/// cuanto quitás una.
+const int myNoticeCap = 4;
+
+/// Lo que clavaste vos, de lo más nuevo a lo más viejo.
+///
+/// El formato de cada renglón es `milisegundos|texto`, y uno roto se salta en
+/// vez de tirar el tablón abajo.
+List<Notice> myNotices(Habit h) {
+  final out = <Notice>[];
+  for (final line in h.notes) {
+    if (out.length >= myNoticeCap) break;
+    final corte = line.indexOf('|');
+    if (corte <= 0) continue;
+    final millis = int.tryParse(line.substring(0, corte));
+    final texto = line.substring(corte + 1).trim();
+    if (millis == null || texto.isEmpty) continue;
+    out.add(
+      Notice(
+        NoticeKind.mine,
+        texto,
+        _cuando(DateTime.fromMillisecondsSinceEpoch(millis)),
+      ),
+    );
+  }
+  return out;
+}
+
+/// Desde cuándo está clavada. Va en el sitio de las cuentas, porque de una
+/// nota tuya no hay cuentas que enseñar: lo único que el tablón sabe de ella
+/// es el día que la clavaste.
+String _cuando(DateTime at) {
+  final dias = dayStart(DateTime.now()).difference(dayStart(at)).inDays;
+  if (dias <= 0) return 'Clavada hoy.';
+  if (dias == 1) return 'Clavada ayer.';
+  if (dias < 30) return 'Clavada hace $dias días.';
+  final meses = (dias / 30).floor();
+  return 'Clavada hace $meses ${meses == 1 ? 'mes' : 'meses'}.';
 }
 
 /// La hoja que se clava cuando de vos no se sabe nada.

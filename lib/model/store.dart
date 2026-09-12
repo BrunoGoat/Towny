@@ -174,6 +174,43 @@ class Store extends ChangeNotifier {
     _save();
   }
 
+  /// Clava una nota tuya en el tablón de [h].
+  ///
+  /// La más nueva arriba, que es como queda en un tablón de verdad. Se guarda
+  /// entera aunque no quepa clavada: las que sobran del tope vuelven a asomar
+  /// en cuanto se quita una.
+  void pinNote(Habit h, String text) {
+    final t = text.trim();
+    if (t.isEmpty) return;
+    h.notes.insert(
+      0,
+      '${DateTime.now().millisecondsSinceEpoch}|${t.replaceAll('\n', ' ')}',
+    );
+    // Un tope generoso y lejos de la vista, para que esto no crezca sin fin en
+    // una copia de seguridad. Cincuenta notas tuyas son muchísimas más de las
+    // que nadie clava.
+    while (h.notes.length > 50) {
+      h.notes.removeLast();
+    }
+    _save();
+    notifyListeners();
+  }
+
+  /// Quita una de las tuyas: la que dice exactamente eso y se clavó ese día.
+  ///
+  /// Por contenido y no por número de hueco, porque quien la quita la está
+  /// mirando descolgada y no sabe qué puesto ocupa en la lista.
+  void unpinNote(Habit h, String said) {
+    final antes = h.notes.length;
+    h.notes.removeWhere((line) {
+      final corte = line.indexOf('|');
+      return corte > 0 && line.substring(corte + 1).trim() == said.trim();
+    });
+    if (h.notes.length == antes) return;
+    _save();
+    notifyListeners();
+  }
+
   bool _writeUpAll() {
     var moved = false;
     for (final h in habits) {
