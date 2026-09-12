@@ -348,9 +348,12 @@ void main() {
       }
     });
 
-    test('hay de sobra para que no se repita el pueblo entero', () {
-      // El número que importa no es cuántas hay escritas sino cuántas se ven:
-      // noventa en la tabla y seis en un pueblo sería lo mismo que seis.
+    test('todo lo que está escrito se llega a ver en un pueblo', () {
+      // El número que importa no es cuántas hay escritas sino cuántas se ven.
+      // Antes había noventa y cuatro y lo que se medía era que salieran
+      // bastantes; ahora hay pocas a propósito, y lo que hay que exigir es lo
+      // contrario: que **ninguna** se quede sin salir. Una fila escrita que no
+      // se sortea nunca es una fila muerta.
       final t = _town(400);
       final vistas = <String>{};
       for (final w in folkOf(t, 400)) {
@@ -358,7 +361,9 @@ void main() {
           if (d != null) vistas.add(d.id);
         }
       }
-      expect(vistas.length, greaterThan(45));
+      for (final d in Doing.all) {
+        expect(vistas, contains(d.id), reason: '${d.id} no le toca a nadie');
+      }
     });
 
     test('todas las de la tabla son alcanzables desde algún sitio', () {

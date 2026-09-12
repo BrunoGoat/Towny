@@ -476,7 +476,7 @@ Doing _actAt(Where where, int seed, int k, bool kid) {
     for (final d in _byWhere[where]!)
       if (d.fits(kid)) d,
   ];
-  if (puede.isEmpty) return Doing.walking;
+  if (puede.isEmpty) return Doing.idle;
   var total = 0.0;
   for (final d in puede) {
     total += d.weight;
@@ -1023,26 +1023,12 @@ const List<int> _hair = [
   0xFF6B3A22,
 ];
 
-/// El paño de la cometa. Tiene que cantar contra el cielo o no es una cometa:
-/// es lo único de este valle que se mira desde abajo.
-const List<int> _kite = [
-  0xFFC94F3B,
-  0xFFE08A2E,
-  0xFF4C7FB5,
-  0xFFD9B441,
-  0xFF7E4B86,
-  0xFFCC5E7E,
-];
-
-/// Y las mariposas, que son blancas, amarillas o de las anaranjadas.
-const List<int> _wing = [0xFFF0EEE4, 0xFFEFCE52, 0xFFDC8434, 0xFFC9D8EC];
-
 /// La madera de los mangos y las varas, que es la misma en todo el valle.
 const int _wood2 = 0xFF6B5236;
 
 /// Una persona, en cajas cerradas como todo lo demás del valle.
 ///
-/// Cuatro piezas: dos piernas, el cuerpo y la cabeza. Con eso basta y sobra —
+/// Tres piezas: el cuerpo, la cabeza y el pelo. Con eso basta y sobra —
 /// a la distancia a la que se mira un pueblo, un vecino ocupa entre tres y
 /// veinte píxeles, y lo que se lee de él es la silueta y el color, no los
 /// dedos. Lo que sí se lee, y mucho, es **que se mueva**: el paso de las
@@ -1158,6 +1144,14 @@ List<Solid> folkSolids(
   final sit = act?.sink ?? 0.0;
   final baja = sit * 0.26;
 
+  /// A qué altura tiene los pies.
+  ///
+  /// Cero en el suelo, que es lo normal. Quien tiene banqueta se sienta
+  /// **encima** de ella y no delante: sin esto el cuerpo seguía arrancando del
+  /// suelo y la banqueta le salía por dentro, que era alguien de pie sobre una
+  /// mesita.
+  final piso = act?.prop == PropKind.stool ? 0.30 - baja * 0.5 : 0.0;
+
   // Lo único que anima a alguien sin brazos ni piernas: que suba y baje, que
   // se incline y que se balancee. Y alcanza de sobra — el paso de unas piernas
   // de dos píxeles no se ve, y el bamboleo de un cuerpo entero sí.
@@ -1180,8 +1174,11 @@ List<Solid> folkSolids(
   /// Dónde le flota lo que lleva. No hay mano: hay un sitio a la altura y al
   /// lado de donde estaría, y lo que se sostiene se queda ahí. A esta
   /// distancia es lo mismo, y una mano de tres píxeles no es una mano.
-  (double, double, double) hold(double s, double raise, double fwd) =>
-      (s * 0.150 + wag, 0.26 + raise * 0.34 + bob - baja, 0.13 + fwd + lean);
+  (double, double, double) hold(double s, double raise, double fwd) => (
+    s * 0.150 + wag,
+    piso + 0.26 + raise * 0.34 + bob - baja,
+    0.13 + fwd + lean,
+  );
 
   /// Una vara entre dos puntos: el hilo de la cometa, su cola, el mango de una
   /// herramienta, la cuerda de un caldero. [box] sólo sabe hacer cajas rectas
@@ -1249,43 +1246,6 @@ List<Solid> folkSolids(
     );
   }
 
-  /// Un paño plano, dado por sus esquinas en el plano de delante de la
-  /// persona. La vela de la cometa, que es un rombo y no una caja: [box] sólo
-  /// sabe hacer cajas rectas y un rombo está girado cuarenta y cinco grados.
-  void panel(
-    List<(double, double, double)> pts,
-    double thick,
-    int tint,
-    double ao,
-  ) {
-    final fwd = V3(sin, 0, cos);
-    final back = V3(-fwd.x, 0, -fwd.z);
-    final a = [for (final q in pts) world(q.$1, q.$2, q.$3 - thick)];
-    final b = [for (final q in pts) world(q.$1, q.$2, q.$3 + thick)];
-    final faces = <Facet>[
-      Facet(b, fwd, Surface.cloth, ao: ao, tint: tint),
-      Facet(a.reversed.toList(), back, Surface.cloth, ao: ao, tint: tint),
-    ];
-    for (var i = 0; i < pts.length; i++) {
-      final j = (i + 1) % pts.length;
-      // El canto: hacia afuera en el plano del paño.
-      final dx = pts[j].$1 - pts[i].$1, dy = pts[j].$2 - pts[i].$2;
-      final len = math.sqrt(dx * dx + dy * dy);
-      if (len < 1e-6) continue;
-      final nx = dy / len, ny = -dx / len;
-      faces.add(
-        Facet(
-          [a[i], a[j], b[j], b[i]],
-          V3(nx * cos, ny, -nx * sin).normalized,
-          Surface.cloth,
-          ao: ao * 0.94,
-          tint: tint,
-        ),
-      );
-    }
-    out.add(Solid(-1, faces));
-  }
-
   // La figura: un cuerpo, una cabeza y el pelo. Tres cajas.
   //
   // **Un cuerpo, no un tronco y unas calzas.** Eran dos cajas de dos colores
@@ -1311,22 +1271,44 @@ List<Solid> folkSolids(
   //    medían casi lo mismo de ancho no había cabeza: había una columna con
   //    una raya de color.
   //  - El cuerpo, corto y ancho, uno a dos. Estrecho volvía la columna.
+  if (act?.lying ?? false) {
+    // Tumbado: la misma persona acostada, no una más agachada.
+    //
+    // Es una figura aparte y no otro número, porque no hay manera de decir
+    // «acostado» con lo agachado que está alguien: el cuerpo se tiende a lo
+    // largo, la cabeza se va a un extremo y el pecho sube y baja despacio, que
+    // es lo único que distingue a alguien durmiendo de un bulto en el prado.
+    // Largo y bajo, que es lo que hace que se lea «tumbado» y no «cajón»: un
+    // cuerpo de pie mide uno de alto por tres décimas de ancho, y acostado
+    // tiene que medir eso mismo girado.
+    final resuella = bob * 0.7;
+    box(-0.150, 0.0, -0.50, 0.150, 0.195 + resuella, 0.17, pano, 0.98);
+    // La cabeza, un cubo entero por delante del cuerpo y levantada del suelo:
+    // apoyada en la hierba no se distingue, y es lo único que dice de qué lado
+    // está la cara.
+    box(-0.185, 0.035, 0.16, 0.185, 0.405, 0.53, piel, 1.02);
+    if (detail > 0.25) {
+      box(-0.191, 0.300, 0.15, 0.191, 0.412, 0.54, pelo, 1.0);
+    }
+    return out;
+  }
+
   box(
     -0.150 + wag,
-    0.0,
+    piso,
     -0.116 + lean * 0.5,
     0.150 + wag,
-    0.56 + bob - baja,
+    piso + 0.56 + bob - baja,
     0.116 + lean * 0.5,
     pano,
     1.0,
   );
   box(
     -0.205 + wag * 0.4,
-    0.520 + bob - baja,
+    piso + 0.520 + bob - baja,
     -0.175 + lean * 1.5,
     0.205 + wag * 0.4,
-    0.960 + bob - baja,
+    piso + 0.960 + bob - baja,
     0.175 + lean * 1.5,
     piel,
     1.02,
@@ -1337,308 +1319,117 @@ List<Solid> folkSolids(
   if (detail > 0.25) {
     box(
       -0.212 + wag * 0.4,
-      0.830 + bob - baja,
+      piso + 0.830 + bob - baja,
       -0.182 + lean * 1.5,
       0.212 + wag * 0.4,
-      0.985 + bob - baja,
+      piso + 0.985 + bob - baja,
       0.182 + lean * 1.5,
       pelo,
       1.0,
     );
   }
 
-  // Y lo que lleva, que flota donde lo tendría. De eso va la tarde.
+  // Y lo que lleva.
   //
-  // Quince formas para setenta actividades. La diferencia entre un gato y un
-  // cesto, a doce píxeles, es el tamaño y el color; gastar una geometría
-  // propia por cada cosa sería gastarla justo en lo que no se ve. Lo que sí se
-  // ve, y mucho, es que haya **algo** y que ese algo se mueva.
+  // **Hecho de verdad, con las piezas que haga falta.** Antes eran quince
+  // formas genéricas y cada actividad elegía una con otro tamaño y otro color,
+  // y así la escoba salía siendo un palo. Un palo no es una escoba. No era que
+  // la animación no se entendiera: era que el objeto estaba mal.
+  //
+  // Cada cosa se gasta las cajas que necesita para ser esa cosa y no otra. Son
+  // pocas actividades a propósito, y por eso se pueden hacer bien.
   if (act == null || detail <= 0.1) return out;
-  final tinte = act.tint ?? pano;
-  final z = act.size;
-  final t = ph + hash01(seed, 17) * 40;
 
   switch (act.prop) {
     case PropKind.none:
       break;
 
-    case PropKind.hand:
-      // Lo que se lleva en la mano: un jarro, un pan, una flor, un farol.
-      final m = hold(1, 0.28 + swing * 0.10, 0.02);
-      final r = 0.052 * z;
+    case PropKind.broom:
+      // Mango y cepillo, y el cepillo apoyado en el suelo por delante. Lo que
+      // hace que sea una escoba y no una vara es el cepillo: ancho, plano,
+      // más oscuro que el palo y a ras de suelo.
+      final m = hold(1, 0.52, 0.02);
+      const cz = 0.52; // dónde apoya, por delante
+      final barrido = math.sin(ph * act.rate) * 0.12;
+      link(m, (barrido, 0.045, cz), 0.017, _wood2, 0.94);
+      // El cepillo: ancho de lado a lado y en el sentido en que se barre.
       box(
-        m.$1 - r,
-        m.$2 - r,
-        m.$3 - r,
-        m.$1 + r,
-        m.$2 + r * 1.5,
-        m.$3 + r,
-        tinte,
-        1.0,
-      );
-
-    case PropKind.tool:
-      // Mango y cabeza. Sube y baja con el mismo compás que el espinazo, que
-      // es lo que hace que el golpe caiga cuando el cuerpo se dobla.
-      final g = math.sin(ph * act.rate) * 0.5 + 0.5;
-      final m = hold(1, 0.30 + g * 0.62, 0.05);
-      link(m, (m.$1 + 0.02, m.$2 + 0.17 * z, m.$3 + 0.07), 0.020, _wood2, 0.90);
-      box(
-        m.$1 - 0.022 * z,
-        m.$2 + 0.15 * z,
-        m.$3 + 0.030,
-        m.$1 + 0.080 * z,
-        m.$2 + 0.205 * z,
-        m.$3 + 0.115,
-        tinte,
-        0.92,
-      );
-
-    case PropKind.pole:
-      // Una vara larga que apunta a donde diga la tabla: la caña al agua, la
-      // escoba al suelo, el cayado al hombro.
-      final m = hold(1, 0.42, 0.02);
-      final largo = 0.95 * z;
-      link(
-        m,
-        (
-          m.$1 + 0.04,
-          m.$2 + math.sin(act.aim) * largo,
-          m.$3 + math.cos(act.aim) * largo,
-        ),
-        0.016,
-        tinte,
-        0.94,
-      );
-
-    case PropKind.kite:
-      // La cometa: un rombo de paño que se mueve solo, muy por encima y por
-      // delante, con su cola y su hilo. Es lo único de este valle que se mira
-      // hacia arriba, y desde lejos una cometa sobre un prado dice «aquí vive
-      // gente» mejor que cuarenta personas andando. Por eso no se va con la
-      // distancia aunque su dueño se quede en cuatro píxeles.
-      final kx = math.sin(t * 0.43) * 0.95;
-      final ky = 3.10 + math.sin(t * 0.31 + 1.1) * 0.22;
-      final kz = 1.55 + math.cos(t * 0.37) * 0.30;
-      final tela = _kite[hashInt(_kite.length, seed, 18)];
-      const ala = 0.30, alto = 0.40;
-      final papel = [
-        (kx, ky + alto, kz),
-        (kx + ala, ky, kz),
-        (kx, ky - alto, kz),
-        (kx - ala, ky, kz),
-      ];
-      panel(papel, 0.012, tela, 1.06);
-      link(papel[0], papel[2], 0.016, _wood2, 0.92);
-      link(papel[3], papel[1], 0.014, _wood2, 0.92);
-      for (var k = 1; k <= 3; k++) {
-        final w2 = math.sin(t * 1.3 - k * 0.8) * 0.085 * k;
-        link(
-          (kx + w2 * 0.6, ky - alto - (k - 1) * 0.21, kz),
-          (kx + w2, ky - alto - k * 0.21, kz),
-          0.026,
-          tela,
-          1.0,
-        );
-      }
-      link(hold(1, 0.85, 0.0), (kx, ky - alto, kz), 0.007, 0xFFEDE4D2, 1.05);
-
-    case PropKind.flyer:
-      // Lo que revolotea y no se deja: la mariposa, la abeja, el pájaro. Va
-      // por su cuenta — no la sigue él a ella, es ella la que se le escapa.
-      if (detail < 0.5) break;
-      final mx = math.sin(t * 1.05) * 0.34 * z + 0.12;
-      final my = 0.86 + math.sin(t * 1.7 + 0.7) * 0.22 * z;
-      final mz = 0.42 + math.cos(t * 0.83) * 0.18 * z;
-      final tono = act.tint ?? _wing[hashInt(_wing.length, seed, 20)];
-      // El aleteo: las alas se abren y se cierran nueve veces por segundo, que
-      // es lo que hace que un punto de color sea un bicho.
-      final flap = ((math.sin(t * 9.0) * 0.5 + 0.5) * 0.060 + 0.014) * z;
-      for (final w in [1.0, -1.0]) {
-        box(
-          mx + (w > 0 ? 0.005 : -0.005 - flap),
-          my - 0.005 * z,
-          mz - 0.034 * z,
-          mx + (w > 0 ? 0.005 + flap : -0.005),
-          my + 0.005 * z,
-          mz + 0.034 * z,
-          tono,
-          1.08,
-        );
-      }
-
-    case PropKind.floor:
-      // Algo en el suelo, delante: el barco de papel, el carrito, el gato, las
-      // gallinas, la peonza. Un bulto y un remate encima, que es todo lo que
-      // hace falta para que se lea un animal o un cacharro.
-      final bx = 0.10 + math.sin(t * 0.5) * 0.05 * z;
-      final bz = 0.40 + math.cos(t * 0.4) * 0.04 * z;
-      final w2 = 0.085 * z, alto2 = 0.10 * z;
-      box(
-        bx - w2,
+        barrido - 0.115,
         0.0,
-        bz - w2 * 1.3,
-        bx + w2,
-        alto2,
-        bz + w2 * 1.3,
-        tinte,
-        0.9,
+        cz - 0.050,
+        barrido + 0.115,
+        0.075,
+        cz + 0.050,
+        0xFFB99A55,
+        0.90,
       );
+      // Y el remate donde se enmanga, que es lo que separa el cepillo del
+      // mango en vez de que uno salga del otro sin más.
       box(
-        bx - w2 * 0.55,
-        alto2 * 0.85,
-        bz + w2 * 0.3,
-        bx + w2 * 0.55,
-        alto2 * 1.85,
-        bz + w2 * 1.35,
-        tinte,
-        0.98,
-      );
-
-    case PropKind.seat:
-      // Una banqueta. Quien la tiene se sienta en ella, y por eso el asiento
-      // queda justo donde la tabla le ha bajado el cuerpo.
-      box(-0.130, 0.0, -0.115, 0.130, 0.26 - baja * 0.5, 0.115, tinte, 0.86);
-
-    case PropKind.back:
-      // El fardo: un haz de leña, un saco. A la espalda y un poco por encima
-      // del hombro, que es como se carga.
-      box(
-        -0.115 * z + wag,
-        0.46 - baja,
-        -0.20 * z - 0.06,
-        0.115 * z + wag,
-        0.80 - baja + bob,
-        -0.07,
-        tinte,
-        0.88,
-      );
-
-    case PropKind.board:
-      // Una tabla, de dos maneras según a dónde apunte: tendida delante —la
-      // artesa, la tabla de lavar, el madero que se sierra— o de canto y
-      // agarrada con las dos manos —la vihuela, el libro, el pregón, el
-      // tablero de las tablas—. Es el mismo sólido; lo que cambia es de qué
-      // canto se ve, y con eso se lee una cosa o la otra.
-      final m = hold(1, 0.22, 0.05);
-      final w2 = 0.15 * z, alto2 = 0.14 * z;
-      if (act.aim <= -0.5) {
-        box(
-          m.$1 - w2 - 0.12,
-          m.$2 - 0.02,
-          m.$3,
-          m.$1 + w2 - 0.12,
-          m.$2 + 0.02,
-          m.$3 + alto2 * 2,
-          tinte,
-          1.0,
-        );
-      } else {
-        box(
-          -w2 * 0.8 + wag,
-          m.$2 - alto2 * 0.8,
-          m.$3 + 0.01,
-          w2 * 0.8 + wag,
-          m.$2 + alto2 * 0.8,
-          m.$3 + 0.07,
-          tinte,
-          1.02,
-        );
-      }
-
-    case PropKind.ball:
-      // Algo redondo que sube y baja por el aire: las bolas de los malabares,
-      // la piedra antes de caer al agua, el palo del perro.
-      final k = (math.sin(t * 2.4) * 0.5 + 0.5);
-      final bx = 0.05 + k * 0.14;
-      final by = 0.62 + math.sin(t * 2.4) * 0.42 * z;
-      final r = 0.045 * z;
-      box(bx - r, by - r, 0.24, bx + r, by + r, 0.24 + r * 2, tinte, 1.05);
-
-    case PropKind.rope:
-      // Una cuerda de la mano a algo: el caldero del pozo, el cordel del
-      // carrito, la cabra, la cuerda de medir. [aim] dice si va al suelo por
-      // delante o hacia arriba.
-      final m = hold(1, 0.36 + swing * 0.12, 0.02);
-      final fin = act.aim >= 0
-          ? (0.16, 0.06 * z, 0.52 + 0.22 * z)
-          : (0.16, 0.95, 0.30);
-      link(m, fin, 0.008, 0xFFC9B999, 1.0);
-      final r = 0.070 * z;
-      box(
-        fin.$1 - r,
-        fin.$2,
-        fin.$3 - r,
-        fin.$1 + r,
-        fin.$2 + r * 1.6,
-        fin.$3 + r,
-        tinte,
+        barrido - 0.038,
+        0.070,
+        cz - 0.032,
+        barrido + 0.038,
+        0.105,
+        cz + 0.032,
+        _wood2,
         0.94,
       );
 
-    case PropKind.puff:
-      // Humo, o vaho: tres bocanadas que suben y se deshacen. Lo único de una
-      // persona que se ve cuando ya no se ve la persona.
-      for (var k = 0; k < 3; k++) {
-        final u = ((t * 0.55 + k / 3) % 1.0);
-        final r = (0.035 + u * 0.055) * z;
-        if (u > 0.86) continue;
+    case PropKind.book:
+      // Un libro abierto: dos páginas en ángulo con su tapa por debajo y el
+      // lomo en medio. Sostenido delante y un poco inclinado, que es como se
+      // lee sentado.
+      final m = hold(1, 0.46, 0.09);
+      final y = m.$2, z = m.$3;
+      const ancho = 0.140, fondo = 0.128;
+      // El lomo.
+      box(-0.016, y, z, 0.016, y + 0.022, z + fondo, 0xFF6B4B2E, 0.94);
+      for (final lado in [1.0, -1.0]) {
+        // La tapa, un pelo más ancha que la hoja y por debajo.
         box(
-          0.08 + math.sin(u * 5 + k) * 0.05 - r,
-          0.24 + u * 0.62,
-          0.34 - r,
-          0.08 + math.sin(u * 5 + k) * 0.05 + r,
-          0.24 + u * 0.62 + r,
-          0.34 + r,
-          0xFFD8D4CC,
-          1.10,
+          lado * 0.016,
+          y - 0.004,
+          z,
+          lado * (ancho + 0.012),
+          y + 0.016,
+          z + fondo,
+          0xFF6B4B2E,
+          0.93,
         );
-      }
-
-    case PropKind.hoop:
-      // Un aro de canto, al lado, rodando. Ocho varas: a esta distancia es un
-      // círculo, y un círculo de verdad serían cuarenta caras por un crío.
-      if (detail < 0.35) break;
-      const r = 0.27;
-      final cx = 0.26, cy = r + 0.02, cz = 0.16;
-      final gira = t * 2.2;
-      final vueltas = [
-        for (var k = 0; k < 8; k++)
-          (
-            cx + math.cos(gira + k * math.pi / 4) * r * 0.35,
-            cy + math.sin(gira + k * math.pi / 4) * r,
-            cz + math.cos(gira + k * math.pi / 4) * r * 0.94,
-          ),
-      ];
-      for (var k = 0; k < 8; k++) {
-        link(vueltas[k], vueltas[(k + 1) % 8], 0.018, tinte, 0.96);
-      }
-
-    case PropKind.plant:
-      // Lo que crece delante, a ras de suelo: la mata de flores, el bancal del
-      // huerto.
-      for (var k = 0; k < 3; k++) {
-        final px = 0.02 + (k - 1) * 0.15;
-        final alto2 = (0.12 + hash01(seed, 40 + k) * 0.10) * z;
+        // Y la hoja encima, levantada por el canto de fuera: es ese desnivel
+        // el que hace que se lea «abierto» y no «tablilla».
         box(
-          px - 0.030,
-          0.0,
-          0.40 - 0.030,
-          px + 0.030,
-          alto2,
-          0.40 + 0.030,
-          0xFF4F7A34,
-          0.92,
-        );
-        box(
-          px - 0.042,
-          alto2,
-          0.40 - 0.042,
-          px + 0.042,
-          alto2 + 0.055 * z,
-          0.40 + 0.042,
-          tinte,
+          lado * 0.016,
+          y + 0.016,
+          z,
+          lado * ancho,
+          y + 0.030,
+          z + fondo,
+          0xFFF2EDDD,
           1.06,
+        );
+      }
+
+    case PropKind.stool:
+      // Una banqueta de tres patas. El asiento a la altura a la que la tabla
+      // ya le ha bajado el cuerpo, así que se sienta en ella y no sobre ella.
+      final alto = 0.30 - baja * 0.5;
+      box(-0.135, alto - 0.045, -0.120, 0.135, alto, 0.120, _wood2, 0.88);
+      for (final (px, pz) in [
+        (-0.095, -0.080),
+        (0.095, -0.080),
+        (0.0, 0.092),
+      ]) {
+        box(
+          px - 0.024,
+          0.0,
+          pz - 0.024,
+          px + 0.024,
+          alto - 0.040,
+          pz + 0.024,
+          _wood2,
+          0.84,
         );
       }
   }
