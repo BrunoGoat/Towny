@@ -474,6 +474,59 @@ void main() {
     });
   });
 
+  group('el expositor de la gente', () {
+    test('el de muestra hace lo que se le pide y nada más', () {
+      for (final d in Doing.all) {
+        final w = Townsfolk.showcase(d);
+        expect(w.debugActs, [d]);
+        for (final s in [0.0, 5.0, 90.0, 4000.0]) {
+          final at = w.at(s);
+          expect(at.act, d, reason: '${d.id} cambia de idea sola');
+          expect(at.moving, isFalse);
+          expect(at.x, 0);
+          expect(at.z, 0);
+        }
+      }
+    });
+
+    test('y el reloj del gesto corre, que es lo que se va a mirar', () {
+      // Un expositor donde todo sale congelado no sirve para revisar
+      // animaciones, que es literalmente para lo que existe.
+      final w = Townsfolk.showcase(Doing.all.first);
+      expect(w.at(10).phase, greaterThan(w.at(2).phase));
+    });
+
+    test('se puede pedir crío o mayor cuando la cosa admite los dos', () {
+      for (final d in Doing.all) {
+        if (d.who != Who.anyone) continue;
+        expect(Townsfolk.showcase(d, kid: true).kid, isTrue, reason: d.id);
+        expect(Townsfolk.showcase(d, kid: false).kid, isFalse, reason: d.id);
+      }
+    });
+
+    test('las noventa y cuatro dan geometría, y ninguna se queda en nada', () {
+      // Lo que esto caza es una fila de la tabla con los números a cero: una
+      // actividad que existe, se sortea, y se ve igual que no hacer nada.
+      for (final d in Doing.all) {
+        final w = Townsfolk.showcase(d, kid: d.who == Who.kid);
+        final solids = folkSolids(w, w.at(3.4), 0.6);
+        expect(solids, isNotEmpty, reason: '${d.id} no dibuja nada');
+        for (final s in solids) {
+          for (final f in s.faces) {
+            expect(f.v.length, greaterThanOrEqualTo(3), reason: d.id);
+            for (final v in f.v) {
+              expect(
+                v.x.isFinite && v.y.isFinite && v.z.isFinite,
+                isTrue,
+                reason: '${d.id} saca un vértice que no es un número',
+              );
+            }
+          }
+        }
+      }
+    });
+  });
+
   group('el día y la noche', () {
     double luz(double hora, {Season season = Season.none}) =>
         Palette.forMoment(hora, 1.0, season: season).daylight;

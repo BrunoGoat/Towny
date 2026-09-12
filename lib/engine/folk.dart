@@ -41,7 +41,41 @@ class Townsfolk {
     this.period,
   );
 
+  /// Una persona quieta en el origen, haciendo una cosa y nada más.
+  ///
+  /// Para el expositor de actividades. Noventa y cuatro cosas escritas en una
+  /// tabla no se revisan leyendo la tabla: se revisan mirándolas una a una, de
+  /// cerca y dando la vuelta alrededor. Y lo que no se entiende mirándolo así
+  /// tampoco se va a entender a doce píxeles en medio de un pueblo, que es
+  /// exactamente lo que hay que poder decidir.
+  ///
+  /// La ronda es un solo sitio con una parada larguísima, así que [at] siempre
+  /// devuelve lo mismo salvo el reloj del gesto.
+  factory Townsfolk.showcase(Doing doing, {int seed = 7, bool kid = false}) {
+    // La semilla manda sobre si es crío, y el expositor quiere poder enseñar
+    // las dos cosas: se busca una que dé la edad pedida en vez de forzarla,
+    // que sería una regla más que mantener.
+    var s = seed;
+    for (var k = 0; k < 4096; k++) {
+      if ((hash01(s, 12) < 0.24) == kid) break;
+      s = hash32(s, 0x5EED, k);
+    }
+    return Townsfolk._(
+      -1,
+      s,
+      folkName(s),
+      null,
+      const [(0.0, 0.0)],
+      const [1e6],
+      const [0.0],
+      [doing],
+      1e6,
+    );
+  }
+
   /// El edificio en el que vive, que es el que lo puso en el mundo.
+  ///
+  /// Vale `-1` para el de muestra, que no vive en ninguno.
   final int home;
 
   /// De donde sale todo lo suyo: la cara, el paño, la talla, la ronda y a qué

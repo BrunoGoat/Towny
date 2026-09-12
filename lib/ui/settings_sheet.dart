@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/demo.dart';
+import '../data/doings.dart';
 import '../data/landmarks.dart';
 import '../engine/season.dart';
 import '../engine/town.dart';
@@ -9,6 +10,7 @@ import '../model/appearance.dart';
 import '../model/piece.dart';
 import '../model/store.dart';
 import 'backup_sheet.dart';
+import 'folk_gallery_screen.dart';
 import 'debug_sheet.dart';
 import 'gallery_screen.dart';
 import '../engine/shooting_star.dart';
@@ -304,6 +306,15 @@ class _SettingsSheetState extends State<SettingsSheet> {
               'Las ${landmarks.length + BuildingKind.values.length} estructuras '
               'que el pueblo sabe construir.',
           page: () => GalleryScreen(theme: t),
+        ),
+        _Row(
+          theme: t,
+          icon: Icons.directions_walk,
+          title: 'El expositor de la gente',
+          subtitle:
+              'Las ${Doing.all.length} cosas que hacen los vecinos cuando no '
+              'están andando, una a una y de cerca.',
+          page: () => FolkGalleryScreen(theme: t),
         ),
       ],
     );

@@ -158,6 +158,7 @@ class TownScene {
     this.tonightKnown = false,
     this.skyNight = 0,
     this.folk = true,
+    this.soloFolk,
   });
 
   /// How many achievements have been laid.
@@ -177,6 +178,15 @@ class TownScene {
   /// Se apaga para el expositor y para los tests que miden geometría: un test
   /// que cuenta caras no puede llevar a cuarenta vecinos andando dentro.
   final bool folk;
+
+  /// Una persona sola en medio del prado, para el expositor de actividades.
+  ///
+  /// Cuando está puesta, es lo único que se pinta de gente: se planta en el
+  /// origen y se la mira dando la vuelta. Va por el mismo camino que la gente
+  /// de un pueblo —las mismas cajas, el mismo sombreado, el mismo descarte de
+  /// caras— porque si no, el expositor enseñaría algo que no es lo que se ve
+  /// luego, y entonces no sirve para decidir nada.
+  final Townsfolk? soloFolk;
 
   final EffectSystem effects;
 
@@ -340,11 +350,29 @@ class TownPainter extends CustomPainter {
     // orden, que va entre los edificios. Resolverla dos veces sería que la
     // sombra estuviera medio paso por detrás del pie.
     _folkNow.clear();
-    for (var i = 0; i < scene.towns.length; i++) {
-      final e = scene.towns[i];
-      final take = math.min(e.placed, e.layout.pieces.length);
-      if (take > 0) {
-        _folkNow[i] = _folkOut(p, e, scene.palette, take, size);
+    final solo = scene.soloFolk;
+    if (solo != null) {
+      final talla = folkHeight(scene.towns.first.layout.character);
+      final at = solo.at(scene.time);
+      final screen = p.project(V3(at.x, talla * 0.6, at.z));
+      if (screen != null) {
+        _folkNow[0] = [
+          _Walker(
+            solo,
+            at,
+            talla,
+            p.focal / math.max(screen.depth, 0.01) * talla,
+            screen.depth,
+          ),
+        ];
+      }
+    } else {
+      for (var i = 0; i < scene.towns.length; i++) {
+        final e = scene.towns[i];
+        final take = math.min(e.placed, e.layout.pieces.length);
+        if (take > 0) {
+          _folkNow[i] = _folkOut(p, e, scene.palette, take, size);
+        }
       }
     }
     for (var i = 0; i < scene.towns.length; i++) {
@@ -1801,6 +1829,20 @@ class TownPainter extends CustomPainter {
     final light = pal.lightDir;
     final fx = scene.fx;
     final night = !pal.isDaylight;
+
+    // El expositor de actividades: una persona en el prado y nada más. No hay
+    // mampostería que ordenar, así que no hay orden que recorrer.
+    if (scene.soloFolk != null) {
+      _paintFolk(
+        p,
+        scene.towns.first,
+        _folkNow[0] ?? const [],
+        pal,
+        light,
+        size,
+      );
+      return;
+    }
 
     // How high the finishing wave has climbed, and how bright it still is.
     _sweep = -1.0;
