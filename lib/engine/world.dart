@@ -650,8 +650,8 @@ void walkOrder(Order node, V3 eye, void Function(OrderLeaf) visit) {
 /// En planta y no en tres dimensiones porque lo que va montado son personas:
 /// están de pie en el suelo y lo que dice con cuál de dos cosas van es dónde
 /// pisan, no a qué altura tienen la cabeza.
-bool _within<T>(Aabb box, T rider, double Function(T, int) coord) {
-  final x = coord(rider, 0), z = coord(rider, 2);
+bool _within<T>(Aabb box, T rider, (double, double) Function(T, int) span) {
+  final x = span(rider, 0).$1, z = span(rider, 2).$1;
   return x >= box.x0 - 0.5 &&
       x <= box.x1 + 0.5 &&
       z >= box.z0 - 0.5 &&
@@ -662,7 +662,7 @@ void walkOrderWith<T>(
   Order node,
   V3 eye,
   List<T> riders,
-  double Function(T rider, int axis) coord,
+  (double lo, double hi) Function(T rider, int axis) span,
   void Function(OrderLeaf leaf, List<T> here) visit,
 ) {
   if (node is OrderLeaf) {
@@ -684,13 +684,13 @@ void walkOrderWith<T>(
     if (riders.isNotEmpty) {
       final a = <T>[], b = <T>[];
       for (final r in riders) {
-        (_within(node.first.bounds, r, coord) ? a : b).add(r);
+        (_within(node.first.bounds, r, span) ? a : b).add(r);
       }
       unos = a;
       otros = b;
     }
-    walkOrderWith<T>(node.first, eye, unos, coord, visit);
-    walkOrderWith(node.then, eye, otros, coord, visit);
+    walkOrderWith<T>(node.first, eye, unos, span, visit);
+    walkOrderWith(node.then, eye, otros, span, visit);
     return;
   }
   final split = node as OrderSplit;
@@ -699,28 +699,43 @@ void walkOrderWith<T>(
     1 => eye.y,
     _ => eye.z,
   };
+  final nearFirst = e >= split.at;
   List<T> low = const [], high = const [];
   if (riders.isNotEmpty) {
     final lo = <T>[], hi = <T>[];
     for (final r in riders) {
-      (coord(r, split.axis) >= split.at ? hi : lo).add(r);
+      final (a, b) = span(r, split.axis);
+      // Lo que va montado **ocupa sitio**, no es un punto, y por eso hay tres
+      // casos y no dos. Una persona mide lo suyo de alto: contra un plano
+      // horizontal a media altura no está a un lado, está en los dos.
+      //
+      // Y cuando está en los dos no hay orden correcto, así que se elige el
+      // que menos duele: el lado del ojo, que se pinta el último. Lo que pasa
+      // entonces es que se dibuja por delante de un escalón; al revés, lo que
+      // pasaba es que media casa le caía encima y se le veían los pies.
+      if (b < split.at) {
+        lo.add(r);
+      } else if (a > split.at) {
+        hi.add(r);
+      } else {
+        (nearFirst ? hi : lo).add(r);
+      }
     }
     low = lo;
     high = hi;
   }
-  final nearFirst = e >= split.at;
   walkOrderWith(
     nearFirst ? split.low : split.high,
     eye,
     nearFirst ? low : high,
-    coord,
+    span,
     visit,
   );
   walkOrderWith(
     nearFirst ? split.high : split.low,
     eye,
     nearFirst ? high : low,
-    coord,
+    span,
     visit,
   );
 }

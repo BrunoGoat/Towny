@@ -223,7 +223,23 @@ class _SettingsSheetState extends State<SettingsSheet> {
             on: wants.fakeSeason,
             onChanged: wants.setFakeSeason,
           ),
-          if (wants.fakeSeason)
+          if (wants.fakeSeason) ...[
+            // Las cuatro de un toque, y el deslizador debajo para lo de en
+            // medio. Estaba sólo el deslizador y no servía para lo que la
+            // gente quiere hacer con esto, que es ver las cuatro estaciones
+            // seguidas: buscar el invierno a tientas en una barra no es verlo,
+            // es cazarlo.
+            _Pick(
+              theme: t,
+              options: const [
+                ('Invierno', 0.0),
+                ('Primavera', 0.25),
+                ('Verano', 0.5),
+                ('Otoño', 0.75),
+              ],
+              value: wants.fakeSeasonAt,
+              onPick: wants.setFakeSeasonAt,
+            ),
             _Slider(
               theme: t,
               title:
@@ -233,6 +249,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
               value: wants.fakeSeasonAt,
               onChanged: wants.setFakeSeasonAt,
             ),
+          ],
         ],
 
         const SizedBox(height: 26),
@@ -435,6 +452,68 @@ class _Switch extends StatelessWidget {
                 onChanged(v);
               }
             : null,
+      ),
+    );
+  }
+}
+
+/// Unas cuantas opciones en fila, para elegir una de un toque.
+class _Pick extends StatelessWidget {
+  const _Pick({
+    required this.theme,
+    required this.options,
+    required this.value,
+    required this.onPick,
+  });
+
+  final UiTheme theme;
+  final List<(String, double)> options;
+  final double value;
+  final void Function(double) onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = theme;
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, bottom: 10),
+      child: Row(
+        children: [
+          for (final (name, at) in options) ...[
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  Sensory.instance.tick();
+                  onPick(at);
+                },
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(vertical: 9),
+                  decoration: BoxDecoration(
+                    color: t.fg.withValues(
+                      alpha: (value - at).abs() < 0.01 ? 0.13 : 0.04,
+                    ),
+                    borderRadius: BorderRadius.circular(11),
+                    border: Border.all(
+                      color: (value - at).abs() < 0.01
+                          ? t.accent.withValues(alpha: 0.8)
+                          : t.stroke,
+                      width: (value - at).abs() < 0.01 ? 1.4 : 1,
+                    ),
+                  ),
+                  child: Text(
+                    name,
+                    style: t.bodySoft.copyWith(
+                      fontSize: 12,
+                      color: (value - at).abs() < 0.01 ? t.fg : t.fgSoft,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            if (at != options.last.$2) const SizedBox(width: 7),
+          ],
+        ],
       ),
     );
   }

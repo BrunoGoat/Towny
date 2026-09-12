@@ -429,22 +429,28 @@ void main() {
         // se acerca, y estuvo ahí desde el primer día: la talla era un 0.58
         // puesto a ojo en mitad del render, y con él una persona medía media
         // planta y no llegaba a lo alto de su propia ventana.
+        //
+        // Los márgenes bajaron un cuarto cuando la figura se hizo cabezona:
+        // lo que la cuenta da es lo que mide una persona de verdad, y una
+        // figura con media cabeza por cuerpo a esa talla sale gigante. Lo que
+        // se sigue exigiendo es lo mismo — que pase de su ventana, que no pase
+        // de su pared y que quepa por su puerta—; sólo cambia contra qué.
         for (final c in TownCharacter.all) {
           final (planta, ventana) = medidas(c);
           final alto = TownPainter.folkHeight(c);
           expect(
             alto,
-            greaterThan(ventana * 1.35),
+            greaterThan(ventana * 1.02),
             reason: '${c.region}: una persona no llega a su ventana',
           );
           expect(
             alto,
-            lessThan(ventana * 1.9),
+            lessThan(ventana * 1.45),
             reason: '${c.region}: una persona es más alta que la pared',
           );
           expect(
             alto / planta,
-            inInclusiveRange(0.62, 0.78),
+            inInclusiveRange(0.46, 0.60),
             reason: '${c.region}: una persona no cabe por su propia puerta',
           );
         }

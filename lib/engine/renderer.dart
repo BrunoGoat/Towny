@@ -1900,64 +1900,81 @@ class TownPainter extends CustomPainter {
       // worked out per town and not once for the valley.
       _tone.clear();
       _picking = w == scene.active;
-      // La gente, ordenada contra lo que hay en pie y no repartida por el
-      // árbol.
+      // La gente va **repartida por el árbol**, como todo lo demás.
       //
-      // Repartirlos por el árbol era lo natural y estaba mal: el árbol separa
-      // **geometría**, no espacio, y la región que le toca a una hoja puede ser
-      // media plaza. Medido, con tres puntos a diez metros unos de otros: los
-      // tres caían en la misma hoja, la ciento treinta y siete de ciento
-      // cincuenta y cinco. O sea, casi al final — encima de casi todo. Eso era
-      // la gente de pie en los tejados.
+      // Lo intenté de la otra manera —llevarlos pendientes e ir soltando, antes
+      // de cada hoja, a los que quedaran detrás de ella— y era peor, porque el
+      // orden de las hojas no es una lista por distancia: es un orden de pintor,
+      // que garantiza cada par pero no un total. Alguien delante de la casa A
+      // quedaba detrás de la casa B, se le soltaba antes de B, y luego A
+      // —pintada más tarde y de hecho más cerca— le caía encima. En pantalla
+      // eso es un vecino al que la pared le tapa el cuerpo y le deja los pies
+      // asomando, y se veía sólo desde arriba: desde el suelo el orden salía
+      // bien por casualidad.
       //
-      // Las hojas ya vienen de lejos a cerca, así que basta con llevarlos
-      // pendientes e ir soltando, antes de pintar cada hoja, a los que queden
-      // **detrás** de ella: mismo criterio de eje separador que usa el árbol
-      // entre dos edificios. El que no queda detrás de nada se pinta al final,
-      // que es donde va quien no tiene nada delante.
-      final pendientes = List<_Walker>.of(_folkNow[w] ?? const <_Walker>[]);
-      void soltar(Aabb box) {
-        if (pendientes.isEmpty) return;
-        final ahora = <_Walker>[];
-        pendientes.removeWhere((v) {
-          if (!_behind(p.eye, box, v)) return false;
-          ahora.add(v);
-          return true;
-        });
-        if (ahora.isNotEmpty) _paintFolk(p, e, ahora, pal, light, size);
-      }
-
-      walkOrder(root, p.eye, (leaf) {
-        final box = leaf.bounds;
-        // Una hoja que no se pinta no tapa a nadie, así que tampoco adelanta a
-        // nadie: si soltáramos gente aquí, lo que viniera después se le
-        // pintaría encima sin motivo.
-        if (p.cameraOf(V3(box.cx, box.cy, box.cz)).z + box.radius < p.near) {
-          return;
-        }
-        final c = leaf.cluster;
-        if (c == null) {
-          soltar(box);
-          _emitWeather(p, e, e.layout.pieces[leaf.weather], pal, night, decay);
-          return;
-        }
-        if (_away(p, box) > cut) return;
-        final mine = w == scene.active && c.members.contains(_fallingPiece);
-        soltar(box);
-        c.tree.paint(p.eye, (f) {
-          // `f.piece >= 0` matters: the town's own furniture is filed under
-          // no achievement at all, and "no achievement" must not collide with
-          // "the achievement that is in the air right now".
-          if (w == scene.active && f.piece >= 0 && f.piece == _fallingPiece) {
+      // El árbol no tiene ese problema. Un punto baja por los planos hasta una
+      // hoja, y para cualquier otra hoja hay un plano que las separa y que lo
+      // pone del mismo lado que la suya. Su sitio en el orden es el de su hoja,
+      // y eso sí es exacto.
+      final vecinos = _folkNow[w] ?? const <_Walker>[];
+      walkOrderWith<_Walker>(
+        root,
+        p.eye,
+        vecinos,
+        (v, axis) => switch (axis) {
+          0 => (v.at.x, v.at.x),
+          // De los pies a la coronilla. Una persona no es un punto: contra un
+          // plano horizontal a media altura está en los dos lados.
+          1 => (0.0, v.size),
+          _ => (v.at.z, v.at.z),
+        },
+        (leaf, aqui) {
+          final box = leaf.bounds;
+          if (p.cameraOf(V3(box.cx, box.cy, box.cz)).z + box.radius < p.near) {
+            // Se salta la mampostería, no a la gente: alguien puede estar
+            // andando por delante de un edificio que la cámara ya dejó atrás.
+            _paintFolk(p, e, aqui, pal, light, size);
             return;
           }
-          _paint(p, e, f, pal, light, night, decay, size);
-        });
-        // Straight after the building it belongs to, and before any building
-        // nearer than that one.
-        if (mine) _paintFalling(p, e, pal, light, night, size);
-      });
-      _paintFolk(p, e, pendientes, pal, light, size);
+          final c = leaf.cluster;
+          if (c == null) {
+            _emitWeather(
+              p,
+              e,
+              e.layout.pieces[leaf.weather],
+              pal,
+              night,
+              decay,
+            );
+            _paintFolk(p, e, aqui, pal, light, size);
+            return;
+          }
+          if (_away(p, box) > cut) {
+            _paintFolk(p, e, aqui, pal, light, size);
+            return;
+          }
+          final mine = w == scene.active && c.members.contains(_fallingPiece);
+          // Y dentro de su propia hoja, los que queden detrás del edificio se
+          // pintan antes que él. La hoja es un edificio y el trozo de calle que
+          // lo rodea; sin esto, al que está detrás se le pinta encima del
+          // tejado.
+          final (detras, delante) = _folkSides(p.eye, box, aqui);
+          _paintFolk(p, e, detras, pal, light, size);
+          c.tree.paint(p.eye, (f) {
+            // `f.piece >= 0` matters: the town's own furniture is filed under
+            // no achievement at all, and "no achievement" must not collide with
+            // "the achievement that is in the air right now".
+            if (w == scene.active && f.piece >= 0 && f.piece == _fallingPiece) {
+              return;
+            }
+            _paint(p, e, f, pal, light, night, decay, size);
+          });
+          // Straight after the building it belongs to, and before any building
+          // nearer than that one.
+          if (mine) _paintFalling(p, e, pal, light, night, size);
+          _paintFolk(p, e, delante, pal, light, size);
+        },
+      );
     }
 
     // If its own building never came up — filed away by the budget, or off
@@ -1989,6 +2006,19 @@ class TownPainter extends CustomPainter {
   /// Sin desempate, lo peor que pasa es que alguien metido debajo de un alero
   /// se pinte por delante de él. Eso se ve raro un instante; lo otro era gente
   /// que se esfuma.
+  static (List<_Walker>, List<_Walker>) _folkSides(
+    V3 eye,
+    Aabb box,
+    List<_Walker> here,
+  ) {
+    if (here.isEmpty) return (const [], const []);
+    final detras = <_Walker>[], delante = <_Walker>[];
+    for (final v in here) {
+      (_behind(eye, box, v) ? detras : delante).add(v);
+    }
+    return (detras, delante);
+  }
+
   static bool _behind(V3 eye, Aabb box, _Walker v) {
     final x = v.at.x, z = v.at.z;
     // De los pies a la coronilla, que es lo que ocupa de alto.
@@ -2096,7 +2126,13 @@ class TownPainter extends CustomPainter {
   /// Pública para poder exigirlo en un test contra las medidas de verdad de un
   /// pueblo levantado. Un número a ojo en mitad del render es exactamente la
   /// clase de cosa que nadie vuelve a mirar.
-  static double folkHeight(TownCharacter place) => 0.80 * place.storey;
+  /// Y un cuarto menos de lo que decía la cuenta, porque lo que la cuenta da
+  /// es lo que mide una persona **de verdad**, y aquí las cabezas ocupan media
+  /// figura. Con la talla exacta salían gigantes cabezones; a tres cuartos la
+  /// silueta se posa bien contra las puertas y los aleros, que es lo que se
+  /// mira. Es la única cifra de esto que no sale de una medida sino del ojo, y
+  /// por eso va aparte y dicha.
+  static double folkHeight(TownCharacter place) => 0.80 * 0.75 * place.storey;
 
   /// Cuántos se pintan como mucho.
   ///
