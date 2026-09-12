@@ -1114,8 +1114,6 @@ List<Solid> folkSolids(
 
   final pano = _cloth[hashInt(_cloth.length, seed, 2)];
   final piel = _skin[hashInt(_skin.length, seed, 3)];
-  // La falda del sayo, de otro tono: el mismo paño más sucio de andar.
-  final calzas = _cloth[hashInt(_cloth.length, seed, 4)];
   final pelo = _hair[hashInt(_hair.length, seed, 5)];
 
   final act = at.act;
@@ -1149,7 +1147,7 @@ List<Solid> folkSolids(
   /// lado de donde estaría, y lo que se sostiene se queda ahí. A esta
   /// distancia es lo mismo, y una mano de tres píxeles no es una mano.
   (double, double, double) hold(double s, double raise, double fwd) =>
-      (s * 0.155 + wag, 0.50 + raise * 0.34 + bob - baja, 0.13 + fwd + lean);
+      (s * 0.150 + wag, 0.26 + raise * 0.34 + bob - baja, 0.13 + fwd + lean);
 
   /// Una vara entre dos puntos: el hilo de la cometa, su cola, el mango de una
   /// herramienta, la cuerda de un caldero. [box] sólo sabe hacer cajas rectas
@@ -1254,58 +1252,62 @@ List<Solid> folkSolids(
     out.add(Solid(-1, faces));
   }
 
-  // La figura: el sayo abajo, los hombros arriba, la cabeza y el pelo. Cuatro
-  // cajas y ninguna extremidad.
+  // La figura: un cuerpo, una cabeza y el pelo. Tres cajas.
   //
-  // Sin brazos y sin piernas a propósito, y no por ahorrar caras. Un vecino
-  // ocupa entre tres y veinte píxeles: unas piernas ahí son dos rayas que
-  // parpadean y unos brazos son una mancha que ensancha la silueta hasta que
-  // deja de parecer una persona. Lo que se lee a esa distancia es **la
-  // silueta, el color y el movimiento**, y los tres salen mejor de una figura
-  // limpia. Es además lo que hace el resto del valle: una casa tampoco tiene
-  // picaporte.
-  final pie = math.max(0.0, 0.44 - sit * 0.16);
+  // **Un cuerpo, no un tronco y unas calzas.** Eran dos cajas de dos colores
+  // —la falda del sayo y los hombros— y a la distancia a la que se mira un
+  // pueblo eso no se lee como ropa: se lee como una raya horizontal que le
+  // parte la silueta a todo el mundo por el mismo sitio. De una pieza y de un
+  // color, la silueta vuelve a ser una silueta.
+  //
+  // Y sin brazos ni piernas a propósito, que no es por ahorrar caras: un
+  // vecino ocupa entre tres y veinte píxeles, y ahí unas piernas son dos rayas
+  // que parpadean y unos brazos una mancha que ensancha la silueta hasta que
+  // deja de parecer una persona. Lo que se lee a esa distancia es la silueta,
+  // el color y el movimiento. Es además lo que hace el resto del valle: una
+  // casa tampoco tiene picaporte.
+  //
+  // Las proporciones son las de cualquier cosa dibujada que caiga bien, y hubo
+  // que llegar a ellas de tres intentos:
+  //
+  //  - La cabeza ocupa **casi la mitad** de lo que mide, y es cúbica: tan
+  //    ancha como alta. Con una cabeza de un tercio y estrecha, la figura
+  //    seguía leyéndose como un poste con gorro.
+  //  - Y es **más ancha que el cuerpo**, un tercio más. Mientras las dos cajas
+  //    medían casi lo mismo de ancho no había cabeza: había una columna con
+  //    una raya de color.
+  //  - El cuerpo, corto y ancho, uno a dos. Estrecho volvía la columna.
   box(
-    -0.140 + wag,
+    -0.150 + wag,
     0.0,
-    -0.106,
-    0.140 + wag,
-    pie + bob * 0.4,
-    0.106,
-    calzas,
-    0.90,
-  );
-  box(
-    -0.116 + wag * 0.6,
-    pie - 0.05 + bob * 0.7,
-    -0.088 + lean * 0.7,
-    0.116 + wag * 0.6,
-    0.80 + bob - baja,
-    0.088 + lean * 0.7,
+    -0.116 + lean * 0.5,
+    0.150 + wag,
+    0.56 + bob - baja,
+    0.116 + lean * 0.5,
     pano,
     1.0,
   );
   box(
-    -0.074,
-    0.775 + bob - baja,
-    -0.070 + lean * 1.6,
-    0.074,
-    0.975 + bob - baja,
-    0.070 + lean * 1.6,
+    -0.205 + wag * 0.4,
+    0.520 + bob - baja,
+    -0.175 + lean * 1.5,
+    0.205 + wag * 0.4,
+    0.960 + bob - baja,
+    0.175 + lean * 1.5,
     piel,
     1.02,
   );
-  // El pelo, que es media caja encima de la cara. A quince píxeles la cara es
-  // un punto y el pelo es la mitad de la cabeza: es lo que hace que dos
-  // vecinos no se confundan de lejos.
+  // El pelo, que es un gorro encima de la cara. A quince píxeles la cara es un
+  // punto y el pelo es la mitad de la cabeza: es lo que hace que dos vecinos
+  // no se confundan de lejos.
   if (detail > 0.25) {
     box(
-      -0.078,
-      0.912 + bob - baja,
-      -0.074 + lean * 1.6,
-      0.078,
-      0.995 + bob - baja,
-      0.074 + lean * 1.6,
+      -0.212 + wag * 0.4,
+      0.830 + bob - baja,
+      -0.182 + lean * 1.5,
+      0.212 + wag * 0.4,
+      0.985 + bob - baja,
+      0.182 + lean * 1.5,
       pelo,
       1.0,
     );
@@ -1499,12 +1501,12 @@ List<Solid> folkSolids(
         );
       } else {
         box(
-          -w2 + wag,
-          m.$2 - alto2,
+          -w2 * 0.8 + wag,
+          m.$2 - alto2 * 0.8,
           m.$3 + 0.01,
-          w2 + wag,
-          m.$2 + alto2,
-          m.$3 + 0.05,
+          w2 * 0.8 + wag,
+          m.$2 + alto2 * 0.8,
+          m.$3 + 0.07,
           tinte,
           1.02,
         );

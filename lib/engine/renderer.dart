@@ -1976,10 +1976,19 @@ class TownPainter extends CustomPainter {
   ///
   /// Es la prueba de eje separador de una persona contra una caja alineada: el
   /// mismo criterio exacto con el que el árbol decide el orden entre dos
-  /// edificios. Mientras haya un eje que los separe no hay heurística ninguna;
-  /// cuando no lo hay —alguien pegado a la pared, o debajo de un alero— se
-  /// decide por distancia al centro, que es lo único que queda y lo que menos
-  /// se nota.
+  /// edificios. Mientras haya un eje que los separe, no hay heurística ninguna.
+  ///
+  /// **Y cuando no lo hay, no está detrás.** Tenía aquí un desempate por
+  /// distancia al centro de la caja, para colocar a quien estuviera pegado a
+  /// una pared o debajo de un alero, y ese desempate era de donde salía que la
+  /// gente desapareciera a ratos: hay hojas cuya caja abarca medio pueblo —los
+  /// sembrados, el agua, una bandera— y dentro de una de ésas cualquiera queda
+  /// «más lejos que el centro», así que se soltaba en la segunda hoja de
+  /// ciento cincuenta y se le pintaba el pueblo entero encima.
+  ///
+  /// Sin desempate, lo peor que pasa es que alguien metido debajo de un alero
+  /// se pinte por delante de él. Eso se ve raro un instante; lo otro era gente
+  /// que se esfuma.
   static bool _behind(V3 eye, Aabb box, _Walker v) {
     final x = v.at.x, z = v.at.z;
     // De los pies a la coronilla, que es lo que ocupa de alto.
@@ -1990,17 +1999,7 @@ class TownPainter extends CustomPainter {
         (alto <= box.y0 && eye.y >= box.y1) ||
         (suelo >= box.y1 && eye.y <= box.y0) ||
         (z <= box.z0 && eye.z >= box.z1) ||
-        (z >= box.z1 && eye.z <= box.z0) ||
-        (x > box.x0 &&
-            x < box.x1 &&
-            z > box.z0 &&
-            z < box.z1 &&
-            _far(eye, x, v.y, z) > _far(eye, box.cx, box.cy, box.cz));
-  }
-
-  static double _far(V3 eye, double x, double y, double z) {
-    final dx = x - eye.x, dy = y - eye.y, dz = z - eye.z;
-    return dx * dx + dy * dy + dz * dz;
+        (z >= box.z1 && eye.z <= box.z0);
   }
 
   /// La gente que hay ahora mismo en la calle de este pueblo, ya colocada.
@@ -2063,8 +2062,18 @@ class TownPainter extends CustomPainter {
       // píxeles. Un vecino mide `talla` de alto: esto es lo que ocupa.
       final alto = p.focal / math.max(screen.depth, 0.01) * talla;
       if (alto < 2.2) continue;
-      out.add(_Walker(who, at, talla * (1 - hunde), alto));
-      if (out.length >= _folkCap) break;
+      out.add(_Walker(who, at, talla * (1 - hunde), alto, screen.depth));
+    }
+    // Si no caben todos, se van los de más lejos.
+    //
+    // Antes se cortaba por orden de lista y se paraba en sesenta, y eso hacía
+    // que la gente se esfumara en mitad de la pantalla: quién pasa los filtros
+    // cambia al andar —uno se va del cuadro, otro se acerca— y con el corte
+    // por orden de lista, el que se cae del sesenta puede ser el que tenés
+    // delante. Por distancia, el que se cae es siempre el más chico de todos.
+    if (out.length > _folkCap) {
+      out.sort((a, b) => a.depth.compareTo(b.depth));
+      out.length = _folkCap;
     }
     return out;
   }
@@ -2094,7 +2103,12 @@ class TownPainter extends CustomPainter {
   /// Un pueblo de dos mil piezas tiene cuatrocientas casas, y cuatrocientas
   /// personas son doce mil caras que se mueven todos los fotogramas. Sesenta
   /// es más gente de la que se distingue en una pantalla de teléfono.
-  static const int _folkCap = 60;
+  ///
+  /// Subió de sesenta a ochenta cuando la gente empezó a descartar sus caras
+  /// traseras: una figura pasó de doce caras a seis y de cuatro cajas a tres,
+  /// así que ochenta cuestan hoy menos que sesenta ayer. Y cuanto más alto el
+  /// tope, más lejos queda el que se cae de él.
+  static const int _folkCap = 80;
 
   void _paintFolk(
     Projector p,
@@ -2120,6 +2134,21 @@ class TownPainter extends CustomPainter {
             : 0.05,
       )) {
         for (final f in solid.faces) {
+          // Las que miran para el otro lado, fuera.
+          //
+          // Es la regla de toda la mampostería del valle —un sólido cerrado no
+          // enseña sus caras de dentro— y la gente se la estaba saltando: se
+          // pintaba por `_plain`, que no la aplica, así que cada caja sacaba
+          // sus seis caras y la de atrás caía encima de la de delante. De ahí
+          // que no acabaran de parecer sólidos y que según el ángulo se
+          // comieran una cara.
+          final a = f.v.first;
+          if ((p.eye.x - a.x) * f.n.x +
+                  (p.eye.y - a.y) * f.n.y +
+                  (p.eye.z - a.z) * f.n.z <=
+              0) {
+            continue;
+          }
           _plain(p, f, pal, light, 0);
         }
       }
@@ -3235,10 +3264,13 @@ class TownPainter extends CustomPainter {
 /// Un vecino resuelto para este fotograma: quién es, dónde está, lo que mide
 /// y lo que ocupa en la pantalla.
 class _Walker {
-  _Walker(this.who, this.at, this.size, this.pixels);
+  _Walker(this.who, this.at, this.size, this.pixels, this.depth);
   final Townsfolk who;
   final FolkAt at;
   final double size, pixels;
+
+  /// Lo lejos que está del ojo, para que el tope se lleve a los de atrás.
+  final double depth;
 
   /// A media altura, que es por donde se le parte con un plano horizontal.
   double get y => size * 0.5;
