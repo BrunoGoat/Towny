@@ -172,14 +172,25 @@ class TownBuilding {
 /// después de la actualización, y la siguiente estructura que levante puede
 /// perfectamente ser la que se acaba de añadir.
 class TownPlan {
-  TownPlan._(this.character);
+  TownPlan._(this.character, this.seed);
 
-  /// One plan per kind of place, built once and kept.
-  static final Map<int, TownPlan> _plans = {};
-  factory TownPlan.of(TownCharacter c) =>
-      _plans.putIfAbsent(c.order, () => TownPlan._(c));
+  /// One plan per kind of place and seed, built once and kept.
+  static final Map<String, TownPlan> _plans = {};
+  factory TownPlan.of(TownCharacter c, {int seed = 0}) =>
+      _plans.putIfAbsent('${c.order}:$seed', () => TownPlan._(c, seed));
 
   final TownCharacter character;
+
+  /// De qué pueblo es este plan.
+  ///
+  /// Sale del identificador del hábito (`Habit.townSeed`), que se escribe el
+  /// día que se funda y no se vuelve a tocar. Dos hábitos de la misma región
+  /// no comparten semilla, y por eso no comparten ni el arranque ni los
+  /// solares.
+  ///
+  /// Cero es «un pueblo cualquiera» y lo usan el expositor y los tests, que no
+  /// tienen un hábito detrás.
+  final int seed;
 
   /// Cómo se anota un edificio corriente en la crónica, para no confundir
   /// `casa` la casa con `casa` el hito que algún día se llame así.
@@ -332,7 +343,40 @@ class TownPlan {
     return out;
   }
 
+  /// Las cuatro de antes del primer hito, barajadas y **sin repetir**.
+  ///
+  /// Un pueblo tiene que empezar por lo humilde, en eso no hay nada que
+  /// sortear: un valle que abre con una posada es un valle que ya estaba ahí.
+  /// Pero que las cuatro primeras fueran siempre las mismas y en el mismo
+  /// orden —cobertizo, casa, taller, casa— hacía que dos hábitos distintos se
+  /// vieran idénticos hasta el primer hito, que son varias semanas de mirar el
+  /// mismo pueblo dos veces.
+  ///
+  /// Barajar sin reponer, y no sortear cuatro veces: sorteando salían dos
+  /// talleres seguidos la mitad de las veces, y dos iguales de entrada se leen
+  /// como un error antes que como azar.
+  List<BuildingKind> get _opening {
+    const humildes = [
+      BuildingKind.cottage,
+      BuildingKind.shed,
+      BuildingKind.workshop,
+      BuildingKind.granary,
+      BuildingKind.house,
+    ];
+    final baraja = List<BuildingKind>.of(humildes);
+    for (var i = baraja.length - 1; i > 0; i--) {
+      final j = hashInt(i + 1, seed, 0x09E4, i);
+      final t = baraja[i];
+      baraja[i] = baraja[j];
+      baraja[j] = t;
+    }
+    return baraja.take(_firstLandmark).toList();
+  }
+
+  List<BuildingKind>? _openingCache;
+
   BuildingKind kindFor(int b) {
+    if (b < _firstLandmark) return (_openingCache ??= _opening)[b];
     // Ordinary houses get grander as the town does, but never so much that a
     // small one stops appearing: a town of nothing but mansions is a suburb.
     final List<BuildingKind> pool;
@@ -364,7 +408,7 @@ class TownPlan {
         BuildingKind.house,
       ];
     }
-    return pool[hash32(b, 0x71c3, 5) % pool.length];
+    return pool[hash32(b, 0x71c3, 5 + seed) % pool.length];
   }
 
   /// Lo que se construye en el turno `b`, sabiendo lo que ya se construyó.
@@ -422,7 +466,17 @@ class TownPlan {
     final used = <String>{};
     var from = 0;
     for (var b = 0; b < 20000; b++) {
-      final id = b < chronicle.length ? chronicle[b] : decide(b, used);
+      // El arranque se deriva siempre de la semilla, aunque esté escrito.
+      //
+      // La crónica existe para protegerse de que cambie el catálogo: un hito
+      // nuevo no le puede mover las casas a quien ya las levantó. Las cuatro
+      // primeras no salen del catálogo sino de la semilla del pueblo, que es
+      // tan inmutable como la propia crónica, así que no necesitan que nadie
+      // las proteja — y leerlas de lo escrito era justo lo que dejaba a todos
+      // los pueblos ya construidos empezando igual.
+      final id = (b >= _firstLandmark && b < chronicle.length)
+          ? chronicle[b]
+          : decide(b, used);
       if (!id.startsWith(kindMark)) used.add(id);
       final cost = costOfId(id);
       yield Works(b, id, cost, from);
@@ -592,7 +646,8 @@ class TownLayout {
     this.chronicle = const [],
     this.folk = const [],
     this.notices = const [0, 3, 6],
-  }) : plan = TownPlan.of(character),
+    this.seed = 0,
+  }) : plan = TownPlan.of(character, seed: seed),
        plotPitch = character.plotPitch,
        solo = false {
     _build();
@@ -623,6 +678,13 @@ class TownLayout {
   /// fecha de nacimiento y con el nombre que le tocaría hoy.
   final List<String> folk;
 
+  /// De qué pueblo es éste.
+  ///
+  /// La semilla del hábito, y de ella salen las cuatro primeras estructuras y
+  /// el sorteo de los solares. Cero es el pueblo de ejemplo: el del expositor
+  /// y el de los tests, que no tienen un hábito detrás.
+  final int seed;
+
   /// One structure on its own, in an empty world.
   ///
   /// Nothing about the catalogue is visible from inside a town: a landmark
@@ -636,8 +698,8 @@ class TownLayout {
     Landmark? landmark,
     BuildingKind? kind,
     required this.placed,
-    int seed = 0,
-  }) : plan = TownPlan.of(character),
+    this.seed = 0,
+  }) : plan = TownPlan.of(character, seed: seed),
        plotPitch = character.plotPitch,
        cx = 0,
        cz = 0,
@@ -828,7 +890,7 @@ class TownLayout {
             final z = bz * blockPitch + pz * plotPitch + plotPitch / 2;
             final key =
                 math.sqrt(x * x + z * z) +
-                hashRange(0, 2.2, bx + 991, bz + 991, px, pz);
+                hashRange(0, 2.2, hash32(bx + 991, bz + 991, px, pz), seed);
             all.add((x, z, key));
           }
         }

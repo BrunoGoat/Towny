@@ -223,6 +223,7 @@ class _TownViewState extends State<TownView>
         said,
         slots: NoticeBoard.capacity,
       ),
+      seed: h.townSeed,
     );
     // Quién ha nacido. Aquí y no en el almacén porque aquí ya está el plano
     // construido —levantarlo otra vez para contar casas cuesta lo que cuesta

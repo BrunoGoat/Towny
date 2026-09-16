@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:la_muralla/core/rng.dart';
 import 'package:la_muralla/data/character.dart';
 import 'package:la_muralla/model/habit.dart';
 import 'package:la_muralla/data/landmarks.dart';
@@ -178,16 +179,27 @@ void main() {
 
   group('the town keeps its shape', () {
     test('it grows outward from the middle, never as a single line', () {
+      // Se mide el reparto de todo el pueblo y no la casa más lejana: con
+      // ocho casas, la más lejana es una sola casa y dice más del azar que de
+      // la forma. Y se mide en treinta pueblos distintos y no en uno, que es
+      // lo que hace falta desde que cada pueblo siembra sus propios solares:
+      // que el único que había saliera redondo no probaba nada.
       for (final n in [30, 200, 900]) {
-        final city = TownLayout(n, TownCharacter.all.first);
-        var maxX = 0.0, maxZ = 0.0;
-        for (final b in city.buildings) {
-          if (b.cx.abs() > maxX) maxX = b.cx.abs();
-          if (b.cz.abs() > maxZ) maxZ = b.cz.abs();
+        for (var k = 0; k < 30; k++) {
+          final city = TownLayout(
+            n,
+            TownCharacter.all.first,
+            seed: hashText('h\$k'),
+          );
+          var sx = 0.0, sz = 0.0;
+          for (final b in city.buildings) {
+            sx += b.cx * b.cx;
+            sz += b.cz * b.cz;
+          }
+          final ratio = math.sqrt(sx / math.max(sz, 1e-9));
+          expect(ratio, greaterThan(0.5), reason: 'with \$n/\$k it is a strip');
+          expect(ratio, lessThan(2.0), reason: 'with \$n/\$k it is a strip');
         }
-        final ratio = maxX / maxZ;
-        expect(ratio, greaterThan(0.5), reason: 'with $n it is a strip');
-        expect(ratio, lessThan(2.0), reason: 'with $n it is a strip');
       }
     });
 

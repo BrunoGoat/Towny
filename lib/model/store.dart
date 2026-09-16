@@ -58,7 +58,7 @@ class Store extends ChangeNotifier {
   TownCharacter get character => habit.place;
 
   /// Its plan: which landmark comes next, and what everything costs.
-  TownPlan get plan => TownPlan.of(character);
+  TownPlan get plan => TownPlan.of(character, seed: habit.townSeed);
 
   int get total => habit.total;
 
@@ -89,7 +89,10 @@ class Store extends ChangeNotifier {
   /// Sólo crece. Una crónica no se acorta ni se corrige: lo que dice es lo que
   /// pasó.
   bool _writeUpWorks(Habit h) {
-    final want = TownPlan.of(h.place).chronicleFor(h.total, h.chronicle);
+    final want = TownPlan.of(
+      h.place,
+      seed: h.townSeed,
+    ).chronicleFor(h.total, h.chronicle);
     if (want.length <= h.chronicle.length) return false;
     h.chronicle
       ..clear()
@@ -247,7 +250,10 @@ class Store extends ChangeNotifier {
   /// sería castigar al que tiene varios hábitos.
   bool get hasObservatory {
     for (final h in habits) {
-      if (TownPlan.of(h.place).built('observatorio', h.total, h.chronicle)) {
+      if (TownPlan.of(
+        h.place,
+        seed: h.townSeed,
+      ).built('observatorio', h.total, h.chronicle)) {
         return true;
       }
     }

@@ -257,7 +257,7 @@ List<Townsfolk> folkOf(TownLayout layout, int placed) {
   // quedaba con la gente sin nombre que había calculado un momento antes.
   final key =
       '${layout.cx},${layout.cz},${layout.character.order},'
-      '${layout.folk.length}';
+      '${layout.seed},${layout.folk.length}';
   final had = _folk[key];
   if (had != null && had.$1 == placed) return had.$2;
   final made = _folkOf(layout, placed);

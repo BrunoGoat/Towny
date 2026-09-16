@@ -78,3 +78,17 @@ class SeqRandom {
   double jitter(double amount) => (next() * 2 - 1) * amount;
   int intN(int max) => max <= 0 ? 0 : (next() * max).floor();
 }
+
+/// Un número estable a partir de un texto.
+///
+/// Para cosas que ya tienen nombre propio y permanente y no un índice: el
+/// identificador de un hábito, por ejemplo, que se escribe el día que se funda
+/// y no se vuelve a tocar. Sale de ahí una semilla que es suya y de nadie más,
+/// sin guardar un campo nuevo y sin que dependa de en qué ranura esté.
+int hashText(String s) {
+  var h = 0x811c9dc5;
+  for (var i = 0; i < s.length; i++) {
+    h = _avalanche(h ^ (s.codeUnitAt(i) & 0xFFFFFFFF));
+  }
+  return h & 0xFFFFFFFF;
+}

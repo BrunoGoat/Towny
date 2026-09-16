@@ -26,7 +26,10 @@ List<Notice> boardNotices(
   DateTime? at,
 }) {
   final now = at ?? DateTime.now();
-  final work = TownPlan.of(h.place).underway(h.total, h.chronicle);
+  final work = TownPlan.of(
+    h.place,
+    seed: h.townSeed,
+  ).underway(h.total, h.chronicle);
   final said = noticesFor(
     h,
     others: valley,

@@ -527,6 +527,8 @@ class _Legends extends StatelessWidget {
               store.character,
               cx: Habit.centreOf(store.habit.slot).$1,
               cz: Habit.centreOf(store.habit.slot).$2,
+              chronicle: store.habit.chronicle,
+              seed: store.habit.townSeed,
             ).pieceFor(b.index);
             Navigator.of(context).pop();
             if (piece != null) onGoTo(piece.cx, piece.cz);

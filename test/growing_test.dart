@@ -193,12 +193,26 @@ void main() {
 
     test('sólo crece, y lo escrito manda sobre el catálogo', () {
       // Una crónica que diga algo raro se respeta igual: es lo que pasó.
+      //
+      // De la quinta en adelante, que es donde la crónica manda. Las cuatro
+      // primeras salen de la semilla del pueblo y no del catálogo, así que no
+      // se leen de lo escrito ni falta que hace: una semilla no cambia nunca.
       final c = TownCharacter.all.first;
-      final made = ['pozo', '${TownPlan.kindMark}shed', 'horno'];
-      final town = TownLayout(40, c, chronicle: made);
-      expect(town.buildings[0].name, TownPlan.landmarkOf('pozo')!.name);
-      expect(town.buildings[1].isLandmark, isFalse);
-      expect(town.buildings[2].name, TownPlan.landmarkOf('horno')!.name);
+      const casa = '\${TownPlan.kindMark}cottage';
+      final made = [
+        casa,
+        casa,
+        casa,
+        casa,
+        'pozo',
+        '\${TownPlan.kindMark}shed',
+        'horno',
+      ];
+      final town = TownLayout(120, c, chronicle: made);
+      expect(town.buildings.length, greaterThan(6));
+      expect(town.buildings[4].name, TownPlan.landmarkOf('pozo')!.name);
+      expect(town.buildings[5].isLandmark, isFalse);
+      expect(town.buildings[6].name, TownPlan.landmarkOf('horno')!.name);
     });
 
     test('un pueblo sin crónica se construye igual que con la suya', () {

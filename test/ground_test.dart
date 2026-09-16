@@ -39,7 +39,12 @@ Future<ByteData> frame({
     budget: 22000,
     towns: [
       TownEntry(
-        layout: TownLayout(0, TownCharacter.all.first),
+        // Y el pueblo, lejos. Lo que se mide aquí es el suelo desnudo, así
+        // que ni el solar ni el contorno de la pieza que va a caer pueden
+        // aparecer en la franja: en cuanto los solares dejaron de estar
+        // siempre en el mismo sitio, a veces caían justo encima y el test
+        // contaba el borde de una parcela como una raya del prado.
+        layout: TownLayout(0, TownCharacter.all.first, cx: 600, cz: 600),
         name: 'Prueba',
         symbol: 'torre',
         integrity: 1,

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import '../core/rng.dart';
 import '../data/character.dart';
 import '../data/symbols.dart';
 import 'piece.dart';
@@ -55,6 +56,17 @@ class Habit {
   final int character;
 
   TownCharacter get place => TownCharacter.byOrder(character);
+
+  /// La semilla de este pueblo: lo que hace que no se parezca a ningún otro.
+  ///
+  /// Sale del identificador, que se escribe el día que se funda el hábito y no
+  /// se vuelve a tocar nunca — así que esto tampoco cambia, ni al renombrar el
+  /// hábito, ni al moverlo de ranura, ni al exportar y volver a importar.
+  ///
+  /// No se guarda en ningún sitio a propósito: un campo nuevo tendría que
+  /// valer algo para los pueblos que ya existen, y ese algo sería el mismo
+  /// para todos, que es exactamente lo que había que arreglar.
+  int get townSeed => hashText(id);
 
   final List<Piece> pieces;
 

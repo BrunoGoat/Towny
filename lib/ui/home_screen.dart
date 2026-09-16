@@ -176,8 +176,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Si en el valle hay ya un observatorio terminado, sea de qué pueblo sea.
   bool get _hayObservatorio => widget.store.habits.any(
-    (h) =>
-        TownPlan.of(h.place).hasFinished('observatorio', h.total, h.chronicle),
+    (h) => TownPlan.of(
+      h.place,
+      seed: h.townSeed,
+    ).hasFinished('observatorio', h.total, h.chronicle),
   );
 
   /// El tablón de este pueblo, desde el botón.
