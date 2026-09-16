@@ -136,6 +136,90 @@ void main() {
     });
   });
 
+  group('el tablón y el atril miran a la fuente', () {
+    /// Hacia dónde mira la cara que se lee, sacada de sus propias esquinas.
+    V3 mira(List<V3> cara, double x, double z) =>
+        Facet.normalOf(cara, away: V3(x, 0.6, z));
+
+    test('los dos, y no cada uno para su lado', () {
+      final t = TownLayout(10, TownCharacter.all.first);
+      for (final (nombre, cara, x, z) in [
+        (
+          'el tablón',
+          NoticeBoard.faceAt(t.cx, t.cz),
+          NoticeBoard.xAt(t.cx),
+          NoticeBoard.zAt(t.cz),
+        ),
+        (
+          'el atril',
+          Lectern.faceAt(t.cx, t.cz),
+          Lectern.xAt(t.cx),
+          Lectern.zAt(t.cz),
+        ),
+      ]) {
+        final n = mira(cara, x, z);
+        // Hacia la fuente, normalizado y en el plano.
+        final dx = t.cx - x, dz = t.cz - z;
+        final d = math.sqrt(dx * dx + dz * dz);
+        final coseno = (n.x * dx / d + n.z * dz / d) / math.sqrt(1 - n.y * n.y);
+        expect(
+          coseno,
+          greaterThan(0.86),
+          reason: '$nombre está vuelto a otra parte',
+        );
+      }
+    });
+
+    test('y girar el mueble no deja las caras mintiendo sobre su plano', () {
+      // Lo que se rompe callando si se giran los vértices y se deja la normal
+      // quieta: la normal deja de ser perpendicular a su propia cara y deja de
+      // mirar hacia afuera. De eso cuelgan el descarte de caras traseras y el
+      // orden de pintado entero, así que no es un detalle de sombreado.
+      for (final partes in [
+        NoticeBoard.solidsAt(4, -3),
+        Lectern.solidsAt(4, -3),
+      ]) {
+        for (final s in partes) {
+          var mx = 0.0, my = 0.0, mz = 0.0, n = 0;
+          for (final f in s.faces) {
+            for (final v in f.v) {
+              mx += v.x;
+              my += v.y;
+              mz += v.z;
+              n++;
+            }
+          }
+          final cx = mx / n, cy = my / n, cz = mz / n;
+          for (final f in s.faces) {
+            // Perpendicular a su propio plano: con dos aristas de la cara
+            // basta, y las dos tienen que dar cero contra la normal.
+            for (var i = 0; i < f.v.length; i++) {
+              final a = f.v[i], b = f.v[(i + 1) % f.v.length];
+              final e = b - a;
+              final largo = math.sqrt(e.x * e.x + e.y * e.y + e.z * e.z);
+              if (largo < 1e-9) continue;
+              final d = (f.n.x * e.x + f.n.y * e.y + f.n.z * e.z) / largo;
+              expect(d.abs(), lessThan(1e-6), reason: 'normal torcida');
+            }
+            // Y mirando hacia afuera, que en un sólido convexo es esto.
+            var fx = 0.0, fy = 0.0, fz = 0.0;
+            for (final v in f.v) {
+              fx += v.x;
+              fy += v.y;
+              fz += v.z;
+            }
+            final k = f.v.length;
+            final fuera =
+                f.n.x * (fx / k - cx) +
+                f.n.y * (fy / k - cy) +
+                f.n.z * (fz / k - cz);
+            expect(fuera, greaterThan(0), reason: 'normal del revés');
+          }
+        }
+      }
+    });
+  });
+
   group('los muebles de la plaza son sólidos cerrados', () {
     test('el enlosado', () {
       for (final s in Plaza.solidsAt(3, -2, TownLayout.plazaReach)) {
@@ -168,11 +252,53 @@ void main() {
       for (final v in cara) {
         expect(v.y, lessThanOrEqualTo(alto + 1e-9));
       }
-      // Y es un facistol de plaza, no un mueble de estatura de persona: la
-      // mitad de lo que medía, que es lo que se pidió después de verlo al lado
-      // del tablón y de la gente que pasa.
-      expect(alto, closeTo(1.068 * 0.5, 0.02));
-      expect(alto, lessThan(NoticeBoard.high * 0.62));
+      // Y es un facistol de plaza: **más chico que el tablón, y a la vista**.
+      // Son las dos condiciones y no una — a estatura de persona era un mueble
+      // enorme, y a la mitad de eso se quedaba corto.
+      expect(alto, greaterThan(0.55), reason: 'no se ve');
+      expect(
+        alto,
+        lessThan(NoticeBoard.high * 0.75),
+        reason: 'le hace sombra al tablón',
+      );
+    });
+
+    test('la plaza es un ejido de hierba con el bordillo de piedra', () {
+      // Al revés de como empezó: un disco de piedra con cuatro lunares verdes
+      // se leía como un pavimento con desperfectos.
+      const r = TownLayout.plazaReach;
+      final partes = Plaza.solidsAt(0, 0, r);
+      var hierbaHasta = 0.0, piedraDesde = double.infinity;
+      for (final s in partes) {
+        for (final f in s.faces) {
+          if (f.n.y < 0.9) continue;
+          for (final v in f.v) {
+            final d = math.sqrt(v.x * v.x + v.z * v.z);
+            // La fuente no es suelo: tiene su propio escalón de piedra en
+            // medio y no es eso lo que se está midiendo.
+            if (v.y > 0.2) continue;
+            if (d < Plaza.basinOf(r) * 1.05) continue;
+            if (f.surface == Surface.leaf && d > hierbaHasta) hierbaHasta = d;
+            if (f.surface == Surface.stone && d < piedraDesde) piedraDesde = d;
+          }
+        }
+      }
+      // Hierba en el medio y hasta cerca del borde…
+      expect(hierbaHasta, greaterThan(r * 0.85));
+      // …y la piedra sólo a partir de ahí: un anillo, no un disco debajo.
+      expect(piedraDesde, greaterThan(r * 0.85));
+      // Y el bordillo llega al borde de verdad.
+      var piedraHasta = 0.0;
+      for (final s in partes) {
+        for (final f in s.faces) {
+          if (f.surface != Surface.stone) continue;
+          for (final v in f.v) {
+            final d = math.sqrt(v.x * v.x + v.z * v.z);
+            if (v.y < 0.2 && d > piedraHasta) piedraHasta = d;
+          }
+        }
+      }
+      expect(piedraHasta, closeTo(r, 0.001));
     });
 
     test('y la fuente tiene agua a la vista, no debajo de la piedra', () {

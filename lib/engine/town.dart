@@ -813,7 +813,7 @@ class TownLayout {
   /// huella dentro. En metros y no en anchos de parcela a propósito: una plaza
   /// es del tamaño de la gente que la cruza y del mueble que hay en medio, no
   /// de lo apretado que esté el caserío. Las seis regiones tienen la misma.
-  static const double plazaReach = 3.4;
+  static const double plazaReach = 2.55;
 
   void _build() {
     final want = placed + 1;

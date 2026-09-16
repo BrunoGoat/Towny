@@ -479,11 +479,20 @@ void main() {
           Notice(NoticeKind.pueblo, 'nota $i', 'porque sí'),
       ];
       final cerca = BoardPlan.of(notas, slots: huecos);
+      // Medidos en las coordenadas del propio tablón y no en las del mundo: el
+      // de la plaza está girado mirando a la fuente, así que su izquierda ya no
+      // es la izquierda del valle. Lo que se compara es cómo reparte las hojas
+      // cada uno, no hacia dónde está vuelto.
+      final sinA = math.sin(-NoticeBoard.turn);
+      final cosA = math.cos(-NoticeBoard.turn);
       final plaza = <(double, double)>[];
       for (final sol in NoticeBoard.solidsAt(0, 0, sheets: huecos)) {
         for (final f in sol.faces) {
           for (final d in f.decals ?? const []) {
-            plaza.add(((d.v[0].x + d.v[1].x) / 2, (d.v[0].y + d.v[2].y) / 2));
+            final a = turnedAt(d.v[0], 0, 0, sinA, cosA);
+            final b = turnedAt(d.v[1], 0, 0, sinA, cosA);
+            final c = turnedAt(d.v[2], 0, 0, sinA, cosA);
+            plaza.add(((a.x + b.x) / 2, (a.y + c.y) / 2));
           }
         }
       }

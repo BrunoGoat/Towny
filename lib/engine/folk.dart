@@ -615,7 +615,15 @@ List<(double x0, double z0, double x1, double z1)> _blockers(
 
     final pilon = Plaza.basinOf(TownLayout.plazaReach);
     estorbo(cx, cz, pilon, pilon);
-    estorbo(NoticeBoard.xAt(cx), NoticeBoard.zAt(cz), NoticeBoard.reach, 0.12);
+    // El tablón va girado mirando a la fuente, así que su estorbo es la caja
+    // que lo contiene esté como esté puesto y no la plancha alineada a los
+    // ejes: con la plancha, girado se colaba gente por las esquinas.
+    estorbo(
+      NoticeBoard.xAt(cx),
+      NoticeBoard.zAt(cz),
+      NoticeBoard.reach * 0.78,
+      NoticeBoard.reach * 0.78,
+    );
     estorbo(Lectern.xAt(cx), Lectern.zAt(cz), 0.22, 0.22);
   }
   return out;

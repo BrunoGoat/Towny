@@ -492,6 +492,49 @@ List<Facet> prismFaces(
   return out;
 }
 
+/// Gira un punto sobre el eje vertical que pasa por `(cx, cz)`.
+///
+/// El ángulo se mide de manera que una cara que miraba a `+z` acaba mirando a
+/// `(sin a, 0, cos a)`, que es como se piensa cuando lo que se quiere es
+/// «que mire hacia allá».
+V3 turnedAt(V3 v, double cx, double cz, double sinA, double cosA) {
+  final dx = v.x - cx, dz = v.z - cz;
+  return V3(cx + dx * cosA + dz * sinA, v.y, cz - dx * sinA + dz * cosA);
+}
+
+/// Lo mismo, para una lista entera de sólidos y con sus normales.
+///
+/// **Y sus normales**, que es el punto. Todo lo que hay aguas abajo —qué caras
+/// se descartan, por dónde se corta el árbol, en qué orden sale todo— está
+/// construido sobre que la normal de una cara diga de verdad dónde está su
+/// plano. Girar los vértices y dejar la normal quieta no es un error de
+/// sombreado: es una mentira sobre la geometría.
+///
+/// Se construye el mueble mirando a `+z`, como si estuviera solo en el mundo,
+/// y se gira al plantarlo. Escribir cada caja ya torcida habría sido escribir
+/// ocho veces la misma trigonometría.
+List<Solid> turnedSolids(
+  List<Solid> solids,
+  double cx,
+  double cz,
+  double angle,
+) {
+  final sinA = math.sin(angle), cosA = math.cos(angle);
+  if (sinA.abs() < 1e-9 && cosA > 0) return solids;
+  Facet turn(Facet f) => Facet(
+    [for (final v in f.v) turnedAt(v, cx, cz, sinA, cosA)],
+    turnedAt(V3(cx + f.n.x, f.n.y, cz + f.n.z), cx, cz, sinA, cosA) -
+        V3(cx, 0, cz),
+    f.surface,
+    ao: f.ao,
+    tint: f.tint,
+    decals: f.decals == null ? null : [for (final d in f.decals!) turn(d)],
+  );
+  return [
+    for (final s in solids) Solid(s.piece, [for (final f in s.faces) turn(f)]),
+  ];
+}
+
 /// Un anillo recto: un brocal, un pretil, cualquier pared que rodee algo.
 ///
 /// Sale en trozos y no de una pieza porque una pieza con un agujero en medio
@@ -1298,16 +1341,28 @@ class NoticeBoard {
   static double xAt(double cx) => cx + offX;
   static double zAt(double cz) => cz + offZ;
 
+  /// Hacia dónde mira: a la fuente.
+  ///
+  /// Estaba de cara al norte y de espaldas a la plaza, que es donde está la
+  /// gente. Un tablón se planta mirando al sitio desde el que se lee, y el
+  /// sitio desde el que se lee una plaza es la plaza. Sale de dónde está
+  /// puesto y no de un número aparte: si se mueve, se gira solo.
+  static double get turn => math.atan2(-offX, -offZ);
+
   /// The four corners of the plank, front face, counter-clockwise from the
   /// bottom left. The town's mark goes on it and a finger lands on it, and
   /// both want the same rectangle.
   static List<V3> faceAt(double cx, double cz) {
     final x = xAt(cx), z = zAt(cz);
+    final a = turn, sinA = math.sin(a), cosA = math.cos(a);
     return [
-      V3(x - reach, low, z + 0.05),
-      V3(x + reach, low, z + 0.05),
-      V3(x + reach, high, z + 0.05),
-      V3(x - reach, high, z + 0.05),
+      for (final v in [
+        V3(x - reach, low, z + 0.05),
+        V3(x + reach, low, z + 0.05),
+        V3(x + reach, high, z + 0.05),
+        V3(x - reach, high, z + 0.05),
+      ])
+        turnedAt(v, x, z, sinA, cosA),
     ];
   }
 
@@ -1405,26 +1460,31 @@ class NoticeBoard {
       ),
     );
 
-    return [
-      post(-reach + _post),
-      post(reach - _post),
-      Solid(-1, _plank(cx, cz, plank, sheets)),
-      // A little roof, because paper left out in the rain is not a notice.
-      Solid(
-        -1,
-        gableFaces(
-              cx - reach - 0.09,
-              high,
-              cz - 0.17,
-              cx + reach + 0.09,
-              high + 0.17,
-              cz + 0.17,
-              true,
-            )
-            .map((f) => Facet(f.v, f.n, Surface.own, ao: f.ao, tint: shingle))
-            .toList(),
-      ),
-    ];
+    return turnedSolids(
+      [
+        post(-reach + _post),
+        post(reach - _post),
+        Solid(-1, _plank(cx, cz, plank, sheets)),
+        // A little roof, because paper left out in the rain is not a notice.
+        Solid(
+          -1,
+          gableFaces(
+                cx - reach - 0.09,
+                high,
+                cz - 0.17,
+                cx + reach + 0.09,
+                high + 0.17,
+                cz + 0.17,
+                true,
+              )
+              .map((f) => Facet(f.v, f.n, Surface.own, ao: f.ao, tint: shingle))
+              .toList(),
+        ),
+      ],
+      cx,
+      cz,
+      turn,
+    );
   }
 }
 
@@ -1438,17 +1498,26 @@ class NoticeBoard {
 /// botón.
 ///
 /// Así que el pueblo se funda con una plaza y ningún solar puede meter la
-/// huella dentro. Y una plaza no es un claro: es enlosado, cuatro parterres de
-/// hierba, una fuente en medio, el tablón a un lado y el atril al otro. Desde
-/// cualquier punto del pueblo se sabe dónde está el centro, y de cerca hay
-/// algo que mirar.
+/// huella dentro. Y una plaza no es un claro: es un ejido de hierba con un
+/// bordillo de piedra alrededor, la fuente en medio, el tablón a un lado y el
+/// atril al otro. Desde cualquier punto del pueblo se sabe dónde está el
+/// centro, y de cerca hay algo que mirar.
+///
+/// Hierba y no enlosado, que es al revés de como empezó. Un disco de piedra
+/// con cuatro lunares verdes se leía como un pavimento con desperfectos; la
+/// hierba con su bordillo se lee como un sitio. Y como la hierba va declarada
+/// como hoja, la plaza sigue el calendario del año igual que el prado que la
+/// rodea, en vez de quedarse verde primavera bajo la nieve.
 class Plaza {
   const Plaza._();
 
-  /// Piedra clara, de otro tono que los muros, para que el suelo se lea como
-  /// suelo y no como el cimiento de algo.
-  static const int _slab = 0xFFB9AE97;
-  static const int _kerb = 0xFF9C917B;
+  /// Piedra clara, de otro tono que los muros, para que el bordillo se lea
+  /// como suelo y no como el cimiento de algo.
+  static const int _kerb = 0xFFB9AE97;
+  static const int _edge = 0xFF9C917B;
+
+  /// La hierba de la plaza: la misma gama que la del prado y las huertas.
+  static const int _grass = 0xFF6B7A42;
   static const int _basin = 0xFFA79B83;
   static const int _rim = 0xFF8E836D;
 
@@ -1474,8 +1543,9 @@ class Plaza {
 
   /// Dónde va cada cosa, medido desde el centro y en proporción al radio.
   ///
-  /// En proporción y no en metros: si mañana la plaza crece, los parterres y
-  /// los muebles crecen con ella en vez de quedarse amontonados en el medio.
+  /// En proporción y no en metros: si mañana la plaza crece o mengua, la
+  /// fuente y los muebles se mueven con ella en vez de quedarse amontonados en
+  /// el medio.
   static const double boardOut = 0.52, lecternOut = 0.52;
 
   /// Lo que ocupa la fuente, en proporción al radio de la plaza. Lo pregunta
@@ -1556,82 +1626,52 @@ class Plaza {
     ];
   }
 
-  /// Los cuatro parterres, en los ejes y entre la fuente y el borde.
-  ///
-  /// Hierba y no «suelo verde»: van declarados como hoja, así que siguen el
-  /// calendario del año igual que el prado y que las huertas, en vez de
-  /// quedarse verde primavera bajo la nieve.
-  static List<Solid> _beds(double cx, double cz, double r) {
-    const greens = [0xFF5E7040, 0xFF6B7A42, 0xFF54663C, 0xFF77854C];
-    final out = <Solid>[];
-    for (var k = 0; k < 4; k++) {
-      // En los ejes, y los muebles en las diagonales: en las mismas cuatro
-      // direcciones, el tablón se plantaba dentro de un parterre.
-      final a = k * math.pi / 2;
-      final x = cx + math.cos(a) * r * 0.60;
-      final z = cz - math.sin(a) * r * 0.60;
-      out.add(
-        Solid(
-          -1,
-          prismFaces(
-            ring(x, z, r * 0.185, sides: 8),
-            0.035,
-            0.075,
-            Surface.own,
-            ao: 0.96,
-            tint: _rim,
-          ),
-        ),
-      );
-      out.add(
-        Solid(
-          -1,
-          prismFaces(
-            ring(x, z, r * 0.155, sides: 8),
-            0.075,
-            0.105,
-            Surface.leaf,
-            ao: 1.04,
-            tint: greens[k],
-          ),
-        ),
-      );
-    }
-    return out;
-  }
-
   /// Todo lo que hay en el suelo de la plaza.
   ///
-  /// El enlosado es un sólido de verdad y no una mancha pintada en el suelo:
-  /// tiene canto, y ese canto es lo que hace que de perfil se vea que el suelo
-  /// está levantado y no que alguien cambió el color de la hierba.
+  /// El ejido es un sólido de verdad y no una mancha pintada en el suelo:
+  /// tiene canto, y ese canto —más el bordillo que lo rodea, que asoma un
+  /// dedo por encima— es lo que hace que de perfil se vea que el suelo está
+  /// levantado y no que alguien cambió el color de la hierba.
   static List<Solid> solidsAt(double cx, double cz, double reach) => [
+    // El bordillo: un anillo de piedra, no un disco. Un disco debajo de la
+    // hierba es un disco que no se ve.
+    ...ringSolids(
+      cx,
+      cz,
+      reach * 0.90,
+      reach,
+      0,
+      0.085,
+      Surface.stone,
+      ao: 1.0,
+      tint: _kerb,
+    ),
+    // Y su canto de fuera un tono más oscuro, que es lo que dibuja el octógono
+    // desde arriba —que es desde donde se mira casi siempre— en vez de dejar
+    // un anillo liso al que hay que adivinarle la forma.
+    ...ringSolids(
+      cx,
+      cz,
+      reach * 0.975,
+      reach,
+      0.085,
+      0.105,
+      Surface.stone,
+      ao: 0.94,
+      tint: _edge,
+    ),
+    // La hierba, hasta donde empieza la piedra.
     Solid(
       -1,
       prismFaces(
-        ring(cx, cz, reach),
+        ring(cx, cz, reach * 0.905),
         0,
-        0.035,
-        Surface.stone,
-        ao: 1.02,
-        tint: _slab,
-      ),
-    ),
-    // Un bordillo por dentro del canto, que es lo que dibuja el octógono desde
-    // arriba —que es desde donde se mira casi siempre— en vez de dejar una
-    // mancha lisa a la que hay que adivinarle la forma.
-    Solid(
-      -1,
-      prismFaces(
-        ring(cx, cz, reach * 0.995),
-        0.035,
         0.055,
-        Surface.stone,
-        ao: 0.96,
-        tint: _kerb,
+        Surface.leaf,
+        ao: 1.02,
+        tint: _grass,
       ),
     ),
-    ..._beds(cx, cz, reach),
     ..._fountain(cx, cz, reach),
   ];
 }
@@ -1658,11 +1698,13 @@ class Lectern {
   static double get offX => TownLayout.plazaReach * Plaza.lecternOut;
   static double get offZ => TownLayout.plazaReach * Plaza.lecternOut;
 
-  /// La mitad de lo que medía. Al lado de un tablón de plaza y de la gente que
-  /// pasa, un atril de estatura de persona era un mueble enorme para una cosa
-  /// que se lee de pie y de cerca: esto es un facistol de plaza, del tamaño
-  /// que tiene uno.
-  static const double _k = 0.5;
+  /// Lo que mide, de lo que llegó a medir.
+  ///
+  /// Empezó a tamaño de persona y era un mueble enorme para una cosa que se
+  /// lee de pie y de cerca; bajó a la mitad y se quedó corto. Esto es un
+  /// facistol de plaza: **más chico que el tablón, y a la vista**, que son las
+  /// dos condiciones y no una.
+  static const double _k = 0.62;
 
   /// Medidas del tablero: lo que ocupa y a qué altura se lee.
   static const double _wide = 0.30 * _k, _deep = 0.23 * _k;
@@ -1683,6 +1725,11 @@ class Lectern {
   static double xAt(double cx) => cx + offX;
   static double zAt(double cz) => cz + offZ;
 
+  /// Hacia dónde mira: a la fuente, igual que el tablón y por lo mismo. El
+  /// lado cuesta abajo del tablero es el lado desde el que se lee, y ése tiene
+  /// que dar a la plaza.
+  static double get turn => math.atan2(-offX, -offZ);
+
   /// Las cuatro esquinas de la cara de arriba del libro, que es lo que se ve y
   /// por lo tanto lo que se toca. Empezando por la de atrás a la izquierda.
   ///
@@ -1692,11 +1739,15 @@ class Lectern {
   static List<V3> faceAt(double cx, double cz) {
     final x = xAt(cx), z = zAt(cz);
     const lift = _leafLift;
+    final a = turn, sinA = math.sin(a), cosA = math.cos(a);
     return [
-      V3(x - _wide, _back + lift, z - _deep),
-      V3(x + _wide, _back + lift, z - _deep),
-      V3(x + _wide, _front + lift, z + _deep),
-      V3(x - _wide, _front + lift, z + _deep),
+      for (final v in [
+        V3(x - _wide, _back + lift, z - _deep),
+        V3(x + _wide, _back + lift, z - _deep),
+        V3(x + _wide, _front + lift, z + _deep),
+        V3(x - _wide, _front + lift, z + _deep),
+      ])
+        turnedAt(v, x, z, sinA, cosA),
     ];
   }
 
@@ -1735,97 +1786,102 @@ class Lectern {
       V3(x + from, _front + lift, z + _deep * 0.94),
     ];
 
-    return [
-      // El pie, de piedra, con su zócalo: un atril de una sola pata sobre la
-      // hierba se lee como un cartel clavado, no como un mueble.
-      Solid(
-        -1,
-        prismFaces(
-          Plaza.ring(x, z, 0.21 * _k),
-          0.035,
-          0.035 + 0.065 * _k,
-          Surface.stone,
-          ao: 0.96,
-          tint: _stone,
-        ),
-      ),
-      Solid(
-        -1,
-        boxFaces(
-          x - 0.055 * _k,
-          0.035 + 0.065 * _k,
-          z - 0.055 * _k,
-          x + 0.055 * _k,
-          _front - 0.10 * _k,
-          z + 0.055 * _k,
-          Surface.own,
-          ao: 0.90,
-          tint: _wood,
-        ),
-      ),
-      // El tablero, y su listón de abajo para que el libro no resbale.
-      Solid(
-        -1,
-        hexFaces(
-          _board(
-            x,
-            z,
-            _wide + 0.035 * _k,
-            _deep + 0.03 * _k,
-            _back,
-            _front,
-            _thick,
+    return turnedSolids(
+      [
+        // El pie, de piedra, con su zócalo: un atril de una sola pata sobre la
+        // hierba se lee como un cartel clavado, no como un mueble.
+        Solid(
+          -1,
+          prismFaces(
+            Plaza.ring(x, z, 0.21 * _k),
+            0.035,
+            0.035 + 0.065 * _k,
+            Surface.stone,
+            ao: 0.96,
+            tint: _stone,
           ),
-          Surface.own,
-          ao: 0.98,
-          tint: _wood,
         ),
-      ),
-      Solid(
-        -1,
-        hexFaces(
-          _board(
-            x,
-            z + _deep + 0.015 * _k,
-            _wide + 0.035 * _k,
-            0.022 * _k,
-            _front + 0.045 * _k,
-            _front + 0.03 * _k,
-            0.05 * _k,
+        Solid(
+          -1,
+          boxFaces(
+            x - 0.055 * _k,
+            0.035 + 0.065 * _k,
+            z - 0.055 * _k,
+            x + 0.055 * _k,
+            _front - 0.10 * _k,
+            z + 0.055 * _k,
+            Surface.own,
+            ao: 0.90,
+            tint: _wood,
           ),
-          Surface.own,
-          ao: 0.92,
-          tint: _dark,
         ),
-      ),
-      // Y el libro: dos páginas y el lomo entre ellas.
-      Solid(
-        -1,
-        hexFaces(
-          leaf(-_wide, -0.018 * _k, _leafLift),
-          Surface.own,
-          ao: 1.06,
-          tint: _page,
+        // El tablero, y su listón de abajo para que el libro no resbale.
+        Solid(
+          -1,
+          hexFaces(
+            _board(
+              x,
+              z,
+              _wide + 0.035 * _k,
+              _deep + 0.03 * _k,
+              _back,
+              _front,
+              _thick,
+            ),
+            Surface.own,
+            ao: 0.98,
+            tint: _wood,
+          ),
         ),
-      ),
-      Solid(
-        -1,
-        hexFaces(
-          leaf(0.018 * _k, _wide, _leafLift),
-          Surface.own,
-          ao: 1.06,
-          tint: _page,
+        Solid(
+          -1,
+          hexFaces(
+            _board(
+              x,
+              z + _deep + 0.015 * _k,
+              _wide + 0.035 * _k,
+              0.022 * _k,
+              _front + 0.045 * _k,
+              _front + 0.03 * _k,
+              0.05 * _k,
+            ),
+            Surface.own,
+            ao: 0.92,
+            tint: _dark,
+          ),
         ),
-      ),
-      Solid(
-        -1,
-        hexFaces(
-          leaf(-0.026 * _k, 0.026 * _k, _leafLift - 0.008 * _k),
-          Surface.own,
-          ao: 0.88,
-          tint: _bind,
+        // Y el libro: dos páginas y el lomo entre ellas.
+        Solid(
+          -1,
+          hexFaces(
+            leaf(-_wide, -0.018 * _k, _leafLift),
+            Surface.own,
+            ao: 1.06,
+            tint: _page,
+          ),
         ),
-      ),
-    ];
+        Solid(
+          -1,
+          hexFaces(
+            leaf(0.018 * _k, _wide, _leafLift),
+            Surface.own,
+            ao: 1.06,
+            tint: _page,
+          ),
+        ),
+        Solid(
+          -1,
+          hexFaces(
+            leaf(-0.026 * _k, 0.026 * _k, _leafLift - 0.008 * _k),
+            Surface.own,
+            ao: 0.88,
+            tint: _bind,
+          ),
+        ),
+      ],
+      x,
+      z,
+      turn,
+    );
   }
 }
