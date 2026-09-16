@@ -115,7 +115,7 @@ class OrbitCamera {
     if (!animate) travel = travelTarget;
   }
 
-  /// Frames the whole wall, used by the "ver toda la muralla" button.
+  /// Frames the whole town, used by the "Ver todo el pueblo" button.
   void frameAll() {
     travelTarget = wallLength / 2;
     distanceTarget = clampD(

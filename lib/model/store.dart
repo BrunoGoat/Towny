@@ -499,10 +499,10 @@ class Store extends ChangeNotifier {
     try {
       parsed = jsonDecode(raw);
     } catch (_) {
-      return 'Eso no es una copia de La Muralla.';
+      return 'Eso no es una copia de Towny.';
     }
     if (parsed is! Map<String, dynamic>) {
-      return 'Eso no es una copia de La Muralla.';
+      return 'Eso no es una copia de Towny.';
     }
     final list = parsed['h'];
     if (list is! List) return 'A esa copia le falta la lista de pueblos.';
