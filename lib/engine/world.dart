@@ -229,11 +229,18 @@ BuiltTown _build(TownLayout layout, int placed, BuiltTown? before) {
     }
   }
 
-  // The plaza's notice board. Not a piece and not earned: it stands in the
-  // crossing the plots are laid out around, from the first achievement on, and
-  // it is filed with everything else so a house in front of it hides it.
+  // La plaza y sus dos muebles. Nada de esto es una pieza ni se gana: está
+  // desde el primer logro, en el claro alrededor del cual se reparten los
+  // solares, y se archiva con todo lo demás para que una casa por delante lo
+  // tape igual que tapa cualquier otra cosa.
+  //
+  // El enlosado primero, que es lo que dice dónde está el centro desde
+  // cualquier punto del pueblo; después el tablón, que es lo que el pueblo
+  // dice de vos; y el atril, que es lo que dijiste vos.
   if (from == 0 && take > 0 && !layout.solo) {
+    furnish(Plaza.solidsAt(layout.cx, layout.cz, TownLayout.plazaReach));
     furnish(NoticeBoard.solidsAt(layout.cx, layout.cz, sheets: layout.notices));
+    furnish(Lectern.solidsAt(layout.cx, layout.cz));
   }
 
   for (var i = from; i < take; i++) {

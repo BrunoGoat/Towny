@@ -16,6 +16,8 @@ import 'choice_sheet.dart';
 import 'habit_bar.dart';
 import 'habits_sheet.dart';
 import 'hold_button.dart';
+import 'lectern_glyph.dart';
+import 'legends_book.dart';
 import 'notice_board.dart';
 import 'overlays.dart';
 import 'settings_sheet.dart';
@@ -270,6 +272,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _announceTown();
               },
               onBoardTapped: _readBoard,
+              onLecternTapped: _openBook,
               onWhisper: _showWhisper,
               onPaletteChanged: (p) {
                 final next = UiTheme(p);
@@ -359,6 +362,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   // naranja de mediodía es una mancha que no es de aquí.
                   dot: _news ? t.accent : null,
                   onTap: _readOwnBoard,
+                ),
+                // Y debajo el atril, que está al lado en la plaza y tiene que
+                // estar al lado aquí. El mueble mismo y no un libro genérico,
+                // por lo mismo que el tablón no es una chincheta.
+                GhostButton(
+                  glyph: (c) => LecternGlyph(color: c, shadows: t.halo),
+                  theme: t,
+                  tooltip: 'El libro de las leyendas',
+                  onTap: _openOwnBook,
                 ),
                 // El observatorio es uno para todo el valle: lo que se anota
                 // allí son las constelaciones, y el cielo es el mismo desde
@@ -550,6 +562,18 @@ class _HomeScreenState extends State<HomeScreen> {
         store: store,
       ),
     );
+  }
+
+  /// El atril de este pueblo, desde el botón.
+  void _openOwnBook() => _openBook(widget.store.active);
+
+  /// El atril de un pueblo: su libro de leyendas.
+  void _openBook(int town) {
+    final store = widget.store;
+    if (town < 0 || town >= store.habits.length) return;
+    Navigator.of(
+      context,
+    ).push(LegendsBook.route(habit: store.habits[town], theme: _theme));
   }
 
   void _openSettings() {

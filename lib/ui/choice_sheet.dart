@@ -350,6 +350,7 @@ class WorkPortrait extends CustomPainter {
       [],
       [],
       [],
+      [],
     ).paint(canvas, size);
   }
 

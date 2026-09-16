@@ -135,6 +135,16 @@ class BoardHit {
   final Rect rect;
 }
 
+/// Dónde quedó el atril de un pueblo, para que un dedo lo encuentre.
+///
+/// Igual que el tablón y por el mismo motivo: sale de las cuatro esquinas del
+/// propio libro, así que lo que se toca es exactamente lo que se ve.
+class LecternHit {
+  const LecternHit(this.town, this.rect);
+  final int town;
+  final Rect rect;
+}
+
 class TownScene {
   TownScene({
     required this.placed,
@@ -260,6 +270,7 @@ class TownPainter extends CustomPainter {
     this.picks,
     this.signs,
     this.boards,
+    this.lecterns,
     this.skies,
     this.domes,
   );
@@ -272,6 +283,9 @@ class TownPainter extends CustomPainter {
 
   /// And where each town's notice board is.
   final List<BoardHit> boards;
+
+  /// Y dónde quedó su atril.
+  final List<LecternHit> lecterns;
 
   /// Se rellena al pintar: dónde cayó la constelación de esta noche.
   final List<SkyHit> skies;
@@ -327,6 +341,7 @@ class TownPainter extends CustomPainter {
     _pickAt.clear();
     signs.clear();
     boards.clear();
+    lecterns.clear();
     skies.clear();
     domes.clear();
     _faceCount = 0;
@@ -1562,26 +1577,35 @@ class TownPainter extends CustomPainter {
       final e = scene.towns[i];
       if (e.placed <= 0) continue;
       final l = e.layout;
-      var x0 = double.infinity, y0 = double.infinity;
-      var x1 = -double.infinity, y1 = -double.infinity;
-      var whole = true;
-      for (final v in NoticeBoard.faceAt(l.cx, l.cz)) {
-        final at = p.project(v);
-        if (at == null) {
-          whole = false;
-          break;
-        }
-        if (at.x < x0) x0 = at.x;
-        if (at.x > x1) x1 = at.x;
-        if (at.y < y0) y0 = at.y;
-        if (at.y > y1) y1 = at.y;
-      }
-      if (!whole) continue;
-      // Smaller than a fingertip is not something anybody was aiming at.
-      if (x1 - x0 < 12 && y1 - y0 < 12) continue;
-      if (x1 < 0 || x0 > size.width || y1 < 0 || y0 > size.height) continue;
-      boards.add(BoardHit(i, Rect.fromLTRB(x0, y0, x1, y1).inflate(9)));
+      final board = _screenBox(p, size, NoticeBoard.faceAt(l.cx, l.cz));
+      if (board != null) boards.add(BoardHit(i, board));
+      final desk = _screenBox(p, size, Lectern.faceAt(l.cx, l.cz));
+      if (desk != null) lecterns.add(LecternHit(i, desk));
     }
+  }
+
+  /// El rectángulo que ocupa en pantalla una cara del mundo, o nulo si no hay
+  /// nada ahí a lo que apuntar.
+  ///
+  /// Lo comparten el tablón y el atril, que son la misma clase de cosa: un
+  /// mueble pequeño en la plaza cuyas cuatro esquinas se conocen. Fuera del
+  /// encuadre no hay blanco, y más pequeño que la yema de un dedo tampoco:
+  /// nadie apuntaba a algo de ocho píxeles, y de canto un tablero no tiene
+  /// ancho ninguno.
+  Rect? _screenBox(Projector p, Size size, List<V3> face) {
+    var x0 = double.infinity, y0 = double.infinity;
+    var x1 = -double.infinity, y1 = -double.infinity;
+    for (final v in face) {
+      final at = p.project(v);
+      if (at == null) return null;
+      if (at.x < x0) x0 = at.x;
+      if (at.x > x1) x1 = at.x;
+      if (at.y < y0) y0 = at.y;
+      if (at.y > y1) y1 = at.y;
+    }
+    if (x1 - x0 < 12 && y1 - y0 < 12) return null;
+    if (x1 < 0 || x0 > size.width || y1 < 0 || y0 > size.height) return null;
+    return Rect.fromLTRB(x0, y0, x1, y1).inflate(9);
   }
 
   /// Dónde está cada cúpula, para poder tocarla.

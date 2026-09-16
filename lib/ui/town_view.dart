@@ -68,6 +68,7 @@ class TownView extends StatefulWidget {
     required this.onDomeTapped,
     required this.onTownTapped,
     required this.onBoardTapped,
+    required this.onLecternTapped,
     required this.onWhisper,
     required this.onPaletteChanged,
   });
@@ -101,6 +102,9 @@ class TownView extends StatefulWidget {
   /// The notice board in a town's plaza was tapped: read it.
   final void Function(int index) onBoardTapped;
 
+  /// Y el atril de la plaza, que es donde se leen las leyendas de ese pueblo.
+  final void Function(int index) onLecternTapped;
+
   final void Function(String message) onWhisper;
   final void Function(Palette palette) onPaletteChanged;
 
@@ -118,6 +122,7 @@ class _TownViewState extends State<TownView>
   final List<DomeHit> _domes = [];
   final List<SignHit> _signs = [];
   final List<BoardHit> _boards = [];
+  final List<LecternHit> _lecterns = [];
 
   late TownLayout _town;
   int _layoutFor = -1;
@@ -816,6 +821,14 @@ class _TownViewState extends State<TownView>
       return;
     }
 
+    // Y el atril, que está al lado y es igual de pequeño.
+    for (final a in _lecterns) {
+      if (!a.rect.contains(pos)) continue;
+      Sensory.instance.tick();
+      widget.onLecternTapped(a.town);
+      return;
+    }
+
     // Then the signs. From across the valley a sign is the only thing you can
     // read about a town, and reading it and tapping it should be the same
     // gesture as going there.
@@ -926,7 +939,15 @@ class _TownViewState extends State<TownView>
           Sensory.instance.tick();
         },
         child: CustomPaint(
-          painter: TownPainter(scene, _picks, _signs, _boards, _skies, _domes),
+          painter: TownPainter(
+            scene,
+            _picks,
+            _signs,
+            _boards,
+            _lecterns,
+            _skies,
+            _domes,
+          ),
           size: Size.infinite,
           isComplex: true,
           willChange: true,

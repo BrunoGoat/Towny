@@ -802,6 +802,19 @@ class TownLayout {
 
   double get blockPitch => plotPitch * 3.6;
 
+  /// El claro de la plaza: dentro de este radio no se levanta nada.
+  ///
+  /// El tablón es lo más importante que hay en el pueblo y también lo más
+  /// pequeño, así que en cuanto empezaban a levantarse casas quedaba escondido
+  /// entre ellas: había que orbitar buscándolo. El botón lo arreglaba para el
+  /// dedo pero no para el ojo, y lo que se estaba perdiendo era el sitio.
+  ///
+  /// Así que un pueblo se funda con su plaza, y ningún solar puede meter la
+  /// huella dentro. En metros y no en anchos de parcela a propósito: una plaza
+  /// es del tamaño de la gente que la cruza y del mueble que hay en medio, no
+  /// de lo apretado que esté el caserío. Las seis regiones tienen la misma.
+  static const double plazaReach = 3.4;
+
   void _build() {
     final want = placed + 1;
 
@@ -915,6 +928,12 @@ class TownLayout {
       for (var i = from; i < all.length; i++) {
         if (used[i]) continue;
         final x = all[i].$1, z = all[i].$2;
+        // Fuera de la plaza, y con la huella entera: lo que tiene que quedar
+        // despejado no es el punto del solar sino lo que se levanta encima.
+        // (x, z) van medidos desde el centro del pueblo, que es donde está
+        // la plaza: esta rejilla se monta en el origen y el pueblo entero se
+        // traslada después.
+        if (math.sqrt(x * x + z * z) - r * 0.72 < plazaReach) continue;
         var ok = true;
         for (var k = 0; k < out.length; k++) {
           final dx = x - out[k].$1, dz = z - out[k].$2;
@@ -994,6 +1013,16 @@ class TownLayout {
   /// somebody else's kitchen. Where the house is too big for its plot to have
   /// any room left, it simply has no yard, which is also what happens in a
   /// town where the houses got bigger.
+  /// Si algo de este tamaño plantado aquí se metería en la plaza.
+  ///
+  /// La huerta y el árbol se plantan al lado de la casa mirando sólo a la
+  /// casa, así que una parcela que da a la plaza le puede echar el manzano
+  /// dentro. El solar respeta el claro; lo que se planta encima también.
+  bool _inPlaza(double x, double z, double half) {
+    final dx = x - cx, dz = z - cz;
+    return math.sqrt(dx * dx + dz * dz) - half < plazaReach;
+  }
+
   void _layYard(TownBuilding b, List<Spec> made) {
     if (solo || b.isLandmark || made.isEmpty) return;
     final wantGarden = hash01(b.seed, 42) < character.gardens;
@@ -1019,9 +1048,13 @@ class TownLayout {
       final size = math.min(plotPitch * 0.34, room);
       if (size >= 0.38) {
         final off = half + size / 2 + 0.10;
-        b.yardX = b.cx + step[dir].$1 * off;
-        b.yardZ = b.cz + step[dir].$2 * off;
-        b.yardSize = size;
+        final x = b.cx + step[dir].$1 * off;
+        final z = b.cz + step[dir].$2 * off;
+        if (!_inPlaza(x, z, size / 2)) {
+          b.yardX = x;
+          b.yardZ = z;
+          b.yardSize = size;
+        }
       }
     }
 
@@ -1035,9 +1068,14 @@ class TownLayout {
       const corner = [(0.7, 0.7), (-0.7, 0.7), (-0.7, -0.7), (0.7, -0.7)];
       final c = corner[(dir + (wantGarden ? 2 : 1)) % 4];
       final off = half * 0.98 + 0.34;
-      b.treeX = b.cx + c.$1 * off;
-      b.treeZ = b.cz + c.$2 * off;
-      b.treeSize = math.min(plotPitch * 0.34, 1.05);
+      final x = b.cx + c.$1 * off;
+      final z = b.cz + c.$2 * off;
+      final size = math.min(plotPitch * 0.34, 1.05);
+      if (!_inPlaza(x, z, size * 0.6)) {
+        b.treeX = x;
+        b.treeZ = z;
+        b.treeSize = size;
+      }
     }
   }
 

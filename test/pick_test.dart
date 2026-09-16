@@ -52,7 +52,7 @@ const Size _screen = Size(420, 860);
   );
   final picks = <PickTarget>[];
   final rec = ui.PictureRecorder();
-  TownPainter(scene, picks, [], [], [], []).paint(Canvas(rec), _screen);
+  TownPainter(scene, picks, [], [], [], [], []).paint(Canvas(rec), _screen);
   rec.endRecording().dispose();
   return (picks, layout, cam);
 }

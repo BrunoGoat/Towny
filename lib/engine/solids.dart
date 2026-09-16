@@ -438,6 +438,153 @@ List<Facet> boxFaces(
   ),
 ];
 
+/// Un prisma recto de base cualquiera, cerrado.
+///
+/// La base va en sentido antihorario vista desde arriba. Sirve para lo que no
+/// es una caja y tampoco un tejado: el enlosado octogonal de la plaza, el pie
+/// de un atril. Se cierra con su tapa y su suelo como todo lo demás, que es lo
+/// que permite descartar las caras traseras sin mirar nada más.
+List<Facet> prismFaces(
+  List<(double, double)> base,
+  double y0,
+  double y1,
+  Surface s, {
+  double ao = 1.0,
+  int? tint,
+  double top = 1.0,
+}) {
+  var mx = 0.0, mz = 0.0;
+  for (final (x, z) in base) {
+    mx += x;
+    mz += z;
+  }
+  final mid = V3(mx / base.length, (y0 + y1) / 2, mz / base.length);
+  final out = <Facet>[
+    Facet(
+      [for (final (x, z) in base) V3(x, y1, z)],
+      const V3(0, 1, 0),
+      s,
+      ao: ao * top,
+      tint: tint,
+    ),
+    Facet(
+      [for (final (x, z) in base.reversed) V3(x, y0, z)],
+      const V3(0, -1, 0),
+      s,
+      ao: ao * 0.55,
+      tint: tint,
+    ),
+  ];
+  for (var i = 0; i < base.length; i++) {
+    final (x0, z0) = base[i];
+    final (x1, z1) = base[(i + 1) % base.length];
+    final v = [V3(x0, y0, z0), V3(x1, y0, z1), V3(x1, y1, z1), V3(x0, y1, z0)];
+    out.add(
+      Facet(
+        v,
+        Facet.normalOf(v, away: mid),
+        s,
+        ao: ao * 0.94,
+        tint: tint,
+      ),
+    );
+  }
+  return out;
+}
+
+/// Un anillo recto: un brocal, un pretil, cualquier pared que rodee algo.
+///
+/// Sale en trozos y no de una pieza porque una pieza con un agujero en medio
+/// no es un poliedro convexo ni se cierra con una tapa: cada tramo es su
+/// propia caja torcida, cerrada por sí misma, y juntos hacen el anillo. Y es
+/// lo que hace falta para que se vea lo que hay dentro — un brocal macizo con
+/// agua debajo es un brocal macizo, y el agua no existe.
+List<Solid> ringSolids(
+  double cx,
+  double cz,
+  double rIn,
+  double rOut,
+  double y0,
+  double y1,
+  Surface s, {
+  int sides = 8,
+  double ao = 1.0,
+  int? tint,
+}) {
+  final out = <Solid>[];
+  for (var k = 0; k < sides; k++) {
+    final a0 = math.pi / sides + k * 2 * math.pi / sides;
+    final a1 = math.pi / sides + (k + 1) * 2 * math.pi / sides;
+    (double, double) at(double r, double a) =>
+        (cx + r * math.cos(a), cz - r * math.sin(a));
+    final (xi0, zi0) = at(rIn, a0);
+    final (xi1, zi1) = at(rIn, a1);
+    final (xo0, zo0) = at(rOut, a0);
+    final (xo1, zo1) = at(rOut, a1);
+    out.add(
+      Solid(
+        -1,
+        hexFaces(
+          [
+            V3(xi0, y0, zi0),
+            V3(xo0, y0, zo0),
+            V3(xo1, y0, zo1),
+            V3(xi1, y0, zi1),
+            V3(xi0, y1, zi0),
+            V3(xo0, y1, zo0),
+            V3(xo1, y1, zo1),
+            V3(xi1, y1, zi1),
+          ],
+          s,
+          ao: ao,
+          tint: tint,
+        ),
+      ),
+    );
+  }
+  return out;
+}
+
+/// Una caja torcida: ocho esquinas y seis caras, cerrada.
+///
+/// Los cuatro primeros son la cara de abajo en sentido antihorario vista desde
+/// arriba, y los cuatro siguientes la de arriba, cada uno sobre el suyo. Es lo
+/// que hace falta para una tabla inclinada —el tablero de un atril, la hoja de
+/// un libro abierto—, que no es una caja y no vale fingir que lo es: una
+/// normal que no sea perpendicular a su propia cara es una mentira sobre dónde
+/// está el plano de la cara, y de eso cuelga todo el orden de pintado.
+List<Facet> hexFaces(
+  List<V3> c,
+  Surface s, {
+  double ao = 1.0,
+  int? tint,
+  double top = 1.0,
+}) {
+  assert(c.length == 8);
+  var mx = 0.0, my = 0.0, mz = 0.0;
+  for (final v in c) {
+    mx += v.x;
+    my += v.y;
+    mz += v.z;
+  }
+  final mid = V3(mx / 8, my / 8, mz / 8);
+  Facet side(List<V3> v, double shade) => Facet(
+    v,
+    Facet.normalOf(v, away: mid),
+    s,
+    ao: ao * shade,
+    tint: tint,
+  );
+  return [
+    side([c[4], c[5], c[6], c[7]], top),
+    side([c[3], c[2], c[1], c[0]], 0.55),
+    side([c[0], c[1], c[5], c[4]], 0.94),
+    side([c[1], c[2], c[6], c[5]], 0.90),
+    side([c[2], c[3], c[7], c[6]], 0.94),
+    side([c[3], c[0], c[4], c[7]], 0.98),
+  ];
+}
+
 /// A pitched roof: two slopes, two ends and the floor that closes it.
 ///
 /// The floor is not decoration. Without it a roof is a shell, and a shell
@@ -1136,15 +1283,33 @@ class NoticeBoard {
   static const double low = 0.52, high = 1.02;
   static const double _post = 0.065, _top = 1.08;
 
+  /// Dónde queda dentro de la plaza, medido desde su centro.
+  ///
+  /// A un lado y no en medio: en medio está la fuente, y el atril está al otro
+  /// lado. El desplazamiento lo aplica esta clase y no quien la llama, así que
+  /// todo el que pregunte por el tablón pasa el centro del pueblo y no tiene
+  /// que saber nada de esto.
+  /// A la izquierda de la fuente, mirando hacia afuera. Sale del radio de la
+  /// plaza y no de un número suelto: si la plaza crece, el tablón se corre con
+  /// ella en vez de quedarse pegado a la fuente.
+  static double get offX => -TownLayout.plazaReach * Plaza.boardOut;
+  static double get offZ => TownLayout.plazaReach * Plaza.boardOut;
+
+  static double xAt(double cx) => cx + offX;
+  static double zAt(double cz) => cz + offZ;
+
   /// The four corners of the plank, front face, counter-clockwise from the
   /// bottom left. The town's mark goes on it and a finger lands on it, and
   /// both want the same rectangle.
-  static List<V3> faceAt(double cx, double cz) => [
-    V3(cx - reach, low, cz + 0.05),
-    V3(cx + reach, low, cz + 0.05),
-    V3(cx + reach, high, cz + 0.05),
-    V3(cx - reach, high, cz + 0.05),
-  ];
+  static List<V3> faceAt(double cx, double cz) {
+    final x = xAt(cx), z = zAt(cz);
+    return [
+      V3(x - reach, low, z + 0.05),
+      V3(x + reach, low, z + 0.05),
+      V3(x + reach, high, z + 0.05),
+      V3(x - reach, high, z + 0.05),
+    ];
+  }
 
   /// Cuántas hojas caben en la plancha: dos filas de cinco, las mismas que
   /// tiene el tablón de cerca, para que la silueta se corresponda con lo que
@@ -1217,10 +1382,11 @@ class NoticeBoard {
   }
 
   static List<Solid> solidsAt(
-    double cx,
-    double cz, {
+    double cxIn,
+    double czIn, {
     List<int> sheets = const [0, 3, 6],
   }) {
+    final cx = xAt(cxIn), cz = zAt(czIn);
     const wood = 0xFF6B573F;
     const plank = 0xFFC9B896;
     const shingle = 0xFF8A7355;
@@ -1257,6 +1423,408 @@ class NoticeBoard {
             )
             .map((f) => Facet(f.v, f.n, Surface.own, ao: f.ao, tint: shingle))
             .toList(),
+      ),
+    ];
+  }
+}
+
+/// La plaza: el claro en el centro del pueblo.
+///
+/// Existe por un motivo concreto y se ve en cuanto un pueblo pasa de diez
+/// casas: el tablón es la cosa más importante que hay en el pueblo y es también
+/// la más pequeña, así que en cuanto empezaban a levantarse estructuras
+/// quedaba escondido entre ellas. Un botón que lo abre lo arregla para el
+/// dedo, no para el ojo — y lo que se estaba perdiendo era el sitio, no el
+/// botón.
+///
+/// Así que el pueblo se funda con una plaza y ningún solar puede meter la
+/// huella dentro. Y una plaza no es un claro: es enlosado, cuatro parterres de
+/// hierba, una fuente en medio, el tablón a un lado y el atril al otro. Desde
+/// cualquier punto del pueblo se sabe dónde está el centro, y de cerca hay
+/// algo que mirar.
+class Plaza {
+  const Plaza._();
+
+  /// Piedra clara, de otro tono que los muros, para que el suelo se lea como
+  /// suelo y no como el cimiento de algo.
+  static const int _slab = 0xFFB9AE97;
+  static const int _kerb = 0xFF9C917B;
+  static const int _basin = 0xFFA79B83;
+  static const int _rim = 0xFF8E836D;
+
+  /// El mismo verde azulado con el que el pueblo pinta el agua quieta de un
+  /// estanque o de un río. Un celeste de piscina en medio de un valle en
+  /// tierras y cales se lee como una calcomanía.
+  static const int _water = 0xFF3F7C86;
+
+  /// Un octógono de radio [r], en sentido antihorario visto desde arriba.
+  static List<(double, double)> ring(
+    double cx,
+    double cz,
+    double r, {
+    int sides = 8,
+    double turn = 0,
+  }) => [
+    for (var k = 0; k < sides; k++)
+      (
+        cx + r * math.cos(turn + math.pi / sides + k * 2 * math.pi / sides),
+        cz - r * math.sin(turn + math.pi / sides + k * 2 * math.pi / sides),
+      ),
+  ];
+
+  /// Dónde va cada cosa, medido desde el centro y en proporción al radio.
+  ///
+  /// En proporción y no en metros: si mañana la plaza crece, los parterres y
+  /// los muebles crecen con ella en vez de quedarse amontonados en el medio.
+  static const double boardOut = 0.52, lecternOut = 0.52;
+
+  /// Lo que ocupa la fuente, en proporción al radio de la plaza. Lo pregunta
+  /// quien tenga que rodearla: la gente del pueblo no la atraviesa.
+  static double basinOf(double reach) => reach * 0.27 * 1.14;
+
+  /// La fuente: taza, brocal y el agua dentro.
+  ///
+  /// Pequeña a propósito. Hay un hito que es una fuente y cuesta sus piezas;
+  /// ésta es el pilón de una plaza de pueblo, que es otra cosa y tiene que
+  /// parecerlo: un brocal bajo con agua, sin surtidor ni figuras.
+  static List<Solid> _fountain(double cx, double cz, double r) {
+    final taza = basinOf(r) / 1.14;
+    const suelo = 0.035;
+    const alto = 0.40;
+    return [
+      // El escalón sobre el que se apoya, que es lo que la levanta del
+      // enlosado y le da sombra propia.
+      Solid(
+        -1,
+        prismFaces(
+          ring(cx, cz, taza * 1.14, sides: 8),
+          suelo,
+          suelo + 0.07,
+          Surface.stone,
+          ao: 0.98,
+          tint: _basin,
+        ),
+      ),
+      // El brocal, que es un anillo y no un bloque: por eso se ve el agua.
+      ...ringSolids(
+        cx,
+        cz,
+        taza * 0.80,
+        taza,
+        suelo + 0.07,
+        alto,
+        Surface.stone,
+        ao: 0.94,
+        tint: _rim,
+      ),
+      // El agua, un dedo por debajo del canto: así la piedra asoma por encima
+      // y lo de dentro se lee como agua contenida y no como una tapa azul.
+      Solid(
+        -1,
+        prismFaces(
+          ring(cx, cz, taza * 0.81, sides: 8),
+          suelo + 0.07,
+          alto - 0.055,
+          Surface.own,
+          ao: 1.0,
+          tint: _water,
+        ),
+      ),
+      // Y el pilar del caño en medio, que es lo que se ve de lejos.
+      Solid(
+        -1,
+        prismFaces(
+          ring(cx, cz, taza * 0.20, sides: 6),
+          alto - 0.055,
+          alto + 0.40,
+          Surface.stone,
+          ao: 0.94,
+          tint: _basin,
+        ),
+      ),
+      Solid(
+        -1,
+        prismFaces(
+          ring(cx, cz, taza * 0.36, sides: 6),
+          alto + 0.40,
+          alto + 0.50,
+          Surface.stone,
+          ao: 1.0,
+          tint: _rim,
+        ),
+      ),
+    ];
+  }
+
+  /// Los cuatro parterres, en los ejes y entre la fuente y el borde.
+  ///
+  /// Hierba y no «suelo verde»: van declarados como hoja, así que siguen el
+  /// calendario del año igual que el prado y que las huertas, en vez de
+  /// quedarse verde primavera bajo la nieve.
+  static List<Solid> _beds(double cx, double cz, double r) {
+    const greens = [0xFF5E7040, 0xFF6B7A42, 0xFF54663C, 0xFF77854C];
+    final out = <Solid>[];
+    for (var k = 0; k < 4; k++) {
+      // En los ejes, y los muebles en las diagonales: en las mismas cuatro
+      // direcciones, el tablón se plantaba dentro de un parterre.
+      final a = k * math.pi / 2;
+      final x = cx + math.cos(a) * r * 0.60;
+      final z = cz - math.sin(a) * r * 0.60;
+      out.add(
+        Solid(
+          -1,
+          prismFaces(
+            ring(x, z, r * 0.185, sides: 8),
+            0.035,
+            0.075,
+            Surface.own,
+            ao: 0.96,
+            tint: _rim,
+          ),
+        ),
+      );
+      out.add(
+        Solid(
+          -1,
+          prismFaces(
+            ring(x, z, r * 0.155, sides: 8),
+            0.075,
+            0.105,
+            Surface.leaf,
+            ao: 1.04,
+            tint: greens[k],
+          ),
+        ),
+      );
+    }
+    return out;
+  }
+
+  /// Todo lo que hay en el suelo de la plaza.
+  ///
+  /// El enlosado es un sólido de verdad y no una mancha pintada en el suelo:
+  /// tiene canto, y ese canto es lo que hace que de perfil se vea que el suelo
+  /// está levantado y no que alguien cambió el color de la hierba.
+  static List<Solid> solidsAt(double cx, double cz, double reach) => [
+    Solid(
+      -1,
+      prismFaces(
+        ring(cx, cz, reach),
+        0,
+        0.035,
+        Surface.stone,
+        ao: 1.02,
+        tint: _slab,
+      ),
+    ),
+    // Un bordillo por dentro del canto, que es lo que dibuja el octógono desde
+    // arriba —que es desde donde se mira casi siempre— en vez de dejar una
+    // mancha lisa a la que hay que adivinarle la forma.
+    Solid(
+      -1,
+      prismFaces(
+        ring(cx, cz, reach * 0.995),
+        0.035,
+        0.055,
+        Surface.stone,
+        ao: 0.96,
+        tint: _kerb,
+      ),
+    ),
+    ..._beds(cx, cz, reach),
+    ..._fountain(cx, cz, reach),
+  ];
+}
+
+/// El atril de la plaza: donde se leen las leyendas de este pueblo.
+///
+/// Un libro abierto sobre un tablero inclinado. No es una pieza y no se gana:
+/// está desde el primer logro, igual que el tablón, porque cobrar un logro por
+/// el sitio donde se lee lo que uno mismo escribió sería cobrar por la propia
+/// letra.
+///
+/// Se distingue del tablón a la primera ojeada y eso es a propósito: el tablón
+/// es lo que el pueblo dice de vos, y el atril es lo que vos dijiste. Uno es
+/// vertical y de papeles clavados; el otro está inclinado y tiene dos páginas.
+class Lectern {
+  const Lectern._();
+
+  /// Enfrente del tablón, al otro lado de la fuente.
+  ///
+  /// Estaban los dos juntos y se leían como un solo mueble de dos partes. Una
+  /// plaza tiene el tablón en una esquina y el facistol en otra, y la fuente
+  /// en medio: así cada cosa es una cosa, y se llega a una sin pasar por la
+  /// otra.
+  static double get offX => TownLayout.plazaReach * Plaza.lecternOut;
+  static double get offZ => TownLayout.plazaReach * Plaza.lecternOut;
+
+  /// La mitad de lo que medía. Al lado de un tablón de plaza y de la gente que
+  /// pasa, un atril de estatura de persona era un mueble enorme para una cosa
+  /// que se lee de pie y de cerca: esto es un facistol de plaza, del tamaño
+  /// que tiene uno.
+  static const double _k = 0.5;
+
+  /// Medidas del tablero: lo que ocupa y a qué altura se lee.
+  static const double _wide = 0.30 * _k, _deep = 0.23 * _k;
+  static const double _back = 1.04 * _k, _front = 0.86 * _k;
+  static const double _thick = 0.045 * _k;
+
+  /// Cuánto sobresale el libro por encima del tablero. Lo comparten la
+  /// geometría y el blanco del dedo, para que lo que se toca sea exactamente
+  /// la tapa que se ve y no un rectángulo flotando encima de ella.
+  static const double _leafLift = 0.028 * _k;
+
+  static const int _wood = 0xFF6B573F;
+  static const int _dark = 0xFF54432F;
+  static const int _stone = 0xFFA89C85;
+  static const int _page = 0xFFEDE3C8;
+  static const int _bind = 0xFF7A4034;
+
+  static double xAt(double cx) => cx + offX;
+  static double zAt(double cz) => cz + offZ;
+
+  /// Las cuatro esquinas de la cara de arriba del libro, que es lo que se ve y
+  /// por lo tanto lo que se toca. Empezando por la de atrás a la izquierda.
+  ///
+  /// Sale de la propia geometría y no de un punto colgado encima: lo que el
+  /// dedo busca es exactamente lo que el ojo encuentra, y desde lejos, cuando
+  /// el atril es una mota, no hay nada que tocar — que es lo correcto.
+  static List<V3> faceAt(double cx, double cz) {
+    final x = xAt(cx), z = zAt(cz);
+    const lift = _leafLift;
+    return [
+      V3(x - _wide, _back + lift, z - _deep),
+      V3(x + _wide, _back + lift, z - _deep),
+      V3(x + _wide, _front + lift, z + _deep),
+      V3(x - _wide, _front + lift, z + _deep),
+    ];
+  }
+
+  /// Una tabla inclinada: el mismo rectángulo de siempre, con la arista de
+  /// atrás más alta que la de delante.
+  static List<V3> _board(
+    double x,
+    double z,
+    double w,
+    double d,
+    double back,
+    double front,
+    double thick,
+  ) => [
+    V3(x - w, back - thick, z - d),
+    V3(x + w, back - thick, z - d),
+    V3(x + w, front - thick, z + d),
+    V3(x - w, front - thick, z + d),
+    V3(x - w, back, z - d),
+    V3(x + w, back, z - d),
+    V3(x + w, front, z + d),
+    V3(x - w, front, z + d),
+  ];
+
+  static List<Solid> solidsAt(double cx, double cz) {
+    final x = xAt(cx), z = zAt(cz);
+    // Media página: del lomo hacia fuera, e inclinada como el tablero.
+    List<V3> leaf(double from, double to, double lift) => [
+      V3(x + from, _back - 0.012 * _k + lift, z - _deep * 0.94),
+      V3(x + to, _back - 0.012 * _k + lift, z - _deep * 0.94),
+      V3(x + to, _front - 0.012 * _k + lift, z + _deep * 0.94),
+      V3(x + from, _front - 0.012 * _k + lift, z + _deep * 0.94),
+      V3(x + from, _back + lift, z - _deep * 0.94),
+      V3(x + to, _back + lift, z - _deep * 0.94),
+      V3(x + to, _front + lift, z + _deep * 0.94),
+      V3(x + from, _front + lift, z + _deep * 0.94),
+    ];
+
+    return [
+      // El pie, de piedra, con su zócalo: un atril de una sola pata sobre la
+      // hierba se lee como un cartel clavado, no como un mueble.
+      Solid(
+        -1,
+        prismFaces(
+          Plaza.ring(x, z, 0.21 * _k),
+          0.035,
+          0.035 + 0.065 * _k,
+          Surface.stone,
+          ao: 0.96,
+          tint: _stone,
+        ),
+      ),
+      Solid(
+        -1,
+        boxFaces(
+          x - 0.055 * _k,
+          0.035 + 0.065 * _k,
+          z - 0.055 * _k,
+          x + 0.055 * _k,
+          _front - 0.10 * _k,
+          z + 0.055 * _k,
+          Surface.own,
+          ao: 0.90,
+          tint: _wood,
+        ),
+      ),
+      // El tablero, y su listón de abajo para que el libro no resbale.
+      Solid(
+        -1,
+        hexFaces(
+          _board(
+            x,
+            z,
+            _wide + 0.035 * _k,
+            _deep + 0.03 * _k,
+            _back,
+            _front,
+            _thick,
+          ),
+          Surface.own,
+          ao: 0.98,
+          tint: _wood,
+        ),
+      ),
+      Solid(
+        -1,
+        hexFaces(
+          _board(
+            x,
+            z + _deep + 0.015 * _k,
+            _wide + 0.035 * _k,
+            0.022 * _k,
+            _front + 0.045 * _k,
+            _front + 0.03 * _k,
+            0.05 * _k,
+          ),
+          Surface.own,
+          ao: 0.92,
+          tint: _dark,
+        ),
+      ),
+      // Y el libro: dos páginas y el lomo entre ellas.
+      Solid(
+        -1,
+        hexFaces(
+          leaf(-_wide, -0.018 * _k, _leafLift),
+          Surface.own,
+          ao: 1.06,
+          tint: _page,
+        ),
+      ),
+      Solid(
+        -1,
+        hexFaces(
+          leaf(0.018 * _k, _wide, _leafLift),
+          Surface.own,
+          ao: 1.06,
+          tint: _page,
+        ),
+      ),
+      Solid(
+        -1,
+        hexFaces(
+          leaf(-0.026 * _k, 0.026 * _k, _leafLift - 0.008 * _k),
+          Surface.own,
+          ao: 0.88,
+          tint: _bind,
+        ),
       ),
     ];
   }

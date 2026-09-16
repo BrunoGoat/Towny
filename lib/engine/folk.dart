@@ -6,6 +6,7 @@ import '../core/math3.dart';
 import '../core/rng.dart';
 import '../data/doings.dart';
 import '../data/folknames.dart';
+import 'solids.dart';
 import 'solid.dart';
 import 'town.dart';
 
@@ -594,6 +595,28 @@ List<(double x0, double z0, double x1, double z1)> _blockers(
     // centro. Con este margen, todo lo que pase por casillas libres queda
     // fuera de lo construido por geometría y no por suerte.
     out.add((p.x0 - _margin, p.z0 - _margin, p.x1 + _margin, p.z1 + _margin));
+  }
+  // Y lo que hay plantado en la plaza, que no es pieza de nadie y estaba
+  // quedándose fuera: el sitio de la plaza es su centro exacto, o sea justo
+  // donde está la fuente, así que había vecinos metidos en el agua y otros
+  // cruzando el tablón de lado a lado.
+  //
+  // Los parterres no. Son de un palmo y con su bordillo, y por encima de un
+  // parterre se pasa: bloquearlos partía el enlosado en cuatro trozos por los
+  // que no se podía andar de uno a otro.
+  if (!layout.solo && placed > 0) {
+    final cx = layout.cx, cz = layout.cz;
+    void estorbo(double x, double z, double w, double d) => out.add((
+      x - w - _margin,
+      z - d - _margin,
+      x + w + _margin,
+      z + d + _margin,
+    ));
+
+    final pilon = Plaza.basinOf(TownLayout.plazaReach);
+    estorbo(cx, cz, pilon, pilon);
+    estorbo(NoticeBoard.xAt(cx), NoticeBoard.zAt(cz), NoticeBoard.reach, 0.12);
+    estorbo(Lectern.xAt(cx), Lectern.zAt(cz), 0.22, 0.22);
   }
   return out;
 }

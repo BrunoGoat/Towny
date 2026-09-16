@@ -187,7 +187,7 @@ class _FolkGalleryScreenState extends State<FolkGalleryScreen>
                 }
               },
               child: CustomPaint(
-                painter: TownPainter(scene, [], [], [], [], []),
+                painter: TownPainter(scene, [], [], [], [], [], []),
                 size: Size.infinite,
                 isComplex: true,
                 willChange: true,
