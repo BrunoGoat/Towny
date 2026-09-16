@@ -13,6 +13,7 @@ import '../data/landmarks.dart';
 import '../model/store.dart';
 import 'board_glyph.dart';
 import 'choice_sheet.dart';
+import 'cloud_flight.dart';
 import 'habit_bar.dart';
 import 'habits_sheet.dart';
 import 'hold_button.dart';
@@ -35,7 +36,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   final TownViewController _wall = TownViewController();
   late UiTheme _theme = UiTheme(Palette.forMoment(12, 1));
 
@@ -101,6 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Appearance.instance.removeListener(_onStore);
     _whisperTimer?.cancel();
     _signTimer?.cancel();
+    _flight.dispose();
     super.dispose();
   }
 
@@ -262,6 +265,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _selectedTown = widget.store.habit.id;
               }),
               onCameraMoved: _dismissSign,
+              onFlewOut: _flyToValley,
               onNothingTapped: () {
                 if (_selected != null) setState(() => _selected = null);
               },
@@ -342,7 +346,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: Icons.travel_explore,
                     theme: t,
                     tooltip: 'Ver todo el valle',
-                    onTap: _wall.frameValley,
+                    onTap: _flyToValley,
                   ),
                 Container(
                   width: 18,
@@ -473,6 +477,19 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
+          // El vuelo, por encima de todo lo demás: mientras dura, lo que se ve
+          // es el cielo, y los botones del pueblo que se deja no pintan nada
+          // ahí. Va el último del montón porque tiene que tapar también a los
+          // carteles y a las hojas que pudieran estar abiertas.
+          if (_flying)
+            Positioned.fill(
+              child: AnimatedBuilder(
+                animation: _flight,
+                builder: (_, _) =>
+                    CloudFlight(t: _flight.value, palette: t.palette),
+              ),
+            ),
+
           if (_revealTown != null)
             Positioned.fill(
               child: TownLandmarkOverlay(
@@ -574,6 +591,43 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.of(
       context,
     ).push(LegendsBook.route(habit: store.habits[town], theme: _theme));
+  }
+
+  // ------------------------------------------------------------- el vuelo
+
+  /// Cuánto dura subir al valle. Un segundo y medio: lo que tarda en leerse
+  /// como un viaje sin llegar a leerse como una espera.
+  late final AnimationController _flight = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1500),
+  );
+  bool _flying = false;
+
+  /// Subir al valle: despegar, taparse con nubes, y aparecer arriba.
+  ///
+  /// Lo llaman dos cosas y hacen lo mismo a propósito: el botón de explorar el
+  /// valle, y apartarse con los dedos hasta que el pueblo deja de ser el
+  /// asunto. Pedirlo de las dos maneras tiene que llevar al mismo sitio por el
+  /// mismo camino.
+  void _flyToValley() {
+    if (_flying || !_wall.hasValley || _wall.aloft) return;
+    setState(() => _flying = true);
+    Sensory.instance.tick();
+    _wall.liftOff();
+
+    // El corte va justo en la mitad, que es donde las nubes tapan del todo.
+    var llego = false;
+    void mirar() {
+      if (llego || _flight.value < 0.5) return;
+      llego = true;
+      _wall.arriveAtValley();
+    }
+
+    _flight.addListener(mirar);
+    _flight.forward(from: 0).whenComplete(() {
+      _flight.removeListener(mirar);
+      if (mounted) setState(() => _flying = false);
+    });
   }
 
   void _openSettings() {

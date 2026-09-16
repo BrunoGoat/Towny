@@ -38,6 +38,17 @@ class TownViewController {
   void frameAll() => _state?.frameAll();
   void frameValley() => _state?.frameValley();
 
+  /// El despegue: un empujón hacia arriba antes de que entren las nubes, para
+  /// que el vuelo empiece a verse antes de que haya nada que lo tape.
+  void liftOff() => _state?.liftOff();
+
+  /// Y la llegada, que se hace detrás de las nubes: la cámara ya está en el
+  /// valle cuando se abren.
+  void arriveAtValley() => _state?.arriveAtValley();
+
+  /// Si la cámara está arriba, mirando el valle entero.
+  bool get aloft => _state?._aloft ?? false;
+
   /// True once there is more than one town to compare.
   bool get hasValley => (_state?._entries.length ?? 1) > 1;
   void goTo(double x, double z) => _state?.goTo(x, z);
@@ -64,6 +75,7 @@ class TownView extends StatefulWidget {
     required this.onStoneTapped,
     required this.onNothingTapped,
     required this.onCameraMoved,
+    required this.onFlewOut,
     required this.onSkyTapped,
     required this.onDomeTapped,
     required this.onTownTapped,
@@ -95,6 +107,14 @@ class TownView extends StatefulWidget {
 
   /// Alguien movió la cámara a mano. Lo que hubiera puesto encima sobra.
   final VoidCallback onCameraMoved;
+
+  /// Se alejó tanto del pueblo que lo que está mirando ya es el valle.
+  ///
+  /// El botón de explorar el valle existe y está a un toque, pero apartarse
+  /// hasta que el pueblo es una mancha es pedir lo mismo con el gesto que
+  /// tiene a mano — y quedarse ahí, con el pueblo pequeño y el valle sin
+  /// encuadrar, es el peor de los dos sitios.
+  final VoidCallback onFlewOut;
 
   /// The sign over another town was tapped: go and live there.
   final void Function(int index) onTownTapped;
@@ -259,7 +279,57 @@ class _TownViewState extends State<TownView>
     _cam.reaches(lo, hi);
   }
 
+  /// Si la cámara está arriba, mirando el valle entero.
+  bool _aloft = false;
+
+  /// Para no pedir el vuelo dos veces mientras se sigue apartando.
+  bool _asked = false;
+
+  /// A partir de dónde lo que se está mirando ya no es este pueblo.
+  ///
+  /// Tres veces y media su propio radio: desde ahí el pueblo ocupa un tercio
+  /// de la pantalla y lo que llena el resto es campo vacío. El botón de
+  /// explorar el valle existe y está a un toque, pero apartarse hasta aquí es
+  /// pedir lo mismo con el gesto que uno tiene en la mano.
+  double get _leaveAt => math.max(_town.radius * 3.6, 34.0);
+
+  /// El despegue: la cámara se levanta un poco antes de que entren las nubes.
+  void liftOff() {
+    _cam.distanceTarget = clampD(
+      _cam.distanceTarget * 1.5,
+      OrbitCamera.minDistance,
+      OrbitCamera.maxDistance,
+    );
+    _cam.pitchTarget = clampD(
+      _cam.pitchTarget + 0.10,
+      OrbitCamera.minPitch,
+      OrbitCamera.maxPitch,
+    );
+    _cam.focusYTarget += 1.4;
+    _cam.follow = false;
+  }
+
+  /// Y la llegada, detrás de las nubes.
+  ///
+  /// Se encuadra el valle y se **salta** hasta él: lo que hay que esconder es
+  /// justo eso, y para eso están las nubes. Lo único que no se salta es el
+  /// último palmo — se llega un poco más arriba y más lejos de lo que toca, y
+  /// esa última caída la hace el amortiguador de la cámara mientras las nubes
+  /// se abren, así que lo primero que se ve ya se está moviendo.
+  void arriveAtValley() {
+    frameValley();
+    _cam.snap();
+    _cam.distance *= 1.07;
+    _cam.focusY += 1.8;
+    _cam.pitch = clampD(
+      _cam.pitch + 0.06,
+      OrbitCamera.minPitch,
+      OrbitCamera.maxPitch,
+    );
+  }
+
   void _frameTown() {
+    _landed();
     _cam.travelTarget = _town.cx;
     _cam.focusZTarget = _town.cz;
     _cam.focusYTarget = 1.4;
@@ -365,6 +435,7 @@ class _TownViewState extends State<TownView>
     }
 
     _cam.step(dt);
+    _watchTheHorizon();
     _fx.update(dt);
     if (_finished != null) {
       _finishedAge += dt;
@@ -647,6 +718,8 @@ class _TownViewState extends State<TownView>
       OrbitCamera.maxDistance,
     );
     _cam.follow = false;
+    _aloft = true;
+    _asked = true;
     Sensory.instance.tick();
   }
 
@@ -691,7 +764,25 @@ class _TownViewState extends State<TownView>
     // las cumbres dentro.
     _cam.distanceTarget = clampD(_townDistance(), 9, 90);
     _cam.follow = false;
+    _landed();
     Sensory.instance.tick();
+  }
+
+  /// Si se apartó tanto que lo que mira ya es el valle, decirlo — una vez.
+  ///
+  /// Se mira el objetivo y no dónde está la cámara: lo que cuenta es lo que se
+  /// pidió, no lo que ya llegó, y así el vuelo arranca con el gesto y no medio
+  /// segundo después. Y se rearma sólo al volver bien adentro, para que
+  /// quedarse justo en el filo no dispare un vuelo por fotograma.
+  void _watchTheHorizon() {
+    if (_entries.length < 2 || _showcase != null) return;
+    final far = _cam.distanceTarget;
+    if (!_asked && !_aloft && far > _leaveAt) {
+      _asked = true;
+      widget.onFlewOut();
+    } else if (_asked && !_aloft && far < _leaveAt * 0.8) {
+      _asked = false;
+    }
   }
 
   /// Desde dónde se ve este pueblo entero, cumbres incluidas.
@@ -742,9 +833,20 @@ class _TownViewState extends State<TownView>
 
   void goTo(double x, double z) {
     _touched();
+    _landed();
     _cam.travelTo(x);
     _cam.focusZTarget = z;
     _cam.follow = false;
+  }
+
+  /// Volver a estar en un pueblo: se arma otra vez el aviso de apartarse.
+  ///
+  /// Lo llama todo lo que baja la cámara a tierra. Sin esto, después de un
+  /// vuelo el aviso se quedaba desarmado para siempre y apartarse en el pueblo
+  /// siguiente no hacía nada.
+  void _landed() {
+    _aloft = false;
+    _asked = false;
   }
 
   // -------------------------------------------------------------- gestures
