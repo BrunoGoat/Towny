@@ -29,7 +29,8 @@ class CloudFlight extends StatelessWidget {
   /// Cero al despegar, uno al aterrizar. A la mitad la pantalla está tapada.
   final double t;
 
-  /// La del momento: las nubes de las cuatro de la mañana no son blancas.
+  /// La del momento: las nubes de las cuatro de la mañana no son blancas, y el
+  /// sol de las siete de la tarde les da por un lado y no por el otro.
   final Palette palette;
 
   final int seed;
@@ -52,7 +53,13 @@ class CloudFlight extends StatelessWidget {
     // El desenfoque no acompaña a las nubes: va por delante. La tierra se
     // pierde de foco antes de que la tape nada, que es lo que hace que el
     // corte se lea como altura y no como una cortina.
-    final blur = math.sin(math.pi * t.clamp(0.0, 1.0)) * 16.0;
+    //
+    // Y se apaga en cuanto las nubes tapan del todo. Desenfocar la pantalla
+    // entera es lo más caro que hay aquí, y justo en el tramo en que no se ve
+    // nada de lo que hay debajo no cambia un solo píxel: sale gratis y se nota
+    // en los fotogramas por segundo del único momento en que hay dos cosas
+    // pesadas a la vez.
+    final blur = math.sin(math.pi * t.clamp(0.0, 1.0)) * 16.0 * (1 - cover);
     return IgnorePointer(
       child: Stack(
         fit: StackFit.expand,
@@ -71,6 +78,36 @@ class CloudFlight extends StatelessWidget {
   }
 }
 
+/// Los cinco tonos de una nube, de la sombra honda al brillo.
+///
+/// Cinco y no uno porque una nube no es una mancha: es un volumen con una cara
+/// dada al sol, una panza en sombra y un canto encendido entre las dos. Con un
+/// solo tono lo que se dibuja es la silueta de una nube, que es un recorte de
+/// papel; los cinco tonos son lo que la convierte en algo que tiene arriba y
+/// abajo.
+///
+/// Y los cinco salen de la paleta de la hora, no de una lista de grises. Al
+/// mediodía la sombra tira a azul porque lo que la ilumina es el cielo; al
+/// atardecer el brillo tira a miel porque lo que le da es el sol poniéndose; y
+/// de madrugada los cinco se juntan tanto que la nube es apenas una mancha más
+/// clara que la noche — que es exactamente lo que es una nube de noche.
+class _Tones {
+  _Tones(Palette p)
+    : hondo = Color.lerp(p.skyTop, Colors.black, 0.18)!,
+      sombra = Color.lerp(p.skyTop, p.skyHorizon, 0.45)!,
+      medio = Color.lerp(p.skyHorizon, Colors.white, 0.52)!,
+      luz = Color.lerp(p.skyHorizon, Colors.white, 0.86)!,
+      // El brillo lleva el color del sol, muy poco: es el canto que le da de
+      // lleno, y ahí es donde se nota de qué color es la luz de esta hora.
+      brillo = Color.lerp(
+        Color.lerp(p.skyHorizon, Colors.white, 0.96)!,
+        p.sun,
+        p.isDaylight ? 0.26 : 0.10,
+      )!;
+
+  final Color hondo, sombra, medio, luz, brillo;
+}
+
 class _CloudPainter extends CustomPainter {
   _CloudPainter({required this.t, required this.palette, required this.seed});
 
@@ -78,97 +115,217 @@ class _CloudPainter extends CustomPainter {
   final Palette palette;
   final int seed;
 
-  /// Cuántos cúmulos por banco. Ocho es lo que hace falta para que el borde de
+  /// Cuántos cúmulos por canto. Seis es lo que hace falta para que el borde de
   /// un banco se lea como una hilera de nubes y no como una nube sola muy
   /// grande, que es lo que parecía con cuatro.
   static const int _puffs = 6;
+
+  /// Cuántos lóbulos tiene un cúmulo. Ocho: con cinco la silueta salía
+  /// triangular y con doce deja de haber silueta, es un círculo.
+  static const int _lobes = 8;
 
   @override
   void paint(Canvas canvas, Size size) {
     final cover = CloudFlight.coverOf(t);
     if (cover <= 0.001) return;
 
-    // El color de la nube sale del cielo de la hora, aclarado: una nube es el
-    // cielo con el sol dentro. Así a las seis de la tarde son de color miel y
-    // a las tres de la mañana son una mancha apenas más clara que la noche.
-    final alta = Color.lerp(palette.skyTop, Colors.white, 0.72)!;
-    final baja = Color.lerp(palette.skyHorizon, Colors.white, 0.58)!;
+    final tone = _Tones(palette);
+    // De qué lado le da la luz. El sol sale por el este y se pone por el
+    // oeste, así que esto se da la vuelta a lo largo del día y las nubes de la
+    // mañana están encendidas por el otro lado que las de la tarde.
+    final hacia = Offset(palette.lightDir.x >= 0 ? 0.68 : -0.68, -0.73);
 
-    // Los dos bancos: uno sube desde abajo y el otro baja desde arriba, y los
-    // dos tienen su centro en mitad de la pantalla cuando t vale un medio. Ahí
-    // es donde se esconde el corte, así que ahí es donde tienen que estar.
-    //
-    // **Un banco es macizo por dentro y sólo tiene forma en sus dos cantos.**
-    // Empezó siendo una nube de cúmulos sueltos, y en una pantalla alta y
-    // estrecha eso no tapa: el cúmulo se mide contra el ancho —si no, no se
-    // lee como nube— y una pantalla de teléfono tiene el doble de alto que de
-    // ancho, así que entre hilera e hilera quedaban rendijas por las que se
-    // veía el mundo justo en el fotograma del corte. Relleno más cantos: el
-    // hondo sale gratis y la forma está donde se ve.
     final avance = t.clamp(0.0, 1.0);
     final hondo = size.height * 1.15;
     for (var banco = 0; banco < 2; banco++) {
       final sube = banco == 0;
-      // Dos coma seis pantallas de recorrido: a t=0 y a t=1 el banco está
-      // entero fuera, y el tapado sin rendijas va de t=0,25 a t=0,75.
+      // Tres pantallas de recorrido: a t=0 y a t=1 el banco está entero fuera,
+      // y el tapado sin rendijas va de t=0,3 a t=0,7.
       final centro =
           size.height * (sube ? 2.0 - 3.0 * avance : -1.0 + 3.0 * avance);
-      final color = sube ? baja : alta;
       final arriba = centro - hondo / 2, abajo = centro + hondo / 2;
       if (abajo < -size.height || arriba > size.height * 2) continue;
 
-      canvas.drawRect(
-        Rect.fromLTRB(-size.width, arriba, size.width * 2, abajo),
-        Paint()..color = color,
+      _bank(canvas, size, arriba, abajo, tone, hacia, banco);
+    }
+  }
+
+  /// Un banco: el macizo del medio y los cúmulos de sus dos cantos.
+  ///
+  /// **Macizo por dentro y con forma sólo en los cantos.** Empezó siendo una
+  /// nube de cúmulos sueltos, y en una pantalla alta y estrecha eso no tapa: el
+  /// cúmulo se mide contra el ancho —si no, no se lee como nube— y una pantalla
+  /// de teléfono tiene el doble de alto que de ancho, así que entre hilera e
+  /// hilera quedaban rendijas por las que se veía el mundo justo en el
+  /// fotograma del corte. Relleno más cantos: el hondo sale gratis y la forma
+  /// está donde se ve.
+  void _bank(
+    Canvas canvas,
+    Size size,
+    double arriba,
+    double abajo,
+    _Tones tone,
+    Offset hacia,
+    int banco,
+  ) {
+    final ancho = Rect.fromLTRB(-size.width, arriba, size.width * 2, abajo);
+    // El macizo no es liso: va de la sombra de la panza al medio de la cara de
+    // arriba. Liso, el fotograma en que tapa del todo es un rectángulo de
+    // color, y lo que se quiere ahí es estar dentro de una nube.
+    canvas.drawRect(
+      ancho,
+      Paint()
+        ..shader = ui.Gradient.linear(
+          Offset(0, arriba),
+          Offset(0, abajo),
+          [tone.luz, tone.medio, tone.sombra],
+          [0.0, 0.42, 1.0],
+        ),
+    );
+    // Y por dentro, masas grandes y flojas: lo que se ve al cruzar un banco de
+    // nubes no es un color, son claros y oscuros pasando.
+    for (var i = 0; i < 7; i++) {
+      final s = hash32(seed, 0x11 + banco, i);
+      final at = Offset(
+        size.width * hashRange(-0.1, 1.1, s, 1),
+        arriba + (abajo - arriba) * hashRange(0.05, 0.95, s, 2),
       );
-      // Y los cúmulos de los dos cantos, que son los que rompen la raya recta.
-      // Los dos y no sólo el de delante: al entrar se ve uno y al salir el
-      // otro, y un banco que sale dejando un filo recto es un telón.
-      for (var canto = 0; canto < 2; canto++) {
-        final y = canto == 0 ? arriba : abajo;
-        if (y < -size.height * 0.4 || y > size.height * 1.4) continue;
-        for (var i = 0; i < _puffs; i++) {
-          final s = hash32(seed, banco * 2 + canto, i);
-          final x = size.width * ((i + 0.5) / _puffs + hashJitter(0.07, s, 1));
-          final r = size.width * hashRange(0.20, 0.32, s, 3);
-          // Cada cúmulo con su tono, entre el del cielo alto y el del bajo.
-          // Opacos y de tonos distintos, que es como un banco de nubes se lee
-          // como un banco: con todos translúcidos del mismo color, lo que se
-          // veía eran discos que se cruzaban, o sea pompas de jabón.
-          final tono = Color.lerp(color, canto == 0 ? alta : baja, 0.55)!;
-          _puff(canvas, Offset(x, y), r, s, tono);
-        }
-      }
+      final r = size.width * hashRange(0.30, 0.55, s, 3);
+      final claro = hash01(s, 4) < 0.5;
+      _blob(
+        canvas,
+        at,
+        r,
+        s,
+        (claro ? tone.luz : tone.sombra).withValues(alpha: 0.22),
+      );
     }
 
-    // Y un velo general a la altura del cruce, que es el que garantiza que no
-    // quede una rendija entre dos cúmulos justo en el fotograma del corte. Muy
-    // corto: sólo existe donde las nubes ya tapan casi todo.
-    final velo = ((cover - 0.94) / 0.06).clamp(0.0, 1.0);
-    if (velo > 0) {
-      canvas.drawRect(
-        Offset.zero & size,
-        Paint()..color = alta.withValues(alpha: velo),
+    // Los cúmulos de los dos cantos, que son los que rompen la raya recta.
+    // Los dos y no sólo el de delante: al entrar se ve uno y al salir el otro,
+    // y un banco que sale dejando un filo recto es un telón.
+    for (var canto = 0; canto < 2; canto++) {
+      final y = canto == 0 ? arriba : abajo;
+      if (y < -size.height * 0.5 || y > size.height * 1.5) continue;
+      // El canto de arriba mira al cielo y el de abajo es la panza: al de
+      // abajo la luz le llega de refilón, así que su brillo es mucho menor.
+      final arriba0 = canto == 0;
+      for (var i = 0; i < _puffs; i++) {
+        final s = hash32(seed, banco * 2 + canto, i);
+        final x = size.width * ((i + 0.5) / _puffs + hashJitter(0.08, s, 1));
+        // Tamaños y alturas bien distintos: con todos iguales y en línea, la
+        // hilera se lee como una cenefa y no como un banco de nubes.
+        final r = size.width * hashRange(0.17, 0.38, s, 3);
+        _cumulus(
+          canvas,
+          Offset(x, y + r * hashRange(-0.34, 0.16, s, 5) * (arriba0 ? 1 : -1)),
+          r,
+          s,
+          tone,
+          arriba0 ? hacia : Offset(hacia.dx, -hacia.dy * 0.35),
+          arriba0,
+        );
+      }
+      // Y unos jirones sueltos por delante, que es lo que tiene el borde de un
+      // banco de verdad: no termina, se deshilacha.
+      for (var i = 0; i < 4; i++) {
+        final s = hash32(seed, 0x33 + banco * 2 + canto, i);
+        final x = size.width * hashRange(0.0, 1.0, s, 1);
+        final fuera = size.width * hashRange(0.10, 0.30, s, 2);
+        final r = size.width * hashRange(0.07, 0.14, s, 3);
+        _wisp(
+          canvas,
+          Offset(x, y + (arriba0 ? -fuera : fuera)),
+          r,
+          s,
+          tone.medio.withValues(alpha: hashRange(0.45, 0.8, s, 4)),
+        );
+      }
+    }
+  }
+
+  /// Un cúmulo con volumen: cinco pasadas, de la sombra honda al brillo.
+  ///
+  /// Cada pasada es el mismo racimo de lóbulos encogido y corrido hacia la luz,
+  /// así que lo que queda es una cebolla de tonos con el brillo arriba del lado
+  /// del sol y la sombra abajo del otro. Plano y sin degradados, como todo lo
+  /// que dibuja esta app — el volumen sale de dónde está cada tono y no de un
+  /// difuminado.
+  void _cumulus(
+    Canvas canvas,
+    Offset at,
+    double r,
+    int s,
+    _Tones tone,
+    Offset hacia,
+    bool arriba,
+  ) {
+    // La panza no tiene brillo: la luz le llega de refilón.
+    final capas = arriba
+        ? const [
+            (1.04, -0.09, 0),
+            (1.00, 0.00, 1),
+            (0.86, 0.13, 2),
+            (0.64, 0.28, 3),
+            (0.38, 0.42, 4),
+          ]
+        : const [
+            (1.04, -0.11, 0),
+            (1.00, 0.00, 1),
+            (0.80, 0.14, 2),
+            (0.52, 0.26, 3),
+          ];
+    final tonos = [tone.hondo, tone.sombra, tone.medio, tone.luz, tone.brillo];
+    for (final (escala, corrido, cual) in capas) {
+      _blob(
+        canvas,
+        at + hacia * (corrido * r),
+        r * escala,
+        s,
+        tonos[cual],
+        aplanar: arriba ? 0.66 : 0.78,
       );
     }
   }
 
-  /// Un cúmulo: cinco lóbulos que se solapan, plano y sin degradado, como todo
-  /// lo demás que dibuja esta app.
-  void _puff(Canvas canvas, Offset at, double r, int s, Color color) {
-    final paint = Paint()..color = color;
+  /// El racimo de lóbulos. Siempre el mismo para una semilla, así que las cinco
+  /// pasadas encogen la *misma* nube y no cinco nubes distintas.
+  void _blob(
+    Canvas canvas,
+    Offset at,
+    double r,
+    int s,
+    Color color, {
+    double aplanar = 0.66,
+  }) {
     final path = Path();
-    for (var k = 0; k < 5; k++) {
-      final a = k * 2 * math.pi / 5 + hashRange(0, 1.2, s, 10 + k);
-      final d = r * hashRange(0.30, 0.52, s, 20 + k);
+    for (var k = 0; k < _lobes; k++) {
+      final a = k * 2 * math.pi / _lobes + hashRange(0, 0.7, s, 10 + k);
+      final d = r * hashRange(0.26, 0.54, s, 20 + k);
       path.addOval(
         Rect.fromCircle(
-          center: at + Offset(math.cos(a) * d, math.sin(a) * d * 0.62),
-          radius: r * hashRange(0.52, 0.78, s, 30 + k),
+          center: at + Offset(math.cos(a) * d, math.sin(a) * d * aplanar),
+          radius: r * hashRange(0.44, 0.70, s, 30 + k),
         ),
       );
     }
-    canvas.drawPath(path, paint);
+    canvas.drawPath(path, Paint()..color = color);
+  }
+
+  /// Un jirón: dos óvalos estirados. Lo que se deshilacha del borde.
+  void _wisp(Canvas canvas, Offset at, double r, int s, Color color) {
+    final path = Path();
+    for (var k = 0; k < 2; k++) {
+      path.addOval(
+        Rect.fromCenter(
+          center:
+              at + Offset(r * (k == 0 ? -0.5 : 0.5), r * 0.12 * (k * 2 - 1)),
+          width: r * hashRange(1.6, 2.6, s, 40 + k),
+          height: r * hashRange(0.34, 0.6, s, 50 + k),
+        ),
+      );
+    }
+    canvas.drawPath(path, Paint()..color = color);
   }
 
   @override
