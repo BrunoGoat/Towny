@@ -115,7 +115,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'horno',
     'Horno comunal',
-    7,
+    6,
     0,
     'Un solo fuego para todo el pueblo, encendido por turnos. Huele a pan desde tres calles.',
     (m) {
@@ -123,7 +123,6 @@ final List<Landmark> landmarks = [
       m.floor(1.7, 1.4, 0.85);
       m.dome(1.5, 1.3, 0.7);
       m.chimney(0.3, 0.9, dx: 0.5);
-      m.door(0.55, 0.75, dz: 0.8);
       m.box(PieceKind.parapet, 0.9, 0.5, 0.3, dx: -1.05, at: 0);
       m.tree(0.8, 1.2, dx: 1.5, dz: -1.0);
     },
@@ -132,7 +131,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'fragua',
     'Fragua',
-    8,
+    7,
     0,
     'Golpes de martillo antes del amanecer. Todo lo que corta y todo lo que sujeta sale de aquí.',
     (m) {
@@ -140,7 +139,6 @@ final List<Landmark> landmarks = [
       m.floor(1.8, 1.5, 1.0);
       m.roof(2.0, 1.7, 0.5);
       m.chimney(0.42, 1.3, dx: 0.55);
-      m.door(0.7, 0.85, dz: 0.78);
       m.post(0.16, 1.0, dx: -1.15, dz: 0.7);
       m.beam(0.7, 1.5, 0.14, dx: -1.15, at: 1.0);
       m.water(0.9, 0.9, dx: -1.1, dz: -0.7);
@@ -150,7 +148,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'palomar',
     'Palomar',
-    7,
+    6,
     0,
     'Palomas para la mesa y para las cartas. Las dos cosas hacían falta.',
     (m) {
@@ -159,7 +157,6 @@ final List<Landmark> landmarks = [
       m.floor(1.15, 1.15, 0.9);
       m.parapet(1.35, 1.35, 0.24);
       m.dome(1.2, 1.2, 0.62);
-      m.door(0.45, 0.7, dz: 0.66);
       m.tree(0.85, 1.3, dx: 1.3, dz: 1.1);
     },
   ),
@@ -248,14 +245,13 @@ final List<Landmark> landmarks = [
   Landmark(
     'pajar',
     'Pajar',
-    7,
+    6,
     0,
     'La paja del verano, para el invierno. Guardar es una manera de tener fe.',
     (m) {
       m.plinth(2.3, 1.8, 0.2);
       m.floor(2.0, 1.55, 1.15);
       m.roof(2.35, 1.9, 0.85);
-      m.door(0.8, 1.0, dz: 0.82);
       m.dormer(0.5, 0.45, dz: 0.35);
       m.field(2.0, 0.9, dz: -1.6);
       m.palisade(2.4, 0.6, dz: -2.1);
@@ -281,14 +277,13 @@ final List<Landmark> landmarks = [
   Landmark(
     'gallinero',
     'Gallinero',
-    6,
+    5,
     0,
     'Huevos todos los días. La costumbre más antigua que hay.',
     (m) {
       m.plinth(1.5, 1.2, 0.3);
       m.floor(1.25, 1.0, 0.7);
       m.roof(1.45, 1.2, 0.4);
-      m.door(0.35, 0.45, dz: 0.55);
       m.palisade(2.2, 0.6, dz: 1.2);
       m.palisade(2.2, 0.6, dx: 1.1, along: false);
     },
@@ -346,7 +341,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'tejar',
     'Tejar',
-    8,
+    7,
     0,
     'De aquí salen las tejas de todos los tejados que se ven desde aquí.',
     (m) {
@@ -354,7 +349,6 @@ final List<Landmark> landmarks = [
       m.floor(1.8, 1.55, 0.95);
       m.dome(1.6, 1.4, 0.75);
       m.chimney(0.34, 1.0, dx: 0.42);
-      m.door(0.6, 0.8, dz: 0.85);
       m.field(2.2, 0.9, dz: -1.7);
       m.post(0.16, 1.0, dx: -1.4, dz: 0.6);
       m.beam(1.0, 1.6, 0.14, dx: -1.5, at: 1.0);
@@ -364,7 +358,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'alfar',
     'Alfarería',
-    8,
+    7,
     0,
     'Barro, torno y horno. Todo lo que contiene algo en este pueblo nació en esta rueda.',
     (m) {
@@ -373,7 +367,6 @@ final List<Landmark> landmarks = [
       m.roof(2.0, 1.75, 0.55);
       m.dome(1.0, 1.0, 0.8, dx: 1.45, at: 0);
       m.box(PieceKind.chimney, 0.22, 0.22, 0.4, dx: 1.45, ridge: true, at: 0.6);
-      m.door(0.6, 0.8, dz: 0.8);
       m.water(0.9, 0.9, dx: -1.4, dz: 0.8);
       m.post(0.16, 0.9, dx: -1.4, dz: -0.7);
     },
@@ -382,14 +375,13 @@ final List<Landmark> landmarks = [
   Landmark(
     'tinte',
     'Tinte',
-    8,
+    7,
     0,
     'Cubas de color y las manos manchadas por semanas. Que la ropa no sea siempre parda.',
     (m) {
       m.plinth(2.0, 1.7, 0.2);
       m.floor(1.7, 1.45, 1.05);
       m.roof(1.95, 1.7, 0.5);
-      m.door(0.6, 0.8, dz: 0.78);
       m.water(0.85, 0.85, dx: -1.35, dz: -0.6);
       m.water(0.85, 0.85, dx: -1.35, dz: 0.6);
       m.post(0.16, 1.5, dx: 1.35, dz: -0.6);
@@ -400,7 +392,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'batan',
     'Batán',
-    9,
+    8,
     0,
     'Mazos de madera batiendo el paño hasta que aprieta. La lana se vuelve tela.',
     (m) {
@@ -409,7 +401,6 @@ final List<Landmark> landmarks = [
       m.floor(1.7, 1.45, 1.0);
       m.roof(1.95, 1.7, 0.5);
       m.wheel(1.1, dz: 1.1, along: true);
-      m.door(0.55, 0.75, dz: -0.78);
       m.post(0.16, 1.0, dx: -1.3, dz: -0.6);
       m.beam(0.9, 0.9, 0.14, dx: -1.3, dz: -0.6, at: 1.0);
       m.tree(0.9, 1.4, dx: 1.5, dz: -1.0);
@@ -435,7 +426,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'ermita',
     'Ermita',
-    8,
+    7,
     0,
     'Pequeña, apartada y siempre abierta. Para el que pasa y para el que no quiere compañía.',
     (m) {
@@ -444,7 +435,6 @@ final List<Landmark> landmarks = [
       m.roof(2.25, 1.75, 0.75, along: true);
       m.box(PieceKind.parapet, 0.7, 0.3, 0.55, at: 1.46);
       m.post(0.18, 0.4, at: 2.01);
-      m.door(0.6, 0.9, dz: 0.72);
       m.tree(1.1, 1.9, dx: -1.7, dz: 0.8);
       m.palisade(2.6, 0.5, dz: 1.4);
     },
@@ -571,7 +561,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'atalaya',
     'Atalaya',
-    9,
+    8,
     0,
     'Se ve venir a quien viene. Dormir tranquilo también se construye.',
     (m) {
@@ -579,7 +569,6 @@ final List<Landmark> landmarks = [
       m.shaft(1.3, 4, 0.8);
       m.parapet(1.55, 1.55, 0.4);
       m.spire(1.3, 1.3, 0.8);
-      m.door(0.45, 0.7, dz: 0.62);
       m.banner(0.9, at: 4.72);
     },
   ),
@@ -657,7 +646,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'molinoViento',
     'Molino de viento',
-    18,
+    17,
     1,
     'Aspas contra el poniente y trigo alrededor. El pueblo ya muele su propio pan.',
     (m) {
@@ -669,7 +658,6 @@ final List<Landmark> landmarks = [
       m.parapet(1.9, 1.9, 0.3);
       m.spire(1.75, 1.75, 1.0);
       m.sails(3.8, dz: -1.25, at: 4.15);
-      m.door(0.55, 0.85, dz: 1.0);
       m.stair(0.9, 0.4, 0.8, dz: 1.5);
       m.outbuilding(1.2, 1.0, 0.8, 0.45, dx: 2.0, dz: 1.4);
       m.palisade(3.0, 0.6, dz: -3.0);
@@ -680,7 +668,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'molinoAgua',
     'Molino de agua',
-    15,
+    14,
     1,
     'La rueda gira sola día y noche. El río trabaja gratis.',
     (m) {
@@ -692,7 +680,6 @@ final List<Landmark> landmarks = [
       m.roof(2.6, 2.25, 0.85);
       m.wheel(1.9, dz: 1.7, along: true);
       m.beam(0.5, 1.6, 0.22, dz: 1.3, at: 1.5);
-      m.door(0.65, 0.9, dz: -1.0);
       m.dormer(0.55, 0.5, dz: -0.5);
       m.chimney(0.32, 0.9, dx: 0.75);
       m.stair(1.0, 0.44, 0.8, dz: -1.5);
@@ -705,7 +692,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'acena',
     'Aceña del río',
-    14,
+    13,
     1,
     'Dos ruedas dentro del cauce, sobre pilas de piedra. Muele aunque el verano baje el agua.',
     (m) {
@@ -718,7 +705,6 @@ final List<Landmark> landmarks = [
       m.wheel(1.7, dx: -1.9, along: false);
       m.wheel(1.7, dx: 1.9, along: false);
       m.beam(4.0, 0.3, 0.2, dz: 0.9, at: 1.0);
-      m.door(0.6, 0.85, dz: -1.2);
       m.dormer(0.55, 0.5, dz: -0.9);
       m.chimney(0.3, 0.85, dx: 0.6, dz: -0.4);
       m.stair(0.9, 0.42, 0.8, dz: -1.7);
@@ -752,7 +738,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'serreria',
     'Serrería',
-    14,
+    13,
     1,
     'La sierra corta sola con la fuerza del agua. Las vigas ya no vienen de fuera.',
     (m) {
@@ -765,7 +751,6 @@ final List<Landmark> landmarks = [
       m.post(0.2, 1.3, dx: 1.7, dz: -1.0);
       m.beam(3.8, 1.2, 0.16, dz: -1.3, at: 1.3);
       m.roof(4.0, 1.5, 0.4, dz: -1.3, at: 1.46);
-      m.door(0.75, 0.95, dz: -0.9);
       m.chimney(0.28, 0.8, dx: 0.85);
       m.tree(1.2, 2.2, dx: -2.3, dz: 0.8);
       m.tree(1.0, 1.9, dx: 2.3, dz: -1.9);
@@ -776,7 +761,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'lagar',
     'Lagar y viñedo',
-    15,
+    14,
     1,
     'Cepas en línea y una prensa al fondo. Habrá vino propio, y habrá vendimia.',
     (m) {
@@ -787,7 +772,6 @@ final List<Landmark> landmarks = [
       m.plinth(2.4, 1.9, 0.3, dz: 1.4);
       m.floor(2.1, 1.65, 1.1, dz: 1.4);
       m.roof(2.45, 2.0, 0.7, dz: 1.4);
-      m.door(0.7, 0.9, dz: 2.2);
       m.post(0.24, 1.6, dx: -1.5, dz: 1.4);
       m.beam(0.9, 1.7, 0.2, dx: -1.6, dz: 1.4, at: 1.6);
       m.chimney(0.28, 0.8, dx: 0.7, dz: 1.4);
@@ -800,14 +784,13 @@ final List<Landmark> landmarks = [
   Landmark(
     'almazara',
     'Almazara y olivar',
-    15,
+    14,
     1,
     'Olivos viejos y una viga que aprieta. Aceite para la mesa y para las lámparas.',
     (m) {
       m.plinth(2.7, 2.1, 0.3, dz: 1.0);
       m.floor(2.4, 1.85, 1.15, dz: 1.0);
       m.roof(2.75, 2.2, 0.75, dz: 1.0);
-      m.door(0.7, 0.9, dz: 2.0);
       m.chimney(0.3, 0.85, dx: 0.8, dz: 1.0);
       m.plinth(1.5, 1.5, 0.3, dx: -1.9, dz: 1.0);
       m.post(0.3, 1.5, dx: -1.9, dz: 1.0, at: 0.3);
@@ -825,7 +808,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'cerveceria',
     'Cervecería',
-    13,
+    12,
     1,
     'Cebada, agua y tiempo. Y un sitio donde acaba el día.',
     (m) {
@@ -844,7 +827,6 @@ final List<Landmark> landmarks = [
         at: 0.65,
       );
       m.chimney(0.34, 1.0, dx: -0.7);
-      m.door(0.7, 0.9, dz: 1.0);
       m.dormer(0.6, 0.55, dz: 0.5);
       m.water(1.0, 1.0, dx: -1.9, dz: 0.9);
       m.post(0.2, 1.1, dx: -1.9, dz: -0.9);
@@ -856,7 +838,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'tahona',
     'Tahona',
-    12,
+    11,
     1,
     'Amasan de noche para que haya pan de mañana. Nadie se acuerda de agradecerlo.',
     (m) {
@@ -875,7 +857,6 @@ final List<Landmark> landmarks = [
         at: 0.55,
       );
       m.chimney(0.3, 0.9, dx: 0.7);
-      m.door(0.7, 0.9, dz: 0.95);
       m.box(PieceKind.porch, 1.4, 0.5, 0.35, dz: 1.2, at: 1.0);
       m.dormer(0.6, 0.55, dz: 0.5);
       m.banner(0.7, dx: 1.1, dz: 1.1, at: 1.6);
@@ -886,7 +867,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'carniceria',
     'Carnicería',
-    12,
+    11,
     1,
     'Con tabla a la calle y peso vigilado por el concejo. La carne deja de ser cosa de fiesta.',
     (m) {
@@ -895,7 +876,6 @@ final List<Landmark> landmarks = [
       m.floor(2.05, 1.6, 0.9);
       m.roof(2.45, 2.0, 0.7);
       m.arcade(2.1, 0.9, 0.6, dz: 1.2, at: 0.3);
-      m.door(0.65, 0.9, dz: 0.9);
       m.beam(2.3, 0.6, 0.16, dz: 1.2, at: 1.2);
       m.roof(2.5, 0.9, 0.35, dz: 1.35, at: 1.36);
       m.chimney(0.28, 0.85, dx: -0.7);
@@ -908,7 +888,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'pescaderia',
     'Pescadería',
-    13,
+    12,
     1,
     'Del río a la piedra fría en una mañana. Los viernes tienen arreglo.',
     (m) {
@@ -922,7 +902,6 @@ final List<Landmark> landmarks = [
       m.post(0.16, 1.0, dx: -1.5, dz: 1.9);
       m.post(0.16, 1.0, dx: 1.5, dz: 1.9);
       m.beam(3.2, 0.9, 0.14, dz: 1.9, at: 1.0);
-      m.door(0.6, 0.85, dz: -0.85);
       m.dormer(0.55, 0.5, dz: -0.4);
       m.tree(1.0, 1.8, dx: -2.0, dz: -1.2);
     },
@@ -955,7 +934,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'alhondiga',
     'Alhóndiga',
-    15,
+    14,
     1,
     'Se guarda el grano de todos y se vende al precio justo. Contra el hambre y contra el usurero.',
     (m) {
@@ -965,7 +944,6 @@ final List<Landmark> landmarks = [
       m.floor(2.8, 2.0, 0.95);
       m.roof(3.25, 2.5, 0.9);
       m.arcade(2.9, 1.0, 0.55, dz: 1.25, at: 0.34);
-      m.door(0.8, 1.0, dz: 1.35);
       m.dormer(0.65, 0.6, dz: 0.8);
       m.dormer(0.65, 0.6, dz: -0.8);
       m.chimney(0.32, 0.9, dx: -1.0);
@@ -1004,7 +982,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'aduana',
     'Aduana',
-    13,
+    12,
     1,
     'Lo que entra paga. Poco elegante, pero es lo que paga todo lo demás.',
     (m) {
@@ -1013,7 +991,6 @@ final List<Landmark> landmarks = [
       m.floor(2.65, 1.9, 1.0);
       m.roof(3.05, 2.3, 0.85);
       m.arcade(2.7, 1.0, 0.5, dz: 1.15, at: 0.36);
-      m.door(0.8, 1.0, dz: 1.25);
       m.dormer(0.6, 0.55, dz: 0.7);
       m.chimney(0.3, 0.9, dx: -0.9);
       m.banner(1.2, dz: 1.3, at: 2.0);
@@ -1027,7 +1004,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'ceca',
     'Casa de la moneda',
-    15,
+    14,
     1,
     'Moneda propia, con la marca del pueblo. Pocos sitios llegan a esto.',
     (m) {
@@ -1038,7 +1015,6 @@ final List<Landmark> landmarks = [
       m.roof(2.9, 2.2, 0.7);
       m.chimney(0.34, 1.0, dx: -0.9);
       m.chimney(0.3, 0.9, dx: 0.9);
-      m.door(0.75, 1.0, dz: 1.2);
       m.arcade(2.6, 0.9, 0.45, dz: 1.2, at: 0.4);
       m.palisade(3.2, 0.9, dz: -1.6);
       m.palisade(3.2, 0.9, dx: -1.9, along: false);
@@ -1052,7 +1028,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'tejedores',
     'Gremio de tejedores',
-    14,
+    13,
     1,
     'Telares en la planta alta y un gremio que fija el precio. El oficio se defiende junto.',
     (m) {
@@ -1063,7 +1039,6 @@ final List<Landmark> landmarks = [
       m.roof(2.85, 2.3, 0.85);
       m.dormer(0.7, 0.62, dz: 0.85);
       m.dormer(0.7, 0.62, dz: -0.85);
-      m.door(0.7, 0.95, dz: 1.15);
       m.chimney(0.3, 0.9, dx: -0.9);
       m.banner(1.0, dz: 1.25, at: 2.4);
       m.post(0.16, 1.6, dx: -1.8, dz: 1.4);
@@ -1076,7 +1051,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'canteros',
     'Gremio de canteros',
-    14,
+    13,
     1,
     'Los que saben cortar piedra ya no vienen de fuera: viven aquí.',
     (m) {
@@ -1085,7 +1060,6 @@ final List<Landmark> landmarks = [
       m.floor(2.45, 1.9, 1.0);
       m.parapet(2.75, 2.15, 0.32);
       m.roof(2.7, 2.1, 0.7);
-      m.door(0.75, 1.0, dz: 1.15);
       m.arcade(2.4, 0.95, 0.5, dz: 1.15, at: 0.36);
       m.box(PieceKind.plinth, 1.1, 1.1, 0.5, dx: -2.0, dz: -0.8, at: 0);
       m.box(PieceKind.plinth, 0.8, 0.8, 0.45, dx: -2.0, dz: 0.7, at: 0);
@@ -1100,7 +1074,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'herrador',
     'Casa del herrador',
-    12,
+    11,
     1,
     'Un caballo cojo no llega a ningún lado. Todo el camino pasa por esta puerta.',
     (m) {
@@ -1109,7 +1083,6 @@ final List<Landmark> landmarks = [
       m.floor(2.05, 1.6, 0.9);
       m.roof(2.45, 2.0, 0.7);
       m.chimney(0.4, 1.2, dx: -0.75);
-      m.door(0.75, 0.95, dz: 0.95);
       m.post(0.18, 1.2, dx: -1.6, dz: 1.2);
       m.post(0.18, 1.2, dx: 1.6, dz: 1.2);
       m.beam(3.4, 1.0, 0.16, dz: 1.2, at: 1.2);
@@ -1122,7 +1095,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'cuadras',
     'Cuadras',
-    13,
+    12,
     1,
     'Cuadras y abrevadero. Los que van de paso ya pueden quedarse a dormir.',
     (m) {
@@ -1132,7 +1105,6 @@ final List<Landmark> landmarks = [
       m.dormer(0.6, 0.55, dx: -1.0, dz: 0.5);
       m.dormer(0.6, 0.55, dx: 0.0, dz: 0.5);
       m.dormer(0.6, 0.55, dx: 1.0, dz: 0.5);
-      m.door(0.8, 0.95, dz: 1.0);
       m.palisade(3.4, 0.85, dz: -1.9);
       m.palisade(2.6, 0.85, dx: -1.9, along: false);
       m.palisade(2.6, 0.85, dx: 1.9, along: false);
@@ -1145,7 +1117,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'posadaCamino',
     'Posada del camino',
-    15,
+    14,
     1,
     'Cama, cuadra y fuego. El pueblo empieza a estar en el mapa de alguien.',
     (m) {
@@ -1158,7 +1130,6 @@ final List<Landmark> landmarks = [
       m.dormer(0.7, 0.6, dx: 0.8, dz: 0.8);
       m.chimney(0.34, 1.0, dx: -1.1);
       m.chimney(0.3, 0.9, dx: 1.1);
-      m.door(0.8, 1.0, dz: 1.2);
       m.banner(1.0, dx: 1.2, dz: 1.35, at: 1.6);
       m.outbuilding(1.6, 1.3, 0.9, 0.5, dx: 2.3, dz: -0.8);
       m.water(0.9, 0.8, dx: -2.2, dz: 1.2);
@@ -1169,7 +1140,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'hospederia',
     'Hospital de peregrinos',
-    16,
+    15,
     1,
     'Camas para los que van de paso rezando. Se les da lo que haga falta y no se pregunta.',
     (m) {
@@ -1183,7 +1154,6 @@ final List<Landmark> landmarks = [
       m.dormer(0.7, 0.6, dx: -1.0, dz: 0.8);
       m.dormer(0.7, 0.6, dx: 1.0, dz: 0.8);
       m.chimney(0.32, 0.95, dx: -1.2);
-      m.door(0.8, 1.0, dz: 1.2);
       m.box(PieceKind.parapet, 0.7, 0.3, 0.55, at: 2.59);
       m.post(0.18, 0.4, at: 3.14);
       m.water(1.0, 1.0, dx: -2.4, dz: -1.0);
@@ -1195,7 +1165,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'leproseria',
     'Leprosería',
-    13,
+    12,
     1,
     'Apartada, con su cerco y su pozo. Cuidar a los que dan miedo dice más que una catedral.',
     (m) {
@@ -1205,7 +1175,6 @@ final List<Landmark> landmarks = [
       m.plinth(2.6, 2.0, 0.28, dx: 0.4);
       m.floor(2.3, 1.75, 1.05, dx: 0.4);
       m.roof(2.65, 2.1, 0.75, dx: 0.4);
-      m.door(0.6, 0.85, dx: 0.4, dz: 1.05);
       m.box(PieceKind.parapet, 0.6, 0.26, 0.5, dx: 0.4, at: 1.33);
       m.chimney(0.28, 0.85, dx: -0.4);
       m.water(1.0, 0.9, dx: -1.0, dz: 1.5);
@@ -1218,7 +1187,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'botica',
     'Botica',
-    12,
+    11,
     1,
     'Frascos, hierbas y un libro. Empieza a haber remedio para algunas cosas.',
     (m) {
@@ -1228,7 +1197,6 @@ final List<Landmark> landmarks = [
       m.floor(1.9, 1.55, 0.9);
       m.roof(2.35, 2.0, 0.75);
       m.dormer(0.6, 0.55, dz: 0.7);
-      m.door(0.6, 0.9, dz: 0.95);
       m.banner(0.8, dx: 0.8, dz: 1.05, at: 1.5);
       m.chimney(0.28, 0.85, dx: -0.6);
       m.field(1.8, 0.8, dz: -1.6);
@@ -1240,7 +1208,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'escuela',
     'Escuela de gramática',
-    14,
+    13,
     1,
     'Latín y cuentas para quien quiera. A partir de hoy se puede salir de aquí sabiendo.',
     (m) {
@@ -1252,7 +1220,6 @@ final List<Landmark> landmarks = [
       m.beam(2.8, 0.6, 0.16, dz: 1.15, at: 1.34);
       m.dormer(0.65, 0.6, dx: -0.8, dz: 0.75);
       m.dormer(0.65, 0.6, dx: 0.8, dz: 0.75);
-      m.door(0.7, 0.95, dz: 1.15);
       m.chimney(0.3, 0.9, dx: -1.0);
       m.box(PieceKind.parapet, 0.6, 0.5, 0.45, at: 2.59);
       m.banner(0.8, at: 3.04);
@@ -1264,7 +1231,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'escribania',
     'Escribanía',
-    13,
+    12,
     1,
     'Alguien que sabe escribir lo que se acuerda. Las palabras dejan de perderse.',
     (m) {
@@ -1274,7 +1241,6 @@ final List<Landmark> landmarks = [
       m.floor(2.1, 1.65, 0.95);
       m.roof(2.55, 2.05, 0.8);
       m.dormer(0.6, 0.55, dz: 0.75);
-      m.door(0.65, 0.95, dz: 1.0);
       m.chimney(0.3, 0.9, dx: -0.7);
       m.chimney(0.26, 0.8, dx: 0.7);
       m.banner(0.9, dz: 1.1, at: 2.2);
@@ -1287,7 +1253,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'banos',
     'Baños',
-    13,
+    12,
     1,
     'Agua caliente bajo una cúpula. Un lujo, y de los que se notan.',
     (m) {
@@ -1297,7 +1263,6 @@ final List<Landmark> landmarks = [
       m.dome(1.0, 1.0, 0.55, dx: -1.55, dz: -0.8, at: 0.34);
       m.dome(1.0, 1.0, 0.55, dx: -1.55, dz: 0.8, at: 0.34);
       m.chimney(0.28, 0.8, dx: 0.9);
-      m.door(0.65, 0.9, dz: 1.3);
       m.water(1.6, 1.6, dx: 2.2, dz: 0.6);
       m.arcade(2.0, 0.9, 0.5, dz: 1.4, at: 0.34);
       m.post(0.2, 1.3, dx: 1.6, dz: 1.6);
@@ -1310,7 +1275,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'capilla',
     'Capilla',
-    13,
+    12,
     1,
     'Campana propia. Ahora las horas del pueblo las marca el pueblo.',
     (m) {
@@ -1320,7 +1285,6 @@ final List<Landmark> landmarks = [
       m.box(PieceKind.floor, 1.0, 1.0, 2.6, dz: -2.1, ridge: true, at: 0);
       m.box(PieceKind.parapet, 1.2, 1.2, 0.3, dz: -2.1, ridge: true, at: 2.6);
       m.spire(1.05, 1.05, 1.0, dz: -2.1, at: 2.9);
-      m.door(0.65, 0.95, dz: 1.5);
       m.box(PieceKind.parapet, 0.6, 0.26, 0.5, at: 1.69);
       m.arcade(2.0, 0.9, 0.4, dz: 1.5, at: 0.34);
       m.tree(1.2, 2.3, dx: 1.9, dz: 1.4);
@@ -1333,7 +1297,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'campanario',
     'Campanario exento',
-    14,
+    13,
     1,
     'Suelto, alto, y se oye desde las eras. Para la misa, para el fuego y para el peligro.',
     (m) {
@@ -1342,7 +1306,6 @@ final List<Landmark> landmarks = [
       m.arcade(1.5, 0.9, 1.5, rise: true);
       m.parapet(1.95, 1.95, 0.4);
       m.spire(1.7, 1.7, 1.3);
-      m.door(0.55, 0.85, dz: 0.85);
       m.stair(1.0, 0.42, 0.75, dz: 1.3);
       m.banner(0.9, at: 7.1);
       m.tree(1.1, 2.1, dx: 1.9, dz: 1.4);
@@ -1381,7 +1344,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'refectorio',
     'Refectorio',
-    14,
+    13,
     1,
     'Una mesa larga y todos comiendo a la vez. Muchas cosas se arreglan así.',
     (m) {
@@ -1393,7 +1356,6 @@ final List<Landmark> landmarks = [
       m.dormer(0.7, 0.62, dx: 0.0, dz: 0.8);
       m.dormer(0.7, 0.62, dx: 1.2, dz: 0.8);
       m.chimney(0.34, 1.0, dx: -1.5);
-      m.door(0.8, 1.0, dz: 1.25);
       m.box(PieceKind.parapet, 0.6, 0.26, 0.5, at: 1.79);
       m.field(2.6, 1.0, dz: -1.9);
       m.tree(1.1, 2.0, dx: -2.5, dz: 1.3);
@@ -1405,7 +1367,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'bodega',
     'Bodega',
-    13,
+    12,
     1,
     'Bóveda fresca bajo tierra. El vino ya puede esperar unos años.',
     (m) {
@@ -1414,7 +1376,6 @@ final List<Landmark> landmarks = [
       m.beam(3.1, 2.1, 0.2);
       m.floor(2.9, 1.95, 0.9);
       m.roof(3.25, 2.3, 0.8);
-      m.door(0.8, 1.0, dz: 1.15);
       m.stair(1.4, 0.26, 0.7, dz: 1.45);
       m.dormer(0.65, 0.6, dz: 0.7);
       m.chimney(0.28, 0.85, dx: 1.0);
@@ -1428,7 +1389,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'silos',
     'Silos de grano',
-    14,
+    13,
     1,
     'Tres cilindros llenos hasta arriba. Un mal año deja de ser una catástrofe.',
     (m) {
@@ -1449,7 +1410,6 @@ final List<Landmark> landmarks = [
         m.dome(1.05, 1.05, 0.75, dx: -1.15 + i * 1.15, dz: -0.2, at: 2.1);
       }
       m.outbuilding(1.5, 1.2, 1.0, 0.5, dz: 1.3);
-      m.door(0.6, 0.85, dz: 1.9);
       m.beam(3.4, 0.3, 0.2, dz: 0.55, at: 1.6);
       m.field(3.0, 1.0, dz: -1.6);
       m.palisade(3.4, 0.6, dz: -2.2);
@@ -1460,7 +1420,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'palomarTorre',
     'Palomar torre',
-    13,
+    12,
     1,
     'Mil nidos en una torre. Palomas, abono y correo, todo en la misma piedra.',
     (m) {
@@ -1469,7 +1429,6 @@ final List<Landmark> landmarks = [
       m.parapet(1.85, 1.85, 0.32);
       m.dome(1.6, 1.6, 0.9);
       m.dome(0.5, 0.5, 0.4, at: 4.78);
-      m.door(0.5, 0.8, dz: 0.8);
       m.arcade(1.4, 0.7, 0.4, dz: 0.85, at: 2.76);
       m.palisade(2.6, 0.6, dz: -1.5);
       m.tree(1.0, 1.8, dx: 1.8, dz: 1.3);
@@ -1480,7 +1439,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'reloj',
     'Torre del reloj',
-    16,
+    15,
     1,
     'La misma hora para todos. Parece poca cosa y lo cambia todo.',
     (m) {
@@ -1489,7 +1448,6 @@ final List<Landmark> landmarks = [
       m.parapet(2.05, 2.05, 0.4);
       m.spire(1.8, 1.8, 1.5);
       m.dormer(0.6, 0.6, dz: -0.95, at: 4.2);
-      m.door(0.6, 0.9, dz: 1.0);
       m.stair(1.1, 0.42, 0.7, dz: 1.45);
       m.banner(1.0, at: 7.24);
       m.arcade(1.5, 0.8, 0.4, dz: 0.95, at: 4.9);
@@ -1500,7 +1458,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'faro',
     'Faro',
-    18,
+    17,
     1,
     'Un fuego encendido toda la noche para gente que no conocés.',
     (m) {
@@ -1512,7 +1470,6 @@ final List<Landmark> landmarks = [
       m.arcade(1.2, 0.85, 1.2, rise: true);
       m.dome(1.4, 1.4, 0.7);
       m.banner(0.9);
-      m.door(0.55, 0.85, dz: 1.15);
       m.stair(1.1, 0.5, 0.8, dz: 1.7);
       m.outbuilding(1.3, 1.1, 0.9, 0.5, dx: 2.2, dz: -1.2);
       m.post(0.2, 1.4, dx: -1.9, dz: 1.9);
@@ -1595,7 +1552,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'embarcadero',
     'Embarcadero',
-    13,
+    12,
     1,
     'Postes hincados y una plataforma. Lo que llega por agua ya puede desembarcar.',
     (m) {
@@ -1609,7 +1566,6 @@ final List<Landmark> landmarks = [
       m.plinth(2.2, 1.6, 0.34, dz: -1.1);
       m.floor(1.9, 1.35, 1.0, dz: -1.1);
       m.roof(2.15, 1.6, 0.55, dz: -1.1);
-      m.door(0.6, 0.85, dz: -0.45);
       m.tree(1.1, 2.0, dx: 2.4, dz: -1.6);
     },
   ),
@@ -1664,7 +1620,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'herreriaMayor',
     'Herrería mayor',
-    14,
+    13,
     1,
     'Tres fraguas trabajando a la vez. Rejas, herramienta y, si hace falta, armas.',
     (m) {
@@ -1674,7 +1630,6 @@ final List<Landmark> landmarks = [
       m.chimney(0.5, 1.6, dx: -1.0);
       m.chimney(0.42, 1.3, dx: 0.3);
       m.chimney(0.36, 1.1, dx: 1.1);
-      m.door(0.85, 1.05, dz: 1.2);
       m.arcade(2.8, 1.0, 0.5, dz: 1.2, at: 0.3);
       m.water(1.0, 0.9, dx: -2.2, dz: 0.9);
       m.post(0.2, 1.4, dx: 2.2, dz: 1.2);
@@ -1688,7 +1643,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'teneria',
     'Tenería',
-    14,
+    13,
     1,
     'Huele mal y está en las afueras por algo. Pero el cuero es cuero.',
     (m) {
@@ -1698,7 +1653,6 @@ final List<Landmark> landmarks = [
       m.plinth(3.2, 2.0, 0.3, dz: -0.6);
       m.floor(2.9, 1.75, 1.15, dz: -0.6);
       m.roof(3.25, 2.1, 0.8, dz: -0.6);
-      m.door(0.7, 0.95, dz: 0.3);
       m.chimney(0.32, 0.95, dx: -1.0, dz: -0.6);
       m.post(0.18, 1.6, dx: -1.9, dz: 1.6);
       m.post(0.18, 1.6, dx: 1.9, dz: 1.6);
@@ -1783,7 +1737,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'vinedo',
     'Viñedo del cabildo',
-    15,
+    14,
     1,
     'Hileras hasta donde llega la vista. El vino de aquí ya tiene nombre.',
     (m) {
@@ -1794,7 +1748,6 @@ final List<Landmark> landmarks = [
       m.plinth(1.6, 1.4, 0.3, dx: 2.6, dz: -1.4);
       m.floor(1.35, 1.15, 0.9, dx: 2.6, dz: -1.4);
       m.roof(1.6, 1.4, 0.45, dx: 2.6, dz: -1.4);
-      m.door(0.5, 0.75, dx: 2.6, dz: -0.8);
       m.water(1.0, 1.0, dx: 2.6, dz: 1.4);
       m.post(0.2, 1.6, dx: -2.6, dz: 2.0);
       m.banner(0.8, dx: -2.6, dz: 2.0, at: 1.6);
@@ -1908,7 +1861,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'homenaje',
     'Torre del homenaje',
-    25,
+    24,
     2,
     'La torre última. Si cae todo lo demás, aquí se aguanta.',
     (m) {
@@ -1931,7 +1884,6 @@ final List<Landmark> landmarks = [
       }
       m.spire(2.8, 2.8, 1.5);
       m.banner(1.2);
-      m.door(0.8, 1.1, dz: 1.75);
       m.stair(1.6, 1.1, 1.4, dz: 2.6);
       m.arcade(2.4, 1.0, 0.5, dz: 1.55, at: 6.4);
       m.palisade(4.4, 1.0, dz: -2.5);
@@ -1945,7 +1897,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'motte',
     'Mota y empalizada',
-    24,
+    23,
     2,
     'Un cerro levantado a mano, una empalizada y una torre encima. Así empezaron todos los castillos.',
     (m) {
@@ -1964,7 +1916,6 @@ final List<Landmark> landmarks = [
       m.stair(1.4, 0.5, 1.0, dz: -2.6);
       m.stair(1.2, 0.55, 0.9, dz: -2.1, at: 0.5);
       m.stair(1.0, 0.6, 0.8, dz: -1.6, at: 1.05);
-      m.door(0.7, 1.0, dz: 1.15);
       m.box(PieceKind.floor, 1.4, 1.2, 0.9, dx: 2.6, dz: -2.2, at: 0);
       m.roof(1.65, 1.45, 0.5, dx: 2.6, dz: -2.2, at: 0.9);
       m.tree(1.2, 2.3, dx: -2.9, dz: -2.4);
@@ -2012,8 +1963,10 @@ final List<Landmark> landmarks = [
 
   Landmark(
     'puertaVilla',
+    // Dos menos y no una: su puerta estaba escrita dentro del bucle que
+    // levanta los dos torreones, así que eran dos puertas y son dos logros.
     'Puerta de la villa',
-    23,
+    21,
     2,
     'Ya se puede cerrar el pueblo por la noche. Un dentro de verdad.',
     (m) {
@@ -2031,7 +1984,6 @@ final List<Landmark> landmarks = [
         }
         m.box(PieceKind.parapet, 1.9, 2.5, 0.45, dx: s * 1.9, at: 4.05);
         m.roof(1.75, 2.35, 0.9, dx: s * 1.9, at: 4.5);
-        m.door(0.55, 0.85, dx: s * 1.9, dz: 1.2);
       }
       m.box(PieceKind.arcade, 2.2, 2.2, 3.0, at: 0.45);
       m.box(PieceKind.floor, 2.2, 2.0, 1.1, at: 3.45);
@@ -2081,7 +2033,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'alcazar',
     'Alcázar',
-    32,
+    31,
     2,
     'Palacio y fortaleza a la vez. Quien manda vive donde se defiende.',
     (m) {
@@ -2117,7 +2069,6 @@ final List<Landmark> landmarks = [
       m.box(PieceKind.dormer, 0.8, 0.7, 0.65, dx: -1.2, dz: 1.1, at: 4.6);
       m.box(PieceKind.dormer, 0.8, 0.7, 0.65, dx: 1.2, dz: 1.1, at: 4.6);
       m.arcade(3.8, 1.2, 0.6, dz: 1.75, at: 1.0, along: true);
-      m.door(0.9, 1.15, dz: 2.0);
       m.stair(1.8, 1.0, 1.4, dz: 2.7);
       m.banner(1.1, dz: 0.5, at: 5.6);
       m.chimney(0.4, 1.1, dx: -1.6, dz: 0.5);
@@ -2132,7 +2083,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'palacio',
     'Palacio del señor',
-    25,
+    24,
     2,
     'Galería de arcos, torres a los lados y jardín detrás. Aquí ya no se construye sólo por necesidad.',
     (m) {
@@ -2160,7 +2111,6 @@ final List<Landmark> landmarks = [
       }
       m.chimney(0.4, 1.2, dx: -0.8);
       m.chimney(0.36, 1.1, dx: 0.8);
-      m.door(1.0, 1.3, dz: 1.75);
       m.stair(2.0, 0.5, 1.4, dz: 2.4);
       m.water(2.2, 2.2, dz: 3.4);
       m.tree(1.3, 2.4, dx: -2.6, dz: 3.0);
@@ -2212,7 +2162,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'lonja',
     'Lonja de mercaderes',
-    22,
+    21,
     2,
     'Bajo estos arcos se cierran los tratos. Media comarca viene a este suelo.',
     (m) {
@@ -2237,7 +2187,6 @@ final List<Landmark> landmarks = [
         m.box(PieceKind.dormer, 0.8, 0.7, 0.6, dx: s * 1.3, dz: 1.2, at: 4.13);
         m.banner(1.0, dx: s * 1.8, dz: 1.8, at: 2.0);
       }
-      m.door(1.0, 1.3, dz: 1.85);
       m.stair(2.2, 0.4, 1.2, dz: 2.3);
       m.chimney(0.36, 1.1, dx: -1.0);
       m.box(
@@ -2258,7 +2207,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'iglesia',
     'Iglesia',
-    23,
+    22,
     2,
     'Nave, dos naves laterales y campanario. El edificio donde cabe el pueblo entero.',
     (m) {
@@ -2277,7 +2226,6 @@ final List<Landmark> landmarks = [
       m.box(PieceKind.dormer, 0.6, 0.18, 0.6, dz: -3.85, at: 4.0);
       m.box(PieceKind.floor, 1.6, 1.2, 1.5, dz: 2.8, at: 0.4);
       m.roof(1.8, 1.4, 0.7, dz: 2.8, at: 1.9, along: true);
-      m.door(0.9, 1.2, dz: 2.5);
       m.stair(1.6, 0.4, 0.9, dz: 3.6);
       m.box(
         PieceKind.plinth,
@@ -2299,7 +2247,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'catedral',
     'Catedral',
-    37,
+    36,
     2,
     'Dos torres al poniente, cimborrio y contrafuertes. Se empieza sabiendo que la terminan otros.',
     (m) {
@@ -2351,7 +2299,6 @@ final List<Landmark> landmarks = [
       m.box(PieceKind.floor, 2.0, 1.6, 2.0, dz: 3.6, at: 0.5);
       m.roof(2.2, 1.8, 0.9, dz: 3.6, at: 2.5, along: true);
       m.box(PieceKind.arcade, 1.6, 0.6, 2.2, dz: -3.05, at: 0.5);
-      m.door(1.1, 1.4, dz: 3.2);
       m.stair(2.4, 0.5, 1.1, dz: 4.6);
       m.box(
         PieceKind.plinth,
@@ -2370,7 +2317,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'monasterio',
     'Monasterio',
-    29,
+    28,
     2,
     'Iglesia, claustro y huerto. Un pueblo pequeño dentro del pueblo.',
     (m) {
@@ -2382,7 +2329,6 @@ final List<Landmark> landmarks = [
       m.box(PieceKind.parapet, 1.55, 1.55, 0.4, dx: -1.9, dz: -3.3, at: 4.6);
       m.spire(1.35, 1.35, 1.5, dx: -1.9, dz: -3.3, at: 5.0);
       m.banner(0.8, dx: -1.9, dz: -3.3, at: 6.5);
-      m.door(0.7, 1.0, dx: -1.9, dz: 2.7);
       m.plinth(4.4, 4.4, 0.26, dx: 1.9);
       for (final s in [-1.0, 1.0]) {
         m.arcade(4.0, 1.15, 0.7, dx: 1.9, dz: s * 1.75, at: 0.26, along: true);
@@ -2406,7 +2352,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'abadia',
     'Abadía',
-    26,
+    25,
     2,
     'Nave, torres gemelas y una comunidad que reza a horas fijas desde antes que amanezca.',
     (m) {
@@ -2434,7 +2380,6 @@ final List<Landmark> landmarks = [
       m.box(PieceKind.floor, 3.0, 1.6, 1.4, dz: 3.5, at: 0.45);
       m.roof(3.2, 1.8, 0.8, dz: 3.5, at: 1.85, along: true);
       m.chimney(0.34, 1.0, dx: 1.0, dz: 3.5);
-      m.door(0.9, 1.2, dz: 2.9);
       m.stair(1.8, 0.45, 1.0, dz: 4.4);
       m.field(3.0, 1.2, dz: 5.4);
       m.tree(1.3, 2.5, dx: -3.2, dz: 2.4);
@@ -2446,7 +2391,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'colegiata',
     'Colegiata',
-    23,
+    22,
     2,
     'No es catedral porque no hay obispo. Por lo demás, lo es.',
     (m) {
@@ -2466,7 +2411,6 @@ final List<Landmark> landmarks = [
       m.banner(0.9, dz: -3.1, at: 8.34);
       m.box(PieceKind.floor, 1.8, 1.4, 1.6, dz: 2.9, at: 0.42);
       m.roof(2.0, 1.6, 0.75, dz: 2.9, at: 2.02, along: true);
-      m.door(0.95, 1.25, dz: 2.6);
       m.stair(1.7, 0.42, 0.95, dz: 3.7);
       m.plinth(0.85, 0.85, 0.32, dx: 2.9, dz: 1.6);
       m.post(0.24, 1.3, dx: 2.9, dz: 1.6, at: 0.32);
@@ -2477,7 +2421,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'sinagoga',
     'Sinagoga',
-    21,
+    20,
     2,
     'El pueblo tiene sitio para más de una manera de rezar.',
     (m) {
@@ -2502,7 +2446,6 @@ final List<Landmark> landmarks = [
         m.dome(0.95, 0.95, 0.7, dx: s * 1.75, dz: -1.8, at: 5.19);
         m.box(PieceKind.dormer, 0.55, 0.5, 0.5, dx: s * 0.9, dz: 0.9, at: 3.74);
       }
-      m.door(0.85, 1.15, dz: 2.3);
       m.stair(1.6, 0.44, 0.9, dz: 2.8);
       m.tree(1.2, 2.3, dx: -2.9, dz: 1.6);
       m.tree(1.2, 2.2, dx: 2.9, dz: 1.6);
@@ -2514,7 +2457,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'mezquita',
     'Mezquita',
-    22,
+    21,
     2,
     'Cúpula, alminar y patio con agua. La misma villa, otra voz.',
     (m) {
@@ -2535,7 +2478,6 @@ final List<Landmark> landmarks = [
       m.roof(4.4, 1.1, 0.5, dz: 2.5, at: 1.94, along: true);
       m.water(1.6, 1.6, dz: 3.6);
       m.plinth(1.0, 1.0, 0.3, dz: 3.6);
-      m.door(0.9, 1.2, dz: 2.6);
       m.stair(1.8, 0.42, 0.9, dz: 3.0);
       m.tree(1.2, 2.2, dx: -3.0, dz: 2.6);
       m.tree(1.2, 2.1, dx: 3.0, dz: 2.6);
@@ -2546,7 +2488,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'baptisterio',
     'Baptisterio',
-    19,
+    18,
     2,
     'Octógono con una pila en medio. Aquí entra la gente al pueblo por primera vez.',
     (m) {
@@ -2580,7 +2522,6 @@ final List<Landmark> landmarks = [
         );
       }
       m.box(PieceKind.arcade, 1.2, 0.6, 1.6, dz: 1.75, at: 0.9);
-      m.door(0.8, 1.1, dz: 2.0);
       m.stair(1.6, 0.9, 1.0, dz: 2.5);
       m.water(1.4, 1.4, dz: 3.4);
       m.tree(1.2, 2.3, dx: -2.6, dz: 2.2);
@@ -2591,7 +2532,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'hospitalMayor',
     'Hospital mayor',
-    23,
+    22,
     2,
     'Salas largas y camas de verdad. Estar enfermo deja de ser estar solo.',
     (m) {
@@ -2620,7 +2561,6 @@ final List<Landmark> landmarks = [
       m.spire(1.45, 1.45, 1.4, dx: -3.0, dz: -0.8, at: 5.0);
       m.banner(0.9, dx: -3.0, dz: -0.8, at: 6.4);
       m.box(PieceKind.parapet, 0.7, 0.3, 0.55, at: 4.09);
-      m.door(0.9, 1.2, dz: 1.9);
       m.stair(2.0, 0.44, 1.0, dz: 2.4);
       m.water(1.2, 1.2, dx: 3.2, dz: 1.8);
       m.field(3.0, 1.2, dz: -2.6);
@@ -2631,7 +2571,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'universidad',
     'Universidad',
-    30,
+    29,
     2,
     'Claustro, aulas y libros encadenados. Gente que viene de lejos sólo a leer.',
     (m) {
@@ -2660,7 +2600,6 @@ final List<Landmark> landmarks = [
       m.spire(1.55, 1.55, 1.5, dx: -2.6, dz: -2.6, at: 5.8);
       m.banner(0.9, dx: -2.6, dz: -2.6, at: 7.3);
       m.box(PieceKind.arcade, 1.4, 0.9, 2.0, dz: 2.4, at: 0.4);
-      m.door(0.9, 1.2, dz: 2.5);
       m.stair(1.8, 0.4, 1.0, dz: 3.0);
       m.tree(1.1, 1.9, dx: -0.9, dz: 0.9);
       m.tree(1.1, 1.8, dx: 0.9, dz: -0.9);
@@ -2672,7 +2611,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'biblioteca',
     'Biblioteca',
-    21,
+    20,
     2,
     'Estanterías hasta el techo. Lo que sabía uno ya lo pueden saber todos.',
     (m) {
@@ -2713,7 +2652,6 @@ final List<Landmark> landmarks = [
         );
       }
       m.chimney(0.34, 1.0, dx: -0.6);
-      m.door(0.9, 1.2, dz: 1.5);
       m.stair(1.8, 0.9, 1.1, dz: 2.1);
       m.banner(1.0, dx: -1.4, dz: 1.4, at: 2.2);
       m.banner(1.0, dx: 1.4, dz: 1.4, at: 2.2);
@@ -2869,7 +2807,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'panteon',
     'Panteón de los fundadores',
-    19,
+    18,
     2,
     'Cúpula sobre los que empezaron todo esto. La primera piedra la puso alguien.',
     (m) {
@@ -2902,7 +2840,6 @@ final List<Landmark> landmarks = [
           at: 3.66,
         );
       }
-      m.door(0.85, 1.15, dz: 2.0);
       m.stair(1.8, 1.0, 1.1, dz: 2.6);
       m.tree(1.3, 2.6, dx: -2.8, dz: 2.4);
       m.tree(1.3, 2.5, dx: 2.8, dz: 2.4);
@@ -2950,7 +2887,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'observatorio',
     'Observatorio',
-    36,
+    35,
     2,
     'Una torre con una cúpula que se abre. Desde esta noche el pueblo no sólo '
         'mira el suelo que pisa: hay alguien arriba anotando lo que pasa en el '
@@ -2959,7 +2896,6 @@ final List<Landmark> landmarks = [
       m.plinth(4.6, 4.6, 0.42);
       m.stair(1.7, 0.42, 1.2, dz: -2.9);
       m.stair(1.7, 0.30, 0.9, dz: -3.8, at: -0.30);
-      m.door(1.0, 1.6, dz: -1.6);
       // La columnata de la terraza: ocho postes y el arquitrabe encima. Una
       // cúpula sobre un tambor pelado es un silo.
       for (final (dx, dz) in const [

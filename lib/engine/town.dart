@@ -55,14 +55,22 @@ class TownPiece {
 enum BuildingKind { shed, cottage, workshop, house, granary, townhouse, inn }
 
 /// How many achievements each kind of building costs.
+/// Cuántos logros cuesta cada casa corriente.
+///
+/// Cuatro de las siete bajaron uno el día que se fue la puerta: el taller, el
+/// granero, la casa de dos aguas y la posada la tenían, y una pieza es un
+/// logro — si la pieza deja de existir, el logro no se cobra. Por eso el
+/// taller cuesta ahora lo mismo que la casa y el granero lo mismo que la
+/// casona: la escalera de precios no era la regla, la regla es que se paga por
+/// lo que se levanta.
 const Map<BuildingKind, int> buildingCost = {
   BuildingKind.shed: 2,
   BuildingKind.cottage: 3,
-  BuildingKind.workshop: 4,
+  BuildingKind.workshop: 3,
   BuildingKind.house: 5,
-  BuildingKind.granary: 6,
-  BuildingKind.townhouse: 7,
-  BuildingKind.inn: 8,
+  BuildingKind.granary: 5,
+  BuildingKind.townhouse: 6,
+  BuildingKind.inn: 7,
 };
 
 const Map<BuildingKind, String> buildingName = {
@@ -1126,7 +1134,6 @@ class TownLayout {
         m.floor(wide, deep, storey);
         m.floor(wide, deep, storey * 0.85);
         m.roof(wide + 0.16, deep + 0.16, 0.58 * pitch);
-        m.door(wide * 0.5, 0.66, dz: deep * 0.5 + 0.22);
       case BuildingKind.house:
         m.floor(wide, deep, storey);
         m.floor(wide, deep, storey * 0.92);
@@ -1138,7 +1145,6 @@ class TownLayout {
         m.floor(wide, deep, storey * 1.15);
         m.floor(wide, deep, storey);
         m.roof(wide + 0.22, deep + 0.22, 0.78 * pitch);
-        m.door(wide * 0.42, 0.5, dz: deep * 0.5 + 0.2);
         m.dormer(0.42, 0.4, dz: -deep * 0.28);
       case BuildingKind.townhouse:
         m.plinth(wide + 0.22, deep + 0.22, 0.28);
@@ -1147,7 +1153,6 @@ class TownLayout {
         m.floor(wide, deep, storey * 0.9);
         m.roof(wide + 0.2, deep + 0.2, 0.72 * pitch);
         m.dormer(0.46, 0.4, dz: deep * 0.26);
-        m.door(wide * 0.44, 0.62, dz: deep * 0.5 + 0.2);
       case BuildingKind.inn:
         m.floor(wide * 1.15, deep, storey * 1.1);
         m.floor(wide * 1.15, deep, storey);
@@ -1172,7 +1177,6 @@ class TownLayout {
         );
         m.chimney(0.3, 1.0, dx: -wide * 0.4);
         m.chimney(0.26, 0.8, dx: wide * 0.2);
-        m.door(wide * 0.7, 0.7, dz: deep * 0.5 + 0.24);
     }
 
     return _straw(b, m.finish(b.cost));
