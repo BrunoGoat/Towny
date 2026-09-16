@@ -34,9 +34,7 @@ List<Solid> solidsOf(
       return [Solid(i, faces)];
 
     case PieceKind.porch:
-      return [
-        Solid(i, boxFaces(x0, y0, z0, x1, y1, z1, Surface.wall, ao: 0.9)),
-      ];
+      return _doorway(i, piece, x0, y0, z0, x1, y1, z1);
 
     case PieceKind.plinth:
       return [
@@ -1214,6 +1212,131 @@ List<Solid> _wheel(TownPiece piece, double y0, double y1) {
 /// back far enough to be ringed by its own shadow. A frontier town on the
 /// Marca would rather have wall than window and gets both; on the Costa the
 /// glass is almost flush and there is twice as much of it.
+/// Una puerta, que hasta ahora era un cajón.
+///
+/// Era una caja de cal de medio metro de fondo pegada a la fachada, y desde
+/// fuera eso es exactamente lo que parecía: un cubo blanco. Y no era un fallo
+/// de una estructura, era el mismo cubo en las cuarenta y pico que tienen
+/// puerta.
+///
+/// Una puerta se reconoce por tres cosas y ninguna de ellas es el bulto: el
+/// hueco oscuro, las jambas y el dintel que lo enmarcan, y el escalón por el
+/// que se entra. Así que eso es lo que hay — de piedra, como el resto de lo
+/// que toca el suelo — y el bulto se fue a un palmo, que es lo que sobresale
+/// un marco de verdad.
+///
+/// Sigue siendo **una pieza**, y eso no es negociable: quitarla del todo
+/// dejaría cuarenta recetas con un logro de menos, y lo que la receta pone en
+/// su lugar es repetir la pieza anterior en el mismo sitio — o sea un logro
+/// que no coloca nada. Antes un cubo feo que un día en blanco.
+List<Solid> _doorway(
+  int i,
+  TownPiece piece,
+  double x0,
+  double y0,
+  double z0,
+  double x1,
+  double y1,
+  double z1,
+) {
+  final ancho = x1 - x0, fondo = z1 - z0, alto = y1 - y0;
+  // Cinco recetas usan esta misma palabra para otra cosa: la tarima de un
+  // soportal, el embarcadero de una barca, la visera sobre un portal. Se
+  // distinguen por la forma y no por una bandera: una puerta es alta y
+  // delgada, y lo demás es un cuerpo.
+  //
+  // Y ese cuerpo va **en piedra**, que era la otra mitad del problema. Iba
+  // encalado como un muro, así que un bloque saliendo de una fachada tenía
+  // exactamente el color de la fachada y no se leía como un cuerpo sino como
+  // un cubo blanco pegado encima. Una tarima que se pisa y una visera que
+  // aguanta la lluvia son de piedra, y en piedra se leen como lo que son.
+  final esPuerta = alto >= 0.36 && math.min(ancho, fondo) <= 0.26;
+  if (!esPuerta) {
+    return [
+      Solid(i, boxFaces(x0, y0, z0, x1, y1, z1, Surface.stone, ao: 0.88)),
+    ];
+  }
+
+  final enZ = fondo <= ancho;
+
+  // Una puerta no es más ancha que alta. Varias recetas piden hasta metro y
+  // pico de ancho para setenta de alto —cuando era un cajón de cal daba igual,
+  // porque no se leía como un hueco— y un hueco de esas proporciones no es una
+  // puerta, es un portón de garaje. El vano se estrecha hasta caber en su
+  // propio alto; la caja que pide la receta sigue siendo la que es, y esto
+  // sólo decide qué se dibuja dentro de ella.
+  final cabe = math.min(enZ ? ancho : fondo, alto * 0.8);
+  final medio = enZ ? (x0 + x1) / 2 : (z0 + z1) / 2;
+  final a0 = medio - cabe / 2, a1 = medio + cabe / 2;
+  final marco = boxFaces(
+    enZ ? a0 : x0,
+    y0,
+    enZ ? z0 : a0,
+    enZ ? a1 : x1,
+    y1,
+    enZ ? z1 : a1,
+    Surface.stone,
+    ao: 0.93,
+  );
+  for (var k = 0; k < marco.length; k++) {
+    final f = marco[k];
+    if (f.n.y.abs() > 0.01) continue;
+    if ((enZ ? f.n.z.abs() : f.n.x.abs()) < 0.5) continue;
+    // El hueco: hasta el suelo, con jamba a los lados y dintel arriba.
+    final out = enZ ? (f.n.z > 0 ? z1 : z0) : (f.n.x > 0 ? x1 : x0);
+    final jamba = cabe * 0.13;
+    final lo = a0 + jamba, hi = a1 - jamba;
+    final dintel = y1 - alto * 0.11;
+    if (hi - lo < 0.04) continue;
+    final hueco = enZ
+        ? [
+            V3(lo, y0, out),
+            V3(hi, y0, out),
+            V3(hi, dintel, out),
+            V3(lo, dintel, out),
+          ]
+        : [
+            V3(out, y0, lo),
+            V3(out, y0, hi),
+            V3(out, dintel, hi),
+            V3(out, dintel, lo),
+          ];
+    marco[k] = Facet(
+      f.v,
+      f.n,
+      f.surface,
+      ao: f.ao,
+      decals: [Facet(hueco, f.n, Surface.hollow)],
+    );
+  }
+
+  // Y el umbral, que es lo que se ve de lejos cuando el hueco ya no se
+  // distingue: una losa que asoma un dedo por los dos costados.
+  //
+  // Por los costados y no también hacia fuera, aunque hacia fuera luciría más.
+  // Una losa que sobresale del marco lo atraviesa todo lo que tiene detrás —el
+  // muro, el zócalo— y cortar por ella sale caro: el pueblo de cuatrocientas
+  // piezas pasaba de mil seiscientas caras cortadas de más, que es justo lo
+  // que vigila el test del coste de cortar.
+  const vuelo = 0.05;
+  return [
+    Solid(i, marco),
+    Solid(
+      i,
+      boxFaces(
+        enZ ? a0 - vuelo : x0,
+        y0,
+        enZ ? z0 : a0 - vuelo,
+        enZ ? a1 + vuelo : x1,
+        y0 + 0.055,
+        enZ ? z1 : a1 + vuelo,
+        Surface.stone,
+        ao: 0.84,
+      ),
+    ),
+  ];
+}
+
 void _hangWindows(
   List<Facet> faces,
   double y0,

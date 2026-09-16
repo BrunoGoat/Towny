@@ -180,8 +180,28 @@ class Mason {
       box(PieceKind.floor, w, d, ht, dx: dx, dz: dz);
 
   /// A stone base, wider than what stands on it.
-  void plinth(double w, double d, double ht, {double dx = 0, double dz = 0}) =>
-      box(PieceKind.plinth, w, d, ht, dx: dx, dz: dz);
+  void plinth(double w, double d, double ht, {double dx = 0, double dz = 0}) {
+    final base = y;
+    box(PieceKind.plinth, w, d, ht, dx: dx, dz: dz);
+    _plinths.add((dx: dx, dz: dz, w: w, d: d, top: base + ht));
+  }
+
+  /// Todo zócalo puesto hasta ahora, para que una puerta sepa sobre qué se
+  /// abre. Igual que los tejados, y por el mismo motivo: son las dos cosas que
+  /// otra pieza necesita saber dónde están.
+  final List<({double dx, double dz, double w, double d, double top})>
+  _plinths = [];
+
+  /// A qué altura está el suelo en este punto: encima del zócalo si hay uno
+  /// debajo, y si no, la tierra.
+  double _groundAt(double dx, double dz) {
+    var top = 0.0;
+    for (final p in _plinths) {
+      if ((dx - p.dx).abs() > p.w / 2 || (dz - p.dz).abs() > p.d / 2) continue;
+      if (p.top > top) top = p.top;
+    }
+    return top;
+  }
 
   /// A pitched roof. Sits on the course line without raising it, so a chimney
   /// laid afterwards comes up through it.
@@ -242,8 +262,43 @@ class Mason {
       box(PieceKind.chimney, side, side, ht, dx: dx, dz: dz, ridge: true);
 
   /// A door, which belongs on the ground whatever has been built above it.
-  void door(double w, double ht, {double dx = 0, double dz = 0}) =>
-      box(PieceKind.porch, w, 0.44, ht, dx: dx, dz: dz, at: 0);
+  ///
+  /// **Un palmo de fondo y pegada al muro.** Tenía cuarenta y cuatro
+  /// centímetros, que es más que el grueso de casi cualquier pared de éstas:
+  /// lo que se veía desde fuera no era una puerta sino un cubo de cal delante
+  /// de la fachada, y se le notaba en las cuarenta y pico estructuras que
+  /// tienen una.
+  ///
+  /// Las recetas siguen escribiendo lo mismo —el desplazamiento que ponen es
+  /// el de la cara del muro más media puerta, y son cuarenta sitios—, así que
+  /// el retranqueo se hace aquí: hacia adentro, en el sentido en el que la
+  /// puerta sobresalía. Queda mordiendo dos centímetros del muro, que es lo
+  /// que evita una junta abierta entre la jamba y la pared.
+  static const double _doorDeep = 0.11;
+
+  void door(double w, double ht, {double dx = 0, double dz = 0}) {
+    // Justo hasta la cara del muro y ni un milímetro dentro. Mordiendo el
+    // muro, el marco obliga a cortarlo, y cortar sale caro: el pueblo de
+    // cuatrocientas piezas se pasaba del techo que vigila el test del coste.
+    // Coplanar no deja junta abierta — las caras traseras se descartan solas.
+    const atras = 0.44 / 2 - _doorDeep / 2;
+    final ax = dx - dx.sign * atras, az = dz - dz.sign * atras;
+    // Sobre el zócalo si lo hay, y no enterrada en él.
+    //
+    // Mientras la puerta era un cajón de medio metro que salía por delante del
+    // zócalo, daba igual a qué altura empezaba: se veía el cajón. Siendo un
+    // hueco en la pared, una puerta de setenta centímetros que arranca en la
+    // tierra bajo un zócalo de cuarenta es una tronera de treinta.
+    box(
+      PieceKind.porch,
+      w,
+      _doorDeep,
+      ht,
+      dx: ax,
+      dz: az,
+      at: _groundAt(ax, az),
+    );
+  }
 
   /// A dormer: a little window standing out of the slope of a roof.
   ///
