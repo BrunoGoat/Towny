@@ -13,7 +13,6 @@ import '../data/landmarks.dart';
 import '../model/store.dart';
 import 'board_glyph.dart';
 import 'choice_sheet.dart';
-import '../model/flight_style.dart';
 import 'cloud_flight.dart';
 import 'habit_bar.dart';
 import 'habits_sheet.dart';
@@ -486,11 +485,8 @@ class _HomeScreenState extends State<HomeScreen>
             Positioned.fill(
               child: AnimatedBuilder(
                 animation: _flight,
-                builder: (_, _) => CloudFlight(
-                  t: _flight.value,
-                  palette: t.palette,
-                  style: Appearance.instance.flight,
-                ),
+                builder: (_, _) =>
+                    CloudFlight(t: _flight.value, palette: t.palette),
               ),
             ),
 
@@ -599,18 +595,9 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ------------------------------------------------------------- el vuelo
 
-  /// Cuánto dura subir al valle.
-  ///
-  /// Lo dice el estilo elegido y se pone al despegar, porque no todos quieren
-  /// lo mismo: un picado que dura lo que una nevada no es un picado. Alrededor
-  /// de tres cuartos de segundo todos. Empezó en un segundo y medio, que es lo
-  /// que dura un viaje bien contado la primera vez y una espera todas las
-  /// demás — y esto se hace cada vez que uno quiere comparar dos hábitos, o sea
-  /// muchas. Con la mitad sigue habiendo despegue, nubes y llegada: son unos
-  /// trescientos milisegundos tapado, de sobra para esconder el corte.
   late final AnimationController _flight = AnimationController(
     vsync: this,
-    duration: FlightStyle.cumulos.span,
+    duration: CloudFlight.span,
   );
   bool _flying = false;
 
@@ -630,7 +617,6 @@ class _HomeScreenState extends State<HomeScreen>
     // encima de otro sitio. Alejarse con los dedos ya lo apartaba —eso lo hace
     // `onCameraMoved`— pero el botón no pasa por ahí.
     _dismissSign();
-    _flight.duration = Appearance.instance.flight.span;
     setState(() => _flying = true);
     Sensory.instance.tick();
     _wall.liftOff();

@@ -287,11 +287,25 @@ class _TownViewState extends State<TownView>
 
   /// A partir de dónde lo que se está mirando ya no es este pueblo.
   ///
-  /// Tres veces y media su propio radio: desde ahí el pueblo ocupa un tercio
-  /// de la pantalla y lo que llena el resto es campo vacío. El botón de
-  /// explorar el valle existe y está a un toque, pero apartarse hasta aquí es
-  /// pedir lo mismo con el gesto que uno tiene en la mano.
-  double get _leaveAt => math.max(_town.radius * 3.6, 34.0);
+  /// Siete veces su propio radio, que es el doble de lo que era. A tres y medio
+  /// el pueblo todavía ocupa un tercio de la pantalla, y apartarse un poco para
+  /// ver dónde cae una casa nueva es algo que se hace constantemente: salía
+  /// volando al valle quien sólo estaba mirando. El botón está a un toque, así
+  /// que el gesto no tiene por qué ser el atajo rápido — tiene que ser
+  /// inconfundible, y eso quiere decir apartarse hasta que este pueblo ya no
+  /// sea de lo que va la pantalla.
+  ///
+  /// Va de la mano de [_townReach], que es lo que la cámara deja alejarse
+  /// dentro de un pueblo: esto tiene que quedar por debajo de aquello o no se
+  /// llega nunca.
+  double get _leaveAt => math.max(_town.radius * 7.2, 68.0);
+
+  /// Hasta dónde se puede uno apartar dentro de un pueblo.
+  ///
+  /// La cámara corta el alejarse en el doble de esto, así que queda un cinco
+  /// por ciento de holgura por encima de [_leaveAt]: lo justo para que el
+  /// último pellizco cruce la raya en vez de quedarse pegado a ella.
+  double get _townReach => math.max(_town.radius * 3.8, 36.0);
 
   /// El despegue: la cámara se levanta un poco antes de que entren las nubes.
   void liftOff() {
@@ -336,7 +350,7 @@ class _TownViewState extends State<TownView>
     _cam.distanceTarget = clampD(_town.radius * 1.9, 9.0, 60.0);
     _cam.yawTarget = 0.62;
     _cam.pitchTarget = 0.46;
-    _cam.wallLength = _town.radius * 2;
+    _cam.wallLength = _townReach;
     _tellCameraTheWorld();
   }
 
@@ -369,7 +383,7 @@ class _TownViewState extends State<TownView>
     _town = _entries[store.active.clamp(0, _entries.length - 1)].layout;
     _layoutFor = store.shownTotal;
     _slotFor = store.habit.slot;
-    _cam.wallLength = _town.radius * 2;
+    _cam.wallLength = _townReach;
     _tellCameraTheWorld();
 
     // Moving to another habit is moving to another town: take the camera

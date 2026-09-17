@@ -9,9 +9,7 @@ import '../fx/sensory.dart';
 import '../model/appearance.dart';
 import '../model/piece.dart';
 import '../model/store.dart';
-import '../model/flight_style.dart';
 import 'backup_sheet.dart';
-import 'cloud_flight.dart';
 import 'folk_gallery_screen.dart';
 import 'debug_sheet.dart';
 import 'gallery_screen.dart';
@@ -36,56 +34,7 @@ class SettingsSheet extends StatefulWidget {
   State<SettingsSheet> createState() => _SettingsSheetState();
 }
 
-class _SettingsSheetState extends State<SettingsSheet>
-    with TickerProviderStateMixin {
-  /// El estilo que se está enseñando encima de todo ahora mismo, si alguno.
-  ///
-  /// Elegir un vuelo sin verlo es elegir un nombre. Al tocar uno se juega
-  /// entero por encima de los ajustes, que es exactamente lo que se va a ver
-  /// cuando toque — misma pantalla, misma hora, mismo desenfoque.
-  OverlayEntry? _showing;
-  AnimationController? _showC;
-
-  @override
-  void dispose() {
-    _showing?.remove();
-    _showing = null;
-    _showC?.dispose();
-    _showC = null;
-    super.dispose();
-  }
-
-  void _fly(FlightStyle style) {
-    Sensory.instance.tick();
-    Appearance.instance.setFlight(style);
-    _showing?.remove();
-    _showC?.dispose();
-    final c = AnimationController(vsync: this, duration: style.span);
-    final entry = OverlayEntry(
-      builder: (_) => Positioned.fill(
-        child: AnimatedBuilder(
-          animation: c,
-          builder: (_, _) => CloudFlight(
-            t: c.value,
-            palette: widget.theme.palette,
-            style: style,
-          ),
-        ),
-      ),
-    );
-    _showing = entry;
-    _showC = c;
-    Overlay.of(context, rootOverlay: true).insert(entry);
-    c.forward().whenComplete(() {
-      entry.remove();
-      if (identical(_showing, entry)) {
-        _showing = null;
-        _showC = null;
-        c.dispose();
-      }
-    });
-  }
-
+class _SettingsSheetState extends State<SettingsSheet> {
   @override
   Widget build(BuildContext context) {
     final t = widget.theme;
@@ -304,21 +253,6 @@ class _SettingsSheetState extends State<SettingsSheet>
             ),
           ],
         ],
-
-        const SizedBox(height: 26),
-        _Head(theme: t, text: 'EL VUELO AL VALLE'),
-        Text(
-          'Ir del pueblo al valle no es abrir una pantalla: es subir. Elegí con '
-          'qué se tapa el cielo mientras se sube — al tocar uno se ve entero, '
-          'aquí mismo.',
-          style: t.bodySoft.copyWith(fontSize: 11.5, height: 1.4),
-        ),
-        const SizedBox(height: 10),
-        _FlightPick(theme: t, value: wants.flight, onPick: _fly),
-        Text(
-          wants.flight.about,
-          style: t.bodySoft.copyWith(fontSize: 11.5, height: 1.4),
-        ),
 
         const SizedBox(height: 26),
         _Head(theme: t, text: 'LO DEMÁS'),
@@ -592,92 +526,6 @@ class _Pick extends StatelessWidget {
           ],
         ],
       ),
-    );
-  }
-}
-
-/// Los diez vuelos, en rejilla.
-///
-/// El otro selector de esta hoja es una fila de pastillas de igual ancho, y con
-/// diez eso da pastillas de treinta píxeles donde no cabe «Remolino». Aquí van
-/// en dos columnas con el nombre a la izquierda, que además deja sitio para
-/// decir en cada una de qué va sin tener que probarlas todas a ciegas.
-class _FlightPick extends StatelessWidget {
-  const _FlightPick({
-    required this.theme,
-    required this.value,
-    required this.onPick,
-  });
-
-  final UiTheme theme;
-  final FlightStyle value;
-  final void Function(FlightStyle) onPick;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = theme;
-    // Dos columnas, y el ancho sale del hueco que haya: esta hoja se abre
-    // igual en un teléfono estrecho que de lado.
-    return LayoutBuilder(
-      builder: (context, box) {
-        const hueco = 8.0;
-        final ancho = (box.maxWidth - hueco) / 2;
-        return Wrap(
-          spacing: hueco,
-          runSpacing: hueco,
-          children: [
-            for (final style in FlightStyle.values)
-              SizedBox(
-                width: ancho,
-                child: GestureDetector(
-                  onTap: () => onPick(style),
-                  behavior: HitTestBehavior.opaque,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 10,
-                      horizontal: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: t.fg.withValues(
-                        alpha: style == value ? 0.13 : 0.04,
-                      ),
-                      borderRadius: BorderRadius.circular(11),
-                      border: Border.all(
-                        color: style == value
-                            ? t.accent.withValues(alpha: 0.8)
-                            : t.stroke,
-                        width: style == value ? 1.4 : 1,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            style.label,
-                            style: t.bodySoft.copyWith(
-                              fontSize: 12.5,
-                              color: style == value ? t.fg : t.fgSoft,
-                            ),
-                          ),
-                        ),
-                        // Cuánto dura, que es la otra mitad de en qué se
-                        // diferencian: un picado y un aguacero no se parecen
-                        // en nada y la diferencia es sobre todo el tiempo.
-                        Text(
-                          '${(style.millis / 1000).toStringAsFixed(2)}s',
-                          style: t.bodySoft.copyWith(
-                            fontSize: 10.5,
-                            color: t.fgSoft.withValues(alpha: 0.7),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        );
-      },
     );
   }
 }
