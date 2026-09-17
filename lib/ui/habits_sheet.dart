@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
@@ -6,6 +7,7 @@ import '../data/character.dart';
 import '../data/symbols.dart';
 import '../fx/sensory.dart';
 import '../model/appearance.dart';
+import '../model/habit_skin.dart';
 import '../model/store.dart';
 import 'habit_sigil.dart';
 import 'style.dart';
@@ -181,6 +183,10 @@ class _HabitsSheetState extends State<HabitsSheet> {
   ///
   /// Y un lápiz en la esquina, porque una marca que abre sesenta y seis marcas
   /// no parece una cosa que se pueda apretar si no lo dice.
+  /// Lo que mide la marca. Mediano y fijo: se probaron cinco tamaños, de
+  /// cuarenta y seis a ciento ocho, y el que quedó es éste.
+  static const double _mark = 74.0;
+
   Widget _sigil(UiTheme t, double size) {
     // El lápiz crece con la marca hasta cierto punto y ahí se para: es un aviso
     // de que la cosa se puede tocar, y un aviso del tamaño de un pulgar deja de
@@ -194,7 +200,12 @@ class _HabitsSheetState extends State<HabitsSheet> {
       },
       child: Container(
         width: size * 2.2,
-        height: size * 2.2,
+        // Más ancho que alto, y a propósito. Con el halo cuadrado quedaba medio
+        // tamaño de marca de aire muerto por debajo, y con ese aire la marca no
+        // se apoyaba en la hoja: flotaba encima de ella. Achatado, el aliento
+        // sigue estando —es lo que la salva sobre un tejado claro— y la marca
+        // baja hasta apoyarse en el canto.
+        height: size * 1.30,
         alignment: Alignment.center,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
@@ -383,6 +394,78 @@ class _HabitsSheetState extends State<HabitsSheet> {
     ),
   );
 
+  /// De qué está hecho el velo: su color, lo sólido que es y cuánto desenfoca
+  /// lo que queda debajo.
+  ///
+  /// De noche es siempre el mismo —oscuro sobre oscuro, que es lo que
+  /// funciona— y lo único que se elige es cuánto tapa, con un deslizador. De
+  /// día se elige entre cinco, porque de día es donde se rompía: una crema casi
+  /// opaca sobre un prado verde no es aire espesándose, es un papel puesto
+  /// encima. Las cinco tiran de lo mismo: que el velo saque su color de la
+  /// escena en vez de traerlo de fuera, y que deje ver algo de lo que hay
+  /// debajo.
+  ({Color tinte, double tapa, double bruma}) _veil(UiTheme t, HabitSkin skin) {
+    final p = t.palette;
+    if (t.dark) {
+      return (
+        tinte: t.panelStrong,
+        tapa: Appearance.instance.nightVeil,
+        bruma: 0,
+      );
+    }
+    return switch (skin) {
+      HabitSkin.bruma => (
+        tinte: Color.lerp(p.skyHorizon, Colors.white, 0.62)!,
+        tapa: 0.74,
+        bruma: 8,
+      ),
+      HabitSkin.arena => (
+        tinte: Color.lerp(p.ground, Colors.white, 0.74)!,
+        tapa: 0.76,
+        bruma: 6,
+      ),
+      HabitSkin.cielo => (
+        tinte: Color.lerp(p.skyLight, Colors.white, 0.42)!,
+        tapa: 0.68,
+        bruma: 14,
+      ),
+      HabitSkin.vidrio => (
+        tinte: Color.lerp(p.skyHorizon, Colors.white, 0.50)!,
+        tapa: 0.42,
+        bruma: 26,
+      ),
+      HabitSkin.lino => (tinte: t.panelStrong, tapa: 0.62, bruma: 16),
+    };
+  }
+
+  /// Envuelve algo en un desenfoque de lo que tenga detrás, o no lo envuelve.
+  ///
+  /// Con recorte **y** con máscara, las dos cosas. Un `BackdropFilter` suelto
+  /// desenfoca la capa entera —la pantalla completa, no lo que hay debajo del
+  /// hijo— así que sin recortar lo que salía era el pueblo entero borroso y la
+  /// hoja encima. Y recortando a secas queda una raya horizontal donde el
+  /// mundo pasa de nítido a borroso de golpe, que es peor que no desenfocar: la
+  /// máscara la deshace en el mismo tramo en el que cuaja el velo, así que las
+  /// dos cosas aparecen juntas y no se ve ningún canto.
+  Widget _blurred(double sigma, Widget child) {
+    if (sigma <= 0.5) return child;
+    return ClipRect(
+      child: ShaderMask(
+        shaderCallback: (r) => const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0x00FFFFFF), Color(0xFFFFFFFF)],
+          stops: [0.0, 0.18],
+        ).createShader(r),
+        blendMode: BlendMode.dstIn,
+        child: BackdropFilter(
+          filter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
+          child: child,
+        ),
+      ),
+    );
+  }
+
   // ------------------------------------------------------------------ hoja
 
   @override
@@ -391,7 +474,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
     final store = widget.store;
     final ch = _creating ? TownCharacter.byOrder(_place) : store.habit.place;
     final bottom = MediaQuery.of(context).viewInsets.bottom;
-    final skin = Appearance.instance.skin;
+    final velo = _veil(t, Appearance.instance.skin);
 
     // La marca va fuera del velo y no dentro, que es lo que la deja flotando
     // sobre el propio pueblo en vez de pegada al canto de una hoja. El velo
@@ -408,71 +491,74 @@ class _HabitsSheetState extends State<HabitsSheet> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(height: skin.lift),
-            _sigil(t, skin.mark),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 28),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    t.panelStrong.withValues(alpha: 0),
-                    t.panelStrong.withValues(alpha: t.dark ? 0.80 : 0.84),
-                    t.panelStrong.withValues(alpha: t.dark ? 0.90 : 0.94),
-                  ],
-                  stops: const [0.0, 0.26, 1.0],
-                ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // El velo arranca transparente, así que el nombre no puede ir
-                  // pegado a su canto: se le deja el aire en el que el velo
-                  // acaba de cuajar.
-                  SizedBox(height: skin.mark * 0.42),
-                  if (_creating) ...[
-                    Text('UN HÁBITO NUEVO', style: t.label),
-                    const SizedBox(height: 12),
-                  ],
-                  _field(t, skin.titulo),
-                  const SizedBox(height: 10),
-                  _hair(t),
-                  _reelSlot(t),
-                  const SizedBox(height: 18),
-                  if (_creating) ...[
-                    Text('QUÉ CLASE DE PUEBLO', style: t.label),
-                    const SizedBox(height: 10),
-                    _regionPicker(t),
-                    const SizedBox(height: 16),
-                  ],
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 180),
-                    child: _region(t, ch),
+            _sigil(t, _mark),
+            // El velo, y por detrás el desenfoque de lo que haya debajo.
+            _blurred(
+              velo.bruma,
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 28),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      velo.tinte.withValues(alpha: 0),
+                      velo.tinte.withValues(alpha: velo.tapa * 0.92),
+                      velo.tinte.withValues(alpha: velo.tapa),
+                    ],
+                    stops: const [0.0, 0.16, 1.0],
                   ),
-                  if (_creating) ...[
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // El velo arranca transparente, así que el nombre no puede ir
+                    // pegado a su canto: se le deja el aire en el que el velo
+                    // acaba de cuajar.
+                    const SizedBox(height: _mark * 0.20),
+                    if (_creating) ...[
+                      Text('UN HÁBITO NUEVO', style: t.label),
+                      const SizedBox(height: 12),
+                    ],
+                    _field(t, 21),
                     const SizedBox(height: 10),
-                    Text(
-                      'Se elige una sola vez. Después no se puede cambiar sin '
-                      'mover piezas ya puestas, y eso no se hace.',
-                      textAlign: TextAlign.center,
-                      style: t.bodySoft.copyWith(fontSize: 11.5, height: 1.4),
-                    ),
-                    const SizedBox(height: 18),
-                    _foundButton(t),
-                  ],
-                  // Sólo al fundar hay botón. Editando se escribe según se
-                  // teclea, así que no hay nada que confirmar ni nada que
-                  // perder al cerrar.
-                  if (!_creating) ...[
-                    const SizedBox(height: 14),
                     _hair(t),
-                    const SizedBox(height: 6),
-                    _remove(t),
+                    _reelSlot(t),
+                    const SizedBox(height: 18),
+                    if (_creating) ...[
+                      Text('QUÉ CLASE DE PUEBLO', style: t.label),
+                      const SizedBox(height: 10),
+                      _regionPicker(t),
+                      const SizedBox(height: 16),
+                    ],
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 180),
+                      child: _region(t, ch),
+                    ),
+                    if (_creating) ...[
+                      const SizedBox(height: 10),
+                      Text(
+                        'Se elige una sola vez. Después no se puede cambiar sin '
+                        'mover piezas ya puestas, y eso no se hace.',
+                        textAlign: TextAlign.center,
+                        style: t.bodySoft.copyWith(fontSize: 11.5, height: 1.4),
+                      ),
+                      const SizedBox(height: 18),
+                      _foundButton(t),
+                    ],
+                    // Sólo al fundar hay botón. Editando se escribe según se
+                    // teclea, así que no hay nada que confirmar ni nada que
+                    // perder al cerrar.
+                    if (!_creating) ...[
+                      const SizedBox(height: 14),
+                      _hair(t),
+                      const SizedBox(height: 6),
+                      _remove(t),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ],

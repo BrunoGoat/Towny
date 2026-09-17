@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:la_muralla/data/tunes.dart';
 import 'package:la_muralla/fx/sensory.dart';
 import 'package:la_muralla/model/appearance.dart';
+import 'package:la_muralla/model/habit_skin.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<Appearance> fresh({Map<String, Object> from = const {}}) async {
@@ -124,6 +125,45 @@ void main() {
         isTrue,
         reason: 'apagar música calló los efectos',
       );
+    });
+  });
+
+  group('la hoja de un hábito', () {
+    test('el velo de día se guarda por su nombre', () async {
+      final a = await fresh();
+      expect(a.skin, HabitSkin.bruma);
+      await a.setSkin(HabitSkin.vidrio);
+      await a.flush();
+      final otra = await fresh(
+        from: {
+          'pueblo_sound_v1': (await SharedPreferences.getInstance())
+              .getStringList('pueblo_sound_v1')!,
+        },
+      );
+      expect(otra.skin, HabitSkin.vidrio);
+      // Y un nombre que ya no exista vuelve al primero en vez de tirar el
+      // resto de los ajustes con él.
+      expect(HabitSkin.byName('lo que sea'), HabitSkin.bruma);
+      expect(HabitSkin.byName(null), HabitSkin.bruma);
+    });
+
+    test('y lo sólido del velo de noche no se sale de madre', () async {
+      // Un velo a cero es escribir un nombre sobre el pueblo sin nada que lo
+      // separe, y eso no se lee. Hay suelo, y hay techo.
+      final a = await fresh();
+      await a.setNightVeil(-3);
+      expect(a.nightVeil, 0.25);
+      await a.setNightVeil(9);
+      expect(a.nightVeil, 1.0);
+      await a.setNightVeil(0.55);
+      await a.flush();
+      final otra = await fresh(
+        from: {
+          'pueblo_sound_v1': (await SharedPreferences.getInstance())
+              .getStringList('pueblo_sound_v1')!,
+        },
+      );
+      expect(otra.nightVeil, closeTo(0.55, 1e-9));
     });
   });
 

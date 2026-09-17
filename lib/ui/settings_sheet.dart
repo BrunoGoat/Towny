@@ -276,10 +276,11 @@ class _SettingsSheetState extends State<SettingsSheet> {
         const SizedBox(height: 26),
         _Head(theme: t, text: 'LA HOJA DE UN HÁBITO'),
         Text(
-          'La hoja donde se le cambia el nombre y la marca a un hábito. Sin '
-          'panel: la marca grande sobre el pueblo y el nombre debajo. Lo único '
-          'que cambia entre las cinco es cuánto mide esa marca y a qué altura '
-          'flota — al tocar una se abre la hoja tal cual va a quedar.',
+          'La hoja donde se le cambia el nombre y la marca a un hábito. No hay '
+          'panel: la marca sobre el pueblo, el nombre debajo, y un velo que '
+          'sube desde abajo para que se lea sobre lo que haya. De día ese velo '
+          'saca su color de la escena, y hay cinco maneras — al tocar una se '
+          'abre la hoja tal cual va a quedar.',
           style: t.bodySoft.copyWith(fontSize: 11.5, height: 1.4),
         ),
         const SizedBox(height: 10),
@@ -287,6 +288,31 @@ class _SettingsSheetState extends State<SettingsSheet> {
         Text(
           wants.skin.about,
           style: t.bodySoft.copyWith(fontSize: 11.5, height: 1.4),
+        ),
+        const SizedBox(height: 14),
+        // De noche no hace falta elegir color: oscuro sobre oscuro funciona
+        // solo. Lo que sí es gusto de cada uno es cuánto del pueblo se quiere
+        // seguir viendo por debajo mientras se escribe un nombre, y eso es un
+        // número — así que va en un deslizador y no en la lista de cinco.
+        _Slider(
+          theme: t,
+          title: 'Lo sólido del velo de noche',
+          value: wants.nightVeil,
+          onChanged: wants.setNightVeil,
+        ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton(
+            onPressed: () => _dress(wants.skin),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              foregroundColor: t.accent,
+            ),
+            child: Text(
+              'Ver cómo queda',
+              style: t.bodySoft.copyWith(fontSize: 12.5, color: t.accent),
+            ),
+          ),
         ),
 
         const SizedBox(height: 26),
@@ -554,10 +580,10 @@ class _Pick extends StatelessWidget {
   }
 }
 
-/// Las cinco alturas, en rejilla de dos columnas.
+/// Los cinco velos de día, en rejilla de dos columnas.
 ///
 /// El otro selector de esta hoja es una fila de pastillas de igual ancho, y con
-/// cinco eso da pastillas de sesenta píxeles donde no cabe «Gigante».
+/// cinco eso da pastillas de sesenta píxeles donde no cabe «Pergamino».
 class _SkinPick extends StatelessWidget {
   const _SkinPick({
     required this.theme,
