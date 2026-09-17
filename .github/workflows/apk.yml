@@ -40,7 +40,14 @@ jobs:
         # El versionCode sube con cada ejecución. Salía de `version: 1.0.0+1`
         # del pubspec, o sea 1 en todas las builds, y dos APK con el mismo
         # versionCode no son una actualización de nada.
-        run: flutter build apk --release --build-number=${{ github.run_number }}
+        # Y el mismo número entra en la app, para que se pueda leer en
+        # *Ajustes* qué build se está mirando. Un teléfono con una APK dentro
+        # no tiene ninguna otra manera de decirlo, y sin eso «¿está el cambio o
+        # es la de antes?» no se puede contestar sin desinstalar.
+        run: |
+          flutter build apk --release \
+            --build-number=${{ github.run_number }} \
+            --dart-define=BUILD=${{ github.run_number }}
 
       - name: Check it is signed with the key we meant
         run: |

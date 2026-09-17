@@ -59,7 +59,34 @@ class _SettingsSheetState extends State<SettingsSheet> {
                 ),
               ),
               const SizedBox(height: 16),
-              Text('AJUSTES', style: t.label),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('AJUSTES', style: t.label),
+                  // Qué build es ésta.
+                  //
+                  // Existe porque no existía, y no saberlo costó una tarde: se
+                  // probaba algo que no salía, y la pregunta «¿está el cambio
+                  // o es la build de antes?» no tenía manera de contestarse
+                  // desde el teléfono. Con las APK saliendo de un flujo que
+                  // numera cada ejecución, no decir el número en ninguna parte
+                  // es guardarse el único dato que hace falta para saber qué
+                  // se está mirando.
+                  //
+                  // Del mismo `--dart-define` que el resto de la app, así que
+                  // no añade dependencia ninguna: lo pone el flujo al compilar
+                  // y en local sale vacío, que es lo correcto — una build de
+                  // tu propia máquina no tiene número.
+                  if (_build.isNotEmpty)
+                    Text(
+                      'BUILD $_build',
+                      style: t.label.copyWith(
+                        fontSize: 9,
+                        color: t.fg.withValues(alpha: 0.30),
+                      ),
+                    ),
+                ],
+              ),
               const SizedBox(height: 10),
               Expanded(child: _body(context, t)),
             ],
@@ -68,6 +95,9 @@ class _SettingsSheetState extends State<SettingsSheet> {
       ),
     );
   }
+
+  /// El número de ejecución del flujo que compiló esta APK. Vacío en local.
+  static const String _build = String.fromEnvironment('BUILD');
 
   Widget _body(BuildContext context, UiTheme t) {
     final wants = Appearance.instance;
