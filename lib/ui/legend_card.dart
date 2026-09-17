@@ -18,12 +18,19 @@ class LegendCard extends StatelessWidget {
     required this.header,
     required this.child,
     this.onTap,
+    this.onTapHeader,
   });
 
   final UiTheme theme;
   final String header;
   final Widget child;
   final VoidCallback? onTap;
+
+  /// Si la cabecera hace algo al tocarla. Cuando lo hace lleva un relojito
+  /// detrás, porque una fecha que se puede corregir y otra que no tienen que
+  /// verse distintas — si no, o nadie la toca nunca o todo el mundo la toca
+  /// una vez para ver qué pasa.
+  final VoidCallback? onTapHeader;
 
   /// Lo ancho que puede ponerse. De canto a canto tapaba el pueblo del que
   /// estaba hablando.
@@ -58,10 +65,7 @@ class LegendCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                header,
-                style: t.label.copyWith(fontSize: 8.5, letterSpacing: 1.2),
-              ),
+              _Header(theme: t, text: header, onTap: onTapHeader),
               const SizedBox(height: 5),
               // El cuerpo llega sin color y lo pone la tarjeta: quien lo monta
               // no sabe sobre qué va a caer.
@@ -79,6 +83,41 @@ class LegendCard extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: cuerpo,
+    );
+  }
+}
+
+/// La línea de arriba: qué pieza es y cuándo se puso.
+class _Header extends StatelessWidget {
+  const _Header({required this.theme, required this.text, this.onTap});
+
+  final UiTheme theme;
+  final String text;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = theme;
+    final style = t.label.copyWith(fontSize: 8.5, letterSpacing: 1.2);
+    if (onTap == null) return Text(text, style: style);
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Flexible y no a secas: en la pantalla más estrecha la cabecera de
+          // una pieza de cuatro cifras no cabe en una línea, y un `Row` no
+          // parte el texto — se sale por la derecha.
+          Flexible(child: Text(text, style: style)),
+          const SizedBox(width: 5),
+          Icon(
+            Icons.schedule,
+            size: 10.5,
+            color: style.color?.withValues(alpha: 0.75),
+          ),
+        ],
+      ),
     );
   }
 }

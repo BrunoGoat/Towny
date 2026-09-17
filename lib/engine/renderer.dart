@@ -165,7 +165,6 @@ class TownScene {
     this.charge = 0,
     this.labels = true,
     this.tonight,
-    this.tonightKnown = false,
     this.skyNight = 0,
     this.folk = true,
     this.soloFolk,
@@ -236,13 +235,9 @@ class TownScene {
   /// quieta hasta el mediodía siguiente.
   final int skyNight;
 
-  /// La constelación que se puede ver esta noche, si hay noche y si en el
-  /// valle hay un observatorio en pie. Nula el resto del tiempo.
+  /// La figura que hay en el cielo esta noche, si hay alguna. Muchas noches no
+  /// hay ninguna, que es lo que hace que valga la pena mirar las que sí.
   final Constellation? tonight;
-
-  /// Si esa constelación ya está anotada. Una anotada se sigue viendo —el
-  /// cielo no se apaga porque la hayas mirado— pero más floja y con su nombre.
-  final bool tonightKnown;
 
   /// Whether the landmark names are hung over the buildings. The exhibition
   /// hall says the name in its own header, and a second one floating in the
@@ -561,11 +556,12 @@ class TownPainter extends CustomPainter {
     // seis. Puesta por el centro, la grande quedaba fuera de la pantalla.
     final el = c.spread * 0.5 + 0.09 + hash01(night, 79) * 0.11;
 
-    final known = scene.tonightKnown;
-    // Una sin anotar respira, para que se note que hay algo que hacer con
-    // ella. Una anotada se queda quieta: ya cumplió.
-    final beat = known ? 1.0 : 0.78 + 0.22 * math.sin(scene.time * 1.15);
-    final ink = scene.palette.starAlpha * (known ? 0.42 : 0.95) * beat;
+    // Quieta y floja. Antes latía —crecía y menguaba— porque había algo que
+    // hacer con ella: tocarla la anotaba en un cuaderno, y un latido es la
+    // manera de decir «acá». Ya no hay cuaderno, así que tampoco hay por qué
+    // pedir nada: es una figura de estrellas en el cielo de esta noche y con
+    // eso basta. Lo que sí se queda es que se puede tocar, y suena.
+    final ink = scene.palette.starAlpha * 0.62;
     if (ink < 0.03) return;
 
     final at = <Offset?>[];
@@ -609,25 +605,25 @@ class TownPainter extends CustomPainter {
     }
 
     final box = Rect.fromLTRB(x0, y0, x1, y1).inflate(16);
-    if (!known) skies.add(SkyHit(c.id, box));
+    skies.add(SkyHit(c.id, box));
 
-    // El nombre sólo cuando ya está anotada. Antes de anotarla, decirlo sería
-    // contestar la pregunta: la gracia es reconocerla.
-    if (known) {
-      final tp = TextPainter(
-        text: TextSpan(
-          text: c.name.toUpperCase(),
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: ink * 0.9),
-            fontSize: 9.5,
-            letterSpacing: 2.0,
-            fontWeight: FontWeight.w600,
-          ),
+    // Y su nombre debajo, siempre. Hubo un tiempo en que se callaba hasta que
+    // la reconocieras, porque decirlo era contestar la pregunta; pero no había
+    // pregunta, había una lista que rellenar. Sin la lista, el nombre es lo que
+    // convierte unas cuantas estrellas unidas por rayas en Casiopea.
+    final tp = TextPainter(
+      text: TextSpan(
+        text: c.name.toUpperCase(),
+        style: TextStyle(
+          color: Colors.white.withValues(alpha: ink * 0.85),
+          fontSize: 9.5,
+          letterSpacing: 2.0,
+          fontWeight: FontWeight.w600,
         ),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      tp.paint(canvas, Offset(box.center.dx - tp.width / 2, box.bottom + 2));
-    }
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    tp.paint(canvas, Offset(box.center.dx - tp.width / 2, box.bottom + 2));
   }
 
   /// Una estrella fugaz, cada tanto, cuando hay noche.
@@ -1231,53 +1227,13 @@ class TownPainter extends CustomPainter {
     List<_Walker> folk = const [],
   ]) {
     final pal = scene.palette;
-    // A yard of packed earth around each house: the ground people walk on,
-    // worn bare by the door and ragged at the edges where the grass wins.
-    // A tidy square of grey reads as a concrete slab, which is the one thing a
-    // medieval town must never look like.
-    final pad = Color.lerp(
-      Color.lerp(pal.ground, const Color(0xFFB0946C), 0.72)!,
-      pal.skyLight,
-      0.10,
-    )!;
-    final half = town.plotPitch * 0.46;
-    for (final b in town.buildings) {
-      if (b.placedPieces <= 0) continue;
-      final s = b.seed;
-      // Eight points round the edge, each pulled in or out a little, so no two
-      // yards are the same shape and none of them has a drawn corner.
-      final path = Path();
-      var started = false;
-      for (var i = 0; i < 8; i++) {
-        final a = i * math.pi / 4;
-        final r = half * hashRange(0.78, 1.12, s, 40, i);
-        final at = p.project(
-          V3(
-            b.cx + math.cos(a) * r * 1.32,
-            0.004,
-            b.cz + math.sin(a) * r * 1.32,
-          ),
-        );
-        if (at == null) {
-          started = false;
-          break;
-        }
-        if (!started) {
-          path.moveTo(at.x, at.y);
-          started = true;
-        } else {
-          path.lineTo(at.x, at.y);
-        }
-      }
-      if (!started) continue;
-      path.close();
-      canvas.drawPath(
-        path,
-        Paint()
-          ..color = _hazeAt(pad, p, b.cx, b.cz, pal)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.2),
-      );
-    }
+    // Debajo de cada casa hubo un ejido de tierra pisada: un polígono pardo de
+    // ocho lados, desdibujado, que se pintaba en el suelo alrededor. La idea
+    // era el suelo que la gente pisa, gastado junto a la puerta; lo que se veía
+    // era una mancha de barro con la casa flotando encima, y ocho de ellas una
+    // al lado de otra convertían el prado en un mapa de manchas. El pueblo está
+    // sobre hierba y sobre hierba se queda: lo único que hace falta para que
+    // una casa no flote es su sombra de contacto, que es la de aquí abajo.
 
     // A soft pool of shade under each building. The wall gets a real projected
     // shadow; a hundred and fifty houses would cost far too much for that, and
@@ -3247,12 +3203,94 @@ class TownPainter extends CustomPainter {
 
   // ------------------------------------------------------------- particles
 
+  /// Cada edificio del pueblo activo metido en una caja.
+  ///
+  /// Sólo sirve para tapar el humo, que es lo único que se pinta después del
+  /// pueblo y está metido dentro de él. Se rehace cuando cambia el pueblo o
+  /// cuántas piezas lleva puestas, que es cuando puede haber cambiado una caja;
+  /// girar la cámara no lo toca.
+  List<_Box>? _boxes;
+  TownLayout? _boxesOf;
+  int _boxesAt = -1;
+
+  List<_Box> _buildingBoxes() {
+    if (scene.active < 0 || scene.active >= scene.towns.length) return const [];
+    final e = scene.towns[scene.active];
+    final take = math.min(e.placed, e.layout.pieces.length);
+    if (_boxes != null && identical(_boxesOf, e.layout) && _boxesAt == take) {
+      return _boxes!;
+    }
+    final por = <int, _Box>{};
+    for (var i = 0; i < take; i++) {
+      final q = e.layout.pieces[i];
+      final caja = por[q.building];
+      if (caja == null) {
+        por[q.building] = _Box(q.building, q.x0, q.x1, q.z0, q.z1, q.y1);
+      } else {
+        caja.grow(q);
+      }
+    }
+    _boxesOf = e.layout;
+    _boxesAt = take;
+    return _boxes = por.values.toList();
+  }
+
+  /// Si entre el ojo y este punto hay un edificio que no es el suyo.
+  ///
+  /// El humo se pinta al final, después de que el pueblo entero esté en el
+  /// lienzo, porque es lo único que no se puede meter en el orden de caras: no
+  /// tiene caras. Sin esto, una columna de humo de la casa de atrás se dibuja
+  /// encima de la fachada de la de delante — y eso es exactamente lo que se
+  /// veía: una mancha parda subiendo por un muro blanco.
+  ///
+  /// Se prueba contra la caja de cada edificio y no contra sus piezas: una casa
+  /// es prácticamente su caja, y la diferencia —el hueco bajo el alero— cuesta
+  /// que una voluta se esconda medio metro antes de lo debido. Lo otro cuesta
+  /// recorrer todas las piezas del pueblo por cada partícula.
+  bool _hidden(Projector p, V3 at, int owner) {
+    final eye = p.eye;
+    final dx = at.x - eye.x, dy = at.y - eye.y, dz = at.z - eye.z;
+    for (final b in _buildingBoxes()) {
+      if (b.building == owner) continue;
+      var t0 = 0.0, t1 = 1.0;
+      var fuera = false;
+      for (var eje = 0; eje < 3 && !fuera; eje++) {
+        final d = eje == 0 ? dx : (eje == 1 ? dy : dz);
+        final o = eje == 0 ? eye.x : (eje == 1 ? eye.y : eye.z);
+        final lo = eje == 0 ? b.x0 : (eje == 1 ? 0.0 : b.z0);
+        final hi = eje == 0 ? b.x1 : (eje == 1 ? b.y1 : b.z1);
+        if (d.abs() < 1e-9) {
+          if (o < lo || o > hi) fuera = true;
+          continue;
+        }
+        var a = (lo - o) / d, z = (hi - o) / d;
+        if (a > z) {
+          final w = a;
+          a = z;
+          z = w;
+        }
+        if (a > t0) t0 = a;
+        if (z < t1) t1 = z;
+        if (t0 > t1) fuera = true;
+      }
+      // Y el tramo tiene que quedar por delante del ojo. Sin esto, una cámara
+      // metida dentro de una caja —que pasa acercándose mucho— sale con el
+      // tramo empezando en cero y lo tapa todo.
+      if (!fuera && t1 > t0 && t0 > 0.02) return true;
+    }
+    return false;
+  }
+
   void _drawParticles(Canvas canvas, Projector p) {
     final pal = scene.palette;
     final paint = Paint();
     for (final part in scene.effects.live) {
       final pt = p.project(V3(part.x, part.y, part.z));
       if (pt == null) continue;
+      if (part.kind == ParticleKind.smoke &&
+          _hidden(p, V3(part.x, part.y, part.z), part.owner)) {
+        continue;
+      }
       final life = (part.life / part.maxLife).clamp(0.0, 1.0);
       final r = part.size * p.focal / pt.depth;
       if (r < 0.3) continue;
@@ -3376,4 +3414,20 @@ class _Walker {
 
   /// A media altura, que es por donde se le parte con un plano horizontal.
   double get y => size * 0.5;
+}
+
+/// Un edificio metido en una caja, para saber qué humo tapa.
+class _Box {
+  _Box(this.building, this.x0, this.x1, this.z0, this.z1, this.y1);
+
+  final int building;
+  double x0, x1, z0, z1, y1;
+
+  void grow(TownPiece q) {
+    if (q.x0 < x0) x0 = q.x0;
+    if (q.x1 > x1) x1 = q.x1;
+    if (q.z0 < z0) z0 = q.z0;
+    if (q.z1 > z1) z1 = q.z1;
+    if (q.y1 > y1) y1 = q.y1;
+  }
 }

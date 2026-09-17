@@ -23,6 +23,8 @@ library;
 
 import 'dart:math' as math;
 
+import '../core/rng.dart';
+
 /// Una estrella: dónde está y cuánto brilla.
 class Star {
   const Star(this.ra, this.dec, this.mag);
@@ -338,10 +340,21 @@ int nightOf(DateTime when) {
       1000000;
 }
 
-/// Cuál se ve esta noche.
+/// Cuál se ve esta noche, si es que se ve alguna.
 ///
-/// Tres de paso sobre ocho: como tres y ocho no comparten divisor, en ocho
-/// noches seguidas salen las ocho y ninguna repetida. Al azar puro habría
-/// quien esperase un mes por la última, y eso no es un hallazgo, es un peaje.
-Constellation tonight(int night) =>
-    constellations[(night * 3) % constellations.length];
+/// **Puede no haber ninguna, y eso es la mitad del asunto.** Antes salía una
+/// cada noche sin falta, se tocaba, se anotaba en un cuaderno y quedaba
+/// registrada: ocho de ocho, con su lista y su cuenta. Eso es un sistema, y un
+/// sistema pide que lo completes. Lo que quiere ser esto es el cielo: algunas
+/// noches levantás la cabeza y está Orión ahí arriba, y otras no hay nada que
+/// mirar. Lo que hace que valga la pena mirar es justamente que no siempre.
+///
+/// Tres de cada cinco noches, más o menos, y siempre la misma para una misma
+/// noche — quien salga a las nueve y vuelva a la una encuentra lo mismo.
+///
+/// Cuando hay, tres de paso sobre ocho: como tres y ocho no comparten divisor,
+/// las ocho van rotando sin que ninguna se quede sin salir durante meses.
+Constellation? tonight(int night) {
+  if (hash01(night, 0x5C1E) < 0.40) return null;
+  return constellations[(night * 3) % constellations.length];
+}

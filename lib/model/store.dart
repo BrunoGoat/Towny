@@ -222,43 +222,17 @@ class Store extends ChangeNotifier {
     return moved;
   }
 
-  // -------------------------------------------------------------------- cielo
-
-  /// Las constelaciones que alguien se quedó mirando y anotó.
-  ///
-  /// Del valle y no de un hábito: lo que se ve desde el observatorio de un
-  /// pueblo se ve desde el de cualquier otro, porque es el mismo cielo. Un
-  /// cuaderno de estrellas por hábito sería tener que redescubrir Orión cada
-  /// vez que fundás un pueblo, y eso no es cómo funciona el cielo.
-  final Set<String> sky = <String>{};
-
-  bool sawIt(String id) => sky.contains(id);
-
-  /// Anota una. Devuelve si era nueva, que es lo que decide si hay algo que
-  /// celebrar.
-  bool logConstellation(String id) {
-    if (!sky.add(id)) return false;
-    _save();
-    notifyListeners();
-    return true;
-  }
-
-  /// Si en el valle hay un observatorio en pie, en cualquier pueblo.
-  ///
-  /// Basta con uno: el primero que levanta la cúpula se la levanta al valle
-  /// entero. Cinco pueblos y cinco observatorios antes de ver una estrella
-  /// sería castigar al que tiene varios hábitos.
-  bool get hasObservatory {
-    for (final h in habits) {
-      if (TownPlan.of(
-        h.place,
-        seed: h.townSeed,
-      ).built('observatorio', h.total, h.chronicle)) {
-        return true;
-      }
-    }
-    return false;
-  }
+  // El cielo ya no se guarda.
+  //
+  // Hubo un cuaderno de constelaciones: se tocaba la figura de esta noche, se
+  // anotaba, y había una lista de ocho con las que llevabas encontradas —y un
+  // observatorio que había que construir antes de que apareciera ninguna. Eso
+  // es un sistema dentro de una app que sólo tiene uno: una pieza, un logro.
+  // El cielo se queda de cielo: algunas noches hay una figura ahí arriba y
+  // otras no, tocarla suena, y no lleva la cuenta nadie.
+  //
+  // Lo que hubiera guardado sigue leyéndose y se tira al escribir, para que el
+  // disco se limpie solo igual que se hizo con las letras del tablón.
 
   // ------------------------------------------------------------------ habits
 
@@ -457,16 +431,14 @@ class Store extends ChangeNotifier {
         ),
       );
     active = (j['a'] as num?)?.toInt() ?? 0;
-    sky
-      ..clear()
-      ..addAll(((j['sky'] as List?) ?? []).map((e) => e.toString()));
+    // `sky` —el cuaderno de constelaciones— se lee y se tira: al no volver a
+    // escribirse, el disco se limpia solo en el primer guardado.
   }
 
   Map<String, dynamic> _encode() => {
     'v': 1,
     'a': active,
     'h': habits.map((h) => h.toJson()).toList(),
-    'sky': sky.toList()..sort(),
   };
 
   // ------------------------------------------------------- taking it with you
@@ -523,10 +495,6 @@ class Store extends ChangeNotifier {
       ..clear()
       ..addAll(read);
     active = ((parsed['a'] as num?)?.toInt() ?? 0).clamp(0, habits.length - 1);
-    // Y el cuaderno del cielo, que viaja con el valle: es del valle.
-    sky
-      ..clear()
-      ..addAll(((parsed['sky'] as List?) ?? []).map((e) => e.toString()));
     preview = null;
     _writeUpAll();
     integrityAtLaunch = integrity;
@@ -582,6 +550,23 @@ class Store extends ChangeNotifier {
     final list = habit.pieces;
     if (index < 0 || index >= list.length) return;
     list[index] = list[index].withLabel(text);
+    _save();
+    notifyListeners();
+  }
+
+  /// Corrige la hora a la que se puso una pieza.
+  ///
+  /// Nunca hacia el futuro: una pieza puesta dentro de tres horas rompe todo
+  /// lo que mide el tiempo desde la última —el deterioro, la racha, lo que el
+  /// tablón va notando— y no significa nada. Lo que pase de ahora se recorta a
+  /// ahora, en silencio, porque es lo único que puede querer decir.
+  void setPlacedAt(int index, DateTime when) {
+    final list = habit.pieces;
+    if (index < 0 || index >= list.length) return;
+    final now = DateTime.now();
+    final cuando = when.isAfter(now) ? now : when;
+    if (cuando == list[index].placedAt) return;
+    list[index] = list[index].withWhen(cuando);
     _save();
     notifyListeners();
   }

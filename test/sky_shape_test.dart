@@ -138,19 +138,42 @@ void main() {
       }
     });
 
-    test('en ocho noches salen las ocho, sin repetir ninguna', () {
-      // Al azar puro habría quien esperase un mes por la última, y eso deja de
+    test('hay noches con figura y noches sin ninguna', () {
+      // Ésta es la mitad del asunto. Una figura cada noche sin falta es una
+      // agenda; lo que hace que valga la pena mirar hacia arriba es que a
+      // veces no hay nada. Ni todas ni tan pocas que no se vea ninguna en una
+      // semana: entre la mitad y las tres cuartas partes de las noches.
+      var con = 0;
+      for (var n = 0; n < 400; n++) {
+        if (tonight(n) != null) con++;
+      }
+      expect(con, greaterThan(200), reason: 'casi nunca hay cielo');
+      expect(con, lessThan(300), reason: 'hay cielo todas las noches');
+    });
+
+    test('y en un mes salen las ocho, sin que ninguna se quede fuera', () {
+      // Al azar puro habría quien esperase un año por la última, y eso deja de
       // ser un hallazgo y pasa a ser un peaje.
       for (final from in [0, 1, 57, 4000]) {
         final seen = <String>{};
-        for (var d = 0; d < constellations.length; d++) {
-          seen.add(tonight(from + d).id);
+        for (var d = 0; d < 30; d++) {
+          final c = tonight(from + d);
+          if (c != null) seen.add(c.id);
         }
         expect(
           seen.length,
           constellations.length,
           reason: 'desde la noche $from',
         );
+      }
+    });
+
+    test('la misma noche da siempre lo mismo', () {
+      // Quien salga a las nueve y vuelva a la una tiene que encontrar lo
+      // mismo: la noche es una y la figura es la de esa noche.
+      for (final n in [0, 3, 77, 512, 99991]) {
+        expect(tonight(n)?.id, tonight(n)?.id);
+        expect(tonight(n) == null, tonight(n) == null);
       }
     });
 

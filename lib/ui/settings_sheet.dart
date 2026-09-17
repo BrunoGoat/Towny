@@ -289,17 +289,6 @@ class _SettingsSheetState extends State<SettingsSheet> {
         ),
         _Row(
           theme: t,
-          icon: Icons.push_pin_outlined,
-          title: 'El tablón del pueblo',
-          subtitle: 'Lo que el pueblo fue notando de vos.',
-          page: () => NoticeBoardScreen(
-            valley: store.habits,
-            habit: store.habit,
-            theme: t,
-          ),
-        ),
-        _Row(
-          theme: t,
           icon: Icons.view_in_ar,
           title: 'El expositor',
           subtitle:

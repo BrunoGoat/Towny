@@ -22,7 +22,6 @@ import 'legends_book.dart';
 import 'notice_board.dart';
 import 'overlays.dart';
 import 'settings_sheet.dart';
-import 'sky_sheet.dart';
 import 'style.dart';
 import 'town_sign.dart';
 import '../engine/town.dart';
@@ -166,26 +165,19 @@ class _HomeScreenState extends State<HomeScreen>
     });
   }
 
-  /// Alguien reconoció la constelación de esta noche y la tocó.
+  /// Alguien tocó la figura que hay en el cielo esta noche.
   ///
-  /// Se anota una sola vez, y sólo entonces se abre el cuaderno: volver a
-  /// tocarla no vuelve a celebrarlo. Lo que sí sigue pasando es que se ve, con
-  /// su nombre debajo — el cielo no se apaga porque ya lo hayas mirado.
-  void _logConstellation(String id) {
+  /// Y no pasa nada más que esto: suena, y el pueblo dice en voz baja lo que
+  /// sabe de ella. No se anota en ningún sitio, no hay ocho que juntar y no
+  /// hace falta tener un observatorio para que aparezca. Es un huevo de pascua
+  /// —algo que está ahí para quien mire hacia arriba una noche cualquiera— y
+  /// dejó de ser una mecánica, que es lo que se había vuelto.
+  void _wishOn(String id) {
     final c = constellationOf(id);
     if (c == null) return;
-    if (!widget.store.logConstellation(id)) return;
-    Sensory.instance.milestone();
-    _openSky(justFound: c);
+    Sensory.instance.wish();
+    _showWhisper('${c.name}. ${c.blurb}', duration: const Duration(seconds: 5));
   }
-
-  /// Si en el valle hay ya un observatorio terminado, sea de qué pueblo sea.
-  bool get _hayObservatorio => widget.store.habits.any(
-    (h) => TownPlan.of(
-      h.place,
-      seed: h.townSeed,
-    ).hasFinished('observatorio', h.total, h.chronicle),
-  );
 
   /// El tablón de este pueblo, desde el botón.
   void _readOwnBoard() {
@@ -224,17 +216,6 @@ class _HomeScreenState extends State<HomeScreen>
     if (hay != _news && mounted) setState(() => _news = hay);
   }
 
-  void _openSky({Constellation? justFound}) {
-    Sensory.instance.tick();
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) =>
-          SkySheet(store: widget.store, theme: _theme, justFound: justFound),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final t = _theme;
@@ -269,8 +250,7 @@ class _HomeScreenState extends State<HomeScreen>
               onNothingTapped: () {
                 if (_selected != null) setState(() => _selected = null);
               },
-              onSkyTapped: _logConstellation,
-              onDomeTapped: _openSky,
+              onSkyTapped: _wishOn,
               onTownTapped: (i) {
                 store.select(i);
                 _announceTown();
@@ -376,16 +356,6 @@ class _HomeScreenState extends State<HomeScreen>
                   tooltip: 'El libro de las leyendas',
                   onTap: _openOwnBook,
                 ),
-                // El observatorio es uno para todo el valle: lo que se anota
-                // allí son las constelaciones, y el cielo es el mismo desde
-                // los seis pueblos. Con que un pueblo tenga el suyo, se entra.
-                if (_hayObservatorio)
-                  GhostButton(
-                    icon: Icons.auto_awesome,
-                    theme: t,
-                    tooltip: 'El observatorio',
-                    onTap: _openSky,
-                  ),
               ],
             ),
           ),
@@ -419,6 +389,10 @@ class _HomeScreenState extends State<HomeScreen>
                   label: _selected!.label,
                   onWrite: (text) => setState(() {
                     store.setLabel(_selected!.index, text);
+                    _selected = store.pieceAt(_selected!.index);
+                  }),
+                  onWhen: (when) => setState(() {
+                    store.setPlacedAt(_selected!.index, when);
                     _selected = store.pieceAt(_selected!.index);
                   }),
                 ),

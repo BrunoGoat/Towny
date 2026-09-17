@@ -192,10 +192,65 @@ void main() {
     });
   });
 
-  group('el cielo del valle', () {
-    test('el observatorio llega, y hasta entonces no hay cielo', () async {
+  group('la hora de una pieza se corrige', () {
+    test('y se queda corregida, con su leyenda intacta', () async {
       final s = await freshStore();
-      expect(s.hasObservatory, isFalse);
+      s.placePiece();
+      s.setLabel(0, 'Salí a correr');
+      // Un rato antes y no una hora fija: el test corre a cualquier hora del
+      // día y una hora fija sería el futuro la mitad de las veces — y el
+      // futuro se recorta, que es justo la prueba siguiente.
+      final antes = s.pieceAt(0)!.placedAt;
+      final temprano = antes.subtract(const Duration(hours: 9, minutes: 7));
+      s.setPlacedAt(0, temprano);
+      expect(s.pieceAt(0)!.placedAt, temprano);
+      expect(s.pieceAt(0)!.label, 'Salí a correr');
+    });
+
+    test('nunca hacia el futuro', () async {
+      // Una pieza puesta dentro de tres horas rompe todo lo que mide el tiempo
+      // desde la última —el deterioro, la racha, lo que el tablón va notando—
+      // y no quiere decir nada. Se recorta a ahora.
+      final s = await freshStore();
+      s.placePiece();
+      final antes = DateTime.now();
+      s.setPlacedAt(0, antes.add(const Duration(days: 2)));
+      final ahora = s.pieceAt(0)!.placedAt;
+      expect(ahora.isAfter(antes.add(const Duration(seconds: 5))), isFalse);
+    });
+
+    test('y sobrevive a cerrar la app', () async {
+      final s = await freshStore();
+      s.placePiece();
+      // Redondeado al milisegundo, que es lo que cabe en el disco: lo que se
+      // guarda son milisegundos desde la época, y los microsegundos del reloj
+      // no vuelven.
+      final temprano = DateTime.fromMillisecondsSinceEpoch(
+        s.pieceAt(0)!.placedAt.millisecondsSinceEpoch - 5 * 3600 * 1000,
+      );
+      s.setPlacedAt(0, temprano);
+      final again = Store();
+      await again.load();
+      expect(again.pieceAt(0)!.placedAt, temprano);
+    });
+
+    test('un índice que no existe no toca nada', () async {
+      final s = await freshStore();
+      s.placePiece();
+      final w = s.pieceAt(0)!.placedAt;
+      s.setPlacedAt(9, DateTime(2000));
+      s.setPlacedAt(-1, DateTime(2000));
+      expect(s.pieceAt(0)!.placedAt, w);
+    });
+  });
+
+  group('el cielo del valle', () {
+    // El cielo ya no se desbloquea ni se anota: algunas noches hay una figura
+    // ahí arriba y otras no, y tocarla suena y no la apunta nadie. Lo que
+    // queda de aquello son estas dos, que siguen valiendo por otra razón — el
+    // observatorio es un hito del catálogo y tiene que salir en los seis.
+    test('el observatorio se levanta, y no de golpe', () async {
+      final s = await freshStore();
       // Buscamos a qué altura lo levanta este pueblo, y comprobamos que
       // efectivamente antes no y después sí. El número exacto depende del
       // carácter del pueblo, así que se busca en vez de escribirse a mano.
@@ -215,51 +270,31 @@ void main() {
     });
 
     test('todos los pueblos lo construyen tarde o temprano', () async {
-      // Un hito que en un carácter no sale nunca dejaría a ese hábito sin
-      // cielo para siempre, y eso no se vería hasta que alguien llegase.
+      // Un hito que en un carácter no sale nunca es un hito que ese hábito no
+      // ve jamás, y eso no se notaría hasta que alguien llegase.
       for (final c in TownCharacter.all) {
         expect(
           TownPlan.of(c).built('observatorio', 4000),
           isTrue,
           reason:
-              '${c.region} no levanta observatorio ni con cuatro mil piezas, '
-              'así que ese hábito se queda sin cielo para siempre',
+              '${c.region} no levanta observatorio ni con cuatro mil piezas',
         );
       }
     });
 
-    test('anotar una constelación es una sola vez', () async {
+    test('y un guardado viejo con su cuaderno se lee igual', () async {
+      // Quien tenga anotadas constelaciones en el disco trae una lista `sky`
+      // que ya no significa nada. Se lee, se tira, y lo que importa —el valle—
+      // entra entero.
       final s = await freshStore();
-      expect(s.sawIt('orion'), isFalse);
-      expect(s.logConstellation('orion'), isTrue);
-      expect(s.sawIt('orion'), isTrue);
-      expect(
-        s.logConstellation('orion'),
-        isFalse,
-        reason: 'la anotó dos veces',
-      );
-      expect(s.sky.length, 1);
-    });
-
-    test('y el cuaderno sobrevive a cerrar la app', () async {
-      final s = await freshStore();
-      s.logConstellation('orion');
-      s.logConstellation('cruz');
+      s.addHabit('Leer', 'lectura');
       s.placePiece();
-      final again = Store();
-      await again.load();
-      expect(again.sky, {'cruz', 'orion'});
-      expect(again.sawIt('lira'), isFalse);
-    });
-
-    test('y sale y entra con el resto del valle', () async {
-      final s = await freshStore();
-      s.logConstellation('casiopea');
       final saved = s.exportSave();
+      final viejo = saved.replaceFirst('{', '{"sky":["orion","cruz"],');
       final other = await freshStore();
-      expect(other.sawIt('casiopea'), isFalse);
-      expect(other.importSave(saved), isNull, reason: 'no lo pudo leer');
-      expect(other.sawIt('casiopea'), isTrue);
+      expect(other.importSave(viejo), isNull, reason: 'no lo pudo leer');
+      expect(other.habits.length, 2);
+      expect(other.exportSave().contains('sky'), isFalse);
     });
   });
 

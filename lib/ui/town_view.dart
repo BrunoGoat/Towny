@@ -77,7 +77,6 @@ class TownView extends StatefulWidget {
     required this.onCameraMoved,
     required this.onFlewOut,
     required this.onSkyTapped,
-    required this.onDomeTapped,
     required this.onTownTapped,
     required this.onBoardTapped,
     required this.onLecternTapped,
@@ -99,7 +98,6 @@ class TownView extends StatefulWidget {
   final void Function(String id) onSkyTapped;
 
   /// Alguien tocó la cúpula de un observatorio.
-  final VoidCallback onDomeTapped;
 
   /// Un toque en el aire. Cerrar la leyenda que estuviera abierta es lo mismo
   /// que dejar de mirar la pieza, así que lo hace el mismo gesto y no un aspa.
@@ -560,14 +558,27 @@ class _TownViewState extends State<TownView>
       if (piece.kind != PieceKind.chimney) continue;
       final dx = piece.cx - _cam.travel, dz = piece.cz - _cam.focusZ;
       if (dx * dx + dz * dz > 26 * 26) continue;
-      // Not every hearth is lit, the same ones stay lit — and they go out as
-      // the days go by without anybody laying a piece. A town with no smoke
-      // over it is the most legible way of saying nobody has been here.
-      final lit = 0.62 * _displayIntegrity * _displayIntegrity;
+      // Todas las chimeneas de un pueblo sano echan humo, y se van apagando
+      // según pasan los días sin que nadie ponga una pieza. Un pueblo sin humo
+      // encima es la manera más legible de decir que aquí no ha venido nadie.
+      //
+      // Antes se apagaba además un tercio largo de ellas a suertes —«no todos
+      // los hogares están encendidos», que en un pueblo grande es verdad y se
+      // ve bien—, pero un pueblo empieza con dos casas: una chimenea humeando
+      // al lado de otra que no no se lee como que ahí no han encendido, se lee
+      // como que ésa está rota.
+      final lit = _displayIntegrity * _displayIntegrity;
       if (hash01(piece.seed, 91) > lit) continue;
       found++;
       if (_ambientCounter % 4 != 0) continue;
-      _fx.smoke(piece.cx, piece.y1 + 0.06, piece.cz, wx, wz);
+      _fx.smoke(
+        piece.cx,
+        piece.y1 + 0.06,
+        piece.cz,
+        wx,
+        wz,
+        owner: piece.building,
+      );
     }
 
     // Sun on the water.
@@ -920,14 +931,6 @@ class _TownViewState extends State<TownView>
       return;
     }
 
-    // Después las cúpulas: son lo que abre el cuaderno del cielo.
-    for (final d in _domes) {
-      if (!d.rect.contains(pos)) continue;
-      Sensory.instance.tick();
-      widget.onDomeTapped();
-      return;
-    }
-
     // The board comes first: it is a small thing standing in the middle of a
     // town full of houses, and anybody aiming at it meant it.
     for (final b in _boards) {
@@ -1008,11 +1011,11 @@ class _TownViewState extends State<TownView>
   @override
   Widget build(BuildContext context) {
     final store = widget.store;
-    // Sólo hay cielo que mirar si es de noche y si en el valle hay una cúpula
-    // en pie. Las fugaces no: ésas van desde el primer día.
+    // Alguna noche hay una figura ahí arriba y otras no; la decide la propia
+    // noche. Ya no hace falta tener un observatorio en pie para verla: el cielo
+    // no se desbloquea, se mira.
     final night = nightOf(DateTime.now());
-    final show = _palette.starAlpha > 0.35 && widget.store.hasObservatory;
-    final tonightIs = show ? tonight(night) : null;
+    final tonightIs = _palette.starAlpha > 0.35 ? tonight(night) : null;
 
     final scene = TownScene(
       placed: store.shownTotal,
@@ -1036,7 +1039,6 @@ class _TownViewState extends State<TownView>
       charge: _charge,
       skyNight: night,
       tonight: tonightIs,
-      tonightKnown: tonightIs != null && widget.store.sawIt(tonightIs.id),
     );
 
     return Listener(

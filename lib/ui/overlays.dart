@@ -162,6 +162,7 @@ class StoneCard extends StatefulWidget {
     required this.number,
     required this.label,
     required this.onWrite,
+    required this.onWhen,
   });
 
   final UiTheme theme;
@@ -171,6 +172,15 @@ class StoneCard extends StatefulWidget {
 
   /// La leyenda nueva. Vacía quiere decir que se borró.
   final void Function(String text) onWrite;
+
+  /// La hora corregida.
+  ///
+  /// La app apunta la hora en que tocaste el botón, y ésa no siempre es la
+  /// hora en que hiciste la cosa: se corre a las once de la noche lo que se
+  /// hizo al levantarse, y el pueblo lo anota como una costumbre nocturna —el
+  /// tablón se fija justo en eso. Se toca la fecha de la cabecera y se
+  /// arregla.
+  final void Function(DateTime when) onWhen;
 
   static const _months = [
     'ene',
@@ -216,6 +226,31 @@ class _StoneCardState extends State<StoneCard> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _focus.requestFocus());
   }
 
+  /// Corregir la hora. Sólo la hora: el día es el día en que se puso y eso no
+  /// se discute — una pieza es el día que la ganaste.
+  Future<void> _when() async {
+    if (_writing) _close();
+    Sensory.instance.tick();
+    final t = widget.theme;
+    final puesto = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(widget.when),
+      helpText: 'A QUÉ HORA FUE',
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: (t.dark ? ColorScheme.dark() : ColorScheme.light())
+              .copyWith(primary: t.accent, surface: t.panelStrong),
+        ),
+        child: child!,
+      ),
+    );
+    if (puesto == null || !mounted) return;
+    final w = widget.when;
+    if (puesto.hour == w.hour && puesto.minute == w.minute) return;
+    Sensory.instance.tick();
+    widget.onWhen(DateTime(w.year, w.month, w.day, puesto.hour, puesto.minute));
+  }
+
   void _close() {
     if (!_writing) return;
     final t = _text.text.trim();
@@ -234,6 +269,7 @@ class _StoneCardState extends State<StoneCard> {
       theme: t,
       onTap: _writing ? null : _open,
       header: 'PIEZA ${widget.number} · ${StoneCard.formatDate(widget.when)}',
+      onTapHeader: _when,
       child: _writing
           ? TextField(
               controller: _text,

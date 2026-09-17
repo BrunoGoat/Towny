@@ -20,6 +20,15 @@ class Piece {
     );
   }
 
+  /// La misma pieza, puesta a otra hora.
+  ///
+  /// Se corrige, no se inventa: la app apunta la hora en que tocaste el botón,
+  /// y esa no siempre es la hora en que hiciste la cosa. Se corre a las once
+  /// de la noche lo que se hizo a las siete de la mañana, y el pueblo va y lo
+  /// anota como una costumbre nocturna. El tablón se fija en eso.
+  Piece withWhen(DateTime when) =>
+      Piece(index: index, placedAt: when, label: label);
+
   Map<String, dynamic> toJson() => {
     'i': index,
     't': placedAt.millisecondsSinceEpoch,

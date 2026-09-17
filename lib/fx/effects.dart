@@ -15,6 +15,13 @@ class Particle {
   double gravity = -6.0;
   ParticleKind kind = ParticleKind.dust;
   bool alive = false;
+
+  /// De qué edificio salió, cuando salió de uno.
+  ///
+  /// Lo lleva el humo y sólo el humo: es lo que deja taparlo con las casas que
+  /// tiene delante sin taparlo con la suya propia, que es la que tiene debajo.
+  /// Menos uno quiere decir que no es de nadie.
+  int owner = -1;
 }
 
 /// World-space particle system.
@@ -206,10 +213,18 @@ class EffectSystem {
   /// Nothing else says "somebody lives here" as cheaply as smoke. It rises
   /// slowly, spreads as it goes, and drifts with whatever the wind is doing, so
   /// the whole town leans the same way.
-  void smoke(double x, double y, double z, double windX, double windZ) {
+  void smoke(
+    double x,
+    double y,
+    double z,
+    double windX,
+    double windZ, {
+    int owner = -1,
+  }) {
     final p = _take();
     p
       ..alive = true
+      ..owner = owner
       ..kind = ParticleKind.smoke
       ..x = x + _rnd.jitter(0.07)
       ..y = y
