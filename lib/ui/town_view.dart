@@ -498,7 +498,28 @@ class _TownViewState extends State<TownView>
     }
 
     final pal = _buildPalette();
+    final antes = _palette;
     _palette = pal;
+
+    // Y avisar arriba cuando la luz cambia de verdad.
+    //
+    // Esto se hacía **una sola vez**, en el primer fotograma, y de ahí en
+    // adelante los botones, los rótulos y las hojas se quedaban con el color
+    // que tuviera el cielo al abrir la app. Con el reloj de verdad casi no se
+    // notaba —quien abre de día y sigue abierto hasta la noche es raro— pero al
+    // fingir la hora saltaba entero: el pueblo se hacía de noche y la interfaz
+    // seguía siendo la parda del mediodía, con los botones casi invisibles
+    // sobre un cielo negro. La interfaz sale de la luz de la escena; si la luz
+    // cambia y ella no, deja de salir de ahí.
+    //
+    // Se mira si cambió algo que importe y no cada fotograma a ciegas: el color
+    // del cielo va en ocho bits, así que entre minuto y minuto es el mismo
+    // número y esto no dispara nada.
+    if (pal.skyTop != antes.skyTop ||
+        pal.skyHorizon != antes.skyHorizon ||
+        pal.accent != antes.accent) {
+      widget.onPaletteChanged(pal);
+    }
 
     if (mounted) setState(() {});
   }

@@ -143,7 +143,7 @@ class Appearance extends ChangeNotifier {
   /// la que más ganas dan de tener a gusto. Diez materiales; todos dicen lo
   /// mismo. Se guarda el nombre y no el número: una que se quite mañana no le
   /// corre la elección a las de debajo.
-  HabitSkin _skin = HabitSkin.vidrio;
+  HabitSkin _skin = HabitSkin.medio;
   HabitSkin get skin => _skin;
 
   Future<void> setSkin(HabitSkin v) async {
@@ -242,7 +242,7 @@ class Appearance extends ChangeNotifier {
     _effectsVolume = _midway;
     _fakeHour = false;
     _fakeHourAt = 22.0;
-    _skin = HabitSkin.vidrio;
+    _skin = HabitSkin.medio;
   }
 
   Future<void> load() async {

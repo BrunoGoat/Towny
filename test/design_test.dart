@@ -381,7 +381,7 @@ void _pieles() {
           }
         }
       }
-      await Appearance.instance.setSkin(HabitSkin.vidrio);
+      await Appearance.instance.setSkin(HabitSkin.medio);
       await Appearance.instance.flush();
     });
   });

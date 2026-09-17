@@ -1,80 +1,88 @@
-/// De qué está hecha la hoja de un hábito.
+/// Cómo se presenta la hoja de un hábito.
 ///
-/// Es la única hoja de la app en la que se escribe algo —el nombre, la marca—
-/// y la única en la que se puede borrar un pueblo entero, así que es la que más
-/// se mira de cerca. Diez maneras de presentarla, y todas dicen exactamente lo
-/// mismo: la marca, el nombre, qué clase de sitio es y cómo se va.
+/// Es la única hoja de la app en la que se escribe algo —el nombre, la marca— y
+/// la única desde la que se puede borrar un pueblo entero, así que es la que
+/// más se mira de cerca.
 ///
-/// Lo que cambia es de qué está hecha y cómo se reparte, no cuánta letra hay.
-/// Ninguna de las diez añade ni quita un dato — quien elige elige un material,
-/// no una versión con más cosas.
+/// **Las cinco son la misma hoja.** No hay panel: el texto va sobre el pueblo,
+/// con un velo que sube desde abajo para que se lea sobre lo que haya —hierba,
+/// tejado o cielo— y filetes de pelo por toda separación. Llegaron a estar
+/// hechas diez —vidrio, papel, ficha, placa, pergamino, cinta, columna, margen,
+/// sello— y se eligió ésta, así que las otras nueve se fueron. Del sello se
+/// quedó lo que tenía de bueno: la marca grande, centrada y por encima de todo,
+/// con el nombre debajo.
 ///
-/// Las diez se ven de día y de noche sin tocar un color a mano: todo sale de la
-/// paleta de la hora, igual que el resto de la app, así que la misma hoja es
-/// pergamino al mediodía y ceniza de madrugada.
+/// Lo único que cambia entre las cinco es **cuánto mide esa marca y a qué
+/// altura flota**. Ninguna añade ni quita un dato.
+///
+/// Las cinco se ven de día y de noche sin tocar un color a mano: todo sale de
+/// la paleta de la hora, igual que el resto de la app.
 enum HabitSkin {
-  vidrio(
-    'Vidrio',
-    'La de siempre: vidrio esmerilado, esquinas muy redondas y el nombre '
-        'subrayado.',
+  apenas(
+    'Apenas',
+    'La marca pequeña y pegada al texto. Lo más callado de las cinco.',
+    mark: 46,
+    lift: 2,
+    titulo: 18,
   ),
-  papel(
-    'Papel',
-    'Sin desenfoque y con menos curva: una hoja de papel apoyada, con una '
-        'raya fina bajo la cabecera.',
+  bajo(
+    'Bajo',
+    'Marca mediana, poco aire por encima: la hoja empieza casi enseguida.',
+    mark: 58,
+    lift: 14,
+    titulo: 20,
   ),
-  ficha(
-    'Ficha',
-    'Una ficha que flota con aire por los cuatro lados y un canto de color '
-        'a la izquierda.',
+  medio(
+    'Medio',
+    'Marca grande y a media altura. El punto de equilibrio entre las cinco.',
+    mark: 74,
+    lift: 30,
+    titulo: 21,
   ),
-  placa(
-    'Placa',
-    'Un borde marcado, esquinas casi rectas y el nombre en versalitas: una '
-        'placa atornillada.',
+  alto(
+    'Alto',
+    'La misma marca grande pero muy arriba, flotando sola sobre el pueblo.',
+    mark: 82,
+    lift: 58,
+    titulo: 22,
   ),
-  desnudo(
-    'Desnudo',
-    'Sin panel ninguno. El texto sobre el pueblo, con rayas de pelo por toda '
-        'separación.',
-  ),
-  pergamino(
-    'Pergamino',
-    'Doble filete alrededor y todo centrado, como la primera página de un '
-        'libro.',
-  ),
-  cinta(
-    'Cinta',
-    'Una banda de color arriba con la marca y el nombre dentro, y lo demás '
-        'debajo.',
-  ),
-  columna(
-    'Columna',
-    'Todo en el eje: la marca grande arriba del todo, el nombre debajo y el '
-        'resto en fila.',
-  ),
-  margen(
-    'Margen',
-    'La marca y los rótulos en un margen a la izquierda, separados por un '
-        'filete vertical.',
-  ),
-  sello(
-    'Sello',
-    'La marca en un medallón redondo montado sobre el canto de la hoja, como '
-        'un lacre.',
+  gigante(
+    'Gigante',
+    'La marca enorme, por encima de todo, y el nombre a su medida.',
+    mark: 108,
+    lift: 26,
+    titulo: 24,
   );
 
-  const HabitSkin(this.label, this.about);
+  const HabitSkin(
+    this.label,
+    this.about, {
+    required this.mark,
+    required this.lift,
+    required this.titulo,
+  });
 
   /// Cómo se llama en los ajustes.
   final String label;
 
-  /// Y qué es, en una línea, para no tener que abrirlas las diez.
+  /// Y qué es, en una línea, para no tener que abrirlas las cinco.
   final String about;
 
+  /// Lo que mide la marca de lado a lado.
+  final double mark;
+
+  /// Cuánto aire queda por encima de ella: lo que la separa del pueblo y la
+  /// hace flotar más o menos alto.
+  final double lift;
+
+  /// Y de qué cuerpo va el nombre, que tiene que ir a la medida de la marca —
+  /// una marca de ciento ocho con un nombre de dieciocho es una marca con un
+  /// pie de foto.
+  final double titulo;
+
   /// Lo que hubiera guardado, o la de siempre. Un nombre que ya no exista
-  /// —porque un día se quite una— vuelve a la primera en vez de tirar el resto
-  /// de los ajustes con él.
+  /// —porque un día se quite una— vuelve a la de en medio en vez de tirar el
+  /// resto de los ajustes con él.
   static HabitSkin byName(String? s) =>
-      values.firstWhere((v) => v.name == s, orElse: () => HabitSkin.vidrio);
+      values.firstWhere((v) => v.name == s, orElse: () => HabitSkin.medio);
 }

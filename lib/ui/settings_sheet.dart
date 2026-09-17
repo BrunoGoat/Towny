@@ -276,10 +276,10 @@ class _SettingsSheetState extends State<SettingsSheet> {
         const SizedBox(height: 26),
         _Head(theme: t, text: 'LA HOJA DE UN HÁBITO'),
         Text(
-          'La hoja donde se le cambia el nombre y la marca a un hábito, y la '
-          'única desde la que se puede borrar un pueblo. Diez materiales, y '
-          'los diez dicen lo mismo: al tocar uno se abre la hoja tal cual va a '
-          'quedar.',
+          'La hoja donde se le cambia el nombre y la marca a un hábito. Sin '
+          'panel: la marca grande sobre el pueblo y el nombre debajo. Lo único '
+          'que cambia entre las cinco es cuánto mide esa marca y a qué altura '
+          'flota — al tocar una se abre la hoja tal cual va a quedar.',
           style: t.bodySoft.copyWith(fontSize: 11.5, height: 1.4),
         ),
         const SizedBox(height: 10),
@@ -554,10 +554,10 @@ class _Pick extends StatelessWidget {
   }
 }
 
-/// Los diez materiales, en rejilla de dos columnas.
+/// Las cinco alturas, en rejilla de dos columnas.
 ///
 /// El otro selector de esta hoja es una fila de pastillas de igual ancho, y con
-/// diez eso da pastillas de treinta pixeles donde no cabe «Pergamino».
+/// cinco eso da pastillas de sesenta píxeles donde no cabe «Gigante».
 class _SkinPick extends StatelessWidget {
   const _SkinPick({
     required this.theme,
