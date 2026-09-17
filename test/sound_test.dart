@@ -79,7 +79,21 @@ void main() {
       // que aquéllos lo eran: no sale cada tantos segundos sino una vez cada
       // cuatro minutos y medio de noche, dura lo que dura ella y se calla con
       // ella. Es el sonido de que está pasando algo, no ruido de fondo.
-      expect(Sensory.catalogue.length, 6);
+      //
+      // Las diez de tocar una constelación no cuentan para este seis, y no es
+      // una excepción cómoda: son diez versiones de **una sola** cosa, y de
+      // paso — se elige una y se borran nueve. Pasan la prueba de fondo igual
+      // que las demás, porque ninguna suena si no hay un dedo. Cuando quede
+      // una, este seis vuelve a ser siete y esta resta se va.
+      final fijos = Sensory.catalogue
+          .where((b) => !b.id.startsWith('estrella'))
+          .toList();
+      expect(fijos.length, 6);
+      expect(
+        Sensory.catalogue.length - fijos.length,
+        10,
+        reason: 'las diez de la constelación tienen que estar las diez',
+      );
       expect(Sensory.biteOf('wish'), isNotNull);
       for (final gone in [
         'bell',

@@ -25,6 +25,7 @@ import 'notice_board.dart';
 import 'overlays.dart';
 import 'rest_sheet.dart';
 import 'settings_sheet.dart';
+import 'star_card.dart';
 import 'style.dart';
 import 'town_sign.dart';
 import 'unlock_sheet.dart';
@@ -107,6 +108,7 @@ class _HomeScreenState extends State<HomeScreen>
     Appearance.instance.removeListener(_onStore);
     _whisperTimer?.cancel();
     _signTimer?.cancel();
+    _starTimer?.cancel();
     _flight.dispose();
     super.dispose();
   }
@@ -213,9 +215,21 @@ class _HomeScreenState extends State<HomeScreen>
   void _wishOn(String id) {
     final c = constellationOf(id);
     if (c == null) return;
-    Sensory.instance.wish();
-    _showWhisper('${c.name}. ${c.blurb}', duration: const Duration(seconds: 5));
+    Sensory.instance.star();
+    _starTimer?.cancel();
+    setState(() => _star = c);
+    _starTimer = Timer(const Duration(seconds: 6), () {
+      if (mounted) setState(() => _star = null);
+    });
   }
+
+  /// La constelación que se acaba de tocar, mientras su papel está en pantalla.
+  ///
+  /// Papel propio y no el susurro de siempre: el susurro es una pastilla de una
+  /// línea para decir «el pueblo vuelve a encenderse», y esto son un nombre y
+  /// una frase que alguien pidió tocando. Ver [StarCard].
+  Constellation? _star;
+  Timer? _starTimer;
 
   /// El tablón de este pueblo, desde el botón.
   void _readOwnBoard() {
@@ -452,7 +466,17 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
 
-          if (_whisper != null && _selected == null)
+          if (_star != null && _selected == null)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: media.padding.bottom + 222,
+              child: Center(
+                child: StarCard(constellation: _star!, theme: t),
+              ),
+            ),
+
+          if (_whisper != null && _selected == null && _star == null)
             Positioned(
               left: 0,
               right: 0,

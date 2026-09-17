@@ -53,6 +53,20 @@ class Sensory {
     SoundBite('milestone', 'milestone.wav', 'Obra terminada', 0.85),
     SoundBite('epic', 'epic.wav', 'Hito del pueblo', 0.90),
     SoundBite('wish', 'wish.wav', 'Estrella fugaz', 0.50),
+    // Las diez de tocar una constelación, mientras se elige cuál se queda.
+    // Están acá y no sueltas porque un wav que no está en el catálogo es un
+    // sonido que existe y que nadie puede silenciar ni escuchar a propósito.
+    // Se van nueve en cuanto haya respuesta.
+    SoundBite('estrella1', 'estrella1.wav', 'Constelación · 1', 0.55),
+    SoundBite('estrella2', 'estrella2.wav', 'Constelación · 2', 0.55),
+    SoundBite('estrella3', 'estrella3.wav', 'Constelación · 3', 0.55),
+    SoundBite('estrella4', 'estrella4.wav', 'Constelación · 4', 0.55),
+    SoundBite('estrella5', 'estrella5.wav', 'Constelación · 5', 0.55),
+    SoundBite('estrella6', 'estrella6.wav', 'Constelación · 6', 0.55),
+    SoundBite('estrella7', 'estrella7.wav', 'Constelación · 7', 0.55),
+    SoundBite('estrella8', 'estrella8.wav', 'Constelación · 8', 0.55),
+    SoundBite('estrella9', 'estrella9.wav', 'Constelación · 9', 0.55),
+    SoundBite('estrella10', 'estrella10.wav', 'Constelación · 10', 0.55),
   ];
 
   static SoundBite? biteOf(String id) {
@@ -436,6 +450,37 @@ class Sensory {
       // Audio is a bonus, never a requirement.
     }
   }
+
+  /// Tocar una constelación.
+  ///
+  /// Sonido propio y no el de la fugaz, que dura cinco segundos porque
+  /// acompaña a algo que cruza el cielo entero. Esto acompaña a un dedo, y un
+  /// dedo no dura cinco segundos: ninguna de las diez pasa de ocho décimas.
+  ///
+  /// Y ninguna es un «bien hecho». Tocar una constelación no es un logro, no
+  /// desbloquea nada y no lleva la cuenta nadie — es mirar para arriba. Lo que
+  /// se busca es el sonido de algo que **contesta**, no de algo que premia.
+  ///
+  /// De paso, como el papel que la cuenta: diez para elegir una. Ver
+  /// [Appearance.starSound].
+  Future<void> star() async {
+    // Se pide permiso con la misma llave que la fugaz: son la misma clase de
+    // cosa —algo que pasa en el cielo— y quien apagó una no quiere la otra.
+    if (!_wants.hears('wish')) return;
+    if (_asleep) return;
+    final bite = biteOf('estrella${_wants.starSound}');
+    if (bite == null) return;
+    try {
+      final p = _starPlayer ??= AudioPlayer()..setReleaseMode(ReleaseMode.stop);
+      await p.stop();
+      await p.setVolume((bite.level * _effectsGain).clamp(0.0, 1.0));
+      await p.play(AssetSource('sfx/${bite.file}'));
+    } catch (_) {
+      // Audio is a bonus, never a requirement.
+    }
+  }
+
+  AudioPlayer? _starPlayer;
 
   /// Callar la fugaz. Vale llamarlo siempre: si no sonaba, no hace nada.
   Future<void> hushWish() async {

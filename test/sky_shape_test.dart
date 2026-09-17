@@ -91,21 +91,62 @@ void main() {
     test('colgarla del cielo no le deforma la figura', () {
       // Lo único que importa de todo esto: que lo que se dibuja siga siendo la
       // constelación. Se cuelga de sitios muy distintos del cielo y se
-      // comprueba que todos los ángulos entre sus estrellas son los reales.
+      // comprueba que todos los ángulos entre sus estrellas guardan la
+      // proporción real.
+      //
+      // La proporción y no el ángulo a secas, desde que la figura se encoge a
+      // la mitad para colgarla: a tamaño real, la Osa Mayor ocupaba la pantalla
+      // de canto a canto y dejaba de ser un detalle del cielo para ser el
+      // fondo. Lo que se pierde al encogerla es poder decir que el tamaño en
+      // pantalla es el tamaño de verdad; lo que **no** se pierde —y es lo que
+      // la hace reconocible— es la forma, porque todos los ángulos se encogen
+      // por igual. Eso es justo lo que mide esto: si uno solo se encogiera
+      // distinto, la figura sería otra.
       for (final c in constellations) {
         for (final az in [0.0, 1.9, -2.6]) {
           for (final el in [0.25, 0.6, 1.0]) {
             final at = hang(c, az, el);
             expect(at.length, c.stars.length);
+            // Todos los pares, y lo que se compara es **la misma proporción
+            // para todos**: si un lado se encogiera distinto que otro, la
+            // figura sería otra figura.
+            final razones = <double>[];
             for (var i = 0; i < c.stars.length; i++) {
               for (var j = i + 1; j < c.stars.length; j++) {
-                expect(
-                  skyAngle(at[i], at[j]),
-                  closeTo(trueAngle(c.stars[i], c.stars[j]), 1e-6),
-                  reason: '${c.id}: $i a $j se deformó colgada en $az/$el',
-                );
+                final real = trueAngle(c.stars[i], c.stars[j]);
+                if (real < 1e-6) continue;
+                razones.add(skyAngle(at[i], at[j]) / real);
               }
             }
+            final min = razones.reduce(math.min);
+            final max = razones.reduce(math.max);
+            //
+            // Tres centésimas y media de margen, y viene todo de encoger: a
+            // tamaño real esto clavaba el ángulo exacto y el margen era cero.
+            // Encoger en el plano tangente es hacer zoom con una lente, y una
+            // lente no reparte por igual — en Escorpio, que son veinticinco
+            // grados de cielo, el lado largo se encoge un dos por ciento
+            // distinto del corto. Es invisible y es el precio de que la figura
+            // quepa; lo que este número vigila es que siga siendo eso y no un
+            // `hang` roto, que daría proporciones dispares de verdad.
+            expect(
+              max - min,
+              lessThan(0.035),
+              reason:
+                  '${c.id}: colgada en $az/$el se deforma — unos lados se '
+                  'encogen mucho más que otros (de $min a $max)',
+            );
+            // Y la proporción es la que se pidió. No clava el medio exacto
+            // porque el plano tangente es gnomónico y la tangente no es
+            // lineal: encoger a la mitad la coordenada no encoge a la mitad
+            // exacta el ángulo, y en una figura de veinticinco grados eso es
+            // un uno por ciento. Lo que importa es que sea igual para todos,
+            // que es lo de arriba.
+            expect(
+              (min + max) / 2,
+              closeTo(Constellation.skyScale, 0.03),
+              reason: '${c.id}: no se encogió lo que se pidió',
+            );
           }
         }
       }

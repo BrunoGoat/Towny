@@ -179,3 +179,124 @@ write('milestone.wav', milestone())
 write('repair.wav', repair())
 write('tap.wav', tap())
 write('wish.wav', wish())
+
+
+# ---- estrella1..10.wav : tocar una constelación.
+#
+# Diez, para elegir una y borrar las nueve. Es como se eligieron los temas de
+# música y los velos de la hoja: escritas todas, probadas de verdad en el
+# teléfono, y de ahí sale cuál se queda.
+#
+# Lo que tienen en común, y es el encargo: **cortas**. La fugaz dura cinco
+# segundos porque acompaña a algo que cruza el cielo; esto acompaña a un dedo,
+# y un dedo no dura cinco segundos. Ninguna pasa de ocho décimas.
+#
+# Y ninguna es un «bien hecho». Tocar una constelación no es un logro, no
+# desbloquea nada y no lleva cuenta nadie: es mirar para arriba. Así que lo que
+# se busca es el sonido de algo que **responde**, no de algo que te premia.
+
+def _campana(out, t0, f, dec, amp, arm=0.35):
+    """Una campanita: fundamental, un armónico y caída exponencial."""
+    n = len(out)
+    i0 = int(t0 * SR)
+    for i in range(i0, n):
+        tt = (i - i0) / SR
+        e = math.exp(-tt / dec)
+        if e < 0.0006:
+            break
+        ph = 2 * math.pi * f * tt
+        out[i] += (math.sin(ph) + arm * math.sin(2.76 * ph)) * e * amp
+
+
+def _soplo(out, t0, dur, corte, amp):
+    """Un soplo de aire filtrado, para lo que tiene que sonar a noche."""
+    rnd = random.Random(int(t0 * 10000) + 7)
+    n = len(out)
+    i0, i1 = int(t0 * SR), min(len(out), int((t0 + dur) * SR))
+    crudo = [rnd.uniform(-1, 1) for _ in range(max(0, i1 - i0))]
+    suave = lowpass(lowpass(crudo, corte), corte)
+    for k, s in enumerate(suave):
+        i = i0 + k
+        if i >= n:
+            break
+        u = k / max(1, len(suave))
+        out[i] += s * math.sin(math.pi * u) ** 2 * amp
+
+
+def _estrellas():
+    """Las diez. Cada una devuelve (nombre, muestras)."""
+    # Un pentatónico alto: no hay manera de que dos notas de acá suenen mal
+    # juntas, que es lo que hace falta cuando se sortea el orden.
+    P = [1046.5, 1174.7, 1396.9, 1568.0, 1760.0, 2093.0, 2349.3, 2793.8, 3136.0]
+
+    def vacio(dur):
+        return [0.0] * int(dur * SR)
+
+    hechas = []
+
+    # 1 · una sola campanita alta y limpia. El mínimo que se puede hacer.
+    o = vacio(0.55)
+    _campana(o, 0.0, P[5], 0.17, 1.0)
+    hechas.append(('estrella1.wav', o))
+
+    # 2 · dos notas subiendo, muy juntas. Suena a «sí».
+    o = vacio(0.55)
+    _campana(o, 0.0, P[3], 0.11, 0.85)
+    _campana(o, 0.055, P[5], 0.17, 1.0)
+    hechas.append(('estrella2.wav', o))
+
+    # 3 · tres subiendo, como quien pulsa un arpa de tres cuerdas.
+    o = vacio(0.70)
+    for k, f in enumerate([P[2], P[4], P[6]]):
+        _campana(o, k * 0.048, f, 0.13 + k * 0.05, 0.7 + k * 0.12)
+    hechas.append(('estrella3.wav', o))
+
+    # 4 · dos bajando. Lo mismo del revés, y se lee más como «ah» que como «sí».
+    o = vacio(0.60)
+    _campana(o, 0.0, P[6], 0.12, 0.95)
+    _campana(o, 0.06, P[4], 0.20, 0.85)
+    hechas.append(('estrella4.wav', o))
+
+    # 5 · campanita con un soplo de aire detrás: la nota, y la noche.
+    o = vacio(0.75)
+    _campana(o, 0.0, P[5], 0.16, 0.9)
+    _soplo(o, 0.0, 0.55, 2600, 0.16)
+    hechas.append(('estrella5.wav', o))
+
+    # 6 · dos a la vez, una quinta: un acorde de una sola pulsación.
+    o = vacio(0.70)
+    _campana(o, 0.0, P[3], 0.19, 0.75)
+    _campana(o, 0.006, P[6], 0.19, 0.75)
+    hechas.append(('estrella6.wav', o))
+
+    # 7 · muy corta y muy alta, casi un tilín. La más discreta de las diez.
+    o = vacio(0.35)
+    _campana(o, 0.0, P[8], 0.075, 1.0, arm=0.18)
+    hechas.append(('estrella7.wav', o))
+
+    # 8 · una nota con su eco, ya lejos. El cielo está lejos.
+    o = vacio(0.80)
+    _campana(o, 0.0, P[5], 0.13, 1.0)
+    _campana(o, 0.20, P[5], 0.16, 0.26)
+    hechas.append(('estrella8.wav', o))
+
+    # 9 · cuatro chispas menudas, desordenadas: un puñado de estrellas y no una.
+    o = vacio(0.70)
+    rnd = random.Random(31)
+    for k in range(4):
+        _campana(o, k * 0.035 + rnd.random() * 0.02,
+                 P[rnd.randrange(4, 9)], 0.09 + rnd.random() * 0.08,
+                 0.55 + rnd.random() * 0.35, arm=0.22)
+    hechas.append(('estrella9.wav', o))
+
+    # 10 · sólo aire, sin nota ninguna. Es la que contesta sin decir nada.
+    o = vacio(0.60)
+    _soplo(o, 0.0, 0.50, 3400, 1.0)
+    _campana(o, 0.0, P[7], 0.05, 0.22, arm=0.1)
+    hechas.append(('estrella10.wav', o))
+
+    return hechas
+
+
+for _nombre, _muestras in _estrellas():
+    write(_nombre, _muestras)

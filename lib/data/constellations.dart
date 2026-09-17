@@ -70,6 +70,22 @@ class Constellation {
   /// montón— y una clase con un campo que se rellena después no puede serlo.
   List<(double, double)> get shape => _shapes[id] ??= _measure();
 
+  /// Cuánto se encoge la figura antes de colgarla del cielo.
+  ///
+  /// A tamaño real una constelación ocupa lo que ocupa de verdad —Escorpio son
+  /// veinticinco grados de cielo— y en una pantalla de teléfono eso es la
+  /// pantalla entera: la Osa Mayor salía de canto a canto por encima del
+  /// pueblo, y entonces no es un detalle del cielo, es el fondo.
+  ///
+  /// A la mitad sigue siendo reconocible —los ángulos entre estrellas no
+  /// cambian, sólo la escala— y vuelve a ser lo que tiene que ser: algo que
+  /// hay ahí arriba si mirás, y que no se te impone si no mirás.
+  ///
+  /// Se aplica en [_measure], que es de donde salen [shape] y [spread] los
+  /// dos, así que la altura a la que se cuelga se ajusta sola: una figura más
+  /// chica cabe más abajo y no hay que tocar nada más.
+  static const double skyScale = 0.5;
+
   /// Cuánto ocupa de lado a lado, en radianes. Para colgarla a una altura
   /// donde entre entera.
   double get spread => _spreads[id] ??= _measureSpread();
@@ -121,8 +137,8 @@ class Constellation {
           final along = v[0] * mx + v[1] * my + v[2] * mz;
           final k = 1.0 / (along.abs() < 1e-6 ? 1e-6 : along);
           return (
-            (v[0] * ex + v[1] * ey + v[2] * ez) * k,
-            (v[0] * nx + v[1] * ny + v[2] * nz) * k,
+            (v[0] * ex + v[1] * ey + v[2] * ez) * k * skyScale,
+            (v[0] * nx + v[1] * ny + v[2] * nz) * k * skyScale,
           );
         }(),
     ];

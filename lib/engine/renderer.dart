@@ -607,23 +607,14 @@ class TownPainter extends CustomPainter {
     final box = Rect.fromLTRB(x0, y0, x1, y1).inflate(16);
     skies.add(SkyHit(c.id, box));
 
-    // Y su nombre debajo, siempre. Hubo un tiempo en que se callaba hasta que
-    // la reconocieras, porque decirlo era contestar la pregunta; pero no había
-    // pregunta, había una lista que rellenar. Sin la lista, el nombre es lo que
-    // convierte unas cuantas estrellas unidas por rayas en Casiopea.
-    final tp = TextPainter(
-      text: TextSpan(
-        text: c.name.toUpperCase(),
-        style: TextStyle(
-          color: Colors.white.withValues(alpha: ink * 0.85),
-          fontSize: 9.5,
-          letterSpacing: 2.0,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    tp.paint(canvas, Offset(box.center.dx - tp.width / 2, box.bottom + 2));
+    // Y no lleva nombre escrito debajo.
+    //
+    // Lo llevó, y la razón era buena: sin él, unas cuantas estrellas unidas por
+    // rayas no son Casiopea. Pero un rótulo en mayúsculas flotando sobre el
+    // valle no es una cosa del cielo, es una etiqueta encima del cielo — y lo
+    // que tiene que hacer una constelación acá es pasar desapercibida hasta que
+    // alguien levante la vista. El nombre sigue estando: sale al tocarla, que
+    // es cuando alguien preguntó.
   }
 
   /// Una estrella fugaz, cada tanto, cuando hay noche.
