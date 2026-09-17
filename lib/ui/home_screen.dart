@@ -595,11 +595,16 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ------------------------------------------------------------- el vuelo
 
-  /// Cuánto dura subir al valle. Un segundo y medio: lo que tarda en leerse
-  /// como un viaje sin llegar a leerse como una espera.
+  /// Cuánto dura subir al valle.
+  ///
+  /// Tres cuartos de segundo. Empezó en un segundo y medio, que es lo que dura
+  /// un viaje bien contado la primera vez y una espera todas las demás — y esto
+  /// se hace cada vez que uno quiere comparar dos hábitos, o sea muchas. Con la
+  /// mitad sigue habiendo despegue, nubes y llegada: son unos trescientos
+  /// milisegundos tapado, de sobra para esconder el corte.
   late final AnimationController _flight = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 1500),
+    duration: const Duration(milliseconds: 750),
   );
   bool _flying = false;
 

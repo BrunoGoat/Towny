@@ -78,34 +78,33 @@ class CloudFlight extends StatelessWidget {
   }
 }
 
-/// Los cinco tonos de una nube, de la sombra honda al brillo.
+/// Los tres tonos de una nube: la panza, el cuerpo y la cara de arriba.
 ///
-/// Cinco y no uno porque una nube no es una mancha: es un volumen con una cara
-/// dada al sol, una panza en sombra y un canto encendido entre las dos. Con un
-/// solo tono lo que se dibuja es la silueta de una nube, que es un recorte de
-/// papel; los cinco tonos son lo que la convierte en algo que tiene arriba y
-/// abajo.
+/// Tres y no cinco. Con cinco había volumen de sobra y también un contorno
+/// oscuro alrededor de cada cúmulo, y eso no es una nube: es una ilustración de
+/// una nube, con su línea de tinta. Tres tonos bastan para que se sepa dónde
+/// está arriba, y quitando el más oscuro se va el contorno con él.
 ///
-/// Y los cinco salen de la paleta de la hora, no de una lista de grises. Al
-/// mediodía la sombra tira a azul porque lo que la ilumina es el cielo; al
-/// atardecer el brillo tira a miel porque lo que le da es el sol poniéndose; y
-/// de madrugada los cinco se juntan tanto que la nube es apenas una mancha más
-/// clara que la noche — que es exactamente lo que es una nube de noche.
+/// **Y los tres son pastel**: mezclados con mucho blanco, así que entre uno y
+/// otro hay un paso y no un salto. Lo que hace que se lea el volumen es que los
+/// tres estén ordenados, no que estén lejos.
+///
+/// Salen de la paleta de la hora y no de una lista de grises, que es lo que
+/// hace que a las seis de la tarde tiren a miel y de madrugada sean apenas una
+/// mancha más clara que la noche — que es lo que es una nube de noche.
 class _Tones {
   _Tones(Palette p)
-    : hondo = Color.lerp(p.skyTop, Colors.black, 0.18)!,
-      sombra = Color.lerp(p.skyTop, p.skyHorizon, 0.45)!,
-      medio = Color.lerp(p.skyHorizon, Colors.white, 0.52)!,
-      luz = Color.lerp(p.skyHorizon, Colors.white, 0.86)!,
-      // El brillo lleva el color del sol, muy poco: es el canto que le da de
-      // lleno, y ahí es donde se nota de qué color es la luz de esta hora.
-      brillo = Color.lerp(
-        Color.lerp(p.skyHorizon, Colors.white, 0.96)!,
+    : sombra = Color.lerp(p.skyHorizon, Colors.white, 0.60)!,
+      medio = Color.lerp(p.skyHorizon, Colors.white, 0.80)!,
+      // La cara de arriba lleva el color del sol, muy poco: es lo único que
+      // dice de qué color es la luz de esta hora.
+      luz = Color.lerp(
+        Color.lerp(p.skyHorizon, Colors.white, 0.94)!,
         p.sun,
-        p.isDaylight ? 0.26 : 0.10,
+        p.isDaylight ? 0.14 : 0.06,
       )!;
 
-  final Color hondo, sombra, medio, luz, brillo;
+  final Color sombra, medio, luz;
 }
 
 class _CloudPainter extends CustomPainter {
@@ -179,12 +178,12 @@ class _CloudPainter extends CustomPainter {
           Offset(0, arriba),
           Offset(0, abajo),
           [tone.luz, tone.medio, tone.sombra],
-          [0.0, 0.42, 1.0],
+          [0.0, 0.48, 1.0],
         ),
     );
     // Y por dentro, masas grandes y flojas: lo que se ve al cruzar un banco de
     // nubes no es un color, son claros y oscuros pasando.
-    for (var i = 0; i < 7; i++) {
+    for (var i = 0; i < 4; i++) {
       final s = hash32(seed, 0x11 + banco, i);
       final at = Offset(
         size.width * hashRange(-0.1, 1.1, s, 1),
@@ -197,7 +196,7 @@ class _CloudPainter extends CustomPainter {
         at,
         r,
         s,
-        (claro ? tone.luz : tone.sombra).withValues(alpha: 0.22),
+        (claro ? tone.luz : tone.sombra).withValues(alpha: 0.13),
       );
     }
 
@@ -228,7 +227,7 @@ class _CloudPainter extends CustomPainter {
       }
       // Y unos jirones sueltos por delante, que es lo que tiene el borde de un
       // banco de verdad: no termina, se deshilacha.
-      for (var i = 0; i < 4; i++) {
+      for (var i = 0; i < 3; i++) {
         final s = hash32(seed, 0x33 + banco * 2 + canto, i);
         final x = size.width * hashRange(0.0, 1.0, s, 1);
         final fuera = size.width * hashRange(0.10, 0.30, s, 2);
@@ -238,19 +237,23 @@ class _CloudPainter extends CustomPainter {
           Offset(x, y + (arriba0 ? -fuera : fuera)),
           r,
           s,
-          tone.medio.withValues(alpha: hashRange(0.45, 0.8, s, 4)),
+          tone.medio.withValues(alpha: hashRange(0.5, 0.85, s, 4)),
         );
       }
     }
   }
 
-  /// Un cúmulo con volumen: cinco pasadas, de la sombra honda al brillo.
+  /// Un cúmulo con volumen: tres pasadas, de la panza a la cara de arriba.
   ///
   /// Cada pasada es el mismo racimo de lóbulos encogido y corrido hacia la luz,
-  /// así que lo que queda es una cebolla de tonos con el brillo arriba del lado
-  /// del sol y la sombra abajo del otro. Plano y sin degradados, como todo lo
-  /// que dibuja esta app — el volumen sale de dónde está cada tono y no de un
-  /// difuminado.
+  /// así que lo que queda es una cebolla de tres tonos con la cara clara arriba
+  /// del lado del sol. Plano y sin degradados, como todo lo que dibuja esta
+  /// app: el volumen sale de dónde está cada tono, no de un difuminado.
+  ///
+  /// **Ninguna pasada es más grande que la primera**, y eso es lo que quita el
+  /// contorno. Antes había una pasada de sombra honda un cuatro por ciento más
+  /// ancha que el cuerpo: asomaba por todo el borde y lo que se veía era una
+  /// línea oscura alrededor de cada nube, o sea una ilustración a tinta.
   void _cumulus(
     Canvas canvas,
     Offset at,
@@ -260,22 +263,12 @@ class _CloudPainter extends CustomPainter {
     Offset hacia,
     bool arriba,
   ) {
-    // La panza no tiene brillo: la luz le llega de refilón.
+    // La panza no tiene cara de arriba: la luz le llega de refilón, así que se
+    // queda en dos tonos.
     final capas = arriba
-        ? const [
-            (1.04, -0.09, 0),
-            (1.00, 0.00, 1),
-            (0.86, 0.13, 2),
-            (0.64, 0.28, 3),
-            (0.38, 0.42, 4),
-          ]
-        : const [
-            (1.04, -0.11, 0),
-            (1.00, 0.00, 1),
-            (0.80, 0.14, 2),
-            (0.52, 0.26, 3),
-          ];
-    final tonos = [tone.hondo, tone.sombra, tone.medio, tone.luz, tone.brillo];
+        ? const [(1.00, 0.00, 0), (0.84, 0.13, 1), (0.60, 0.29, 2)]
+        : const [(1.00, 0.00, 0), (0.78, 0.15, 1)];
+    final tonos = [tone.sombra, tone.medio, tone.luz];
     for (final (escala, corrido, cual) in capas) {
       _blob(
         canvas,
