@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../fx/sensory.dart';
 import '../model/habit.dart';
-import '../model/store.dart';
 import 'style.dart';
 
 /// La segunda vez —y la última— que esta app te pregunta algo.
