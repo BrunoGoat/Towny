@@ -2,15 +2,68 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
+import '../core/math3.dart';
 import '../engine/palette.dart';
 
 /// UI chrome derived from whatever the sky is doing right now, so the interface
 /// belongs to the scene instead of sitting on top of it.
 class UiTheme {
   UiTheme(this.palette) {
-    final l = palette.skyHorizon;
-    dark = (l.r * 0.3 + l.g * 0.55 + l.b * 0.15) < 0.45;
-    fg = dark ? const Color(0xFFF3EEE3) : const Color(0xFF221D14);
+    // La luz que hay **detrás de la interfaz**, y ahí estaba el fallo.
+    //
+    // Los rótulos de arriba y los botones del costado viven sobre el techo del
+    // cielo, `skyTop`. El horizonte —la banda clara de más abajo— es lo que
+    // tienen detrás las casas, no ellos. Pero era el horizonte el que decidía
+    // de qué color iba la interfaz, y a las siete y media de la tarde el
+    // horizonte todavía es naranja claro mientras el techo ya es azul de
+    // medianoche: la interfaz se pintaba en pardo de mediodía sobre un cielo
+    // casi negro y desaparecía. Al amanecer, lo mismo al revés.
+    final luz = _luz(palette.skyTop);
+
+    /// Cuánta noche hay ahí arriba, de cero a uno. Sólo para el matiz.
+    night = clampD(1 - (luz - 0.16) / 0.40, 0, 1);
+
+    // El paso de una tinta a la otra: suave, pero **corto**, y donde toca.
+    //
+    // Donde toca es mientras el cielo todavía aguanta las dos: por encima de
+    // 0,44 de luz el pardo se separa de sobra, y por debajo de 0,43 el crema
+    // se separa mucho más. En medio hay un dedo de cielo en el que ninguna de
+    // las dos va holgada, y por eso se cruza justo ahí y deprisa —un cuarto de
+    // hora de reloj— en vez de esperar a que anochezca del todo.
+    //
+    // Y corto porque a medio camino la tinta es un gris medio, y en ese mismo
+    // dedo el cielo también: gris medio sobre gris medio no se lee. Un
+    // degradado largo y bonito de dos horas serían dos horas de texto perdido,
+    // que es exactamente lo que se quería arreglar. El halo se refuerza
+    // mientras dura el cruce, que es lo que sostiene esos minutos.
+    final paso = _suave(clampD((0.435 - luz) / 0.008, 0, 1));
+
+    // La materia de los paneles cambia con él, un pelo antes. Un panel no
+    // puede ir a medio camino —a mitad de un desvanecido es gris medio y la
+    // letra encima también— así que salta; y salta pronto para que el peor
+    // instante del cruce sea tinta media sobre un panel ya oscuro, que se lee,
+    // y no tinta media sobre crema, que no.
+    dark = paso > 0.40;
+
+    // **Lo que sí cambia hora a hora es la tinta dentro de su propio lado.**
+    // De día va del pardo frío de mediodía a uno más cálido y un punto más
+    // claro según cae la tarde; de noche, del crema de vela del anochecer al
+    // crema blanco de las tres de la mañana. Eso es lo que hace que la interfaz
+    // sea de esta hora y no de una de dos; lo que no puede hacer es pasar por
+    // el medio y quedarse.
+    final pardo = Color.lerp(
+      const Color(0xFF221D14),
+      const Color(0xFF322718),
+      clampD(night / 0.40, 0, 1),
+    )!;
+    final crema = Color.lerp(
+      const Color(0xFFEFE2CE),
+      const Color(0xFFF3EEE3),
+      clampD((night - 0.45) / 0.55, 0, 1),
+    )!;
+    fg = Color.lerp(pardo, crema, paso)!;
+
+    _cruce = 1 - (paso * 2 - 1).abs();
     fgSoft = fg.withValues(alpha: 0.62);
     fgFaint = fg.withValues(alpha: 0.34);
     // Deliberately faint. A panel here should read as a change in the air,
@@ -30,7 +83,21 @@ class UiTheme {
 
   final Palette palette;
   late final bool dark;
+
+  /// Cuánta noche hay detrás de la interfaz: cero a mediodía, uno de
+  /// madrugada, y todo lo de en medio en las dos horas de cada crepúsculo.
+  late final double night;
+
+  /// Cuánto de en medio está la tinta ahora mismo. Sólo para el halo.
+  late final double _cruce;
+
   late final Color fg, fgSoft, fgFaint, panel, panelStrong, stroke, accent;
+
+  /// Lo clara que es una franja de cielo, de cero a uno.
+  static double _luz(Color c) => c.r * 0.3 + c.g * 0.55 + c.b * 0.15;
+
+  /// Una ese suave, para que el cambio de tinta no tenga esquinas.
+  static double _suave(double t) => t * t * (3 - 2 * t);
 
   TextStyle get label => TextStyle(
     color: fgSoft,
@@ -44,9 +111,9 @@ class UiTheme {
   List<Shadow> get halo => [
     Shadow(
       color: (dark ? Colors.black : const Color(0xFF3A3426)).withValues(
-        alpha: dark ? 0.55 : 0.30,
+        alpha: (dark ? 0.55 : 0.30) * (1 + 0.8 * _cruce),
       ),
-      blurRadius: 12,
+      blurRadius: 12 * (1 + 0.35 * _cruce),
     ),
   ];
 
