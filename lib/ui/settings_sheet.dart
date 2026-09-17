@@ -277,10 +277,11 @@ class _SettingsSheetState extends State<SettingsSheet> {
         _Head(theme: t, text: 'LA HOJA DE UN HÁBITO'),
         Text(
           'La hoja donde se le cambia el nombre y la marca a un hábito. No hay '
-          'panel: la marca sobre el pueblo, el nombre debajo, y un velo que '
-          'sube desde abajo para que se lea sobre lo que haya. De día ese velo '
-          'saca su color de la escena, y hay cinco maneras — al tocar una se '
-          'abre la hoja tal cual va a quedar.',
+          'panel: la marca sobre el pueblo, el nombre debajo, y un vidrio que '
+          'sube desde abajo, casi sin pintura, desenfocando lo que queda '
+          'detrás. De noche funciona solo; de día hay diez vidrios, y lo que '
+          'cambia es de qué color está teñido y cuánto desenfoca. Al tocar uno '
+          'se abre la hoja tal cual va a quedar.',
           style: t.bodySoft.copyWith(fontSize: 11.5, height: 1.4),
         ),
         const SizedBox(height: 10),
@@ -289,17 +290,9 @@ class _SettingsSheetState extends State<SettingsSheet> {
           wants.skin.about,
           style: t.bodySoft.copyWith(fontSize: 11.5, height: 1.4),
         ),
-        const SizedBox(height: 14),
-        // De noche no hace falta elegir color: oscuro sobre oscuro funciona
-        // solo. Lo que sí es gusto de cada uno es cuánto del pueblo se quiere
-        // seguir viendo por debajo mientras se escribe un nombre, y eso es un
-        // número — así que va en un deslizador y no en la lista de cinco.
-        _Slider(
-          theme: t,
-          title: 'Lo sólido del velo de noche',
-          value: wants.nightVeil,
-          onChanged: wants.setNightVeil,
-        ),
+        // De noche no se elige nada: oscuro sobre oscuro al noventa y cinco
+        // por ciento, que es el número al que se llegó probándolo con un
+        // deslizador. Encontrado el número, el deslizador sobra.
         Align(
           alignment: Alignment.centerLeft,
           child: TextButton(
@@ -580,10 +573,10 @@ class _Pick extends StatelessWidget {
   }
 }
 
-/// Los cinco velos de día, en rejilla de dos columnas.
+/// Los diez vidrios de día, en rejilla de dos columnas.
 ///
 /// El otro selector de esta hoja es una fila de pastillas de igual ancho, y con
-/// cinco eso da pastillas de sesenta píxeles donde no cabe «Pergamino».
+/// diez eso da pastillas de treinta píxeles donde no cabe «Escarcha».
 class _SkinPick extends StatelessWidget {
   const _SkinPick({
     required this.theme,

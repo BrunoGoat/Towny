@@ -143,7 +143,7 @@ class Appearance extends ChangeNotifier {
   /// la que más ganas dan de tener a gusto. Diez materiales; todos dicen lo
   /// mismo. Se guarda el nombre y no el número: una que se quite mañana no le
   /// corre la elección a las de debajo.
-  HabitSkin _skin = HabitSkin.bruma;
+  HabitSkin _skin = HabitSkin.vidrio;
   HabitSkin get skin => _skin;
 
   Future<void> setSkin(HabitSkin v) async {
@@ -152,21 +152,11 @@ class Appearance extends ChangeNotifier {
     await _keep();
   }
 
-  /// Y lo sólido que es ese fondo de noche.
-  ///
-  /// Esto no es una manera sino un número, así que va en un deslizador y no en
-  /// la lista de cinco. De noche el velo funciona con cualquier valor —es
-  /// oscuro sobre oscuro— y cuánto se quiere ver del pueblo por debajo mientras
-  /// se escribe un nombre es gusto de cada uno.
-  double _nightVeil = 0.90;
-  double get nightVeil => _nightVeil;
-
-  Future<void> setNightVeil(double v) async {
-    final want = v.clamp(0.25, 1.0);
-    if (want == _nightVeil) return;
-    _nightVeil = want;
-    await _keep();
-  }
+  // Lo sólido que es el velo de noche tuvo un deslizador durante una tarde,
+  // que es lo que se tardó en encontrar el número: noventa y cinco. Encontrado
+  // el número, el deslizador sobra — un ajuste que ya nadie va a tocar es una
+  // fila más que leer cada vez que se abren los ajustes. Lo guardado se lee y
+  // se tira, así que el disco se limpia solo.
 
   // ------------------------------------------------------- la letra del papel
 
@@ -258,8 +248,7 @@ class Appearance extends ChangeNotifier {
     _effectsVolume = _midway;
     _fakeHour = false;
     _fakeHourAt = 22.0;
-    _skin = HabitSkin.bruma;
-    _nightVeil = 0.90;
+    _skin = HabitSkin.vidrio;
   }
 
   Future<void> load() async {
@@ -339,7 +328,7 @@ class Appearance extends ChangeNotifier {
         case 'skin':
           _skin = HabitSkin.byName(value);
         case 'nightVeil':
-          _nightVeil = (double.tryParse(value) ?? 0.90).clamp(0.25, 1.0);
+          visto.remove(key);
 
         // Y lo mismo el estilo del vuelo al valle: llegaron a estar hechos
         // los diez y se eligió la niebla, así que se fueron los otros nueve
@@ -378,7 +367,6 @@ class Appearance extends ChangeNotifier {
     'fakeSeason=${_fakeSeason ? 1 : 0}',
     'fakeSeasonAt=$_fakeSeasonAt',
     'skin=${_skin.name}',
-    'nightVeil=$_nightVeil',
   ];
 
   Timer? _writeSoon;

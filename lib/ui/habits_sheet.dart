@@ -256,20 +256,26 @@ class _HabitsSheetState extends State<HabitsSheet> {
   }
 
   /// Dónde se escribe el nombre: centrado y sin caja ninguna.
-  Widget _field(UiTheme t, double size) => TextField(
+  Widget _field(UiTheme t, _Veil velo, double size) => TextField(
     controller: _name,
     onChanged: (_) => _keep(),
     textAlign: TextAlign.center,
     style: t.body.copyWith(
       fontSize: size,
       height: 1.2,
-      fontWeight: FontWeight.w500,
+      fontWeight: FontWeight.w600,
+      color: velo.cuerpo,
+      shadows: velo.aliento,
     ),
     textCapitalization: TextCapitalization.sentences,
     maxLength: 24,
     decoration: InputDecoration(
       hintText: 'Leer, correr, no fumar…',
-      hintStyle: t.bodySoft.copyWith(fontSize: size * 0.82),
+      hintStyle: t.bodySoft.copyWith(
+        fontSize: size * 0.82,
+        color: velo.suave,
+        shadows: velo.aliento,
+      ),
       counterText: '',
       isDense: true,
       contentPadding: EdgeInsets.zero,
@@ -279,14 +285,14 @@ class _HabitsSheetState extends State<HabitsSheet> {
 
   /// Qué clase de sitio es este pueblo: la comarca entre dos filetes, y su
   /// línea debajo.
-  Widget _region(UiTheme t, TownCharacter ch) => Column(
+  Widget _region(UiTheme t, _Veil velo, TownCharacter ch) => Column(
     key: ValueKey(ch.region),
     crossAxisAlignment: CrossAxisAlignment.center,
     children: [
       Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _hair(t, 26),
+          _hair(velo, 26),
           const SizedBox(width: 10),
           HabitSigil(
             symbol: ch.symbol,
@@ -300,33 +306,50 @@ class _HabitsSheetState extends State<HabitsSheet> {
               fontSize: 11,
               color: t.accent,
               letterSpacing: 2.4,
+              shadows: velo.aliento,
             ),
           ),
           const SizedBox(width: 10),
-          _hair(t, 26),
+          _hair(velo, 26),
         ],
       ),
       const SizedBox(height: 8),
-      Text(ch.blurb, textAlign: TextAlign.center, style: t.bodySoft),
+      Text(
+        ch.blurb,
+        textAlign: TextAlign.center,
+        style: t.bodySoft.copyWith(color: velo.suave, shadows: velo.aliento),
+      ),
     ],
   );
 
   /// Un filete de pelo. Es la única raya que dibuja esta hoja, y de ella salen
   /// todas sus separaciones.
-  Widget _hair(UiTheme t, [double? ancho]) =>
-      Container(width: ancho, height: 1, color: t.fg.withValues(alpha: 0.10));
+  Widget _hair(_Veil velo, [double? ancho]) => Container(
+    width: ancho,
+    height: 1,
+    color: velo.cuerpo.withValues(alpha: 0.16),
+  );
 
   /// Borrar un pueblo entero. Nunca es un botón grande y nunca está arriba.
-  Widget _remove(UiTheme t) => Center(
-    child: TextButton(
-      onPressed: () => _confirmRemove(context),
-      style: TextButton.styleFrom(foregroundColor: _danger(t.dark)),
-      child: Text(
-        'Eliminar este hábito',
-        style: t.bodySoft.copyWith(fontSize: 12.5, color: _danger(t.dark)),
+  Widget _remove(UiTheme t, _Veil velo) {
+    // El rojo de aviso, en la versión que se lee sobre este velo: el oscuro se
+    // apaga hasta parecer texto desactivado sobre un vidrio ahumado.
+    final rojo = _danger(t.dark || velo.oscuro);
+    return Center(
+      child: TextButton(
+        onPressed: () => _confirmRemove(context),
+        style: TextButton.styleFrom(foregroundColor: rojo),
+        child: Text(
+          'Eliminar este hábito',
+          style: t.bodySoft.copyWith(
+            fontSize: 12.5,
+            color: rojo,
+            shadows: velo.aliento,
+          ),
+        ),
       ),
-    ),
-  );
+    );
+  }
 
   /// Las seis comarcas, para elegir una al fundar.
   Widget _regionPicker(UiTheme t) => Row(
@@ -404,37 +427,92 @@ class _HabitsSheetState extends State<HabitsSheet> {
   /// encima. Las cinco tiran de lo mismo: que el velo saque su color de la
   /// escena en vez de traerlo de fuera, y que deje ver algo de lo que hay
   /// debajo.
-  ({Color tinte, double tapa, double bruma}) _veil(UiTheme t, HabitSkin skin) {
+  _Veil _veil(UiTheme t, HabitSkin skin) {
     final p = t.palette;
+    // De noche no se elige: oscuro sobre oscuro al noventa y cinco por ciento,
+    // que es el número al que se llegó probándolo con un deslizador. Encontrado
+    // el número, el deslizador sobra.
     if (t.dark) {
-      return (
-        tinte: t.panelStrong,
-        tapa: Appearance.instance.nightVeil,
-        bruma: 0,
-      );
+      return _Veil(tinte: t.panelStrong, tapa: 0.95, bruma: 0, cuerpo: t.fg);
     }
+
+    // La tinta de los claros: el nombre del hábito no va en negro ni en blanco
+    // —el blanco sobre un velo claro es lo que se perdía— sino en el color del
+    // propio pueblo apagado hasta hacerse tinta. Es el mismo color de la marca
+    // que tiene encima, dos tonos más hondo, así que la cabecera se lee como
+    // una sola cosa.
+    final quemado = Color.lerp(p.accent, p.ink, 0.52)!;
+    final hollin = Color.lerp(p.ink, Colors.black, 0.25)!;
+    // Y la de los ahumados, que llevan la letra clara: crema con una gota del
+    // color del pueblo, nunca blanco de papel.
+    final crema = Color.lerp(const Color(0xFFF3EEE3), p.accent, 0.16)!;
+
     return switch (skin) {
-      HabitSkin.bruma => (
-        tinte: Color.lerp(p.skyHorizon, Colors.white, 0.62)!,
-        tapa: 0.74,
-        bruma: 8,
-      ),
-      HabitSkin.arena => (
-        tinte: Color.lerp(p.ground, Colors.white, 0.74)!,
-        tapa: 0.76,
-        bruma: 6,
-      ),
-      HabitSkin.cielo => (
-        tinte: Color.lerp(p.skyLight, Colors.white, 0.42)!,
-        tapa: 0.68,
-        bruma: 14,
-      ),
-      HabitSkin.vidrio => (
+      HabitSkin.vidrio => _Veil(
         tinte: Color.lerp(p.skyHorizon, Colors.white, 0.50)!,
         tapa: 0.42,
         bruma: 26,
+        cuerpo: quemado,
       ),
-      HabitSkin.lino => (tinte: t.panelStrong, tapa: 0.62, bruma: 16),
+      HabitSkin.hondo => _Veil(
+        tinte: Color.lerp(p.skyHorizon, Colors.white, 0.50)!,
+        tapa: 0.24,
+        bruma: 44,
+        cuerpo: quemado,
+      ),
+      HabitSkin.limpio => _Veil(
+        tinte: Color.lerp(p.skyHorizon, Colors.white, 0.55)!,
+        tapa: 0.14,
+        bruma: 52,
+        cuerpo: quemado,
+      ),
+      HabitSkin.escarcha => _Veil(
+        tinte: Colors.white,
+        tapa: 0.34,
+        bruma: 34,
+        cuerpo: hollin,
+      ),
+      HabitSkin.miel => _Veil(
+        tinte: Color.lerp(p.accent, Colors.white, 0.82)!,
+        tapa: 0.44,
+        bruma: 24,
+        cuerpo: quemado,
+      ),
+      HabitSkin.musgo => _Veil(
+        tinte: Color.lerp(p.ground, Colors.white, 0.60)!,
+        tapa: 0.44,
+        bruma: 24,
+        cuerpo: hollin,
+      ),
+      HabitSkin.pizarra => _Veil(
+        tinte: Color.lerp(p.stoneCool, Colors.white, 0.48)!,
+        tapa: 0.48,
+        bruma: 22,
+        cuerpo: hollin,
+      ),
+      HabitSkin.bruma => _Veil(
+        tinte: Color.lerp(p.skyHorizon, Colors.white, 0.62)!,
+        tapa: 0.56,
+        bruma: 34,
+        cuerpo: quemado,
+      ),
+      // Los dos ahumados: en vez de aclarar el pueblo lo oscurecen, y entonces
+      // la letra se vuelve clara. En un mediodía verde y brillante, oscurecer
+      // separa mejor que aclarar — que es justo lo que ya funciona de noche.
+      HabitSkin.ahumado => _Veil(
+        tinte: Color.lerp(p.ink, p.skyHorizon, 0.22)!,
+        tapa: 0.52,
+        bruma: 26,
+        cuerpo: crema,
+        oscuro: true,
+      ),
+      HabitSkin.tinta => _Veil(
+        tinte: Color.lerp(p.ink, Colors.black, 0.30)!,
+        tapa: 0.72,
+        bruma: 18,
+        cuerpo: crema,
+        oscuro: true,
+      ),
     };
   }
 
@@ -519,23 +597,35 @@ class _HabitsSheetState extends State<HabitsSheet> {
                     // acaba de cuajar.
                     const SizedBox(height: _mark * 0.20),
                     if (_creating) ...[
-                      Text('UN HÁBITO NUEVO', style: t.label),
+                      Text(
+                        'UN HÁBITO NUEVO',
+                        style: t.label.copyWith(
+                          color: velo.suave,
+                          shadows: velo.aliento,
+                        ),
+                      ),
                       const SizedBox(height: 12),
                     ],
-                    _field(t, 21),
+                    _field(t, velo, 21),
                     const SizedBox(height: 10),
-                    _hair(t),
+                    _hair(velo),
                     _reelSlot(t),
                     const SizedBox(height: 18),
                     if (_creating) ...[
-                      Text('QUÉ CLASE DE PUEBLO', style: t.label),
+                      Text(
+                        'QUÉ CLASE DE PUEBLO',
+                        style: t.label.copyWith(
+                          color: velo.suave,
+                          shadows: velo.aliento,
+                        ),
+                      ),
                       const SizedBox(height: 10),
                       _regionPicker(t),
                       const SizedBox(height: 16),
                     ],
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 180),
-                      child: _region(t, ch),
+                      child: _region(t, velo, ch),
                     ),
                     if (_creating) ...[
                       const SizedBox(height: 10),
@@ -543,7 +633,12 @@ class _HabitsSheetState extends State<HabitsSheet> {
                         'Se elige una sola vez. Después no se puede cambiar sin '
                         'mover piezas ya puestas, y eso no se hace.',
                         textAlign: TextAlign.center,
-                        style: t.bodySoft.copyWith(fontSize: 11.5, height: 1.4),
+                        style: t.bodySoft.copyWith(
+                          fontSize: 11.5,
+                          height: 1.4,
+                          color: velo.suave,
+                          shadows: velo.aliento,
+                        ),
                       ),
                       const SizedBox(height: 18),
                       _foundButton(t),
@@ -553,9 +648,9 @@ class _HabitsSheetState extends State<HabitsSheet> {
                     // perder al cerrar.
                     if (!_creating) ...[
                       const SizedBox(height: 14),
-                      _hair(t),
+                      _hair(velo),
                       const SizedBox(height: 6),
-                      _remove(t),
+                      _remove(t, velo),
                     ],
                   ],
                 ),
@@ -608,4 +703,50 @@ class _HabitsSheetState extends State<HabitsSheet> {
       ),
     );
   }
+}
+
+/// De qué está hecho el velo de la hoja, y con qué tinta se escribe encima.
+///
+/// Las dos cosas juntas y no por separado, porque no son dos decisiones: un
+/// vidrio ahumado pide letra clara y uno de escarcha la pide oscura, y
+/// elegirlas por separado es la manera de acabar con letra parda sobre un
+/// vidrio casi negro.
+class _Veil {
+  const _Veil({
+    required this.tinte,
+    required this.tapa,
+    required this.bruma,
+    required this.cuerpo,
+    this.oscuro = false,
+  });
+
+  /// De qué color está teñido el vidrio.
+  final Color tinte;
+
+  /// Y cuánto pinta: cero es un cristal limpio, uno es una pared.
+  final double tapa;
+
+  /// Cuánto desenfoca lo que queda debajo. En estos diez es lo que hace el
+  /// trabajo, más que la pintura.
+  final double bruma;
+
+  /// La tinta de todo lo que se escribe encima.
+  final Color cuerpo;
+
+  /// Si el vidrio oscurece el pueblo en vez de aclararlo. Cambia el rojo del
+  /// botón de borrar, que es lo único que no sale de [cuerpo].
+  final bool oscuro;
+
+  /// Lo mismo, apagado: para lo que acompaña y no es el nombre.
+  Color get suave => cuerpo.withValues(alpha: 0.66);
+
+  /// El aliento que va detrás de las letras: el propio color del velo, soplado
+  /// alrededor. El velo es casi transparente —es un vidrio, esa es la gracia—
+  /// así que el texto cae encima de la plaza y se pierde entre una fuente y
+  /// medio tejado. Esto espesa el velo **sólo donde hay letra**: no se lee como
+  /// una sombra, se lee como que ahí el cristal está un poco más empañado.
+  List<Shadow> get aliento => [
+    Shadow(color: tinte.withValues(alpha: 0.95), blurRadius: 10),
+    Shadow(color: tinte.withValues(alpha: 0.75), blurRadius: 22),
+  ];
 }

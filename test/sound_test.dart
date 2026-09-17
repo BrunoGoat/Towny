@@ -131,8 +131,8 @@ void main() {
   group('la hoja de un hábito', () {
     test('el velo de día se guarda por su nombre', () async {
       final a = await fresh();
-      expect(a.skin, HabitSkin.bruma);
-      await a.setSkin(HabitSkin.vidrio);
+      expect(a.skin, HabitSkin.vidrio);
+      await a.setSkin(HabitSkin.tinta);
       await a.flush();
       final otra = await fresh(
         from: {
@@ -140,30 +140,29 @@ void main() {
               .getStringList('pueblo_sound_v1')!,
         },
       );
-      expect(otra.skin, HabitSkin.vidrio);
+      expect(otra.skin, HabitSkin.tinta);
       // Y un nombre que ya no exista vuelve al primero en vez de tirar el
       // resto de los ajustes con él.
-      expect(HabitSkin.byName('lo que sea'), HabitSkin.bruma);
-      expect(HabitSkin.byName(null), HabitSkin.bruma);
+      expect(HabitSkin.byName('lo que sea'), HabitSkin.vidrio);
+      expect(HabitSkin.byName(null), HabitSkin.vidrio);
     });
 
-    test('y lo sólido del velo de noche no se sale de madre', () async {
-      // Un velo a cero es escribir un nombre sobre el pueblo sin nada que lo
-      // separe, y eso no se lee. Hay suelo, y hay techo.
-      final a = await fresh();
-      await a.setNightVeil(-3);
-      expect(a.nightVeil, 0.25);
-      await a.setNightVeil(9);
-      expect(a.nightVeil, 1.0);
-      await a.setNightVeil(0.55);
-      await a.flush();
-      final otra = await fresh(
+    test('y un guardado con el deslizador viejo se limpia solo', () async {
+      // Lo sólido del velo de noche tuvo un deslizador durante una tarde, que
+      // es lo que se tardó en encontrar el número. Quien lo tocara tiene un
+      // `nightVeil` guardado que ya no significa nada: se lee, se tira, y en el
+      // primer guardado desaparece del disco.
+      final a = await fresh(
         from: {
-          'pueblo_sound_v1': (await SharedPreferences.getInstance())
-              .getStringList('pueblo_sound_v1')!,
+          'pueblo_sound_v1': ['sound=1', 'nightVeil=0.4', 'skin=tinta'],
         },
       );
-      expect(otra.nightVeil, closeTo(0.55, 1e-9));
+      expect(a.skin, HabitSkin.tinta, reason: 'perdió lo que sí valía');
+      await a.flush();
+      final escrito = (await SharedPreferences.getInstance()).getStringList(
+        'pueblo_sound_v1',
+      )!;
+      expect(escrito.any((r) => r.startsWith('nightVeil=')), isFalse);
     });
   });
 
