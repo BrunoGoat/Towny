@@ -148,9 +148,26 @@ List<DateTime> daysOf(Habit h) {
 /// meant to say what is true of you now.
 const int _lookBack = 180;
 
-/// One entry per calendar day over that window: true where a piece was laid.
+/// Qué fue de un día del calendario.
+///
+/// Tres estados y no dos, porque un día dormido no es un día en blanco. Sin
+/// esta distinción una pausa de tres semanas entra en todas las cuentas como
+/// veintiún fallos, y el pueblo acaba anunciando muy serio que los martes son
+/// tu día flojo porque pausaste tres martes.
+enum Was {
+  /// Hubo pieza.
+  on,
+
+  /// No hubo pieza, y contaba.
+  off,
+
+  /// El pueblo estaba dormido. No cuenta ni a favor ni en contra.
+  asleep,
+}
+
+/// One entry per calendar day over that window, saying what became of it.
 /// This is the grid every question about consistency is really asking about.
-List<bool> _grid(Habit h, DateTime now) {
+List<Was> _grid(Habit h, DateTime now) {
   final days = daysOf(h);
   if (days.isEmpty) return const [];
   final today = dayStart(now);
@@ -161,8 +178,115 @@ List<bool> _grid(Habit h, DateTime now) {
   final on = <int>{for (final d in days) dayKey(d)};
   return [
     for (var i = 0; i <= span; i++)
-      on.contains(dayKey(first.add(Duration(days: i)))),
+      () {
+        final d = first.add(Duration(days: i));
+        // Una pieza puesta durante una pausa cuenta igual. Volver antes de
+        // tiempo no es hacer trampa, es volver — y si el día tiene pieza, lo
+        // último que la app tiene que hacer es no contarla.
+        if (on.contains(dayKey(d))) return Was.on;
+        return h.restedOn(d) ? Was.asleep : Was.off;
+      }(),
   ];
+}
+
+/// Los huecos de este hábito: cuántos días de los que contaban pasaron entre
+/// una pieza y la siguiente.
+///
+/// Los días dormidos salen de la cuenta, así que una pausa de tres semanas en
+/// medio de dos piezas seguidas no es un hueco de veintiún días: no es un
+/// hueco. Es la diferencia entre no haber podido y no haber querido, que es
+/// justo lo que la pausa existe para decir.
+List<int> gapsOf(Habit h) {
+  final days = daysOf(h);
+  final out = <int>[];
+  for (var i = 1; i < days.length; i++) {
+    var missed = 0;
+    for (
+      var d = days[i - 1].add(const Duration(days: 1));
+      d.isBefore(days[i]);
+      d = d.add(const Duration(days: 1))
+    ) {
+      if (!h.restedOn(d)) missed++;
+    }
+    if (missed > 0) out.add(missed);
+  }
+  return out;
+}
+
+/// Cuánto tardás en volver, normalmente. Nulo mientras no haya faltado lo
+/// bastante como para que la pregunta tenga respuesta.
+///
+/// Es la única cifra de esta app que mejora cuando fallás: alguien que pasó de
+/// desaparecer treinta días a desaparecer cinco está progresando muchísimo, y
+/// no hay ninguna racha que sepa decirlo.
+int? typicalReturn(Habit h) {
+  final gaps = gapsOf(h);
+  if (gaps.length < 3) return null;
+  final sorted = [...gaps]..sort();
+  return sorted[sorted.length ~/ 2];
+}
+
+/// De los días que contaban, en cuántos hubo pieza.
+///
+/// Lo que sustituyó a la racha, y el cambio no es cosmético. Una racha hace
+/// que el pasado pese demasiado: fallás hoy y parece que pasaste de cuarenta a
+/// cero, cuando lo que pasó de verdad es que hiciste el hábito cuarenta días y
+/// hoy no. Esto dice lo que pasó de verdad, y admite imperfección, que es
+/// justamente lo que hace falta para medir algo sostenible.
+class Consistency {
+  const Consistency(this.done, this.of);
+
+  /// Días con pieza.
+  final int done;
+
+  /// Días que contaban: la ventana, menos los días dormidos, menos los días
+  /// anteriores al hábito, menos hoy si todavía está sin empezar.
+  final int of;
+
+  double get rate => of <= 0 ? 0 : done / of;
+
+  /// Con menos de dos semanas de las que hablar, no se habla.
+  ///
+  /// Una consistencia de «1 de 1» el primer día no es una medida de nada, y
+  /// esta app prefiere callarse a inventar.
+  bool get enough => of >= 14;
+
+  static const int window = 30;
+}
+
+/// La consistencia de este hábito sobre los últimos [Consistency.window] días.
+///
+/// Hoy no cuenta en contra mientras esté en blanco. El día no terminó, y
+/// descontar por él a las nueve de la mañana es exactamente el castigo que
+/// esto vino a quitar; en cuanto cae una pieza, cuenta.
+Consistency consistencyOf(Habit h, {DateTime? at}) {
+  final now = at ?? DateTime.now();
+  final today = dayStart(now);
+  final days = daysOf(h);
+  if (days.isEmpty) return const Consistency(0, 0);
+
+  var from = today.subtract(const Duration(days: Consistency.window - 1));
+  // Ni antes de que existiera el hábito ni antes de su primera pieza: repartir
+  // tus piezas entre días en los que no había dónde ponerlas es inventarse
+  // fallos.
+  var born = dayStart(h.createdAt);
+  if (days.first.isBefore(born)) born = days.first;
+  if (born.isAfter(from)) from = born;
+
+  final on = <int>{for (final d in days) dayKey(d)};
+  var done = 0, counted = 0;
+  for (var d = from; !d.isAfter(today); d = d.add(const Duration(days: 1))) {
+    final hecho = on.contains(dayKey(d));
+    if (hecho) {
+      done++;
+      counted++;
+      continue;
+    }
+    if (h.restedOn(d)) continue;
+    if (d == today) continue;
+    counted++;
+  }
+  return Consistency(done, counted);
 }
 
 // -------------------------------------------------------------- the notices
@@ -202,7 +326,14 @@ Notice? ahead(Habit h, String? what, int left, DateTime now) {
   }
   if (recent < 8) return null;
 
-  final ventana = today.difference(desde).inDays + 1;
+  // Los días dormidos no cuentan para el ritmo. Con ellos dentro, pausar dos
+  // semanas te deja el pueblo terminándose un mes más tarde por haber tenido
+  // el buen juicio de pausarlo, que es justo al revés de lo que hace falta.
+  var ventana = today.difference(desde).inDays + 1;
+  for (var d = desde; !d.isAfter(today); d = d.add(const Duration(days: 1))) {
+    if (h.restedOn(d)) ventana--;
+  }
+  if (ventana < 1) return null;
 
   // Un día de piezas no es un ritmo, es un día. Tres es lo menos que puede
   // llamarse ritmo, así que por debajo de ahí la cuenta se reparte entre tres
@@ -281,15 +412,19 @@ List<double> _weeks(Habit h, DateTime now, int n) {
 Notice? relapse(Habit h, DateTime now) {
   final grid = _grid(h, now);
   if (grid.length < 30) return null;
-  var misses = 0, after = 0, afterMiss = 0;
+  // Los días dormidos no son días en blanco, y el día siguiente a uno tampoco
+  // es «el día después de fallar»: nadie falló. Salen de las dos cuentas.
+  var counted = 0, misses = 0, after = 0, afterMiss = 0;
   for (var i = 0; i < grid.length; i++) {
-    if (!grid[i]) misses++;
-    if (i == 0 || grid[i - 1]) continue;
+    if (grid[i] == Was.asleep) continue;
+    counted++;
+    if (grid[i] == Was.off) misses++;
+    if (i == 0 || grid[i - 1] != Was.off) continue;
     afterMiss++;
-    if (!grid[i]) after++;
+    if (grid[i] == Was.off) after++;
   }
-  if (misses < 6 || afterMiss < 5) return null;
-  final base = misses / grid.length;
+  if (counted < 30 || misses < 6 || afterMiss < 5) return null;
+  final base = misses / counted;
   final then = after / afterMiss;
   if ((then - base).abs() < 0.12) return null;
   return Notice(
@@ -408,13 +543,25 @@ Notice? standoutDay(Habit h, DateTime now) {
   if (days.isEmpty) return null;
   final span = today.difference(first).inDays;
   if (span < 27) return null;
-  final seen = List<int>.filled(8, 0);
-  for (var i = 0; i <= span; i++) {
-    seen[first.add(Duration(days: i)).weekday]++;
-  }
+  // Cuántos de cada día de la semana pasaron de verdad — y los que el pueblo
+  // durmió no pasaron. Contarlos sería reprocharte tres martes que estabas de
+  // viaje, que es exactamente la clase de cuenta que una pausa viene a evitar.
   final hit = List<int>.filled(8, 0);
   for (final d in days) {
     hit[d.weekday]++;
+  }
+  // Cuántos de cada día de la semana pasaron de verdad — y los que el pueblo
+  // durmió no pasaron. Contarlos sería reprocharte tres martes que estabas de
+  // viaje, que es exactamente la clase de cuenta que una pausa viene a evitar.
+  // Un día dormido en el que pusiste pieza igual sí cuenta: está en [hit], y
+  // dejarlo fuera de aquí daría un día de la semana cumplido más veces de las
+  // que existió.
+  final on = <int>{for (final d in days) dayKey(d)};
+  final seen = List<int>.filled(8, 0);
+  for (var i = 0; i <= span; i++) {
+    final d = first.add(Duration(days: i));
+    if (h.restedOn(d) && !on.contains(dayKey(d))) continue;
+    seen[d.weekday]++;
   }
   for (var w = 1; w <= 7; w++) {
     if (seen[w] < 4) return null;
@@ -472,15 +619,14 @@ Notice? standoutDay(Habit h, DateTime now) {
 Notice? comeback(Habit h) {
   final days = daysOf(h);
   if (days.length < 6) return null;
-  final gaps = <int>[];
-  for (var i = 1; i < days.length; i++) {
-    final missed = days[i].difference(days[i - 1]).inDays - 1;
-    if (missed > 0) gaps.add(missed);
-  }
+  // En el orden en que pasaron, que es lo que hace falta para saber si estás
+  // volviendo antes que antes. Ordenados van aparte.
+  final gaps = gapsOf(h);
   if (gaps.length < 4) return null;
-  gaps.sort();
-  final mid = gaps[gaps.length ~/ 2];
-  final worst = gaps.last;
+  final trend = _returningFaster(gaps);
+  final sorted = [...gaps]..sort();
+  final mid = sorted[sorted.length ~/ 2];
+  final worst = sorted.last;
   // How many gaps of each length: one, two, three… and everything from six up
   // in the last bar, because past a week the exact number stops mattering.
   final tally = List<double>.filled(6, 0);
@@ -493,10 +639,20 @@ Notice? comeback(Habit h) {
   }
   return Notice(
     NoticeKind.comeback,
-    mid == 1
+    // Si estás volviendo más rápido que antes, eso es lo que hay que decir y
+    // no la mediana. Es lo único que esta app mide que mejora cuando fallás:
+    // alguien que pasó de desaparecer un mes a desaparecer dos días progresó
+    // muchísimo, y ninguna racha sabe decirlo — para una racha las dos cosas
+    // son «racha rota» y se acabó.
+    trend != null
+        ? 'Cada vez tardás menos en volver.'
+        : mid == 1
         ? 'Cuando faltás, volvés al día siguiente.'
         : 'Cuando faltás, solés volver a los $mid días.',
-    worst == 1
+    trend != null
+        ? 'Tus primeros huecos duraban ${_days(trend.$1)}. Los últimos, '
+              '${_days(trend.$2)}.'
+        : worst == 1
         ? 'Nunca has estado más de un día fuera.'
         : 'El hueco más largo que remontaste fue de $worst días.',
     bars: [for (final c in tally) c / top],
@@ -505,8 +661,43 @@ Notice? comeback(Habit h) {
     more:
         'Cada barra es cuántas veces estuviste fuera ese número de días. '
         '${gaps.length} huecos en total, y volviste de todos: el pueblo sigue '
-        'en pie.',
+        'en pie. No se trata de no fallar nunca, se trata de volver — y esto '
+        'es lo único de acá que mejora cuando fallás.',
   );
+}
+
+/// Si los últimos huecos son más cortos que los primeros, y de cuánto a
+/// cuánto. Nulo si no hay bastante diferencia como para decir nada.
+///
+/// La mitad contra la mitad, por la media: con pocos huecos una mediana no se
+/// mueve —tres huecos de 1, 1 y 30 dan mediana uno igual que 1, 1 y 2— y lo
+/// que se está buscando es precisamente si los largos se acabaron.
+(double, double)? _returningFaster(List<int> gaps) {
+  if (gaps.length < 6) return null;
+  final half = gaps.length ~/ 2;
+  var early = 0.0, late = 0.0;
+  for (var i = 0; i < half; i++) {
+    early += gaps[i];
+  }
+  for (var i = gaps.length - half; i < gaps.length; i++) {
+    late += gaps[i];
+  }
+  early /= half;
+  late /= half;
+  // Un día entero menos y al menos una cuarta parte: sin las dos cosas, pasar
+  // de 1,4 a 1,1 se anunciaría como una mejora y no es nada.
+  if (early - late < 1.0 || late > early * 0.75) return null;
+  return (early, late);
+}
+
+/// Un número de días que puede no ser entero, dicho como se dice en voz alta.
+String _days(double v) {
+  final r = (v * 10).round() / 10;
+  if (r == 1.0) return 'un día';
+  final txt = r == r.roundToDouble()
+      ? r.round().toString()
+      : r.toStringAsFixed(1).replaceAll('.', ',');
+  return '$txt días';
 }
 
 /// Two habits that turn up together, or never do.
@@ -542,7 +733,14 @@ Notice? pairing(Habit h, List<Habit> others, DateTime now) {
   final onB = <int>{for (final d in db) dayKey(d)};
   var withA = 0, bothOn = 0, withoutA = 0, bOnly = 0;
   for (var i = 0; i <= span; i++) {
-    final k = dayKey(from.add(Duration(days: i)));
+    final day = from.add(Duration(days: i));
+    final k = dayKey(day);
+    // Un día en que cualquiera de los dos dormía no dice nada de si van
+    // juntos: uno de los dos no estaba jugando.
+    if ((a.restedOn(day) && !onA.contains(k)) ||
+        (b.restedOn(day) && !onB.contains(k))) {
+      continue;
+    }
     if (onA.contains(k)) {
       withA++;
       if (onB.contains(k)) bothOn++;
@@ -569,7 +767,8 @@ Notice? pairing(Habit h, List<Habit> others, DateTime now) {
       ticks: ['con ${a.name}', 'sin ${a.name}'],
       mark: 0,
       more:
-          'Contado sobre los $span días desde que existen los dos: '
+          'Contado sobre los ${withA + withoutA} días desde que existen los '
+          'dos y ninguno dormía: '
           '$withA con ${a.name} y $withoutA sin. Dos barras iguales serían dos '
           'hábitos que no se enteran el uno del otro.',
     ),

@@ -129,6 +129,8 @@ class _Summary extends StatelessWidget {
     final days = store.lastDays(35);
     final maxDay = days.fold<int>(1, (m, d) => d.count > m ? d.count : m);
     final integrity = store.integrity;
+    final firme = store.consistency;
+    final vuelta = store.comingBack;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(22, 14, 22, 40),
@@ -141,8 +143,20 @@ class _Summary extends StatelessWidget {
               '${store.plan.finishedBuildings(store.total, store.habit.chronicle)}',
               'CASAS',
             ),
-            _stat(t, '${store.streak}', 'RACHA'),
-            _stat(t, '${store.bestStreak}', 'MEJOR'),
+            // Acá iban la racha y la mejor racha. Las dos cifras que quedan en
+            // su sitio son de otra clase: las primeras dos dicen cuánto
+            // acumulaste, y éstas dicen cómo te comportás. Una racha no puede
+            // decir eso, porque sólo sabe contar hacia arriba desde el último
+            // fallo.
+            _stat(
+              t,
+              firme.enough ? '${(firme.rate * 100).round()}%' : '—',
+              'CONSTANCIA',
+            ),
+            // Y la única cifra de toda la app que mejora cuando fallás: pasar
+            // de desaparecer un mes a desaparecer dos días es un progreso
+            // enorme que ninguna racha sabe representar.
+            _stat(t, vuelta == null ? '—' : '${vuelta}d', 'VUELTA'),
           ],
         ),
         const SizedBox(height: 26),
@@ -167,11 +181,18 @@ class _Summary extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          integrity > 0.99
+          store.habit.resting
+              ? 'El pueblo duerme. No se apaga, no pierde nada y no cuenta '
+                    'ningún día en contra hasta que despierte.'
+              : integrity > 0.99
               ? 'Todas las ventanas encendidas. Cada día que sumás una pieza siguen así.'
               : integrity > 0.6
               ? 'Empiezan a apagarse ventanas. Una sola pieza las vuelve a encender todas.'
-              : 'El pueblo se está quedando vacío. Una pieza alcanza para que vuelvan a encenderse.',
+              // Sin contar los días de ausencia y sin la palabra «vacío». Lo
+              // que hay que decirle a alguien que abre esto después de tres
+              // semanas es que no hay nada que recuperar.
+              : 'Están casi todas apagadas. Una sola pieza las enciende todas '
+                    'otra vez: no se pierde nada de lo construido.',
           style: t.bodySoft,
         ),
         const SizedBox(height: 28),
@@ -210,6 +231,34 @@ class _Summary extends StatelessWidget {
         Text(
           'Una pieza es siempre un logro. Nunca un lote.',
           style: t.bodySoft.copyWith(fontStyle: FontStyle.italic),
+        ),
+        const SizedBox(height: 26),
+        // Dos conceptos nuevos donde había uno viejo que todo el mundo
+        // entendía sin explicación. La racha se explicaba sola; esto no, y una
+        // cifra que no se entiende es una cifra que se ignora.
+        Text('LAS CIFRAS', style: t.label),
+        const SizedBox(height: 10),
+        Text(
+          firme.enough
+              ? 'Constancia es de los últimos ${firme.of} días que contaban, '
+                    'en cuántos pusiste algo: ${firme.done}. No es una racha. '
+                    'Un mal día la baja un poco y no la tira al suelo, que es '
+                    'lo que pasa de verdad cuando alguien falla un día.'
+              : 'La constancia sale a las dos semanas de uso: es de los '
+                    'últimos 30 días que contaban, en cuántos pusiste algo.',
+          style: t.bodySoft,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          vuelta == null
+              ? 'Vuelta es cuánto tardás en volver después de faltar. Aparece '
+                    'en cuanto haya huecos de los que hablar — y es la única '
+                    'cifra de acá que mejora cuando fallás.'
+              : 'Vuelta es cuánto tardás en volver después de faltar: '
+                    '${vuelta == 1 ? 'un día' : '$vuelta días'}. Es la que más '
+                    'importa. No se trata de no fallar nunca; se trata de que '
+                    'cada vez tardes menos en volver.',
+          style: t.bodySoft,
         ),
       ],
     );

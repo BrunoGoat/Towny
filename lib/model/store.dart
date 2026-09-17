@@ -10,6 +10,7 @@ import '../data/character.dart';
 import '../data/landmarks.dart';
 import '../engine/town.dart';
 import 'census.dart';
+import 'findings.dart';
 import 'habit.dart';
 import 'piece.dart';
 
@@ -20,6 +21,8 @@ class PlaceResult {
     required this.relit,
     required this.relitFrom,
     this.startedNewDay = false,
+    this.woke = false,
+    this.unlocked = false,
   });
 
   final Piece piece;
@@ -29,6 +32,14 @@ class PlaceResult {
   final double relitFrom;
 
   final bool startedNewDay;
+
+  /// True cuando esta pieza despertó a un pueblo que dormía: volviste antes de
+  /// lo que habías dicho.
+  final bool woke;
+
+  /// True cuando esta pieza fue la que abrió el valle: a partir de acá se
+  /// puede fundar un segundo pueblo. Pasa una sola vez en la vida de un valle.
+  final bool unlocked;
 }
 
 /// Everything the app remembers: the habits, and the towns they have built.
@@ -236,7 +247,169 @@ class Store extends ChangeNotifier {
 
   // ------------------------------------------------------------------ habits
 
-  bool get canAddHabit => habits.length < Habit.maxSlots;
+  // ------------------------------------------------------------- el candado
+
+  /// Si el valle ya se ganó el derecho a tener más de un pueblo.
+  ///
+  /// Una vez abierta, la puerta no se vuelve a cerrar nunca. Es lo único que
+  /// hace que un candado sea aceptable en esta app: un mes malo no te puede
+  /// quitar algo que ya habías conseguido, porque entonces el castigo caería
+  /// justo sobre la persona para la que está hecho todo lo demás.
+  bool _unlocked = false;
+
+  bool get unlocked => _unlocked || habits.length > 1;
+
+  /// Cuántos de los últimos [Pacing.unlockWindow] días tienen pieza, contando
+  /// el hábito que mejor va.
+  ///
+  /// Días con pieza y no piezas: diez en una tarde son una tarde, y lo que
+  /// esto pregunta es si la cosa se sostiene.
+  int get unlockProgress {
+    final today = dayStart(DateTime.now());
+    final from = today.subtract(const Duration(days: Pacing.unlockWindow - 1));
+    var best = 0;
+    for (final h in habits) {
+      final days = <int>{};
+      for (final p in h.pieces) {
+        final d = dayStart(p.placedAt);
+        if (d.isBefore(from) || d.isAfter(today)) continue;
+        days.add(dayKey(d));
+      }
+      if (days.length > best) best = days.length;
+    }
+    return best;
+  }
+
+  /// Si lo de hoy abre la puerta, dejarlo escrito.
+  ///
+  /// Se mira al poner una pieza y al cargar, que es cuando puede haber
+  /// cambiado. Escribirlo y no recalcularlo es lo que hace que no se cierre.
+  bool _checkUnlock() {
+    if (_unlocked) return false;
+    if (habits.length > 1 || unlockProgress >= Pacing.unlockDays) {
+      _unlocked = true;
+      return true;
+    }
+    return false;
+  }
+
+  /// Si se puede fundar otro pueblo ahora mismo.
+  ///
+  /// Dos condiciones, y son distintas entre sí: el valle tiene sitio, y vos
+  /// demostraste que podés sostener uno. La primera es geometría; la segunda
+  /// es la única cosa que esta app te pide antes de darte algo.
+  ///
+  /// El segundo pueblo se gana porque sobreestimar cuánto cambio se puede
+  /// sostener es lo que hace casi todo el mundo el primer día: cuando hay
+  /// ganas es facilísimo pensar «ahora sí» y querer arreglar diez cosas a la
+  /// vez, y cada una de ellas cuesta un poco de atención aunque no cueste
+  /// tiempo. Un valle que se abre solo es una lista de deseos; uno que se abre
+  /// cuando lo anterior se sostiene dice otra cosa — primero aprendí a
+  /// mantener una, ahora estoy listo para otra.
+  bool get canAddHabit => habits.length < Habit.maxSlots && unlocked;
+
+  // ------------------------------------------------------------ desenganche
+
+  /// A partir de cuántos días sin piezas un hueco deja de parecer un hueco.
+  ///
+  /// Contra tu propio ritmo y no contra un número fijo. Quien pone piezas tres
+  /// veces por semana no está desenganchado el jueves, y decirle que sí sería
+  /// exactamente el error que comete cualquier app que trate todos los días en
+  /// blanco como incumplimientos: cuatro faltas seguidas y cuatro faltas
+  /// seguidas de alguien que nunca falla no son la misma cosa.
+  ///
+  /// El tope de dos semanas está para que a nadie se le pase: con una mediana
+  /// de seis días el umbral saldría a dieciocho, y a los dieciocho días ya no
+  /// hay ritmo que valga.
+  static int adriftAfter(Habit h) {
+    final mid = typicalReturn(h) ?? 1;
+    return (mid * 3).clamp(4, 14);
+  }
+
+  /// El hábito sobre el que el pueblo tiene algo que preguntar, si lo hay.
+  ///
+  /// Lo que se está buscando no es incumplimiento sino desenganche, que son
+  /// dos cosas distintas y se tratan distinto. Un día sin aparecer no necesita
+  /// que nadie intervenga. Cuatro pueden ser el momento en que alguien pasa de
+  /// «fallé» a «ya fue», y eso vale la pena cortarlo — no para presionar, sino
+  /// porque a lo mejor el problema no sos vos y el hábito está mal planteado.
+  ///
+  /// Nulo casi siempre, que es como tiene que ser. Esta app pregunta dos veces
+  /// en su vida: cuando toca empezar una obra grande, y acá.
+  Habit? get adrift {
+    final h = habit;
+    if (h.pieces.isEmpty || h.resting) return null;
+    // Con menos de una semana de historia no se sabe nada de nadie, y una
+    // pregunta así el tercer día es una app opinando sin datos.
+    if (daysOf(h).length < 5) return null;
+    // Ya se preguntó por este hueco. Una vez y no más: la pregunta caduca
+    // cuando vuelve a caer una pieza, que es cuando empieza un hueco nuevo.
+    final asked = h.askedAt;
+    final last = h.lastPlacedAt;
+    if (asked != null && last != null && asked.isAfter(last)) return null;
+    return daysIdleOf(h) >= adriftAfter(h) ? h : null;
+  }
+
+  /// Que conste que ya se preguntó, conteste lo que conteste.
+  ///
+  /// Se apunta al abrir la hoja y no al contestarla, porque cerrarla sin
+  /// contestar también es una respuesta — es «ahora no» — y volver a
+  /// preguntar mañana sería no haberla escuchado.
+  void asked(Habit h) {
+    h.askedAt = DateTime.now();
+    _save();
+  }
+
+  // ----------------------------------------------------------------- dormir
+
+  /// Dormir un pueblo hasta [until].
+  ///
+  /// Mientras duerme no se apaga, no cuenta días en contra y no sale en
+  /// ninguna cuenta del tablón. La vida cambia: un hábito que iba perfecto en
+  /// enero puede no tener ningún sentido durante un viaje, una mudanza o un
+  /// mes imposible, y una app cuyas dos únicas opciones son seguir o fallar
+  /// convierte eso en un fracaso. Esto es lo que separa «no estoy pudiendo con
+  /// esto ahora» de «ya no quiero que esto forme parte de mi vida».
+  ///
+  /// Siempre con fecha de vuelta, nunca abierta. Una pausa sin final es
+  /// abandono con mejor nombre.
+  void rest(Habit h, DateTime until) {
+    final now = DateTime.now();
+    if (!until.isAfter(now)) return;
+    // Dormir dos veces es dormir una vez más largo, no dos tramos solapados.
+    wake(h, silent: true);
+    h.rests.add(Rest(now, until).encode());
+    integrityAtLaunch = integrityOf(habit);
+    _save();
+    notifyListeners();
+  }
+
+  /// Despertarlo ahora, antes de tiempo.
+  ///
+  /// El tramo se recorta hasta hoy en vez de borrarse: lo que duró de verdad
+  /// es un dato, y volver antes de tiempo es exactamente la clase de cosa que
+  /// esta app tiene que saber contar.
+  void wake(Habit h, {bool silent = false}) {
+    final now = DateTime.now();
+    var moved = false;
+    for (var i = 0; i < h.rests.length; i++) {
+      final r = Rest.parse(h.rests[i]);
+      if (r == null || !r.covers(now)) continue;
+      // Una pausa que se corta el mismo día que empezó no llegó a existir: no
+      // llegó a pasar una noche, no le quitó un día a ninguna cuenta y lo
+      // único que dejaría escrito es que alguien tocó el botón y se arrepintió.
+      if (dayKey(r.from) == dayKey(now)) {
+        h.rests.removeAt(i--);
+      } else {
+        h.rests[i] = Rest(r.from, now).encode();
+      }
+      moved = true;
+    }
+    if (!moved || silent) return;
+    integrityAtLaunch = integrityOf(habit);
+    _save();
+    notifyListeners();
+  }
 
   /// The next free plot in the valley. Slots are never reused while their
   /// habit exists, so nobody's town ever moves.
@@ -248,7 +421,13 @@ class Store extends ChangeNotifier {
     return habits.length;
   }
 
-  Habit addHabit(String name, String symbol, {int? character}) {
+  Habit addHabit(
+    String name,
+    String symbol, {
+    int? character,
+    String? why,
+    String? floor,
+  }) {
     final slot = _freeSlot();
     final h = Habit(
       id: 'h${DateTime.now().microsecondsSinceEpoch}',
@@ -256,10 +435,14 @@ class Store extends ChangeNotifier {
       symbol: resolveHabitSymbol(symbol),
       slot: slot,
       character: character ?? TownCharacter.forSlot(slot).order,
+      why: why == null || why.trim().isEmpty ? null : why.trim(),
+      floor: floor == null || floor.trim().isEmpty ? null : floor.trim(),
       createdAt: DateTime.now(),
     );
     habits.add(h);
     active = habits.length - 1;
+    // Un valle con dos pueblos está del otro lado de la puerta por definición.
+    _checkUnlock();
     _save();
     notifyListeners();
     return h;
@@ -271,6 +454,26 @@ class Store extends ChangeNotifier {
     if (name != null && name.trim().isNotEmpty) h.name = name.trim();
     if (symbol != null && symbol.isNotEmpty) {
       h.symbol = resolveHabitSymbol(symbol);
+    }
+    _save();
+    notifyListeners();
+  }
+
+  /// Para qué es esto, y qué es lo más chico que cuenta.
+  ///
+  /// Las dos se pueden borrar dejándolas en blanco, al revés que el nombre:
+  /// un pueblo sin nombre no se puede dibujar, y un hábito sin motivo escrito
+  /// es un hábito normal.
+  void describeHabit(int index, {String? why, String? floor}) {
+    if (index < 0 || index >= habits.length) return;
+    final h = habits[index];
+    if (why != null) {
+      final t = why.trim();
+      h.why = t.isEmpty ? null : t;
+    }
+    if (floor != null) {
+      final t = floor.trim();
+      h.floor = t.isEmpty ? null : t;
     }
     _save();
     notifyListeners();
@@ -380,7 +583,12 @@ class Store extends ChangeNotifier {
     active = active.clamp(0, habits.length - 1);
     // Una copia guardada por una versión anterior no trae crónica. Se escribe
     // aquí, con el catálogo de hoy, y de ahí en adelante ya no se recalcula.
-    if (_writeUpWorks(habit) || _writeUpAll()) _save();
+    // Y si los días que ya llevaba puestos abren la puerta, queda escrito al
+    // arrancar y no la primera vez que ponga una pieza: nadie tiene que poner
+    // una más para cobrar algo que ya se había ganado.
+    var moved = _checkUnlock();
+    if (_writeUpWorks(habit) || _writeUpAll()) moved = true;
+    if (moved) _save();
     integrityAtLaunch = integrity;
     loaded = true;
     notifyListeners();
@@ -431,6 +639,12 @@ class Store extends ChangeNotifier {
         ),
       );
     active = (j['a'] as num?)?.toInt() ?? 0;
+    // El candado llegó después que la app, así que una copia anterior no lo
+    // trae — y un valle que ya tenía varios pueblos cuando esto no existía es,
+    // por definición, un valle que ya está del otro lado de la puerta. Se
+    // marca abierto y no se le pregunta nada. Nadie pierde un pueblo por una
+    // regla que se inventó después de que lo fundara.
+    _unlocked = (j['u'] as bool?) ?? habits.length > 1;
     // `sky` —el cuaderno de constelaciones— se lee y se tira: al no volver a
     // escribirse, el disco se limpia solo en el primer guardado.
   }
@@ -438,6 +652,7 @@ class Store extends ChangeNotifier {
   Map<String, dynamic> _encode() => {
     'v': 1,
     'a': active,
+    if (_unlocked) 'u': true,
     'h': habits.map((h) => h.toJson()).toList(),
   };
 
@@ -495,6 +710,11 @@ class Store extends ChangeNotifier {
       ..clear()
       ..addAll(read);
     active = ((parsed['a'] as num?)?.toInt() ?? 0).clamp(0, habits.length - 1);
+    // Lo mismo que al cargar: una copia con varios pueblos dentro ya está del
+    // otro lado de la puerta, la traiga escrito o no. Restaurar una copia no
+    // puede devolverte a un valle donde tus propios pueblos no cabrían.
+    _unlocked = (parsed['u'] as bool?) ?? habits.length > 1;
+    _checkUnlock();
     preview = null;
     _writeUpAll();
     integrityAtLaunch = integrity;
@@ -528,11 +748,16 @@ class Store extends ChangeNotifier {
     final now = DateTime.now();
     final before = integrity;
     final hadToday = _countOn(now) > 0;
+    // Poner una pieza durante una pausa es volver, y volver antes de tiempo es
+    // volver. Nadie tiene que despertar el pueblo a mano para poder usarlo.
+    final wasResting = habit.resting;
+    if (wasResting) wake(habit, silent: true);
 
     final piece = Piece(index: habit.total, placedAt: now);
     habit.pieces.add(piece);
     // Y si esta pieza empieza un edificio nuevo, queda escrito qué edificio es.
     _writeUpWorks(habit);
+    final abrio = _checkUnlock();
 
     _save();
     notifyListeners();
@@ -542,6 +767,8 @@ class Store extends ChangeNotifier {
       relit: before < 0.999,
       relitFrom: before,
       startedNewDay: !hadToday,
+      woke: wasResting,
+      unlocked: abrio,
     );
   }
 
@@ -600,7 +827,15 @@ class Store extends ChangeNotifier {
   static double daysIdleOf(Habit h) {
     final last = h.lastPlacedAt;
     if (last == null) return 0;
-    final d = DateTime.now().difference(last).inMinutes / 1440.0;
+    // Dormido no es abandonado: mientras dura la pausa no corre el reloj.
+    if (h.resting) return 0;
+    // Y al despertar se cuenta desde que despertó, no desde la última pieza.
+    // Es la mitad de para lo que existe una pausa: se vuelve sin deuda, con el
+    // día y medio de gracia entero, y no arrastrando las tres semanas que el
+    // pueblo estuvo durmiendo con las luces encendidas.
+    final woke = h.wokeAt;
+    final since = woke != null && woke.isAfter(last) ? woke : last;
+    final d = DateTime.now().difference(since).inMinutes / 1440.0;
     return d < 0 ? 0 : d;
   }
 
@@ -611,40 +846,27 @@ class Store extends ChangeNotifier {
   double get integrity => integrityOf(habit);
   bool get isDecaying => integrity < 0.995;
 
-  // ----------------------------------------------------------------- streaks
+  // ------------------------------------------------------------ consistencia
 
-  int get streak => streakOf(habit);
-  int get bestStreak => _bestStreakOf(habit);
+  // Acá vivían la racha y la mejor racha. Ya no.
+  //
+  // Una racha es atractiva porque se entiende sola y se ve bonita, y tiene un
+  // defecto psicológico que se lleva por delante todo lo demás: hace que el
+  // pasado pese demasiado. Con cuarenta días detrás y un fallo hoy parece que
+  // pasaste de cuarenta a cero — pero tu comportamiento no hizo eso. Hiciste
+  // el hábito cuarenta días y hoy no.
+  //
+  // Una racha te dice «no rompas esto». La consistencia te dice «en general,
+  // lo estás haciendo». Lo segundo es lo único que se puede decir de algo
+  // sostenible, porque la sostenibilidad admite imperfección por definición.
+  //
+  // No quedó ninguna en ningún rincón de la app a propósito: dejarla escondida
+  // en una hoja secundaria sería seguir diciendo que importa.
 
-  static int streakOf(Habit h) {
-    if (h.pieces.isEmpty) return 0;
-    final days = <DateTime>{for (final p in h.pieces) dayStart(p.placedAt)};
-    var cursor = dayStart(DateTime.now());
-    if (!days.contains(cursor)) {
-      cursor = cursor.subtract(const Duration(days: 1));
-      if (!days.contains(cursor)) return 0;
-    }
-    var count = 0;
-    while (days.contains(cursor)) {
-      count++;
-      cursor = cursor.subtract(const Duration(days: 1));
-    }
-    return count;
-  }
+  Consistency get consistency => consistencyOf(habit);
 
-  static int _bestStreakOf(Habit h) {
-    if (h.pieces.isEmpty) return 0;
-    final days = <DateTime>{
-      for (final p in h.pieces) dayStart(p.placedAt),
-    }.toList()..sort();
-    var best = 1, run = 1;
-    for (var i = 1; i < days.length; i++) {
-      final gap = days[i].difference(days[i - 1]).inDays;
-      run = gap == 1 ? run + 1 : 1;
-      if (run > best) best = run;
-    }
-    return best;
-  }
+  /// Cuánto tardás en volver. Ver [typicalReturn].
+  int? get comingBack => typicalReturn(habit);
 
   /// Cuántas piezas lleva hoy este pueblo.
   ///
@@ -696,6 +918,9 @@ class Store extends ChangeNotifier {
       ),
     );
     active = 0;
+    // Un valle en blanco es un valle en blanco: la puerta vuelve a estar
+    // cerrada, igual que en un teléfono que nunca abrió la app.
+    _unlocked = false;
     await _prefs?.remove(_key);
     integrityAtLaunch = 1.0;
     notifyListeners();

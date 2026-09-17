@@ -8,9 +8,11 @@ import '../fx/sensory.dart';
 import '../model/appearance.dart';
 import '../model/board.dart';
 import '../model/board_seen.dart';
+import '../model/habit.dart';
 import '../model/piece.dart';
 import '../data/landmarks.dart';
 import '../model/store.dart';
+import 'adrift_sheet.dart';
 import 'board_glyph.dart';
 import 'choice_sheet.dart';
 import 'cloud_flight.dart';
@@ -21,9 +23,11 @@ import 'lectern_glyph.dart';
 import 'legends_book.dart';
 import 'notice_board.dart';
 import 'overlays.dart';
+import 'rest_sheet.dart';
 import 'settings_sheet.dart';
 import 'style.dart';
 import 'town_sign.dart';
+import 'unlock_sheet.dart';
 import '../engine/town.dart';
 import 'town_view.dart';
 
@@ -93,6 +97,7 @@ class _HomeScreenState extends State<HomeScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _greet();
       _lookForNews();
+      _askIfAdrift();
     });
   }
 
@@ -123,21 +128,54 @@ class _HomeScreenState extends State<HomeScreen>
     _lookForNews();
   }
 
-  /// One line on opening, so the wall's condition is the first thing you learn.
+  /// Una línea al abrir.
+  ///
+  /// Y de todas las líneas de la app, ésta es la que más importa, porque el
+  /// momento en que alguien vuelve después de tres semanas fuera pesa mucho
+  /// más que su primer día. Ahí hay una bifurcación: o «volví, pero perdí
+  /// todo y estoy atrasadísimo», o «volví, sigamos». Lo primero es vergüenza y
+  /// deuda; lo segundo es continuidad, y es lo único que hace que haya una
+  /// cuarta vez.
+  ///
+  /// Decía «17 días sin piezas. El pueblo se está quedando a oscuras.», que es
+  /// recibir a alguien con la cuenta de su ausencia. El dato era cierto y no
+  /// servía para nada: quien vuelve ya sabe que estuvo fuera. Lo único que
+  /// hacía falta decirle es que no tiene nada que justificar y que una sola
+  /// pieza lo arregla entero — que en esta app, además, es literalmente verdad.
   void _greet() {
     final s = widget.store;
+    final h = s.habit;
     if (s.total == 0) {
       _showWhisper(
         'Mantené el botón para poner tu primera piedra',
         duration: const Duration(seconds: 6),
       );
-    } else if (s.integrityAtLaunch < 0.92) {
-      final days = s.daysIdle.floor();
-      _showWhisper(
-        '$days días sin piezas. El pueblo se está quedando a oscuras.',
-        duration: const Duration(seconds: 5),
-      );
+      return;
     }
+    if (h.resting) {
+      _showWhisper(
+        'Este pueblo está durmiendo. Podés poner una pieza igual.',
+        duration: const Duration(seconds: 4),
+      );
+      return;
+    }
+    if (s.integrityAtLaunch >= 0.92) return;
+    // Cuanto más tiempo estuvo fuera, más claro hay que decirle que no hay
+    // nada que recuperar. El caso largo es el que se pierde si se calla.
+    final largo = s.daysIdle >= 10;
+    var vuelta = largo
+        ? 'El pueblo te estaba esperando. No perdiste nada: una pieza y '
+              'vuelven las luces.'
+        : 'Acá seguís. Una pieza y el pueblo vuelve a encenderse.';
+    // Y en el hueco largo, lo que vos mismo escribiste el día que fundaste
+    // esto — el motivo primero, y si no hay, lo mínimo que cuenta. Éste es
+    // justo el momento para el que se guardaron: no hacen falta cuando hay
+    // ganas, hacen falta cuando ya no las hay.
+    if (largo) {
+      final suyo = h.why ?? h.floor;
+      if (suyo != null) vuelta = '$vuelta\n«$suyo»';
+    }
+    _showWhisper(vuelta, duration: Duration(seconds: largo ? 7 : 5));
   }
 
   /// Anunciar el pueblo. Sale uno de los cinco diseños al azar, para poder
@@ -441,7 +479,7 @@ class _HomeScreenState extends State<HomeScreen>
                 _announceTown();
               },
               onManage: _openHabits,
-              onAdd: () => _openHabits(startNew: true),
+              onAdd: _addHabit,
               wall: _wall,
               onPlace: () {
                 _wall.clearSelection();
@@ -475,6 +513,24 @@ class _HomeScreenState extends State<HomeScreen>
             ),
         ],
       ),
+    );
+  }
+
+  /// El más de la barra. Dos puertas distintas detrás del mismo botón: la de
+  /// fundar, y la de enterarse de cuánto falta para poder.
+  void _addHabit() {
+    if (widget.store.canAddHabit) {
+      _openHabits(startNew: true);
+      return;
+    }
+    if (widget.store.unlocked) return; // el valle está lleno, y eso no se abre
+    Sensory.instance.tick();
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: sheetScrim(_theme.dark),
+      builder: (_) => UnlockSheet(store: widget.store, theme: _theme),
     );
   }
 
@@ -541,6 +597,80 @@ class _HomeScreenState extends State<HomeScreen>
 
   /// Para no abrir dos hojas si caen dos piezas seguidas muy rápido.
   bool _asking = false;
+
+  // ------------------------------------------------------------ desenganche
+
+  /// Si el pueblo tiene algo que preguntar sobre un hueco largo, preguntarlo.
+  ///
+  /// Al abrir la app y no al poner una pieza, que es justo al revés que la
+  /// otra pregunta: ésta trata sobre no haber puesto ninguna. Y detrás del
+  /// saludo, porque lo primero que tiene que pasar al volver es que te reciban
+  /// —una hoja encima del susurro de vuelta convierte el regreso en un
+  /// trámite, que es exactamente lo que no puede pasar acá.
+  void _askIfAdrift() {
+    if (_asking) return;
+    final store = widget.store;
+    final h = store.adrift;
+    if (h == null) return;
+    _asking = true;
+    final days = store.daysIdle.floor();
+    // Detrás del saludo y no encima. Lo primero que tiene que pasar al volver
+    // es que te reciban; una hoja subiendo sobre el susurro de bienvenida
+    // convierte el regreso en un trámite.
+    Future.delayed(const Duration(milliseconds: 4200), () {
+      if (!mounted) {
+        _asking = false;
+        return;
+      }
+      // Que conste ahora y no antes de la espera: si la app se cierra en esos
+      // cuatro segundos, la pregunta no llegó a hacerse y tiene que seguir
+      // pendiente. Y desde acá vale para cualquier respuesta, incluida cerrar
+      // la hoja sin contestar — eso también es contestar «ahora no», y volver
+      // a preguntar mañana sería no haberlo oído.
+      store.asked(h);
+      _whisperTimer?.cancel();
+      setState(() => _whisper = null);
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        barrierColor: sheetScrim(_theme.dark),
+        builder: (_) => AdriftSheet(
+          habit: h,
+          theme: _theme,
+          days: days,
+          onKeep: () => _showWhisper('Acá seguimos.'),
+          // Lo mínimo que cuenta se escribe donde se escribe todo lo del
+          // hábito, y no en una copia del campo dentro de esta hoja: hay una
+          // sola manera de cambiarlo y está en un solo sitio.
+          onShrink: _openHabits,
+          onRest: () => _openRest(h),
+          onDrop: _openHabits,
+        ),
+      ).whenComplete(() => _asking = false);
+    });
+  }
+
+  /// Dormir un pueblo: desde la pregunta, y desde la hoja del hábito.
+  void _openRest(Habit h) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: sheetScrim(_theme.dark),
+      builder: (_) => RestSheet(
+        habit: h,
+        theme: _theme,
+        onRest: (until) {
+          widget.store.rest(h, until);
+          _showWhisper(
+            'El pueblo duerme. Volvé cuando puedas: no cuenta ningún día.',
+            duration: const Duration(seconds: 5),
+          );
+        },
+      ),
+    );
+  }
 
   void _readBoard(int town) {
     final store = widget.store;
@@ -636,8 +766,13 @@ class _TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = theme;
-    final decaying = store.isDecaying;
-    final days = store.streak;
+    final habit = store.habit;
+    final asleep = habit.resting;
+    final decaying = store.isDecaying && !asleep;
+    // Lo que sustituyó a la racha: de los días que contaban, en cuántos hubo
+    // pieza. Un número que una mala semana baja un poco y no tira al suelo, y
+    // que por lo tanto se puede mirar un día malo sin que duela mirarlo.
+    final firme = store.consistency;
     final hoy = store.today;
     final ultima = store.lastPlacedAt;
     // Two doors, because there are two different things behind them: the
@@ -670,12 +805,17 @@ class _TopBar extends StatelessWidget {
                       style: t.label.copyWith(shadows: t.halo),
                     ),
                   ),
-                  if (days > 0) ...[
+                  // Acá iba la racha. Ahora va cuántos de los días que
+                  // contaban tienen pieza, que es lo mismo que preguntaba la
+                  // racha contestado de una manera que admite un mal día. No
+                  // se dice hasta que hay dos semanas de las que hablar: «1 de
+                  // 1» el primer día no es una medida de nada.
+                  if (firme.enough) ...[
                     const SizedBox(width: 14),
                     Padding(
                       padding: const EdgeInsets.only(bottom: 1),
                       child: Text(
-                        '$days ${days == 1 ? 'DÍA' : 'DÍAS'}',
+                        '${firme.done}/${firme.of} DÍAS',
                         style: t.label.copyWith(
                           shadows: t.halo,
                           color: t.fg.withValues(alpha: 0.44),
@@ -705,15 +845,21 @@ class _TopBar extends StatelessWidget {
               ),
               const SizedBox(height: 5),
               Text(
-                decaying
-                    ? 'Se están apagando las ventanas · una pieza las enciende'
+                asleep
+                    ? 'El pueblo duerme · ${_sleepUntil(habit.wakesAt!)}'
+                    : decaying
+                    // Lo mismo que decía antes, dicho sin contar los días que
+                    // faltaste. La información útil es idéntica —está a
+                    // oscuras, una pieza lo arregla— y la contabilidad de la
+                    // culpa no hacía falta para darla.
+                    ? 'Una pieza y vuelven las luces'
                     : store.nextEventLabel,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: decaying
                       ? const Color(0xFFE0A055)
-                      : t.fg.withValues(alpha: 0.50),
+                      : t.fg.withValues(alpha: asleep ? 0.40 : 0.50),
                   fontSize: 12,
                   letterSpacing: 0.1,
                   shadows: t.halo,
@@ -755,6 +901,14 @@ class _TopBar extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Hasta cuándo duerme, dicho como se dice en voz alta.
+String _sleepUntil(DateTime until) {
+  final dias = dayStart(until).difference(dayStart(DateTime.now())).inDays;
+  if (dias <= 0) return 'despierta hoy';
+  if (dias == 1) return 'despierta mañana';
+  return 'despierta en $dias días';
 }
 
 class _BottomDeck extends StatelessWidget {

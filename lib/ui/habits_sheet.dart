@@ -6,8 +6,10 @@ import '../data/character.dart';
 import '../data/symbols.dart';
 import '../fx/sensory.dart';
 import '../model/appearance.dart';
+import '../model/habit.dart';
 import '../model/store.dart';
 import 'habit_sigil.dart';
+import 'rest_sheet.dart';
 import 'style.dart';
 
 /// Making a habit, and everything you can change about one afterwards.
@@ -38,6 +40,11 @@ Color _danger(bool dark) =>
 
 class _HabitsSheetState extends State<HabitsSheet> {
   late final TextEditingController _name;
+
+  /// Para qué es esto, y qué es lo más chico que cuenta. Las dos opcionales.
+  late final TextEditingController _why;
+  late final TextEditingController _floor;
+
   late String _symbol;
   late int _place;
   bool _creating = false;
@@ -63,6 +70,8 @@ class _HabitsSheetState extends State<HabitsSheet> {
     _creating = widget.startNew && widget.store.canAddHabit;
     final h = widget.store.habit;
     _name = TextEditingController(text: _creating ? '' : h.name);
+    _why = TextEditingController(text: _creating ? '' : (h.why ?? ''));
+    _floor = TextEditingController(text: _creating ? '' : (h.floor ?? ''));
     _symbol = _creating ? habitSymbols.first : h.symbol;
     _place = _creating
         ? TownCharacter.forSlot(widget.store.habits.length).order
@@ -73,6 +82,8 @@ class _HabitsSheetState extends State<HabitsSheet> {
   @override
   void dispose() {
     _name.dispose();
+    _why.dispose();
+    _floor.dispose();
     _reel.dispose();
     super.dispose();
   }
@@ -162,11 +173,18 @@ class _HabitsSheetState extends State<HabitsSheet> {
     if (_creating) return;
     final store = widget.store;
     store.renameHabit(store.active, name: _name.text, symbol: _symbol);
+    store.describeHabit(store.active, why: _why.text, floor: _floor.text);
   }
 
   void _found() {
     Sensory.instance.tick();
-    widget.store.addHabit(_name.text, _symbol, character: _place);
+    widget.store.addHabit(
+      _name.text,
+      _symbol,
+      character: _place,
+      why: _why.text,
+      floor: _floor.text,
+    );
     Navigator.of(context).pop();
   }
 
@@ -266,6 +284,64 @@ class _HabitsSheetState extends State<HabitsSheet> {
     ),
   );
 
+  /// Las dos líneas que sólo se leen el día malo.
+  ///
+  /// Van juntas y debajo del nombre porque son la misma pregunta hecha por los
+  /// dos lados: para qué querés esto, y qué es lo más chico que sigue
+  /// contando. La primera es lo que se olvida cuando se acaba el entusiasmo;
+  /// la segunda es lo que decide si un día flojo termina en cero o en algo.
+  ///
+  /// Las dos opcionales y las dos en letra floja: quien viene a fundar un
+  /// pueblo y ponerse a ello no tiene que rellenar un formulario, y un campo
+  /// vacío acá no le quita nada a nadie. No se enseñan en ningún día bueno —
+  /// salen en el susurro de vuelta y en la hoja que pregunta si seguimos.
+  Widget _theTwoLines(UiTheme t) => Column(
+    children: [
+      _softLine(t, _why, 'PARA QUÉ', 'para tener más energía durante el día'),
+      const SizedBox(height: 8),
+      _softLine(
+        t,
+        _floor,
+        'LO MÍNIMO QUE CUENTA',
+        'abrir el libro y leer una página',
+      ),
+    ],
+  );
+
+  Widget _softLine(
+    UiTheme t,
+    TextEditingController c,
+    String label,
+    String hint,
+  ) => Column(
+    children: [
+      Text(label, style: t.label.copyWith(fontSize: 9, letterSpacing: 1.8)),
+      const SizedBox(height: 3),
+      TextField(
+        controller: c,
+        onChanged: (_) => _keep(),
+        textAlign: TextAlign.center,
+        textCapitalization: TextCapitalization.none,
+        maxLength: 70,
+        maxLines: 2,
+        minLines: 1,
+        style: t.bodySoft.copyWith(fontSize: 13, height: 1.35),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: t.bodySoft.copyWith(
+            fontSize: 13,
+            height: 1.35,
+            color: t.fg.withValues(alpha: 0.28),
+          ),
+          counterText: '',
+          isDense: true,
+          contentPadding: EdgeInsets.zero,
+          border: InputBorder.none,
+        ),
+      ),
+    ],
+  );
+
   /// Qué clase de sitio es este pueblo: la comarca entre dos filetes, y su
   /// línea debajo.
   Widget _region(UiTheme t, TownCharacter ch) => Column(
@@ -305,17 +381,80 @@ class _HabitsSheetState extends State<HabitsSheet> {
   Widget _hair(UiTheme t, [double? ancho]) =>
       Container(width: ancho, height: 1, color: t.fg.withValues(alpha: 0.10));
 
-  /// Borrar un pueblo entero. Nunca es un botón grande y nunca está arriba.
-  Widget _remove(UiTheme t) => Center(
-    child: TextButton(
-      onPressed: () => _confirmRemove(context),
-      style: TextButton.styleFrom(foregroundColor: _danger(t.dark)),
-      child: Text(
-        'Eliminar este hábito',
-        style: t.bodySoft.copyWith(fontSize: 12.5, color: _danger(t.dark)),
+  /// Dormir este pueblo, o despertarlo.
+  ///
+  /// Acá y no sólo en la hoja que pregunta si seguimos, porque una pausa casi
+  /// siempre se decide antes y no después: uno sabe que se va de viaje el
+  /// martes que viene. Que la única manera de pausar fuera desaparecer cuatro
+  /// días y esperar a que la app preguntara sería pedirle a la gente que falle
+  /// primero para poder decir que no va a poder.
+  /// Las dos salidas de un hábito que no está yendo, una al lado de la otra.
+  ///
+  /// En la misma fila y no una debajo de otra, y no sólo por el alto: puestas
+  /// juntas se leen como lo que son, dos respuestas a la misma situación entre
+  /// las que hay que elegir. Dormirlo va primero y en letra normal; borrarlo va
+  /// segundo y en el color con el que se dicen las cosas que no se deshacen.
+  Widget _exits(UiTheme t) {
+    final h = widget.store.habit;
+    final duerme = h.resting;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Flexible(
+          child: TextButton(
+            onPressed: duerme ? () => _wake(h) : () => _sleep(t, h),
+            child: Text(
+              duerme ? 'Despertar el pueblo' : 'Pausar este pueblo',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: t.bodySoft.copyWith(
+                fontSize: 12.5,
+                color: duerme ? t.accent : null,
+              ),
+            ),
+          ),
+        ),
+        Flexible(
+          child: TextButton(
+            onPressed: () => _confirmRemove(context),
+            style: TextButton.styleFrom(foregroundColor: _danger(t.dark)),
+            child: Text(
+              'Eliminar este hábito',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: t.bodySoft.copyWith(
+                fontSize: 12.5,
+                color: _danger(t.dark),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _wake(Habit h) {
+    Sensory.instance.tick();
+    widget.store.wake(h);
+    setState(() {});
+  }
+
+  void _sleep(UiTheme t, Habit h) {
+    Sensory.instance.tick();
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: sheetScrim(t.dark),
+      builder: (_) => RestSheet(
+        habit: h,
+        theme: t,
+        onRest: (cuando) => widget.store.rest(h, cuando),
       ),
-    ),
-  );
+    ).whenComplete(() {
+      if (mounted) setState(() {});
+    });
+  }
 
   /// Las seis comarcas, para elegir una al fundar.
   Widget _regionPicker(UiTheme t) => Row(
@@ -441,7 +580,9 @@ class _HabitsSheetState extends State<HabitsSheet> {
                   const SizedBox(height: 10),
                   _hair(t),
                   _reelSlot(t),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 14),
+                  _theTwoLines(t),
+                  const SizedBox(height: 14),
                   if (_creating) ...[
                     Text('QUÉ CLASE DE PUEBLO', style: t.label),
                     const SizedBox(height: 10),
@@ -467,10 +608,10 @@ class _HabitsSheetState extends State<HabitsSheet> {
                   // teclea, así que no hay nada que confirmar ni nada que
                   // perder al cerrar.
                   if (!_creating) ...[
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 10),
                     _hair(t),
-                    const SizedBox(height: 6),
-                    _remove(t),
+                    const SizedBox(height: 2),
+                    _exits(t),
                   ],
                 ],
               ),

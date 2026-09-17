@@ -132,12 +132,22 @@ class Whisper extends StatelessWidget {
         theme: theme,
         radius: 30,
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
-        child: Text(
-          message,
-          style: TextStyle(
-            color: theme.fg.withValues(alpha: 0.9),
-            fontSize: 12.5,
-            letterSpacing: 0.4,
+        // Casi todos los susurros son media línea, pero el de la vuelta no: es
+        // el único que tiene algo que decir y lleva detrás, entre comillas, lo
+        // que vos mismo escribiste el día que fundaste esto. Con un ancho
+        // máximo cae en dos o tres renglones centrados en vez de estirarse de
+        // canto a canto de la pantalla.
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 290),
+          child: Text(
+            message,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: theme.fg.withValues(alpha: 0.9),
+              fontSize: 12.5,
+              letterSpacing: 0.4,
+              height: 1.45,
+            ),
           ),
         ),
       ),

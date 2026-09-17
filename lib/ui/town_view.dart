@@ -10,6 +10,7 @@ import '../core/rng.dart';
 import '../engine/camera.dart';
 
 import '../data/landmarks.dart';
+import '../data/pacing.dart';
 import '../engine/solids.dart';
 import '../engine/town.dart';
 import '../engine/palette.dart';
@@ -171,6 +172,10 @@ class _TownViewState extends State<TownView>
   double _showcaseAge = 0;
 
   double _displayIntegrity = 1;
+
+  /// Segundos que le quedan a las luces para volver despacio. Ver
+  /// [_welcomeBack].
+  double _relightSlow = 0;
   int? _selectedPiece;
   double _charge = 0;
 
@@ -464,8 +469,17 @@ class _TownViewState extends State<TownView>
     }
 
     final target = widget.store.integrity;
+    // Normalmente esto alcanza al objetivo en menos de un segundo, que es lo
+    // que hace falta para que apagarse y encenderse no se vean como un salto.
+    // Volver de un pueblo a oscuras es la excepción: ahí se frena a propósito,
+    // para que las luces tarden en volver lo que tarda en mirarse.
+    final ritmo = _relightSlow > 0 ? 0.55 : 1.4;
     _displayIntegrity +=
-        (target - _displayIntegrity) * (1 - math.exp(-dt * 1.4));
+        (target - _displayIntegrity) * (1 - math.exp(-dt * ritmo));
+    if (_relightSlow > 0) {
+      _relightSlow -= dt;
+      if (_relightSlow <= 0) _relightSlow = 0;
+    }
 
     _spawnAmbient(dt);
 
@@ -707,9 +721,85 @@ class _TownViewState extends State<TownView>
         widget.onWhisper('${building.name} en pie');
       }
     }
-    if (result != null && result.relit) {
-      widget.onWhisper('El pueblo vuelve a encenderse');
+    if (result != null && result.relit) _welcomeBack(result, town, done);
+    // Y si ésta fue la pieza que abrió el valle, se dice. Pasa una sola vez en
+    // la vida de un valle, y si no se dijera nadie se enteraría: el anillo del
+    // más se cierra y ya está, que es muy poco para lo que acaba de pasar.
+    if (result != null && result.unlocked) {
+      _fx.celebrate(V3(town.cx, 0, town.cz), 2.0, count: 46);
+      Future.delayed(const Duration(milliseconds: 260), () {
+        if (mounted) Sensory.instance.milestone();
+      });
+      widget.onWhisper(
+        'El valle abre un segundo solar. Ya podés fundar otro pueblo.',
+      );
     }
+  }
+
+  /// El regreso, que es el momento más importante que tiene esta app.
+  ///
+  /// Se despachaba con el mismo susurro de tres segundos que «Molino en pie»,
+  /// y no es la misma clase de cosa. Una app de hábitos no consigue que nadie
+  /// sea perfecto; lo más que puede hacer es que abandonar del todo sea cada
+  /// vez más difícil, y eso se juega entero acá — en si volver se siente como
+  /// una fiesta o como pasar lista.
+  ///
+  /// Así que la celebración crece con lo apagado que estaba: volver desde el
+  /// doce por ciento tiene que sentirse como rematar un hito, porque
+  /// psicológicamente es más que eso. Alguien que vuelve después de veinte
+  /// días está demostrando que el abandono no era definitivo, y eso vale más
+  /// que cualquier racha que pudiera haber conservado.
+  void _welcomeBack(PlaceResult result, TownLayout town, bool finished) {
+    // Cero cuando apenas se había apagado, uno cuando estaba en el suelo.
+    final hondo = clampD(
+      (1.0 - result.relitFrom) / (1.0 - Pacing.minIntegrity),
+      0.0,
+      1.0,
+    );
+    // Las luces vuelven despacio y no de un fundido. La integridad ya sube
+    // sola hacia su objetivo; lo que se hace acá es frenar esa subida para que
+    // dé tiempo a verla, y sólo cuando había algo que ver — estirar un dos por
+    // ciento durante dos segundos se lee como un tirón, no como una vuelta.
+    _relightSlow = hondo > 0.25 ? 2.6 : 0.0;
+
+    // Una vuelta de verdad se oye. Es el sonido de reparar, que ya existía
+    // para esto exactamente y no se usaba en el único sitio donde significa
+    // algo.
+    if (hondo > 0.25) {
+      Future.delayed(const Duration(milliseconds: 160), () {
+        if (mounted) Sensory.instance.repair();
+      });
+    }
+
+    // Y se ve. Chispas desde la plaza, tantas como oscuro estaba, y la cámara
+    // se aparta para que se vea encenderse el pueblo entero en vez de la
+    // piedra que acabás de poner.
+    if (hondo > 0.45) {
+      _fx.celebrate(
+        V3(town.cx, 0, town.cz),
+        1.6 + 1.2 * hondo,
+        count: (24 + 40 * hondo).round(),
+      );
+      // Salvo que esta misma pieza haya rematado un edificio: entonces la
+      // cámara ya está puesta sobre él y es suya. Dos encuadres peleándose por
+      // el mismo momento es peor que cualquiera de los dos.
+      if (finished) return;
+      _cam.follow = false;
+      _cam.travelTarget = town.cx;
+      _cam.focusZTarget = town.cz;
+      _cam.focusYTarget = 1.8;
+      _cam.pitchTarget = 0.52;
+      _cam.distanceTarget = clampD(_townDistance(), 9, 90);
+    }
+
+    widget.onWhisper(
+      result.woke
+          // Volvió antes de lo que había dicho. Eso no se corrige, se celebra.
+          ? 'El pueblo despierta antes de tiempo.'
+          : hondo > 0.6
+          ? 'Volviste. El pueblo entero vuelve a encenderse.'
+          : 'El pueblo vuelve a encenderse',
+    );
   }
 
   // ---------------------------------------------------------------- camera
