@@ -127,6 +127,35 @@ void main() {
     });
   });
 
+  group('la hoja de un hábito', () {
+    test('un guardado con sus ajustes viejos se limpia solo', () async {
+      // La hoja tuvo diez materiales y un deslizador para lo sólido que era de
+      // noche. Las dos cosas estuvieron el tiempo que se tardó en encontrar lo
+      // que se buscaba; quien las tocara tiene un `skin` y un `nightVeil`
+      // guardados que ya no significan nada. Se leen, se tiran, y en el primer
+      // guardado desaparecen del disco sin llevarse por delante lo que sí vale.
+      final a = await fresh(
+        from: {
+          'pueblo_sound_v1': [
+            'sound=0',
+            'vol=2',
+            'nightVeil=0.4',
+            'skin=tinta',
+            'musicVol=0.8',
+          ],
+        },
+      );
+      expect(a.soundOff, isTrue, reason: 'perdió lo que sí valía');
+      expect(a.musicVolume, closeTo(0.8, 1e-9));
+      await a.flush();
+      final escrito = (await SharedPreferences.getInstance()).getStringList(
+        'pueblo_sound_v1',
+      )!;
+      expect(escrito.any((r) => r.startsWith('nightVeil=')), isFalse);
+      expect(escrito.any((r) => r.startsWith('skin=')), isFalse);
+    });
+  });
+
   group('lo elegido sobrevive a cerrar la app', () {
     test('arrastrar un slider no escribe a disco en cada fotograma', () async {
       final a = await fresh();

@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:la_muralla/engine/palette.dart';
-import 'package:la_muralla/model/appearance.dart';
-import 'package:la_muralla/model/habit_skin.dart';
 import 'package:la_muralla/model/store.dart';
 import 'package:la_muralla/ui/habits_sheet.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -331,12 +329,12 @@ void _cuando() {
 }
 
 void _pieles() {
-  group('las diez hojas de un hábito', () {
-    // Diez materiales distintos para la misma hoja, y lo que los diez tienen
-    // que cumplir es lo mismo: caber, en un teléfono estrecho y en uno ancho,
-    // de día y de noche, y decir lo mismo. Diez maneras de romperse por un
-    // costado es exactamente por qué esto está escrito.
-    testWidgets('caben todas, de día y de noche', (tester) async {
+  group('la hoja de un hábito', () {
+    // Llegó a haber quince maneras de hacer esta hoja y quedó una: vidrio
+    // ahumado sobre el pueblo, con la marca encima y el nombre debajo. Lo que
+    // tiene que cumplir es lo mismo que cumplían las quince — caber en un
+    // teléfono estrecho y en uno ancho, de día y de noche, y decirlo todo.
+    testWidgets('cabe y lo dice todo, de día y de noche', (tester) async {
       SharedPreferences.setMockInitialValues({});
       final store = Store();
       await store.load();
@@ -347,42 +345,27 @@ void _pieles() {
         addTearDown(tester.view.reset);
         for (final hora in [13.0, 23.0]) {
           final t = UiTheme(Palette.forMoment(hora, 1.0));
-          for (final skin in HabitSkin.values) {
-            await Appearance.instance.setSkin(skin);
-            await tester.pumpWidget(
-              _marco(
-                size,
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: HabitsSheet(store: store, theme: t),
-                ),
+          await tester.pumpWidget(
+            _marco(
+              size,
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: HabitsSheet(store: store, theme: t),
               ),
-            );
-            await tester.pump(const Duration(milliseconds: 250));
-            expect(
-              tester.takeException(),
-              isNull,
-              reason: '${skin.name} a las $hora en $size',
-            );
-            // El nombre del hábito y la línea de la comarca, en las diez: lo
-            // que cambia es el material, nunca cuánto se dice.
-            expect(
-              find.text(_largo),
-              findsOneWidget,
-              reason: '${skin.name} se comió el nombre',
-            );
-            expect(
-              find.text('Eliminar este hábito'),
-              findsOneWidget,
-              reason: '${skin.name} se comió el botón de borrar',
-            );
-            _dentro(tester, size, 'la hoja ${skin.name}');
-            await tester.pumpWidget(const SizedBox());
-          }
+            ),
+          );
+          await tester.pump(const Duration(milliseconds: 250));
+          expect(
+            tester.takeException(),
+            isNull,
+            reason: 'a las $hora en $size',
+          );
+          expect(find.text(_largo), findsOneWidget);
+          expect(find.text('Eliminar este hábito'), findsOneWidget);
+          _dentro(tester, size, 'la hoja');
+          await tester.pumpWidget(const SizedBox());
         }
       }
-      await Appearance.instance.setSkin(HabitSkin.medio);
-      await Appearance.instance.flush();
     });
   });
 }
