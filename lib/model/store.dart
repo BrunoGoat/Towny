@@ -646,6 +646,13 @@ class Store extends ChangeNotifier {
     return best;
   }
 
+  /// Cuántas piezas lleva hoy este pueblo.
+  ///
+  /// Del día natural y no de las últimas veinticuatro horas: lo que se está
+  /// contestando es «¿qué hice hoy?», y hoy empieza a medianoche aunque uno
+  /// siga despierto.
+  int get today => _countOn(DateTime.now());
+
   int _countOn(DateTime when) {
     final k = dayKey(when);
     var n = 0;

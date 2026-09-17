@@ -192,6 +192,27 @@ void main() {
     });
   });
 
+  group('lo de hoy', () {
+    test('cuenta las de hoy y no las de ayer', () async {
+      final s = await freshStore();
+      expect(s.today, 0);
+      s.placePiece();
+      s.placePiece();
+      expect(s.today, 2);
+      // Una de ellas corrida a anteayer deja de contar hoy.
+      s.setPlacedAt(0, DateTime.now().subtract(const Duration(days: 2)));
+      expect(s.today, 1);
+    });
+
+    test('y es de este pueblo, no del valle', () async {
+      final s = await freshStore();
+      s.placePiece();
+      s.addHabit('Leer', 'lectura');
+      // El hábito nuevo queda seleccionado y su pueblo está vacío.
+      expect(s.today, 0);
+    });
+  });
+
   group('la hora de una pieza se corrige', () {
     test('y se queda corregida, con su leyenda intacta', () async {
       final s = await freshStore();

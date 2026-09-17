@@ -55,6 +55,7 @@ void _dentro(WidgetTester tester, Size size, String quien) {
 }
 
 void main() {
+  _cuando();
   testWidgets('el cartel del pueblo cabe y no se queda puesto', (tester) async {
     for (final size in _pantallas) {
       tester.view.physicalSize = size;
@@ -275,5 +276,50 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
     expect(escrito, 'Leí un rato');
     expect(find.byType(TextField), findsNothing);
+  });
+}
+
+void _cuando() {
+  group('cuándo fue la última', () {
+    // Lo que se lee arriba a la izquierda. Un «10 sep 21:44» cuando hoy es el
+    // 10 de septiembre obliga a mirar el calendario para entender una cosa que
+    // se sabe sola.
+    final hoy = DateTime(2026, 9, 17, 22, 5);
+
+    test('hoy y ayer se dicen con su nombre', () {
+      expect(
+        StoneCard.formatWhen(DateTime(2026, 9, 17, 21, 44), from: hoy),
+        'hoy 21:44',
+      );
+      expect(
+        StoneCard.formatWhen(DateTime(2026, 9, 17, 0, 3), from: hoy),
+        'hoy 00:03',
+      );
+      expect(
+        StoneCard.formatWhen(DateTime(2026, 9, 16, 7, 12), from: hoy),
+        'ayer 07:12',
+      );
+    });
+
+    test('y lo anterior lleva día y mes, con el año sólo si es otro', () {
+      expect(
+        StoneCard.formatWhen(DateTime(2026, 9, 10, 12, 23), from: hoy),
+        '10 sep 12:23',
+      );
+      expect(
+        StoneCard.formatWhen(DateTime(2025, 12, 31, 23, 59), from: hoy),
+        '31 dic 2025 23:59',
+      );
+    });
+
+    test('la medianoche de anoche es ayer y no hoy', () {
+      // El corte es el día natural y no las veinticuatro horas: a las 22:05 de
+      // hoy, algo puesto a las 23:50 de ayer hace dos horas y pico, pero fue
+      // ayer y así se dice.
+      expect(
+        StoneCard.formatWhen(DateTime(2026, 9, 16, 23, 50), from: hoy),
+        'ayer 23:50',
+      );
+    });
   });
 }

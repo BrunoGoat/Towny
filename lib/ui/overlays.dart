@@ -197,6 +197,26 @@ class StoneCard extends StatefulWidget {
     'dic',
   ];
 
+  /// La misma fecha pero contada desde hoy: «hoy 21:44», «ayer 07:12»,
+  /// «10 sep 12:23».
+  ///
+  /// Para la línea de arriba, donde lo que importa es hace cuánto y no el día
+  /// exacto. Un «10 sep 21:44» cuando hoy es 10 de septiembre obliga a mirar el
+  /// calendario para entender una cosa que se sabe sola.
+  static String formatWhen(DateTime w, {DateTime? from}) {
+    final ahora = from ?? DateTime.now();
+    final hoy = DateTime(ahora.year, ahora.month, ahora.day);
+    final suyo = DateTime(w.year, w.month, w.day);
+    final dias = hoy.difference(suyo).inDays;
+    final hora =
+        '${w.hour.toString().padLeft(2, '0')}:'
+        '${w.minute.toString().padLeft(2, '0')}';
+    if (dias == 0) return 'hoy $hora';
+    if (dias == 1) return 'ayer $hora';
+    final ano = w.year == ahora.year ? '' : ' ${w.year}';
+    return '${w.day} ${_months[w.month - 1]}$ano $hora';
+  }
+
   static String formatDate(DateTime w) =>
       '${w.day} ${_months[w.month - 1]} ${w.year} · '
       '${w.hour.toString().padLeft(2, '0')}:${w.minute.toString().padLeft(2, '0')}';

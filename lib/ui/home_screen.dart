@@ -363,7 +363,7 @@ class _HomeScreenState extends State<HomeScreen>
           // --- preview mode: impossible to forget you are in it
           if (store.isPreviewing)
             Positioned(
-              top: media.padding.top + 78,
+              top: media.padding.top + 100,
               left: 0,
               right: 0,
               child: Center(
@@ -638,6 +638,8 @@ class _TopBar extends StatelessWidget {
     final t = theme;
     final decaying = store.isDecaying;
     final days = store.streak;
+    final hoy = store.today;
+    final ultima = store.lastPlacedAt;
     // Two doors, because there are two different things behind them: the
     // numbers open what you have done, and the gear opens what you can set.
     // One chevron meaning both was one of them hiding.
@@ -681,6 +683,24 @@ class _TopBar extends StatelessWidget {
                       ),
                     ),
                   ],
+                  // Lo de hoy, al lado de la racha y con el mismo peso: son la
+                  // misma clase de cosa —cuánto llevás— vista de cerca y de
+                  // lejos. Cuando todavía no hay ninguna no se dice «0 HOY»:
+                  // eso ya lo cuenta la línea de abajo diciendo que la última
+                  // fue ayer, y mejor callado que con un cero en la cara.
+                  if (hoy > 0) ...[
+                    const SizedBox(width: 14),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 1),
+                      child: Text(
+                        '$hoy HOY',
+                        style: t.label.copyWith(
+                          shadows: t.halo,
+                          color: t.fg.withValues(alpha: 0.44),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
               const SizedBox(height: 5),
@@ -699,6 +719,23 @@ class _TopBar extends StatelessWidget {
                   shadows: t.halo,
                 ),
               ),
+              // Y cuándo fue la última, un escalón más floja: es el dato que
+              // menos se busca de los cuatro y el que más veces contesta solo
+              // la pregunta de si hoy ya se hizo o no.
+              if (ultima != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                  'última pieza · ${StoneCard.formatWhen(ultima)}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: t.fg.withValues(alpha: 0.34),
+                    fontSize: 11,
+                    letterSpacing: 0.1,
+                    shadows: t.halo,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
