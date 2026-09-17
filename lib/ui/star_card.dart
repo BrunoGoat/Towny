@@ -113,15 +113,16 @@ class StarCard extends StatelessWidget {
   // usa la hoja del hábito. Es la más ambiental de las diez — no hay tarjeta,
   // hay algo escrito en el aire.
   Widget _tres(UiTheme t, Constellation c) {
+    // El aliento sale del material de los paneles y no del color del
+    // horizonte, que es lo que se acaba de corregir en toda la interfaz: el
+    // horizonte es lo que tienen detrás las casas, no lo que hay detrás de un
+    // texto puesto sobre la escena. Y así este papel cruza de claro a oscuro
+    // en el mismo minuto que cruzan los rótulos de arriba, en vez de llevar
+    // su propio reloj.
+    final atras = t.dark ? const Color(0xFF14131A) : const Color(0xFFFBF7ED);
     final aliento = [
-      Shadow(
-        color: t.palette.skyHorizon.withValues(alpha: 0.95),
-        blurRadius: 12,
-      ),
-      Shadow(
-        color: t.palette.skyHorizon.withValues(alpha: 0.75),
-        blurRadius: 26,
-      ),
+      Shadow(color: atras.withValues(alpha: 0.95), blurRadius: 12),
+      Shadow(color: atras.withValues(alpha: 0.75), blurRadius: 26),
     ];
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
