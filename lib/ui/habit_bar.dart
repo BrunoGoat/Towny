@@ -50,16 +50,22 @@ class HabitBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = theme;
     final locked = !store.unlocked && store.habits.length < Habit.maxSlots;
-    // Cuánto lleva andado hacia el segundo pueblo, y si vale la pena
-    // enseñarlo. El primer día no: un candado en la cara de alguien que
+    // Cuánto lleva andado hacia el segundo pueblo, y si vale la pena dibujar
+    // el anillo. El primer día no: un candado en la cara de alguien que
     // todavía no puso su primera piedra es la app pidiéndole que se apure. En
     // cuanto hay algo hecho, el anillo aparece y ya no se va.
     final ganados = locked ? store.unlockProgress : 0;
-    final avisa = locked && ganados > 0;
-    if (store.habits.length <= 1 && !store.canAddHabit && !avisa) {
-      return const SizedBox.shrink();
-    }
 
+    // Esta fila no se esconde nunca, y el motivo no tiene nada que ver con el
+    // candado: tocar tu propia marca es **la única puerta** que hay a la hoja
+    // del hábito, donde se le pone el nombre, la marca, el para qué y lo
+    // mínimo que cuenta. Sin la fila no hay manera de llegar ahí.
+    //
+    // Se escondía cuando había un solo pueblo y no se podía fundar otro, que
+    // hasta que existió el candado era un caso que no pasaba nunca —con un
+    // hábito siempre se podía fundar el segundo—. Con el candado sí pasa, y es
+    // justo el primer día de la primera persona que instala la app: un valle
+    // con un pueblo sin nombre y ninguna forma de nombrarlo.
     final crown = store.leader;
 
     return SizedBox(
@@ -88,7 +94,7 @@ class HabitBar extends StatelessWidget {
             theme: t,
             onTap: onAdd,
             enabled: store.canAddHabit,
-            locked: avisa,
+            locked: locked,
             progress: ganados / Pacing.unlockDays,
           ),
         ],
@@ -235,7 +241,10 @@ class _AddMark extends StatelessWidget {
       child: SizedBox(
         width: 46,
         child: Center(
-          child: locked
+          // El anillo sólo cuando hay algo andado. Cerrado y a cero, un más
+          // normal y apagado: el candado se explica al tocarlo, y un anillo
+          // vacío el primer día es una barra de progreso de nada.
+          child: locked && progress > 0
               ? SizedBox(
                   width: 24,
                   height: 24,
