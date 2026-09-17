@@ -2123,11 +2123,17 @@ class TownPainter extends CustomPainter {
     // cambia al andar —uno se va del cuadro, otro se acerca— y con el corte
     // por orden de lista, el que se cae del sesenta puede ser el que tenés
     // delante. Por distancia, el que se cae es siempre el más chico de todos.
-    if (out.length > _folkCap) {
-      out.sort((a, b) => a.depth.compareTo(b.depth));
-      out.length = _folkCap;
-    }
-    return out;
+    // Y entre personas pasaba lo mismo que entre las cajas de una: se pintaban
+    // en el orden en que salen del plano, que no tiene nada que ver con cuál
+    // está delante. Dos vecinos que se cruzan en una calle estrecha se
+    // atravesaban según quién viviera en la casa de número más bajo.
+    //
+    // Ordenados de cerca a lejos se recorta el tope —el que se cae es siempre
+    // el más chico— y se pintan del revés, que es el orden en que hay que
+    // pintarlos.
+    out.sort((a, b) => a.depth.compareTo(b.depth));
+    if (out.length > _folkCap) out.length = _folkCap;
+    return out.reversed.toList();
   }
 
   /// Lo que mide una persona hecha, en un pueblo de esta región.
@@ -2178,7 +2184,7 @@ class TownPainter extends CustomPainter {
   ) {
     if (folk.isEmpty) return;
     for (final v in folk) {
-      for (final solid in folkSolids(
+      final solids = folkSolids(
         v.who,
         v.at,
         v.size,
@@ -2190,7 +2196,26 @@ class TownPainter extends CustomPainter {
             : v.pixels > 8
             ? 0.35
             : 0.05,
-      )) {
+      );
+
+      // **De atrás hacia delante, y no en el orden en que se hicieron.**
+      //
+      // Descartar las caras traseras deja exacto el interior de *una* caja
+      // cerrada, pero no dice nada de en qué orden van dos cajas distintas — y
+      // una persona son cuatro o cinco: cuerpo, cabeza, pelo, y lo que lleve.
+      // Se pintaban en el orden en que se crean, y lo que lleva se crea el
+      // último, así que el libro se pintaba **siempre** encima del cuerpo. De
+      // frente daba el pego; desde detrás se veía el libro atravesando a quien
+      // lo estaba leyendo, que es exactamente lo que no puede pasar en un
+      // valle que presume de ordenar por geometría y no por una media.
+      //
+      // Aquí sí vale una media, y no es una excepción a la regla del pueblo:
+      // las cajas de una persona son pocas, convexas, del tamaño de un puño y
+      // **no se atraviesan entre ellas** — el libro está delante del pecho, el
+      // pelo encima de la cabeza. Con sólidos separados, ordenar por su centro
+      // da el mismo orden que daría un plano de separación, y cuesta cinco
+      // comparaciones en vez de un árbol por vecino y por fotograma.
+      for (final solid in folkInPaintOrder(solids, p.eye)) {
         for (final f in solid.faces) {
           // Las que miran para el otro lado, fuera.
           //

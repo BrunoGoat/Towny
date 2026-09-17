@@ -7,6 +7,7 @@ import 'package:la_muralla/engine/folk.dart';
 import 'package:la_muralla/engine/palette.dart';
 import 'package:la_muralla/engine/season.dart';
 import 'package:la_muralla/engine/renderer.dart';
+import 'package:la_muralla/engine/solid.dart';
 import 'package:la_muralla/engine/town.dart';
 
 TownLayout _town(int pieces, [String region = 'Ribera']) =>
@@ -589,4 +590,141 @@ void main() {
       expect(folkOut(0.0), greaterThan(0.15));
     });
   });
+
+  group('el ritmo de los gestos', () {
+    // Un gesto que dura poco es un gesto que vuelve a empezar enseguida, y con
+    // cuarenta vecinos haciendo eso a la vez el pueblo parpadea. Lo que se
+    // quiere mirar es gente **estando** en un sitio.
+    test('el pueblo pasa más tiempo estando que yendo', () {
+      // En conjunto y no vecino a vecino: a alguno le tocan los tres recados
+      // en la otra punta y se pasa el día andando, y eso está bien. Lo que no
+      // puede ser es que el pueblo entero se lea como tráfico.
+      final t = _town(200);
+      var parado = 0, andando = 0;
+      for (final w in folkOf(t, 200)) {
+        const pasos = 900;
+        for (var k = 0; k < pasos; k++) {
+          if (w.at(w.period * k / pasos).moving) {
+            andando++;
+          } else {
+            parado++;
+          }
+        }
+      }
+      expect(
+        parado,
+        greaterThan(andando),
+        reason:
+            'el pueblo pasa más tiempo yendo a sitios que estando en '
+            'ellos, y entonces lo que se ve es tráfico y no vida',
+      );
+    });
+
+    test('al llegar se para antes de ponerse, y termina antes de irse', () {
+      // Sin esto, una persona pasaba de andar a estar barriendo entre dos
+      // fotogramas: la escoba aparecía en la mano sin que nadie se hubiera
+      // parado a sacarla.
+      final t = _town(200);
+      var visto = 0;
+      for (final w in folkOf(t, 200)) {
+        // Hasta no haberlo visto andar no se sabe si lo que hay es una llegada
+        // o el medio de una parada que empezó antes del primer fotograma.
+        var venia = false;
+        for (var k = 0; k < 1500; k++) {
+          final at = w.at(w.period * k / 1500);
+          if (at.moving) {
+            venia = true;
+            continue;
+          }
+          if (!venia) continue;
+          venia = false;
+          // Justo después de andar, lo que hay es alguien quieto mirando y no
+          // ya metido en faena.
+          expect(
+            at.act,
+            Doing.idle,
+            reason:
+                '${w.name} llega y empieza el gesto en el mismo '
+                'fotograma en que deja de andar',
+          );
+          visto++;
+        }
+      }
+      expect(visto, greaterThan(20), reason: 'no se vio ninguna llegada');
+    });
+  });
+
+  group('tumbarse', () {
+    // Lo que esto caza: la cabeza no giraba con el cuerpo. Alguien tumbado
+    // mirando las nubes salía con el pelo hacia arriba, o sea con la coronilla
+    // apuntando al cielo y la cara hacia los pies, que es la postura de nadie.
+    test('la coronilla apunta al lado contrario al cuerpo, no al cielo', () {
+      for (final d in Doing.all) {
+        if (!d.lying) continue;
+        final who = Townsfolk.showcase(d);
+        final solidos = folkSolids(who, who.at(0), 1.0);
+        // Cuerpo, cabeza y pelo: las tres cajas de una figura acostada.
+        expect(solidos.length, greaterThanOrEqualTo(3), reason: d.id);
+        final cuerpo = _caja(solidos[0]);
+        final cabeza = _caja(solidos[1]);
+        final pelo = _caja(solidos[2]);
+
+        // La cabeza está a un extremo del cuerpo, no encima.
+        expect(
+          cabeza.$5,
+          greaterThan(cuerpo.$5),
+          reason: '${d.id}: la cabeza no está en un extremo',
+        );
+
+        // Y el pelo está en el canto de más allá de la cabeza —la coronilla—,
+        // no sobre ella. Es lo único que dice hacia dónde mira la cara cuando
+        // no hay cara que mirar.
+        final altoCabeza = cabeza.$4 - cabeza.$3;
+        final altoPelo = pelo.$4 - pelo.$3;
+        expect(
+          altoPelo,
+          greaterThan(altoCabeza * 0.7),
+          reason: '${d.id}: el pelo sigue siendo una tapa encima de la cabeza',
+        );
+        expect(
+          pelo.$5,
+          greaterThan(cabeza.$5),
+          reason: '${d.id}: el pelo no está en la coronilla',
+        );
+      }
+    });
+
+    test('y de pie el pelo sigue siendo un gorro, que es donde va', () {
+      // La otra mitad de lo mismo: al arreglar la postura de tumbado no se
+      // puede haber movido el pelo de quien está de pie.
+      final who = Townsfolk.showcase(Doing.idle);
+      final solidos = folkSolids(who, who.at(0), 1.0);
+      final cabeza = _caja(solidos[1]);
+      final pelo = _caja(solidos[2]);
+      expect(
+        pelo.$3,
+        greaterThan((cabeza.$3 + cabeza.$4) / 2),
+        reason:
+            'el pelo de alguien de pie tiene que estar en la mitad de '
+            'arriba de la cabeza',
+      );
+    });
+  });
+}
+
+/// Los límites de una caja: (x0, x1, y0, y1, zMedio).
+(double, double, double, double, double) _caja(Solid s) {
+  var x0 = double.infinity, y0 = double.infinity, z0 = double.infinity;
+  var x1 = -double.infinity, y1 = -double.infinity, z1 = -double.infinity;
+  for (final f in s.faces) {
+    for (final v in f.v) {
+      if (v.x < x0) x0 = v.x;
+      if (v.x > x1) x1 = v.x;
+      if (v.y < y0) y0 = v.y;
+      if (v.y > y1) y1 = v.y;
+      if (v.z < z0) z0 = v.z;
+      if (v.z > z1) z1 = v.z;
+    }
+  }
+  return (x0, x1, y0, y1, (z0 + z1) / 2);
 }

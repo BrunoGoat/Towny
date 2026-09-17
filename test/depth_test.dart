@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:la_muralla/core/math3.dart';
 import 'package:la_muralla/data/character.dart';
+import 'package:la_muralla/data/doings.dart';
+import 'package:la_muralla/engine/folk.dart';
 import 'package:la_muralla/data/landmarks.dart';
 import 'package:la_muralla/engine/solid.dart';
 import 'package:la_muralla/engine/solids.dart';
@@ -303,6 +305,66 @@ void main() {
         }
       }
       expect(bad, isEmpty, reason: bad.join('\n'));
+    });
+  });
+
+  group('y la gente tampoco', () {
+    // Lo que esto caza, y que estaba roto: las cajas de una persona se pintaban
+    // en el orden en que se crean, y lo que lleva se crea el último — así que
+    // el libro se pintaba **siempre** encima de quien lo leía. De frente
+    // colaba, porque el libro está delante; desde detrás se veía el libro
+    // atravesando a la persona que lo tenía.
+    //
+    // Se mide sobre lo que se lleva por delante del cuerpo, que es donde el
+    // orden lo decide la cámara y no la lista: con el ojo delante, el objeto
+    // tapa a la persona; con el ojo detrás, la persona tapa al objeto. Antes
+    // salía lo primero en los dos casos, que es el fallo.
+    test('lo que se lleva delante se pinta detrás al mirar de espaldas', () {
+      var medidos = 0;
+      for (final d in Doing.all) {
+        if (d.prop == PropKind.none) continue;
+        final who = Townsfolk.showcase(d);
+        final at = who.at(0);
+        final creados = folkSolids(who, at, 1.0);
+        final cuerpo = creados.first;
+        final caja = Aabb.of(cuerpo.faces)!;
+
+        int puesto(Solid s, V3 eye) =>
+            folkInPaintOrder(creados, eye).indexWhere((x) => identical(x, s));
+
+        for (final cosa in creados.sublist(3)) {
+          final suya = Aabb.of(cosa.faces)!;
+          // Sólo lo que queda limpiamente por delante del cuerpo. Una banqueta
+          // va debajo y no delante: ahí no es la cámara quien decide el orden y
+          // no hay nada que exigir.
+          if (suya.z0 <= caja.z1 + 0.004) continue;
+          medidos++;
+
+          for (final pitch in [0.0, 0.5, -0.3]) {
+            final alto = math.sin(pitch) * 3.2 + 0.5;
+            final hondo = math.cos(pitch) * 3.2;
+
+            final delante = V3(0, alto, hondo);
+            expect(
+              puesto(cosa, delante),
+              greaterThan(puesto(cuerpo, delante)),
+              reason:
+                  '${d.id}: mirando de frente, lo que lleva tiene que '
+                  'pintarse encima del cuerpo',
+            );
+
+            final detras = V3(0, alto, -hondo);
+            expect(
+              puesto(cosa, detras),
+              lessThan(puesto(cuerpo, detras)),
+              reason:
+                  '${d.id}: mirando de espaldas, el cuerpo tiene que tapar '
+                  'lo que lleva — esto es lo que estaba al revés',
+            );
+          }
+        }
+      }
+      expect(medidos, greaterThan(0), reason: 'no se midió ni un objeto');
     });
   });
 }

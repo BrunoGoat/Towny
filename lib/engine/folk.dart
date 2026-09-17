@@ -186,16 +186,42 @@ class Townsfolk {
       if (u < acc + stay) {
         // Parado: mirando a donde vino a mirar, con un balanceo lento que es
         // lo que separa a alguien esperando de un poste.
-        final what = _act[(i + 1) % n];
+        final held = u - acc;
+        // Al llegar no se empieza en el acto, y antes de irse ya se terminó.
+        //
+        // Sin esto, una persona pasaba de andar a estar barriendo entre dos
+        // fotogramas, y de barrer a andar igual: la escoba aparecía y
+        // desaparecía en la mano sin que nadie se hubiera parado a sacarla.
+        // Con un respiro a cada lado, lo que se ve es llegar, quedarse, y
+        // entonces ponerse — que además es lo que separa un gesto del
+        // siguiente y hace que no se disparen uno detrás de otro.
+        //
+        // El de muestra no lo lleva: el expositor existe para mirar un gesto
+        // concreto y empezarlo con dos segundos de nada sería empezarlo mal.
+        final settle = home < 0 ? 0.0 : math.min(2.4, stay * 0.15);
+        final metido = held >= settle && held <= stay - settle;
+        // Y en el respiro no se queda congelado: respira y mira alrededor, que
+        // es [Doing.idle] y es exactamente lo que hace quien acaba de llegar.
+        final what = metido ? _act[(i + 1) % n] : Doing.idle;
         final look = _facing[(i + 1) % n];
         // La cabeza se va yendo a mirar alrededor, y cuánto depende de en qué
         // ande: quien pica piedra no levanta la vista y quien no hace nada la
         // levanta todo el rato.
         final sway =
-            math.sin((u - acc) * 0.7 + hash01(seed, 9) * 6) *
+            math.sin(held * 0.7 + hash01(seed, 9) * 6) *
             0.18 *
             (what?.turn ?? 1.0);
-        return FolkAt(to.$1, to.$2, look + sway, 0, false, what, u - acc);
+        // La fase del gesto cuenta desde que se puso a ello y no desde que
+        // llegó: si contara desde la llegada, el gesto empezaría por la mitad.
+        return FolkAt(
+          to.$1,
+          to.$2,
+          look + sway,
+          0,
+          false,
+          what,
+          metido ? held - settle : held,
+        );
       }
       acc += stay;
     }
@@ -348,7 +374,7 @@ List<Townsfolk> _folkOf(TownLayout layout, int placed) {
     // mitad se queda un rato; los demás pasan de largo, que también es verdad.
     final stops = <(double, double)>[door];
     final encasa = hash01(seed, 61) < 0.45;
-    final dwell = <double>[encasa ? hashRange(12.0, 30.0, seed, 62) : 0.0];
+    final dwell = <double>[encasa ? hashRange(34.0, 74.0, seed, 62) : 0.0];
     final doing = <Doing>[_actAt(Where.door, seed, 9, crio)];
     // Al volver a casa mira a la puerta, que es lo suyo.
     final look = <double>[math.atan2(-dx, -dz)];
@@ -369,7 +395,14 @@ List<Townsfolk> _folkOf(TownLayout layout, int placed) {
       look.add(math.atan2(-math.sin(a), -math.cos(a)));
       // Las paradas son más largas ahora que en ellas pasa algo: charlar seis
       // segundos y marcharse no es charlar, es saludar de lejos.
-      dwell.add(hashRange(9.0, 26.0, seed, 40 + k));
+      //
+      // Y más largas todavía desde que se vio el pueblo lleno: con paradas de
+      // nueve a veintiséis segundos, un vecino empieza un gesto nuevo cada
+      // medio minuto, y cuarenta vecinos haciendo eso a la vez es un pueblo
+      // que parpadea. Lo que se quiere mirar es gente **estando** en un sitio,
+      // no gente cambiando de sitio — así que la parada dura ahora más que el
+      // paseo que la trajo.
+      dwell.add(hashRange(28.0, 64.0, seed, 40 + k));
       doing.add(_actAt(s.$4, seed, k, crio));
     }
 
@@ -1073,6 +1106,40 @@ const int _wood2 = 0xFF6B5236;
 /// [detail] baja de uno a cero con la distancia. Por debajo de la mitad se
 /// quedan cuerpo y cabeza y se van las piernas, que a esa distancia son dos
 /// píxeles que parpadean.
+/// Las cajas de una persona, puestas en el orden en que hay que pintarlas
+/// desde [eye]: primero las de atrás.
+///
+/// Descartar las caras traseras deja exacto el interior de *una* caja cerrada,
+/// pero no dice nada de en qué orden van dos cajas distintas — y una persona
+/// son cuatro o cinco: cuerpo, cabeza, pelo, y lo que lleve. Se pintaban en el
+/// orden en que se crean, y lo que lleva se crea el último, así que el libro se
+/// pintaba **siempre** encima del cuerpo: de frente colaba, y desde detrás se
+/// veía el libro atravesando a quien lo estaba leyendo.
+///
+/// Aquí vale ordenar por el centro, y no es una excepción a la regla del valle
+/// —«entre sólidos se ordena por geometría exacta, no por una media»—. Es que
+/// la media *es* exacta en este caso: las cajas de una persona son pocas,
+/// convexas y **no se atraviesan entre ellas**, y para sólidos separados el
+/// orden por centro es el mismo que daría un plano de separación. Cuesta cinco
+/// comparaciones en vez de un árbol por vecino y por fotograma.
+///
+/// Pública y aparte del render para que el barrido de cámaras de
+/// `depth_test.dart` pruebe exactamente el orden que se pinta, y no una copia
+/// suya escrita en el test.
+List<Solid> folkInPaintOrder(List<Solid> solids, V3 eye) {
+  if (solids.length < 2) return solids;
+  double far(Solid s) {
+    final box = Aabb.of(s.faces);
+    if (box == null) return 0;
+    final dx = box.cx - eye.x, dy = box.cy - eye.y, dz = box.cz - eye.z;
+    return dx * dx + dy * dy + dz * dz;
+  }
+
+  final keyed = [for (final s in solids) (far(s), s)]
+    ..sort((a, b) => b.$1.compareTo(a.$1));
+  return [for (final k in keyed) k.$2];
+}
+
 List<Solid> folkSolids(
   Townsfolk who,
   FolkAt at,
@@ -1313,13 +1380,25 @@ List<Solid> folkSolids(
     // cuerpo de pie mide uno de alto por tres décimas de ancho, y acostado
     // tiene que medir eso mismo girado.
     final resuella = bob * 0.7;
-    box(-0.150, 0.0, -0.50, 0.150, 0.195 + resuella, 0.17, pano, 0.98);
-    // La cabeza, un cubo entero por delante del cuerpo y levantada del suelo:
-    // apoyada en la hierba no se distingue, y es lo único que dice de qué lado
-    // está la cara.
-    box(-0.185, 0.035, 0.16, 0.185, 0.405, 0.53, piel, 1.02);
+    box(-0.150, 0.0, -0.50, 0.150, 0.230 + resuella, 0.17, pano, 0.98);
+    // La cabeza, un cubo entero por delante del cuerpo y apenas levantada del
+    // suelo: apoyada del todo en la hierba no se distingue, y es lo único que
+    // dice de qué lado está la cara.
+    box(-0.185, 0.020, 0.16, 0.185, 0.390, 0.53, piel, 1.02);
+    // **Y la cabeza gira con el cuerpo, no sólo el cuerpo.**
+    //
+    // El pelo iba encima de la cabeza, como de pie — así que alguien tumbado
+    // mirando las nubes salía con la coronilla apuntando al cielo y la cara
+    // hacia los pies, que es la postura de nadie. Acostado boca arriba la cara
+    // mira arriba y la coronilla se va al extremo de más allá de la cabeza,
+    // que es el lado contrario al cuerpo.
+    //
+    // Así que el pelo deja de ser una tapa y pasa a ser el testero: la misma
+    // caja girada un cuarto de vuelta, en el canto de +z. Es lo único que hace
+    // falta para que se lea tumbado, porque a esta distancia de qué lado está
+    // el pelo **es** la orientación de la cabeza — no hay cara que mirar.
     if (detail > 0.25) {
-      box(-0.191, 0.300, 0.15, 0.191, 0.412, 0.54, pelo, 1.0);
+      box(-0.191, 0.015, 0.44, 0.191, 0.396, 0.545, pelo, 1.0);
     }
     return out;
   }
