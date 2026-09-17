@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../engine/season.dart';
+import 'flight_style.dart';
 
 /// The handful of things about the app that are a preference rather than a
 /// record of what you did.
@@ -133,6 +134,23 @@ class Appearance extends ChangeNotifier {
     return Season.on(DateTime.now(), hemisphere);
   }
 
+  // ------------------------------------------------------- el vuelo al valle
+
+  /// Cómo se sube al valle: cuál de los diez estilos de nubes tapa el corte.
+  ///
+  /// Es lo más visto de la app después del propio pueblo —se hace cada vez que
+  /// uno quiere comparar dos hábitos— y por eso se elige. Lo que se guarda es
+  /// el nombre y no el número: un estilo que se quite mañana no le corre la
+  /// elección a todos los de debajo.
+  FlightStyle _flight = FlightStyle.cumulos;
+  FlightStyle get flight => _flight;
+
+  Future<void> setFlight(FlightStyle v) async {
+    if (v == _flight) return;
+    _flight = v;
+    await _keep();
+  }
+
   // ------------------------------------------------------- la letra del papel
 
   /// Con qué letra están escritos los papeles del tablón.
@@ -223,6 +241,7 @@ class Appearance extends ChangeNotifier {
     _effectsVolume = _midway;
     _fakeHour = false;
     _fakeHourAt = 22.0;
+    _flight = FlightStyle.cumulos;
   }
 
   Future<void> load() async {
@@ -299,6 +318,8 @@ class Appearance extends ChangeNotifier {
           _fakeSeason = value == '1';
         case 'fakeSeasonAt':
           _fakeSeasonAt = (double.tryParse(value) ?? 0.0).clamp(0.0, 0.999);
+        case 'flight':
+          _flight = FlightStyle.byName(value);
         // Las cuatro de la letra ya no se eligen, así que ya no se guardan.
         // Se leen para tirarlas: al sacarlas de `visto`, la próxima escritura
         // no las vuelve a poner y el disco se limpia solo. Hace falta hacerlo
@@ -331,6 +352,7 @@ class Appearance extends ChangeNotifier {
     'seasons=${_seasonsOff ? 0 : 1}',
     'fakeSeason=${_fakeSeason ? 1 : 0}',
     'fakeSeasonAt=$_fakeSeasonAt',
+    'flight=${_flight.name}',
   ];
 
   Timer? _writeSoon;
