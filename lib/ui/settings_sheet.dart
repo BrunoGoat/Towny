@@ -9,9 +9,7 @@ import '../fx/sensory.dart';
 import '../model/appearance.dart';
 import '../model/piece.dart';
 import '../model/store.dart';
-import '../model/habit_skin.dart';
 import 'backup_sheet.dart';
-import 'habits_sheet.dart';
 import 'folk_gallery_screen.dart';
 import 'debug_sheet.dart';
 import 'gallery_screen.dart';
@@ -37,23 +35,6 @@ class SettingsSheet extends StatefulWidget {
 }
 
 class _SettingsSheetState extends State<SettingsSheet> {
-  /// Elegir un material y verlo puesto, que es lo único que sirve para elegir.
-  ///
-  /// Se abre la hoja de verdad y no una miniatura: es la misma hoja a la que se
-  /// llega desde la barra de hábitos, con este hábito y a esta hora, así que lo
-  /// que se ve es exactamente lo que va a quedar.
-  void _dress(HabitSkin skin) {
-    Sensory.instance.tick();
-    Appearance.instance.setSkin(skin);
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      barrierColor: sheetScrim(widget.theme.dark),
-      builder: (_) => HabitsSheet(store: widget.store, theme: widget.theme),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final t = widget.theme;
@@ -272,41 +253,6 @@ class _SettingsSheetState extends State<SettingsSheet> {
             ),
           ],
         ],
-
-        const SizedBox(height: 26),
-        _Head(theme: t, text: 'LA HOJA DE UN HÁBITO'),
-        Text(
-          'La hoja donde se le cambia el nombre y la marca a un hábito. No hay '
-          'panel: la marca sobre el pueblo, el nombre debajo, y un vidrio que '
-          'sube desde abajo, casi sin pintura, desenfocando lo que queda '
-          'detrás. De noche funciona solo; de día hay diez vidrios, y lo que '
-          'cambia es de qué color está teñido y cuánto desenfoca. Al tocar uno '
-          'se abre la hoja tal cual va a quedar.',
-          style: t.bodySoft.copyWith(fontSize: 11.5, height: 1.4),
-        ),
-        const SizedBox(height: 10),
-        _SkinPick(theme: t, value: wants.skin, onPick: _dress),
-        Text(
-          wants.skin.about,
-          style: t.bodySoft.copyWith(fontSize: 11.5, height: 1.4),
-        ),
-        // De noche no se elige nada: oscuro sobre oscuro al noventa y cinco
-        // por ciento, que es el número al que se llegó probándolo con un
-        // deslizador. Encontrado el número, el deslizador sobra.
-        Align(
-          alignment: Alignment.centerLeft,
-          child: TextButton(
-            onPressed: () => _dress(wants.skin),
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              foregroundColor: t.accent,
-            ),
-            child: Text(
-              'Ver cómo queda',
-              style: t.bodySoft.copyWith(fontSize: 12.5, color: t.accent),
-            ),
-          ),
-        ),
 
         const SizedBox(height: 26),
         _Head(theme: t, text: 'LO DEMÁS'),
@@ -569,72 +515,6 @@ class _Pick extends StatelessWidget {
           ],
         ],
       ),
-    );
-  }
-}
-
-/// Los diez vidrios de día, en rejilla de dos columnas.
-///
-/// El otro selector de esta hoja es una fila de pastillas de igual ancho, y con
-/// diez eso da pastillas de treinta píxeles donde no cabe «Escarcha».
-class _SkinPick extends StatelessWidget {
-  const _SkinPick({
-    required this.theme,
-    required this.value,
-    required this.onPick,
-  });
-
-  final UiTheme theme;
-  final HabitSkin value;
-  final void Function(HabitSkin) onPick;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = theme;
-    return LayoutBuilder(
-      builder: (context, box) {
-        const hueco = 8.0;
-        final ancho = (box.maxWidth - hueco) / 2;
-        return Wrap(
-          spacing: hueco,
-          runSpacing: hueco,
-          children: [
-            for (final skin in HabitSkin.values)
-              SizedBox(
-                width: ancho,
-                child: GestureDetector(
-                  onTap: () => onPick(skin),
-                  behavior: HitTestBehavior.opaque,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 10,
-                      horizontal: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: t.fg.withValues(
-                        alpha: skin == value ? 0.13 : 0.04,
-                      ),
-                      borderRadius: BorderRadius.circular(11),
-                      border: Border.all(
-                        color: skin == value
-                            ? t.accent.withValues(alpha: 0.8)
-                            : t.stroke,
-                        width: skin == value ? 1.4 : 1,
-                      ),
-                    ),
-                    child: Text(
-                      skin.label,
-                      style: t.bodySoft.copyWith(
-                        fontSize: 12.5,
-                        color: skin == value ? t.fg : t.fgSoft,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        );
-      },
     );
   }
 }

@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:la_muralla/data/tunes.dart';
 import 'package:la_muralla/fx/sensory.dart';
 import 'package:la_muralla/model/appearance.dart';
-import 'package:la_muralla/model/habit_skin.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<Appearance> fresh({Map<String, Object> from = const {}}) async {
@@ -129,40 +128,31 @@ void main() {
   });
 
   group('la hoja de un hábito', () {
-    test('el velo de día se guarda por su nombre', () async {
-      final a = await fresh();
-      expect(a.skin, HabitSkin.vidrio);
-      await a.setSkin(HabitSkin.tinta);
-      await a.flush();
-      final otra = await fresh(
-        from: {
-          'pueblo_sound_v1': (await SharedPreferences.getInstance())
-              .getStringList('pueblo_sound_v1')!,
-        },
-      );
-      expect(otra.skin, HabitSkin.tinta);
-      // Y un nombre que ya no exista vuelve al primero en vez de tirar el
-      // resto de los ajustes con él.
-      expect(HabitSkin.byName('lo que sea'), HabitSkin.vidrio);
-      expect(HabitSkin.byName(null), HabitSkin.vidrio);
-    });
-
-    test('y un guardado con el deslizador viejo se limpia solo', () async {
-      // Lo sólido del velo de noche tuvo un deslizador durante una tarde, que
-      // es lo que se tardó en encontrar el número. Quien lo tocara tiene un
-      // `nightVeil` guardado que ya no significa nada: se lee, se tira, y en el
-      // primer guardado desaparece del disco.
+    test('un guardado con sus ajustes viejos se limpia solo', () async {
+      // La hoja tuvo diez materiales y un deslizador para lo sólido que era de
+      // noche. Las dos cosas estuvieron el tiempo que se tardó en encontrar lo
+      // que se buscaba; quien las tocara tiene un `skin` y un `nightVeil`
+      // guardados que ya no significan nada. Se leen, se tiran, y en el primer
+      // guardado desaparecen del disco sin llevarse por delante lo que sí vale.
       final a = await fresh(
         from: {
-          'pueblo_sound_v1': ['sound=1', 'nightVeil=0.4', 'skin=tinta'],
+          'pueblo_sound_v1': [
+            'sound=0',
+            'vol=2',
+            'nightVeil=0.4',
+            'skin=tinta',
+            'musicVol=0.8',
+          ],
         },
       );
-      expect(a.skin, HabitSkin.tinta, reason: 'perdió lo que sí valía');
+      expect(a.soundOff, isTrue, reason: 'perdió lo que sí valía');
+      expect(a.musicVolume, closeTo(0.8, 1e-9));
       await a.flush();
       final escrito = (await SharedPreferences.getInstance()).getStringList(
         'pueblo_sound_v1',
       )!;
       expect(escrito.any((r) => r.startsWith('nightVeil=')), isFalse);
+      expect(escrito.any((r) => r.startsWith('skin=')), isFalse);
     });
   });
 

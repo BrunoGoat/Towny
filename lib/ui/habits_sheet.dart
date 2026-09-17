@@ -6,8 +6,6 @@ import 'package:flutter/material.dart';
 import '../data/character.dart';
 import '../data/symbols.dart';
 import '../fx/sensory.dart';
-import '../model/appearance.dart';
-import '../model/habit_skin.dart';
 import '../model/store.dart';
 import 'habit_sigil.dart';
 import 'style.dart';
@@ -187,7 +185,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
   /// cuarenta y seis a ciento ocho, y el que quedó es éste.
   static const double _mark = 74.0;
 
-  Widget _sigil(UiTheme t, double size) {
+  Widget _sigil(UiTheme t, _Veil velo, double size) {
     // El lápiz crece con la marca hasta cierto punto y ahí se para: es un aviso
     // de que la cosa se puede tocar, y un aviso del tamaño de un pulgar deja de
     // ser un aviso para ser un botón encima de la marca.
@@ -210,14 +208,19 @@ class _HabitsSheetState extends State<HabitsSheet> {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           // Un aliento y no un disco. Con dos paradas y mucha alfa lo que salía
-          // era una bola de luz con la marca dentro; con tres y flojas es lo que
-          // tiene que ser: el aire un punto más claro alrededor de la marca, para
-          // que no se pierda sobre un tejado del mismo color que ella.
+          // era una bola de luz con la marca dentro; con tres y flojas es lo
+          // que tiene que ser: el aire alrededor de la marca, un punto más
+          // denso, para que no se pierda sobre un tejado.
+          //
+          // Y del color de la propia hoja, que es lo que la ata a ella. Salía
+          // de `panelStrong`, que de día es crema: sobre un velo ahumado eso
+          // era un foco blanco encendido justo encima de una hoja oscura, y lo
+          // que tiene que parecer es que la hoja sube un poco para recibirla.
           gradient: RadialGradient(
             colors: [
-              t.panelStrong.withValues(alpha: t.dark ? 0.62 : 0.58),
-              t.panelStrong.withValues(alpha: t.dark ? 0.30 : 0.28),
-              t.panelStrong.withValues(alpha: 0),
+              velo.tinte.withValues(alpha: 0.66),
+              velo.tinte.withValues(alpha: 0.32),
+              velo.tinte.withValues(alpha: 0),
             ],
             stops: const [0.26, 0.52, 1.0],
           ),
@@ -236,10 +239,10 @@ class _HabitsSheetState extends State<HabitsSheet> {
               top: size * 0.10,
               child: Container(
                 padding: EdgeInsets.all(aviso * 0.055),
+                // La pastilla del lápiz, del color del velo: de crema sobre
+                // una hoja ahumada era el segundo foco blanco de la cabecera.
                 decoration: BoxDecoration(
-                  color: t.dark
-                      ? const Color(0xFF1A1A22)
-                      : const Color(0xFFF3EEE3),
+                  color: Color.lerp(velo.tinte, Colors.black, 0.15)!,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -427,93 +430,30 @@ class _HabitsSheetState extends State<HabitsSheet> {
   /// encima. Las cinco tiran de lo mismo: que el velo saque su color de la
   /// escena en vez de traerlo de fuera, y que deje ver algo de lo que hay
   /// debajo.
-  _Veil _veil(UiTheme t, HabitSkin skin) {
+  _Veil _veil(UiTheme t) {
     final p = t.palette;
-    // De noche no se elige: oscuro sobre oscuro al noventa y cinco por ciento,
-    // que es el número al que se llegó probándolo con un deslizador. Encontrado
-    // el número, el deslizador sobra.
+    // De noche: oscuro sobre oscuro al noventa y cinco por ciento, que es el
+    // número al que se llegó probándolo con un deslizador.
     if (t.dark) {
       return _Veil(tinte: t.panelStrong, tapa: 0.95, bruma: 0, cuerpo: t.fg);
     }
-
-    // La tinta de los claros: el nombre del hábito no va en negro ni en blanco
-    // —el blanco sobre un velo claro es lo que se perdía— sino en el color del
-    // propio pueblo apagado hasta hacerse tinta. Es el mismo color de la marca
-    // que tiene encima, dos tonos más hondo, así que la cabecera se lee como
-    // una sola cosa.
-    final quemado = Color.lerp(p.accent, p.ink, 0.52)!;
-    final hollin = Color.lerp(p.ink, Colors.black, 0.25)!;
-    // Y la de los ahumados, que llevan la letra clara: crema con una gota del
-    // color del pueblo, nunca blanco de papel.
-    final crema = Color.lerp(const Color(0xFFF3EEE3), p.accent, 0.16)!;
-
-    return switch (skin) {
-      HabitSkin.vidrio => _Veil(
-        tinte: Color.lerp(p.skyHorizon, Colors.white, 0.50)!,
-        tapa: 0.42,
-        bruma: 26,
-        cuerpo: quemado,
-      ),
-      HabitSkin.hondo => _Veil(
-        tinte: Color.lerp(p.skyHorizon, Colors.white, 0.50)!,
-        tapa: 0.24,
-        bruma: 44,
-        cuerpo: quemado,
-      ),
-      HabitSkin.limpio => _Veil(
-        tinte: Color.lerp(p.skyHorizon, Colors.white, 0.55)!,
-        tapa: 0.14,
-        bruma: 52,
-        cuerpo: quemado,
-      ),
-      HabitSkin.escarcha => _Veil(
-        tinte: Colors.white,
-        tapa: 0.34,
-        bruma: 34,
-        cuerpo: hollin,
-      ),
-      HabitSkin.miel => _Veil(
-        tinte: Color.lerp(p.accent, Colors.white, 0.82)!,
-        tapa: 0.44,
-        bruma: 24,
-        cuerpo: quemado,
-      ),
-      HabitSkin.musgo => _Veil(
-        tinte: Color.lerp(p.ground, Colors.white, 0.60)!,
-        tapa: 0.44,
-        bruma: 24,
-        cuerpo: hollin,
-      ),
-      HabitSkin.pizarra => _Veil(
-        tinte: Color.lerp(p.stoneCool, Colors.white, 0.48)!,
-        tapa: 0.48,
-        bruma: 22,
-        cuerpo: hollin,
-      ),
-      HabitSkin.bruma => _Veil(
-        tinte: Color.lerp(p.skyHorizon, Colors.white, 0.62)!,
-        tapa: 0.56,
-        bruma: 34,
-        cuerpo: quemado,
-      ),
-      // Los dos ahumados: en vez de aclarar el pueblo lo oscurecen, y entonces
-      // la letra se vuelve clara. En un mediodía verde y brillante, oscurecer
-      // separa mejor que aclarar — que es justo lo que ya funciona de noche.
-      HabitSkin.ahumado => _Veil(
-        tinte: Color.lerp(p.ink, p.skyHorizon, 0.22)!,
-        tapa: 0.52,
-        bruma: 26,
-        cuerpo: crema,
-        oscuro: true,
-      ),
-      HabitSkin.tinta => _Veil(
-        tinte: Color.lerp(p.ink, Colors.black, 0.30)!,
-        tapa: 0.72,
-        bruma: 18,
-        cuerpo: crema,
-        oscuro: true,
-      ),
-    };
+    // Y de día, lo mismo. Se probaron quince maneras de hacerlo claro —crema,
+    // prado, cielo, escarcha, miel, musgo, pizarra, y ocho vidrios de distinta
+    // transparencia— y la que quedó fue ésta: vidrio **ahumado**. En un
+    // mediodía verde y brillante, oscurecer separa mejor que aclarar, que es
+    // justo lo que ya funcionaba a las once de la noche; y la hoja se ve igual
+    // a cualquier hora en vez de darse la vuelta a las siete de la tarde.
+    //
+    // La tinta va clara encima, y no blanca: crema con una gota del color del
+    // pueblo. El blanco de papel sobre esto es lo único que se sigue viendo de
+    // fuera.
+    return _Veil(
+      tinte: Color.lerp(p.ink, Colors.black, 0.30)!,
+      tapa: 0.72,
+      bruma: 18,
+      cuerpo: Color.lerp(const Color(0xFFF3EEE3), p.accent, 0.16)!,
+      oscuro: true,
+    );
   }
 
   /// Envuelve algo en un desenfoque de lo que tenga detrás, o no lo envuelve.
@@ -552,7 +492,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
     final store = widget.store;
     final ch = _creating ? TownCharacter.byOrder(_place) : store.habit.place;
     final bottom = MediaQuery.of(context).viewInsets.bottom;
-    final velo = _veil(t, Appearance.instance.skin);
+    final velo = _veil(t);
 
     // La marca va fuera del velo y no dentro, que es lo que la deja flotando
     // sobre el propio pueblo en vez de pegada al canto de una hoja. El velo
@@ -569,7 +509,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _sigil(t, _mark),
+            _sigil(t, velo, _mark),
             // El velo, y por detrás el desenfoque de lo que haya debajo.
             _blurred(
               velo.bruma,
