@@ -53,20 +53,7 @@ class Sensory {
     SoundBite('milestone', 'milestone.wav', 'Obra terminada', 0.85),
     SoundBite('epic', 'epic.wav', 'Hito del pueblo', 0.90),
     SoundBite('wish', 'wish.wav', 'Estrella fugaz', 0.50),
-    // Las diez de tocar una constelación, mientras se elige cuál se queda.
-    // Están acá y no sueltas porque un wav que no está en el catálogo es un
-    // sonido que existe y que nadie puede silenciar ni escuchar a propósito.
-    // Se van nueve en cuanto haya respuesta.
-    SoundBite('estrella1', 'estrella1.wav', 'Constelación · 1', 0.55),
-    SoundBite('estrella2', 'estrella2.wav', 'Constelación · 2', 0.55),
-    SoundBite('estrella3', 'estrella3.wav', 'Constelación · 3', 0.55),
-    SoundBite('estrella4', 'estrella4.wav', 'Constelación · 4', 0.55),
-    SoundBite('estrella5', 'estrella5.wav', 'Constelación · 5', 0.55),
-    SoundBite('estrella6', 'estrella6.wav', 'Constelación · 6', 0.55),
-    SoundBite('estrella7', 'estrella7.wav', 'Constelación · 7', 0.55),
-    SoundBite('estrella8', 'estrella8.wav', 'Constelación · 8', 0.55),
-    SoundBite('estrella9', 'estrella9.wav', 'Constelación · 9', 0.55),
-    SoundBite('estrella10', 'estrella10.wav', 'Constelación · 10', 0.55),
+    SoundBite('estrella', 'estrella.wav', 'Constelación', 0.55),
   ];
 
   static SoundBite? biteOf(String id) {
@@ -461,14 +448,16 @@ class Sensory {
   /// desbloquea nada y no lleva la cuenta nadie — es mirar para arriba. Lo que
   /// se busca es el sonido de algo que **contesta**, no de algo que premia.
   ///
-  /// De paso, como el papel que la cuenta: diez para elegir una. Ver
-  /// [Appearance.starSound].
+  /// Y no dice nada más. No hay nombre, no hay tarjeta y no hay dato: se toca,
+  /// suena, y se acabó. Es lo único que pasa en toda la app que no lleva la
+  /// cuenta nadie ni informa de nada — decoración pura, que es exactamente lo
+  /// que tiene que ser una constelación en una app de hábitos.
   Future<void> star() async {
     // Se pide permiso con la misma llave que la fugaz: son la misma clase de
     // cosa —algo que pasa en el cielo— y quien apagó una no quiere la otra.
     if (!_wants.hears('wish')) return;
     if (_asleep) return;
-    final bite = biteOf('estrella${_wants.starSound}');
+    final bite = biteOf('estrella');
     if (bite == null) return;
     try {
       final p = _starPlayer ??= AudioPlayer()..setReleaseMode(ReleaseMode.stop);

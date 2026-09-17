@@ -80,21 +80,21 @@ void main() {
       // cuatro minutos y medio de noche, dura lo que dura ella y se calla con
       // ella. Es el sonido de que está pasando algo, no ruido de fondo.
       //
-      // Las diez de tocar una constelación no cuentan para este seis, y no es
-      // una excepción cómoda: son diez versiones de **una sola** cosa, y de
-      // paso — se elige una y se borran nueve. Pasan la prueba de fondo igual
-      // que las demás, porque ninguna suena si no hay un dedo. Cuando quede
-      // una, este seis vuelve a ser siete y esta resta se va.
-      final fijos = Sensory.catalogue
-          .where((b) => !b.id.startsWith('estrella'))
-          .toList();
-      expect(fijos.length, 6);
-      expect(
-        Sensory.catalogue.length - fijos.length,
-        10,
-        reason: 'las diez de la constelación tienen que estar las diez',
-      );
+      // Siete desde que tocar una constelación tiene sonido propio. Se
+      // escribieron diez y quedó una: las nueve que no, ni están en el
+      // catálogo ni ocupan sitio en la APK.
+      expect(Sensory.catalogue.length, 7);
       expect(Sensory.biteOf('wish'), isNotNull);
+      expect(Sensory.biteOf('estrella'), isNotNull);
+      // Y ninguna de las nueve sobrevivió en disco, que es la mitad del
+      // asunto: un wav que no suena en ninguna parte es sitio por nada.
+      for (var n = 1; n <= 10; n++) {
+        expect(
+          File('assets/sfx/estrella$n.wav').existsSync(),
+          isFalse,
+          reason: 'estrella$n.wav sigue ocupando sitio en la app',
+        );
+      }
       for (final gone in [
         'bell',
         'cock',

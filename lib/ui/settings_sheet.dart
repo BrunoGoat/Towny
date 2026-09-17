@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../data/constellations.dart';
 import '../data/demo.dart';
 import '../data/doings.dart';
 import '../data/landmarks.dart';
@@ -17,7 +16,6 @@ import 'gallery_screen.dart';
 import '../engine/shooting_star.dart';
 import 'notice_board.dart';
 import 'overlays.dart';
-import 'star_card.dart';
 import 'style.dart';
 
 /// Everything about the app that is a setting rather than a town.
@@ -154,45 +152,6 @@ class _SettingsSheetState extends State<SettingsSheet> {
         ),
 
         const SizedBox(height: 26),
-        // De paso, y se nota que lo es: dos filas para elegir entre diez, con
-        // el papel puesto debajo para poder mirarlo. En cuanto haya respuesta
-        // se van las dos y queda una constante — es lo mismo que se hizo con
-        // los cinco temas de música y con los quince velos de la hoja.
-        _Head(theme: t, text: 'EL CIELO · DE PASO'),
-        _Ten(
-          theme: t,
-          title: 'El sonido de una constelación',
-          subtitle:
-              'Tocá un número para oírlo. Las diez duran menos de un '
-              'segundo, que es lo que dura un dedo.',
-          count: Appearance.starSounds,
-          value: wants.starSound,
-          onPick: (n) async {
-            await wants.setStarSound(n);
-            await Sensory.instance.star();
-          },
-        ),
-        _Ten(
-          theme: t,
-          title: 'El papel que la cuenta',
-          subtitle:
-              'Lo que sale al tocarla. Se ve aquí debajo, con el cielo '
-              'de ahora mismo detrás.',
-          count: Appearance.starCards,
-          value: wants.starCard,
-          onPick: (n) => wants.setStarCard(n),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(0, 4, 0, 16),
-          child: Center(
-            child: StarCard(
-              constellation: constellations.first,
-              theme: t,
-              design: wants.starCard,
-            ),
-          ),
-        ),
-
         _Head(theme: t, text: 'EL TABLÓN'),
         Text(
           'Las letras del tablón ya no se eligen: tus cuentas van todas de la '
@@ -529,83 +488,6 @@ class _Switch extends StatelessWidget {
 }
 
 /// Unas cuantas opciones en fila, para elegir una de un toque.
-/// Diez cosas para elegir una, numeradas.
-///
-/// Numeradas y no con nombre a propósito: lo que se está eligiendo no tiene
-/// nombre todavía — son diez intentos de la misma cosa, y ponerles nombre sería
-/// decidir antes de mirar cuál es cuál.
-class _Ten extends StatelessWidget {
-  const _Ten({
-    required this.theme,
-    required this.title,
-    required this.subtitle,
-    required this.count,
-    required this.value,
-    required this.onPick,
-  });
-
-  final UiTheme theme;
-  final String title, subtitle;
-  final int count, value;
-  final void Function(int) onPick;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = theme;
-    return Padding(
-      padding: const EdgeInsets.only(top: 10, bottom: 6),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: t.body),
-          const SizedBox(height: 3),
-          Text(
-            subtitle,
-            style: t.bodySoft.copyWith(fontSize: 12, height: 1.35),
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 7,
-            runSpacing: 7,
-            children: [
-              for (var n = 1; n <= count; n++)
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    Sensory.instance.tick();
-                    onPick(n);
-                  },
-                  child: Container(
-                    width: 38,
-                    height: 34,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: t.fg.withValues(alpha: n == value ? 0.13 : 0.04),
-                      borderRadius: BorderRadius.circular(11),
-                      border: Border.all(
-                        color: n == value
-                            ? t.accent.withValues(alpha: 0.8)
-                            : t.stroke,
-                        width: n == value ? 1.4 : 1,
-                      ),
-                    ),
-                    child: Text(
-                      '$n',
-                      style: t.bodySoft.copyWith(
-                        fontSize: 12.5,
-                        color: n == value ? t.fg : t.fgSoft,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _Pick extends StatelessWidget {
   const _Pick({
     required this.theme,

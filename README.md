@@ -214,11 +214,20 @@ alba, mañana, mediodía, hora dorada, atardecer y crepúsculo.
 
 **Constelaciones**, ocho, reales, con sus coordenadas de verdad: Orión, la Osa
 Mayor, Casiopea, la Cruz del Sur, el Cisne, Escorpio, la Lira y el Can Mayor. Se
-proyectan sobre el cielo conservando su forma, cada noche sale una, y tocarla la
-registra. Aparecen a partir del momento en que hay un **observatorio** en pie en
-cualquier pueblo del valle —y lo que se registra es del valle, no del pueblo, así
-que no hace falta un observatorio por hábito—. Lo registrado se lee después en el
-cuaderno de cualquier observatorio.
+proyectan sobre el cielo conservando su forma y cada noche sale una.
+
+**Y no hacen nada.** No se registran, no llevan nombre escrito debajo, no se
+desbloquean y no cuentan nada de sí mismas: se tocan, suena una nota corta, y se
+acabó. Llegaron a tener un cuaderno que había que rellenar y una tarjeta que
+explicaba la figura, y las dos cosas sobraban por el mismo motivo — una
+constelación acá no es contenido, es el cielo, y un cielo que te explica cosas
+cuando lo tocás deja de ser cielo.
+
+Se cuelgan **a la mitad de su tamaño real**. Las coordenadas son las auténticas
+y la forma es la forma —los ángulos entre estrellas se encogen todos por igual—,
+pero a tamaño verdadero la Osa Mayor cruza la pantalla de canto a canto y deja
+de ser un detalle del cielo para ser el fondo. La escala es lo único de esto que
+no es de verdad, y es a propósito.
 
 ## El tablón
 
@@ -276,7 +285,7 @@ cambiar cuánto suena la mitad la recalcula sola.
 
 ```bash
 flutter pub get
-flutter test          # 431 tests
+flutter test          # 445 tests
 flutter analyze
 flutter run
 flutter build apk --release

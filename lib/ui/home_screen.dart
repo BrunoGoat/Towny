@@ -1,4 +1,3 @@
-import '../data/constellations.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -25,7 +24,6 @@ import 'notice_board.dart';
 import 'overlays.dart';
 import 'rest_sheet.dart';
 import 'settings_sheet.dart';
-import 'star_card.dart';
 import 'style.dart';
 import 'town_sign.dart';
 import 'unlock_sheet.dart';
@@ -108,7 +106,6 @@ class _HomeScreenState extends State<HomeScreen>
     Appearance.instance.removeListener(_onStore);
     _whisperTimer?.cancel();
     _signTimer?.cancel();
-    _starTimer?.cancel();
     _flight.dispose();
     super.dispose();
   }
@@ -207,29 +204,19 @@ class _HomeScreenState extends State<HomeScreen>
 
   /// Alguien tocó la figura que hay en el cielo esta noche.
   ///
-  /// Y no pasa nada más que esto: suena, y el pueblo dice en voz baja lo que
-  /// sabe de ella. No se anota en ningún sitio, no hay ocho que juntar y no
-  /// hace falta tener un observatorio para que aparezca. Es un huevo de pascua
-  /// —algo que está ahí para quien mire hacia arriba una noche cualquiera— y
-  /// dejó de ser una mecánica, que es lo que se había vuelto.
-  void _wishOn(String id) {
-    final c = constellationOf(id);
-    if (c == null) return;
-    Sensory.instance.star();
-    _starTimer?.cancel();
-    setState(() => _star = c);
-    _starTimer = Timer(const Duration(seconds: 6), () {
-      if (mounted) setState(() => _star = null);
-    });
-  }
-
-  /// La constelación que se acaba de tocar, mientras su papel está en pantalla.
+  /// Y no pasa **nada más** que un sonido. No se anota en ningún sitio, no hay
+  /// ocho que juntar, no dice cómo se llama y no cuenta nada de ella.
   ///
-  /// Papel propio y no el susurro de siempre: el susurro es una pastilla de una
-  /// línea para decir «el pueblo vuelve a encenderse», y esto son un nombre y
-  /// una frase que alguien pidió tocando. Ver [StarCard].
-  Constellation? _star;
-  Timer? _starTimer;
+  /// Llegó a decirlo: salía su nombre y una frase con lo que se sabe de la
+  /// figura. Estaba bien escrito y sobraba igual — una constelación acá no es
+  /// contenido, es el cielo, y un cielo que te explica cosas cuando lo tocás
+  /// deja de ser cielo y pasa a ser una pantalla con información. Lo que tiene
+  /// que hacer es estar ahí para quien mire hacia arriba, sonar si lo tocan, y
+  /// callarse.
+  ///
+  /// Ni siquiera hace falta saber cuál es: el identificador llega del propio
+  /// dibujo y no se usa para nada, porque las ocho suenan igual.
+  void _wishOn(String id) => Sensory.instance.star();
 
   /// El tablón de este pueblo, desde el botón.
   void _readOwnBoard() {
@@ -466,17 +453,7 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
 
-          if (_star != null && _selected == null)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: media.padding.bottom + 222,
-              child: Center(
-                child: StarCard(constellation: _star!, theme: t),
-              ),
-            ),
-
-          if (_whisper != null && _selected == null && _star == null)
+          if (_whisper != null && _selected == null)
             Positioned(
               left: 0,
               right: 0,

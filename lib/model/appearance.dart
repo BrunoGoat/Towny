@@ -57,42 +57,6 @@ class Appearance extends ChangeNotifier {
     await _keep();
   }
 
-  // ------------------------------------------------- lo que hay en el cielo
-
-  /// Cuál de los diez sonidos suena al tocar una constelación, y cuál de los
-  /// diez papeles cuenta lo que es.
-  ///
-  /// Los dos están **de paso**, igual que estuvieron los cinco temas de música
-  /// y los quince velos de la hoja del hábito: se escriben todos, se prueban de
-  /// verdad en el teléfono, se elige uno y se borran los otros nueve. Un
-  /// ajuste que nadie va a volver a tocar es una fila más que leer cada vez que
-  /// se abren los ajustes, así que en cuanto haya respuesta esto se va entero y
-  /// queda una constante.
-  int _starSound = 1;
-  int _starCard = 1;
-
-  int get starSound => _starSound;
-  int get starCard => _starCard;
-
-  /// Cuántos hay de cada uno. Aquí y no repartido por la app, para que quitar
-  /// nueve sea cambiar un número.
-  static const int starSounds = 10;
-  static const int starCards = 10;
-
-  Future<void> setStarSound(int v) async {
-    final want = v.clamp(1, starSounds);
-    if (want == _starSound) return;
-    _starSound = want;
-    await _keep();
-  }
-
-  Future<void> setStarCard(int v) async {
-    final want = v.clamp(1, starCards);
-    if (want == _starCard) return;
-    _starCard = want;
-    await _keep();
-  }
-
   // -------------------------------------------------------------- el año
 
   /// De qué lado del ecuador está el valle.
@@ -328,10 +292,6 @@ class Appearance extends ChangeNotifier {
           }
         case 'effectsVol':
           _effectsVolume = (double.tryParse(value) ?? _midway).clamp(0.0, 1.0);
-        case 'starSound':
-          _starSound = (int.tryParse(value) ?? 1).clamp(1, starSounds);
-        case 'starCard':
-          _starCard = (int.tryParse(value) ?? 1).clamp(1, starCards);
         case 'fakeHour':
           _fakeHour = value == '1';
         case 'fakeHourAt':
@@ -380,8 +340,6 @@ class Appearance extends ChangeNotifier {
     '$_volMark=$_volNow',
     'musicVol=$_musicVolume',
     'effectsVol=$_effectsVolume',
-    'starSound=$_starSound',
-    'starCard=$_starCard',
     'fakeHour=${_fakeHour ? 1 : 0}',
     'fakeHourAt=$_fakeHourAt',
     // Sólo si alguien lo puso a mano: sin fila, manda el teléfono.

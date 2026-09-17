@@ -181,19 +181,25 @@ write('tap.wav', tap())
 write('wish.wav', wish())
 
 
-# ---- estrella1..10.wav : tocar una constelación.
+# ---- estrella.wav : tocar una constelación.
 #
-# Diez, para elegir una y borrar las nueve. Es como se eligieron los temas de
-# música y los velos de la hoja: escritas todas, probadas de verdad en el
-# teléfono, y de ahí sale cuál se queda.
+# Se escribieron diez y se probaron las diez en el teléfono. Quedó **la sexta**:
+# dos notas a la vez, una quinta — un acorde de una sola pulsación. Las otras
+# nueve siguen escritas aquí abajo por si alguna vuelve, pero no se generan: un
+# asset que no suena en ninguna parte es sitio en la APK por nada. Es lo mismo
+# que se hizo con los tres temas de música que no quedaron.
 #
-# Lo que tienen en común, y es el encargo: **cortas**. La fugaz dura cinco
-# segundos porque acompaña a algo que cruza el cielo; esto acompaña a un dedo,
-# y un dedo no dura cinco segundos. Ninguna pasa de ocho décimas.
+# Por qué una quinta y no una campanita sola: las de una nota se leen como un
+# aviso —algo te contestó—, y las de tres o cuatro como una pequeña melodía,
+# que ya es demasiado para un dedo en el cielo. Dos a la vez no suenan a
+# mensaje: suenan a que el sitio tiene una nota, y ya.
+#
+# Lo que tienen en común las diez, y era el encargo: **cortas**. La fugaz dura
+# cinco segundos porque acompaña a algo que cruza el cielo; esto acompaña a un
+# dedo, y un dedo no dura cinco segundos. Ninguna pasa de ocho décimas.
 #
 # Y ninguna es un «bien hecho». Tocar una constelación no es un logro, no
-# desbloquea nada y no lleva cuenta nadie: es mirar para arriba. Así que lo que
-# se busca es el sonido de algo que **responde**, no de algo que te premia.
+# desbloquea nada y no lleva la cuenta nadie: es mirar para arriba.
 
 def _campana(out, t0, f, dec, amp, arm=0.35):
     """Una campanita: fundamental, un armónico y caída exponencial."""
@@ -298,5 +304,10 @@ def _estrellas():
     return hechas
 
 
+# La que quedó. Cambiar este número y volver a correr esto es lo único que hace
+# falta si algún día se prefiere otra de las nueve.
+ELEGIDA = 6
+
 for _nombre, _muestras in _estrellas():
-    write(_nombre, _muestras)
+    if _nombre == 'estrella%d.wav' % ELEGIDA:
+        write('estrella.wav', _muestras)
