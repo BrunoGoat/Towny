@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../engine/season.dart';
+import 'habit_skin.dart';
 
 /// The handful of things about the app that are a preference rather than a
 /// record of what you did.
@@ -133,6 +134,24 @@ class Appearance extends ChangeNotifier {
     return Season.on(DateTime.now(), hemisphere);
   }
 
+  // --------------------------------------------------- la hoja de un hábito
+
+  /// De qué está hecha la hoja en la que se edita un hábito.
+  ///
+  /// Es la única de la app en la que se escribe algo y la única desde la que se
+  /// puede borrar un pueblo entero, así que es la que más se mira de cerca —y
+  /// la que más ganas dan de tener a gusto. Diez materiales; todos dicen lo
+  /// mismo. Se guarda el nombre y no el número: una que se quite mañana no le
+  /// corre la elección a las de debajo.
+  HabitSkin _skin = HabitSkin.vidrio;
+  HabitSkin get skin => _skin;
+
+  Future<void> setSkin(HabitSkin v) async {
+    if (v == _skin) return;
+    _skin = v;
+    await _keep();
+  }
+
   // ------------------------------------------------------- la letra del papel
 
   /// Con qué letra están escritos los papeles del tablón.
@@ -223,6 +242,7 @@ class Appearance extends ChangeNotifier {
     _effectsVolume = _midway;
     _fakeHour = false;
     _fakeHourAt = 22.0;
+    _skin = HabitSkin.vidrio;
   }
 
   Future<void> load() async {
@@ -299,6 +319,8 @@ class Appearance extends ChangeNotifier {
           _fakeSeason = value == '1';
         case 'fakeSeasonAt':
           _fakeSeasonAt = (double.tryParse(value) ?? 0.0).clamp(0.0, 0.999);
+        case 'skin':
+          _skin = HabitSkin.byName(value);
 
         // Y lo mismo el estilo del vuelo al valle: llegaron a estar hechos
         // los diez y se eligió la niebla, así que se fueron los otros nueve
@@ -336,6 +358,7 @@ class Appearance extends ChangeNotifier {
     'seasons=${_seasonsOff ? 0 : 1}',
     'fakeSeason=${_fakeSeason ? 1 : 0}',
     'fakeSeasonAt=$_fakeSeasonAt',
+    'skin=${_skin.name}',
   ];
 
   Timer? _writeSoon;
