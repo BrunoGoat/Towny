@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/data/character.dart';
 import 'package:la_muralla/core/math3.dart';
+import 'package:la_muralla/data/character.dart';
 import 'package:la_muralla/engine/camera.dart';
 import 'package:la_muralla/engine/town.dart';
 import 'package:la_muralla/model/habit.dart';

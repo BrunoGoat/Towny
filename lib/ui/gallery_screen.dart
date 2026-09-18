@@ -9,6 +9,7 @@ import '../data/landmarks.dart';
 import '../engine/camera.dart';
 import '../engine/palette.dart';
 import '../engine/renderer.dart';
+import '../engine/scene.dart';
 import '../engine/solids.dart';
 import '../engine/town.dart';
 import '../engine/world.dart';

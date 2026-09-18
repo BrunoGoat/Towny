@@ -4,18 +4,20 @@ import '../data/demo.dart';
 import '../data/doings.dart';
 import '../data/landmarks.dart';
 import '../engine/season.dart';
+import '../engine/shooting_star.dart';
 import '../engine/town.dart';
 import '../fx/sensory.dart';
 import '../model/appearance.dart';
 import '../model/piece.dart';
+import '../model/reel.dart';
 import '../model/store.dart';
 import 'backup_sheet.dart';
-import 'folk_gallery_screen.dart';
 import 'debug_sheet.dart';
+import 'folk_gallery_screen.dart';
 import 'gallery_screen.dart';
-import '../engine/shooting_star.dart';
 import 'notice_board.dart';
 import 'overlays.dart';
+import 'reel_screen.dart';
 import 'style.dart';
 
 /// Everything about the app that is a setting rather than a town.
@@ -310,6 +312,18 @@ class _SettingsSheetState extends State<SettingsSheet> {
           subtitle: 'Copiar tu valle y volver a meterlo.',
           open: () => BackupSheet(store: store, theme: t),
         ),
+        // Al lado de «a futuro» a propósito: son la misma clase de cosa mirada
+        // en las dos direcciones, y la de atrás es la única de las dos que
+        // habla de vos. Va primero porque es la que existe de verdad — la otra
+        // enseña un pueblo que todavía no es tuyo.
+        if (Reel.worthIt(store.habits))
+          _Row(
+            theme: t,
+            icon: Icons.play_circle_outline,
+            title: 'Ver cómo se hizo',
+            subtitle: 'Tu valle entero desde el primer día, en un minuto.',
+            page: () => ReelScreen(store: store),
+          ),
         _Row(
           theme: t,
           icon: Icons.tune,

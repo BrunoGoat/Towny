@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:la_muralla/model/board_seen.dart';
 import 'package:la_muralla/model/findings.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Notice _n(NoticeKind k, String said) => Notice(k, said, 'porque sí');
 

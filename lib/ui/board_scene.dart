@@ -4,17 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../core/math3.dart';
+import '../data/symbols.dart';
+import '../engine/backdrop.dart';
+import '../engine/board_plan.dart';
 import '../engine/camera.dart';
 import '../engine/palette.dart';
-import '../engine/renderer.dart';
 import '../engine/shooting_star.dart';
+import '../engine/sigils.dart';
 import '../engine/star_draw.dart';
+import '../engine/tones.dart';
 import '../model/board_seen.dart';
 import '../model/findings.dart';
 import '../model/habit.dart';
-import 'board_plan.dart';
-import '../data/symbols.dart';
-import 'habit_sigil.dart';
 import 'paper_ink.dart';
 
 /// Lo que cambia entre un fotograma y el siguiente.
@@ -510,7 +511,7 @@ class BoardPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final p = cam.projector(size.width, size.height, 0);
-    final horizon = TownPainter.horizonOf(p, size);
+    final horizon = horizonOf(p, size);
     // La fugaz va en dos: la estrella con el cielo, detrás del tablón, y su
     // luz al final del todo, porque es luz que cae sobre lo ya pintado. En una
     // sola pasada al final, la estela cruzaba por delante de la plancha.
@@ -520,8 +521,7 @@ class BoardPainter extends CustomPainter {
       SkyView.of(p, size.width, size.height),
       chance: 0.55,
     );
-    Offset? apunta(double az, double el) =>
-        TownPainter.skyPoint(p, az, el, minDen: 0.08);
+    Offset? apunta(double az, double el) => skyPoint(p, az, el, minDen: 0.08);
     _sky(canvas, size, horizon);
     _ground(canvas, size, horizon);
     if (fugaz != null) {
@@ -557,7 +557,7 @@ class BoardPainter extends CustomPainter {
     if (hy > size.height) return;
     canvas.drawRect(
       Rect.fromLTWH(0, hy, size.width, size.height - hy),
-      Paint()..color = TownPainter.meadowTone(palette),
+      Paint()..color = meadowTone(palette),
     );
   }
 

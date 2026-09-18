@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
-import '../core/rng.dart';
 import '../core/math3.dart';
+import '../core/rng.dart';
 import '../data/character.dart';
 import 'solid.dart';
 import 'town.dart';

@@ -25,8 +25,21 @@ linter:
   # `// ignore_for_file: name_of_lint` syntax on the line or in the file
   # producing the lint.
   rules:
-    # avoid_print: false  # Uncomment to disable the `avoid_print` rule
-    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+    # Los imports, ordenados y agrupados: `dart:`, luego los paquetes, luego
+    # lo de casa, y dentro de cada grupo por orden alfabético.
+    #
+    # No es manía de limpieza. Un bloque de veinte imports sin orden hace que
+    # añadir uno sea pegarlo donde caiga, y entonces nadie lee el bloque — que
+    # es la única cosa de un fichero que dice, de un vistazo, de qué depende.
+    # Se reordenaron cincuenta y ocho de golpe; que no vuelvan a mezclarse lo
+    # vigila esto y no la buena voluntad.
+    directives_ordering: true
+
+    # Y que lo que se declara público se use, o se borre. `unused_element` ya
+    # lo hace con lo privado, y no hay lint que lo haga con lo público: eso lo
+    # cubre `test/tree_test.dart`, que es donde se vio que una pantalla entera
+    # llevaba una semana muerta en el árbol.
+    unnecessary_library_name: true
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

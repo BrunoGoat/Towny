@@ -1,34 +1,34 @@
 import 'dart:io';
 import 'dart:math' as math;
-
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:la_muralla/data/demo.dart';
-import 'package:la_muralla/data/bandos.dart';
-import 'package:la_muralla/data/gossip.dart';
-import 'package:la_muralla/engine/town.dart';
-import 'package:la_muralla/model/findings.dart';
-import 'package:la_muralla/engine/palette.dart';
-import 'package:la_muralla/engine/renderer.dart';
-import 'package:la_muralla/engine/shooting_star.dart';
 import 'package:la_muralla/core/math3.dart';
+import 'package:la_muralla/data/bandos.dart';
+import 'package:la_muralla/data/demo.dart';
+import 'package:la_muralla/data/gossip.dart';
+import 'package:la_muralla/engine/backdrop.dart';
+import 'package:la_muralla/engine/board_plan.dart';
 import 'package:la_muralla/engine/camera.dart';
+import 'package:la_muralla/engine/palette.dart';
+import 'package:la_muralla/engine/shooting_star.dart';
 import 'package:la_muralla/engine/solids.dart';
+import 'package:la_muralla/engine/tones.dart';
+import 'package:la_muralla/engine/town.dart';
 import 'package:la_muralla/model/appearance.dart';
 import 'package:la_muralla/model/board.dart';
-import 'package:la_muralla/model/habit.dart';
 import 'package:la_muralla/model/board_slots.dart';
-import 'package:la_muralla/ui/board_plan.dart';
-import 'package:la_muralla/ui/hold_button.dart';
+import 'package:la_muralla/model/findings.dart';
+import 'package:la_muralla/model/habit.dart';
 import 'package:la_muralla/ui/board_scene.dart';
+import 'package:la_muralla/ui/hold_button.dart';
 import 'package:la_muralla/ui/note_font.dart';
-import 'package:la_muralla/ui/paper_ink.dart';
 import 'package:la_muralla/ui/notice_board.dart';
+import 'package:la_muralla/ui/paper_ink.dart';
 import 'package:la_muralla/ui/style.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   // El valle de mentira existe para una sola cosa: enseñar el tablón lleno.
@@ -1329,7 +1329,7 @@ void _sierras() {
       for (final hora in [0.0, 2.0, 4.0, 21.0, 22.5, 23.0]) {
         final pal = Palette.forMoment(hora, 1.0);
         for (var li = 0; li < 3; li++) {
-          final (body, _) = TownPainter.rangeTone(pal, li, 3);
+          final (body, _) = rangeTone(pal, li, 3);
           expect(
             (luz(body) - luz(pal.skyHorizon)).abs(),
             // El margen de verdad ronda el once por ciento. El listón va a la
@@ -1493,7 +1493,7 @@ void _fugaz() {
             // Nunca por debajo del horizonte: una fugaz que se mete en el
             // suelo no es una fugaz.
             expect(a!.$2, greaterThan(0));
-            final at = TownPainter.skyPoint(p, a.$1, a.$2, minDen: 0.05);
+            final at = skyPoint(p, a.$1, a.$2, minDen: 0.05);
             if (at != null && marco.contains(at)) dentro++;
           }
           final parte = dentro / vuelo.length;

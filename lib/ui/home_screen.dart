@@ -2,14 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../data/landmarks.dart';
 import '../engine/palette.dart';
+import '../engine/town.dart';
 import '../fx/sensory.dart';
 import '../model/appearance.dart';
 import '../model/board.dart';
 import '../model/board_seen.dart';
 import '../model/habit.dart';
 import '../model/piece.dart';
-import '../data/landmarks.dart';
 import '../model/store.dart';
 import 'adrift_sheet.dart';
 import 'board_glyph.dart';
@@ -26,9 +27,8 @@ import 'rest_sheet.dart';
 import 'settings_sheet.dart';
 import 'style.dart';
 import 'town_sign.dart';
-import 'unlock_sheet.dart';
-import '../engine/town.dart';
 import 'town_view.dart';
+import 'unlock_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.store});

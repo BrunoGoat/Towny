@@ -6,8 +6,8 @@ import '../core/math3.dart';
 import '../core/rng.dart';
 import '../data/doings.dart';
 import '../data/folknames.dart';
-import 'solids.dart';
 import 'solid.dart';
+import 'solids.dart';
 import 'town.dart';
 
 /// La gente que vive en el pueblo.

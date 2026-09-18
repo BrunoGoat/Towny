@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/rng.dart';
 import '../data/bandos.dart';
+import '../engine/board_plan.dart';
 import '../engine/solids.dart';
 import '../fx/sensory.dart';
 import '../model/appearance.dart';
@@ -10,7 +11,6 @@ import '../model/board_slots.dart';
 import '../model/findings.dart';
 import '../model/habit.dart';
 import '../model/store.dart';
-import 'board_plan.dart';
 import 'board_scene.dart';
 import 'style.dart';
 

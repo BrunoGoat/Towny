@@ -4,10 +4,10 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/rng.dart';
-import '../data/pacing.dart';
-import '../data/symbols.dart';
 import '../data/character.dart';
 import '../data/landmarks.dart';
+import '../data/pacing.dart';
+import '../data/symbols.dart';
 import '../engine/town.dart';
 import 'census.dart';
 import 'findings.dart';

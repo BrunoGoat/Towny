@@ -8,6 +8,7 @@ import '../data/constellations.dart';
 import '../engine/camera.dart';
 import '../engine/palette.dart';
 import '../engine/renderer.dart';
+import '../engine/scene.dart';
 import '../engine/season.dart';
 import '../engine/town.dart';
 import '../engine/world.dart';

@@ -4,26 +4,25 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-import '../data/constellations.dart';
 import '../core/math3.dart';
 import '../core/rng.dart';
-import '../engine/camera.dart';
-
+import '../data/constellations.dart';
 import '../data/landmarks.dart';
 import '../data/pacing.dart';
+import '../engine/camera.dart';
+import '../engine/palette.dart';
+import '../engine/renderer.dart';
+import '../engine/scene.dart';
+import '../engine/shooting_star.dart';
 import '../engine/solids.dart';
 import '../engine/town.dart';
-import '../engine/palette.dart';
-import '../engine/shooting_star.dart';
-import '../engine/renderer.dart';
 import '../fx/effects.dart';
 import '../fx/sensory.dart';
-import '../model/piece.dart';
-
 import '../model/appearance.dart';
 import '../model/board.dart';
 import '../model/board_slots.dart';
 import '../model/habit.dart';
+import '../model/piece.dart';
 import '../model/store.dart';
 
 /// Handle the surrounding UI uses to drive the wall.

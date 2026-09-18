@@ -16,12 +16,11 @@
 /// juntas, la lógica se perdía dentro del texto.
 library;
 
-import 'bandos.dart';
-
 import '../core/rng.dart';
 import '../model/findings.dart';
 import '../model/habit.dart';
 import '../model/piece.dart';
+import 'bandos.dart';
 
 /// Los papeles que le tocan hoy al pueblo [town] del valle.
 ///

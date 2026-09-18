@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:la_muralla/core/rng.dart';
 import 'package:la_muralla/data/character.dart';
 import 'package:la_muralla/engine/town.dart';

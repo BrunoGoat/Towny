@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 
 import '../core/math3.dart';
 import '../core/rng.dart';
-import '../engine/solids.dart';
 import '../model/board_slots.dart';
 import '../model/findings.dart';
+import 'solids.dart';
 
 /// El tablón de la plaza, medido.
 ///

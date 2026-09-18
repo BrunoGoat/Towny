@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+
 import '../lib/engine/landscape.dart';
 
 void main() {
@@ -13,7 +14,9 @@ void main() {
       if (h > hi) hi = h;
       sum += h;
     }
-    print('radius=${l.radius}  min=${lo.toStringAsFixed(1)}  max=${hi.toStringAsFixed(1)}  '
-        'avg=${(sum / 720).toStringAsFixed(1)}  angular=${(hi / l.radius * 57.3).toStringAsFixed(1)} deg');
+    print(
+      'radius=${l.radius}  min=${lo.toStringAsFixed(1)}  max=${hi.toStringAsFixed(1)}  '
+      'avg=${(sum / 720).toStringAsFixed(1)}  angular=${(hi / l.radius * 57.3).toStringAsFixed(1)} deg',
+    );
   }
 }

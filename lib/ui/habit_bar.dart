@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../data/pacing.dart';
+import '../engine/sigils.dart';
 import '../fx/sensory.dart';
 import '../model/habit.dart';
 import '../model/store.dart';

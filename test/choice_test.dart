@@ -2,13 +2,13 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:la_muralla/core/math3.dart';
 import 'package:la_muralla/data/character.dart';
 import 'package:la_muralla/data/landmarks.dart';
 import 'package:la_muralla/engine/palette.dart';
 import 'package:la_muralla/engine/town.dart';
-import 'package:la_muralla/ui/choice_sheet.dart';
 import 'package:la_muralla/model/store.dart';
-import 'package:la_muralla/core/math3.dart';
+import 'package:la_muralla/ui/choice_sheet.dart';
 import 'package:la_muralla/ui/style.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
