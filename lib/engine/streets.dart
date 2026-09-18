@@ -44,6 +44,22 @@ class Streets {
     _seen = Int32List(_free.length);
   }
 
+  /// Una huella de qué casillas están libres y cuáles no.
+  ///
+  /// Es lo único que decide un camino: dos rejillas con las mismas casillas
+  /// libres dan los mismos caminos para todo el mundo, siempre. Sirve para no
+  /// rehacer la ronda de un pueblo entero cuando la pieza que acaba de caer no
+  /// ha tapado ninguna casilla nueva — que es lo que pasa cuatro de cada cinco
+  /// veces, porque la mayoría de las piezas suben un piso a una casa que ya
+  /// estaba ocupando ese trozo de suelo.
+  int get fingerprint {
+    var h = 0x811c9dc5;
+    for (var i = 0; i < _free.length; i++) {
+      h = ((h ^ (_free[i] ? 1 : 0)) * 0x01000193) & 0x3fffffff;
+    }
+    return h;
+  }
+
   /// La esquina de la casilla (0, 0), en coordenadas del valle.
   final double x0, z0;
   final int cols, rows;

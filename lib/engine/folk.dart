@@ -120,6 +120,46 @@ class Townsfolk {
   /// anochecer.
   (double x, double z) get door => _stops.first;
 
+  /// Por dónde se mueve, en redondo: el centro de su ronda y hasta dónde se
+  /// aleja de él.
+  ///
+  /// Nunca sale de ese círculo, porque está siempre en un tramo entre dos
+  /// paradas y el círculo contiene a todas. Sirve para lo que no se puede
+  /// hacer sin él: **decidir que a alguien no se le va a ver sin calcular
+  /// antes dónde está.**
+  ///
+  /// Averiguar dónde anda uno cuesta recorrerle la ronda, y hasta que existió
+  /// esto se le hacía a todo el mundo en cada fotograma para descartar después
+  /// al que caía fuera de la pantalla. En un valle de seis pueblos eso era
+  /// simular quinientos cincuenta vecinos para dibujar cincuenta y dos: los
+  /// otros cinco pueblos están al otro lado del valle y su gente no se ve, ni
+  /// va a verse, y se les calculaba el paseo entero sesenta veces por segundo.
+  ///
+  /// Se calcula la primera vez que se pregunta y no cambia nunca: la ronda se
+  /// decide el día que se funda y no se vuelve a tocar.
+  late final ({double x, double z, double r}) roam = _roam();
+
+  ({double x, double z, double r}) _roam() {
+    var x0 = _stops.first.$1, x1 = x0;
+    var z0 = _stops.first.$2, z1 = z0;
+    for (final s in _stops) {
+      if (s.$1 < x0) x0 = s.$1;
+      if (s.$1 > x1) x1 = s.$1;
+      if (s.$2 < z0) z0 = s.$2;
+      if (s.$2 > z1) z1 = s.$2;
+    }
+    final cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
+    var r = 0.0;
+    for (final s in _stops) {
+      final dx = s.$1 - cx, dz = s.$2 - cz;
+      final d = dx * dx + dz * dz;
+      if (d > r) r = d;
+    }
+    // Y un poco de aire: lo que se dibuja no es un punto, es alguien de metro
+    // y pico de ancho con una escoba en la mano.
+    return (x: cx, z: cz, r: math.sqrt(r) + 1.2);
+  }
+
   /// La ronda, vértice a vértice. Para poder medirla en un test: mirando sólo
   /// lo que devuelve [at] no se distingue un vértice metido en una pared de un
   /// tramo largo que corta una esquina, y son dos fallos con dos arreglos
@@ -269,7 +309,7 @@ class FolkAt {
 ///
 /// Se guarda con la misma llave que la mampostería: dónde está el pueblo y
 /// cuántas piezas lleva.
-final Map<String, (int, List<Townsfolk>)> _folk = {};
+final Map<String, ({int placed, int mundo, List<Townsfolk> gente})> _folk = {};
 
 /// La gente que hay ahora mismo en [layout], y por dónde andan.
 ///
@@ -285,14 +325,68 @@ List<Townsfolk> folkOf(TownLayout layout, int placed) {
       '${layout.cx},${layout.cz},${layout.character.order},'
       '${layout.seed},${layout.folk.length}';
   final had = _folk[key];
-  if (had != null && had.$1 == placed) return had.$2;
-  final made = _folkOf(layout, placed);
+  // El camino de todos los fotogramas: no ha caído nada, es la misma gente.
+  if (had != null && had.placed == placed) return had.gente;
+
+  // Y el de cuando sí ha caído una pieza. **Que haya caído una pieza no quiere
+  // decir que nadie tenga que cambiar de camino.**
+  //
+  // Rehacer la ronda de un pueblo es carísimo: son un A* por recado y por
+  // vecino, y medido sobre pueblos de verdad son setenta y tres milisegundos
+  // con seiscientas piezas y **doscientos ochenta con mil quinientas**. Eso es
+  // un cuarto de segundo de app congelada justo al poner una pieza, que es la
+  // única cosa que esta app hace, y creciendo cuanto más la usás — que es
+  // exactamente al revés de como tiene que crecer nada.
+  //
+  // Lo que decide un camino no es cuántas piezas hay: es qué casillas del
+  // suelo están tapadas. Y la mayoría de las piezas suben un piso a una casa
+  // que ya estaba ocupando ese trozo de suelo, así que no tapan ninguna
+  // casilla nueva. Medido sobre las últimas cien piezas de cuatro pueblos:
+  // **entre veinte y veintiocho de cada cien** cambian la rejilla. Las otras
+  // ochenta se estaban pagando enteras.
+  //
+  // Así que antes de rehacer nada se levanta la rejilla —cuatro milisegundos
+  // con seiscientas piezas, siete con mil quinientas— y se compara con la de
+  // antes. Si es la misma, y viven los mismos, la gente de antes vale tal cual.
+  final estorbos = _blockers(layout, placed);
+  final calles = Streets.of(layout.cx, layout.cz, layout.radius, estorbos);
+  final huella = _footprints(layout, placed);
+  var mundo = calles.fingerprint;
+  for (final e in huella.entries) {
+    mundo = ((mundo ^ e.key) * 0x01000193) & 0x3fffffff;
+  }
+  // Y **quién ha terminado su casa**, que es de donde salen los vecinos.
+  //
+  // Esto no estaba y era un fallo de los silenciosos: un vecino nace el día
+  // que se remata su casa, y lo que remata una casa es normalmente el tejado
+  // —que va encima de lo que ya estaba ocupando ese suelo y no tapa ninguna
+  // casilla nueva—. Sin esta línea, la rejilla salía idéntica, la caché daba
+  // por buena la gente de antes, y el vecino que acababa de nacer no aparecía
+  // hasta la siguiente pieza que moviera un obstáculo. Lo caza un test.
+  for (var i = 0; i < layout.buildings.length; i++) {
+    final b = layout.buildings[i];
+    if (b.firstPiece + b.cost > placed) continue;
+    mundo = ((mundo ^ (i * 2654435761)) * 0x01000193) & 0x3fffffff;
+  }
+  if (!const bool.fromEnvironment('NOCACHE') &&
+      had != null &&
+      had.mundo == mundo) {
+    _folk[key] = (placed: placed, mundo: mundo, gente: had.gente);
+    return had.gente;
+  }
+
+  final made = _folkOf(layout, placed, calles, huella);
   if (_folk.length > 24) _folk.clear();
-  _folk[key] = (placed, made);
+  _folk[key] = (placed: placed, mundo: mundo, gente: made);
   return made;
 }
 
-List<Townsfolk> _folkOf(TownLayout layout, int placed) {
+List<Townsfolk> _folkOf(
+  TownLayout layout,
+  int placed,
+  Streets calles,
+  Map<int, (double x0, double z0, double x1, double z1)> huella,
+) {
   final casas = <TownBuilding>[];
   for (final b in layout.buildings) {
     if (b.isLandmark) continue;
@@ -311,9 +405,6 @@ List<Townsfolk> _folkOf(TownLayout layout, int placed) {
   // sitio que se guarda una parcela no es lo que ocupa el edificio, y un
   // castillo ocupa mucho más que un pozo. Con una distancia fija, los vecinos
   // que iban al castillo se plantaban dentro de la muralla.
-  final huella = _footprints(layout, placed);
-  final estorbos = _blockers(layout, placed);
-  final calles = Streets.of(layout.cx, layout.cz, layout.radius, estorbos);
   //
   // Cada sitio dice además qué clase de sitio es, porque de eso depende lo que
   // se hace al llegar: en la plaza se charla, en una obra se arrima el hombro,

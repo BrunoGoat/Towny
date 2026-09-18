@@ -20,6 +20,7 @@ int _finished(TownLayout t, int placed) => t.buildings
     .length;
 
 void main() {
+  _nacimientos();
   group('quién vive en el pueblo', () {
     test('una casa terminada, un vecino; ni uno más ni uno menos', () {
       for (final n in [1, 5, 20, 80, 300]) {
@@ -728,4 +729,41 @@ void main() {
     }
   }
   return (x0, x1, y0, y1, (z0 + z1) / 2);
+}
+
+void _nacimientos() {
+  group('el censo se guarda, pero no de más', () {
+    test('un vecino nace en cuanto se remata su casa', () {
+      // La caché de la gente está puesta contra la rejilla de casillas libres:
+      // si una pieza no tapa ninguna casilla nueva, nadie cambia de camino y
+      // se reutiliza la gente de antes. Eso es cierto para los caminos y falso
+      // para los nacimientos — lo que remata una casa suele ser el tejado, que
+      // va encima de lo ya ocupado y deja la rejilla exactamente igual.
+      //
+      // Sin la parte de la huella que cuenta las casas terminadas, este test
+      // falla: el vecino no aparece hasta la siguiente pieza que mueva un
+      // obstáculo, que puede ser muchas piezas después.
+      for (final ch in TownCharacter.all) {
+        final full = TownLayout(400, ch, seed: 11);
+        final remates = <int>[];
+        for (final b in full.buildings) {
+          if (b.isLandmark) continue;
+          final fin = b.firstPiece + b.cost;
+          if (fin > 1 && fin <= 400) remates.add(fin);
+        }
+        expect(remates, isNotEmpty, reason: '${ch.region}: no remata ninguna');
+        for (final fin in remates.take(6)) {
+          final antes = folkOf(full, fin - 1).length;
+          final despues = folkOf(full, fin).length;
+          expect(
+            despues,
+            greaterThan(antes),
+            reason:
+                '${ch.region}: se remató una casa en la pieza $fin y no nació '
+                'nadie ($antes → $despues)',
+          );
+        }
+      }
+    });
+  });
 }

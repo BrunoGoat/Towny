@@ -1112,6 +1112,35 @@ class TownPainter extends CustomPainter {
       // Los que hoy no salen. Por la semilla y no al azar, para que no haya
       // uno parpadeando entre existir y no existir cada fotograma.
       if (hash01(who.seed, 11) > cuantos) continue;
+
+      // Descartar **antes** de calcular dónde anda.
+      //
+      // Saber dónde está uno cuesta recorrerle la ronda, y las dos pruebas de
+      // más abajo —que se salga del cuadro, que no llegue a dos píxeles de
+      // alto— sólo se podían hacer después de haberla pagado. Medido sobre un
+      // valle de seis pueblos: quinientos cincuenta y siete vecinos resueltos
+      // enteros, cada fotograma, para dibujar cincuenta y dos. Los otros cinco
+      // pueblos están al otro lado del valle.
+      //
+      // Aquí se usa el círculo que contiene la ronda entera de uno, así que
+      // las dos pruebas se hacen sobre **el caso más favorable posible**: lo
+      // más cerca de la cámara que podría llegar a estar, y lo más adentro del
+      // cuadro. Quien no pasa ni así no se ve a ninguna hora del día. Las
+      // pruebas exactas siguen debajo y siguen decidiendo — esto sólo se ahorra
+      // trabajo, nunca cambia quién sale.
+      final ronda = who.roam;
+      final centro = p.project(V3(ronda.x, talla * 0.6, ronda.z));
+      if (centro == null) continue;
+      final cerca = math.max(centro.depth - ronda.r, 0.01);
+      if (p.focal / cerca * talla < 2.2) continue;
+      final radio = p.focal / cerca * ronda.r;
+      if (centro.x + radio < -60 ||
+          centro.y + radio < -60 ||
+          centro.x - radio > size.width + 60 ||
+          centro.y - radio > size.height + 60) {
+        continue;
+      }
+
       var at = who.at(scene.time);
       if (dentro > 0.001) {
         // Cae la tarde: cada uno tira para su puerta. No es un camino
