@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../engine/town.dart';
 import '../model/habit.dart';
+import '../model/reel.dart';
+import 'reel_screen.dart';
 import '../model/piece.dart';
 import '../fx/sensory.dart';
 import '../model/store.dart';
@@ -159,6 +161,10 @@ class _Summary extends StatelessWidget {
             _stat(t, vuelta == null ? '—' : '${vuelta}d', 'VUELTA'),
           ],
         ),
+        if (Reel.worthIt(store.habits)) ...[
+          const SizedBox(height: 22),
+          _HowItWasMade(store: store, theme: t),
+        ],
         const SizedBox(height: 26),
         Text('LO QUE LLEVA EN PIE', style: t.label),
         const SizedBox(height: 10),
@@ -607,6 +613,78 @@ class _Legends extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 0, 16, 30),
       children: rows,
+    );
+  }
+}
+
+/// El botón de ver cómo se hizo.
+///
+/// Aquí y no en la pantalla del pueblo, y no es lo mismo. En el pueblo sería
+/// un botón más entre los de la cámara, y lo que hace no es mover la cámara:
+/// es abrir la única pantalla de la app que mira hacia atrás. *El viaje* es
+/// donde ya están las cifras de lo que llevás hecho, y esto es esas cifras
+/// pero mirándolas.
+///
+/// No aparece hasta que hay algo que enseñar —doce piezas y una semana, que es
+/// lo que dice [Reel.worthIt]—, y no aparece antes apagado ni con un candado.
+/// Un botón que no se puede pulsar es una promesa cobrando intereses; hasta
+/// que haya crónica, sencillamente no hay botón.
+class _HowItWasMade extends StatelessWidget {
+  const _HowItWasMade({required this.store, required this.theme});
+
+  final Store store;
+  final UiTheme theme;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = theme;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        Sensory.instance.tick();
+        // El navegador se coge **antes** de cerrar la hoja: después de cerrarla
+        // este contexto ya no cuelga de ningún sitio y pedirle un navegador es
+        // un fallo en tiempo de ejecución.
+        final nav = Navigator.of(context, rootNavigator: true);
+        Navigator.of(context).pop();
+        nav.push(
+          MaterialPageRoute(
+            fullscreenDialog: true,
+            builder: (_) => ReelScreen(store: store),
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16, 15, 14, 15),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: t.stroke),
+          color: t.fg.withValues(alpha: 0.03),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.play_arrow_rounded, size: 21, color: t.fg),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Ver cómo se hizo',
+                    style: t.body.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    'El valle entero desde el primer día, en un minuto.',
+                    style: t.bodySoft.copyWith(fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

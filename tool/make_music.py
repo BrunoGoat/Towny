@@ -592,6 +592,187 @@ def brasa():
             ('air', air, SR_HI, 0.55)]
 
 
+
+# ------------------------------------------------------- y la que no es bucle
+
+def cronica():
+    """Re mayor, sesenta y ocho. Diecisiete compases que empiezan y acaban.
+
+    Ésta no es como las otras dos y no se puede juzgar con la misma vara. Las
+    dos de fondo tienen prohibido resolver: suenan durante horas detrás de un
+    pueblo y cualquier cosa que pida un final se vuelve insoportable a la
+    tercera vuelta. Por eso allí no hay una sola séptima de dominante ni un
+    tritono — el acorde de la tensión — y por eso el bucle se cierra doblando
+    la cola sobre el principio para que no se oiga dónde empalma.
+
+    **Aquí es justo al revés.** Esto dura sesenta segundos exactos, se oye una
+    vez, y lo que está pasando en pantalla es un valle vacío que se llena hasta
+    llegar a hoy. Una música que no va a ninguna parte contaría lo contrario de
+    lo que se está viendo. Así que esta pieza sí tira hacia algún sitio, sí
+    tiene un compás en el que rompe, y sí acaba en el acorde de casa, ancho y
+    abierto. No se cierra el bucle porque no hay bucle que cerrar.
+
+    De dónde sale la épica sin un solo tambor —esta app no tiene percusión y no
+    la va a tener, un pueblo de madera no suena a taiko—: sale de tres cosas
+    que crecen a la vez. El registro sube compás a compás. La cama se abre de
+    dos voces a cuatro. Y sobre todo **la figuración se va apretando**: una
+    nota por compás al principio, dos en el desarrollo, cuatro y el pulso del
+    bajo en lo alto. Es el mismo truco de cualquier passacaglia y funciona sin
+    nada que golpee.
+
+    Los tiempos están escritos contra los del reloj de la reproducción, que
+    están en `lib/model/reel.dart`. La entrada dura lo que el valle está vacío,
+    la última pieza cae al empezar el compás quince, y los dos últimos compases
+    son el pueblo terminado sonando solo. Si alguno de los dos números se mueve,
+    se mueven los dos."""
+    sr = SR_HI
+    bar, beat = 4 * 60 / 68.0, 60 / 68.0
+    BARS = 17
+    total = BARS * bar                      # sesenta segundos justos
+
+    # Un acorde por compás. Re · Sim · Sol · La, que es la vuelta de siempre,
+    # y la primera vez sin tercera: un valle en el que todavía no hay nada no
+    # puede sonar ni alegre ni triste.
+    chords = [
+        [n('D2'), n('A3'), n('D4')],                                    # 0
+        [n('D2'), n('A3'), n('D4'), n('F#4')],                          # 1
+        [n('D2'), n('A3'), n('D4'), n('F#4')],                          # 2
+        [n('B2'), n('F#3'), n('D4'), n('C#5')],                         # 3
+        [n('G2'), n('B3'), n('D4'), n('F#4')],                          # 4
+        [n('A2'), n('B3'), n('E4'), n('A4')],                           # 5
+        [n('D2'), n('A3'), n('D4'), n('F#4')],                          # 6
+        [n('B2'), n('F#3'), n('D4'), n('A4')],                          # 7
+        [n('G2'), n('D4'), n('F#4'), n('B4')],                          # 8
+        [n('A2'), n('E4'), n('A4'), n('C#5')],                          # 9
+        [n('D2'), n('D4'), n('F#4'), n('A4')],                          # 10
+        [n('B2'), n('D4'), n('F#4'), n('B4')],                          # 11
+        [n('G2'), n('B3'), n('D4'), n('G4')],                           # 12
+        [n('A2'), n('C#4'), n('E4'), n('A4')],                          # 13
+        [n('B2'), n('D4'), n('F#4'), n('A4')],                          # 14
+        [n('G2'), n('B3'), n('D4'), n('E4')],                           # 15
+        [n('D2'), n('A2'), n('D3'), n('F#3'), n('A3'), n('D4')],        # 16
+    ]
+
+    # Cuánto abre la cama en cada compás. Es la curva entera de la pieza en una
+    # sola línea: entra sola, crece, se planta arriba cuatro compases, y el
+    # último se queda abierto de par en par.
+    #
+    # Los números de la primera versión iban de 0,34 a 1,00 y **no se oían**:
+    # medida compás a compás, la pieza se plantaba en su volumen final en el
+    # quinto y el clímax sonaba más bajo que el desarrollo. Dos errores a la
+    # vez. El primero, que un tercio no es poco: hace falta bajar a la décima
+    # parte para que la entrada suene a que no hay nada. El segundo, que abrir
+    # la cama de dos voces a cuatro no la hace más grande — `stack` reparte la
+    # amplitud entre las voces a propósito, para que desafinar no suba el
+    # volumen —, así que todo aquel escalonado de voces engordaba el coro y
+    # dejaba el tamaño donde estaba.
+    swell = [.10, .17, .30, .34, .42, .50, .62, .70, .82, .92,
+             1.00, 1.00, 1.00, 1.00, .84, .62, .74]
+    voices = [2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 3, 3, 4]
+
+    # Y lo que sí la hace más grande: en lo alto, la fundamental doblada una
+    # octava abajo. Un acorde que crece hacia arriba se vuelve estridente; lo
+    # que se siente como tamaño es que crezca hacia los dos lados.
+    chords = [
+        (c + [c[0] - 12]) if 10 <= i <= 13 else c
+        for i, c in enumerate(chords)
+    ]
+
+    ln = int((total + 4.0) * sr)
+    out = [0.0] * ln
+    for b, notes in enumerate(chords):
+        # El último dura hasta el final del archivo: es el que queda sonando.
+        largo = (bar * 3.4) if b == BARS - 1 else (bar * 1.7)
+        stack(out, notes, largo, sr, cut=720 + 90 * swell[b], spread=11,
+              gain=0.80 * swell[b], rise=bar * 0.46, fall=bar * 1.05,
+              at=b * bar, voices=voices[b], tilt=1.85)
+
+    # La voz que canta. Un solo tema, dicho tres veces: entero, una quinta más
+    # arriba, y en lo alto con las campanas encima. Que sea el mismo las tres
+    # veces es lo que hace que la tercera se reconozca, y reconocer algo que
+    # vuelve más grande es exactamente la sensación que se busca.
+    tema = [
+        # el tema, compases 2-5
+        (8.0, 'F#4', 2.2, .70), (10.0, 'A4', 2.2, .66),
+        (12.0, 'B4', 3.0, .74), (15.0, 'A4', 1.0, .52),
+        (16.0, 'G4', 2.2, .70), (18.0, 'F#4', 2.0, .60),
+        (20.0, 'E4', 3.6, .64),
+        # otra vez, más arriba, compases 6-9
+        (24.0, 'A4', 2.2, .74), (26.0, 'D5', 2.4, .72),
+        (28.0, 'E5', 3.0, .78), (31.0, 'D5', 1.0, .56),
+        (32.0, 'B4', 2.4, .74), (34.0, 'A4', 2.0, .64),
+        (36.0, 'F#4', 3.6, .68),
+        # y en lo alto, compases 10-13
+        (40.0, 'D5', 2.6, .86), (42.5, 'F#5', 2.2, .82),
+        (44.0, 'B4', 2.0, .72), (46.0, 'D5', 2.0, .74),
+        (48.0, 'G4', 2.4, .80), (50.0, 'B4', 2.4, .76),
+        (52.0, 'A4', 2.4, .82), (54.0, 'C#5', 2.0, .70),
+        # la bajada, compases 14-16
+        (56.0, 'B4', 3.2, .74), (59.0, 'A4', 2.0, .58),
+        (60.0, 'G4', 2.6, .64), (62.0, 'F#4', 3.0, .58),
+        (64.0, 'D4', 7.0, .70),
+    ]
+    for at, note, dur, vel in notes_of(tema, beat):
+        # La misma curva que la cama: si la voz cantase siempre igual de
+        # fuerte, en lo alto se quedaría debajo y al principio taparía el
+        # silencio que hace falta que haya.
+        b = min(BARS - 1, int(at / bar))
+        breath(out, at, n(note), dur, vel * 0.34 * (0.45 + 0.55 * swell[b]),
+               sr, seed=7)
+
+    # Lo que aprieta: el arpegio de cada acorde, cada vez más seguido. Una por
+    # compás hasta el 5, dos hasta el 9, cuatro arriba, y se abre la mano al
+    # final. Nada de esto es una melodía y no tiene que serlo — es el motor.
+    paso = [4.0] * 6 + [2.0] * 4 + [1.0] * 4 + [2.0, 2.0, 4.0]
+    for b in range(BARS):
+        notes = [x for x in chords[b] if x >= n('A3')] or chords[b][1:]
+        k = 0
+        t = 0.0
+        while t < 4.0 - 1e-6:
+            alto = notes[k % len(notes)]
+            fuerte = 0.62 if t == 0.0 else 0.38
+            tine(out, (b * 4.0 + t) * beat, alto, 2.3 * beat,
+                 fuerte * swell[b] * 0.30, sr, bright=2.4, hold=1.5)
+            t += paso[b]
+            k += 1
+
+    # El pulso del bajo, sólo en lo alto. Es lo más cerca de un tambor que hay
+    # aquí, y es una nota grave con la nota tocada corta: un corazón, no un
+    # golpe. Sin él los cuatro compases de arriba se quedan planos por mucho
+    # que haya encima.
+    for b in range(9, 15):
+        raiz = chords[b][0]
+        for p in range(4):
+            vel = .50 if p == 0 else (.30 if p == 2 else .20)
+            tine(out, (b * 4.0 + p) * beat, raiz, 1.4 * beat, vel * 0.26, sr,
+                 bright=1.5, hold=0.55)
+
+    # Y las campanas, que entran sólo cuando el tema llega arriba. Guardarlas
+    # hasta el compás diez es lo que hace que la tercera vuelta se oiga más
+    # grande sin tocar un solo volumen.
+    luces = [
+        (40.0, 'D6', 3.0, .44), (43.0, 'A5', 2.6, .36),
+        (46.0, 'F#6', 3.0, .40), (49.0, 'D6', 2.6, .34),
+        (52.0, 'E6', 3.0, .42), (55.0, 'C#6', 2.6, .32),
+        (58.0, 'D6', 3.4, .38), (64.0, 'A5', 4.0, .30),
+        (64.5, 'D6', 4.0, .26),
+    ]
+    for at, note, dur, vel in notes_of(luces, beat):
+        bell(out, at, n(note), dur, vel * 0.26, sr)
+
+    # Al papel. Lo mismo que las otras menos una cosa: **no se cierra el bucle**.
+    # `finish` dobla la cola sobre el principio, que es justo lo que no se puede
+    # hacer aquí — la última nota acabaría sonando encima de la primera.
+    out = lowpass(out, 6200, sr, poles=1)
+    # Menos sala que en las de fondo. Una cola larga rellena los huecos, y los
+    # huecos del principio son el principio: con wet de 0,30 la entrada sonaba
+    # tan llena como el clímax.
+    out = reverb(out, sr, wet=0.23, size=1.9, dark=0.58)
+    out = highpass(out, 38, sr)
+    out = wow(out, sr, cents=4.0, cycles=(1, 3), seed=11)
+    return saturate(out, 1.20)
+
+
 # ------------------------------------------------------------------ escribir
 
 def loudness(sig):
@@ -635,9 +816,15 @@ def write(name, samples, sr, scale):
 # suena en ninguna parte son doscientos kilos de APK por nada.
 PIECES = (('tarde', tarde), ('sendero', sendero))
 
+# La de la cinemática va aparte porque no es lo mismo: no son tres capas que se
+# mezclan según la hora, es una pieza entera que suena sola de principio a fin.
+# Un archivo, y nada que sincronizar en el teléfono — tres reproductores
+# arrancando a la vez se desfasan lo justo para que un acorde llegue partido.
+SOLAS = (('cronica', cronica, 0.220),)
+
 if __name__ == '__main__':
     import sys
-    only = sys.argv[1:] or [p for p, _ in PIECES]
+    only = sys.argv[1:] or ([p for p, _ in PIECES] + [p for p, _, _ in SOLAS])
     for name, make in PIECES:
         if name not in only:
             continue
@@ -655,3 +842,14 @@ if __name__ == '__main__':
         guard = min(1.0, 0.90 / top)
         for (suffix, sig, sr, _), k in zip(layers, scales):
             write('mus_%s_%s.wav' % (name, suffix), sig, sr, k * guard)
+
+    for name, make, target in SOLAS:
+        if name not in only:
+            continue
+        print(name)
+        sig = make()
+        k = target / max(1e-9, loudness(sig))
+        # Y que no se pase de pico, que en una pieza con un final abierto de
+        # par en par es justo el último acorde el que se pasaría.
+        k = min(k, 0.94 / max(1e-9, max(abs(s) for s in sig)))
+        write('mus_%s.wav' % name, sig, SR_HI, k)
