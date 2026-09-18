@@ -1967,25 +1967,61 @@ class TownPainter extends CustomPainter {
             return;
           }
           final mine = w == scene.active && c.members.contains(_fallingPiece);
-          // Y dentro de su propia hoja, los que queden detrás del edificio se
-          // pintan antes que él. La hoja es un edificio y el trozo de calle que
-          // lo rodea; sin esto, al que está detrás se le pinta encima del
-          // tejado.
-          final (detras, delante) = _folkSides(p.eye, box, aqui);
-          _paintFolk(p, e, detras, pal, light, size);
-          c.tree.paint(p.eye, (f) {
-            // `f.piece >= 0` matters: the town's own furniture is filed under
-            // no achievement at all, and "no achievement" must not collide with
-            // "the achievement that is in the air right now".
-            if (w == scene.active && f.piece >= 0 && f.piece == _fallingPiece) {
-              return;
-            }
-            _paint(p, e, f, pal, light, night, decay, size);
-          });
+          // Y dentro de su propia hoja, cada vecino cae **por el árbol del
+          // edificio**, no a un lado o a otro de su caja.
+          //
+          // Se repartían comparándolos con la caja envolvente de la hoja, y una
+          // caja no es un edificio: hay hojas cuya caja abarca media parcela
+          // —las que llevan el sembrado, el agua o una bandera— y ahí dentro
+          // cae todo el mundo, así que no había eje que separase a nadie y
+          // todos se pintaban por delante. De ahí que se viera a la gente a
+          // través de unos edificios y de otros no: dependía de lo apretada
+          // que fuera la caja de cada uno, que es exactamente la clase de cosa
+          // que en este valle no decide nada.
+          //
+          // El árbol son los planos de las propias paredes. Un punto contra un
+          // plano está de un lado o del otro y no hay discusión, que es el
+          // mismo criterio con el que se ordenan entre sí las caras del
+          // edificio.
+          c.tree.paintWith<_Walker>(
+            p.eye,
+            aqui,
+            (v, n, d) {
+              // **Por donde pisa, y no de los pies a la coronilla.**
+              //
+              // Lo primero que probé fue lo segundo: una persona mide lo suyo
+              // de alto, así que contra un plano horizontal está en los dos
+              // lados, y ahí no hay orden correcto — se elegía el lado del ojo.
+              // Medido sobre el catálogo entero desde ocho ángulos, eso deja
+              // trescientos sesenta y siete encuadres con alguien asomando por
+              // una pared; con el punto del pie quedan seis.
+              //
+              // El motivo es que los planos que parten un edificio son sus
+              // suelos y sus faldones, y quien está de pie en la calle los
+              // cruza todos por el medio: al mandarlo al lado del ojo se iba
+              // por delante del tejado, y la pared de la fachada —que vive al
+              // otro lado de ese mismo plano— se pintaba antes que él. Por
+              // donde pisa no hay empate que resolver, y el pie es además lo
+              // único de una persona que está de verdad en un sitio.
+              final base = n.x * v.at.x + n.z * v.at.z - d;
+              return (base, base);
+            },
+            (f) {
+              // `f.piece >= 0` matters: the town's own furniture is filed under
+              // no achievement at all, and "no achievement" must not collide
+              // with "the achievement that is in the air right now".
+              if (w == scene.active &&
+                  f.piece >= 0 &&
+                  f.piece == _fallingPiece) {
+                return;
+              }
+              _paint(p, e, f, pal, light, night, decay, size);
+            },
+            (gente) => _paintFolk(p, e, gente, pal, light, size),
+          );
           // Straight after the building it belongs to, and before any building
           // nearer than that one.
           if (mine) _paintFalling(p, e, pal, light, night, size);
-          _paintFolk(p, e, delante, pal, light, size);
         },
       );
     }
@@ -2001,49 +2037,14 @@ class TownPainter extends CustomPainter {
     }
   }
 
-  /// Si alguien queda por detrás de una caja, o sea, si la caja se le mete
-  /// entre el ojo y él.
-  ///
-  /// Es la prueba de eje separador de una persona contra una caja alineada: el
-  /// mismo criterio exacto con el que el árbol decide el orden entre dos
-  /// edificios. Mientras haya un eje que los separe, no hay heurística ninguna.
-  ///
-  /// **Y cuando no lo hay, no está detrás.** Tenía aquí un desempate por
-  /// distancia al centro de la caja, para colocar a quien estuviera pegado a
-  /// una pared o debajo de un alero, y ese desempate era de donde salía que la
-  /// gente desapareciera a ratos: hay hojas cuya caja abarca medio pueblo —los
-  /// sembrados, el agua, una bandera— y dentro de una de ésas cualquiera queda
-  /// «más lejos que el centro», así que se soltaba en la segunda hoja de
-  /// ciento cincuenta y se le pintaba el pueblo entero encima.
-  ///
-  /// Sin desempate, lo peor que pasa es que alguien metido debajo de un alero
-  /// se pinte por delante de él. Eso se ve raro un instante; lo otro era gente
-  /// que se esfuma.
-  static (List<_Walker>, List<_Walker>) _folkSides(
-    V3 eye,
-    Aabb box,
-    List<_Walker> here,
-  ) {
-    if (here.isEmpty) return (const [], const []);
-    final detras = <_Walker>[], delante = <_Walker>[];
-    for (final v in here) {
-      (_behind(eye, box, v) ? detras : delante).add(v);
-    }
-    return (detras, delante);
-  }
-
-  static bool _behind(V3 eye, Aabb box, _Walker v) {
-    final x = v.at.x, z = v.at.z;
-    // De los pies a la coronilla, que es lo que ocupa de alto.
-    const suelo = 0.0;
-    final alto = v.size;
-    return (x <= box.x0 && eye.x >= box.x1) ||
-        (x >= box.x1 && eye.x <= box.x0) ||
-        (alto <= box.y0 && eye.y >= box.y1) ||
-        (suelo >= box.y1 && eye.y <= box.y0) ||
-        (z <= box.z0 && eye.z >= box.z1) ||
-        (z >= box.z1 && eye.z <= box.z0);
-  }
+  // Aquí vivían `_folkSides` y `_behind`, que repartían a la gente de una hoja
+  // en «detrás de la caja» y «delante de la caja».
+  //
+  // Se fueron enteros. Una caja envolvente no es un edificio, y con hojas cuya
+  // caja abarca media parcela —el sembrado, el agua, una bandera— no había eje
+  // que separase a nadie y todos caían del lado de delante. Ahora el reparto lo
+  // hace el árbol del propio edificio, que son los planos de sus paredes: ver
+  // [BspTree.paintWith].
 
   /// La gente que hay ahora mismo en la calle de este pueblo, ya colocada.
   ///

@@ -56,6 +56,94 @@ class BspTree {
     }
     if (near != null) _walk(near, eye, emit);
   }
+
+  /// Lo mismo, pero soltando por el camino cosas que no son caras de este
+  /// sólido: la gente que anda entre sus paredes.
+  ///
+  /// **Por qué hace falta.** Una persona y un edificio se ordenaban comparando
+  /// a la persona con la *caja envolvente* del edificio, y una caja no es un
+  /// edificio: hay hojas cuya caja abarca media parcela —las que llevan el
+  /// sembrado, el agua o una bandera— y ahí dentro cae todo el mundo, así que
+  /// no había ningún eje que separase y todos acababan pintados por delante.
+  /// De ahí que se viera a la gente a través de unos edificios y de otros no:
+  /// dependía de lo apretada que fuera la caja de cada uno.
+  ///
+  /// Con el árbol no hay caja que valga. El árbol son los planos de las
+  /// propias paredes, y un punto comparado con un plano está de un lado o del
+  /// otro sin discusión — es el mismo criterio exacto con el que se ordenan
+  /// entre sí las caras del edificio. Cuesta lo que cuesta repartir una lista
+  /// de cuatro vecinos por un árbol que ya se estaba recorriendo de todas
+  /// formas.
+  ///
+  /// [reach] da, para cada pasajero y cada plano, hasta dónde llega por los
+  /// dos lados: una persona no es un punto —mide lo suyo de alto— y contra un
+  /// plano horizontal a media altura está en los dos lados a la vez.
+  void paintWith<T>(
+    V3 eye,
+    List<T> riders,
+    (double lo, double hi) Function(T rider, V3 n, double d) reach,
+    void Function(Facet) emit,
+    void Function(List<T>) drop,
+  ) {
+    final n = _root;
+    if (n == null) {
+      drop(riders);
+      return;
+    }
+    _walkWith<T>(n, eye, riders, reach, emit, drop);
+  }
+
+  static void _walkWith<T>(
+    _Node node,
+    V3 eye,
+    List<T> riders,
+    (double lo, double hi) Function(T rider, V3 n, double d) reach,
+    void Function(Facet) emit,
+    void Function(List<T>) drop,
+  ) {
+    final side = node.n.dot(eye) - node.d;
+    final nearIsFront = side >= 0;
+
+    var mine = <T>[];
+    var theirs = <T>[];
+    if (riders.isNotEmpty) {
+      final cerca = <T>[], lejos = <T>[];
+      for (final r in riders) {
+        final (lo, hi) = reach(r, node.n, node.d);
+        if (lo > _eps) {
+          (nearIsFront ? cerca : lejos).add(r);
+        } else if (hi < -_eps) {
+          (nearIsFront ? lejos : cerca).add(r);
+        } else {
+          // A caballo del plano, que es lo que le pasa a cualquiera contra el
+          // suelo de la casa de al lado. No hay orden correcto, así que se
+          // elige el que menos duele: el lado del ojo, que se pinta el último.
+          // Lo que pasa entonces es que asoma por delante de un escalón; al
+          // revés, lo que pasa es que media pared le cae encima.
+          cerca.add(r);
+        }
+      }
+      mine = cerca;
+      theirs = lejos;
+    }
+
+    final near = nearIsFront ? node.front : node.back;
+    final far = nearIsFront ? node.back : node.front;
+
+    if (far != null) {
+      _walkWith<T>(far, eye, theirs, reach, emit, drop);
+    } else if (theirs.isNotEmpty) {
+      drop(theirs);
+    }
+    for (final f in node.on) {
+      emit(f);
+    }
+    if (near != null) {
+      _walkWith<T>(near, eye, mine, reach, emit, drop);
+    } else if (mine.isNotEmpty) {
+      drop(mine);
+    }
+  }
 }
 
 class _Node {
