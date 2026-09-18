@@ -412,8 +412,9 @@ void main() {
         for (var k = 0; k < 8; k++) {
           final yaw = k * math.pi / 4 + 0.17;
           final donde = _folkVsWall(arbol, caja, ancho, yaw);
-          if (donde != null)
+          if (donde != null) {
             bad.add('$name: $donde (yaw ${(yaw * 57.3).round()}°)');
+          }
         }
       }
       expect(bad, isEmpty, reason: bad.join('\n'));
