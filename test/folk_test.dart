@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:la_muralla/data/character.dart';
 import 'package:la_muralla/data/doings.dart';
 import 'package:la_muralla/engine/folk.dart';
+import 'package:la_muralla/engine/folk_body.dart';
 import 'package:la_muralla/engine/palette.dart';
 import 'package:la_muralla/engine/renderer.dart';
 import 'package:la_muralla/engine/season.dart';

@@ -22,6 +22,8 @@ import 'package:la_muralla/model/board.dart';
 import 'package:la_muralla/model/board_slots.dart';
 import 'package:la_muralla/model/findings.dart';
 import 'package:la_muralla/model/habit.dart';
+import 'package:la_muralla/model/notice.dart';
+import 'package:la_muralla/model/rhythm.dart';
 import 'package:la_muralla/ui/board_scene.dart';
 import 'package:la_muralla/ui/hold_button.dart';
 import 'package:la_muralla/ui/note_font.dart';

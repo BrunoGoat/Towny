@@ -7,6 +7,7 @@ import 'package:la_muralla/data/doings.dart';
 import 'package:la_muralla/data/landmarks.dart';
 import 'package:la_muralla/engine/bsp.dart';
 import 'package:la_muralla/engine/folk.dart';
+import 'package:la_muralla/engine/folk_body.dart';
 import 'package:la_muralla/engine/solid.dart';
 import 'package:la_muralla/engine/solids.dart';
 import 'package:la_muralla/engine/town.dart';

@@ -17,8 +17,8 @@
 library;
 
 import '../core/rng.dart';
-import '../model/findings.dart';
 import '../model/habit.dart';
+import '../model/notice.dart';
 import '../model/piece.dart';
 import 'bandos.dart';
 

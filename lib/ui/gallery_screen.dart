@@ -67,9 +67,10 @@ class _GalleryScreenState extends State<GalleryScreen>
   late final Ticker _ticker;
   final OrbitCamera _cam = OrbitCamera();
   final EffectSystem _fx = EffectSystem();
-  final List<PickTarget> _picks = [];
-  final List<SignHit> _signs = [];
-  final List<BoardHit> _boards = [];
+
+  /// Lo que el pintor deja marcado al pasar, para poder tocarlo. Aquí no se
+  /// toca: se le pasa, él lo vacía y lo rellena.
+  final TouchMap _hits = TouchMap();
   final List<_Exhibit> _all = _catalogue();
 
   late int _at = widget.start.clamp(0, _catalogue().length - 1);
@@ -265,15 +266,7 @@ class _GalleryScreenState extends State<GalleryScreen>
                 Sensory.instance.tick();
               },
               child: CustomPaint(
-                painter: TownPainter(
-                  scene,
-                  _picks,
-                  _signs,
-                  _boards,
-                  [],
-                  [],
-                  [],
-                ),
+                painter: TownPainter(scene, _hits),
                 size: Size.infinite,
                 isComplex: true,
                 willChange: true,

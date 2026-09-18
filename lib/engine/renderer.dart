@@ -11,6 +11,7 @@ import '../fx/effects.dart';
 import 'backdrop.dart';
 import 'bsp.dart';
 import 'folk.dart';
+import 'folk_body.dart';
 import 'palette.dart';
 import 'scene.dart';
 import 'sigils.dart';
@@ -40,33 +41,29 @@ class _Tone {
 /// Draws the whole world: sky, ground, the wall in full detail nearby, and its
 /// own silhouette receding into the haze when it gets long.
 class TownPainter extends CustomPainter {
-  TownPainter(
-    this.scene,
-    this.picks,
-    this.signs,
-    this.boards,
-    this.lecterns,
-    this.skies,
-    this.domes,
-  );
+  TownPainter(this.scene, this.hits);
 
   final TownScene scene;
-  final List<PickTarget> picks;
+
+  /// Lo que el fotograma deja marcado para que se pueda tocar.
+  final TouchMap hits;
+
+  List<PickTarget> get picks => hits.pieces;
+  List<SignHit> get signs => hits.signs;
+  List<BoardHit> get boards => hits.boards;
+  List<LecternHit> get lecterns => hits.lecterns;
+  List<SkyHit> get skies => hits.skies;
+  List<DomeHit> get domes => hits.domes;
 
   /// Filled every frame: where each town's sign is, for the gesture layer.
-  final List<SignHit> signs;
 
   /// And where each town's notice board is.
-  final List<BoardHit> boards;
 
   /// Y dónde quedó su atril.
-  final List<LecternHit> lecterns;
 
   /// Se rellena al pintar: dónde cayó la constelación de esta noche.
-  final List<SkyHit> skies;
 
   /// Y dónde cayó cada cúpula.
-  final List<DomeHit> domes;
 
   /// Room for everything the budget can ask for, with slack. A face that does
   /// not fit here is silently not drawn, which is a hole in a house — so the
@@ -112,13 +109,8 @@ class TownPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    picks.clear();
+    hits.clear();
     _pickAt.clear();
-    signs.clear();
-    boards.clear();
-    lecterns.clear();
-    skies.clear();
-    domes.clear();
     _faceCount = 0;
     _lamps.clear();
 

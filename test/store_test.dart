@@ -4,9 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:la_muralla/data/character.dart';
 import 'package:la_muralla/data/pacing.dart';
 import 'package:la_muralla/engine/town.dart';
-import 'package:la_muralla/model/findings.dart';
 import 'package:la_muralla/model/habit.dart';
 import 'package:la_muralla/model/piece.dart';
+import 'package:la_muralla/model/rhythm.dart';
 import 'package:la_muralla/model/store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

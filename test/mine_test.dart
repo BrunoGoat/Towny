@@ -2,8 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:la_muralla/data/character.dart';
 import 'package:la_muralla/engine/board_plan.dart';
 import 'package:la_muralla/model/board.dart';
-import 'package:la_muralla/model/findings.dart';
 import 'package:la_muralla/model/habit.dart';
+import 'package:la_muralla/model/notice.dart';
 import 'package:la_muralla/model/piece.dart';
 import 'package:la_muralla/ui/paper_ink.dart';
 

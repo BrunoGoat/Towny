@@ -135,12 +135,10 @@ class _TownViewState extends State<TownView>
   late Ticker _ticker;
   final OrbitCamera _cam = OrbitCamera();
   final EffectSystem _fx = EffectSystem();
-  final List<PickTarget> _picks = [];
-  final List<SkyHit> _skies = [];
-  final List<DomeHit> _domes = [];
-  final List<SignHit> _signs = [];
-  final List<BoardHit> _boards = [];
-  final List<LecternHit> _lecterns = [];
+
+  /// Lo que el pintor deja marcado al pasar, para poder tocarlo. Aquí no se
+  /// toca: se le pasa, él lo vacía y lo rellena.
+  final TouchMap _hits = TouchMap();
 
   late TownLayout _town;
   int _layoutFor = -1;
@@ -1035,7 +1033,7 @@ class _TownViewState extends State<TownView>
     // El cielo primero. Es lo que menos veces está ahí y lo que más
     // deliberadamente se toca: nadie apunta a una constelación por accidente,
     // y si hay una figura encima de un tejado, se quiso la figura.
-    for (final k in _skies) {
+    for (final k in _hits.skies) {
       if (!k.rect.contains(pos)) continue;
       widget.onSkyTapped(k.id);
       return;
@@ -1043,7 +1041,7 @@ class _TownViewState extends State<TownView>
 
     // The board comes first: it is a small thing standing in the middle of a
     // town full of houses, and anybody aiming at it meant it.
-    for (final b in _boards) {
+    for (final b in _hits.boards) {
       if (!b.rect.contains(pos)) continue;
       Sensory.instance.tick();
       widget.onBoardTapped(b.town);
@@ -1051,7 +1049,7 @@ class _TownViewState extends State<TownView>
     }
 
     // Y el atril, que está al lado y es igual de pequeño.
-    for (final a in _lecterns) {
+    for (final a in _hits.lecterns) {
       if (!a.rect.contains(pos)) continue;
       Sensory.instance.tick();
       widget.onLecternTapped(a.town);
@@ -1061,7 +1059,7 @@ class _TownViewState extends State<TownView>
     // Then the signs. From across the valley a sign is the only thing you can
     // read about a town, and reading it and tapping it should be the same
     // gesture as going there.
-    for (final s in _signs) {
+    for (final s in _hits.signs) {
       if (!s.rect.contains(pos)) continue;
       if (s.town == widget.store.active) {
         // Already yours: frame it properly instead of doing nothing.
@@ -1083,7 +1081,7 @@ class _TownViewState extends State<TownView>
     // punto de la pantalla y, de ésos, cuál está más cerca del ojo. Una pieza
     // no se toca a través de otra.
     PickTarget? best;
-    for (final t in _picks) {
+    for (final t in _hits.pieces) {
       // Un pelo de holgura, y algo más si lleva leyenda: lo que ya tiene algo
       // escrito es lo que alguien vuelve a buscar.
       if (!t.holds(pos.dx, pos.dy, t.labelled ? 6 : 2)) continue;
@@ -1167,15 +1165,7 @@ class _TownViewState extends State<TownView>
           Sensory.instance.tick();
         },
         child: CustomPaint(
-          painter: TownPainter(
-            scene,
-            _picks,
-            _signs,
-            _boards,
-            _lecterns,
-            _skies,
-            _domes,
-          ),
+          painter: TownPainter(scene, _hits),
           size: Size.infinite,
           isComplex: true,
           willChange: true,

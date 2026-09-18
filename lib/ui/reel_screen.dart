@@ -54,13 +54,9 @@ class _ReelScreenState extends State<ReelScreen>
   final OrbitCamera _cam = OrbitCamera();
   final EffectSystem _fx = EffectSystem();
 
-  // El pintor los rellena cada fotograma y aquí no se toca ninguno: son suyos.
-  final List<PickTarget> _picks = [];
-  final List<SignHit> _signs = [];
-  final List<BoardHit> _boards = [];
-  final List<LecternHit> _lecterns = [];
-  final List<SkyHit> _skies = [];
-  final List<DomeHit> _domes = [];
+  /// Lo que el pintor deja marcado al pasar, para poder tocarlo. Aquí no se
+  /// toca: se le pasa, él lo vacía y lo rellena.
+  final TouchMap _hits = TouchMap();
 
   Reel? _reel;
 
@@ -435,15 +431,7 @@ class _ReelScreenState extends State<ReelScreen>
               fit: StackFit.expand,
               children: [
                 CustomPaint(
-                  painter: TownPainter(
-                    scene,
-                    _picks,
-                    _signs,
-                    _boards,
-                    _lecterns,
-                    _skies,
-                    _domes,
-                  ),
+                  painter: TownPainter(scene, _hits),
                   size: Size.infinite,
                   isComplex: true,
                   willChange: true,

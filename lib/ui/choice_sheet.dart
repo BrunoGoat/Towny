@@ -344,12 +344,8 @@ class WorkPortrait extends CustomPainter {
         active: 0,
         labels: false,
       ),
-      [],
-      [],
-      [],
-      [],
-      [],
-      [],
+      // Un retrato no se toca, así que el mapa que sale no lo lee nadie.
+      TouchMap(),
     ).paint(canvas, size);
   }
 

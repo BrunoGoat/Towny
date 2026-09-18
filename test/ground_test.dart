@@ -58,12 +58,7 @@ Future<ByteData> frame({
   final rec = ui.PictureRecorder();
   TownPainter(
     scene,
-    [],
-    [],
-    [],
-    [],
-    [],
-    [],
+    TouchMap(),
   ).paint(Canvas(rec), const Size(_w * 1.0, _h * 1.0));
   final img = await rec.endRecording().toImage(_w, _h);
   final data = await img.toByteData();

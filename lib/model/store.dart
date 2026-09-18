@@ -10,9 +10,9 @@ import '../data/pacing.dart';
 import '../data/symbols.dart';
 import '../engine/town.dart';
 import 'census.dart';
-import 'findings.dart';
 import 'habit.dart';
 import 'piece.dart';
+import 'rhythm.dart';
 
 /// What happened when a piece was laid. Drives the celebration.
 class PlaceResult {

@@ -14,8 +14,8 @@ import '../engine/sigils.dart';
 import '../engine/star_draw.dart';
 import '../engine/tones.dart';
 import '../model/board_seen.dart';
-import '../model/findings.dart';
 import '../model/habit.dart';
+import '../model/notice.dart';
 import 'paper_ink.dart';
 
 /// Lo que cambia entre un fotograma y el siguiente.

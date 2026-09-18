@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../engine/board_plan.dart';
 import '../model/appearance.dart';
-import '../model/findings.dart';
+import '../model/notice.dart';
 import 'note_font.dart';
 
 /// Lo que lleva escrito una hoja.

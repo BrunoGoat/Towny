@@ -51,11 +51,11 @@ const Size _screen = Size(420, 860);
     ],
     active: 0,
   );
-  final picks = <PickTarget>[];
+  final hits = TouchMap();
   final rec = ui.PictureRecorder();
-  TownPainter(scene, picks, [], [], [], [], []).paint(Canvas(rec), _screen);
+  TownPainter(scene, hits).paint(Canvas(rec), _screen);
   rec.endRecording().dispose();
-  return (picks, layout, cam);
+  return (hits.pieces, layout, cam);
 }
 
 void main() {

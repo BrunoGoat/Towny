@@ -242,3 +242,48 @@ class TownScene {
   /// sky over an empty world is only clutter.
   final bool labels;
 }
+
+/// Dónde quedó cada cosa que se puede tocar, apuntado al pintarla.
+///
+/// Las seis listas se rellenan en el mismo recorrido y se leen en el mismo
+/// sitio —la capa de gestos, cuando alguien pone el dedo—, así que son una
+/// cosa y no seis. Iban sueltas, y eso daba un pintor de siete parámetros
+/// posicionales y cuatro sitios declarando las mismas seis listas, uno de
+/// ellos así:
+///
+///     TownPainter(scene, [], [], [], [], [], [])
+///
+/// Seis corchetes vacíos en fila no dicen nada de lo que pasa ahí — y lo que
+/// pasa es «este expositor no tiene nada que tocar».
+class TouchMap {
+  /// Cada pieza y el rectángulo que ocupa en pantalla.
+  final List<PickTarget> pieces = [];
+
+  /// El cartel de cada pueblo.
+  final List<SignHit> signs = [];
+
+  /// Su tablón.
+  final List<BoardHit> boards = [];
+
+  /// Y su atril.
+  final List<LecternHit> lecterns = [];
+
+  /// La constelación de esta noche, si salió.
+  final List<SkyHit> skies = [];
+
+  /// Y cada cúpula, que se abren al tocarlas.
+  final List<DomeHit> domes = [];
+
+  /// Se vacía entero al empezar cada fotograma. Que lo haga el propio mapa es
+  /// lo que evita el fallo de olvidarse una: seis `clear()` en fila al
+  /// principio de `paint` se convierten en cinco en cuanto alguien añade la
+  /// séptima cosa tocable.
+  void clear() {
+    pieces.clear();
+    signs.clear();
+    boards.clear();
+    lecterns.clear();
+    skies.clear();
+    domes.clear();
+  }
+}
