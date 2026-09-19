@@ -60,6 +60,13 @@ class Store extends ChangeNotifier {
   bool _dirty = false;
   SharedPreferences? _prefs;
 
+  /// Acaba de fundarse el primer pueblo y su plaza todavía no se levantó.
+  ///
+  /// No se guarda en disco a propósito: es un instante, no un estado. Si la app
+  /// se cierra a mitad de la animación, al volver la plaza ya está puesta — que
+  /// es lo que pasó de verdad.
+  bool justFounded = false;
+
   /// Set at launch so the first piece back can play the relighting against the
   /// state the person actually walked in on.
   double integrityAtLaunch = 1.0;

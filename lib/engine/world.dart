@@ -163,6 +163,15 @@ int _sign(TownLayout layout, int upto) {
 
   final n = math.min(upto, layout.pieces.length);
   feed(n);
+  // Si esto es un pueblo o una estructura sola sobre su peana.
+  //
+  // Hacía falta desde que la plaza existe con cero piezas: el expositor planta
+  // lo suyo en el origen y el primer pueblo del valle también está en el
+  // origen, así que con la misma comarca y las mismas piezas compartían llave
+  // **y** firma, y el segundo en preguntar se llevaba el pueblo del primero.
+  // Antes daba igual porque con cero piezas los dos estaban vacíos. Lo
+  // encontró un test que no iba a esto.
+  feed(layout.solo ? 7919 : 104729);
   // Cuántas hojas hay clavadas es parte de cómo se ve el pueblo: si cambia,
   // hay que volver a levantar el tablón de la plaza y no reusar el de antes.
   for (final hueco in layout.notices) {
@@ -237,7 +246,13 @@ BuiltTown _build(TownLayout layout, int placed, BuiltTown? before) {
   // El enlosado primero, que es lo que dice dónde está el centro desde
   // cualquier punto del pueblo; después el tablón, que es lo que el pueblo
   // dice de vos; y el atril, que es lo que dijiste vos.
-  if (from == 0 && take > 0 && !layout.solo) {
+  //
+  // **Desde que se funda, no desde la primera pieza.** Antes hacía falta que
+  // hubiera al menos una pieza puesta, y eso era una plaza que aparecía de la
+  // nada a la vez que la primera casa. Un pueblo se funda con su plaza: es el
+  // claro alrededor del cual se reparten los solares, y existe antes que
+  // cualquier cosa que se levante en ellos.
+  if (from == 0 && !layout.solo) {
     furnish(Plaza.solidsAt(layout.cx, layout.cz, TownLayout.plazaReach));
     furnish(NoticeBoard.solidsAt(layout.cx, layout.cz, sheets: layout.notices));
     furnish(Lectern.solidsAt(layout.cx, layout.cz));

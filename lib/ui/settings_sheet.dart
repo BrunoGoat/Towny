@@ -353,6 +353,18 @@ class _SettingsSheetState extends State<SettingsSheet> {
         ),
         _Row(
           theme: t,
+          icon: Icons.restart_alt,
+          title: 'Ver la primera vez otra vez',
+          subtitle:
+              'Abre la pantalla de entrada como si acabaras de instalar la '
+              'app. No borra ninguna pieza.',
+          act: (nav) async {
+            await Appearance.instance.forgetOnboarded();
+            nav.pop();
+          },
+        ),
+        _Row(
+          theme: t,
           icon: Icons.view_in_ar,
           title: 'El expositor',
           subtitle:

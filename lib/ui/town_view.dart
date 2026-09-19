@@ -282,6 +282,13 @@ class _TownViewState extends State<TownView>
   /// Si la cámara está arriba, mirando el valle entero.
   bool _aloft = false;
 
+  /// Cuánto lleva levantada la plaza del pueblo recién fundado, de cero a uno.
+  ///
+  /// Arranca en cero la primera vez que se pinta un valle que acaba de
+  /// fundarse, sube en segundo y medio y se queda en uno para siempre. No se
+  /// guarda: es un instante.
+  double _founding = 1.0;
+
   /// Para no pedir el vuelo dos veces mientras se sigue apartando.
   bool _asked = false;
 
@@ -438,6 +445,19 @@ class _TownViewState extends State<TownView>
     _last = elapsed;
     final dt = dtRaw.clamp(0.0005, 0.05);
     _time += dt;
+    if (widget.store.justFounded && _founding >= 1.0) {
+      _founding = 0.0;
+      widget.store.justFounded = false;
+      // La cámara mira el claro desde cerca: lo que va a pasar pasa ahí, y de
+      // lejos una plaza subiendo del suelo son tres píxeles moviéndose.
+      _frameTown();
+      _cam.distanceTarget = 11.0;
+      _cam.pitchTarget = 0.30;
+    }
+    if (_founding < 1.0) {
+      _founding = math.min(1.0, _founding + dt / 1.7);
+      if (_founding >= 1.0) _frameTown();
+    }
 
     if (_budgetOverride <= 0) {
       _frameAvg = _frameAvg * 0.92 + dtRaw * 1000 * 0.08;
@@ -1147,6 +1167,7 @@ class _TownViewState extends State<TownView>
       charge: _charge,
       skyNight: night,
       tonight: tonightIs,
+      founding: _founding,
     );
 
     return Listener(

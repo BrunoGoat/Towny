@@ -152,6 +152,30 @@ tamaño**. Leer treinta minutos y leer cinco ponen exactamente la misma piedra.
 Lo único que faltaba era que eso estuviera dicho con tus palabras antes de
 necesitarlo.
 
+## La primera vez
+
+Antes, la primera vez que alguien abría Towny se encontraba un prado vacío, un
+botón grande y un hábito de mentira llamado «Mi hábito». Todo lo que hace a esta
+app distinta estaba ahí desde el primer minuto y no lo contaba nadie: se
+descubría a los tres meses, o no se descubría.
+
+Ahora son cuatro pantallas, una pregunta en cada una, sobre el valle vacío de
+verdad con el cielo de esa hora. Qué es esto · qué querés hacer · para qué lo
+querés · qué es lo mínimo que cuenta.
+
+**Cuatro pantallas y no una hoja con cuatro campos.** Un formulario se contesta
+mirando los huecos que faltan por rellenar, y las dos últimas preguntas no se
+contestan bien así: son las dos únicas cosas de toda la app que se escriben para
+leerlas mucho después, y merecen que no haya nada más en pantalla cuando se
+escriben. Las dos se pueden saltar — se guardaron para el día malo, y obligar a
+escribirlas el día uno es la manera de que salgan mal.
+
+Y en cuanto se funda, **la plaza sube del suelo**: primero el enlosado, que dice
+dónde está el centro; después el tablón, que es lo que el pueblo va a decir de
+vos; y por último el atril, que es donde va a quedar escrito lo que digas vos.
+Un pueblo se funda con su plaza, no con su primera casa — antes aparecía de la
+nada a la vez que la primera pieza.
+
 ## Los avisos
 
 Una notificación de una app de hábitos es, casi siempre, la app pidiendo

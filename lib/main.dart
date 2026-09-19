@@ -9,6 +9,7 @@ import 'model/appearance.dart';
 import 'model/board_seen.dart';
 import 'model/board_slots.dart';
 import 'model/store.dart';
+import 'ui/first_run.dart';
 import 'ui/gallery_screen.dart';
 import 'ui/home_screen.dart';
 import 'ui/style.dart';
@@ -44,12 +45,17 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Para enterarse de que alguien pidió ver la primera vez otra vez desde
+    // ajustes: es lo único de las preferencias que cambia qué pantalla se está
+    // mirando, y sin esto no pasaba nada hasta reiniciar la app.
+    Appearance.instance.addListener(_prefsChanged);
     _boot();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    Appearance.instance.removeListener(_prefsChanged);
     super.dispose();
   }
 
@@ -91,11 +97,43 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
     );
   }
 
+  void _prefsChanged() {
+    if (mounted) setState(() {});
+  }
+
+  /// Fundar el primer pueblo con lo que se contestó en la primera pantalla.
+  ///
+  /// Se le pone el nombre al hábito en blanco con el que arranca el valle en
+  /// vez de crear uno: ese hueco ya existe, ya tiene su solar y ya tiene su
+  /// región sorteada. Crear otro dejaría el de fábrica al lado, vacío.
+  Future<void> _found(
+    String name,
+    String symbol,
+    String? why,
+    String? floor,
+  ) async {
+    store.renameHabit(
+      0,
+      name: name.isEmpty ? 'Mi hábito' : name,
+      symbol: symbol,
+    );
+    store.describeHabit(0, why: why, floor: floor);
+    store.justFounded = true;
+    await Appearance.instance.setOnboarded();
+    if (mounted) setState(() {});
+    _replan();
+  }
+
   Future<void> _boot() async {
     await Appearance.instance.load();
     await BoardSlots.instance.load();
     await BoardSeen.instance.load();
     await store.load();
+    // Quien ya tenía pueblo no pasa por la pantalla de la primera vez, y no se
+    // entera de que existe. Se apunta como pasada y a otra cosa.
+    if (!Appearance.instance.onboarded && store.total > 0) {
+      await Appearance.instance.setOnboarded();
+    }
     _replan();
 
     // Development shortcut for inspecting how the wall reads after weeks or a
@@ -178,7 +216,9 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
                     theme: UiTheme(Palette.forMoment(11, 1)),
                     start: _gallery,
                   )
-                : HomeScreen(store: store)),
+                : (Appearance.instance.onboarded
+                      ? HomeScreen(store: store)
+                      : FirstRun(onDone: _found))),
     );
   }
 }

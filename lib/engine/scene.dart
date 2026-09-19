@@ -35,6 +35,7 @@ class TownEntry {
     required this.integrity,
     required this.placed,
     this.crowned = false,
+    this.founded = true,
   });
 
   final TownLayout layout;
@@ -48,6 +49,10 @@ class TownEntry {
 
   /// True for the town with the most pieces in the valley.
   final bool crowned;
+
+  /// Si este pueblo llegó a fundarse. Falso es el hueco del valle en el que
+  /// todavía no hay nada: ni plaza, ni suelo, ni nombre.
+  final bool founded;
 }
 
 /// One stone as it appears on screen this frame, kept so taps can be resolved
@@ -164,6 +169,7 @@ class TownScene {
     this.labels = true,
     this.tonight,
     this.skyNight = 0,
+    this.founding = 1.0,
     this.folk = true,
     this.soloFolk,
   });
@@ -232,6 +238,16 @@ class TownScene {
   /// Qué noche es ésta. Decide dónde se cuelga la constelación, y se queda
   /// quieta hasta el mediodía siguiente.
   final int skyNight;
+
+  /// Cuánto lleva levantada la plaza del pueblo que se acaba de fundar, de
+  /// cero a uno. Uno —lo normal— quiere decir que está en su sitio.
+  ///
+  /// Un pueblo se funda con su plaza, no con su primera casa: el enlosado, el
+  /// tablón y el atril existen desde el minuto cero, porque son el claro
+  /// alrededor del cual se reparten los solares. Esto es lo único que hace
+  /// falta para que además **se vean llegar**, en vez de estar ya ahí la
+  /// primera vez que se mira.
+  final double founding;
 
   /// La figura que hay en el cielo esta noche, si hay alguna. Muchas noches no
   /// hay ninguna, que es lo que hace que valga la pena mirar las que sí.

@@ -177,6 +177,14 @@ class Appearance extends ChangeNotifier {
   /// se pide antes de que se sepa para qué es se contesta que no, y con razón.
   bool _nudgesOff = true;
 
+  /// Si ya se pasó por la pantalla de la primera vez.
+  ///
+  /// Se apunta en cuanto se funda el primer pueblo, y también —sin enseñar
+  /// nada— la primera vez que arranca alguien que ya tenía piezas antes de que
+  /// esta pantalla existiera. Nadie que lleve medio pueblo construido tiene que
+  /// contestar de dónde salió.
+  bool _onboarded = false;
+
   /// La mitad del deslizador. Lo que suena ahí lo dice [_midwayGain].
   static const double _midway = 0.5;
 
@@ -217,6 +225,7 @@ class Appearance extends ChangeNotifier {
   bool get effectsOff => _effectsOff;
   bool get hapticsOff => _hapticsOff;
   bool get nudgesOff => _nudgesOff;
+  bool get onboarded => _onboarded;
   double get musicVolume => _musicVolume;
   double get effectsVolume => _effectsVolume;
 
@@ -238,6 +247,7 @@ class Appearance extends ChangeNotifier {
     _effectsOff = false;
     _hapticsOff = false;
     _nudgesOff = true;
+    _onboarded = false;
     _musicVolume = _midway;
     _effectsVolume = _midway;
     _fakeHour = false;
@@ -293,6 +303,8 @@ class Appearance extends ChangeNotifier {
           _hapticsOff = value == '0';
         case 'nudges':
           _nudgesOff = value == '0';
+        case 'onboarded':
+          _onboarded = value == '1';
         case 'musicVol':
           // Un valor ilegible no es un volumen guardado: se queda el de hoy y
           // no hay nada que traducir a la curva nueva.
@@ -350,6 +362,7 @@ class Appearance extends ChangeNotifier {
     'effects=${_effectsOff ? 0 : 1}',
     'haptics=${_hapticsOff ? 0 : 1}',
     'nudges=${_nudgesOff ? 0 : 1}',
+    'onboarded=${_onboarded ? 1 : 0}',
     '$_volMark=$_volNow',
     'musicVol=$_musicVolume',
     'effectsVol=$_effectsVolume',
@@ -410,6 +423,23 @@ class Appearance extends ChangeNotifier {
   Future<void> setHapticsOff(bool v) async {
     if (v == _hapticsOff) return;
     _hapticsOff = v;
+    await _keep();
+  }
+
+  Future<void> setOnboarded() async {
+    if (_onboarded) return;
+    _onboarded = true;
+    await _keep();
+  }
+
+  /// Volver a la primera vez, para poder mirarla sin desinstalar.
+  ///
+  /// Sólo apaga la marca: no borra ni una pieza. Lo que se ve al volver es la
+  /// pantalla de entrada tal cual, y al fundar se renombra el hábito que ya
+  /// estuviera — que para mirar cómo quedó la pantalla es exactamente lo que
+  /// hace falta y no cuesta un valle.
+  Future<void> forgetOnboarded() async {
+    _onboarded = false;
     await _keep();
   }
 

@@ -161,6 +161,17 @@ class Facet {
   /// `n · p = d`.
   double get planeD => n.dot(v[0]);
 
+  /// La misma cara, [dy] más arriba. Con lo que lleve colgado, que si no un
+  /// tablón sube y sus papeles se quedan clavados en el aire.
+  Facet lifted(double dy) => Facet(
+    [for (final q in v) V3(q.x, q.y + dy, q.z)],
+    n,
+    surface,
+    ao: ao,
+    tint: tint,
+    decals: decals == null ? null : [for (final g in decals!) g.lifted(dy)],
+  )..piece = piece;
+
   Facet withVerts(List<V3> nv, {List<Facet>? carrying}) =>
       Facet(nv, n, surface, ao: ao, tint: tint, decals: carrying)
         ..data = data

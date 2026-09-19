@@ -947,10 +947,22 @@ class TownPainter extends CustomPainter {
     for (final w in towns) {
       final e = scene.towns[w];
       final take = math.min(e.placed, e.layout.pieces.length);
-      if (take <= 0) continue;
+      // Cero piezas ya no quiere decir que no haya nada: está la plaza, que
+      // llega con la fundación. Lo que se salta es el pueblo que ni siquiera
+      // se fundó — el hueco vacío del valle.
+      if (take <= 0 && !e.founded) continue;
       final root = builtTown(e.layout, take).root;
       if (root == null) continue;
       final decay = 1.0 - e.integrity;
+
+      // El día que se funda, la plaza sube del suelo en vez de estar ya puesta.
+      // Con cero piezas lo único que hay en el pueblo es ella, así que se pinta
+      // aparte —levantada y en tres tiempos— y el árbol de siempre se salta.
+      if (take <= 0 && scene.founding < 1.0) {
+        _tone.clear();
+        _paintFounding(p, e, pal, light, night, size);
+        continue;
+      }
       // Every town limewashes its houses its own way, so the colours are
       // worked out per town and not once for the valley.
       _tone.clear();
@@ -1300,6 +1312,53 @@ class TownPainter extends CustomPainter {
       }
     }
   }
+
+  /// La plaza saliendo de la tierra, en tres tiempos: primero el enlosado,
+  /// que es lo que dice dónde está el centro; después el tablón, que es lo que
+  /// el pueblo va a decir de vos; y por último el atril, que es donde va a
+  /// quedar escrito lo que digas vos.
+  ///
+  /// Se arma un árbol nuevo cada fotograma, como con la pieza que cae y por lo
+  /// mismo: lo único que se mueve en todo el valle no puede salir de una caché
+  /// que existe precisamente porque nada se mueve. Son tres docenas de caras
+  /// durante segundo y medio.
+  void _paintFounding(
+    Projector p,
+    TownEntry e,
+    Palette pal,
+    V3 light,
+    bool night,
+    Size size,
+  ) {
+    final l = e.layout;
+    final caras = <Facet>[];
+    void alzar(List<Solid> solidos, double k) {
+      final t = _suave(k.clamp(0.0, 1.0));
+      if (t <= 0.001) return;
+      // Sale de debajo del suelo. Metro y medio basta: lo que tiene que leerse
+      // es que sube, no de dónde.
+      final dy = (t - 1.0) * 1.5;
+      for (final s in solidos) {
+        for (final f in s.faces) {
+          caras.add(dy.abs() < 1e-4 ? f : f.lifted(dy));
+        }
+      }
+    }
+
+    final t = scene.founding;
+    alzar(Plaza.solidsAt(l.cx, l.cz, TownLayout.plazaReach), t / 0.5);
+    alzar(
+      NoticeBoard.solidsAt(l.cx, l.cz, sheets: l.notices),
+      (t - 0.3) / 0.45,
+    );
+    alzar(Lectern.solidsAt(l.cx, l.cz), (t - 0.55) / 0.45);
+    if (caras.isEmpty) return;
+    BspTree.build(
+      caras,
+    ).paint(p.eye, (f) => _paint(p, e, f, pal, light, night, 0, size));
+  }
+
+  static double _suave(double t) => t * t * (3 - 2 * t);
 
   void _paintFalling(
     Projector p,
