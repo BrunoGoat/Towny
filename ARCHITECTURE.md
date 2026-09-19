@@ -3,6 +3,9 @@
 Lo que hay debajo de [lo que se ve](README.md): el rasterizador, los sonidos,
 cómo se compila y dónde está cada cosa.
 
+Las decisiones de diseño —por qué no hay rachas, por qué se puede pausar, por
+qué el segundo hábito se gana— están aparte, en [DESIGN.md](DESIGN.md).
+
 ## Cómo está hecho el render
 
 Un rasterizador propio (`lib/engine/`), sin dependencias nativas, escrito
