@@ -23,6 +23,8 @@ class Habit {
     this.why,
     this.floor,
     this.askedAt,
+    this.nudgedAt,
+    this.nudgesIgnored = 0,
     List<Piece>? pieces,
     List<String>? chronicle,
     List<String>? folk,
@@ -145,6 +147,21 @@ class Habit {
   /// más rápida de que se desinstale.
   DateTime? askedAt;
 
+  /// Cuándo salió el último aviso al teléfono por este hábito.
+  ///
+  /// Lo mismo que [askedAt] y por lo mismo: un aviso caduca cuando vuelve a
+  /// caer una pieza, porque entonces empieza un hueco nuevo. Mientras no
+  /// caiga, el hueco ya tiene su aviso dado y no hay nada más que decir.
+  DateTime? nudgedAt;
+
+  /// Cuántos avisos seguidos no trajeron ninguna pieza.
+  ///
+  /// Es lo que hace que las notificaciones se callen solas. Si tres seguidos
+  /// no sirvieron de nada, el cuarto tampoco va a servir: lo único que
+  /// consigue insistir es que se desinstale la app, y eso es peor que no hacer
+  /// el hábito. Se pone a cero en cuanto cae una pieza.
+  int nudgesIgnored;
+
   /// Los tramos, ya leídos. Un renglón roto se salta.
   Iterable<Rest> get sleeps sync* {
     for (final line in rests) {
@@ -241,6 +258,8 @@ class Habit {
     if (floor != null && floor!.isNotEmpty) 'q': floor,
     if (rests.isNotEmpty) 'r': rests,
     if (askedAt != null) 'k': askedAt!.millisecondsSinceEpoch,
+    if (nudgedAt != null) 'g': nudgedAt!.millisecondsSinceEpoch,
+    if (nudgesIgnored > 0) 'gi': nudgesIgnored,
   };
 
   static Habit fromJson(Map<String, dynamic> j) {
@@ -287,6 +306,10 @@ class Habit {
       // A save from before towns could be chosen keeps the one its plot was
       // given, so nobody's town changes shape under them.
       character: (j['ch'] as num?)?.toInt(),
+      nudgedAt: (j['g'] as num?) == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch((j['g'] as num).toInt()),
+      nudgesIgnored: (j['gi'] as num?)?.toInt() ?? 0,
       createdAt: DateTime.fromMillisecondsSinceEpoch(
         (j['c'] as num?)?.toInt() ?? DateTime.now().millisecondsSinceEpoch,
       ),

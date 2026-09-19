@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import 'data/character.dart';
 import 'engine/palette.dart';
+import 'fx/notifier.dart';
 import 'fx/sensory.dart';
 import 'model/appearance.dart';
 import 'model/board_seen.dart';
@@ -62,12 +63,32 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       Sensory.instance.wake();
+      _replan();
     } else {
       Sensory.instance.sleep();
+      // Y lo que va a sonar mientras la app no esté se programa ahora, que es
+      // el único momento en que se sabe cómo quedó todo. La app no corre de
+      // fondo: lo que no quede puesto acá, no suena.
+      _replan();
       // And anything changed a moment ago goes to disk now, rather than
       // waiting for a timer that may not get another turn.
       Appearance.instance.flush();
     }
+  }
+
+  /// Vuelve a programar los avisos desde cero.
+  ///
+  /// Entero cada vez y no un ajuste de lo que hubiera: es más barato que
+  /// llevar la cuenta de qué hay puesto, y es lo único que garantiza que poner
+  /// una pieza cancele el aviso que iba a decir que hace días que no ponés
+  /// ninguna.
+  void _replan() {
+    if (store.habits.isEmpty) return;
+    Notifier.instance.reschedule(
+      store.habits,
+      DateTime.now(),
+      on: !Appearance.instance.nudgesOff,
+    );
   }
 
   Future<void> _boot() async {
@@ -75,6 +96,7 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
     await BoardSlots.instance.load();
     await BoardSeen.instance.load();
     await store.load();
+    _replan();
 
     // Development shortcut for inspecting how the wall reads after weeks or a
     // year of real use. Off unless explicitly compiled in.

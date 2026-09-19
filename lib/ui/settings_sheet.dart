@@ -6,6 +6,7 @@ import '../data/landmarks.dart';
 import '../engine/season.dart';
 import '../engine/shooting_star.dart';
 import '../engine/town.dart';
+import '../fx/notifier.dart';
 import '../fx/sensory.dart';
 import '../model/appearance.dart';
 import '../model/piece.dart';
@@ -288,6 +289,25 @@ class _SettingsSheetState extends State<SettingsSheet> {
 
         const SizedBox(height: 26),
         _Head(theme: t, text: 'LO DEMÁS'),
+        // Encima de la vibración porque es el único de los tres que sale de la
+        // app: los otros dos sólo suenan cuando ya la tenés abierta.
+        _Switch(
+          theme: t,
+          title: 'Que el pueblo te avise',
+          subtitle:
+              'Sólo cuando llevás más de lo tuyo sin poner una pieza, a tu '
+              'hora y con tus palabras. Como mucho dos por ausencia.',
+          on: !wants.nudgesOff,
+          onChanged: (v) async {
+            if (v && !await Notifier.instance.ask()) return;
+            await wants.setNudgesOff(!v);
+            await Notifier.instance.reschedule(
+              store.habits,
+              DateTime.now(),
+              on: v,
+            );
+          },
+        ),
         _Switch(
           theme: t,
           title: 'Vibración',

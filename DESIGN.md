@@ -152,6 +152,53 @@ tamaño**. Leer treinta minutos y leer cinco ponen exactamente la misma piedra.
 Lo único que faltaba era que eso estuviera dicho con tus palabras antes de
 necesitarlo.
 
+## Los avisos
+
+Una notificación de una app de hábitos es, casi siempre, la app pidiendo
+atención para sí misma. Ésta sólo habla cuando tiene algo que vos no sabés, y
+se calla el resto del tiempo — que es el resto del tiempo. **Vienen apagados de
+fábrica**, y el permiso del sistema no se pide hasta que alguien los enciende:
+un permiso pedido antes de que se sepa para qué es se contesta que no, y con
+razón.
+
+**No hay recordatorio diario.** Un aviso a las nueve todos los días no contiene
+ninguna información: el día que lo ibas a hacer sobra, y el día que no, es
+alguien dándote un codazo. Lo único que la app puede saber y vos no es que
+**llevás más de lo tuyo sin aparecer**.
+
+**El umbral es tuyo.** Quien pone piezas a diario está tarde al segundo día;
+quien las pone tres veces por semana no está tarde el jueves, y decirle que sí
+es el error que comete cualquier app que trate todos los días en blanco como
+incumplimientos. Sale de la misma cuenta que mide tu constancia, y ya descuenta
+los días dormidos.
+
+**Como mucho dos por ausencia**, y la segunda semanas después. La primera
+cuando te retrasás; la segunda sólo si el hueco se hace largo de verdad, y ésa
+no habla del hábito sino de que no se perdió nada.
+
+**Y se callan solas.** Si tres avisos seguidos no traen ninguna pieza, ese
+hábito deja de avisar durante tres semanas. Es la parte que ninguna app de
+hábitos tiene y la que más falta hace: si no está funcionando, insistir no lo
+arregla — lo único que consigue es que desinstales la app, que es peor que no
+hacer el hábito. Y si contestó o no lo decide el reloj: una pieza dos días
+después del aviso es el aviso funcionando, una pieza tres semanas después es
+alguien que volvió por su cuenta.
+
+Medido sobre un año simulado día a día: quien falla días sueltos pero nunca
+llega a estar tarde recibe **cero** avisos en todo el año. Quien tiene cuatro
+caídas largas de verdad —una semana, diez días, tres días, dos semanas— recibe
+**cuatro**, uno por caída.
+
+**Y lo que dicen.** El día malo no se gana con una frase que escribió un
+diseñador. Se gana, si se gana, con lo que escribiste vos el día que empezaste:
+por qué lo querías, y qué es lo mínimo que cuenta. Esas dos frases ya existían
+y hasta ahora sólo se leían dentro de la app — éste es el otro momento para el
+que se guardaron, y probablemente el bueno.
+
+> Ninguno cuenta los días que faltaste, ninguno dice «racha», ninguno pregunta
+> nada y ninguno lleva un signo de exclamación. Hay un test que lo exige sobre
+> todos los textos que la app puede llegar a mandar.
+
 ## El segundo pueblo se gana
 
 El valle empieza con un solo solar. El segundo se abre con **10 días con pieza

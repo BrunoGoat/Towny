@@ -43,6 +43,11 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        // Lo pide `flutter_local_notifications`: usa las clases de fecha y
+        // hora de Java 8, que en Android 7 no existen, y el desugaring es lo
+        // que las trae. Sin esto la APK no compila — y como la app sostiene
+        // Android 7 a propósito, subir el mínimo no era una opción.
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -88,4 +93,8 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

@@ -169,6 +169,14 @@ class Appearance extends ChangeNotifier {
   bool _effectsOff = false;
   bool _hapticsOff = false;
 
+  /// Los avisos al teléfono, apagados de fábrica.
+  ///
+  /// Apagados y no encendidos, a propósito. Una app que empieza pudiendo
+  /// interrumpirte da por supuesto un permiso que nadie le dio, y el permiso
+  /// del sistema no se pide hasta que alguien enciende esto — un permiso que
+  /// se pide antes de que se sepa para qué es se contesta que no, y con razón.
+  bool _nudgesOff = true;
+
   /// La mitad del deslizador. Lo que suena ahí lo dice [_midwayGain].
   static const double _midway = 0.5;
 
@@ -208,6 +216,7 @@ class Appearance extends ChangeNotifier {
   bool get musicOff => _musicOff;
   bool get effectsOff => _effectsOff;
   bool get hapticsOff => _hapticsOff;
+  bool get nudgesOff => _nudgesOff;
   double get musicVolume => _musicVolume;
   double get effectsVolume => _effectsVolume;
 
@@ -228,6 +237,7 @@ class Appearance extends ChangeNotifier {
     _musicOff = false;
     _effectsOff = false;
     _hapticsOff = false;
+    _nudgesOff = true;
     _musicVolume = _midway;
     _effectsVolume = _midway;
     _fakeHour = false;
@@ -281,6 +291,8 @@ class Appearance extends ChangeNotifier {
           _effectsOff = value == '0';
         case 'haptics':
           _hapticsOff = value == '0';
+        case 'nudges':
+          _nudgesOff = value == '0';
         case 'musicVol':
           // Un valor ilegible no es un volumen guardado: se queda el de hoy y
           // no hay nada que traducir a la curva nueva.
@@ -337,6 +349,7 @@ class Appearance extends ChangeNotifier {
     'music=${_musicOff ? 0 : 1}',
     'effects=${_effectsOff ? 0 : 1}',
     'haptics=${_hapticsOff ? 0 : 1}',
+    'nudges=${_nudgesOff ? 0 : 1}',
     '$_volMark=$_volNow',
     'musicVol=$_musicVolume',
     'effectsVol=$_effectsVolume',
@@ -397,6 +410,12 @@ class Appearance extends ChangeNotifier {
   Future<void> setHapticsOff(bool v) async {
     if (v == _hapticsOff) return;
     _hapticsOff = v;
+    await _keep();
+  }
+
+  Future<void> setNudgesOff(bool v) async {
+    if (v == _nudgesOff) return;
+    _nudgesOff = v;
     await _keep();
   }
 

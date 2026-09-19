@@ -11,6 +11,7 @@ import '../data/symbols.dart';
 import '../engine/town.dart';
 import 'census.dart';
 import 'habit.dart';
+import 'nudge.dart';
 import 'piece.dart';
 import 'rhythm.dart';
 
@@ -755,6 +756,10 @@ class Store extends ChangeNotifier {
 
     final piece = Piece(index: habit.total, placedAt: now);
     habit.pieces.add(piece);
+    // Si había un aviso pendiente por este hábito, esta pieza es su respuesta
+    // —o no lo es, y eso también se apunta. De ahí sale que los avisos que
+    // nunca sirven para nada acaben callándose solos.
+    nudgeAnswered(habit, now);
     // Y si esta pieza empieza un edificio nuevo, queda escrito qué edificio es.
     _writeUpWorks(habit);
     final abrio = _checkUnlock();

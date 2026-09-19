@@ -1,4 +1,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Avisos del pueblo. Dos permisos y ni uno más.
+
+         POST_NOTIFICATIONS lo pide Android 13 en adelante, y esta app no lo
+         pide al arrancar: lo pide el día que alguien enciende el interruptor
+         en Ajustes, que es el único momento en que se sabe para qué es.
+
+         Lo que NO está y es a propósito: SCHEDULE_EXACT_ALARM. Es el permiso
+         que hace falta para despertar el teléfono a una hora clavada, y para
+         esto no hace falta — un aviso que llega diez minutos tarde es el mismo
+         aviso. Pedirlo obligaría a mandar a la gente a una pantalla del
+         sistema a conceder un permiso de los serios para algo que no lo es. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- Para que lo programado sobreviva a reiniciar el teléfono. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <application
         android:label="Towny"
         android:name="${applicationName}"
@@ -25,6 +39,22 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <!-- Los dos que despiertan al aviso: el que lo saca a su hora y el
+             que vuelve a poner lo pendiente después de un reinicio. -->
+        <receiver
+            android:exported="false"
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"/>
+        <receiver
+            android:exported="false"
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
+            </intent-filter>
+        </receiver>
+
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

@@ -1,6 +1,6 @@
 import 'dart:math' as math;
-import 'dart:ui' as ui show Gradient;
 import 'dart:ui' show lerpDouble;
+import 'dart:ui' as ui show Gradient;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
