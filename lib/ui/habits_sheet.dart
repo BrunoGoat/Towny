@@ -100,7 +100,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
   }
 
   /// The whole catalogue, three rows tall, read down and then across.
-  Widget _reelOfMarks(UiTheme t) {
+  Widget _reelOfMarks(UiTheme t, _Veil velo) {
     final columns = (habitSymbols.length + _rows - 1) ~/ _rows;
     return SizedBox(
       height: _rows * _tile + (_rows - 1) * _gap,
@@ -117,7 +117,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
               for (var row = 0; row < _rows; row++)
                 Padding(
                   padding: EdgeInsets.only(top: row == 0 ? 0 : _gap),
-                  child: _markTile(t, column * _rows + row),
+                  child: _markTile(t, velo, column * _rows + row),
                 ),
             ],
           ),
@@ -128,7 +128,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
 
   /// One square of the reel, or an empty square where the list runs out — so
   /// the last column is the same width as every other one.
-  Widget _markTile(UiTheme t, int at) {
+  Widget _markTile(UiTheme t, _Veil velo, int at) {
     if (at >= habitSymbols.length) {
       return const SizedBox(width: _tile, height: _tile);
     }
@@ -150,12 +150,26 @@ class _HabitsSheetState extends State<HabitsSheet> {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          color: chosen ? t.accent.withValues(alpha: 0.20) : Colors.transparent,
-          border: Border.all(color: chosen ? t.accent : t.stroke),
+          // Un plato de vidrio espesado debajo de cada marca.
+          //
+          // Es lo mismo que el `aliento` hace detrás de las letras, y hacía
+          // falta por lo mismo: la hoja es un vidrio casi transparente, y una
+          // marca dibujada encima cae sobre una fuente o medio tejado. Sin el
+          // plato, lo que se veía era el pueblo a través del icono.
+          color: chosen
+              ? t.accent.withValues(alpha: 0.20)
+              : velo.tinte.withValues(alpha: 0.42),
+          border: Border.all(
+            color: chosen ? t.accent : velo.cuerpo.withValues(alpha: 0.20),
+          ),
         ),
         child: HabitSigil(
           symbol: mark,
-          color: chosen ? t.accent : t.fg.withValues(alpha: 0.62),
+          // **La tinta del velo, no la del tema.** Era el fallo entero: de día
+          // el vidrio es ahumado y la letra va crema, pero las marcas iban en
+          // `t.fg`, que a esa hora es marrón oscuro. El texto de al lado se
+          // leía y los iconos desaparecían, y era el mismo icono.
+          color: chosen ? t.accent : velo.cuerpo.withValues(alpha: 0.82),
           size: 21,
         ),
       ),
@@ -511,7 +525,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
   }
 
   /// Las seis comarcas, para elegir una al fundar.
-  Widget _regionPicker(UiTheme t) => Row(
+  Widget _regionPicker(UiTheme t, _Veil velo) => Row(
     children: [
       for (final c in TownCharacter.all)
         Expanded(
@@ -530,16 +544,18 @@ class _HabitsSheetState extends State<HabitsSheet> {
                   borderRadius: BorderRadius.circular(12),
                   color: c.order == _place
                       ? t.accent.withValues(alpha: 0.18)
-                      : Colors.transparent,
+                      : velo.tinte.withValues(alpha: 0.42),
                   border: Border.all(
-                    color: c.order == _place ? t.accent : t.stroke,
+                    color: c.order == _place
+                        ? t.accent
+                        : velo.cuerpo.withValues(alpha: 0.20),
                   ),
                 ),
                 child: HabitSigil(
                   symbol: c.symbol,
                   color: c.order == _place
                       ? t.accent
-                      : t.fg.withValues(alpha: 0.55),
+                      : velo.cuerpo.withValues(alpha: 0.82),
                   size: 22,
                 ),
               ),
@@ -550,14 +566,14 @@ class _HabitsSheetState extends State<HabitsSheet> {
   );
 
   /// El carrete de marcas, que se abre debajo del nombre.
-  Widget _reelSlot(UiTheme t) => AnimatedSize(
+  Widget _reelSlot(UiTheme t, _Veil velo) => AnimatedSize(
     duration: const Duration(milliseconds: 190),
     curve: Curves.easeOutCubic,
     alignment: Alignment.topCenter,
     child: _picking
         ? Padding(
             padding: const EdgeInsets.only(top: 16),
-            child: _reelOfMarks(t),
+            child: _reelOfMarks(t, velo),
           )
         : const SizedBox(width: double.infinity),
   );
@@ -705,7 +721,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
                     _field(t, velo, 21),
                     const SizedBox(height: 10),
                     _hair(velo),
-                    _reelSlot(t),
+                    _reelSlot(t, velo),
                     const SizedBox(height: 14),
                     _theTwoLines(t, velo),
                     const SizedBox(height: 14),
@@ -718,7 +734,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      _regionPicker(t),
+                      _regionPicker(t, velo),
                       const SizedBox(height: 16),
                     ],
                     AnimatedSwitcher(

@@ -3,6 +3,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:la_muralla/engine/palette.dart';
 import 'package:la_muralla/model/store.dart';
+import 'package:la_muralla/ui/habit_sigil.dart';
 import 'package:la_muralla/ui/habits_sheet.dart';
 import 'package:la_muralla/ui/legend_card.dart';
 import 'package:la_muralla/ui/overlays.dart';
@@ -365,6 +366,75 @@ void _pieles() {
           _dentro(tester, size, 'la hoja');
           await tester.pumpWidget(const SizedBox());
         }
+      }
+    });
+    // El fallo que se vio en un teléfono de verdad: a mediodía los símbolos
+    // sin elegir salían en negro sobre el vidrio ahumado de la hoja y no se
+    // veía ninguno, mientras las palabras de al lado —crema— se leían
+    // perfectamente. Eran la misma hoja y dos tintas distintas.
+    //
+    // La hoja es vidrio oscuro a cualquier hora: de día porque se ahúma el
+    // cielo, de noche porque el panel ya es oscuro. Así que la regla es una
+    // sola y no depende de la hora: lo que se dibuja encima va en tinta
+    // clara.
+    testWidgets('las marcas sin elegir se leen a cualquier hora', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({});
+      final store = Store();
+      await store.load();
+      const size = Size(440, 950);
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      for (final hora in [7.0, 13.0, 18.6, 23.0]) {
+        final t = UiTheme(Palette.forMoment(hora, 1.0));
+        await tester.pumpWidget(
+          _marco(
+            size,
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: HabitsSheet(store: store, theme: t),
+            ),
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 250));
+        // Abrir el carrete: se toca la marca grande de la cabecera.
+        await tester.tap(find.byType(HabitSigil).first, warnIfMissed: false);
+        await tester.pump(const Duration(milliseconds: 300));
+
+        final marcas = tester
+            .widgetList<HabitSigil>(find.byType(HabitSigil))
+            // El ámbar del tema aparece en la marca elegida y en el sello de
+            // la comarca, con alfas distintas: se descarta por el color, no
+            // por la instancia.
+            .where(
+              (s) =>
+                  s.color.r != t.accent.r ||
+                  s.color.g != t.accent.g ||
+                  s.color.b != t.accent.b,
+            )
+            .toList();
+        expect(
+          marcas,
+          isNotEmpty,
+          reason: 'el carrete no se abrió a las $hora',
+        );
+        for (final m in marcas) {
+          expect(
+            m.color.computeLuminance(),
+            greaterThan(0.35),
+            reason:
+                'a las $hora una marca sin elegir va en tinta oscura '
+                '(${m.color}) sobre el vidrio de la hoja',
+          );
+          expect(
+            m.color.a,
+            greaterThan(0.6),
+            reason: 'a las $hora una marca sin elegir va casi transparente',
+          );
+        }
+        await tester.pumpWidget(const SizedBox());
       }
     });
   });

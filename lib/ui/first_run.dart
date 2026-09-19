@@ -463,14 +463,20 @@ class _Marks extends StatelessWidget {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
+                // Cada marca sobre su propio plato, no directamente sobre el
+                // prado. Una marca dibujada sobre la escena se pierde en cuanto
+                // detrás pasa algo del mismo tono, y acá detrás hay un campo
+                // entero que cambia de color con la hora.
                 color: m == chosen
-                    ? t.accent.withValues(alpha: 0.20)
-                    : Colors.transparent,
-                border: Border.all(color: m == chosen ? t.accent : t.stroke),
+                    ? t.accent.withValues(alpha: 0.22)
+                    : t.panelStrong,
+                border: Border.all(
+                  color: m == chosen ? t.accent : t.fg.withValues(alpha: 0.18),
+                ),
               ),
               child: HabitSigil(
                 symbol: m,
-                color: m == chosen ? t.accent : t.fg.withValues(alpha: 0.60),
+                color: m == chosen ? t.accent : t.fg.withValues(alpha: 0.78),
                 size: 22,
               ),
             ),
