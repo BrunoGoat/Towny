@@ -4,18 +4,20 @@ import '../data/demo.dart';
 import '../data/doings.dart';
 import '../data/landmarks.dart';
 import '../engine/season.dart';
+import '../engine/shooting_star.dart';
 import '../engine/town.dart';
 import '../fx/sensory.dart';
 import '../model/appearance.dart';
 import '../model/piece.dart';
+import '../model/reel.dart';
 import '../model/store.dart';
 import 'backup_sheet.dart';
-import 'folk_gallery_screen.dart';
 import 'debug_sheet.dart';
+import 'folk_gallery_screen.dart';
 import 'gallery_screen.dart';
-import '../engine/shooting_star.dart';
 import 'notice_board.dart';
 import 'overlays.dart';
+import 'reel_screen.dart';
 import 'style.dart';
 
 /// Everything about the app that is a setting rather than a town.
@@ -59,7 +61,34 @@ class _SettingsSheetState extends State<SettingsSheet> {
                 ),
               ),
               const SizedBox(height: 16),
-              Text('AJUSTES', style: t.label),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('AJUSTES', style: t.label),
+                  // Qué build es ésta.
+                  //
+                  // Existe porque no existía, y no saberlo costó una tarde: se
+                  // probaba algo que no salía, y la pregunta «¿está el cambio
+                  // o es la build de antes?» no tenía manera de contestarse
+                  // desde el teléfono. Con las APK saliendo de un flujo que
+                  // numera cada ejecución, no decir el número en ninguna parte
+                  // es guardarse el único dato que hace falta para saber qué
+                  // se está mirando.
+                  //
+                  // Del mismo `--dart-define` que el resto de la app, así que
+                  // no añade dependencia ninguna: lo pone el flujo al compilar
+                  // y en local sale vacío, que es lo correcto — una build de
+                  // tu propia máquina no tiene número.
+                  if (_build.isNotEmpty)
+                    Text(
+                      'BUILD $_build',
+                      style: t.label.copyWith(
+                        fontSize: 9,
+                        color: t.fg.withValues(alpha: 0.30),
+                      ),
+                    ),
+                ],
+              ),
               const SizedBox(height: 10),
               Expanded(child: _body(context, t)),
             ],
@@ -68,6 +97,9 @@ class _SettingsSheetState extends State<SettingsSheet> {
       ),
     );
   }
+
+  /// El número de ejecución del flujo que compiló esta APK. Vacío en local.
+  static const String _build = String.fromEnvironment('BUILD');
 
   Widget _body(BuildContext context, UiTheme t) {
     final wants = Appearance.instance;
@@ -280,6 +312,18 @@ class _SettingsSheetState extends State<SettingsSheet> {
           subtitle: 'Copiar tu valle y volver a meterlo.',
           open: () => BackupSheet(store: store, theme: t),
         ),
+        // Al lado de «a futuro» a propósito: son la misma clase de cosa mirada
+        // en las dos direcciones, y la de atrás es la única de las dos que
+        // habla de vos. Va primero porque es la que existe de verdad — la otra
+        // enseña un pueblo que todavía no es tuyo.
+        if (Reel.worthIt(store.habits))
+          _Row(
+            theme: t,
+            icon: Icons.play_circle_outline,
+            title: 'Ver cómo se hizo',
+            subtitle: 'Tu valle entero desde el primer día, en un minuto.',
+            page: () => ReelScreen(store: store),
+          ),
         _Row(
           theme: t,
           icon: Icons.tune,

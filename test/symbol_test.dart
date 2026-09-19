@@ -3,8 +3,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:la_muralla/data/symbols.dart';
+import 'package:la_muralla/engine/sigils.dart';
 import 'package:la_muralla/model/habit.dart';
-import 'package:la_muralla/ui/habit_sigil.dart';
 
 void main() {
   group('the marks a habit wears', () {

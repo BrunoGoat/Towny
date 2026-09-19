@@ -1,8 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:la_muralla/data/character.dart';
+import 'package:la_muralla/data/pacing.dart';
+import 'package:la_muralla/engine/town.dart';
 import 'package:la_muralla/model/habit.dart';
 import 'package:la_muralla/model/piece.dart';
-import 'package:la_muralla/engine/town.dart';
+import 'package:la_muralla/model/rhythm.dart';
 import 'package:la_muralla/model/store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -407,11 +411,23 @@ void main() {
     });
   });
 
-  group('streaks', () {
-    test('consecutive days count, gaps break the run', () async {
+  // La racha murió y no quedó escondida en ningún rincón: lo que la sustituyó
+  // mide lo mismo de una manera que admite un mal día, que es la única que
+  // sirve para medir algo sostenible.
+  group('consistencia en lugar de rachas', () {
+    /// Un hábito con piezas en esos días atrás, y nacido lo bastante antes
+    /// como para que la ventana entera cuente.
+    Future<Store> withDays(List<int> offsets, {int born = 40}) async {
       final s = await freshStore();
       final today = dayStart(DateTime.now());
-      for (final offset in [0, 1, 2, 5, 6]) {
+      s.habits[0] = Habit(
+        id: s.habit.id,
+        name: s.habit.name,
+        symbol: s.habit.symbol,
+        slot: s.habit.slot,
+        createdAt: today.subtract(Duration(days: born)),
+      );
+      for (final offset in offsets) {
         s.pieces.add(
           Piece(
             index: s.total,
@@ -419,8 +435,254 @@ void main() {
           ),
         );
       }
-      expect(s.streak, 3);
-      expect(s.bestStreak, 3);
+      return s;
+    }
+
+    test('un fallo baja la consistencia, no la tira a cero', () async {
+      // Veintinueve de los últimos treinta días, menos hoy que aún no terminó.
+      final s = await withDays([for (var i = 1; i <= 29; i++) i]);
+      final firme = s.consistency;
+      expect(firme.enough, isTrue);
+      // Ayer no hubo pieza sólo si lo sacamos; acá están todos, así que lo que
+      // se comprueba es que el numerador y el denominador son los de verdad.
+      expect(firme.done, 29);
+      expect(firme.of, 29);
+
+      // Y ahora uno con un hueco en medio: baja, y no se va a cero.
+      final roto = await withDays([
+        for (var i = 1; i <= 29; i++)
+          if (i != 3) i,
+      ]);
+      expect(roto.consistency.done, 28);
+      expect(roto.consistency.of, 29);
+      expect(roto.consistency.rate, greaterThan(0.9));
+    });
+
+    test('hoy en blanco no cuenta en contra: el día no terminó', () async {
+      // Los veintinueve días anteriores con pieza, y hoy todavía sin nada.
+      final s = await withDays([for (var i = 1; i <= 29; i++) i]);
+      // La ventana son treinta días, y el denominador sale veintinueve: hoy no
+      // está. Descontar por un día que aún no terminó, a las nueve de la
+      // mañana, es exactamente el castigo que esto vino a quitar.
+      expect(s.consistency.of, 29);
+
+      // Y en cuanto cae la de hoy, cuenta como cualquier otro día.
+      s.placePiece();
+      expect(s.consistency.of, 30);
+      expect(s.consistency.done, 30);
+    });
+
+    test('se calla hasta que hay dos semanas de las que hablar', () async {
+      final s = await withDays([1, 2, 3], born: 3);
+      expect(s.consistency.enough, isFalse);
+    });
+
+    test('los días dormidos no cuentan ni a favor ni en contra', () async {
+      final s = await withDays([for (var i = 15; i <= 29; i++) i]);
+      final today = dayStart(DateTime.now());
+      // Catorce días sin nada, pero dormidos a propósito.
+      s.habit.rests.add(
+        Rest(
+          today.subtract(const Duration(days: 14)),
+          today.add(const Duration(days: 1)),
+        ).encode(),
+      );
+      final firme = s.consistency;
+      expect(firme.done, firme.of, reason: 'una pausa no es un fallo');
+    });
+  });
+
+  group('la vuelta', () {
+    test(
+      'mide cuánto tardás en volver, y mejora cuando volvés antes',
+      () async {
+        final s = await freshStore();
+        final today = dayStart(DateTime.now());
+        // Huecos de 4, 4, 1, 1 días entre piezas.
+        for (final offset in [30, 25, 20, 18, 16]) {
+          s.pieces.add(
+            Piece(
+              index: s.total,
+              placedAt: today.subtract(Duration(days: offset, hours: -12)),
+            ),
+          );
+        }
+        expect(s.comingBack, isNotNull);
+        // Cuatro huecos: 4, 4, 1, 1. La mediana de los ordenados es el tercero.
+        expect(s.comingBack, 4);
+      },
+    );
+
+    test('una pausa entera en medio no es un hueco', () async {
+      final s = await freshStore();
+      final today = dayStart(DateTime.now());
+      for (final offset in [20, 5]) {
+        s.pieces.add(
+          Piece(
+            index: s.total,
+            placedAt: today.subtract(Duration(days: offset, hours: -12)),
+          ),
+        );
+      }
+      expect(gapsOf(s.habit), [14]);
+      s.habit.rests.add(
+        Rest(
+          today.subtract(const Duration(days: 20)),
+          today.subtract(const Duration(days: 5)),
+        ).encode(),
+      );
+      expect(gapsOf(s.habit), isEmpty);
+    });
+  });
+
+  group('dormir el pueblo', () {
+    test('no se apaga mientras duerme, y despierta sin deuda', () async {
+      final s = await freshStore();
+      s.pieces.add(
+        Piece(
+          index: 0,
+          placedAt: DateTime.now().subtract(const Duration(days: 20)),
+        ),
+      );
+      // Veinte días abandonado: está en el suelo.
+      expect(Store.integrityOf(s.habit), Pacing.minIntegrity);
+
+      s.rest(s.habit, DateTime.now().add(const Duration(days: 7)));
+      expect(s.habit.resting, isTrue);
+      expect(Store.daysIdleOf(s.habit), 0);
+      expect(Store.integrityOf(s.habit), 1.0);
+    });
+
+    test('poner una pieza despierta el pueblo', () async {
+      final s = await freshStore();
+      s.placePiece();
+      s.rest(s.habit, DateTime.now().add(const Duration(days: 7)));
+      expect(s.habit.resting, isTrue);
+      final r = s.placePiece();
+      expect(r.woke, isTrue);
+      expect(s.habit.resting, isFalse);
+    });
+
+    test('la pausa queda escrita con lo que duró de verdad', () async {
+      final s = await freshStore();
+      s.placePiece();
+      s.rest(s.habit, DateTime.now().add(const Duration(days: 30)));
+      s.wake(s.habit);
+      expect(s.habit.resting, isFalse);
+      // Se recorta, no se borra: cuánto duró es un dato.
+      expect(s.habit.rests.length, lessThanOrEqualTo(1));
+    });
+  });
+
+  group('el candado del segundo pueblo', () {
+    test('cerrado hasta que el primero se sostiene', () async {
+      final s = await freshStore();
+      expect(s.unlocked, isFalse);
+      expect(s.canAddHabit, isFalse);
+    });
+
+    test('se abre con días con pieza, sin exigir que sean seguidos', () async {
+      final s = await freshStore();
+      final today = dayStart(DateTime.now());
+      // Diez días con pieza dentro de los últimos catorce, con cuatro fallos
+      // por el medio: una racha diría que no, y acá se abre igual.
+      for (final offset in [0, 1, 2, 4, 5, 7, 8, 9, 11, 13]) {
+        s.pieces.add(
+          Piece(
+            index: s.total,
+            placedAt: today.subtract(Duration(days: offset, hours: -12)),
+          ),
+        );
+      }
+      expect(s.unlockProgress, Pacing.unlockDays);
+      s.placePiece();
+      expect(s.unlocked, isTrue);
+      expect(s.canAddHabit, isTrue);
+    });
+
+    test('una vez abierto no se vuelve a cerrar', () async {
+      final s = await freshStore();
+      final today = dayStart(DateTime.now());
+      for (final offset in [0, 1, 2, 4, 5, 7, 8, 9, 11, 13]) {
+        s.pieces.add(
+          Piece(
+            index: s.total,
+            placedAt: today.subtract(Duration(days: offset, hours: -12)),
+          ),
+        );
+      }
+      s.placePiece();
+      expect(s.unlocked, isTrue);
+      // Y ahora un mes entero sin aparecer: la puerta sigue abierta. Cerrarla
+      // castigaría justo a quien vuelve, que es para quien está hecha la app.
+      s.habits[0].pieces.clear();
+      s.pieces.add(
+        Piece(index: 0, placedAt: today.subtract(const Duration(days: 40))),
+      );
+      expect(s.unlockProgress, 0);
+      expect(s.unlocked, isTrue);
+      expect(s.canAddHabit, isTrue);
+    });
+
+    test('un valle que ya tenía varios pueblos entra abierto', () async {
+      // Lo que pediste: esto no es retrocompatible hacia atrás. Una copia
+      // guardada antes del candado, con más de un pueblo, los conserva todos y
+      // no se le pregunta nada.
+      SharedPreferences.setMockInitialValues({
+        'pueblo_state_v1': jsonEncode({
+          'v': 1,
+          'a': 0,
+          'h': [
+            {'id': 'h1', 'n': 'Leer', 's': 'libro', 'slot': 0, 'p': []},
+            {'id': 'h2', 'n': 'Correr', 's': 'carrera', 'slot': 1, 'p': []},
+          ],
+        }),
+      });
+      final s = Store();
+      await s.load();
+      expect(s.habits.length, 2);
+      expect(s.unlocked, isTrue);
+      expect(s.canAddHabit, isTrue);
+    });
+  });
+
+  group('el desenganche', () {
+    test('no se pregunta por un hueco corto ni sin historia', () async {
+      final s = await freshStore();
+      s.placePiece();
+      expect(s.adrift, isNull);
+    });
+
+    test('se pregunta una sola vez por hueco', () async {
+      final s = await freshStore();
+      final today = dayStart(DateTime.now());
+      for (final offset in [30, 29, 28, 27, 26, 25]) {
+        s.pieces.add(
+          Piece(
+            index: s.total,
+            placedAt: today.subtract(Duration(days: offset, hours: -12)),
+          ),
+        );
+      }
+      expect(s.adrift, isNotNull);
+      s.asked(s.habit);
+      expect(s.adrift, isNull, reason: 'insistir es lo que hace que se borre');
+    });
+
+    test('un pueblo dormido nunca está desenganchado', () async {
+      final s = await freshStore();
+      final today = dayStart(DateTime.now());
+      for (final offset in [30, 29, 28, 27, 26, 25]) {
+        s.pieces.add(
+          Piece(
+            index: s.total,
+            placedAt: today.subtract(Duration(days: offset, hours: -12)),
+          ),
+        );
+      }
+      expect(s.adrift, isNotNull);
+      s.rest(s.habit, DateTime.now().add(const Duration(days: 7)));
+      expect(s.adrift, isNull);
     });
   });
 }

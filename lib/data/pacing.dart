@@ -24,6 +24,21 @@ class Pacing {
   /// The floor. A town is never abandoned, only unlit.
   static const double minIntegrity = 0.12;
 
+  /// Cuántos días con pieza hacen falta para poder fundar el segundo pueblo, y
+  /// en cuántos días se pueden juntar.
+  ///
+  /// Diez de catorce, y las dos cifras importan. Diez porque es lo que se
+  /// tarda en saber si una cosa va a aguantar o era el entusiasmo del primer
+  /// domingo. Catorce y no diez porque exigir diez seguidos sería una racha, y
+  /// una racha es exactamente lo que esta app dejó de medir: se puede fallar
+  /// cuatro veces por el camino y la puerta se abre igual.
+  ///
+  /// Se abre una sola vez y no se vuelve a cerrar. Un candado que se cierra
+  /// castigaría a quien vuelve después de un mes fuera, que es la persona para
+  /// la que está hecho todo lo demás de acá.
+  static const int unlockDays = 10;
+  static const int unlockWindow = 14;
+
   static double integrityFor(double daysIdle) {
     if (daysIdle <= decayGraceDays) return 1.0;
     final t = (daysIdle - decayGraceDays) / decayFullDays;

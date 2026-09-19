@@ -4,25 +4,25 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-import '../data/constellations.dart';
 import '../core/math3.dart';
 import '../core/rng.dart';
-import '../engine/camera.dart';
-
+import '../data/constellations.dart';
 import '../data/landmarks.dart';
+import '../data/pacing.dart';
+import '../engine/camera.dart';
+import '../engine/palette.dart';
+import '../engine/renderer.dart';
+import '../engine/scene.dart';
+import '../engine/shooting_star.dart';
 import '../engine/solids.dart';
 import '../engine/town.dart';
-import '../engine/palette.dart';
-import '../engine/shooting_star.dart';
-import '../engine/renderer.dart';
 import '../fx/effects.dart';
 import '../fx/sensory.dart';
-import '../model/piece.dart';
-
 import '../model/appearance.dart';
 import '../model/board.dart';
 import '../model/board_slots.dart';
 import '../model/habit.dart';
+import '../model/piece.dart';
 import '../model/store.dart';
 
 /// Handle the surrounding UI uses to drive the wall.
@@ -135,12 +135,10 @@ class _TownViewState extends State<TownView>
   late Ticker _ticker;
   final OrbitCamera _cam = OrbitCamera();
   final EffectSystem _fx = EffectSystem();
-  final List<PickTarget> _picks = [];
-  final List<SkyHit> _skies = [];
-  final List<DomeHit> _domes = [];
-  final List<SignHit> _signs = [];
-  final List<BoardHit> _boards = [];
-  final List<LecternHit> _lecterns = [];
+
+  /// Lo que el pintor deja marcado al pasar, para poder tocarlo. Aquí no se
+  /// toca: se le pasa, él lo vacía y lo rellena.
+  final TouchMap _hits = TouchMap();
 
   late TownLayout _town;
   int _layoutFor = -1;
@@ -171,6 +169,10 @@ class _TownViewState extends State<TownView>
   double _showcaseAge = 0;
 
   double _displayIntegrity = 1;
+
+  /// Segundos que le quedan a las luces para volver despacio. Ver
+  /// [_welcomeBack].
+  double _relightSlow = 0;
   int? _selectedPiece;
   double _charge = 0;
 
@@ -464,8 +466,17 @@ class _TownViewState extends State<TownView>
     }
 
     final target = widget.store.integrity;
+    // Normalmente esto alcanza al objetivo en menos de un segundo, que es lo
+    // que hace falta para que apagarse y encenderse no se vean como un salto.
+    // Volver de un pueblo a oscuras es la excepción: ahí se frena a propósito,
+    // para que las luces tarden en volver lo que tarda en mirarse.
+    final ritmo = _relightSlow > 0 ? 0.55 : 1.4;
     _displayIntegrity +=
-        (target - _displayIntegrity) * (1 - math.exp(-dt * 1.4));
+        (target - _displayIntegrity) * (1 - math.exp(-dt * ritmo));
+    if (_relightSlow > 0) {
+      _relightSlow -= dt;
+      if (_relightSlow <= 0) _relightSlow = 0;
+    }
 
     _spawnAmbient(dt);
 
@@ -707,9 +718,85 @@ class _TownViewState extends State<TownView>
         widget.onWhisper('${building.name} en pie');
       }
     }
-    if (result != null && result.relit) {
-      widget.onWhisper('El pueblo vuelve a encenderse');
+    if (result != null && result.relit) _welcomeBack(result, town, done);
+    // Y si ésta fue la pieza que abrió el valle, se dice. Pasa una sola vez en
+    // la vida de un valle, y si no se dijera nadie se enteraría: el anillo del
+    // más se cierra y ya está, que es muy poco para lo que acaba de pasar.
+    if (result != null && result.unlocked) {
+      _fx.celebrate(V3(town.cx, 0, town.cz), 2.0, count: 46);
+      Future.delayed(const Duration(milliseconds: 260), () {
+        if (mounted) Sensory.instance.milestone();
+      });
+      widget.onWhisper(
+        'El valle abre un segundo solar. Ya podés fundar otro pueblo.',
+      );
     }
+  }
+
+  /// El regreso, que es el momento más importante que tiene esta app.
+  ///
+  /// Se despachaba con el mismo susurro de tres segundos que «Molino en pie»,
+  /// y no es la misma clase de cosa. Una app de hábitos no consigue que nadie
+  /// sea perfecto; lo más que puede hacer es que abandonar del todo sea cada
+  /// vez más difícil, y eso se juega entero acá — en si volver se siente como
+  /// una fiesta o como pasar lista.
+  ///
+  /// Así que la celebración crece con lo apagado que estaba: volver desde el
+  /// doce por ciento tiene que sentirse como rematar un hito, porque
+  /// psicológicamente es más que eso. Alguien que vuelve después de veinte
+  /// días está demostrando que el abandono no era definitivo, y eso vale más
+  /// que cualquier racha que pudiera haber conservado.
+  void _welcomeBack(PlaceResult result, TownLayout town, bool finished) {
+    // Cero cuando apenas se había apagado, uno cuando estaba en el suelo.
+    final hondo = clampD(
+      (1.0 - result.relitFrom) / (1.0 - Pacing.minIntegrity),
+      0.0,
+      1.0,
+    );
+    // Las luces vuelven despacio y no de un fundido. La integridad ya sube
+    // sola hacia su objetivo; lo que se hace acá es frenar esa subida para que
+    // dé tiempo a verla, y sólo cuando había algo que ver — estirar un dos por
+    // ciento durante dos segundos se lee como un tirón, no como una vuelta.
+    _relightSlow = hondo > 0.25 ? 2.6 : 0.0;
+
+    // Una vuelta de verdad se oye. Es el sonido de reparar, que ya existía
+    // para esto exactamente y no se usaba en el único sitio donde significa
+    // algo.
+    if (hondo > 0.25) {
+      Future.delayed(const Duration(milliseconds: 160), () {
+        if (mounted) Sensory.instance.repair();
+      });
+    }
+
+    // Y se ve. Chispas desde la plaza, tantas como oscuro estaba, y la cámara
+    // se aparta para que se vea encenderse el pueblo entero en vez de la
+    // piedra que acabás de poner.
+    if (hondo > 0.45) {
+      _fx.celebrate(
+        V3(town.cx, 0, town.cz),
+        1.6 + 1.2 * hondo,
+        count: (24 + 40 * hondo).round(),
+      );
+      // Salvo que esta misma pieza haya rematado un edificio: entonces la
+      // cámara ya está puesta sobre él y es suya. Dos encuadres peleándose por
+      // el mismo momento es peor que cualquiera de los dos.
+      if (finished) return;
+      _cam.follow = false;
+      _cam.travelTarget = town.cx;
+      _cam.focusZTarget = town.cz;
+      _cam.focusYTarget = 1.8;
+      _cam.pitchTarget = 0.52;
+      _cam.distanceTarget = clampD(_townDistance(), 9, 90);
+    }
+
+    widget.onWhisper(
+      result.woke
+          // Volvió antes de lo que había dicho. Eso no se corrige, se celebra.
+          ? 'El pueblo despierta antes de tiempo.'
+          : hondo > 0.6
+          ? 'Volviste. El pueblo entero vuelve a encenderse.'
+          : 'El pueblo vuelve a encenderse',
+    );
   }
 
   // ---------------------------------------------------------------- camera
@@ -946,7 +1033,7 @@ class _TownViewState extends State<TownView>
     // El cielo primero. Es lo que menos veces está ahí y lo que más
     // deliberadamente se toca: nadie apunta a una constelación por accidente,
     // y si hay una figura encima de un tejado, se quiso la figura.
-    for (final k in _skies) {
+    for (final k in _hits.skies) {
       if (!k.rect.contains(pos)) continue;
       widget.onSkyTapped(k.id);
       return;
@@ -954,7 +1041,7 @@ class _TownViewState extends State<TownView>
 
     // The board comes first: it is a small thing standing in the middle of a
     // town full of houses, and anybody aiming at it meant it.
-    for (final b in _boards) {
+    for (final b in _hits.boards) {
       if (!b.rect.contains(pos)) continue;
       Sensory.instance.tick();
       widget.onBoardTapped(b.town);
@@ -962,7 +1049,7 @@ class _TownViewState extends State<TownView>
     }
 
     // Y el atril, que está al lado y es igual de pequeño.
-    for (final a in _lecterns) {
+    for (final a in _hits.lecterns) {
       if (!a.rect.contains(pos)) continue;
       Sensory.instance.tick();
       widget.onLecternTapped(a.town);
@@ -972,7 +1059,7 @@ class _TownViewState extends State<TownView>
     // Then the signs. From across the valley a sign is the only thing you can
     // read about a town, and reading it and tapping it should be the same
     // gesture as going there.
-    for (final s in _signs) {
+    for (final s in _hits.signs) {
       if (!s.rect.contains(pos)) continue;
       if (s.town == widget.store.active) {
         // Already yours: frame it properly instead of doing nothing.
@@ -994,7 +1081,7 @@ class _TownViewState extends State<TownView>
     // punto de la pantalla y, de ésos, cuál está más cerca del ojo. Una pieza
     // no se toca a través de otra.
     PickTarget? best;
-    for (final t in _picks) {
+    for (final t in _hits.pieces) {
       // Un pelo de holgura, y algo más si lleva leyenda: lo que ya tiene algo
       // escrito es lo que alguien vuelve a buscar.
       if (!t.holds(pos.dx, pos.dy, t.labelled ? 6 : 2)) continue;
@@ -1078,15 +1165,7 @@ class _TownViewState extends State<TownView>
           Sensory.instance.tick();
         },
         child: CustomPaint(
-          painter: TownPainter(
-            scene,
-            _picks,
-            _signs,
-            _boards,
-            _lecterns,
-            _skies,
-            _domes,
-          ),
+          painter: TownPainter(scene, _hits),
           size: Size.infinite,
           isComplex: true,
           willChange: true,

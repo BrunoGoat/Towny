@@ -9,6 +9,7 @@ import '../engine/camera.dart';
 import '../engine/folk.dart';
 import '../engine/palette.dart';
 import '../engine/renderer.dart';
+import '../engine/scene.dart';
 import '../engine/town.dart';
 import '../fx/effects.dart';
 import '../fx/sensory.dart';
@@ -187,7 +188,7 @@ class _FolkGalleryScreenState extends State<FolkGalleryScreen>
                 }
               },
               child: CustomPaint(
-                painter: TownPainter(scene, [], [], [], [], [], []),
+                painter: TownPainter(scene, TouchMap()),
                 size: Size.infinite,
                 isComplex: true,
                 willChange: true,

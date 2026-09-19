@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'findings.dart';
+import 'notice.dart';
 
 /// Qué notas del tablón ya leíste.
 ///

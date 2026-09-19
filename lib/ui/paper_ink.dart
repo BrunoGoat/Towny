@@ -2,9 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../model/findings.dart';
+import '../engine/board_plan.dart';
 import '../model/appearance.dart';
-import 'board_plan.dart';
+import '../model/notice.dart';
 import 'note_font.dart';
 
 /// Lo que lleva escrito una hoja.

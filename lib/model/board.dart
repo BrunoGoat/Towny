@@ -2,11 +2,13 @@ import 'dart:math' as math;
 
 import '../core/rng.dart';
 import '../data/gossip.dart';
-import '../ui/board_plan.dart';
+import '../engine/board_plan.dart';
 import '../engine/town.dart';
 import 'findings.dart';
 import 'habit.dart';
+import 'notice.dart';
 import 'piece.dart';
+import 'rhythm.dart';
 
 /// Lo que hay clavado en el tablón de un pueblo.
 ///

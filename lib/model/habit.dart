@@ -20,15 +20,20 @@ class Habit {
     required this.slot,
     required this.createdAt,
     int? character,
+    this.why,
+    this.floor,
+    this.askedAt,
     List<Piece>? pieces,
     List<String>? chronicle,
     List<String>? folk,
     List<String>? notes,
+    List<String>? rests,
   }) : character = character ?? TownCharacter.forSlot(slot).order,
        pieces = pieces ?? [],
        chronicle = chronicle ?? [],
        folk = folk ?? [],
-       notes = notes ?? [];
+       notes = notes ?? [],
+       rests = rests ?? [];
 
   /// Never reused and never changed: it is what a saved town is filed under.
   final String id;
@@ -46,6 +51,31 @@ class Habit {
   final int slot;
 
   final DateTime createdAt;
+
+  /// Para qué querés esto. Una línea, tuya, escrita el día que se funda.
+  ///
+  /// Correr, leer o estudiar son acciones, y casi nadie las quiere por sí
+  /// mismas: las quiere porque representan otra cosa. Mientras hay entusiasmo
+  /// no hace falta acordarse de cuál era; el problema llega semanas después,
+  /// cuando la cosa se vuelve aburrida, y ahí recuperar el motivo vale más que
+  /// cualquier premio.
+  ///
+  /// Por eso no se enseña en un día bueno. Está en la hoja del hábito para
+  /// quien vaya a buscarlo, y sale solo en los dos momentos en que sirve: al
+  /// volver de un hueco largo y cuando el pueblo pregunta si seguimos.
+  String? why;
+
+  /// Qué es lo más chico que todavía cuenta como una pieza.
+  ///
+  /// Esta app no necesita una versión mini de cada hábito, porque su pieza ya
+  /// no tiene tamaño: leer treinta minutos y leer cinco ponen exactamente la
+  /// misma piedra. Lo que sí hace falta es que eso esté dicho, con tus
+  /// palabras, antes del día malo — porque el día malo la distancia entre
+  /// «hacerlo» y «no hacerlo» se mide contra lo que uno cree que hay que
+  /// hacer, y si eso son treinta minutos la alternativa es cero.
+  ///
+  /// Se lee en los mismos dos momentos que [why]. Escribirlo es opcional.
+  String? floor;
 
   /// What kind of place this habit builds, chosen the day it was founded.
   ///
@@ -95,6 +125,71 @@ class Habit {
   /// último que alguien escribió queda encima de lo de la semana pasada.
   final List<String> notes;
 
+  /// Cuándo estuvo dormido este pueblo, `desde|hasta` en milisegundos y del
+  /// más viejo al más nuevo. Ver [Rest].
+  ///
+  /// Una lista de tramos y no un interruptor, porque lo que cuenta los días
+  /// —el deterioro, la consistencia, todo lo que el tablón averigua— necesita
+  /// saber *cuándo* estuviste en pausa y no sólo si lo estás ahora. Sin eso,
+  /// tres semanas de pausa se leen como un hueco de tres semanas y el pueblo
+  /// acaba anunciando muy serio que los martes son tu día flojo porque
+  /// pausaste tres martes.
+  final List<String> rests;
+
+  /// Cuándo fue la última vez que el pueblo preguntó si seguimos.
+  ///
+  /// Se guarda para que pregunte una sola vez por hueco. Si alguien cerró la
+  /// hoja y siguió sin aparecer tres semanas más, no hay nada nuevo que
+  /// preguntar: la pregunta ya está hecha y insistir sería lo que hace
+  /// cualquier otra app —avisar todos los días de lo mismo— que es la manera
+  /// más rápida de que se desinstale.
+  DateTime? askedAt;
+
+  /// Los tramos, ya leídos. Un renglón roto se salta.
+  Iterable<Rest> get sleeps sync* {
+    for (final line in rests) {
+      final r = Rest.parse(line);
+      if (r != null) yield r;
+    }
+  }
+
+  /// El tramo que cubre ese momento, si lo hay.
+  Rest? restAt(DateTime when) {
+    for (final r in sleeps) {
+      if (r.covers(when)) return r;
+    }
+    return null;
+  }
+
+  /// Si el pueblo está dormido ahora mismo.
+  bool get resting => restAt(DateTime.now()) != null;
+
+  /// Cuándo despierta, si está dormido.
+  DateTime? get wakesAt => restAt(DateTime.now())?.until;
+
+  /// Si estuvo dormido ese día del calendario.
+  bool restedOn(DateTime day) {
+    for (final r in sleeps) {
+      if (r.coversDay(day)) return true;
+    }
+    return false;
+  }
+
+  /// Cuándo acabó la última pausa que ya acabó, o nulo si nunca durmió.
+  ///
+  /// Es desde donde se cuenta el abandono al despertar: un pueblo que vuelve
+  /// de dormir vuelve sin deuda, con su día y medio de gracia entero, y no
+  /// arrastrando las tres semanas que estuvo en pausa.
+  DateTime? get wokeAt {
+    DateTime? last;
+    final now = DateTime.now();
+    for (final r in sleeps) {
+      if (r.until.isAfter(now)) continue;
+      if (last == null || r.until.isAfter(last)) last = r.until;
+    }
+    return last;
+  }
+
   int get total => pieces.length;
 
   DateTime? get lastPlacedAt => pieces.isEmpty ? null : pieces.last.placedAt;
@@ -142,6 +237,10 @@ class Habit {
     'w': chronicle,
     'f': folk,
     'm': notes,
+    if (why != null && why!.isNotEmpty) 'y': why,
+    if (floor != null && floor!.isNotEmpty) 'q': floor,
+    if (rests.isNotEmpty) 'r': rests,
+    if (askedAt != null) 'k': askedAt!.millisecondsSinceEpoch,
   };
 
   static Habit fromJson(Map<String, dynamic> j) {
@@ -176,6 +275,15 @@ class Habit {
       // cumpleaños por haber empezado a usar la app antes de que existiera.
       folk: [for (final e in (j['f'] as List?) ?? []) e.toString()],
       notes: [for (final e in (j['m'] as List?) ?? []) e.toString()],
+      // Tres cosas que una copia vieja no trae y que valen lo mismo vacías: un
+      // hábito sin motivo escrito es un hábito sin motivo escrito, y un pueblo
+      // que nunca durmió no tiene tramos. Nadie pierde nada por venir de antes.
+      why: (j['y'] as String?)?.trim(),
+      floor: (j['q'] as String?)?.trim(),
+      rests: [for (final e in (j['r'] as List?) ?? []) e.toString()],
+      askedAt: (j['k'] as num?) == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch((j['k'] as num).toInt()),
       // A save from before towns could be chosen keeps the one its plot was
       // given, so nobody's town changes shape under them.
       character: (j['ch'] as num?)?.toInt(),
@@ -183,6 +291,54 @@ class Habit {
         (j['c'] as num?)?.toInt() ?? DateTime.now().millisecondsSinceEpoch,
       ),
       pieces: list,
+    );
+  }
+}
+
+/// Un tramo en el que un hábito estuvo dormido a propósito.
+///
+/// La diferencia entre «no estoy pudiendo con esto ahora» y «ya no quiero que
+/// esto forme parte de mi vida» es la diferencia entre dos decisiones
+/// completamente distintas, y una app que sólo sabe seguir o fallar convierte
+/// un viaje, una mudanza o un mes malo en un fracaso. Esto es lo que le falta
+/// para saber la diferencia.
+///
+/// Siempre lleva fecha de vuelta. Una pausa sin final es abandono con mejor
+/// nombre, y lo que se estaría guardando entonces es la excusa y no el plan.
+class Rest {
+  const Rest(this.from, this.until);
+
+  final DateTime from;
+
+  /// Cuándo despierta. Volver antes la recorta hasta el día que volviste, así
+  /// que esto es siempre lo que de verdad duró.
+  final DateTime until;
+
+  bool covers(DateTime when) => !when.isBefore(from) && when.isBefore(until);
+
+  /// Si el pueblo estuvo dormido ese día del calendario.
+  ///
+  /// Se mira el mediodía y no la medianoche. Una pausa que empieza a las dos
+  /// de la tarde deja media jornada despierta, y discutir de qué lado cae ese
+  /// día es discutir por nada: el mediodía parte la diferencia y es una regla
+  /// que se puede decir en una línea.
+  bool coversDay(DateTime day) =>
+      covers(DateTime(day.year, day.month, day.day, 12));
+
+  String encode() =>
+      '${from.millisecondsSinceEpoch}|${until.millisecondsSinceEpoch}';
+
+  /// Un renglón roto no tira el hábito abajo: se salta, como una nota del
+  /// tablón sin fecha.
+  static Rest? parse(String line) {
+    final cut = line.indexOf('|');
+    if (cut <= 0) return null;
+    final a = int.tryParse(line.substring(0, cut));
+    final b = int.tryParse(line.substring(cut + 1));
+    if (a == null || b == null || b <= a) return null;
+    return Rest(
+      DateTime.fromMillisecondsSinceEpoch(a),
+      DateTime.fromMillisecondsSinceEpoch(b),
     );
   }
 }

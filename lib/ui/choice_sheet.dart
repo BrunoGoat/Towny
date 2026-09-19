@@ -6,6 +6,8 @@ import '../data/landmarks.dart';
 import '../engine/camera.dart';
 import '../engine/palette.dart';
 import '../engine/renderer.dart';
+import '../engine/scene.dart';
+import '../engine/tones.dart';
 import '../engine/town.dart';
 import '../fx/effects.dart';
 import '../fx/sensory.dart';
@@ -318,10 +320,7 @@ class WorkPortrait extends CustomPainter {
     );
     final cam = frame(layout, size);
 
-    canvas.drawRect(
-      Offset.zero & size,
-      Paint()..color = TownPainter.meadowTone(palette),
-    );
+    canvas.drawRect(Offset.zero & size, Paint()..color = meadowTone(palette));
     TownPainter(
       TownScene(
         placed: mark.cost,
@@ -345,12 +344,8 @@ class WorkPortrait extends CustomPainter {
         active: 0,
         labels: false,
       ),
-      [],
-      [],
-      [],
-      [],
-      [],
-      [],
+      // Un retrato no se toca, así que el mapa que sale no lo lee nadie.
+      TouchMap(),
     ).paint(canvas, size);
   }
 

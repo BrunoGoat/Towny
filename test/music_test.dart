@@ -6,6 +6,9 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:la_muralla/data/tunes.dart';
 import 'package:la_muralla/fx/sensory.dart';
+import 'package:la_muralla/model/habit.dart';
+import 'package:la_muralla/model/piece.dart';
+import 'package:la_muralla/model/reel.dart';
 
 /// Los quince archivos se generan en `tool/make_music.py`, y todo el diseño se
 /// apoya en dos propiedades que ningún otro test miraría:
@@ -373,4 +376,98 @@ void main() {
       expect(Sensory.theAir().iOS.category, AVAudioSessionCategory.ambient);
     });
   });
+
+  group('la música de la crónica', () {
+    ({int rate, int channels, int bits, List<int> pcm}) leer() =>
+        _wav('assets/sfx/${Sensory.reelTrack}');
+
+    test('está, y es del mismo tipo de archivo que todo lo demás', () {
+      expect(File('assets/sfx/${Sensory.reelTrack}').existsSync(), isTrue);
+      final w = leer();
+      expect(w.channels, 1);
+      expect(w.bits, 16);
+      expect(w.rate, 16000);
+    });
+
+    test('dura más que la cinemática que acompaña', () {
+      // El acoplamiento que de verdad importa y el único que nadie notaría
+      // roto: la pieza está escrita en diecisiete compases a sesenta y ocho,
+      // que son sesenta segundos, contra los sesenta y dos del reloj de la
+      // reproducción. Si alguien alarga la reproducción y no la música, la
+      // cinemática acaba en silencio; si acorta la música, lo mismo. Ninguna
+      // de las dos cosas da error en ninguna parte.
+      final w = leer();
+      final dura = w.pcm.length / w.rate;
+      expect(
+        dura,
+        greaterThanOrEqualTo(Reel.of([_unPuebloLargo()])!.seconds),
+        reason: 'la música se acaba antes que la cinemática',
+      );
+    });
+
+    test('no recorta', () {
+      final pcm = leer().pcm;
+      final tope = pcm.map((v) => v.abs()).reduce(math.max);
+      expect(tope, lessThan(32700), reason: 'pico pegado al techo');
+      expect(
+        tope,
+        greaterThan(9000),
+        reason: 'se escribió tan floja que se pierde',
+      );
+    });
+
+    test('crece de verdad: la entrada no puede sonar como el clímax', () {
+      // Esto es un test escrito **después de un fallo**. La primera versión de
+      // la pieza tenía la curva escrita en la partitura, sonaba razonable de
+      // leer, y medida compás a compás se plantaba en su volumen final en el
+      // quinto: el clímax salía más flojo que el desarrollo. La razón era que
+      // abrir la cama de dos voces a cuatro no la hace más grande —`stack`
+      // reparte la amplitud entre las voces a propósito—, y de eso no avisa
+      // nadie. Una música épica sin arco es una música que no es épica, y
+      // leyendo el generador no se ve.
+      final w = leer();
+      final porSegundo = <double>[];
+      for (var s = 0; (s + 1) * w.rate <= w.pcm.length; s++) {
+        var suma = 0.0;
+        for (var i = s * w.rate; i < (s + 1) * w.rate; i++) {
+          suma += w.pcm[i] * w.pcm[i].toDouble();
+        }
+        porSegundo.add(math.sqrt(suma / w.rate));
+      }
+      expect(porSegundo.length, greaterThan(40));
+      final techo = porSegundo.reduce(math.max);
+      final entrada = porSegundo.first;
+      expect(
+        techo / math.max(1.0, entrada),
+        greaterThan(3.0),
+        reason:
+            'de la entrada al clímax hay menos de diez decibelios: '
+            'no hay arco',
+      );
+      // Y el clímax cae por el medio o más allá, no en el primer compás.
+      final donde = porSegundo.indexOf(techo) / porSegundo.length;
+      expect(
+        donde,
+        greaterThan(0.35),
+        reason: 'lo más alto llega demasiado pronto',
+      );
+    });
+  });
 }
+
+/// Un pueblo con crónica de sobra, sólo para preguntarle al reloj cuánto dura.
+Habit _unPuebloLargo() => Habit(
+  id: 'h',
+  name: 'Prueba',
+  symbol: 'rueda',
+  slot: 0,
+  createdAt: DateTime(2026, 1, 1),
+  character: 0,
+  pieces: [
+    for (var i = 0; i < 40; i++)
+      Piece(
+        index: i,
+        placedAt: DateTime(2026, 1, 1).add(Duration(days: i)),
+      ),
+  ],
+);

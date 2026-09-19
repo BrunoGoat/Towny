@@ -2,12 +2,11 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 
-import '../core/math3.dart';
 import '../core/rng.dart';
 import '../data/doings.dart';
 import '../data/folknames.dart';
 import 'solids.dart';
-import 'solid.dart';
+import 'streets.dart';
 import 'town.dart';
 
 /// La gente que vive en el pueblo.
@@ -121,6 +120,46 @@ class Townsfolk {
   /// anochecer.
   (double x, double z) get door => _stops.first;
 
+  /// Por dónde se mueve, en redondo: el centro de su ronda y hasta dónde se
+  /// aleja de él.
+  ///
+  /// Nunca sale de ese círculo, porque está siempre en un tramo entre dos
+  /// paradas y el círculo contiene a todas. Sirve para lo que no se puede
+  /// hacer sin él: **decidir que a alguien no se le va a ver sin calcular
+  /// antes dónde está.**
+  ///
+  /// Averiguar dónde anda uno cuesta recorrerle la ronda, y hasta que existió
+  /// esto se le hacía a todo el mundo en cada fotograma para descartar después
+  /// al que caía fuera de la pantalla. En un valle de seis pueblos eso era
+  /// simular quinientos cincuenta vecinos para dibujar cincuenta y dos: los
+  /// otros cinco pueblos están al otro lado del valle y su gente no se ve, ni
+  /// va a verse, y se les calculaba el paseo entero sesenta veces por segundo.
+  ///
+  /// Se calcula la primera vez que se pregunta y no cambia nunca: la ronda se
+  /// decide el día que se funda y no se vuelve a tocar.
+  late final ({double x, double z, double r}) roam = _roam();
+
+  ({double x, double z, double r}) _roam() {
+    var x0 = _stops.first.$1, x1 = x0;
+    var z0 = _stops.first.$2, z1 = z0;
+    for (final s in _stops) {
+      if (s.$1 < x0) x0 = s.$1;
+      if (s.$1 > x1) x1 = s.$1;
+      if (s.$2 < z0) z0 = s.$2;
+      if (s.$2 > z1) z1 = s.$2;
+    }
+    final cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
+    var r = 0.0;
+    for (final s in _stops) {
+      final dx = s.$1 - cx, dz = s.$2 - cz;
+      final d = dx * dx + dz * dz;
+      if (d > r) r = d;
+    }
+    // Y un poco de aire: lo que se dibuja no es un punto, es alguien de metro
+    // y pico de ancho con una escoba en la mano.
+    return (x: cx, z: cz, r: math.sqrt(r) + 1.2);
+  }
+
   /// La ronda, vértice a vértice. Para poder medirla en un test: mirando sólo
   /// lo que devuelve [at] no se distingue un vértice metido en una pared de un
   /// tramo largo que corta una esquina, y son dos fallos con dos arreglos
@@ -186,16 +225,42 @@ class Townsfolk {
       if (u < acc + stay) {
         // Parado: mirando a donde vino a mirar, con un balanceo lento que es
         // lo que separa a alguien esperando de un poste.
-        final what = _act[(i + 1) % n];
+        final held = u - acc;
+        // Al llegar no se empieza en el acto, y antes de irse ya se terminó.
+        //
+        // Sin esto, una persona pasaba de andar a estar barriendo entre dos
+        // fotogramas, y de barrer a andar igual: la escoba aparecía y
+        // desaparecía en la mano sin que nadie se hubiera parado a sacarla.
+        // Con un respiro a cada lado, lo que se ve es llegar, quedarse, y
+        // entonces ponerse — que además es lo que separa un gesto del
+        // siguiente y hace que no se disparen uno detrás de otro.
+        //
+        // El de muestra no lo lleva: el expositor existe para mirar un gesto
+        // concreto y empezarlo con dos segundos de nada sería empezarlo mal.
+        final settle = home < 0 ? 0.0 : math.min(2.4, stay * 0.15);
+        final metido = held >= settle && held <= stay - settle;
+        // Y en el respiro no se queda congelado: respira y mira alrededor, que
+        // es [Doing.idle] y es exactamente lo que hace quien acaba de llegar.
+        final what = metido ? _act[(i + 1) % n] : Doing.idle;
         final look = _facing[(i + 1) % n];
         // La cabeza se va yendo a mirar alrededor, y cuánto depende de en qué
         // ande: quien pica piedra no levanta la vista y quien no hace nada la
         // levanta todo el rato.
         final sway =
-            math.sin((u - acc) * 0.7 + hash01(seed, 9) * 6) *
+            math.sin(held * 0.7 + hash01(seed, 9) * 6) *
             0.18 *
             (what?.turn ?? 1.0);
-        return FolkAt(to.$1, to.$2, look + sway, 0, false, what, u - acc);
+        // La fase del gesto cuenta desde que se puso a ello y no desde que
+        // llegó: si contara desde la llegada, el gesto empezaría por la mitad.
+        return FolkAt(
+          to.$1,
+          to.$2,
+          look + sway,
+          0,
+          false,
+          what,
+          metido ? held - settle : held,
+        );
       }
       acc += stay;
     }
@@ -244,7 +309,7 @@ class FolkAt {
 ///
 /// Se guarda con la misma llave que la mampostería: dónde está el pueblo y
 /// cuántas piezas lleva.
-final Map<String, (int, List<Townsfolk>)> _folk = {};
+final Map<String, ({int placed, int mundo, List<Townsfolk> gente})> _folk = {};
 
 /// La gente que hay ahora mismo en [layout], y por dónde andan.
 ///
@@ -260,14 +325,68 @@ List<Townsfolk> folkOf(TownLayout layout, int placed) {
       '${layout.cx},${layout.cz},${layout.character.order},'
       '${layout.seed},${layout.folk.length}';
   final had = _folk[key];
-  if (had != null && had.$1 == placed) return had.$2;
-  final made = _folkOf(layout, placed);
+  // El camino de todos los fotogramas: no ha caído nada, es la misma gente.
+  if (had != null && had.placed == placed) return had.gente;
+
+  // Y el de cuando sí ha caído una pieza. **Que haya caído una pieza no quiere
+  // decir que nadie tenga que cambiar de camino.**
+  //
+  // Rehacer la ronda de un pueblo es carísimo: son un A* por recado y por
+  // vecino, y medido sobre pueblos de verdad son setenta y tres milisegundos
+  // con seiscientas piezas y **doscientos ochenta con mil quinientas**. Eso es
+  // un cuarto de segundo de app congelada justo al poner una pieza, que es la
+  // única cosa que esta app hace, y creciendo cuanto más la usás — que es
+  // exactamente al revés de como tiene que crecer nada.
+  //
+  // Lo que decide un camino no es cuántas piezas hay: es qué casillas del
+  // suelo están tapadas. Y la mayoría de las piezas suben un piso a una casa
+  // que ya estaba ocupando ese trozo de suelo, así que no tapan ninguna
+  // casilla nueva. Medido sobre las últimas cien piezas de cuatro pueblos:
+  // **entre veinte y veintiocho de cada cien** cambian la rejilla. Las otras
+  // ochenta se estaban pagando enteras.
+  //
+  // Así que antes de rehacer nada se levanta la rejilla —cuatro milisegundos
+  // con seiscientas piezas, siete con mil quinientas— y se compara con la de
+  // antes. Si es la misma, y viven los mismos, la gente de antes vale tal cual.
+  final estorbos = _blockers(layout, placed);
+  final calles = Streets.of(layout.cx, layout.cz, layout.radius, estorbos);
+  final huella = _footprints(layout, placed);
+  var mundo = calles.fingerprint;
+  for (final e in huella.entries) {
+    mundo = ((mundo ^ e.key) * 0x01000193) & 0x3fffffff;
+  }
+  // Y **quién ha terminado su casa**, que es de donde salen los vecinos.
+  //
+  // Esto no estaba y era un fallo de los silenciosos: un vecino nace el día
+  // que se remata su casa, y lo que remata una casa es normalmente el tejado
+  // —que va encima de lo que ya estaba ocupando ese suelo y no tapa ninguna
+  // casilla nueva—. Sin esta línea, la rejilla salía idéntica, la caché daba
+  // por buena la gente de antes, y el vecino que acababa de nacer no aparecía
+  // hasta la siguiente pieza que moviera un obstáculo. Lo caza un test.
+  for (var i = 0; i < layout.buildings.length; i++) {
+    final b = layout.buildings[i];
+    if (b.firstPiece + b.cost > placed) continue;
+    mundo = ((mundo ^ (i * 2654435761)) * 0x01000193) & 0x3fffffff;
+  }
+  if (!const bool.fromEnvironment('NOCACHE') &&
+      had != null &&
+      had.mundo == mundo) {
+    _folk[key] = (placed: placed, mundo: mundo, gente: had.gente);
+    return had.gente;
+  }
+
+  final made = _folkOf(layout, placed, calles, huella);
   if (_folk.length > 24) _folk.clear();
-  _folk[key] = (placed, made);
+  _folk[key] = (placed: placed, mundo: mundo, gente: made);
   return made;
 }
 
-List<Townsfolk> _folkOf(TownLayout layout, int placed) {
+List<Townsfolk> _folkOf(
+  TownLayout layout,
+  int placed,
+  Streets calles,
+  Map<int, (double x0, double z0, double x1, double z1)> huella,
+) {
   final casas = <TownBuilding>[];
   for (final b in layout.buildings) {
     if (b.isLandmark) continue;
@@ -286,9 +405,6 @@ List<Townsfolk> _folkOf(TownLayout layout, int placed) {
   // sitio que se guarda una parcela no es lo que ocupa el edificio, y un
   // castillo ocupa mucho más que un pozo. Con una distancia fija, los vecinos
   // que iban al castillo se plantaban dentro de la muralla.
-  final huella = _footprints(layout, placed);
-  final estorbos = _blockers(layout, placed);
-  final calles = _Streets.of(layout, estorbos);
   //
   // Cada sitio dice además qué clase de sitio es, porque de eso depende lo que
   // se hace al llegar: en la plaza se charla, en una obra se arrima el hombro,
@@ -348,7 +464,7 @@ List<Townsfolk> _folkOf(TownLayout layout, int placed) {
     // mitad se queda un rato; los demás pasan de largo, que también es verdad.
     final stops = <(double, double)>[door];
     final encasa = hash01(seed, 61) < 0.45;
-    final dwell = <double>[encasa ? hashRange(12.0, 30.0, seed, 62) : 0.0];
+    final dwell = <double>[encasa ? hashRange(34.0, 74.0, seed, 62) : 0.0];
     final doing = <Doing>[_actAt(Where.door, seed, 9, crio)];
     // Al volver a casa mira a la puerta, que es lo suyo.
     final look = <double>[math.atan2(-dx, -dz)];
@@ -369,7 +485,14 @@ List<Townsfolk> _folkOf(TownLayout layout, int placed) {
       look.add(math.atan2(-math.sin(a), -math.cos(a)));
       // Las paradas son más largas ahora que en ellas pasa algo: charlar seis
       // segundos y marcharse no es charlar, es saludar de lejos.
-      dwell.add(hashRange(9.0, 26.0, seed, 40 + k));
+      //
+      // Y más largas todavía desde que se vio el pueblo lleno: con paradas de
+      // nueve a veintiséis segundos, un vecino empieza un gesto nuevo cada
+      // medio minuto, y cuarenta vecinos haciendo eso a la vez es un pueblo
+      // que parpadea. Lo que se quiere mirar es gente **estando** en un sitio,
+      // no gente cambiando de sitio — así que la parada dura ahora más que el
+      // paseo que la trajo.
+      dwell.add(hashRange(28.0, 64.0, seed, 40 + k));
       doing.add(_actAt(s.$4, seed, k, crio));
     }
 
@@ -632,838 +755,3 @@ List<(double x0, double z0, double x1, double z1)> _blockers(
 /// Lo que abulta una caja, para poner a alguien a su lado sin meterlo dentro.
 double _spanOf((double, double, double, double) c) =>
     math.max(c.$3 - c.$1, c.$4 - c.$2) / 2;
-
-/// Las calles del pueblo, como plano por el que se puede buscar camino.
-///
-/// Esto es lo que había que hacer desde el principio y tardé seis intentos en
-/// aceptarlo. Todo lo anterior —círculos de estorbo, quiebros por las
-/// esquinas, partir el tramo y sacar el punto de en medio— era **reparación
-/// local**: coger la línea recta de un recado al siguiente y arreglarla por
-/// trozos. Y una reparación local no puede rodear un edificio, por definición;
-/// lo más que consigue es pegar el camino a la pared por el lado que le toque,
-/// y cuando el punto siguiente se pega por el lado contrario queda un tramo
-/// recto de seis metros que cruza la casa de parte a parte. Lo medí: de
-/// cuatro vecinos metidos en paredes se bajaba a uno, y de ahí no bajaba.
-///
-/// Un plano sí puede. El suelo del pueblo se parte en casillas de un tercio de
-/// metro, se marcan las que pisa algo construido, y de una casilla libre a
-/// otra se busca camino. No hay heurística que ajustar y no hay caso que se
-/// escape: si el camino existe lo encuentra, y todas sus casillas están
-/// libres, así que no hay por dónde meterse en una pared.
-///
-/// Se construye **una vez por pueblo** —no uno por vecino— y la ronda entera
-/// se calcula al fundarla, no al pintarla.
-class _Streets {
-  _Streets(this.x0, this.z0, this.cols, this.rows, this._free) {
-    _label();
-    _cost = Float64List(_free.length);
-    _from = Int32List(_free.length);
-    _seen = Int32List(_free.length);
-  }
-
-  /// La esquina de la casilla (0, 0), en coordenadas del valle.
-  final double x0, z0;
-  final int cols, rows;
-
-  /// Por dónde se puede pisar. Una casilla está libre si su centro no cae
-  /// dentro de nada.
-  final List<bool> _free;
-
-  /// Lo que gasta el A*, de una vez y para siempre: un mapa por casilla en
-  /// vez de un diccionario que se llena y se tira quinientas veces.
-  /// [_seen] dice de qué búsqueda es lo que hay escrito, que es más barato que
-  /// borrarlo todo entre una y otra.
-  late final Float64List _cost;
-  late final Int32List _from;
-  late final Int32List _seen;
-  int _run = 0;
-
-  /// En qué trozo de pueblo cae cada casilla, y cual es el trozo grande.
-  ///
-  /// Un pueblo no siempre es de una pieza: el patio de un castillo, el hueco
-  /// entre un muro y el río, la esquina que deja cerrada una obra nueva. Si a
-  /// alguien le toca un recado al otro lado de una pared no hay camino, y sin
-  /// camino lo que quedaba era la línea recta — por dentro de todo. Se marcan
-  /// los trozos una vez y los recados se buscan siempre en el grande.
-  late final List<int> _region;
-  late final int _main;
-
-  void _label() {
-    _region = List<int>.filled(_free.length, -1);
-    var next = 0, mejor = 0, cual = -1;
-    final pila = <int>[];
-    for (var seed = 0; seed < _free.length; seed++) {
-      if (!_free[seed] || _region[seed] >= 0) continue;
-      final id = next++;
-      var size = 0;
-      pila
-        ..clear()
-        ..add(seed);
-      _region[seed] = id;
-      while (pila.isNotEmpty) {
-        final at = pila.removeLast();
-        size++;
-        final cx = at % cols, cz = at ~/ cols;
-        for (var dz = -1; dz <= 1; dz++) {
-          for (var dx = -1; dx <= 1; dx++) {
-            if (dx == 0 && dz == 0) continue;
-            if (!_freeAt(cx + dx, cz + dz)) continue;
-            // Igual que en el A*: por la punta de dos piezas no se pasa, así
-            // que tampoco cuenta como el mismo trozo de pueblo.
-            if (dx != 0 && dz != 0) {
-              if (!_freeAt(cx + dx, cz) || !_freeAt(cx, cz + dz)) continue;
-            }
-            final j = (cz + dz) * cols + cx + dx;
-            if (_region[j] >= 0) continue;
-            _region[j] = id;
-            pila.add(j);
-          }
-        }
-      }
-      if (size > mejor) {
-        mejor = size;
-        cual = id;
-      }
-    }
-    _main = cual;
-  }
-
-  /// El sitio de verdad para un recado: éste mismo si se puede llegar a él, y
-  /// si no el más cercano al que sí.
-  (double, double) onStreets((double, double) p) {
-    final (cx, cz) = _cellOf(p);
-    if (_freeAt(cx, cz) && _region[cz * cols + cx] == _main) return p;
-    for (var r = 1; r <= 30; r++) {
-      for (var dz = -r; dz <= r; dz++) {
-        for (var dx = -r; dx <= r; dx++) {
-          if (dx.abs() != r && dz.abs() != r) continue;
-          if (!_freeAt(cx + dx, cz + dz)) continue;
-          final j = (cz + dz) * cols + cx + dx;
-          if (_region[j] != _main) continue;
-          return _centreOf(j);
-        }
-      }
-    }
-    return p;
-  }
-
-  /// Un tercio de metro, que es menos que el hueco más estrecho entre dos
-  /// casas del pueblo más apretado. Con casillas más grandes una calle se
-  /// cierra sola y la gente da un rodeo por donde sí se puede pasar.
-  static const double cell = 1 / 3;
-
-  factory _Streets.of(
-    TownLayout layout,
-    List<(double, double, double, double)> blocks,
-  ) {
-    final borde = layout.radius + 9;
-    final x0 = layout.cx - borde, z0 = layout.cz - borde;
-    final n = math.max(8, (borde * 2 / cell).ceil());
-    final free = List<bool>.filled(n * n, true);
-    for (final c in blocks) {
-      // Sólo las casillas de esta caja, que es lo que hace que marcar
-      // doscientas piezas en un plano de treinta mil casillas sea gratis.
-      final ax = math.max(0, ((c.$1 - x0) / cell).floor());
-      final az = math.max(0, ((c.$2 - z0) / cell).floor());
-      final bx = math.min(n - 1, ((c.$3 - x0) / cell).ceil());
-      final bz = math.min(n - 1, ((c.$4 - z0) / cell).ceil());
-      for (var cz = az; cz <= bz; cz++) {
-        final mz = z0 + (cz + 0.5) * cell;
-        if (mz <= c.$2 || mz >= c.$4) continue;
-        for (var cx = ax; cx <= bx; cx++) {
-          final mx = x0 + (cx + 0.5) * cell;
-          if (mx <= c.$1 || mx >= c.$3) continue;
-          free[cz * n + cx] = false;
-        }
-      }
-    }
-    return _Streets(x0, z0, n, n, free);
-  }
-
-  bool _freeAt(int cx, int cz) =>
-      cx >= 0 && cz >= 0 && cx < cols && cz < rows && _free[cz * cols + cx];
-
-  (int, int) _cellOf((double, double) p) =>
-      (((p.$1 - x0) / cell).floor(), ((p.$2 - z0) / cell).floor());
-
-  (double, double) _centreOf(int i) =>
-      (x0 + (i % cols + 0.5) * cell, z0 + (i ~/ cols + 0.5) * cell);
-
-  /// La casilla libre más cerca de una. Hace falta porque un punto puede estar
-  /// libre y caer en una casilla cuyo centro no lo está — el borde de una
-  /// pared parte casillas por la mitad.
-  int? _near((double, double) p) {
-    final (cx, cz) = _cellOf(p);
-    if (_freeAt(cx, cz)) return cz * cols + cx;
-    for (var r = 1; r <= 5; r++) {
-      for (var dz = -r; dz <= r; dz++) {
-        for (var dx = -r; dx <= r; dx++) {
-          if (dx.abs() != r && dz.abs() != r) continue;
-          if (_freeAt(cx + dx, cz + dz)) {
-            return (cz + dz) * cols + cx + dx;
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-  /// Los quiebros que hay que dar para ir de [a] a [b] sin pisar nada.
-  ///
-  /// Sin [a] ni [b], que los pone quien llama. Vacío cuando la línea recta ya
-  /// está libre, que en un pueblo abierto es casi siempre.
-  List<(double, double)> route((double, double) a, (double, double) b) {
-    if (!_walled(a, b)) return const [];
-    final from = _near(a), to = _near(b);
-    if (from == null || to == null) return const [];
-    final camino = _search(from, to);
-    if (camino == null) return const [];
-    return _straighten(a, b, camino);
-  }
-
-  /// Si el tramo recto de [a] a [b] pisa algo.
-  ///
-  /// Se lo pregunta al plano y no a las cajas. Cuesta lo que mide el tramo y
-  /// no lo que mide el pueblo: mil piezas son mil cajas que probar por cada
-  /// tramo, y estirar los caminos de ciento cuarenta vecinos así tardaba medio
-  /// segundo —justo al poner una pieza, que es el único momento en que la app
-  /// tiene que ir fina—. Y es igual de de fiar, porque el margen de [_margin]
-  /// ya cuenta con lo que mide una casilla.
-  bool _walled((double, double) a, (double, double) b) {
-    final d = math.sqrt(math.pow(b.$1 - a.$1, 2) + math.pow(b.$2 - a.$2, 2));
-    final n = math.max(1, (d / (cell / 3)).ceil());
-    for (var k = 0; k <= n; k++) {
-      final t = k / n;
-      final (cx, cz) = _cellOf((
-        a.$1 + (b.$1 - a.$1) * t,
-        a.$2 + (b.$2 - a.$2) * t,
-      ));
-      if (!_freeAt(cx, cz)) return true;
-    }
-    return false;
-  }
-
-  /// A* por las ocho vecinas, sin cortar esquinas en diagonal: pasar entre dos
-  /// piezas que se tocan por la punta es pasar por dentro de las dos.
-  List<int>? _search(int from, int to) {
-    final tx = to % cols, tz = to ~/ cols;
-    const raiz2 = 1.41421356237;
-    final run = ++_run;
-    _seen[from] = run;
-    _cost[from] = 0;
-    _from[from] = -1;
-    final abierto = _Heap()..push(from, 0);
-    var pasos = 0;
-    while (abierto.isNotEmpty) {
-      final at = abierto.pop();
-      if (at == to) {
-        final out = <int>[];
-        for (var i = to; i >= 0; i = _from[i]) {
-          out.add(i);
-        }
-        return out.reversed.toList();
-      }
-      // Un tope, porque un vecino encerrado por obra nueva puede no tener
-      // camino a ninguna parte y no se va a buscar por el pueblo entero para
-      // averiguarlo. Sin camino, la recta: se verá mal un instante, que es
-      // mejor que una app que se queda pensando.
-      if (++pasos > 60000) return null;
-      final cx = at % cols, cz = at ~/ cols;
-      final ya = _cost[at];
-      for (var dz = -1; dz <= 1; dz++) {
-        for (var dx = -1; dx <= 1; dx++) {
-          if (dx == 0 && dz == 0) continue;
-          if (!_freeAt(cx + dx, cz + dz)) continue;
-          if (dx != 0 && dz != 0) {
-            if (!_freeAt(cx + dx, cz) || !_freeAt(cx, cz + dz)) continue;
-          }
-          final next = (cz + dz) * cols + cx + dx;
-          final paso = ya + (dx != 0 && dz != 0 ? raiz2 : 1.0);
-          if (_seen[next] == run && _cost[next] <= paso) continue;
-          _seen[next] = run;
-          _cost[next] = paso;
-          _from[next] = at;
-          final hx = (tx - cx - dx).abs(), hz = (tz - cz - dz).abs();
-          final min = math.min(hx, hz);
-          // Con la corazonada pesada: un camino de vecino no tiene por qué ser
-          // el más corto que existe, tiene que ser uno que no pise casas y que
-          // no se note raro, y después de estirarlo no hay ojo que distinga un
-          // tres por ciento de rodeo. Buscando el óptimo exacto se exploraba
-          // medio pueblo por cada recado.
-          const afan = 1.4;
-          abierto.push(next, paso + ((hx + hz - min) + raiz2 * min) * afan);
-        }
-      }
-    }
-    return null;
-  }
-
-  /// Estirar el camino: de la cuadrícula a una línea de verdad.
-  ///
-  /// Se va todo lo lejos que se pueda en recta y se quiebra sólo donde hay que
-  /// quebrar. Sin esto, andar por las casillas se ve como andar por las
-  /// casillas — a pasitos de un tercio de metro y en ocho direcciones.
-  List<(double, double)> _straighten(
-    (double, double) a,
-    (double, double) b,
-    List<int> camino,
-  ) {
-    final pts = <(double, double)>[a, for (final i in camino) _centreOf(i), b];
-    final out = <(double, double)>[];
-    var i = 0;
-    while (i < pts.length - 1) {
-      // Hacia delante y no hacia atrás desde el final: probando desde el final
-      // se tira el tramo entero por cada quiebro, y son tantas pruebas como el
-      // cuadrado de lo que mide el camino.
-      var j = i + 1;
-      while (j + 1 < pts.length && !_walled(pts[i], pts[j + 1])) {
-        j++;
-      }
-      if (j < pts.length - 1) out.add(pts[j]);
-      i = j;
-    }
-    return out;
-  }
-}
-
-/// Un montón para el A*, que dart:core no trae.
-///
-/// Lo mínimo que hace falta: meter con prioridad y sacar la menor. Las
-/// entradas viejas se quedan dentro y se descartan al salir, que es más barato
-/// que buscarlas para cambiarlas de sitio.
-class _Heap {
-  final List<int> _what = [];
-  final List<double> _cost = [];
-
-  bool get isNotEmpty => _what.isNotEmpty;
-
-  void push(int what, double cost) {
-    _what.add(what);
-    _cost.add(cost);
-    var i = _what.length - 1;
-    while (i > 0) {
-      final up = (i - 1) >> 1;
-      if (_cost[up] <= _cost[i]) break;
-      _swap(up, i);
-      i = up;
-    }
-  }
-
-  int pop() {
-    final top = _what.first;
-    final last = _what.length - 1;
-    _swap(0, last);
-    _what.removeLast();
-    _cost.removeLast();
-    var i = 0;
-    while (true) {
-      final l = i * 2 + 1, r = l + 1;
-      var min = i;
-      if (l < _what.length && _cost[l] < _cost[min]) min = l;
-      if (r < _what.length && _cost[r] < _cost[min]) min = r;
-      if (min == i) break;
-      _swap(i, min);
-      i = min;
-    }
-    return top;
-  }
-
-  void _swap(int a, int b) {
-    final w = _what[a];
-    _what[a] = _what[b];
-    _what[b] = w;
-    final c = _cost[a];
-    _cost[a] = _cost[b];
-    _cost[b] = c;
-  }
-}
-
-/// Cuánta gente sale hoy a la calle, de cero a uno.
-///
-/// Un pueblo desatendido no es sólo un pueblo más gris: es un pueblo del que
-/// la gente se va. Es la única manera que tiene el sitio de decir «llevás doce
-/// días sin venir» sin escribirlo en ninguna parte, y dice mucho más que el
-/// color.
-///
-/// Nunca llega a cero, igual que la integridad: siempre queda alguien.
-double folkOut(double integrity) => clampD(0.22 + integrity * 0.86, 0.0, 1.0);
-
-/// Lo dentro de casa que está la gente ahora mismo, de cero a uno.
-///
-/// Cero de día, uno de noche. Sale de la luz que hay y no de la hora, así que
-/// en invierno se recogen antes — que es lo que pasa — sin que haya ninguna
-/// hora escrita en ningún sitio.
-///
-/// La franja es ancha a propósito. Con una estrecha el pueblo se vaciaba en
-/// diez minutos de reloj del valle, y un pueblo que se vacía de golpe es una
-/// luz que se apaga: lo que tiene que verse es a todo el mundo tirando para su
-/// casa mientras el sol baja, que es hora y media larga. Empieza en cuanto la
-/// luz cede —no cuando ya es de noche— porque nadie espera a que oscurezca
-/// para volver.
-double folkHome(double daylight) => 1 - smoothstep(0.04, 0.88, daylight);
-
-/// El paño con el que va vestida la gente de este valle.
-///
-/// Tintes que se sacaban de lo que había: rubia, gualda, glasto, nogal, y la
-/// lana sin teñir, que era lo más barato y por eso lo más común. Nada
-/// saturado — un vecino de tres píxeles con una camisa roja de semáforo se
-/// lleva la mirada por delante del pueblo entero, que es lo contrario de lo
-/// que hace falta.
-const List<int> _cloth = [
-  0xFF9A5A46, // rubia
-  0xFF7E6B47, // nogal
-  0xFF4F5F6E, // glasto
-  0xFFA08650, // gualda
-  0xFF8C8477, // lana sin teñir
-  0xFF5E6B52, // verde de líquenes
-  0xFF6E5566, // malva
-];
-
-/// Y la piel, que también tiene más de un color.
-///
-/// Doce y no cinco, y repartidos de verdad por todo el rango en vez de cuatro
-/// tonos medios y uno oscuro. Un pueblo de cuarenta vecinos con cinco tonos se
-/// ve como cinco personas repetidas ocho veces; con doce no se nota que haya
-/// una lista detrás, que es justo lo que hay que conseguir.
-const List<int> _skin = [
-  0xFFF2D7BC,
-  0xFFE8C4A0,
-  0xFFDCB088,
-  0xFFC79B77,
-  0xFFBE8C68,
-  0xFFAD7F5C,
-  0xFF9C6E4E,
-  0xFF8C6247,
-  0xFF7A533C,
-  0xFF6A4630,
-  0xFF573827,
-  0xFF462C1E,
-];
-
-/// Y el pelo, que es lo que se ve de una cabeza a esta distancia: una mancha
-/// de color encima de la cara, que separa a dos vecinos mejor que la cara.
-const List<int> _hair = [
-  0xFF2B211A,
-  0xFF3E2C1E,
-  0xFF5A3C24,
-  0xFF7A5330,
-  0xFF9A7040,
-  0xFFB89055,
-  0xFF8A8178,
-  0xFFD8D2C6,
-  0xFF6B3A22,
-];
-
-/// La madera de los mangos y las varas, que es la misma en todo el valle.
-const int _wood2 = 0xFF6B5236;
-
-/// Una persona, en cajas cerradas como todo lo demás del valle.
-///
-/// Tres piezas: el cuerpo, la cabeza y el pelo. Con eso basta y sobra —
-/// a la distancia a la que se mira un pueblo, un vecino ocupa entre tres y
-/// veinte píxeles, y lo que se lee de él es la silueta y el color, no los
-/// dedos. Lo que sí se lee, y mucho, es **que se mueva**: el paso de las
-/// piernas y el bamboleo del cuerpo es lo que separa a una persona andando de
-/// un palo deslizándose por el suelo.
-///
-/// [size] es lo que mide de alto, y sale de la altura de planta de la región:
-/// una persona tiene que caber por su propia puerta, y las puertas de la
-/// Sierra no miden lo que las de la Ribera.
-///
-/// [detail] baja de uno a cero con la distancia. Por debajo de la mitad se
-/// quedan cuerpo y cabeza y se van las piernas, que a esa distancia son dos
-/// píxeles que parpadean.
-List<Solid> folkSolids(
-  Townsfolk who,
-  FolkAt at,
-  double size, {
-  double detail = 1.0,
-  double lift = 0.0,
-}) {
-  final seed = who.seed;
-  // Lo que mide éste. Un crío mide dos tercios de lo que mide su madre, y un
-  // pueblo donde todos miden lo mismo es un pueblo de maniquíes.
-  final h = size * who.build;
-  final cos = math.cos(at.heading), sin = math.sin(at.heading);
-
-  // Del sistema de la persona —adelante en +z, a su izquierda en +x— al del
-  // valle. Girar aquí y no en cada caja es lo que mantiene esto legible.
-  //
-  // **Todo va en partes de lo que mide.** Lo ancho estaba en unidades del
-  // valle y lo alto en partes de la persona, y eso quiere decir dos cosas
-  // malas a la vez: que un crío sale tan ancho como su madre —o sea, un
-  // barril— y que en la Sierra, donde las plantas son más altas, la gente sale
-  // más alta pero igual de ancha. Con una sola unidad, una persona es la misma
-  // persona en las seis regiones y a cualquier talla.
-  V3 world(double x, double y, double z) => V3(
-    at.x + (x * cos + z * sin) * h,
-    lift + y * h,
-    at.z + (-x * sin + z * cos) * h,
-  );
-
-  final out = <Solid>[];
-  void box(
-    double x0,
-    double y0,
-    double z0,
-    double x1,
-    double y1,
-    double z1,
-    int tint,
-    double ao,
-  ) {
-    // Las ocho esquinas giradas, y de ahí las seis caras. No se puede usar
-    // `boxFaces`: eso da una caja alineada a los ejes del mundo, y una persona
-    // mira hacia donde va.
-    final p = [
-      world(x0, y0, z0),
-      world(x1, y0, z0),
-      world(x1, y0, z1),
-      world(x0, y0, z1),
-      world(x0, y1, z0),
-      world(x1, y1, z0),
-      world(x1, y1, z1),
-      world(x0, y1, z1),
-    ];
-    final up = V3(0, 1, 0);
-    final fwd = V3(sin, 0, cos), right = V3(cos, 0, -sin);
-    out.add(
-      Solid(-1, [
-        Facet([p[3], p[2], p[6], p[7]], fwd, Surface.cloth, ao: ao, tint: tint),
-        Facet(
-          [p[1], p[0], p[4], p[5]],
-          V3(-fwd.x, 0, -fwd.z),
-          Surface.cloth,
-          ao: ao * 0.94,
-          tint: tint,
-        ),
-        Facet(
-          [p[1], p[5], p[6], p[2]],
-          right,
-          Surface.cloth,
-          ao: ao * 0.97,
-          tint: tint,
-        ),
-        Facet(
-          [p[0], p[3], p[7], p[4]],
-          V3(-right.x, 0, -right.z),
-          Surface.cloth,
-          ao: ao * 0.97,
-          tint: tint,
-        ),
-        Facet([p[4], p[7], p[6], p[5]], up, Surface.cloth, ao: ao, tint: tint),
-        Facet(
-          [p[0], p[1], p[2], p[3]],
-          V3(0, -1, 0),
-          Surface.cloth,
-          ao: ao * 0.8,
-          tint: tint,
-        ),
-      ]),
-    );
-  }
-
-  final pano = _cloth[hashInt(_cloth.length, seed, 2)];
-  final piel = _skin[hashInt(_skin.length, seed, 3)];
-  final pelo = _hair[hashInt(_hair.length, seed, 5)];
-
-  final act = at.act;
-  final ph = at.phase;
-
-  // El cuerpo entero sale de cinco números de la tabla. No hay un caso por
-  // actividad: hay una manera de moverse, y sesenta juegos de números.
-  final sit = act?.sink ?? 0.0;
-  final baja = sit * 0.26;
-
-  /// A qué altura tiene los pies.
-  ///
-  /// Cero en el suelo, que es lo normal. Quien tiene banqueta se sienta
-  /// **encima** de ella y no delante: sin esto el cuerpo seguía arrancando del
-  /// suelo y la banqueta le salía por dentro, que era alguien de pie sobre una
-  /// mesita.
-  final piso = act?.prop == PropKind.stool ? 0.30 - baja * 0.5 : 0.0;
-
-  // Lo único que anima a alguien sin brazos ni piernas: que suba y baje, que
-  // se incline y que se balancee. Y alcanza de sobra — el paso de unas piernas
-  // de dos píxeles no se ve, y el bamboleo de un cuerpo entero sí.
-  //
-  // Andando sube y baja dos veces por zancada, una por pie que no está ahí.
-  // Parado, lo que diga lo que esté haciendo: el que habla se mueve, el que
-  // pica piedra dobla el espinazo, el que baila da saltos, y el que no hace
-  // nada respira.
-  final swing = act == null
-      ? 0.0
-      : math.sin(ph * act.rate + hash01(seed, 16) * 6);
-  final bob = at.moving
-      ? math.cos(at.gait * 2) * 0.016
-      : (act == null
-            ? 0.0
-            : act.bob * (act.bob < 0 ? math.max(0.0, swing) : swing));
-  final wag = at.moving ? math.sin(at.gait) * 0.014 : (act?.wag ?? 0.0) * swing;
-  final lean = at.moving ? 0.020 : (act?.lean ?? 0.0);
-
-  /// Dónde le flota lo que lleva. No hay mano: hay un sitio a la altura y al
-  /// lado de donde estaría, y lo que se sostiene se queda ahí. A esta
-  /// distancia es lo mismo, y una mano de tres píxeles no es una mano.
-  (double, double, double) hold(double s, double raise, double fwd) => (
-    s * 0.150 + wag,
-    piso + 0.26 + raise * 0.34 + bob - baja,
-    0.13 + fwd + lean,
-  );
-
-  /// Una vara entre dos puntos: el hilo de la cometa, su cola, el mango de una
-  /// herramienta, la cuerda de un caldero. [box] sólo sabe hacer cajas rectas
-  /// en el sistema de la persona, y una cuerda va en diagonal.
-  void link(
-    (double, double, double) a,
-    (double, double, double) b,
-    double r,
-    int tint,
-    double ao,
-  ) {
-    final dx = b.$1 - a.$1, dy = b.$2 - a.$2, dz = b.$3 - a.$3;
-    final len = math.sqrt(dx * dx + dy * dy + dz * dz);
-    if (len < 1e-5) return;
-    final u = V3(dx / len, dy / len, dz / len);
-    // Un perpendicular cualquiera, evitando el caso en que la vara es vertical.
-    var pv = u.y.abs() > 0.9 ? V3(1, 0, 0) : V3(0, 1, 0);
-    pv = (pv - u * pv.dot(u)).normalized;
-    final q = u.cross(pv).normalized;
-    V3 corner(double sa, double sp, double sq) {
-      final at0 = sa < 0 ? a : b;
-      return world(
-        at0.$1 + (pv.x * sp + q.x * sq) * r,
-        at0.$2 + (pv.y * sp + q.y * sq) * r,
-        at0.$3 + (pv.z * sp + q.z * sq) * r,
-      );
-    }
-
-    // Índice = extremo * 4 + p * 2 + q.
-    final c = [
-      for (final sa in [-1.0, 1.0])
-        for (final sp in [-1.0, 1.0])
-          for (final sq in [-1.0, 1.0]) corner(sa, sp, sq),
-    ];
-    V3 turn(V3 v) =>
-        V3(v.x * cos + v.z * sin, v.y, -v.x * sin + v.z * cos).normalized;
-    final pw = turn(pv), qw = turn(q), uw = turn(u);
-    out.add(
-      Solid(-1, [
-        Facet([c[2], c[3], c[7], c[6]], pw, Surface.cloth, ao: ao, tint: tint),
-        Facet(
-          [c[1], c[0], c[4], c[5]],
-          V3(-pw.x, -pw.y, -pw.z),
-          Surface.cloth,
-          ao: ao,
-          tint: tint,
-        ),
-        Facet([c[3], c[1], c[5], c[7]], qw, Surface.cloth, ao: ao, tint: tint),
-        Facet(
-          [c[0], c[2], c[6], c[4]],
-          V3(-qw.x, -qw.y, -qw.z),
-          Surface.cloth,
-          ao: ao,
-          tint: tint,
-        ),
-        Facet([c[5], c[4], c[6], c[7]], uw, Surface.cloth, ao: ao, tint: tint),
-        Facet(
-          [c[0], c[1], c[3], c[2]],
-          V3(-uw.x, -uw.y, -uw.z),
-          Surface.cloth,
-          ao: ao,
-          tint: tint,
-        ),
-      ]),
-    );
-  }
-
-  // La figura: un cuerpo, una cabeza y el pelo. Tres cajas.
-  //
-  // **Un cuerpo, no un tronco y unas calzas.** Eran dos cajas de dos colores
-  // —la falda del sayo y los hombros— y a la distancia a la que se mira un
-  // pueblo eso no se lee como ropa: se lee como una raya horizontal que le
-  // parte la silueta a todo el mundo por el mismo sitio. De una pieza y de un
-  // color, la silueta vuelve a ser una silueta.
-  //
-  // Y sin brazos ni piernas a propósito, que no es por ahorrar caras: un
-  // vecino ocupa entre tres y veinte píxeles, y ahí unas piernas son dos rayas
-  // que parpadean y unos brazos una mancha que ensancha la silueta hasta que
-  // deja de parecer una persona. Lo que se lee a esa distancia es la silueta,
-  // el color y el movimiento. Es además lo que hace el resto del valle: una
-  // casa tampoco tiene picaporte.
-  //
-  // Las proporciones son las de cualquier cosa dibujada que caiga bien, y hubo
-  // que llegar a ellas de tres intentos:
-  //
-  //  - La cabeza ocupa **casi la mitad** de lo que mide, y es cúbica: tan
-  //    ancha como alta. Con una cabeza de un tercio y estrecha, la figura
-  //    seguía leyéndose como un poste con gorro.
-  //  - Y es **más ancha que el cuerpo**, un tercio más. Mientras las dos cajas
-  //    medían casi lo mismo de ancho no había cabeza: había una columna con
-  //    una raya de color.
-  //  - El cuerpo, corto y ancho, uno a dos. Estrecho volvía la columna.
-  if (act?.lying ?? false) {
-    // Tumbado: la misma persona acostada, no una más agachada.
-    //
-    // Es una figura aparte y no otro número, porque no hay manera de decir
-    // «acostado» con lo agachado que está alguien: el cuerpo se tiende a lo
-    // largo, la cabeza se va a un extremo y el pecho sube y baja despacio, que
-    // es lo único que distingue a alguien durmiendo de un bulto en el prado.
-    // Largo y bajo, que es lo que hace que se lea «tumbado» y no «cajón»: un
-    // cuerpo de pie mide uno de alto por tres décimas de ancho, y acostado
-    // tiene que medir eso mismo girado.
-    final resuella = bob * 0.7;
-    box(-0.150, 0.0, -0.50, 0.150, 0.195 + resuella, 0.17, pano, 0.98);
-    // La cabeza, un cubo entero por delante del cuerpo y levantada del suelo:
-    // apoyada en la hierba no se distingue, y es lo único que dice de qué lado
-    // está la cara.
-    box(-0.185, 0.035, 0.16, 0.185, 0.405, 0.53, piel, 1.02);
-    if (detail > 0.25) {
-      box(-0.191, 0.300, 0.15, 0.191, 0.412, 0.54, pelo, 1.0);
-    }
-    return out;
-  }
-
-  box(
-    -0.150 + wag,
-    piso,
-    -0.116 + lean * 0.5,
-    0.150 + wag,
-    piso + 0.56 + bob - baja,
-    0.116 + lean * 0.5,
-    pano,
-    1.0,
-  );
-  box(
-    -0.205 + wag * 0.4,
-    piso + 0.520 + bob - baja,
-    -0.175 + lean * 1.5,
-    0.205 + wag * 0.4,
-    piso + 0.960 + bob - baja,
-    0.175 + lean * 1.5,
-    piel,
-    1.02,
-  );
-  // El pelo, que es un gorro encima de la cara. A quince píxeles la cara es un
-  // punto y el pelo es la mitad de la cabeza: es lo que hace que dos vecinos
-  // no se confundan de lejos.
-  if (detail > 0.25) {
-    box(
-      -0.212 + wag * 0.4,
-      piso + 0.830 + bob - baja,
-      -0.182 + lean * 1.5,
-      0.212 + wag * 0.4,
-      piso + 0.985 + bob - baja,
-      0.182 + lean * 1.5,
-      pelo,
-      1.0,
-    );
-  }
-
-  // Y lo que lleva.
-  //
-  // **Hecho de verdad, con las piezas que haga falta.** Antes eran quince
-  // formas genéricas y cada actividad elegía una con otro tamaño y otro color,
-  // y así la escoba salía siendo un palo. Un palo no es una escoba. No era que
-  // la animación no se entendiera: era que el objeto estaba mal.
-  //
-  // Cada cosa se gasta las cajas que necesita para ser esa cosa y no otra. Son
-  // pocas actividades a propósito, y por eso se pueden hacer bien.
-  if (act == null || detail <= 0.1) return out;
-
-  switch (act.prop) {
-    case PropKind.none:
-      break;
-
-    case PropKind.broom:
-      // Mango y cepillo, y el cepillo apoyado en el suelo por delante. Lo que
-      // hace que sea una escoba y no una vara es el cepillo: ancho, plano,
-      // más oscuro que el palo y a ras de suelo.
-      final m = hold(1, 0.52, 0.02);
-      const cz = 0.52; // dónde apoya, por delante
-      final barrido = math.sin(ph * act.rate) * 0.12;
-      link(m, (barrido, 0.045, cz), 0.017, _wood2, 0.94);
-      // El cepillo: ancho de lado a lado y en el sentido en que se barre.
-      box(
-        barrido - 0.115,
-        0.0,
-        cz - 0.050,
-        barrido + 0.115,
-        0.075,
-        cz + 0.050,
-        0xFFB99A55,
-        0.90,
-      );
-      // Y el remate donde se enmanga, que es lo que separa el cepillo del
-      // mango en vez de que uno salga del otro sin más.
-      box(
-        barrido - 0.038,
-        0.070,
-        cz - 0.032,
-        barrido + 0.038,
-        0.105,
-        cz + 0.032,
-        _wood2,
-        0.94,
-      );
-
-    case PropKind.book:
-      // Un libro abierto: dos páginas en ángulo con su tapa por debajo y el
-      // lomo en medio. Sostenido delante y un poco inclinado, que es como se
-      // lee sentado.
-      final m = hold(1, 0.46, 0.09);
-      final y = m.$2, z = m.$3;
-      const ancho = 0.140, fondo = 0.128;
-      // El lomo.
-      box(-0.016, y, z, 0.016, y + 0.022, z + fondo, 0xFF6B4B2E, 0.94);
-      for (final lado in [1.0, -1.0]) {
-        // La tapa, un pelo más ancha que la hoja y por debajo.
-        box(
-          lado * 0.016,
-          y - 0.004,
-          z,
-          lado * (ancho + 0.012),
-          y + 0.016,
-          z + fondo,
-          0xFF6B4B2E,
-          0.93,
-        );
-        // Y la hoja encima, levantada por el canto de fuera: es ese desnivel
-        // el que hace que se lea «abierto» y no «tablilla».
-        box(
-          lado * 0.016,
-          y + 0.016,
-          z,
-          lado * ancho,
-          y + 0.030,
-          z + fondo,
-          0xFFF2EDDD,
-          1.06,
-        );
-      }
-
-    case PropKind.stool:
-      // Una banqueta de tres patas. El asiento a la altura a la que la tabla
-      // ya le ha bajado el cuerpo, así que se sienta en ella y no sobre ella.
-      final alto = 0.30 - baja * 0.5;
-      box(-0.135, alto - 0.045, -0.120, 0.135, alto, 0.120, _wood2, 0.88);
-      for (final (px, pz) in [
-        (-0.095, -0.080),
-        (0.095, -0.080),
-        (0.0, 0.092),
-      ]) {
-        box(
-          px - 0.024,
-          0.0,
-          pz - 0.024,
-          px + 0.024,
-          alto - 0.040,
-          pz + 0.024,
-          _wood2,
-          0.84,
-        );
-      }
-  }
-
-  return out;
-}

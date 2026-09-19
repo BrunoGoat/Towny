@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:la_muralla/core/math3.dart';
-import 'package:la_muralla/engine/renderer.dart';
+import 'package:la_muralla/engine/backdrop.dart';
 
 /// Una cámara mirando en `yaw`, inclinada `pitch`, desde donde se le diga.
 Projector camera({
@@ -50,10 +50,10 @@ void main() {
       ];
       for (final az in [0.0, 0.3, -0.4]) {
         for (final el in [0.0, 0.05, 0.2, 0.5]) {
-          final first = TownPainter.skyPoint(camera(eye: eyes.first), az, el);
+          final first = skyPoint(camera(eye: eyes.first), az, el);
           expect(first, isNotNull, reason: 'az=$az el=$el');
           for (final eye in eyes.skip(1)) {
-            final at = TownPainter.skyPoint(camera(eye: eye), az, el);
+            final at = skyPoint(camera(eye: eye), az, el);
             expect(at, isNotNull);
             expect(at!.dx, closeTo(first!.dx, 1e-9), reason: 'az=$az el=$el');
             expect(at.dy, closeTo(first.dy, 1e-9), reason: 'az=$az el=$el');
@@ -64,12 +64,8 @@ void main() {
 
     test('ni alejarse, que es lo que sube el ojo y lo hacía notorio', () {
       for (final y in [2.0, 18.0, 45.0, 120.0]) {
-        final a = TownPainter.skyPoint(
-          camera(eye: const V3(0, 3, 0)),
-          0.2,
-          0.3,
-        );
-        final b = TownPainter.skyPoint(camera(eye: V3(0, y, 0)), 0.2, 0.3);
+        final a = skyPoint(camera(eye: const V3(0, 3, 0)), 0.2, 0.3);
+        final b = skyPoint(camera(eye: V3(0, y, 0)), 0.2, 0.3);
         expect(b!.dy, closeTo(a!.dy, 1e-9), reason: 'con el ojo a $y');
       }
     });
@@ -82,7 +78,7 @@ void main() {
         final p = camera(pitch: pitch);
         double? first;
         for (var k = -6; k <= 6; k++) {
-          final at = TownPainter.skyPoint(p, k * 0.09, 0.0);
+          final at = skyPoint(p, k * 0.09, 0.0);
           if (at == null) continue;
           first ??= at.dy;
           expect(at.dy, closeTo(first, 1e-6), reason: 'con inclinación $pitch');
@@ -92,24 +88,21 @@ void main() {
     });
 
     test('girar la cámara sí las mueve, que para eso están', () {
-      final a = TownPainter.skyPoint(camera(yaw: 0.0), 0.0, 0.2);
-      final b = TownPainter.skyPoint(camera(yaw: 0.35), 0.0, 0.2);
+      final a = skyPoint(camera(yaw: 0.0), 0.0, 0.2);
+      final b = skyPoint(camera(yaw: 0.35), 0.0, 0.2);
       expect((a!.dx - b!.dx).abs(), greaterThan(50));
     });
 
     test('lo que queda detrás del ojo no se dibuja', () {
-      expect(TownPainter.skyPoint(camera(yaw: 0.0), math.pi, 0.1), isNull);
-      expect(
-        TownPainter.skyPoint(camera(yaw: 0.0), math.pi * 0.9, 0.1),
-        isNull,
-      );
+      expect(skyPoint(camera(yaw: 0.0), math.pi, 0.1), isNull);
+      expect(skyPoint(camera(yaw: 0.0), math.pi * 0.9, 0.1), isNull);
     });
 
     test('más alto en el cielo es más arriba en la pantalla', () {
       final p = camera();
       var last = double.infinity;
       for (final el in [0.0, 0.1, 0.3, 0.6, 0.9]) {
-        final at = TownPainter.skyPoint(p, 0.4, el);
+        final at = skyPoint(p, 0.4, el);
         expect(at, isNotNull, reason: 'el=$el');
         expect(at!.dy, lessThan(last), reason: 'el=$el');
         last = at.dy;

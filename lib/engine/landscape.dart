@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import '../core/math3.dart';
-
 import '../core/rng.dart';
 
 /// The country the wall runs through.

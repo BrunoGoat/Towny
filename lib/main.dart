@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'data/character.dart';
+import 'engine/palette.dart';
 import 'fx/sensory.dart';
 import 'model/appearance.dart';
 import 'model/board_seen.dart';
 import 'model/board_slots.dart';
 import 'model/store.dart';
-import 'engine/palette.dart';
 import 'ui/gallery_screen.dart';
 import 'ui/home_screen.dart';
 import 'ui/style.dart';

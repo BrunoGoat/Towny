@@ -57,11 +57,6 @@ double hashJitter(double amount, int a, [int b = 0, int c = 0, int d = 0]) =>
 int hashInt(int max, int a, [int b = 0, int c = 0, int d = 0]) =>
     max <= 0 ? 0 : hash32(a, b, c, d) % max;
 
-/// Bell-ish distribution in `[0, 1)`, useful for sizes that should cluster
-/// around the middle instead of spreading flat.
-double hashBell(int a, [int b = 0, int c = 0, int d = 0]) =>
-    (hash01(a, b, c, d) + hash01(a, b, c, d + 7919)) * 0.5;
-
 /// A tiny sequential generator for throwaway values (particles, sparks) where
 /// determinism across launches does not matter but repeatability inside a
 /// single burst does.

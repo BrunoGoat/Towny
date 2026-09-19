@@ -7,6 +7,8 @@ import 'package:la_muralla/data/character.dart';
 import 'package:la_muralla/engine/camera.dart';
 import 'package:la_muralla/engine/palette.dart';
 import 'package:la_muralla/engine/renderer.dart';
+import 'package:la_muralla/engine/scene.dart';
+import 'package:la_muralla/engine/tones.dart';
 import 'package:la_muralla/engine/town.dart';
 import 'package:la_muralla/fx/effects.dart';
 
@@ -56,12 +58,7 @@ Future<ByteData> frame({
   final rec = ui.PictureRecorder();
   TownPainter(
     scene,
-    [],
-    [],
-    [],
-    [],
-    [],
-    [],
+    TouchMap(),
   ).paint(Canvas(rec), const Size(_w * 1.0, _h * 1.0));
   final img = await rec.endRecording().toImage(_w, _h);
   final data = await img.toByteData();
@@ -170,9 +167,9 @@ void main() {
     test('sigue cambiando con la hora, que es lo que no había que tocar', () {
       // Lo único que se pidió conservar: que el prado sea de otro color a otra
       // hora.
-      final noche = TownPainter.meadowTone(Palette.forMoment(1, 1.0));
-      final medio = TownPainter.meadowTone(Palette.forMoment(13, 1.0));
-      final tarde = TownPainter.meadowTone(Palette.forMoment(19, 1.0));
+      final noche = meadowTone(Palette.forMoment(1, 1.0));
+      final medio = meadowTone(Palette.forMoment(13, 1.0));
+      final tarde = meadowTone(Palette.forMoment(19, 1.0));
       expect(
         noche.computeLuminance(),
         lessThan(medio.computeLuminance() * 0.4),

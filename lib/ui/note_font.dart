@@ -22,7 +22,7 @@ library;
 
 import '../core/rng.dart';
 import '../model/board_slots.dart';
-import '../model/findings.dart';
+import '../model/notice.dart';
 
 enum NoteFont {
   /// La del sistema, que es con la que venía. Se queda para poder comparar.

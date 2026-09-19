@@ -2,8 +2,8 @@ import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:la_muralla/engine/palette.dart';
-import 'package:la_muralla/engine/renderer.dart';
 import 'package:la_muralla/engine/season.dart';
+import 'package:la_muralla/engine/tones.dart';
 
 /// Un cuarto de vuelta al año, en días.
 const int _quarter = 91;
@@ -244,13 +244,13 @@ void main() {
 
   group('y se ve en el prado', () {
     Color prado(Season s, [double h = 13]) =>
-        TownPainter.meadowTone(Palette.forMoment(h, 1.0, season: s));
+        meadowTone(Palette.forMoment(h, 1.0, season: s));
 
     test('sin estación, ni un bit de diferencia', () {
       // El seguro de todo lo anterior a las estaciones: con el año apagado,
       // el prado tiene que salir exactamente el de siempre, a cualquier hora.
       for (var h = 0.0; h < 24.0; h += 0.5) {
-        final antes = TownPainter.meadowTone(Palette.forMoment(h, 1.0));
+        final antes = meadowTone(Palette.forMoment(h, 1.0));
         final ahora = prado(Season.none, h);
         expect(ahora, antes, reason: 'a las $h');
       }

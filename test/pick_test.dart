@@ -7,6 +7,7 @@ import 'package:la_muralla/data/character.dart';
 import 'package:la_muralla/engine/camera.dart';
 import 'package:la_muralla/engine/palette.dart';
 import 'package:la_muralla/engine/renderer.dart';
+import 'package:la_muralla/engine/scene.dart';
 import 'package:la_muralla/engine/town.dart';
 import 'package:la_muralla/fx/effects.dart';
 
@@ -50,11 +51,11 @@ const Size _screen = Size(420, 860);
     ],
     active: 0,
   );
-  final picks = <PickTarget>[];
+  final hits = TouchMap();
   final rec = ui.PictureRecorder();
-  TownPainter(scene, picks, [], [], [], [], []).paint(Canvas(rec), _screen);
+  TownPainter(scene, hits).paint(Canvas(rec), _screen);
   rec.endRecording().dispose();
-  return (picks, layout, cam);
+  return (hits.pieces, layout, cam);
 }
 
 void main() {

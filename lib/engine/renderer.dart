@@ -4,245 +4,26 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
-import '../data/character.dart';
-import '../data/constellations.dart';
 import '../core/math3.dart';
 import '../core/rng.dart';
-import 'shooting_star.dart';
-import 'star_draw.dart';
+import '../data/character.dart';
 import '../fx/effects.dart';
-import '../ui/habit_sigil.dart';
+import 'backdrop.dart';
 import 'bsp.dart';
-import 'camera.dart';
+import 'folk.dart';
+import 'folk_body.dart';
+import 'palette.dart';
+import 'scene.dart';
+import 'sigils.dart';
 import 'solid.dart';
 import 'solids.dart';
+import 'tones.dart';
 import 'town.dart';
 import 'world.dart';
-import 'landscape.dart';
-import 'palette.dart';
-import 'folk.dart';
-import 'season.dart';
 
 int _ch(double v) {
   final i = (v * 255.0).round();
   return i < 0 ? 0 : (i > 255 ? 255 : i);
-}
-
-/// One town in the valley, and what the habit behind it is called.
-class TownEntry {
-  const TownEntry({
-    required this.layout,
-    required this.name,
-    required this.symbol,
-    required this.integrity,
-    required this.placed,
-    this.crowned = false,
-  });
-
-  final TownLayout layout;
-  final String name;
-  final String symbol;
-
-  /// How lit this town is. A habit left alone goes dark, and from across the
-  /// valley that is the whole comparison: this one is alive, that one is not.
-  final double integrity;
-  final int placed;
-
-  /// True for the town with the most pieces in the valley.
-  final bool crowned;
-}
-
-/// One stone as it appears on screen this frame, kept so taps can be resolved
-/// back to the brick that was drawn there.
-/// El sitio que una pieza ocupa en la pantalla, para poder tocarla.
-///
-/// Antes era un círculo alrededor del centro de **una** cara: la primera que se
-/// pintaba de esa pieza, que casi nunca es la que se está mirando. De ahí las
-/// dos quejas — que el blanco es más chico que la pieza, y que a veces sale la
-/// de debajo. Ahora es la caja de **todas** sus caras juntas, y lleva la
-/// distancia de la más cercana, que es lo que decide quién gana cuando dos se
-/// pisan: la de adelante. Una pieza no se toca a través de otra.
-class PickTarget {
-  PickTarget(
-    this.brickIndex,
-    this.x0,
-    this.y0,
-    this.x1,
-    this.y1,
-    this.near,
-    this.labelled,
-  );
-
-  final int brickIndex;
-
-  /// Lo que abarca en pantalla, creciendo con cada cara suya que se pinta.
-  double x0, y0, x1, y1;
-
-  /// A qué distancia del ojo está lo más cercano suyo.
-  double near;
-
-  /// True when this stone carries a note, so it can be marked on the wall.
-  final bool labelled;
-
-  bool holds(double x, double y, double slack) =>
-      x >= x0 - slack && x <= x1 + slack && y >= y0 - slack && y <= y1 + slack;
-
-  void grow(double ax, double ay, double bx, double by, double z) {
-    if (ax < x0) x0 = ax;
-    if (ay < y0) y0 = ay;
-    if (bx > x1) x1 = bx;
-    if (by > y1) y1 = by;
-    if (z < near) near = z;
-  }
-}
-
-/// Where a town's sign landed on screen, so it can be tapped.
-///
-/// The sign is the only thing you can read about a town from the far side of
-/// the valley; tapping the thing you are reading and being taken there is what
-/// anybody expects it to do.
-class SignHit {
-  const SignHit(this.town, this.rect);
-  final int town;
-  final Rect rect;
-}
-
-/// Where a town's notice board landed on screen, so it can be read.
-///
-/// The board is a thing standing in the plaza and not a button floating over
-/// the town, so this is worked out from the plank's own four corners.
-/// La cúpula de un observatorio en pantalla, para que un dedo la encuentre.
-///
-/// Lo que se guarda es del valle y no de un pueblo, así que da igual cuál se
-/// toque: todos abren el mismo cuaderno. Pero se toca el de un pueblo, que es
-/// lo que hace que sea un sitio y no una pantalla de ajustes.
-class DomeHit {
-  const DomeHit(this.town, this.rect);
-  final int town;
-  final Rect rect;
-}
-
-/// Dónde quedó la constelación de esta noche, para que un dedo la encuentre.
-class SkyHit {
-  const SkyHit(this.id, this.rect);
-  final String id;
-  final Rect rect;
-}
-
-class BoardHit {
-  const BoardHit(this.town, this.rect);
-  final int town;
-  final Rect rect;
-}
-
-/// Dónde quedó el atril de un pueblo, para que un dedo lo encuentre.
-///
-/// Igual que el tablón y por el mismo motivo: sale de las cuatro esquinas del
-/// propio libro, así que lo que se toca es exactamente lo que se ve.
-class LecternHit {
-  const LecternHit(this.town, this.rect);
-  final int town;
-  final Rect rect;
-}
-
-class TownScene {
-  TownScene({
-    required this.placed,
-    required this.palette,
-    required this.camera,
-    required this.integrity,
-    required this.time,
-    required this.hourOfDay,
-    required this.effects,
-    required this.labelledBricks,
-    this.fx,
-    this.budget = 16000,
-    required this.towns,
-    required this.active,
-    this.finished,
-    this.finishedAge = 99,
-    this.selectedBrick,
-    this.charge = 0,
-    this.labels = true,
-    this.tonight,
-    this.skyNight = 0,
-    this.folk = true,
-    this.soloFolk,
-  });
-
-  /// How many achievements have been laid.
-  final int placed;
-  final Palette palette;
-  final OrbitCamera camera;
-  final double integrity;
-  final double time;
-
-  /// La hora que se está pintando, de 0 a 24. La paleta ya sale de ella, pero
-  /// hay cosas que necesitan el número y no el color: una fugaz no sale a las
-  /// siete de la tarde aunque en invierno a esa hora ya esté oscuro.
-  final double hourOfDay;
-
-  /// Si el pueblo tiene gente dentro.
-  ///
-  /// Se apaga para el expositor y para los tests que miden geometría: un test
-  /// que cuenta caras no puede llevar a cuarenta vecinos andando dentro.
-  final bool folk;
-
-  /// Una persona sola en medio del prado, para el expositor de actividades.
-  ///
-  /// Cuando está puesta, es lo único que se pinta de gente: se planta en el
-  /// origen y se la mira dando la vuelta. Va por el mismo camino que la gente
-  /// de un pueblo —las mismas cajas, el mismo sombreado, el mismo descarte de
-  /// caras— porque si no, el expositor enseñaría algo que no es lo que se ve
-  /// luego, y entonces no sirve para decidir nada.
-  final Townsfolk? soloFolk;
-
-  final EffectSystem effects;
-
-  /// How many faces are worth drawing this frame, trimmed to hold the frame
-  /// rate on whatever phone this is.
-  ///
-  /// Faces and not pieces: a stake of a fence and a cathedral are both one
-  /// achievement, and what the frame actually pays for is the face count.
-  final int budget;
-
-  /// Bricks the person wrote a note on.
-  final Set<int> labelledBricks;
-
-  final PlacementFx? fx;
-
-  /// Every town in the valley, one per habit, and which of them is the one
-  /// being built right now. They are all drawn: the whole point of a valley
-  /// with several towns in it is being able to look at them together.
-  final List<TownEntry> towns;
-  final int active;
-
-  TownLayout get town => towns[active].layout;
-
-  /// The building that has just been finished, and how long ago in seconds.
-  /// A house takes days to build and a second to celebrate.
-  final int? finished;
-  final double finishedAge;
-
-  /// The stone the person just tapped, ringed so it is obvious which one the
-  /// note belongs to.
-  final int? selectedBrick;
-
-  /// 0..1 while the place button is held down.
-  final double charge;
-
-  /// Qué noche es ésta. Decide dónde se cuelga la constelación, y se queda
-  /// quieta hasta el mediodía siguiente.
-  final int skyNight;
-
-  /// La figura que hay en el cielo esta noche, si hay alguna. Muchas noches no
-  /// hay ninguna, que es lo que hace que valga la pena mirar las que sí.
-  final Constellation? tonight;
-
-  /// Whether the landmark names are hung over the buildings. The exhibition
-  /// hall says the name in its own header, and a second one floating in the
-  /// sky over an empty world is only clutter.
-  final bool labels;
 }
 
 class _Face {
@@ -260,33 +41,29 @@ class _Tone {
 /// Draws the whole world: sky, ground, the wall in full detail nearby, and its
 /// own silhouette receding into the haze when it gets long.
 class TownPainter extends CustomPainter {
-  TownPainter(
-    this.scene,
-    this.picks,
-    this.signs,
-    this.boards,
-    this.lecterns,
-    this.skies,
-    this.domes,
-  );
+  TownPainter(this.scene, this.hits);
 
   final TownScene scene;
-  final List<PickTarget> picks;
+
+  /// Lo que el fotograma deja marcado para que se pueda tocar.
+  final TouchMap hits;
+
+  List<PickTarget> get picks => hits.pieces;
+  List<SignHit> get signs => hits.signs;
+  List<BoardHit> get boards => hits.boards;
+  List<LecternHit> get lecterns => hits.lecterns;
+  List<SkyHit> get skies => hits.skies;
+  List<DomeHit> get domes => hits.domes;
 
   /// Filled every frame: where each town's sign is, for the gesture layer.
-  final List<SignHit> signs;
 
   /// And where each town's notice board is.
-  final List<BoardHit> boards;
 
   /// Y dónde quedó su atril.
-  final List<LecternHit> lecterns;
 
   /// Se rellena al pintar: dónde cayó la constelación de esta noche.
-  final List<SkyHit> skies;
 
   /// Y dónde cayó cada cúpula.
-  final List<DomeHit> domes;
 
   /// Room for everything the budget can ask for, with slack. A face that does
   /// not fit here is silently not drawn, which is a hole in a house — so the
@@ -332,29 +109,25 @@ class TownPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    picks.clear();
+    hits.clear();
     _pickAt.clear();
-    signs.clear();
-    boards.clear();
-    lecterns.clear();
-    skies.clear();
-    domes.clear();
     _faceCount = 0;
     _lamps.clear();
 
     final p = scene.camera.projector(size.width, size.height, scene.time);
+    final fondo = Backdrop(scene, skies);
     final horizonY = horizonOf(p, size);
     final town = scene.town;
 
-    _drawSky(canvas, size, p, horizonY);
-    _drawGround(canvas, size, horizonY);
-    _drawRanges(canvas, p, size, horizonY);
+    fondo.drawSky(canvas, size, p, horizonY);
+    fondo.drawGround(canvas, size, horizonY);
+    fondo.drawRanges(canvas, p, size, horizonY);
     // La fugaz va aquí y no dentro del cielo. Dentro del cielo la pintaban
     // encima las tres cordilleras, que con el encuadre de siempre ocupan todo
     // lo que hay por encima del horizonte menos una franja de cuarenta
     // píxeles: aunque saliera donde se está mirando, se veía la mitad de una
     // y a veces ninguna. Delante de los montes, además, su luz les cae encima.
-    _drawShootingStar(canvas, size, p, horizonY);
+    fondo.drawShootingStar(canvas, size, p, horizonY);
     // La gente se resuelve una vez por fotograma y se usa dos: para su sombra
     // en el suelo, que va debajo de todo, y para pintarla en su sitio del
     // orden, que va entre los edificios. Resolverla dos veces sería que la
@@ -405,728 +178,8 @@ class TownPainter extends CustomPainter {
     _findBoards(p, size);
     _findDomes(p, size);
     _drawParticles(canvas, p);
-    _drawAtmosphere(canvas, size, horizonY);
-    _drawStarLight(canvas, size, p);
-  }
-
-  /// La luz que echa una fugaz sobre el pueblo. El dibujo está en [StarDraw],
-  /// que es el mismo que usa el tablón de la plaza.
-  void _drawStarLight(Canvas canvas, Size size, Projector p) {
-    final star = ShootingStar.at(
-      scene.time,
-      scene.hourOfDay,
-      SkyView.of(p, size.width, size.height),
-    );
-    if (star == null) return;
-    StarDraw.land(
-      canvas,
-      size,
-      (az, el) => skyPoint(p, az, el, minDen: 0.02),
-      star,
-      scene.palette.starAlpha,
-    );
-  }
-
-  // ------------------------------------------------------------------- sky
-
-  /// Dónde cae la línea del horizonte. Estática porque no mira nada de la
-  /// escena: sólo hacia dónde apunta la cámara. El tablón de cerca dibuja su
-  /// propio prado y necesita exactamente esta cuenta, y dos copias de esto
-  /// serían dos horizontes que se separan en cuanto una de las dos cambie.
-  static double horizonOf(Projector p, Size size) {
-    final f = p.forward;
-    var hx = f.x, hz = f.z;
-    final l = math.sqrt(hx * hx + hz * hz);
-    if (l < 1e-5) return -size.height; // looking straight down
-    hx /= l;
-    hz /= l;
-    final d = V3(hx, 0, hz);
-    final den = d.dot(p.forward);
-    if (den.abs() < 1e-5) return -size.height;
-    return p.cy - p.focal * (d.dot(p.up) / den);
-  }
-
-  /// Dónde cae en pantalla algo que está infinitamente lejos, dado su azimut y
-  /// su elevación.
-  ///
-  /// Las estrellas, las fugaces y las tres cordilleras usan esto mismo, y ése
-  /// es el asunto: son las tres cosas de esta escena que están tan lejos que
-  /// sólo giran con la cámara y no se mueven con ella. La cuenta no tiene un
-  /// solo término con `eye` dentro, y por eso trasladar el ojo —caminar por el
-  /// valle, alejarse, subir— no las mueve ni un píxel.
-  ///
-  /// De ahí sale además, gratis, la propiedad que hacía falta: la elevación
-  /// cero cae exactamente en la línea del horizonte, que es donde el suelo
-  /// empieza a dibujarse. Un pie de montaña no puede quedar por debajo del
-  /// prado.
-  static Offset? skyPoint(
-    Projector p,
-    double az,
-    double el, {
-    double minDen = 0.03,
-  }) {
-    final ce = math.cos(el);
-    final d = V3(math.sin(az) * ce, math.sin(el), math.cos(az) * ce);
-    final den = d.dot(p.forward);
-    if (den <= minDen) return null;
-    return Offset(
-      p.cx + p.focal * d.dot(p.right) / den,
-      p.cy - p.focal * d.dot(p.up) / den,
-    );
-  }
-
-  void _drawSky(Canvas canvas, Size size, Projector p, double horizonY) {
-    final pal = scene.palette;
-    final h = size.height;
-    final top = 0.0;
-    final hy = clampD(horizonY, -h * 3, h * 4);
-    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
-    final span = math.max(1.0, hy - top);
-    final paint = Paint()
-      ..shader = ui.Gradient.linear(Offset(0, hy - span), Offset(0, hy), [
-        pal.skyTop,
-        pal.skyHorizon,
-      ]);
-    canvas.drawRect(rect, paint);
-
-    if (pal.starAlpha > 0.02) {
-      _drawStars(canvas, size, p, horizonY);
-      _drawConstellation(canvas, size, p, horizonY);
-    }
-    _drawSun(canvas, size, p);
-
-    // A soft band of haze sitting on the horizon.
-    if (hy > -h && hy < h * 2) {
-      canvas.drawRect(
-        Rect.fromLTWH(0, hy - h * 0.22, size.width, h * 0.22),
-        Paint()
-          ..shader = ui.Gradient.linear(
-            Offset(0, hy - h * 0.22),
-            Offset(0, hy),
-            [
-              pal.skyHorizon.withValues(alpha: 0),
-              pal.haze.withValues(alpha: 0.85),
-            ],
-          ),
-      );
-    }
-  }
-
-  void _drawStars(Canvas canvas, Size size, Projector p, double horizonY) {
-    final paint = Paint()..color = Colors.white;
-    for (var i = 0; i < 130; i++) {
-      final az = hash01(i, 3) * math.pi * 2;
-      final el = 0.06 + hash01(i, 5) * 1.4;
-      final at = skyPoint(p, az, el, minDen: 0.05);
-      if (at == null) continue;
-      final sx = at.dx, sy = at.dy;
-      if (sx < 0 || sx > size.width || sy < 0 || sy > horizonY) continue;
-      final tw = 0.55 + 0.45 * math.sin(scene.time * 1.7 + i * 2.1);
-      paint.color = Colors.white.withValues(
-        alpha: (0.25 + 0.55 * hash01(i, 9)) * tw * scene.palette.starAlpha,
-      );
-      canvas.drawCircle(Offset(sx, sy), 0.6 + hash01(i, 11) * 1.1, paint);
-    }
-  }
-
-  /// La constelación de esta noche.
-  ///
-  /// Colgada del cielo por su forma real: las coordenadas de sus estrellas son
-  /// las del catálogo, y `hang` rehace el plano tangente donde se la ponga, así
-  /// que los ángulos entre ellas son los de verdad. Lo que se ve es la figura
-  /// que se ve levantando la cabeza, no una parecida.
-  ///
-  /// Dónde se cuelga lo decide la noche y no el reloj: pasa la noche entera en
-  /// el mismo sitio del cielo, que es lo que permite salir a buscarla. Girar
-  /// la cámara la encuentra; esperar, no.
-  void _drawConstellation(
-    Canvas canvas,
-    Size size,
-    Projector p,
-    double horizonY,
-  ) {
-    final c = scene.tonight;
-    if (c == null) return;
-    final night = scene.skyNight;
-    final az = hash01(night, 77) * math.pi * 2;
-    // Colgada por su borde de abajo y no por su centro. Lo que hay que
-    // garantizar es que el pie de la figura quede unos grados por encima del
-    // horizonte —si no, se la come una cordillera— y eso depende de lo ancha
-    // que sea: Escorpio ocupa veinticinco grados de cielo y la Cruz del Sur
-    // seis. Puesta por el centro, la grande quedaba fuera de la pantalla.
-    final el = c.spread * 0.5 + 0.09 + hash01(night, 79) * 0.11;
-
-    // Quieta y floja. Antes latía —crecía y menguaba— porque había algo que
-    // hacer con ella: tocarla la anotaba en un cuaderno, y un latido es la
-    // manera de decir «acá». Ya no hay cuaderno, así que tampoco hay por qué
-    // pedir nada: es una figura de estrellas en el cielo de esta noche y con
-    // eso basta. Lo que sí se queda es que se puede tocar, y suena.
-    final ink = scene.palette.starAlpha * 0.62;
-    if (ink < 0.03) return;
-
-    final at = <Offset?>[];
-    var x0 = double.infinity, y0 = double.infinity;
-    var x1 = -double.infinity, y1 = -double.infinity;
-    var seen = 0;
-    for (final (sa, se) in hang(c, az, el)) {
-      final o = skyPoint(p, sa, se, minDen: 0.10);
-      at.add(o);
-      if (o == null) continue;
-      seen++;
-      if (o.dx < x0) x0 = o.dx;
-      if (o.dx > x1) x1 = o.dx;
-      if (o.dy < y0) y0 = o.dy;
-      if (o.dy > y1) y1 = o.dy;
-    }
-    // Media figura no es una figura: o se ve entera o no se ofrece.
-    if (seen < c.stars.length) return;
-    if (x1 < 0 || x0 > size.width || y1 < 0 || y0 > horizonY) return;
-
-    final line = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 1.0
-      ..color = Colors.white.withValues(alpha: ink * 0.34);
-    for (var k = 0; k + 1 < c.lines.length; k += 2) {
-      final a = at[c.lines[k]], b = at[c.lines[k + 1]];
-      if (a == null || b == null) continue;
-      canvas.drawLine(a, b, line);
-    }
-    final dot = Paint()..color = Colors.white;
-    for (var i = 0; i < at.length; i++) {
-      final o = at[i];
-      if (o == null) continue;
-      // Por magnitud, y al revés de lo que parece: cuanto más chica, más
-      // brilla. Sirio en menos uno y media tiene que verse como Sirio.
-      final mag = c.stars[i].mag;
-      final size01 = clampD((3.2 - mag) / 4.6, 0.22, 1.0);
-      dot.color = Colors.white.withValues(alpha: ink * (0.55 + 0.45 * size01));
-      canvas.drawCircle(o, 1.0 + 1.9 * size01, dot);
-    }
-
-    final box = Rect.fromLTRB(x0, y0, x1, y1).inflate(16);
-    skies.add(SkyHit(c.id, box));
-
-    // Y su nombre debajo, siempre. Hubo un tiempo en que se callaba hasta que
-    // la reconocieras, porque decirlo era contestar la pregunta; pero no había
-    // pregunta, había una lista que rellenar. Sin la lista, el nombre es lo que
-    // convierte unas cuantas estrellas unidas por rayas en Casiopea.
-    final tp = TextPainter(
-      text: TextSpan(
-        text: c.name.toUpperCase(),
-        style: TextStyle(
-          color: Colors.white.withValues(alpha: ink * 0.85),
-          fontSize: 9.5,
-          letterSpacing: 2.0,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    tp.paint(canvas, Offset(box.center.dx - tp.width / 2, box.bottom + 2));
-  }
-
-  /// Una estrella fugaz, cada tanto, cuando hay noche.
-  ///
-  /// Quién decide si hay una y por dónde va está en [ShootingStar], y cómo se
-  /// pinta en [StarDraw], porque el tablón de cerca dibuja su propio cielo y
-  /// necesita las dos cosas iguales.
-  void _drawShootingStar(
-    Canvas canvas,
-    Size size,
-    Projector p,
-    double horizonY,
-  ) {
-    final star = ShootingStar.at(
-      scene.time,
-      scene.hourOfDay,
-      SkyView.of(p, size.width, size.height),
-    );
-    if (star == null) return;
-    StarDraw.sky(
-      canvas,
-      size,
-      (az, el) => skyPoint(p, az, el, minDen: 0.08),
-      horizonY,
-      star,
-      scene.palette.starAlpha,
-    );
-  }
-
-  /// The sun through the day, the moon through the night. Both ride the same
-  /// arc, which is what makes the shadows swing round as the hours pass.
-  void _drawSun(Canvas canvas, Size size, Projector p) {
-    final pal = scene.palette;
-    final day = pal.isDaylight;
-    final d = day ? pal.sunDir : pal.moonDir;
-    final den = d.dot(p.forward);
-    if (den <= 0.08) return;
-    final sx = p.cx + p.focal * d.dot(p.right) / den;
-    final sy = p.cy - p.focal * d.dot(p.up) / den;
-    if (sx < -400 || sx > size.width + 400) return;
-
-    final r = size.shortestSide * (day ? 0.052 : 0.040);
-    final glow = day ? 5.5 : 3.4;
-    // Low sun reddens and swells, the way it does near the horizon.
-    final low = 1 - clampD(d.y * 2.4, 0, 1);
-    final disc = day
-        ? Color.lerp(pal.sun, const Color(0xFFFF9A4D), low * 0.55)!
-        : const Color(0xFFEFF3FF);
-
-    canvas.drawCircle(
-      Offset(sx, sy),
-      r * glow * (1 + low * 0.5),
-      Paint()
-        ..shader = ui.Gradient.radial(
-          Offset(sx, sy),
-          r * glow * (1 + low * 0.5),
-          [
-            disc.withValues(alpha: day ? 0.32 : 0.20),
-            disc.withValues(alpha: 0.0),
-          ],
-        ),
-    );
-    canvas.drawCircle(
-      Offset(sx, sy),
-      r,
-      Paint()..color = disc.withValues(alpha: 0.94),
-    );
-    if (!day) {
-      // A bite out of the disc, so it reads as a moon and not a pale sun.
-      canvas.drawCircle(
-        Offset(sx + r * 0.42, sy - r * 0.30),
-        r * 0.88,
-        Paint()..color = pal.skyTop.withValues(alpha: 0.92),
-      );
-    }
-  }
-
-  void _drawGround(Canvas canvas, Size size, double horizonY) {
-    final hy = clampD(horizonY, -size.height, size.height * 2);
-    if (hy > size.height) return;
-    final rect = Rect.fromLTWH(0, hy, size.width, size.height - hy);
-    if (rect.height <= 0) return;
-    // Un solo verde, sin degradado.
-    //
-    // Lo tuvo, y ése era el problema. Un degradado entre dos verdes que se
-    // llevan treinta unidades, estirado sobre mil píxeles, no puede salir
-    // suave: a ocho bits no hay más que treinta valores entre uno y otro, así
-    // que el aparato lo trama, y el tramado se lee como una persiana de rayas
-    // horizontales. Las casas y las montañas nunca la tuvieron porque son
-    // rellenos planos: no hay nada entre lo que escalonar. El prado era lo
-    // único degradado del cuadro y era lo único rayado.
-    //
-    // Antes de esto se probó a taparlo con manchas de hierba, y salió peor:
-    // ancladas al mundo se veía la baldosa desde el valle, y creciendo con la
-    // altura del ojo se movían al hacer zoom, que es lo último que puede hacer
-    // un prado. La respuesta buena era la más corta: si el degradado es lo que
-    // se escalona, que no haya degradado. Un relleno plano no tiene nada que
-    // tramar y no puede salir a rayas por construcción.
-    //
-    // Lo que sí tenía que cambiar sigue cambiando: el verde es otro a cada
-    // hora.
-    canvas.drawRect(rect, Paint()..color = meadowTone(scene.palette));
-  }
-
-  /// Three ranges of hills standing all the way round the horizon.
-  ///
-  /// They are drawn as a ring centred on wherever the camera is looking, but
-  /// their shape is sampled from world position, so walking along the wall
-  /// reveals new country instead of dragging the same skyline along.
-  /// The three mountain ranges on the skyline.
-  ///
-  /// Three things had to be true at once, and the old version got none of them
-  /// right once the camera left its usual place:
-  ///
-  ///  * The ring has to be centred on the *camera*, not on the point it is
-  ///    looking at. Zoomed all the way out the eye sits a hundred units from
-  ///    that point, which put it almost on top of the nearest range — half the
-  ///    country ended up behind the viewer, and the half in front reared up
-  ///    across the whole screen.
-  ///  * The shape has to be sampled somewhere that does not move when you
-  ///    merely orbit, or the skyline swims as you turn. So the geometry follows
-  ///    the eye and the height follows the stretch of wall being looked at:
-  ///    walking the wall still reveals new country, turning on the spot does
-  ///    not.
-  ///  * Every strip has to be a closed shape. Whenever a point fell behind the
-  ///    near plane the old loop handed Skia an open path, which closes itself
-  ///    with a straight line back to the start — that is where the huge wedges
-  ///    across the view came from. Now only the arc actually in front of the
-  ///    camera is walked at all, and each strip is closed by construction.
-  /// El verde del prado a esta hora. Uno solo: ver `_drawGround`.
-  ///
-  /// The town stands in a meadow, and a meadow is a meadow at midnight too.
-  ///
-  /// The green used to be applied only in daylight, so after dark the field
-  /// fell back to the bare ground colour — a neutral blue-black, and the same
-  /// blue-black the hills behind it are made of. Field and skyline became one
-  /// dark shape with a line through it. At night it takes a deep blue-green
-  /// instead: dark enough to be night, green enough to still be grass.
-  ///
-  /// Blended by how much of a day it is rather than by whether the sun is up,
-  /// because the second of those changes colour in a single frame.
-  static Color meadowTone(Palette pal) {
-    final day = pal.daylight;
-    // El verde de siempre, sin año: el año entra una sola vez, más abajo.
-    // Entrando aquí también, se aplicaba dos veces —una con el peso de la
-    // mezcla y otra entera— y el otoño salía rojo ladrillo en vez de ocre.
-    final green = Color.lerp(
-      const Color(0xFF204D53),
-      _grassOfYear(Season.none),
-      day,
-    )!;
-    var prado = Color.lerp(pal.ground, green, 0.32 + 0.115 * day)!;
-    // El año otra vez, ahora sobre la mezcla ya hecha.
-    //
-    // Hace falta las dos veces. El verde entra en la mezcla pesando poco menos
-    // de la mitad —el resto es el tono del suelo de esa hora, que no sabe nada
-    // del año—, así que teñir sólo el verde dejaba septiembre y junio casi del
-    // mismo color.
-    //
-    // Pero **multiplicando y no mezclando**. Mezclar con el verde de la
-    // estación es mezclar con un color de mediodía: a las dos de la mañana el
-    // prado se aclaraba un tercio hacia un verde de mediodía y la noche dejaba
-    // de ser noche. Multiplicar por lo que la estación le hizo al verde mueve
-    // el tono y deja la luz en paz — y con el año apagado la razón es uno y
-    // esto no hace absolutamente nada, que es la otra mitad de por qué así.
-    prado = _tintedLike(
-      prado,
-      _grassOfYear(Season.none),
-      _grassOfYear(pal.season),
-    );
-    // Y encima, la nieve. Va después de todo lo demás porque tapa: un prado
-    // nevado no es un prado de otro color, es un prado que no se ve.
-    //
-    // Sin el factor del día: la nieve de noche se ve, y bastante —es lo único
-    // que hay claro en un paisaje oscuro—. El tono ya sigue a la luz de la
-    // hora, así que de noche sale azulada sola.
-    //
-    // Y no la misma nieve que los tejados, sino algo más apagada: un prado
-    // nevado se mira de canto y un tejado de frente, así que el prado devuelve
-    // menos luz. Con la misma de los dos, el suelo salía exactamente del gris
-    // de la bruma y el horizonte desaparecía — el valle entero era una sola
-    // mancha pálida sin línea que separase la tierra del cielo.
-    final manto = Color.lerp(_snowTone(pal), pal.ground, 0.22)!;
-    return Color.lerp(prado, manto, pal.season.snow * 0.66)!;
-  }
-
-  /// Mueve [c] lo mismo que [from] se movió hasta [to].
-  ///
-  /// Por razón y no por mezcla, así que lo oscuro sigue oscuro: lo que cambia
-  /// es de qué color es, no cuánta luz le está dando. Si [from] y [to] son el
-  /// mismo color, esto devuelve [c] intacto.
-  static Color _tintedLike(Color c, Color from, Color to) {
-    double r(double a, double b) => b <= 0.004 ? 1.0 : clampD(a / b, 0.35, 2.2);
-    return Color.from(
-      alpha: c.a,
-      red: clampD(c.r * r(to.r, from.r), 0, 1),
-      green: clampD(c.g * r(to.g, from.g), 0, 1),
-      blue: clampD(c.b * r(to.b, from.b), 0, 1),
-    );
-  }
-
-  /// De qué color está el pasto en esta época del año.
-  ///
-  /// Cuatro tonos y una mezcla, y el orden es el del año: el verde ácido de
-  /// la hierba nueva en primavera, el verde cansado y algo seco del final del
-  /// verano, el pajizo del otoño, y el pardo apagado del invierno bajo el
-  /// cual asoma la nieve.
-  ///
-  /// Se parte del verde de siempre —el que tenía la app antes de que hubiera
-  /// estaciones— y se tira de él hacia cada lado, en vez de escribir cuatro
-  /// colores nuevos. Así el prado de un día de verano es exactamente el de
-  /// siempre y no hay ninguna captura vieja que deje de valer.
-  static Color _grassOfYear(Season s) {
-    const verano = Color(0xFF749445);
-    var c = verano;
-    //
-    // Los tres tonos están cerca del verde de partida a propósito. El prado no
-    // se tiñe mezclando sino por razón entre este color y el de verano, y una
-    // razón grande en un solo canal es un valle marciano: con un ocre subido
-    // para el otoño, el rojo salía multiplicado por uno y medio y el pueblo
-    // quedaba plantado en Marte. Lo que se busca es el giro, no el color.
-    // La primavera es **más verde**, no sólo más clara. El primer tono que le
-    // puse subía el rojo y el verde por igual, así que el prado de marzo salía
-    // igual que el de junio con más luz —y a ojo, el mismo prado.
-    c = Color.lerp(c, const Color(0xFF6FB83C), s.spring * 0.85)!;
-    c = Color.lerp(c, const Color(0xFF95873F), s.autumn * 0.80)!;
-    // Por `bare` y no por `winter`, que es la diferencia entre un prado de
-    // marzo verde y uno pardo. `winter` vale medio en **los dos** equinoccios
-    // —es el eje coseno del año—, así que tirando de él, a la primavera le
-    // caía encima medio invierno y se comía justo el verde que la hace
-    // primavera. `bare` es cero hasta bien entrado el invierno, que es cuando
-    // el pasto se seca de verdad, y además es el mismo número con el que se
-    // cae la hoja: la tierra y los árboles se apagan juntos, como pasa.
-    c = Color.lerp(c, const Color(0xFF7B7358), s.bare * 0.75)!;
-    return c;
-  }
-
-  /// La nieve no es blanca: es del color de la luz que le está dando.
-  ///
-  /// Blanco puro de mediodía es una mancha de papel pegada al paisaje, y de
-  /// noche es un agujero. Tirando del blanco hacia el sol y hacia el cielo de
-  /// la hora, la nieve del amanecer sale rosada y la de la noche azul, que es
-  /// lo que hace la nieve de verdad y lo que la mete dentro de la escena.
-  static Color _snowTone(Palette pal) {
-    final luz = Color.lerp(pal.sun, pal.skyLight, 0.45)!;
-    // De noche se hunde más en la luz de la hora que de día. Una nieve casi
-    // blanca en un paisaje nocturno es un agujero recortado: lo único que se
-    // ve, y encima plano.
-    return Color.lerp(
-      const Color(0xFFEDF1F5),
-      luz,
-      0.30 + 0.40 * (1 - pal.daylight),
-    )!;
-  }
-
-  /// What one range is painted with: the colour of its body, and the colour
-  /// its foot fades to where it meets the horizon.
-  ///
-  /// Near ranges are the pale ones and far ranges are dark. That is what makes
-  /// three of them read as three: the eye takes the darkest band as the one
-  /// furthest back, and stacks the rest in front of it. It used to be the
-  /// other way round — the far range got the most haze and came out lightest,
-  /// which put the back of the world in front of everything else.
-  static (Color body, Color foot) rangeTone(Palette pal, int li, int of) {
-    // One for the range at your feet, zero for the one at the edge of the
-    // world. Every choice below hangs off this and nothing else, so «which way
-    // round are they?» is one line rather than three index sums.
-    final near01 = of <= 1 ? 1.0 : (of - 1 - li) / (of - 1);
-    // What a hill is made of at this hour, before distance touches it.
-    final hill = Color.lerp(pal.groundFar, pal.haze, 0.38)!;
-    // And then distance simply darkens it — toward black, not toward another
-    // colour out of the palette. Which of two palette colours is the lighter
-    // one changes with the hour: at night the far ground is lighter than the
-    // near ground and the haze sits between them, so a rule written as a blend
-    // of those came out in a different order at four in the morning than at
-    // noon. Toward black it holds at every hour by construction.
-    // Y de noche, la de más cerca se oscurece aparte.
-    //
-    // La regla de arriba oscurece con la distancia, que es lo que hace la
-    // perspectiva aérea de día: lo lejano se lava contra el cielo. De noche
-    // pasa lo contrario —lo cercano es una silueta negra contra un cielo que
-    // todavía tiene algo de luz— y como la bruma y el suelo lejano son casi el
-    // color del cielo a esa hora, la cordillera de delante se quedaba sin
-    // oscurecer nada y desaparecía dentro del cielo. Justo la que más cerca
-    // está y más debería recortarse.
-    // De noche se oscurecen todas, sin juntarse entre ellas.
-    //
-    // De día manda la perspectiva aérea: lo lejano se lava contra el cielo y lo
-    // cercano se queda con su color, así que la de delante no necesita nada. De
-    // noche pasa lo contrario —lo cercano es una silueta contra un cielo que
-    // todavía tiene algo de luz— y como a esa hora la bruma y el suelo lejano
-    // son casi el color del cielo, la de delante se quedaba sin oscurecer nada
-    // y desaparecía dentro de él. Justo la que más cerca está.
-    //
-    // Oscurecer sólo a la de delante la dejaba pegada a la del fondo, que es
-    // otra manera de perder una cordillera. Lo que se hace es correr el tramo
-    // entero: de noche va de un cincuenta y dos a un ochenta por ciento en vez
-    // de un cero a un cincuenta y cuatro. Así se separan del cielo, siguen
-    // separándose entre ellas, y la de delante sigue sin confundirse con el
-    // prado —que a esa hora también es oscuro—, que son las tres cosas a la
-    // vez y por eso los números salen de barrer las veinticuatro horas y no de
-    // elegirlos a ojo. Con el tramo viejo, la de delante quedaba a dos
-    // centésimas de luz del cielo: literalmente invisible.
-    final noche = 1 - pal.daylight;
-    final lejos = 1 - near01;
-    var body = Color.lerp(
-      hill,
-      const Color(0xFF000000),
-      lerpD(0.54 * lejos, 0.52 + 0.28 * lejos, noche),
-    )!;
-    // En invierno las cumbres se ven blancas desde el valle, y empiezan a
-    // verse antes que la nieve de abajo: arriba hace más frío. Se aclara la
-    // sierra entera y no sólo su borde —a esta distancia una cordillera es una
-    // silueta plana— y con menos fuerza cuanto más lejos está, porque lo que
-    // está lejos lo tapa la bruma y no la nieve.
-    final alto = clampD(pal.season.winter * 1.45 - 0.30, 0.0, 1.0);
-    if (alto > 0.004) {
-      body = Color.lerp(
-        body,
-        _snowTone(pal),
-        alto * (0.22 + 0.26 * near01) * (0.35 + 0.65 * pal.daylight),
-      )!;
-    }
-    return (body, Color.lerp(body, pal.haze, 0.30 + 0.15 * near01)!);
-  }
-
-  void _drawRanges(Canvas canvas, Projector p, Size size, double horizonY) {
-    final pal = scene.palette;
-    final light = pal.lightDir;
-
-    // Below the horizon is the ground plane, and a range hundreds of units away
-    // is behind it. Clipping there is what stops the mountains from floating in
-    // the middle of the field when the camera looks down at the wall, and what
-    // makes their feet meet the ground instead of hanging over it.
-    final cut = clampD(horizonY, -1.0, size.height + 1.0);
-    if (cut <= 0) return;
-    canvas.save();
-    canvas.clipRect(
-      Rect.fromLTWH(0, -size.height, size.width, cut + size.height + 1),
-    );
-
-    // Only the arc in front of the camera: everything else is behind the eye,
-    // where projection is meaningless. Sampled just wide enough for the lens.
-    final az = math.atan2(p.forward.x, p.forward.z);
-    final span = math.atan(size.width * 0.5 / p.focal) + 0.30;
-    const steps = 210;
-    final floor = size.height + 40;
-    final look = scene.camera.travel;
-
-    // Where the sun is across the screen, for the light that grazes the tops.
-    // A number, not a side: the old code asked «is this slope facing the
-    // light?» and got a yes or a no, which put a hard vertical edge down the
-    // middle of every range at the two points where the answer flipped.
-    final sunTh = _wrap(math.atan2(light.x, light.z) - az);
-    final sunX = size.width / 2 + p.focal * math.tan(clampD(sunTh, -1.3, 1.3));
-
-    for (var li = Landscape.ridges.length - 1; li >= 0; li--) {
-      final layer = Landscape.ridges[li];
-      final (body, foot) = rangeTone(pal, li, Landscape.ridges.length);
-
-      // Every sample first, then the paint, then the shapes. In one pass the
-      // gradient of a strip could only start at that strip's own highest
-      // point, so two strips of the same range began their fade at different
-      // heights and met along a visible step. One range, one paint.
-      // Proyectadas como direcciones y no como puntos: una cordillera está
-      // infinitamente lejos, y lo que eso quiere decir es que gira con la
-      // cámara y no se mueve con ella.
-      //
-      // Antes se muestreaba en `ojo + dirección × radio` con la altura en
-      // coordenadas del mundo: la posición horizontal seguía a la cámara pero
-      // la vertical no, así que al subir el ojo —que es lo que hace alejarse—
-      // las montañas se hundían proporcionalmente a la altura partido el
-      // radio. Con el radio de la primera en ciento cincuenta y el ojo subiendo
-      // decenas de unidades, eso es media cordillera de salto: se movían como
-      // si estuvieran a diez metros, y en el peor caso su pie se metía por
-      // debajo del horizonte y el prado se las comía.
-      //
-      // Así, en cambio, la elevación cero cae exactamente en el horizonte por
-      // construcción, que es el sitio donde el suelo empieza. No hay forma de
-      // que el pasto tape una montaña.
-      final xs = <double>[], ys = <double>[];
-      var crest = size.height;
-      for (var i = 0; i <= steps; i++) {
-        final th = az - span + (i / steps) * (span * 2);
-        final dx = math.sin(th), dz = math.cos(th);
-        final h = Landscape.ridgeHeight(
-          layer,
-          look + dx * layer.radius,
-          dz * layer.radius,
-        );
-        // El perfil sigue cambiando con el viaje, así que caminar por el valle
-        // descubre otra sierra: eso es paralaje de verdad, y es la única que
-        // una cosa tan lejos tiene derecho a tener.
-        final at = skyPoint(
-          p,
-          th,
-          math.atan2(math.max(h, layer.base), layer.radius),
-          minDen: 0.02,
-        );
-        if (at == null) {
-          xs.add(double.nan);
-          ys.add(double.nan);
-          continue;
-        }
-        xs.add(at.dx);
-        ys.add(at.dy);
-        if (at.dy < crest) crest = at.dy;
-      }
-
-      // Each range fades into the haze where it meets the horizon, the way
-      // distance actually works. Into the haze and not into the ground: fading
-      // to the ground's own colour made the two indistinguishable exactly where
-      // they meet, and the skyline dissolved instead of standing against the
-      // field.
-      final paint = Paint()
-        ..shader = ui.Gradient.linear(
-          Offset(0, math.min(crest, cut - 1)),
-          Offset(0, cut),
-          [body, foot],
-        );
-
-      final shapes = <Path>[];
-      Path? path;
-      var startX = 0.0, lastX = 0.0;
-      for (var i = 0; i <= steps; i++) {
-        if (ys[i].isNaN) {
-          if (path != null) {
-            shapes.add(
-              path
-                ..lineTo(lastX, floor)
-                ..lineTo(startX, floor)
-                ..close(),
-            );
-            path = null;
-          }
-          continue;
-        }
-        if (path == null) {
-          path = Path()..moveTo(xs[i], floor);
-          path.lineTo(xs[i], ys[i]);
-          startX = xs[i];
-        } else {
-          path.lineTo(xs[i], ys[i]);
-        }
-        lastX = xs[i];
-      }
-      if (path != null) {
-        shapes.add(
-          path
-            ..lineTo(lastX, floor)
-            ..lineTo(startX, floor)
-            ..close(),
-        );
-      }
-
-      for (final shape in shapes) {
-        canvas.drawPath(shape, paint);
-      }
-
-      // And the sun on the tops, as a wash that comes and goes across the
-      // screen rather than a side that is either lit or not. Near ranges take
-      // more of it: the far ones are too much air away to catch anything.
-      final near01 =
-          (Landscape.ridges.length - 1 - li) /
-          math.max(1, Landscape.ridges.length - 1);
-      // Por cuánto de día es, y no siempre. El barrido usaba el color del sol
-      // a plena fuerza a cualquier hora: a las tres de la mañana pintaba una
-      // mancha clara en la ladera, del lado donde estaría el sol si lo
-      // hubiera. De noche no le da el sol a nada.
-      final strength = (0.20 + 0.16 * near01) * pal.daylight;
-      if (strength > 0.02 && sunX > -size.width && sunX < size.width * 2) {
-        final reach = size.width * 0.85;
-        final glow = Paint()
-          ..shader = ui.Gradient.linear(
-            Offset(sunX - reach, 0),
-            Offset(sunX + reach, 0),
-            [
-              pal.sun.withValues(alpha: 0),
-              pal.sun.withValues(alpha: strength),
-              pal.sun.withValues(alpha: 0),
-            ],
-            const [0.0, 0.5, 1.0],
-          );
-        for (final shape in shapes) {
-          canvas.drawPath(shape, glow);
-        }
-      }
-    }
-
-    canvas.restore();
-  }
-
-  /// An angle brought back into -pi..pi, so «how far round is the sun from
-  /// where we are looking» never comes out as most of a circle.
-  static double _wrap(double a) {
-    var x = a;
-    while (x > math.pi) {
-      x -= 2 * math.pi;
-    }
-    while (x < -math.pi) {
-      x += 2 * math.pi;
-    }
-    return x;
+    fondo.drawAtmosphere(canvas, size, horizonY);
+    fondo.drawStarLight(canvas, size, p);
   }
 
   // ------------------------------------------------------------- far wall
@@ -1197,26 +250,6 @@ class TownPainter extends CustomPainter {
         scene.labelledBricks.contains(brickIndex),
       ),
     );
-  }
-
-  // ------------------------------------------------------------------ town
-
-  /// Haze by real distance rather than by distance along one axis.
-  ///
-  /// The wall runs east to west, so fading it by how far it is along x is
-  /// close enough. A town spreads in both directions, and fading it by x alone
-  /// leaves the north end of a street crisp and the west end of it lost.
-  Color _hazeAt(Color c, Projector p, double x, double z, Palette pal) {
-    final dx = x - p.eye.x, dz = z - p.eye.z;
-    final dist = math.sqrt(dx * dx + dz * dz);
-    // The town is meant to be looked at, not squinted through: it keeps most
-    // of its colour all the way to the far side of the valley.
-    // Capped: from across the valley a town must still be a town and not a
-    // smudge the colour of the grass. Distance says "further away", never
-    // "gone".
-    final t = 1 - math.exp(-dist * 0.0040);
-    if (t < 0.004) return c;
-    return Color.lerp(c, pal.haze, math.min(t * 0.5, 0.30))!;
   }
 
   /// The lanes between the blocks, and the shadow each building sits in.
@@ -1606,7 +639,7 @@ class TownPainter extends CustomPainter {
   void _drawTownSigns(Canvas canvas, Projector p, Size size) {
     if (scene.towns.length < 2) return;
     final pal = scene.palette;
-    final dark = _isDarkSky();
+    final dark = darkSky(scene.palette);
 
     // Nearest first, so a sign never covers one in front of it.
     final rows = <(double, int)>[];
@@ -1976,25 +1009,61 @@ class TownPainter extends CustomPainter {
             return;
           }
           final mine = w == scene.active && c.members.contains(_fallingPiece);
-          // Y dentro de su propia hoja, los que queden detrás del edificio se
-          // pintan antes que él. La hoja es un edificio y el trozo de calle que
-          // lo rodea; sin esto, al que está detrás se le pinta encima del
-          // tejado.
-          final (detras, delante) = _folkSides(p.eye, box, aqui);
-          _paintFolk(p, e, detras, pal, light, size);
-          c.tree.paint(p.eye, (f) {
-            // `f.piece >= 0` matters: the town's own furniture is filed under
-            // no achievement at all, and "no achievement" must not collide with
-            // "the achievement that is in the air right now".
-            if (w == scene.active && f.piece >= 0 && f.piece == _fallingPiece) {
-              return;
-            }
-            _paint(p, e, f, pal, light, night, decay, size);
-          });
+          // Y dentro de su propia hoja, cada vecino cae **por el árbol del
+          // edificio**, no a un lado o a otro de su caja.
+          //
+          // Se repartían comparándolos con la caja envolvente de la hoja, y una
+          // caja no es un edificio: hay hojas cuya caja abarca media parcela
+          // —las que llevan el sembrado, el agua o una bandera— y ahí dentro
+          // cae todo el mundo, así que no había eje que separase a nadie y
+          // todos se pintaban por delante. De ahí que se viera a la gente a
+          // través de unos edificios y de otros no: dependía de lo apretada
+          // que fuera la caja de cada uno, que es exactamente la clase de cosa
+          // que en este valle no decide nada.
+          //
+          // El árbol son los planos de las propias paredes. Un punto contra un
+          // plano está de un lado o del otro y no hay discusión, que es el
+          // mismo criterio con el que se ordenan entre sí las caras del
+          // edificio.
+          c.tree.paintWith<_Walker>(
+            p.eye,
+            aqui,
+            (v, n, d) {
+              // **Por donde pisa, y no de los pies a la coronilla.**
+              //
+              // Lo primero que probé fue lo segundo: una persona mide lo suyo
+              // de alto, así que contra un plano horizontal está en los dos
+              // lados, y ahí no hay orden correcto — se elegía el lado del ojo.
+              // Medido sobre el catálogo entero desde ocho ángulos, eso deja
+              // trescientos sesenta y siete encuadres con alguien asomando por
+              // una pared; con el punto del pie quedan seis.
+              //
+              // El motivo es que los planos que parten un edificio son sus
+              // suelos y sus faldones, y quien está de pie en la calle los
+              // cruza todos por el medio: al mandarlo al lado del ojo se iba
+              // por delante del tejado, y la pared de la fachada —que vive al
+              // otro lado de ese mismo plano— se pintaba antes que él. Por
+              // donde pisa no hay empate que resolver, y el pie es además lo
+              // único de una persona que está de verdad en un sitio.
+              final base = n.x * v.at.x + n.z * v.at.z - d;
+              return (base, base);
+            },
+            (f) {
+              // `f.piece >= 0` matters: the town's own furniture is filed under
+              // no achievement at all, and "no achievement" must not collide
+              // with "the achievement that is in the air right now".
+              if (w == scene.active &&
+                  f.piece >= 0 &&
+                  f.piece == _fallingPiece) {
+                return;
+              }
+              _paint(p, e, f, pal, light, night, decay, size);
+            },
+            (gente) => _paintFolk(p, e, gente, pal, light, size),
+          );
           // Straight after the building it belongs to, and before any building
           // nearer than that one.
           if (mine) _paintFalling(p, e, pal, light, night, size);
-          _paintFolk(p, e, delante, pal, light, size);
         },
       );
     }
@@ -2010,49 +1079,14 @@ class TownPainter extends CustomPainter {
     }
   }
 
-  /// Si alguien queda por detrás de una caja, o sea, si la caja se le mete
-  /// entre el ojo y él.
-  ///
-  /// Es la prueba de eje separador de una persona contra una caja alineada: el
-  /// mismo criterio exacto con el que el árbol decide el orden entre dos
-  /// edificios. Mientras haya un eje que los separe, no hay heurística ninguna.
-  ///
-  /// **Y cuando no lo hay, no está detrás.** Tenía aquí un desempate por
-  /// distancia al centro de la caja, para colocar a quien estuviera pegado a
-  /// una pared o debajo de un alero, y ese desempate era de donde salía que la
-  /// gente desapareciera a ratos: hay hojas cuya caja abarca medio pueblo —los
-  /// sembrados, el agua, una bandera— y dentro de una de ésas cualquiera queda
-  /// «más lejos que el centro», así que se soltaba en la segunda hoja de
-  /// ciento cincuenta y se le pintaba el pueblo entero encima.
-  ///
-  /// Sin desempate, lo peor que pasa es que alguien metido debajo de un alero
-  /// se pinte por delante de él. Eso se ve raro un instante; lo otro era gente
-  /// que se esfuma.
-  static (List<_Walker>, List<_Walker>) _folkSides(
-    V3 eye,
-    Aabb box,
-    List<_Walker> here,
-  ) {
-    if (here.isEmpty) return (const [], const []);
-    final detras = <_Walker>[], delante = <_Walker>[];
-    for (final v in here) {
-      (_behind(eye, box, v) ? detras : delante).add(v);
-    }
-    return (detras, delante);
-  }
-
-  static bool _behind(V3 eye, Aabb box, _Walker v) {
-    final x = v.at.x, z = v.at.z;
-    // De los pies a la coronilla, que es lo que ocupa de alto.
-    const suelo = 0.0;
-    final alto = v.size;
-    return (x <= box.x0 && eye.x >= box.x1) ||
-        (x >= box.x1 && eye.x <= box.x0) ||
-        (alto <= box.y0 && eye.y >= box.y1) ||
-        (suelo >= box.y1 && eye.y <= box.y0) ||
-        (z <= box.z0 && eye.z >= box.z1) ||
-        (z >= box.z1 && eye.z <= box.z0);
-  }
+  // Aquí vivían `_folkSides` y `_behind`, que repartían a la gente de una hoja
+  // en «detrás de la caja» y «delante de la caja».
+  //
+  // Se fueron enteros. Una caja envolvente no es un edificio, y con hojas cuya
+  // caja abarca media parcela —el sembrado, el agua, una bandera— no había eje
+  // que separase a nadie y todos caían del lado de delante. Ahora el reparto lo
+  // hace el árbol del propio edificio, que son los planos de sus paredes: ver
+  // [BspTree.paintWith].
 
   /// La gente que hay ahora mismo en la calle de este pueblo, ya colocada.
   ///
@@ -2078,6 +1112,35 @@ class TownPainter extends CustomPainter {
       // Los que hoy no salen. Por la semilla y no al azar, para que no haya
       // uno parpadeando entre existir y no existir cada fotograma.
       if (hash01(who.seed, 11) > cuantos) continue;
+
+      // Descartar **antes** de calcular dónde anda.
+      //
+      // Saber dónde está uno cuesta recorrerle la ronda, y las dos pruebas de
+      // más abajo —que se salga del cuadro, que no llegue a dos píxeles de
+      // alto— sólo se podían hacer después de haberla pagado. Medido sobre un
+      // valle de seis pueblos: quinientos cincuenta y siete vecinos resueltos
+      // enteros, cada fotograma, para dibujar cincuenta y dos. Los otros cinco
+      // pueblos están al otro lado del valle.
+      //
+      // Aquí se usa el círculo que contiene la ronda entera de uno, así que
+      // las dos pruebas se hacen sobre **el caso más favorable posible**: lo
+      // más cerca de la cámara que podría llegar a estar, y lo más adentro del
+      // cuadro. Quien no pasa ni así no se ve a ninguna hora del día. Las
+      // pruebas exactas siguen debajo y siguen decidiendo — esto sólo se ahorra
+      // trabajo, nunca cambia quién sale.
+      final ronda = who.roam;
+      final centro = p.project(V3(ronda.x, talla * 0.6, ronda.z));
+      if (centro == null) continue;
+      final cerca = math.max(centro.depth - ronda.r, 0.01);
+      if (p.focal / cerca * talla < 2.2) continue;
+      final radio = p.focal / cerca * ronda.r;
+      if (centro.x + radio < -60 ||
+          centro.y + radio < -60 ||
+          centro.x - radio > size.width + 60 ||
+          centro.y - radio > size.height + 60) {
+        continue;
+      }
+
       var at = who.at(scene.time);
       if (dentro > 0.001) {
         // Cae la tarde: cada uno tira para su puerta. No es un camino
@@ -2123,11 +1186,17 @@ class TownPainter extends CustomPainter {
     // cambia al andar —uno se va del cuadro, otro se acerca— y con el corte
     // por orden de lista, el que se cae del sesenta puede ser el que tenés
     // delante. Por distancia, el que se cae es siempre el más chico de todos.
-    if (out.length > _folkCap) {
-      out.sort((a, b) => a.depth.compareTo(b.depth));
-      out.length = _folkCap;
-    }
-    return out;
+    // Y entre personas pasaba lo mismo que entre las cajas de una: se pintaban
+    // en el orden en que salen del plano, que no tiene nada que ver con cuál
+    // está delante. Dos vecinos que se cruzan en una calle estrecha se
+    // atravesaban según quién viviera en la casa de número más bajo.
+    //
+    // Ordenados de cerca a lejos se recorta el tope —el que se cae es siempre
+    // el más chico— y se pintan del revés, que es el orden en que hay que
+    // pintarlos.
+    out.sort((a, b) => a.depth.compareTo(b.depth));
+    if (out.length > _folkCap) out.length = _folkCap;
+    return out.reversed.toList();
   }
 
   /// Lo que mide una persona hecha, en un pueblo de esta región.
@@ -2178,7 +1247,7 @@ class TownPainter extends CustomPainter {
   ) {
     if (folk.isEmpty) return;
     for (final v in folk) {
-      for (final solid in folkSolids(
+      final solids = folkSolids(
         v.who,
         v.at,
         v.size,
@@ -2190,7 +1259,26 @@ class TownPainter extends CustomPainter {
             : v.pixels > 8
             ? 0.35
             : 0.05,
-      )) {
+      );
+
+      // **De atrás hacia delante, y no en el orden en que se hicieron.**
+      //
+      // Descartar las caras traseras deja exacto el interior de *una* caja
+      // cerrada, pero no dice nada de en qué orden van dos cajas distintas — y
+      // una persona son cuatro o cinco: cuerpo, cabeza, pelo, y lo que lleve.
+      // Se pintaban en el orden en que se crean, y lo que lleva se crea el
+      // último, así que el libro se pintaba **siempre** encima del cuerpo. De
+      // frente daba el pego; desde detrás se veía el libro atravesando a quien
+      // lo estaba leyendo, que es exactamente lo que no puede pasar en un
+      // valle que presume de ordenar por geometría y no por una media.
+      //
+      // Aquí sí vale una media, y no es una excepción a la regla del pueblo:
+      // las cajas de una persona son pocas, convexas, del tamaño de un puño y
+      // **no se atraviesan entre ellas** — el libro está delante del pecho, el
+      // pelo encima de la cabeza. Con sólidos separados, ordenar por su centro
+      // da el mismo orden que daría un plano de separación, y cuesta cinco
+      // comparaciones en vez de un árbol por vecino y por fotograma.
+      for (final solid in folkInPaintOrder(solids, p.eye)) {
         for (final f in solid.faces) {
           // Las que miran para el otro lado, fuera.
           //
@@ -2314,7 +1402,7 @@ class TownPainter extends CustomPainter {
     // en un pueblo apagado hace falta que a los pocos que quedan se los vea.
     final tono = _plainTone(f, at, pal);
     final albedo = f.surface == Surface.cloth ? tono : _weather(tono, decay, 0);
-    final colour = _hazeAt(
+    final colour = hazeAt(
       _shade(f.n, albedo, light, pal, f.ao, 0, 0, f.surface),
       p,
       at.x,
@@ -2325,7 +1413,7 @@ class TownPainter extends CustomPainter {
     final decals = f.decals;
     if (decals == null) return;
     for (final g in decals) {
-      final c = _hazeAt(
+      final c = hazeAt(
         _shade(
           g.n,
           g.surface == Surface.cloth
@@ -2500,7 +1588,7 @@ class TownPainter extends CustomPainter {
       case Surface.hollow:
         // The dark inside an arch is a shadow, not a surface: it is not lit,
         // and lighting it is what turns an opening into a grey sticker.
-        return _hazeAt(
+        return hazeAt(
           Color.lerp(pal.ink, tone.stone, 0.22)!,
           p,
           piece.cx,
@@ -2511,7 +1599,7 @@ class TownPainter extends CustomPainter {
         return _window(p, f, piece, pal, decay, night);
       case Surface.plank:
         if (!_shut(f, piece, decay, night)) return null;
-        return _hazeAt(
+        return hazeAt(
           _weather(const Color(0xFF7A6549), decay, s),
           p,
           piece.cx,
@@ -2519,7 +1607,7 @@ class TownPainter extends CustomPainter {
           pal,
         ).toARGB32();
     }
-    return _hazeAt(
+    return hazeAt(
       _shade(f.n, albedo, light, pal, f.ao, flash, 0, f.surface),
       p,
       piece.cx,
@@ -2580,7 +1668,7 @@ class TownPainter extends CustomPainter {
             0.35 + 0.65 * lifeCurve,
           )!
         : Color.lerp(pal.ink, pal.stoneCool, night ? 0.12 : 0.30)!;
-    if (!lit) return _hazeAt(colour, p, piece.cx, piece.cz, pal).toARGB32();
+    if (!lit) return hazeAt(colour, p, piece.cx, piece.cz, pal).toARGB32();
     // A lit window is a light, not a yellow rectangle. Remember where it fell
     // so a glow can be laid over the town once the walls are down.
     if (_lamps.length < 4 * 220) {
@@ -2664,7 +1752,7 @@ class TownPainter extends CustomPainter {
         const Color(0xFFE0C86A),
         0.18 * (0.5 + 0.5 * _gust(piece.cx, piece.cz, i * 0.9)),
       )!;
-      final c = _hazeAt(
+      final c = hazeAt(
         Color.lerp(i.isEven ? ripe : soil, pal.ground, decay * 0.45)!,
         p,
         piece.cx,
@@ -2713,7 +1801,7 @@ class TownPainter extends CustomPainter {
     )!;
     final cx = piece.cx, cz = piece.cz;
 
-    int tint(Color c) => _hazeAt(c, p, cx, cz, pal).toARGB32();
+    int tint(Color c) => hazeAt(c, p, cx, cz, pal).toARGB32();
 
     // Every sheet here sits a hair higher than the one before it, and the
     // camera never gets below the waterline, so painting them in the order
@@ -2808,8 +1896,8 @@ class TownPainter extends CustomPainter {
     final top = y1 - ht * 0.08, bot = top - ht * 0.34;
     // The free corner lifts and falls; the hoist stays on the pole.
     final wave = ht * 0.11 * gust * _windForce;
-    final c = _hazeAt(cloth, p, piece.cx, piece.cz, pal).toARGB32();
-    final shade = _hazeAt(
+    final c = hazeAt(cloth, p, piece.cx, piece.cz, pal).toARGB32();
+    final shade = hazeAt(
       Color.lerp(cloth, Colors.black, 0.22)!,
       p,
       piece.cx,
@@ -2896,7 +1984,7 @@ class TownPainter extends CustomPainter {
         V3(cx + dx * to + nx, cy + dy * to + ny, cz),
         V3(cx + dx * to - nx, cy + dy * to - ny, cz),
         V3(cx + dx * from - nx, cy + dy * from - ny, cz),
-        _hazeAt(
+        hazeAt(
           _shade(const V3(0, 0, -1), c, light, pal, ao, 0, 0),
           p,
           cx,
@@ -2967,7 +2055,7 @@ class TownPainter extends CustomPainter {
   ]) {
     final ndl = math.max(0.0, n.dot(light));
     final skyTerm = 0.5 + 0.5 * n.y;
-    albedo = _snowed(albedo, n, pal, on);
+    albedo = snowed(albedo, n, pal, on);
     // Stone in shadow is still stone: the sky term is modulated by the albedo
     // so unlit faces stay pale limestone instead of collapsing to black.
     final k = (0.44 + 0.58 * ndl + 0.26 * skyTerm) * ao * pal.contrast;
@@ -3016,59 +2104,6 @@ class TownPainter extends CustomPainter {
       hash32((at.x * 64).round(), (at.z * 64).round(), 5),
       pal.season,
     );
-  }
-
-  /// De qué color está una hoja en esta época del año.
-  ///
-  /// Cada árbol se dora un poco antes o un poco después que su vecino —el
-  /// mismo `hash` que ya le daba su verde le da ahora su calendario—, porque
-  /// un bosque entero que cambia de color el mismo día es un bosque pintado.
-  ///
-  /// Primero el oro y después la rama, en ese orden y no a la vez: un roble
-  /// pelado en mitad de su mejor semana es un roble que se saltó la parte
-  /// bonita. Y no hace falta geometría nueva para el invierno — a esta
-  /// distancia, un árbol sin hoja es un árbol del color del tronco.
-  static Color leafOfYear(Color base, int seed, Season year) {
-    final suyo = 0.78 + hash01(seed, 23) * 0.44;
-    final oro = clampD(year.autumn * suyo, 0, 1);
-    final pelado = clampD(year.bare * suyo, 0, 1);
-    var c = Color.lerp(
-      base,
-      Color.lerp(
-        const Color(0xFFC08A35),
-        const Color(0xFF9C4A2C),
-        hash01(seed, 29),
-      )!,
-      oro * 0.82,
-    )!;
-    return Color.lerp(c, const Color(0xFF5A4635), pelado * 0.88)!;
-  }
-
-  /// La nieve que se le queda encima a una cara.
-  ///
-  /// No hay geometría nueva y no hace falta ninguna: la nieve se posa en lo
-  /// que mira hacia arriba y no en lo que mira de lado, así que basta con la
-  /// normal de la cara. Un faldón de tejado la coge casi entera, un adarve y
-  /// un basamento entera del todo, un muro nada, y lo que mira al suelo
-  /// tampoco. Eso es exactamente lo que hace la nieve.
-  ///
-  /// Va sobre el albedo y no sobre el color ya iluminado, que es la diferencia
-  /// entre nieve y pintura blanca: así el faldón que da al sol brilla y el de
-  /// la otra vertiente queda en penumbra azulada, con la misma luz que todo
-  /// lo demás.
-  ///
-  /// Y no cuaja del todo: queda algo de tejado asomando, que es lo que hace
-  /// que se lea «tejado con nieve» y no «bloque blanco».
-  Color _snowed(Color albedo, V3 n, Palette pal, [Surface? on]) {
-    if (on == Surface.cloth) return albedo;
-    final snow = pal.season.snow;
-    if (snow < 0.004) return albedo;
-    final up = n.y;
-    if (up <= 0.02) return albedo;
-    // Lo tumbado que está, con el borde suavizado para que un tejado muy
-    // empinado se quede a medias en vez de aparecer nevado de golpe.
-    final lies = smoothstep(0.10, 0.72, up);
-    return Color.lerp(albedo, _snowTone(pal), snow * lies * 0.88)!;
   }
 
   // ---------------------------------------------------------------- flush
@@ -3128,7 +2163,7 @@ class TownPainter extends CustomPainter {
     final far = math.max(24.0, scene.camera.distance * 1.15);
     final fade = clampD(1 - (depth - far) / (far * 0.75), 0, 1) * pop;
     if (fade <= 0.02) return;
-    final dark = _isDarkSky();
+    final dark = darkSky(scene.palette);
     final glow = TextPainter(
       text: TextSpan(
         text: name,
@@ -3192,11 +2227,6 @@ class TownPainter extends CustomPainter {
           alpha: 0.30 * fade,
         ),
     );
-  }
-
-  bool _isDarkSky() {
-    final c = scene.palette.skyHorizon;
-    return (c.r * 0.3 + c.g * 0.55 + c.b * 0.15) < 0.45;
   }
 
   // ---------------------------------------------------------- stone marks
@@ -3364,37 +2394,6 @@ class TownPainter extends CustomPainter {
           paint.maskFilter = null;
       }
     }
-  }
-
-  // ----------------------------------------------------------------- ghost
-
-  void _drawAtmosphere(Canvas canvas, Size size, double horizonY) {
-    final pal = scene.palette;
-    final decay = 1 - scene.integrity;
-    if (decay > 0.05) {
-      // A town left alone does not fog over, it goes cold and quiet. Grey mist
-      // reads as bad visibility; a cold, dim town reads as nobody home.
-      canvas.drawRect(
-        Offset.zero & size,
-        Paint()
-          ..color = Color.lerp(
-            pal.ink,
-            const Color(0xFF3E4758),
-            0.55,
-          )!.withValues(alpha: 0.06 + decay * 0.20),
-      );
-    }
-    // A soft vignette to hold the eye on the town.
-    canvas.drawRect(
-      Offset.zero & size,
-      Paint()
-        ..shader = ui.Gradient.radial(
-          Offset(size.width / 2, size.height * 0.52),
-          size.longestSide * 0.72,
-          [Colors.transparent, pal.ink.withValues(alpha: 0.26)],
-          [0.55, 1.0],
-        ),
-    );
   }
 
   @override

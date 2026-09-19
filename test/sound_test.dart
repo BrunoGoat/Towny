@@ -79,8 +79,22 @@ void main() {
       // que aquéllos lo eran: no sale cada tantos segundos sino una vez cada
       // cuatro minutos y medio de noche, dura lo que dura ella y se calla con
       // ella. Es el sonido de que está pasando algo, no ruido de fondo.
-      expect(Sensory.catalogue.length, 6);
+      //
+      // Siete desde que tocar una constelación tiene sonido propio. Se
+      // escribieron diez y quedó una: las nueve que no, ni están en el
+      // catálogo ni ocupan sitio en la APK.
+      expect(Sensory.catalogue.length, 7);
       expect(Sensory.biteOf('wish'), isNotNull);
+      expect(Sensory.biteOf('estrella'), isNotNull);
+      // Y ninguna de las nueve sobrevivió en disco, que es la mitad del
+      // asunto: un wav que no suena en ninguna parte es sitio por nada.
+      for (var n = 1; n <= 10; n++) {
+        expect(
+          File('assets/sfx/estrella$n.wav').existsSync(),
+          isFalse,
+          reason: 'estrella$n.wav sigue ocupando sitio en la app',
+        );
+      }
       for (final gone in [
         'bell',
         'cock',

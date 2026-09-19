@@ -53,6 +53,7 @@ class Sensory {
     SoundBite('milestone', 'milestone.wav', 'Obra terminada', 0.85),
     SoundBite('epic', 'epic.wav', 'Hito del pueblo', 0.90),
     SoundBite('wish', 'wish.wav', 'Estrella fugaz', 0.50),
+    SoundBite('estrella', 'estrella.wav', 'Constelación', 0.55),
   ];
 
   static SoundBite? biteOf(String id) {
@@ -180,6 +181,10 @@ class Sensory {
     _lastHour = hour;
     if (!_musReady) return;
     if (_asleep || !_wants.hearsMusic) return;
+    // Mientras suena la crónica las de fondo no se mueven: si el volumen
+    // siguiera subiendo a oscuras, al acabar la cinemática entrarían de golpe
+    // a todo trapo en vez de volver despacio.
+    if (_reelOn) return;
     _musIn = (_musIn + dt / 6.0).clamp(0.0, 1.0);
     final day = dayMix(_tune, hour);
     // Un pueblo dejado pierde parte de su música, pero no toda: el silencio
@@ -227,7 +232,7 @@ class Sensory {
   /// whether the app is even on screen. Pausing rather than turning down: a
   /// paused player costs nothing, and a phone in a pocket should be quiet.
   void settle() {
-    final musicOff = _asleep || !_wants.hearsMusic;
+    final musicOff = _asleep || !_wants.hearsMusic || _reelOn;
     for (var i = 0; i < _mus.length; i++) {
       try {
         if (musicOff) {
@@ -254,6 +259,7 @@ class Sensory {
     // La fugaz dura cinco segundos: dejarla sonando con la pantalla apagada es
     // exactamente lo que no puede pasar.
     hushWish();
+    hushReel();
     settle();
   }
 
@@ -437,6 +443,88 @@ class Sensory {
     }
   }
 
+  /// Tocar una constelación.
+  ///
+  /// Sonido propio y no el de la fugaz, que dura cinco segundos porque
+  /// acompaña a algo que cruza el cielo entero. Esto acompaña a un dedo, y un
+  /// dedo no dura cinco segundos: ninguna de las diez pasa de ocho décimas.
+  ///
+  /// Y ninguna es un «bien hecho». Tocar una constelación no es un logro, no
+  /// desbloquea nada y no lleva la cuenta nadie — es mirar para arriba. Lo que
+  /// se busca es el sonido de algo que **contesta**, no de algo que premia.
+  ///
+  /// Y no dice nada más. No hay nombre, no hay tarjeta y no hay dato: se toca,
+  /// suena, y se acabó. Es lo único que pasa en toda la app que no lleva la
+  /// cuenta nadie ni informa de nada — decoración pura, que es exactamente lo
+  /// que tiene que ser una constelación en una app de hábitos.
+  Future<void> star() async {
+    // Se pide permiso con la misma llave que la fugaz: son la misma clase de
+    // cosa —algo que pasa en el cielo— y quien apagó una no quiere la otra.
+    if (!_wants.hears('wish')) return;
+    if (_asleep) return;
+    final bite = biteOf('estrella');
+    if (bite == null) return;
+    try {
+      final p = _starPlayer ??= AudioPlayer()..setReleaseMode(ReleaseMode.stop);
+      await p.stop();
+      await p.setVolume((bite.level * _effectsGain).clamp(0.0, 1.0));
+      await p.play(AssetSource('sfx/${bite.file}'));
+    } catch (_) {
+      // Audio is a bonus, never a requirement.
+    }
+  }
+
+  AudioPlayer? _starPlayer;
+
+  // ------------------------------------------------------------- la crónica
+
+  /// Si la cinemática está sonando ahora mismo.
+  bool _reelOn = false;
+  bool get reeling => _reelOn;
+  AudioPlayer? _reeler;
+
+  /// La música de ver cómo se hizo el valle.
+  ///
+  /// Un archivo y un reproductor, no tres capas: esto no se mezcla con la hora
+  /// —dura un minuto— y tres reproductores arrancando a la vez se desfasan lo
+  /// justo para que un acorde llegue partido.
+  ///
+  /// Mientras suena, **las de fondo callan**. No es por volumen: son dos piezas
+  /// en dos tonalidades distintas, y sonando a la vez no hay mezcla que valga.
+  /// Se pausan, que es gratis, y vuelven solas al acabar.
+  ///
+  /// Y se pide permiso con la llave de la música, no con la de los efectos,
+  /// porque es música. Quien la apagó va a ver la crónica en silencio, que es
+  /// exactamente lo que pidió.
+  Future<void> reel() async {
+    if (_asleep || !_wants.hearsMusic) return;
+    _reelOn = true;
+    settle();
+    try {
+      final p = _reeler ??= AudioPlayer()..setReleaseMode(ReleaseMode.stop);
+      await p.stop();
+      await p.setVolume(_musLevel.clamp(0.0, 1.0));
+      await p.play(AssetSource('sfx/$reelTrack'));
+    } catch (_) {
+      // El sonido es un extra, nunca un requisito.
+    }
+  }
+
+  /// El archivo. Aquí y no escrito a mano en la pantalla, para que el test que
+  /// comprueba que existe y que dura lo que tiene que durar mire el mismo.
+  static const String reelTrack = 'mus_cronica.wav';
+
+  /// Callar la crónica y devolverle el sitio a la música de fondo. Vale
+  /// llamarlo siempre, sonara o no: salir a mitad tiene que dejar la app como
+  /// estaba y no con un minuto de orquesta encima del pueblo.
+  Future<void> hushReel() async {
+    _reelOn = false;
+    try {
+      await _reeler?.stop();
+    } catch (_) {}
+    settle();
+  }
+
   /// Callar la fugaz. Vale llamarlo siempre: si no sonaba, no hace nada.
   Future<void> hushWish() async {
     try {
@@ -454,10 +542,12 @@ class Sensory {
   }
 
   void dispose() {
-    for (final p in [..._pool, ..._mus, ?_wisher]) {
+    for (final p in [..._pool, ..._mus, ?_wisher, ?_starPlayer, ?_reeler]) {
       p.dispose();
     }
     _wisher = null;
+    _starPlayer = null;
+    _reeler = null;
     _pool.clear();
     _mus.clear();
     _ready = false;

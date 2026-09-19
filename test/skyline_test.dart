@@ -1,11 +1,10 @@
 import 'dart:math' as math;
-
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:la_muralla/engine/landscape.dart';
 import 'package:la_muralla/engine/palette.dart';
-import 'package:la_muralla/engine/renderer.dart';
+import 'package:la_muralla/engine/tones.dart';
 
 /// Las veinticuatro horas, de media en media, que es donde la luz cambia.
 Iterable<double> get everyHour sync* {
@@ -26,7 +25,7 @@ void main() {
         final pal = Palette.forMoment(hour, 1.0);
         var last = double.infinity;
         for (var li = 0; li < howMany; li++) {
-          final (body, _) = TownPainter.rangeTone(pal, li, howMany);
+          final (body, _) = rangeTone(pal, li, howMany);
           final lum = body.computeLuminance();
           expect(
             lum,
@@ -52,8 +51,8 @@ void main() {
       // que exigir es que no sean el mismo color.
       for (final hour in everyHour) {
         final pal = Palette.forMoment(hour, 1.0);
-        final (near, _) = TownPainter.rangeTone(pal, 0, howMany);
-        final (far, _) = TownPainter.rangeTone(pal, howMany - 1, howMany);
+        final (near, _) = rangeTone(pal, 0, howMany);
+        final (far, _) = rangeTone(pal, howMany - 1, howMany);
         final a = near.computeLuminance(), b = far.computeLuminance();
         expect(
           (a - b).abs(),
@@ -74,7 +73,7 @@ void main() {
       for (final hour in everyHour) {
         final pal = Palette.forMoment(hour, 1.0);
         for (var li = 0; li < howMany; li++) {
-          final (body, foot) = TownPainter.rangeTone(pal, li, howMany);
+          final (body, foot) = rangeTone(pal, li, howMany);
           expect(
             _apart(foot, pal.haze),
             lessThan(_apart(body, pal.haze)),
@@ -92,7 +91,7 @@ void main() {
       for (final hour in everyHour) {
         final pal = Palette.forMoment(hour, 1.0);
         for (var li = 0; li < howMany; li++) {
-          final (body, _) = TownPainter.rangeTone(pal, li, howMany);
+          final (body, _) = rangeTone(pal, li, howMany);
           final d = _apart(body, pal.skyHorizon);
           expect(
             d,
@@ -112,8 +111,8 @@ void main() {
       // prado y el horizonte se volvían una sola mancha con una raya en medio.
       for (final hour in everyHour) {
         final pal = Palette.forMoment(hour, 1.0);
-        final grass = TownPainter.meadowTone(pal);
-        final (hill, _) = TownPainter.rangeTone(pal, 0, howMany);
+        final grass = meadowTone(pal);
+        final (hill, _) = rangeTone(pal, 0, howMany);
         expect(
           _apart(grass, hill),
           greaterThan(0.10),
@@ -132,7 +131,7 @@ void main() {
       for (final hour in everyHour) {
         final pal = Palette.forMoment(hour, 1.0);
         if (pal.daylight > 0.2) continue;
-        final grass = TownPainter.meadowTone(pal);
+        final grass = meadowTone(pal);
         expect(
           grass.g,
           greaterThan(grass.r),
@@ -142,8 +141,8 @@ void main() {
     });
 
     test('y de noche es oscuro, no un prado de mediodía a oscuras', () {
-      final noche = TownPainter.meadowTone(Palette.forMoment(2, 1.0));
-      final medio = TownPainter.meadowTone(Palette.forMoment(13, 1.0));
+      final noche = meadowTone(Palette.forMoment(2, 1.0));
+      final medio = meadowTone(Palette.forMoment(13, 1.0));
       expect(
         noche.computeLuminance(),
         lessThan(medio.computeLuminance() * 0.30),
@@ -155,7 +154,7 @@ void main() {
 
     test('una sola cordillera no divide por cero', () {
       final pal = Palette.forMoment(12, 1.0);
-      final (body, foot) = TownPainter.rangeTone(pal, 0, 1);
+      final (body, foot) = rangeTone(pal, 0, 1);
       expect(body.a, 1.0);
       expect(foot.a, 1.0);
     });

@@ -1,10 +1,9 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../data/landmarks.dart';
-import 'papyrus.dart';
 import '../fx/sensory.dart';
 import 'legend_card.dart';
+import 'papyrus.dart';
 import 'style.dart';
 
 /// The card for a landmark the town has just finished.
@@ -132,12 +131,22 @@ class Whisper extends StatelessWidget {
         theme: theme,
         radius: 30,
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
-        child: Text(
-          message,
-          style: TextStyle(
-            color: theme.fg.withValues(alpha: 0.9),
-            fontSize: 12.5,
-            letterSpacing: 0.4,
+        // Casi todos los susurros son media línea, pero el de la vuelta no: es
+        // el único que tiene algo que decir y lleva detrás, entre comillas, lo
+        // que vos mismo escribiste el día que fundaste esto. Con un ancho
+        // máximo cae en dos o tres renglones centrados en vez de estirarse de
+        // canto a canto de la pantalla.
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 290),
+          child: Text(
+            message,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: theme.fg.withValues(alpha: 0.9),
+              fontSize: 12.5,
+              letterSpacing: 0.4,
+              height: 1.45,
+            ),
           ),
         ),
       ),
@@ -342,164 +351,4 @@ class _StoneCardState extends State<StoneCard> {
             ),
     );
   }
-}
-
-class TravelScrubber extends StatelessWidget {
-  const TravelScrubber({
-    super.key,
-    required this.theme,
-    required this.length,
-    required this.travel,
-    required this.marks,
-    required this.onSeek,
-  });
-
-  final UiTheme theme;
-  final double length;
-  final double travel;
-
-  /// x positions of landmarks along the wall.
-  final List<double> marks;
-  final void Function(double x) onSeek;
-
-  @override
-  Widget build(BuildContext context) {
-    if (length < 12) return const SizedBox.shrink();
-    return LayoutBuilder(
-      builder: (context, cons) {
-        final w = cons.maxWidth;
-        void seek(Offset local) {
-          onSeek(((local.dx / w).clamp(0.0, 1.0)) * length);
-        }
-
-        return GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTapDown: (d) => seek(d.localPosition),
-          onHorizontalDragUpdate: (d) => seek(d.localPosition),
-          child: SizedBox(
-            height: 26,
-            child: CustomPaint(
-              painter: _ScrubberPainter(
-                theme: theme,
-                length: length,
-                travel: travel,
-                marks: marks,
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _ScrubberPainter extends CustomPainter {
-  _ScrubberPainter({
-    required this.theme,
-    required this.length,
-    required this.travel,
-    required this.marks,
-  });
-
-  final UiTheme theme;
-  final double length, travel;
-  final List<double> marks;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final y = size.height / 2;
-    final line = Paint()
-      ..color = theme.fg.withValues(alpha: 0.20)
-      ..strokeWidth = 2
-      ..strokeCap = StrokeCap.round;
-    canvas.drawLine(Offset(0, y), Offset(size.width, y), line);
-
-    final markPaint = Paint()..color = theme.fg.withValues(alpha: 0.44);
-    for (final m in marks) {
-      final x = (m / length).clamp(0.0, 1.0) * size.width;
-      canvas.drawCircle(Offset(x, y), 2.6, markPaint);
-    }
-
-    final t = (travel / length).clamp(0.0, 1.0) * size.width;
-    canvas.drawLine(
-      Offset(0, y),
-      Offset(t, y),
-      Paint()
-        ..color = theme.accent.withValues(alpha: 0.75)
-        ..strokeWidth = 2
-        ..strokeCap = StrokeCap.round,
-    );
-    canvas.drawCircle(Offset(t, y), 5.5, Paint()..color = theme.accent);
-    canvas.drawCircle(
-      Offset(t, y),
-      5.5,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.4
-        ..color = Colors.white.withValues(alpha: 0.7),
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _ScrubberPainter old) =>
-      old.travel != travel ||
-      old.length != length ||
-      old.marks.length != marks.length;
-}
-
-/// A ring that fills as today's target for one habit is met.
-class ProgressRing extends StatelessWidget {
-  const ProgressRing({
-    super.key,
-    required this.progress,
-    required this.color,
-    required this.size,
-    required this.track,
-  });
-
-  final double progress;
-  final Color color, track;
-  final double size;
-
-  @override
-  Widget build(BuildContext context) => SizedBox(
-    width: size,
-    height: size,
-    child: CustomPaint(painter: _RingPainter(progress, color, track)),
-  );
-}
-
-class _RingPainter extends CustomPainter {
-  _RingPainter(this.progress, this.color, this.track);
-  final double progress;
-  final Color color, track;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final c = Offset(size.width / 2, size.height / 2);
-    final r = size.width / 2 - 1.6;
-    canvas.drawCircle(
-      c,
-      r,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.2
-        ..color = track,
-    );
-    if (progress <= 0) return;
-    canvas.drawArc(
-      Rect.fromCircle(center: c, radius: r),
-      -math.pi / 2,
-      math.pi * 2 * progress.clamp(0.0, 1.0),
-      false,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.6
-        ..strokeCap = StrokeCap.round
-        ..color = color,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _RingPainter old) => old.progress != progress;
 }

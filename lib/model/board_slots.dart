@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/rng.dart';
-import 'findings.dart';
+import 'notice.dart';
 
 /// Dónde quedó clavado cada papel, para siempre.
 ///

@@ -3,7 +3,11 @@ import 'dart:math' as math;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:la_muralla/core/math3.dart';
 import 'package:la_muralla/data/character.dart';
+import 'package:la_muralla/data/doings.dart';
 import 'package:la_muralla/data/landmarks.dart';
+import 'package:la_muralla/engine/bsp.dart';
+import 'package:la_muralla/engine/folk.dart';
+import 'package:la_muralla/engine/folk_body.dart';
 import 'package:la_muralla/engine/solid.dart';
 import 'package:la_muralla/engine/solids.dart';
 import 'package:la_muralla/engine/town.dart';
@@ -305,6 +309,118 @@ void main() {
       expect(bad, isEmpty, reason: bad.join('\n'));
     });
   });
+
+  group('y la gente tampoco', () {
+    // Lo que esto caza, y que estaba roto: las cajas de una persona se pintaban
+    // en el orden en que se crean, y lo que lleva se crea el último — así que
+    // el libro se pintaba **siempre** encima de quien lo leía. De frente
+    // colaba, porque el libro está delante; desde detrás se veía el libro
+    // atravesando a la persona que lo tenía.
+    //
+    // Se mide sobre lo que se lleva por delante del cuerpo, que es donde el
+    // orden lo decide la cámara y no la lista: con el ojo delante, el objeto
+    // tapa a la persona; con el ojo detrás, la persona tapa al objeto. Antes
+    // salía lo primero en los dos casos, que es el fallo.
+    test('lo que se lleva delante se pinta detrás al mirar de espaldas', () {
+      var medidos = 0;
+      for (final d in Doing.all) {
+        if (d.prop == PropKind.none) continue;
+        final who = Townsfolk.showcase(d);
+        final at = who.at(0);
+        final creados = folkSolids(who, at, 1.0);
+        final cuerpo = creados.first;
+        final caja = Aabb.of(cuerpo.faces)!;
+
+        int puesto(Solid s, V3 eye) =>
+            folkInPaintOrder(creados, eye).indexWhere((x) => identical(x, s));
+
+        for (final cosa in creados.sublist(3)) {
+          final suya = Aabb.of(cosa.faces)!;
+          // Sólo lo que queda limpiamente por delante del cuerpo. Una banqueta
+          // va debajo y no delante: ahí no es la cámara quien decide el orden y
+          // no hay nada que exigir.
+          if (suya.z0 <= caja.z1 + 0.004) continue;
+          medidos++;
+
+          for (final pitch in [0.0, 0.5, -0.3]) {
+            final alto = math.sin(pitch) * 3.2 + 0.5;
+            final hondo = math.cos(pitch) * 3.2;
+
+            final delante = V3(0, alto, hondo);
+            expect(
+              puesto(cosa, delante),
+              greaterThan(puesto(cuerpo, delante)),
+              reason:
+                  '${d.id}: mirando de frente, lo que lleva tiene que '
+                  'pintarse encima del cuerpo',
+            );
+
+            final detras = V3(0, alto, -hondo);
+            expect(
+              puesto(cosa, detras),
+              lessThan(puesto(cuerpo, detras)),
+              reason:
+                  '${d.id}: mirando de espaldas, el cuerpo tiene que tapar '
+                  'lo que lleva — esto es lo que estaba al revés',
+            );
+          }
+        }
+      }
+      expect(medidos, greaterThan(0), reason: 'no se midió ni un objeto');
+    });
+
+    // Y contra los edificios, que es lo que se veía de verdad: gente andando
+    // al otro lado de una casa y visible a través de la pared.
+    //
+    // Pasaba con unos edificios y con otros no, y el «unos sí y otros no» era
+    // la pista: a la gente se la comparaba con la **caja envolvente** de la
+    // hoja del árbol, no con el edificio. Hay hojas cuya caja abarca media
+    // parcela —las que llevan el sembrado, el agua o una bandera— y ahí dentro
+    // cae todo el mundo, así que no había ningún eje que separase a nadie y
+    // todos se pintaban por delante. Con la caja apretada salía bien por
+    // casualidad.
+    // Y contra los edificios, que es lo que se veía de verdad: gente andando
+    // al otro lado de una casa y visible a través de la pared.
+    //
+    // Pasaba con unos edificios y con otros no, y el «unos sí y otros no» era
+    // la pista: a la gente se la comparaba con la **caja envolvente** de la
+    // hoja del árbol, no con el edificio. Hay hojas cuya caja abarca media
+    // parcela —las que llevan el sembrado, el agua o una bandera— y ahí dentro
+    // cae todo el mundo, así que no había ningún eje que separase a nadie y
+    // todos se pintaban por delante. Con la caja apretada salía bien por
+    // casualidad.
+    //
+    // Se mide con el mismo detector de solapes que la mampostería, y no
+    // exigiendo que la persona salga la primera: un árbol de partición da un
+    // orden de **pintor**, no un orden total por distancia, así que hay caras
+    // que salen antes que ella sin taparla porque caen a un lado. Lo que no
+    // puede pasar es que una cara se pinte encima de ella estando ella delante.
+    test('no se ve a nadie a través de una pared', () {
+      final bad = <String>[];
+      for (final (name, mark, kind, cost) in _catalogue()) {
+        final layout = _show(mark, kind, cost);
+        final caras = <Facet>[];
+        for (final piece in layout.pieces) {
+          for (final solid in solidsOf(piece)) {
+            caras.addAll(solid.faces);
+          }
+        }
+        final caja = Aabb.of(caras);
+        if (caja == null) continue;
+        final arbol = BspTree.build(caras);
+        final ancho = math.max(caja.x1 - caja.x0, caja.z1 - caja.z0);
+
+        for (var k = 0; k < 8; k++) {
+          final yaw = k * math.pi / 4 + 0.17;
+          final donde = _folkVsWall(arbol, caja, ancho, yaw);
+          if (donde != null) {
+            bad.add('$name: $donde (yaw ${(yaw * 57.3).round()}°)');
+          }
+        }
+      }
+      expect(bad, isEmpty, reason: bad.join('\n'));
+    });
+  });
 }
 
 String _k(V3 p) =>
@@ -331,7 +447,28 @@ String? _fault(
   final up = right.cross(forward).normalized;
   const focal = 640.0;
 
-  final seq = paintSequence(layout, placed, eye);
+  return _clash(
+    paintSequence(layout, placed, eye),
+    eye,
+    right,
+    up,
+    forward,
+    focal,
+  );
+}
+
+/// La misma comprobación sobre una secuencia de caras ya ordenada, venga de
+/// donde venga: la mampostería la saca de [paintSequence] y la gente contra los
+/// edificios de [BspTree.paintWith]. Es el mismo fallo en los dos sitios.
+String? _clash(
+  Iterable<Facet> seq,
+  V3 eye,
+  V3 right,
+  V3 up,
+  V3 forward,
+  double focal, [
+  double tol = 0.012,
+]) {
   final polys = <_Poly>[];
   for (final f in seq) {
     final p = _Poly.of(f, eye, right, up, forward, focal);
@@ -351,7 +488,7 @@ String? _fault(
         final a = later.depthAt(s, focal);
         final b = under.depthAt(s, focal);
         if (a == null || b == null) continue;
-        if (a > b + 0.012) {
+        if (a > b + tol) {
           return 'a ${later.what} was painted over a ${under.what} '
               'standing ${(a - b).toStringAsFixed(2)} in front of it'
               '\n  painted second: ${later.world}'
@@ -461,4 +598,80 @@ class _Poly {
     final t = d / den;
     return t <= 0 ? null : t;
   }
+}
+
+/// Una persona plantada al otro lado de un edificio, mirada desde [yaw]: se
+/// recorre el árbol como lo recorre el render y se comprueba que ninguna cara
+/// del edificio se pinte encima de ella estando ella delante.
+String? _folkVsWall(BspTree arbol, Aabb caja, double ancho, double yaw) {
+  final cx = (caja.x0 + caja.x1) / 2, cz = (caja.z0 + caja.z1) / 2;
+  final lejos = ancho + 12.0;
+  final eye = V3(
+    cx + math.sin(yaw) * lejos,
+    (caja.y0 + caja.y1) / 2 + 2.5,
+    cz + math.cos(yaw) * lejos,
+  );
+  // Al otro lado, justo pasada la caja, y en línea con el ojo.
+  final fuera = ancho * 0.5 + 1.2;
+  final who = Townsfolk.showcase(Doing.idle);
+  final at = FolkAt(
+    cx - math.sin(yaw) * fuera,
+    cz - math.cos(yaw) * fuera,
+    yaw,
+    0,
+    false,
+  );
+  const talla = 1.5;
+
+  final target = V3(cx, (caja.y0 + caja.y1) / 2, cz);
+  final forward = (target - eye).normalized;
+  var right = forward.cross(const V3(0, 1, 0));
+  right = right.length < 1e-4 ? const V3(1, 0, 0) : right.normalized;
+  final up = right.cross(forward).normalized;
+
+  List<Facet> visibles(Iterable<Facet> fs) => [
+    for (final f in fs)
+      if ((eye.x - f.v.first.x) * f.n.x +
+              (eye.y - f.v.first.y) * f.n.y +
+              (eye.z - f.v.first.z) * f.n.z >
+          0)
+        f,
+  ];
+
+  final seq = <Facet>[];
+  var caras = 0;
+  final drops = <int>[];
+  arbol.paintWith<FolkAt>(
+    eye,
+    [at],
+    (r, n, d) {
+      // El mismo criterio que usa el render: por donde pisa.
+      final base = n.x * r.x + n.z * r.z - d;
+      return (base, base);
+    },
+    (f) {
+      seq.add(f);
+      caras++;
+    },
+    (gente) {
+      drops.add(caras);
+      for (final _ in gente) {
+        for (final s in folkInPaintOrder(folkSolids(who, at, talla), eye)) {
+          seq.addAll(visibles(s.faces));
+        }
+      }
+    },
+  );
+  // Un cuarto de unidad de margen, y está medido, no puesto a ojo.
+  //
+  // Con el criterio del pie, todo el catálogo desde ocho ángulos deja tres
+  // encuadres con un roce: de 0,02, 0,03 y 0,20 — alguien que está tocando un
+  // arbusto del Coso, el agua de la Presa o la madera del Monasterio, y donde
+  // se tocan no hay orden que valga. Ninguno es una pared.
+  //
+  // Lo que esto vigila es lo otro. El fallo que había medía **2,64**: alguien
+  // a casi tres unidades por detrás de una fachada, visible a través de ella.
+  // Con este margen, cualquier cosa de ese tamaño vuelve a saltar.
+  final bad = _clash(visibles(seq), eye, right, up, forward, 640.0, 0.25);
+  return bad == null ? null : '[la persona se soltó en $drops de $caras] $bad';
 }

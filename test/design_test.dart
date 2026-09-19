@@ -4,11 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:la_muralla/engine/palette.dart';
 import 'package:la_muralla/model/store.dart';
 import 'package:la_muralla/ui/habits_sheet.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:la_muralla/ui/legend_card.dart';
 import 'package:la_muralla/ui/overlays.dart';
 import 'package:la_muralla/ui/style.dart';
 import 'package:la_muralla/ui/town_sign.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Un teléfono estrecho y uno ancho: lo que se rompe en algo puesto sobre la
 /// escena es que se salga por un costado, y eso depende del ancho.
