@@ -78,25 +78,57 @@ void main() {
       expect(fila(espia.dichas.single, 1)['name'], 'Correr');
     });
 
-    test('el punto dice si hoy ya pusiste, y nada más', () async {
+    test('dice cuántas van hoy, no si va alguna', () async {
       final espia = espiar();
       final hoy = DateTime(2026, 5, 4, 20);
       await WidgetBridge.fresh().publish([
         // Una de ayer y ninguna de hoy.
         _habit(id: 'a', cuando: [DateTime(2026, 5, 3, 21)]),
-        // Y una de esta mañana.
-        _habit(id: 'b', slot: 1, cuando: [DateTime(2026, 5, 4, 7, 30)]),
+        // Y tres de hoy, repartidas.
+        _habit(
+          id: 'b',
+          slot: 1,
+          cuando: [
+            DateTime(2026, 5, 3, 22),
+            DateTime(2026, 5, 4, 7, 30),
+            DateTime(2026, 5, 4, 13),
+            DateTime(2026, 5, 4, 19, 40),
+          ],
+        ),
       ], now: hoy);
 
       final call = espia.dichas.single;
-      expect(fila(call, 0)['today'], isFalse);
-      expect(fila(call, 1)['today'], isTrue);
-      // Lo que no va: ni cuántas lleva, ni cuántos días seguidos. Si algún día
-      // alguien mete una racha en el widget, que sea a sabiendas.
-      expect(fila(call, 0).keys.toSet(), {
+      expect(fila(call, 0)['today'], 0);
+      expect(fila(call, 1)['today'], 3, reason: 'contó las de ayer también');
+    });
+
+    test(
+      'y de qué día es esa cuenta, que el otro lado no tiene reloj',
+      () async {
+        // Sin esto, un cuadrito que nadie refresca desde anoche enseña a las
+        // nueve de la mañana las tres piezas de ayer. Del otro lado no hay nada
+        // que avise de que cambió la fecha: la fecha viaja con la cuenta.
+        final espia = espiar();
+        await WidgetBridge.fresh().publish([
+          _habit(id: 'a'),
+        ], now: DateTime(2026, 5, 4, 20));
+        expect(fila(espia.dichas.single, 0)['day'], 20260504);
+      },
+    );
+
+    test('y nada más que eso', () async {
+      // Lo que no va: ni el total del pueblo, ni cuántos días seguidos.
+      // «Llevás tres hoy» es lo que hiciste; «llevás nueve días seguidos» es
+      // una cuenta que castiga el día que se rompe, y ésa no la lleva la app
+      // por dentro. Si algún día alguien mete una racha acá, que sea a
+      // sabiendas.
+      final espia = espiar();
+      await WidgetBridge.fresh().publish([_habit(id: 'a')]);
+      expect(fila(espia.dichas.single, 0).keys.toSet(), {
         'id',
         'name',
         'today',
+        'day',
         'resting',
         'mark',
       });

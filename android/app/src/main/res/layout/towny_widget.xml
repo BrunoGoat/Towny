@@ -30,7 +30,7 @@
         android:textColor="@color/towny_widget_faint"
         android:text="@string/towny_widget_empty" />
 
-    <!-- Fila 0: la marca, el nombre y cómo vas hoy. Toda ella se toca. -->
+    <!-- Fila 0: la marca, el nombre y cuántas van hoy. Toda ella se toca. -->
     <LinearLayout
         android:id="@+id/towny_row_0"
         android:layout_width="match_parent"
@@ -73,14 +73,32 @@
             android:textColor="@color/towny_widget_accent"
             android:text="@string/towny_widget_again" />
 
+        <!-- Cuántas piezas lleva hoy ese pueblo. Un número y no un punto: lo
+             que alguien quiere saber desde fuera no es sólo si apareció hoy,
+             es cuánto lleva hecho. -->
+        <TextView
+            android:id="@+id/towny_count_0"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="9dp"
+            android:minWidth="14dp"
+            android:gravity="end"
+            android:visibility="gone"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="@color/towny_widget_accent" />
+
+        <!-- Y cuando todavía no hay ninguna, el sitio vacío. Un anillo y no un
+             cero: lo que dice es que el hueco está, no que hayas fallado. -->
         <ImageView
             android:id="@+id/towny_dot_0"
             android:layout_width="11dp"
             android:layout_height="11dp"
             android:layout_marginStart="9dp"
-            android:importantForAccessibility="no" />
+            android:importantForAccessibility="no"
+            android:src="@drawable/towny_widget_dot_off" />
     </LinearLayout>
-    <!-- Fila 1: la marca, el nombre y cómo vas hoy. Toda ella se toca. -->
+    <!-- Fila 1: la marca, el nombre y cuántas van hoy. Toda ella se toca. -->
     <LinearLayout
         android:id="@+id/towny_row_1"
         android:layout_width="match_parent"
@@ -123,14 +141,32 @@
             android:textColor="@color/towny_widget_accent"
             android:text="@string/towny_widget_again" />
 
+        <!-- Cuántas piezas lleva hoy ese pueblo. Un número y no un punto: lo
+             que alguien quiere saber desde fuera no es sólo si apareció hoy,
+             es cuánto lleva hecho. -->
+        <TextView
+            android:id="@+id/towny_count_1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="9dp"
+            android:minWidth="14dp"
+            android:gravity="end"
+            android:visibility="gone"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="@color/towny_widget_accent" />
+
+        <!-- Y cuando todavía no hay ninguna, el sitio vacío. Un anillo y no un
+             cero: lo que dice es que el hueco está, no que hayas fallado. -->
         <ImageView
             android:id="@+id/towny_dot_1"
             android:layout_width="11dp"
             android:layout_height="11dp"
             android:layout_marginStart="9dp"
-            android:importantForAccessibility="no" />
+            android:importantForAccessibility="no"
+            android:src="@drawable/towny_widget_dot_off" />
     </LinearLayout>
-    <!-- Fila 2: la marca, el nombre y cómo vas hoy. Toda ella se toca. -->
+    <!-- Fila 2: la marca, el nombre y cuántas van hoy. Toda ella se toca. -->
     <LinearLayout
         android:id="@+id/towny_row_2"
         android:layout_width="match_parent"
@@ -173,14 +209,32 @@
             android:textColor="@color/towny_widget_accent"
             android:text="@string/towny_widget_again" />
 
+        <!-- Cuántas piezas lleva hoy ese pueblo. Un número y no un punto: lo
+             que alguien quiere saber desde fuera no es sólo si apareció hoy,
+             es cuánto lleva hecho. -->
+        <TextView
+            android:id="@+id/towny_count_2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="9dp"
+            android:minWidth="14dp"
+            android:gravity="end"
+            android:visibility="gone"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="@color/towny_widget_accent" />
+
+        <!-- Y cuando todavía no hay ninguna, el sitio vacío. Un anillo y no un
+             cero: lo que dice es que el hueco está, no que hayas fallado. -->
         <ImageView
             android:id="@+id/towny_dot_2"
             android:layout_width="11dp"
             android:layout_height="11dp"
             android:layout_marginStart="9dp"
-            android:importantForAccessibility="no" />
+            android:importantForAccessibility="no"
+            android:src="@drawable/towny_widget_dot_off" />
     </LinearLayout>
-    <!-- Fila 3: la marca, el nombre y cómo vas hoy. Toda ella se toca. -->
+    <!-- Fila 3: la marca, el nombre y cuántas van hoy. Toda ella se toca. -->
     <LinearLayout
         android:id="@+id/towny_row_3"
         android:layout_width="match_parent"
@@ -223,14 +277,32 @@
             android:textColor="@color/towny_widget_accent"
             android:text="@string/towny_widget_again" />
 
+        <!-- Cuántas piezas lleva hoy ese pueblo. Un número y no un punto: lo
+             que alguien quiere saber desde fuera no es sólo si apareció hoy,
+             es cuánto lleva hecho. -->
+        <TextView
+            android:id="@+id/towny_count_3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="9dp"
+            android:minWidth="14dp"
+            android:gravity="end"
+            android:visibility="gone"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="@color/towny_widget_accent" />
+
+        <!-- Y cuando todavía no hay ninguna, el sitio vacío. Un anillo y no un
+             cero: lo que dice es que el hueco está, no que hayas fallado. -->
         <ImageView
             android:id="@+id/towny_dot_3"
             android:layout_width="11dp"
             android:layout_height="11dp"
             android:layout_marginStart="9dp"
-            android:importantForAccessibility="no" />
+            android:importantForAccessibility="no"
+            android:src="@drawable/towny_widget_dot_off" />
     </LinearLayout>
-    <!-- Fila 4: la marca, el nombre y cómo vas hoy. Toda ella se toca. -->
+    <!-- Fila 4: la marca, el nombre y cuántas van hoy. Toda ella se toca. -->
     <LinearLayout
         android:id="@+id/towny_row_4"
         android:layout_width="match_parent"
@@ -273,14 +345,32 @@
             android:textColor="@color/towny_widget_accent"
             android:text="@string/towny_widget_again" />
 
+        <!-- Cuántas piezas lleva hoy ese pueblo. Un número y no un punto: lo
+             que alguien quiere saber desde fuera no es sólo si apareció hoy,
+             es cuánto lleva hecho. -->
+        <TextView
+            android:id="@+id/towny_count_4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="9dp"
+            android:minWidth="14dp"
+            android:gravity="end"
+            android:visibility="gone"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="@color/towny_widget_accent" />
+
+        <!-- Y cuando todavía no hay ninguna, el sitio vacío. Un anillo y no un
+             cero: lo que dice es que el hueco está, no que hayas fallado. -->
         <ImageView
             android:id="@+id/towny_dot_4"
             android:layout_width="11dp"
             android:layout_height="11dp"
             android:layout_marginStart="9dp"
-            android:importantForAccessibility="no" />
+            android:importantForAccessibility="no"
+            android:src="@drawable/towny_widget_dot_off" />
     </LinearLayout>
-    <!-- Fila 5: la marca, el nombre y cómo vas hoy. Toda ella se toca. -->
+    <!-- Fila 5: la marca, el nombre y cuántas van hoy. Toda ella se toca. -->
     <LinearLayout
         android:id="@+id/towny_row_5"
         android:layout_width="match_parent"
@@ -323,12 +413,30 @@
             android:textColor="@color/towny_widget_accent"
             android:text="@string/towny_widget_again" />
 
+        <!-- Cuántas piezas lleva hoy ese pueblo. Un número y no un punto: lo
+             que alguien quiere saber desde fuera no es sólo si apareció hoy,
+             es cuánto lleva hecho. -->
+        <TextView
+            android:id="@+id/towny_count_5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="9dp"
+            android:minWidth="14dp"
+            android:gravity="end"
+            android:visibility="gone"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="@color/towny_widget_accent" />
+
+        <!-- Y cuando todavía no hay ninguna, el sitio vacío. Un anillo y no un
+             cero: lo que dice es que el hueco está, no que hayas fallado. -->
         <ImageView
             android:id="@+id/towny_dot_5"
             android:layout_width="11dp"
             android:layout_height="11dp"
             android:layout_marginStart="9dp"
-            android:importantForAccessibility="no" />
+            android:importantForAccessibility="no"
+            android:src="@drawable/towny_widget_dot_off" />
     </LinearLayout>
 
     <!-- El nombre, abajo y en voz baja. Es lo que abre la app y es lo que dice

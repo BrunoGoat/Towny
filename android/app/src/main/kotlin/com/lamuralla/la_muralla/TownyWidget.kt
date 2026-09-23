@@ -15,9 +15,15 @@ import android.widget.RemoteViews
 /**
  * El pueblo en la pantalla de inicio.
  *
- * Una fila por hábito: la marca, el nombre y un punto que dice si hoy ya hay
- * una pieza puesta. Eso es todo lo que enseña, y es a propósito — la app no
- * lleva rachas por dentro y no las va a llevar por fuera.
+ * Una fila por hábito: la marca, el nombre y cuántas piezas lleva hoy ese
+ * pueblo. La cuenta y no un punto encendido, porque lo que alguien quiere
+ * saber mirando la pantalla de inicio no es sólo si apareció hoy: es cuánto
+ * lleva hecho, y obligarle a abrir la app para eso es cobrarle un peaje por
+ * una información que cabe en un dígito.
+ *
+ * De hoy, y de nada más. Ni rachas ni totales: «llevás tres hoy» es lo que
+ * hiciste, «llevás nueve días seguidos» es una cuenta que castiga el día que
+ * se rompe, y ésa no la lleva la app por dentro ni la va a llevar por fuera.
  *
  * **Lo que pasa al tocar.** El primer toque pregunta y el segundo pone. No es
  * un paso de más: dentro de la app poner una pieza pide mantener el dedo
@@ -63,10 +69,10 @@ class TownyWidget : AppWidgetProvider() {
         if (WidgetBox.armed(context) == habitId) {
             WidgetBox.disarm(context)
             WidgetBox.add(context, habitId, System.currentTimeMillis())
-            // El punto se enciende ahora, aunque la piedra no esté puesta
-            // hasta que abras: lo que la fila contesta es «¿ya lo hice hoy?»,
-            // y esa respuesta ya cambió.
-            WidgetBox.markToday(context, habitId)
+            // La cuenta sube ahora, aunque la piedra no esté puesta hasta que
+            // abras: lo que la fila contesta es «¿cuántas llevo hoy?», y esa
+            // respuesta ya cambió.
+            WidgetBox.bumpToday(context, habitId)
             cancelForget(context)
         } else {
             WidgetBox.arm(context, habitId)
@@ -132,14 +138,29 @@ class TownyWidget : AppWidgetProvider() {
                 )
             )
 
+            // Cuántas van hoy. La cuenta vale sólo si es de hoy: un resumen
+            // que lleva desde anoche sin refrescarse tiene la de ayer, y
+            // enseñarla sería mentir a la hora del desayuno.
+            val lleva =
+                if (row.optInt("day", 0) == WidgetBox.dayKey()) {
+                    row.optInt("today", 0)
+                } else {
+                    0
+                }
+
             val preguntando = armed != null && armed == id
             views.setViewVisibility(ASK[i], if (preguntando) View.VISIBLE else View.GONE)
-            views.setViewVisibility(DOT[i], if (preguntando) View.GONE else View.VISIBLE)
-            views.setImageViewResource(
-                DOT[i],
-                if (row.optBoolean("today", false)) R.drawable.towny_widget_dot_on
-                else R.drawable.towny_widget_dot_off
+            views.setViewVisibility(
+                COUNT[i],
+                if (!preguntando && lleva > 0) View.VISIBLE else View.GONE
             )
+            // El anillo vacío sólo cuando no hay ninguna. No es un cero: dice
+            // que el hueco está, no que hayas fallado.
+            views.setViewVisibility(
+                DOT[i],
+                if (!preguntando && lleva <= 0) View.VISIBLE else View.GONE
+            )
+            if (lleva > 0) views.setTextViewText(COUNT[i], lleva.toString())
 
             views.setOnClickPendingIntent(ROW[i], tapIntent(context, i, id))
         }
@@ -171,6 +192,10 @@ class TownyWidget : AppWidgetProvider() {
         private val ASK = intArrayOf(
             R.id.towny_ask_0, R.id.towny_ask_1, R.id.towny_ask_2,
             R.id.towny_ask_3, R.id.towny_ask_4, R.id.towny_ask_5
+        )
+        private val COUNT = intArrayOf(
+            R.id.towny_count_0, R.id.towny_count_1, R.id.towny_count_2,
+            R.id.towny_count_3, R.id.towny_count_4, R.id.towny_count_5
         )
         private val DOT = intArrayOf(
             R.id.towny_dot_0, R.id.towny_dot_1, R.id.towny_dot_2,

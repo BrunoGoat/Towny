@@ -225,10 +225,23 @@ que se guardaron, y probablemente el bueno.
 
 ## Desde la pantalla de inicio
 
-Hay un widget con una fila por pueblo: la marca, el nombre y un punto. El punto
-dice si **hoy** ya hay una pieza puesta ahí, y es lo único que cuenta de cómo
-vas — llevar rachas de la puerta para afuera sería meterle a la app justo lo que
-no hace de la puerta para adentro.
+Hay un widget con una fila por pueblo: la marca, el nombre y **cuántas piezas
+llevás hoy** ahí. Un anillo vacío cuando todavía no hay ninguna — que dice que
+el hueco está, no que hayas fallado.
+
+La cuenta y no un punto encendido, y la razón importa. Lo que alguien quiere
+saber mirando la pantalla de inicio no es sólo si apareció hoy: es cuánto lleva
+hecho. Obligarle a abrir la app para eso es cobrarle un peaje por una
+información que cabe en un dígito, y registrar lo que hacés y poder verlo es de
+lo que va esta app entera. El widget no está para proteger a la app de ser
+útil.
+
+De **hoy**, y de nada más: ni rachas ni totales. «Llevás tres hoy» es lo que
+hiciste; «llevás nueve días seguidos» es una cuenta que existe para castigar el
+día que se rompe, y ésa no la lleva la app por dentro ni la va a llevar por
+fuera. Y la cuenta viaja con la fecha a la que pertenece, porque del otro lado
+no hay nada que avise de que cambió el día: a las nueve de la mañana el widget
+enseña cero, no las tres de ayer.
 
 **Se toca dos veces, no una.** Dentro de la app una pieza se pone manteniendo el
 dedo hasta que se cierra un anillo, y eso está escrito a propósito: poner una

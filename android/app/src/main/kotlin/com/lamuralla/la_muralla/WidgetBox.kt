@@ -70,18 +70,42 @@ object WidgetBox {
     }
 
     /**
-     * Deja apuntado que ese pueblo ya tiene una pieza hoy.
+     * Le suma una a la cuenta de hoy de ese pueblo.
      *
      * Es un adelanto: la pieza de verdad la pone la app cuando alguien la
-     * abre. Pero el punto de la fila tiene que encenderse **ahora**, porque lo
-     * que contesta es «¿ya lo hice hoy?» y la respuesta ya cambió.
+     * abre. Pero la cuenta de la fila tiene que subir **ahora**, porque lo que
+     * contesta es «¿cuántas llevo hoy?» y la respuesta ya cambió. Cuando la
+     * app publique el resumen de verdad, este número queda pisado por el suyo,
+     * que es el bueno.
+     *
+     * Y si la fila venía de ayer, la cuenta empieza en uno en vez de seguir
+     * sumando: el resumen puede llevar horas ahí sin que nadie lo refresque.
      */
-    fun markToday(c: Context, habitId: String) {
+    fun bumpToday(c: Context, habitId: String) {
         val rows = habits(c)
         val at = rowOf(rows, habitId)
         if (at < 0) return
-        rows.optJSONObject(at)?.put("today", true)?.put("resting", false)
+        val row = rows.optJSONObject(at) ?: return
+        val hoy = dayKey()
+        val lleva = if (row.optInt("day", 0) == hoy) row.optInt("today", 0) else 0
+        row.put("today", lleva + 1).put("day", hoy).put("resting", false)
         putHabits(c, rows)
+    }
+
+    /**
+     * Qué día es hoy, como un número.
+     *
+     * El mismo que calcula `dayKey` del lado del Dart, y tiene que seguir
+     * siéndolo: el resumen trae escrito de qué día es su cuenta, y el widget
+     * la da por buena sólo si coincide con éste. Sin eso, un cuadrito que
+     * nadie refresca desde anoche enseña a las nueve de la mañana las tres
+     * piezas de ayer, que es la manera más tonta de mentir.
+     */
+    fun dayKey(): Int {
+        val c = java.util.Calendar.getInstance()
+        return c.get(java.util.Calendar.YEAR) * 10000 +
+            (c.get(java.util.Calendar.MONTH) + 1) * 100 +
+            c.get(java.util.Calendar.DAY_OF_MONTH)
     }
 
     // -------------------------------------------------------------- la marca

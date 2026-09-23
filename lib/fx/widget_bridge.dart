@@ -64,11 +64,23 @@ class WidgetBridge {
       filas.add({
         'id': h.id,
         'name': h.name,
-        // Si hoy ya hay una puesta. Es lo único que el widget dice de cómo vas
-        // y es a propósito: contar rachas en la pantalla de inicio sería
-        // meterle a la app de la puerta para afuera justo lo que no hace
-        // dentro.
+        // Cuántas lleva hoy ese pueblo, y de qué día es esa cuenta.
+        //
+        // La cuenta y no un sí o un no. Lo que alguien quiere saber mirando la
+        // pantalla de inicio no es sólo si apareció hoy: es cuánto lleva
+        // hecho, y hacerle abrir la app para eso es cobrarle un peaje por una
+        // información que cabe en un dígito. Registrar lo que hiciste y poder
+        // verlo es de lo que va esto; el widget no está para proteger a la app
+        // de ser útil.
+        //
+        // De hoy, y de nada más: ni rachas ni totales. «Llevás tres hoy» es lo
+        // que hiciste; «llevás nueve días seguidos» es una cuenta que castiga
+        // el día que se rompe, y ésa no la lleva la app por dentro.
         'today': _todayOf(h, hoy),
+        // Y el día al que pertenece, para que el otro lado no enseñe la cuenta
+        // de ayer a la hora del desayuno: allí no hay reloj que avise de que
+        // cambió la fecha, y el resumen puede llevar horas puesto.
+        'day': dayKey(hoy),
         // Un pueblo dormido no se despinta, se apaga: sigue ahí, y tocarlo lo
         // despierta, igual que dentro.
         'resting': h.restAt(hoy) != null,
@@ -96,16 +108,20 @@ class WidgetBridge {
     await _send('ack', {'upTo': serial});
   }
 
-  bool _todayOf(Habit h, DateTime now) {
+  int _todayOf(Habit h, DateTime now) {
     final k = dayKey(now);
+    var n = 0;
     for (var i = h.pieces.length - 1; i >= 0; i--) {
       final d = dayKey(h.pieces[i].placedAt);
-      if (d == k) return true;
+      if (d == k) {
+        n++;
+        continue;
+      }
       // La fila está en orden de reloj, así que en cuanto se pasa del día de
       // hoy hacia atrás no queda ninguna de hoy más abajo.
-      if (d < k) return false;
+      if (d < k) break;
     }
-    return false;
+    return n;
   }
 
   /// La marca de un hábito, dibujada en blanco sobre nada.

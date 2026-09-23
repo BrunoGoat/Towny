@@ -52,7 +52,8 @@ class MainActivity : FlutterActivity() {
                 JSONObject()
                     .put("id", id)
                     .put("name", (h["name"] as? String).orEmpty())
-                    .put("today", h["today"] as? Boolean ?: false)
+                    .put("today", (h["today"] as? Number)?.toInt() ?: 0)
+                    .put("day", (h["day"] as? Number)?.toInt() ?: 0)
                     .put("resting", h["resting"] as? Boolean ?: false)
             )
             // La marca sólo se reescribe cuando viene: si el dibujo no cambió,
