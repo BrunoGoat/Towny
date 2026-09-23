@@ -55,6 +55,23 @@
             </intent-filter>
         </receiver>
 
+        <!-- El pueblo en la pantalla de inicio. Ver `TownyWidget.kt`.
+
+             Sin exportar: el único que le habla es el sistema, que le manda
+             la difusión a su componente por su nombre, y los toques de las
+             filas salen de la propia app. Nadie más tiene nada que decirle. -->
+        <receiver
+            android:name=".TownyWidget"
+            android:label="@string/towny_widget_label"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/towny_widget_info"/>
+        </receiver>
+
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

@@ -496,7 +496,7 @@ class Sensory {
   /// Y se pide permiso con la llave de la música, no con la de los efectos,
   /// porque es música. Quien la apagó va a ver la crónica en silencio, que es
   /// exactamente lo que pidió.
-  Future<void> reel() async {
+  Future<void> reel({bool short = false}) async {
     if (_asleep || !_wants.hearsMusic) return;
     _reelOn = true;
     settle();
@@ -504,7 +504,7 @@ class Sensory {
       final p = _reeler ??= AudioPlayer()..setReleaseMode(ReleaseMode.stop);
       await p.stop();
       await p.setVolume(_musLevel.clamp(0.0, 1.0));
-      await p.play(AssetSource('sfx/$reelTrack'));
+      await p.play(AssetSource('sfx/${short ? arrivalTrack : reelTrack}'));
     } catch (_) {
       // El sonido es un extra, nunca un requisito.
     }
@@ -513,6 +513,12 @@ class Sensory {
   /// El archivo. Aquí y no escrito a mano en la pantalla, para que el test que
   /// comprueba que existe y que dura lo que tiene que durar mire el mismo.
   static const String reelTrack = 'mus_cronica.wav';
+
+  /// Y el de la corta: los once segundos de lo que llegó del widget mientras
+  /// no estabas. Otra pieza y no la misma recortada — la crónica tarda veinte
+  /// segundos en llegar a alguna parte, y aquí a los veinte ya no hay nadie
+  /// mirando.
+  static const String arrivalTrack = 'mus_regreso.wav';
 
   /// Callar la crónica y devolverle el sitio a la música de fondo. Vale
   /// llamarlo siempre, sonara o no: salir a mitad tiene que dejar la app como

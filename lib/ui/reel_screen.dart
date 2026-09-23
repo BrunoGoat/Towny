@@ -38,9 +38,27 @@ import 'style.dart';
 /// cortador de caras, el mismo cielo. Lo único que cambia es quién decide la
 /// cuenta de piezas y la fecha, que aquí las decide [Reel] en vez del reloj.
 class ReelScreen extends StatefulWidget {
-  const ReelScreen({super.key, required this.store});
+  const ReelScreen({super.key, required this.store}) : arrivals = null;
+
+  /// La corta: lo que se puso desde la pantalla de inicio y todavía no viste
+  /// caer.
+  ///
+  /// Es esta misma pantalla mirando otra cosa. La crónica arranca del prado
+  /// vacío y tarda un minuto en llegar a hoy; ésta arranca del pueblo tal como
+  /// lo dejaste, le caen encima las que tocaste en el widget, y se acaba. Todo
+  /// lo demás —la cámara, el cielo, el polvo, el golpe— es exactamente lo
+  /// mismo, que es de lo que se trataba: lo que te perdiste por poner una
+  /// pieza sin abrir la app es justo esto, y no hay dos versiones de esto.
+  const ReelScreen.arrivals({
+    super.key,
+    required this.store,
+    required List<ReelStep> pieces,
+  }) : arrivals = pieces;
 
   final Store store;
+
+  /// Nulo en la crónica. En la corta, las piezas que hay que ver caer.
+  final List<ReelStep>? arrivals;
 
   @override
   State<ReelScreen> createState() => _ReelScreenState();
@@ -113,11 +131,17 @@ class _ReelScreenState extends State<ReelScreen>
   /// tarjeta del final. Entra despacio, con ella.
   double _lift = 0;
 
+  /// Si ésta es la corta, la de lo que llegó del widget.
+  bool get _short => widget.arrivals != null;
+
   @override
   void initState() {
     super.initState();
     final habits = widget.store.habits;
-    _reel = Reel.of(habits);
+    final llegadas = widget.arrivals;
+    _reel = llegadas == null
+        ? Reel.of(habits)
+        : Reel.arrivals(habits, llegadas);
     for (final h in habits) {
       _seen.add(0);
       _heat.add(0);
@@ -141,7 +165,17 @@ class _ReelScreenState extends State<ReelScreen>
     }
     final r = _reel;
     if (r != null && r.steps.isNotEmpty) _look = r.steps.first.habit;
-    _cam.pitch = _cam.pitchTarget = 0.62;
+    // Cada pueblo empieza con lo que ya tenía puesto. En la crónica eso es
+    // cero; en la corta es el pueblo entero menos lo que va a caer.
+    if (r != null) {
+      for (var i = 0; i < _seen.length && i < r.base.length; i++) {
+        _seen[i] = r.base[i];
+      }
+    }
+    // Desde bastante arriba cuando no hay nada que mirar todavía, y a la
+    // altura de los tejados cuando el pueblo ya está hecho: en la corta lo que
+    // hay delante desde el primer fotograma es un pueblo, no un prado.
+    _cam.pitch = _cam.pitchTarget = _short ? 0.44 : 0.62;
     _cam.yaw = _cam.yawTarget = 0.7;
     _cam.distance = _cam.distanceTarget = 26;
     _cam.focusY = _cam.focusYTarget = 1.2;
@@ -154,7 +188,7 @@ class _ReelScreenState extends State<ReelScreen>
       });
       return;
     }
-    Sensory.instance.reel();
+    Sensory.instance.reel(short: _short);
     _ticker = createTicker(_tick)..start();
   }
 
@@ -232,13 +266,20 @@ class _ReelScreenState extends State<ReelScreen>
     // El giro. Una vuelta y media larga en todo el minuto, arrancando y
     // parando despacio — una cámara que gira a velocidad fija delata que es
     // un bucle de código y no una cámara.
-    _cam.yaw += 0.185 * _ease(p) * dt;
+    //
+    // En la corta va más del doble de rápido, y no es un capricho: lo que se
+    // siente como «dar la vuelta al pueblo» es cuánto se mueve el punto de
+    // vista, no cuántos radianes por segundo. En once segundos, a la
+    // velocidad de la crónica, la cámara se desplaza un dedo.
+    _cam.yaw += (_short ? 0.40 : 0.185) * _ease(p) * dt;
     _cam.yawTarget = _cam.yaw;
 
     // El picado. Se empieza mirando el prado bastante desde arriba, que es
     // como se mira un sitio donde todavía no hay nada, y se va bajando a la
     // altura de los tejados a medida que hay tejados que mirar.
-    final quiere = lerpD(0.60, 0.32, _suave((p * 1.6).clamp(0.0, 1.0)));
+    final quiere = _short
+        ? lerpD(0.44, 0.30, _suave((p * 1.6).clamp(0.0, 1.0)))
+        : lerpD(0.60, 0.32, _suave((p * 1.6).clamp(0.0, 1.0)));
     _cam.pitch += (quiere - _cam.pitch) * (1 - math.exp(-dt * 1.1));
     _cam.pitchTarget = _cam.pitch;
 
@@ -453,7 +494,13 @@ class _ReelScreenState extends State<ReelScreen>
                     bottom: 20 + MediaQuery.of(context).padding.bottom,
                     child: _Skip(theme: theme, onTap: _leave),
                   ),
-                if (_over) _Ending(reel: r, theme: theme, onTap: _leave),
+                if (_over)
+                  _Ending(
+                    reel: r,
+                    theme: theme,
+                    onTap: _leave,
+                    fromWidget: _short,
+                  ),
               ],
             );
           },
@@ -552,11 +599,21 @@ class _Skip extends StatelessWidget {
 /// diaria, no hay mejor racha y no hay porcentaje — el pueblo que acaba de
 /// quedarse quieto detrás ya dijo todo eso mucho mejor.
 class _Ending extends StatelessWidget {
-  const _Ending({required this.reel, required this.theme, required this.onTap});
+  const _Ending({
+    required this.reel,
+    required this.theme,
+    required this.onTap,
+    this.fromWidget = false,
+  });
 
   final Reel reel;
   final UiTheme theme;
   final VoidCallback onTap;
+
+  /// La corta cuenta otra cosa. «Desde el 4 de marzo, son 312 días» es lo que
+  /// se dice de un pueblo entero; de tres piezas puestas anoche desde la
+  /// pantalla de inicio lo único que hay que decir es de dónde salieron.
+  final bool fromWidget;
 
   static String _fecha(DateTime d) =>
       '${d.day} de ${_Date._meses[d.month - 1]} de ${d.year}';
@@ -617,20 +674,28 @@ class _Ending extends StatelessWidget {
                 const SizedBox(height: 12),
                 Container(height: 1, color: theme.stroke),
                 const SizedBox(height: 11),
-                _Line(left: 'desde', right: _fecha(reel.from), theme: theme),
-                const SizedBox(height: 7),
-                _Line(
-                  left: 'son',
-                  right: '$dias ${dias == 1 ? 'día' : 'días'}',
-                  theme: theme,
-                ),
+                if (fromWidget)
+                  _Line(
+                    left: 'puestas',
+                    right: 'desde la pantalla de inicio',
+                    theme: theme,
+                  )
+                else ...[
+                  _Line(left: 'desde', right: _fecha(reel.from), theme: theme),
+                  const SizedBox(height: 7),
+                  _Line(
+                    left: 'son',
+                    right: '$dias ${dias == 1 ? 'día' : 'días'}',
+                    theme: theme,
+                  ),
+                ],
                 const SizedBox(height: 15),
                 GestureDetector(
                   onTap: onTap,
                   behavior: HitTestBehavior.opaque,
                   child: Center(
                     child: Text(
-                      'VOLVER AL VALLE',
+                      fromWidget ? 'AL VALLE' : 'VOLVER AL VALLE',
                       style: TextStyle(
                         color: theme.fg,
                         fontSize: 11.5,

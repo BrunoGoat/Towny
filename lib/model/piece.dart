@@ -20,6 +20,14 @@ class Piece {
     );
   }
 
+  /// La misma pieza, en otro sitio de la fila.
+  ///
+  /// Hace falta porque una pieza puede llegar **con retraso**: la que se puso
+  /// desde el widget el sábado se entera la app el domingo, y si ese día ya se
+  /// puso alguna en la app, la del sábado entra en medio. Lo que no puede es
+  /// quedar con el número de otra, porque el número es su sitio en el pueblo.
+  Piece withIndex(int at) => Piece(index: at, placedAt: placedAt, label: label);
+
   /// La misma pieza, puesta a otra hora.
   ///
   /// Se corrige, no se inventa: la app apunta la hora en que tocaste el botón,

@@ -773,6 +773,88 @@ def cronica():
     return saturate(out, 1.20)
 
 
+def regreso():
+    """Re mayor, sesenta y seis. Tres compases, once segundos, y se acaba.
+
+    Suena cuando abrís la app y el pueblo tiene piezas puestas que todavía no
+    viste caer — las que dejaste tocadas en el widget. No es la crónica en
+    pequeño y no puede serlo: la crónica cuenta un año y tiene sitio para
+    crecer tres veces; esto cuenta una tarde y lo que tiene que hacer es
+    levantar la vista, dejar caer lo que haya, y resolver antes de que a nadie
+    le empiece a estorbar. Once segundos, una vez, y a lo tuyo.
+
+    De ahí que sea la misma vuelta de acordes de la crónica cortada por el
+    medio —Re, Sol, Re— y no una pieza nueva: lo que llega tiene que sonar a
+    que llega **al mismo sitio**. Lo que cambia es que aquí no hay
+    desarrollo. El primer compás es el pueblo como lo dejaste, el segundo es lo
+    que cae, y el tercero es el acorde de casa abierto y sonando solo.
+
+    Los tiempos están escritos contra `Reel.arrivals` en `lib/model/reel.dart`:
+    la entrada dura lo que el pueblo está quieto, las piezas caen dentro del
+    segundo compás, y el tercero es la cola. Si se mueve uno, se mueven los
+    dos."""
+    sr = SR_HI
+    bar, beat = 4 * 60 / 66.0, 60 / 66.0
+    BARS = 3
+    total = BARS * bar                      # casi once segundos
+
+    # Sin tercera el primero, igual que en la crónica: el pueblo que estabas
+    # mirando todavía no es una noticia.
+    chords = [
+        [n('D2'), n('A3'), n('D4')],
+        [n('G2'), n('B3'), n('D4'), n('F#4')],
+        [n('D2'), n('A2'), n('D3'), n('F#3'), n('A3'), n('D4')],
+    ]
+    swell = [.22, .70, 1.00]
+    voices = [2, 3, 4]
+
+    ln = int((total + 3.0) * sr)
+    out = [0.0] * ln
+    for b, notes in enumerate(chords):
+        largo = (bar * 2.4) if b == BARS - 1 else (bar * 1.6)
+        stack(out, notes, largo, sr, cut=720 + 90 * swell[b], spread=11,
+              gain=0.80 * swell[b], rise=bar * 0.40, fall=bar * 1.0,
+              at=b * bar, voices=voices[b], tilt=1.85)
+
+    # La voz, que dice media frase y la resuelve. Cuatro notas: no hay sitio
+    # para más y no hace falta — lo que se está mirando dura lo mismo.
+    tema = [
+        (4.0, 'F#4', 2.2, .62), (6.0, 'A4', 2.2, .70),
+        (8.0, 'B4', 2.4, .76), (10.0, 'A4', 4.0, .60),
+    ]
+    for at, note, dur, vel in notes_of(tema, beat):
+        b = min(BARS - 1, int(at / bar))
+        breath(out, at, n(note), dur, vel * 0.34 * (0.45 + 0.55 * swell[b]),
+               sr, seed=7)
+
+    # El motor, apretando de una por compás a una por tiempo. Es el mismo truco
+    # de la crónica en tres compases en vez de diecisiete.
+    paso = [4.0, 2.0, 4.0]
+    for b in range(BARS):
+        notes = [x for x in chords[b] if x >= n('A3')] or chords[b][1:]
+        k = 0
+        t = 0.0
+        while t < 4.0 - 1e-6:
+            alto = notes[k % len(notes)]
+            fuerte = 0.62 if t == 0.0 else 0.38
+            tine(out, (b * 4.0 + t) * beat, alto, 2.3 * beat,
+                 fuerte * swell[b] * 0.30, sr, bright=2.4, hold=1.5)
+            t += paso[b]
+            k += 1
+
+    # Y dos campanas al llegar a casa, que es lo único que aquí hace de
+    # celebración.
+    luces = [(8.0, 'D6', 3.0, .40), (11.0, 'A5', 3.4, .30)]
+    for at, note, dur, vel in notes_of(luces, beat):
+        bell(out, at, n(note), dur, vel * 0.26, sr)
+
+    out = lowpass(out, 6200, sr, poles=1)
+    out = reverb(out, sr, wet=0.23, size=1.9, dark=0.58)
+    out = highpass(out, 38, sr)
+    out = wow(out, sr, cents=4.0, cycles=(1, 3), seed=11)
+    return saturate(out, 1.20)
+
+
 # ------------------------------------------------------------------ escribir
 
 def loudness(sig):
@@ -820,7 +902,7 @@ PIECES = (('tarde', tarde), ('sendero', sendero))
 # mezclan según la hora, es una pieza entera que suena sola de principio a fin.
 # Un archivo, y nada que sincronizar en el teléfono — tres reproductores
 # arrancando a la vez se desfasan lo justo para que un acorde llegue partido.
-SOLAS = (('cronica', cronica, 0.220),)
+SOLAS = (('cronica', cronica, 0.220), ('regreso', regreso, 0.200))
 
 if __name__ == '__main__':
     import sys

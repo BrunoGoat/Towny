@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- El papel sobre el que va el pueblo: crema de día, noche de noche. El
+     color sale de `values/` y `values-night/`, así que esto no decide nada. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/towny_widget_card" />
+    <corners android:radius="20dp" />
+</shape>

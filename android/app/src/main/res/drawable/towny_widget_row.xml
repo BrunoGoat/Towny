@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Que se note el dedo. Sin esto, tocar una fila no confirma nada hasta que
+     el widget se vuelve a dibujar, y ese hueco se lee como que no pasó nada. -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/towny_widget_ripple">
+    <item android:id="@android:id/mask">
+        <shape android:shape="rectangle">
+            <corners android:radius="13dp" />
+            <solid android:color="#FFFFFFFF" />
+        </shape>
+    </item>
+</ripple>

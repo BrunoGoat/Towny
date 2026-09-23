@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Cómo se presenta el cuadrito en la bandeja de widgets y cuánto mide.
+
+     Se actualiza solo **nunca**: `updatePeriodMillis` va a cero a propósito.
+     Lo que enseña no cambia por su cuenta —cambia cuando tocás una fila o
+     cuando la app publica un resumen nuevo— y despertar el teléfono cada
+     media hora para redibujar lo mismo es gastar batería de alguien para
+     nada. -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="250dp"
+    android:minHeight="110dp"
+    android:targetCellWidth="4"
+    android:targetCellHeight="2"
+    android:minResizeWidth="180dp"
+    android:minResizeHeight="70dp"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen"
+    android:updatePeriodMillis="0"
+    android:initialLayout="@layout/towny_widget"
+    android:previewLayout="@layout/towny_widget"
+    android:description="@string/towny_widget_about" />

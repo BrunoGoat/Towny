@@ -9,6 +9,7 @@ import '../data/landmarks.dart';
 import '../data/pacing.dart';
 import '../data/symbols.dart';
 import '../engine/town.dart';
+import 'arrival.dart';
 import 'census.dart';
 import 'habit.dart';
 import 'nudge.dart';
@@ -58,6 +59,13 @@ class Store extends ChangeNotifier {
 
   bool loaded = false;
   bool _dirty = false;
+
+  /// El número de la última pieza que llegó del widget y ya está puesta.
+  ///
+  /// Se guarda en disco junto al resto: es lo que hace que una pieza del
+  /// buzón no se cuente dos veces si la app se muere entre ponerla y decirle
+  /// al buzón que ya puede olvidarla. Ver [Arrival].
+  int _seenArrival = 0;
   SharedPreferences? _prefs;
 
   /// Acaba de fundarse el primer pueblo y su plaza todavía no se levantó.
@@ -653,6 +661,7 @@ class Store extends ChangeNotifier {
     // marca abierto y no se le pregunta nada. Nadie pierde un pueblo por una
     // regla que se inventó después de que lo fundara.
     _unlocked = (j['u'] as bool?) ?? habits.length > 1;
+    _seenArrival = (j['w'] as num?)?.toInt() ?? 0;
     // `sky` —el cuaderno de constelaciones— se lee y se tira: al no volver a
     // escribirse, el disco se limpia solo en el primer guardado.
   }
@@ -661,6 +670,7 @@ class Store extends ChangeNotifier {
     'v': 1,
     'a': active,
     if (_unlocked) 'u': true,
+    if (_seenArrival > 0) 'w': _seenArrival,
     'h': habits.map((h) => h.toJson()).toList(),
   };
 
@@ -752,23 +762,47 @@ class Store extends ChangeNotifier {
   // ----------------------------------------------------------------- placing
 
   /// The one and only way a town grows. One call, one piece.
-  PlaceResult placePiece() {
-    final now = DateTime.now();
+  PlaceResult placePiece() => lay(habit, DateTime.now());
+
+  /// Una pieza en el pueblo de [h], puesta a las [when].
+  ///
+  /// El corazón de `placePiece`, que hoy es este mismo con el hábito de
+  /// delante y el reloj de ahora. Está separado porque desde que hay un widget
+  /// en la pantalla de inicio una pieza ya no siempre la pone el hábito que se
+  /// está mirando, ni siempre en el instante en que la app se entera: la que
+  /// se tocó anoche en el widget llega cuando alguien abre la app, con la hora
+  /// a la que se tocó.
+  PlaceResult lay(Habit h, DateTime when) {
     final before = integrity;
-    final hadToday = _countOn(now) > 0;
+    final hadToday = _countOnFor(h, when) > 0;
     // Poner una pieza durante una pausa es volver, y volver antes de tiempo es
     // volver. Nadie tiene que despertar el pueblo a mano para poder usarlo.
-    final wasResting = habit.resting;
-    if (wasResting) wake(habit, silent: true);
+    final wasResting = h.restAt(when) != null;
+    if (wasResting) wake(h, silent: true);
 
-    final piece = Piece(index: habit.total, placedAt: now);
-    habit.pieces.add(piece);
+    // En su sitio de la fila, que es el del reloj y no el de la llegada.
+    //
+    // Casi siempre es el final —lo de anoche llega antes que lo de esta
+    // mañana— y entonces esto es un `add` con pasos de más. El caso que lo
+    // pide es el raro: una pieza puesta en el widget a las nueve de la noche
+    // con la app abierta de fondo, y otra puesta en la app a las diez. La que
+    // llega tarde es la primera de las dos, y tiene que quedar antes.
+    var at = h.pieces.length;
+    while (at > 0 && h.pieces[at - 1].placedAt.isAfter(when)) {
+      at--;
+    }
+    final piece = Piece(index: at, placedAt: when);
+    h.pieces.insert(at, piece);
+    for (var i = at + 1; i < h.pieces.length; i++) {
+      h.pieces[i] = h.pieces[i].withIndex(i);
+    }
+
     // Si había un aviso pendiente por este hábito, esta pieza es su respuesta
     // —o no lo es, y eso también se apunta. De ahí sale que los avisos que
     // nunca sirven para nada acaben callándose solos.
-    nudgeAnswered(habit, now);
+    nudgeAnswered(h, when);
     // Y si esta pieza empieza un edificio nuevo, queda escrito qué edificio es.
-    _writeUpWorks(habit);
+    _writeUpWorks(h);
     final abrio = _checkUnlock();
 
     _save();
@@ -782,6 +816,51 @@ class Store extends ChangeNotifier {
       woke: wasResting,
       unlocked: abrio,
     );
+  }
+
+  /// Pone las piezas que llegaron del widget, y dice cuáles puso de verdad.
+  ///
+  /// Lo que devuelve no es lo que le dieron: por el camino se caen las que son
+  /// de un hábito que ya no existe —se borró el pueblo mientras tanto—, las
+  /// que ya estaban puestas de una entrega anterior, y las que vienen del
+  /// futuro, que sólo pueden venir de un reloj mal puesto. Lo que queda es lo
+  /// que hay que enseñarle a alguien al abrir la app.
+  ///
+  /// El orden importa: se ponen por hora, que es el orden en que pasaron, y no
+  /// por hábito. Un martes de dos pueblos se tiene que ver como el martes que
+  /// fue.
+  List<Arrival> applyArrivals(List<Arrival> inbox) {
+    if (inbox.isEmpty) return const [];
+    final now = DateTime.now();
+    final puestas = <Arrival>[];
+    final ordenadas = [...inbox]..sort((a, b) => a.when.compareTo(b.when));
+    for (final a in ordenadas) {
+      if (a.serial <= _seenArrival) continue;
+      final h = byId(a.habitId);
+      if (h == null) continue;
+      // Del futuro no se pone nada. Recortada a ahora, como cuando se corrige
+      // la hora de una pieza a mano: es lo único que puede querer decir.
+      final cuando = a.when.isAfter(now) ? now : a.when;
+      lay(h, cuando);
+      puestas.add(Arrival(serial: a.serial, habitId: a.habitId, when: cuando));
+    }
+    // El corte sube hasta el último que llegó, no hasta el último que se puso:
+    // una llegada de un pueblo borrado también está entregada, y volver a
+    // recibirla cada vez que se abre la app sería una cola que no se vacía
+    // nunca.
+    for (final a in inbox) {
+      if (a.serial > _seenArrival) _seenArrival = a.serial;
+    }
+    _save();
+    return puestas;
+  }
+
+  /// El hábito de ese id, o nulo si ya no está.
+  Habit? byId(String id) {
+    for (final h in habits) {
+      if (h.id == id) return h;
+    }
+    return null;
   }
 
   /// Writes (or clears) the note on a piece. Always optional.
@@ -887,10 +966,12 @@ class Store extends ChangeNotifier {
   /// siga despierto.
   int get today => _countOn(DateTime.now());
 
-  int _countOn(DateTime when) {
+  int _countOn(DateTime when) => _countOnFor(habit, when);
+
+  int _countOnFor(Habit h, DateTime when) {
     final k = dayKey(when);
     var n = 0;
-    for (final p in habit.pieces) {
+    for (final p in h.pieces) {
       if (dayKey(p.placedAt) == k) n++;
     }
     return n;

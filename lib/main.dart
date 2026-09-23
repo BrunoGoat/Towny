@@ -5,13 +5,17 @@ import 'data/character.dart';
 import 'engine/palette.dart';
 import 'fx/notifier.dart';
 import 'fx/sensory.dart';
+import 'fx/widget_bridge.dart';
 import 'model/appearance.dart';
+import 'model/arrival.dart';
 import 'model/board_seen.dart';
 import 'model/board_slots.dart';
+import 'model/reel.dart';
 import 'model/store.dart';
 import 'ui/first_run.dart';
 import 'ui/gallery_screen.dart';
 import 'ui/home_screen.dart';
+import 'ui/reel_screen.dart';
 import 'ui/style.dart';
 
 void main() {
@@ -40,6 +44,15 @@ class PuebloApp extends StatefulWidget {
 
 class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
   final Store store = Store();
+
+  /// Para poder poner la cinemática de lo que llegó encima de lo que haya sin
+  /// tener que pedirle el contexto a nadie.
+  final GlobalKey<NavigatorState> _nav = GlobalKey<NavigatorState>();
+
+  /// Verdadero mientras se está mirando. Dos entregas seguidas —tocaste el
+  /// widget, volviste, y tocaste otra vez sin salir— no pueden apilar dos
+  /// cinemáticas una encima de la otra.
+  bool _watching = false;
 
   @override
   void initState() {
@@ -70,6 +83,8 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       Sensory.instance.wake();
       _replan();
+      // Y lo que se haya tocado en la pantalla de inicio mientras tanto.
+      _collect();
     } else {
       Sensory.instance.sleep();
       // Y lo que va a sonar mientras la app no esté se programa ahora, que es
@@ -79,6 +94,9 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
       // And anything changed a moment ago goes to disk now, rather than
       // waiting for a timer that may not get another turn.
       Appearance.instance.flush();
+      // Y el cuadrito de la pantalla de inicio se queda con lo de ahora, que
+      // es lo que va a estar mirando quien acaba de salir de la app.
+      WidgetBridge.instance.publish(store.habits);
     }
   }
 
@@ -122,6 +140,70 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
     await Appearance.instance.setOnboarded();
     if (mounted) setState(() {});
     _replan();
+    // Recién fundado ya hay algo que enseñar afuera.
+    WidgetBridge.instance.publish(store.habits);
+  }
+
+  // ------------------------------------------- lo que llegó desde el inicio
+
+  /// Recoge lo que se tocó en el widget, lo pone, y lo enseña caer.
+  ///
+  /// El orden no es casual. Primero se lee el buzón y se ponen las piezas;
+  /// después se le dice al buzón que ya puede olvidarlas —nunca antes, porque
+  /// entre las dos cosas la app se puede morir y lo que no está confirmado
+  /// vuelve a llegar—; y al final se publica el resumen, que ya lleva las
+  /// piezas puestas.
+  Future<void> _collect() async {
+    if (!store.loaded) return;
+    final buzon = await WidgetBridge.instance.drain();
+    if (buzon.isNotEmpty) {
+      final puestas = store.applyArrivals(buzon);
+      var ultimo = 0;
+      for (final a in buzon) {
+        if (a.serial > ultimo) ultimo = a.serial;
+      }
+      await WidgetBridge.instance.ack(ultimo);
+      if (puestas.isNotEmpty && mounted) {
+        setState(() {});
+        _watch(puestas);
+      }
+    }
+    await WidgetBridge.instance.publish(store.habits);
+    _replan();
+  }
+
+  /// Y enseñarlas caer, que es la mitad de por qué se pone una pieza.
+  ///
+  /// Poner una desde la pantalla de inicio se lleva por delante lo único que
+  /// esta app tiene de recompensa: la piedra bajando, el golpe, el polvo. Esto
+  /// lo devuelve — no como un resumen de lo que pasó, sino pasando.
+  void _watch(List<Arrival> puestas) {
+    if (_watching) return;
+    // Antes de fundar no hay pueblo sobre el que caiga nada, y la pantalla de
+    // la primera vez no se interrumpe por nada.
+    if (!Appearance.instance.onboarded) return;
+    final pasos = <ReelStep>[];
+    for (final a in puestas) {
+      final at = store.habits.indexWhere((h) => h.id == a.habitId);
+      if (at < 0) continue;
+      pasos.add(ReelStep(a.when, at, null));
+    }
+    if (pasos.isEmpty) return;
+    pasos.sort((a, b) => a.when.compareTo(b.when));
+    _watching = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final nav = _nav.currentState;
+      if (nav == null) {
+        _watching = false;
+        return;
+      }
+      await nav.push(
+        MaterialPageRoute<void>(
+          builder: (_) => ReelScreen.arrivals(store: store, pieces: pasos),
+        ),
+      );
+      _watching = false;
+    });
   }
 
   Future<void> _boot() async {
@@ -190,6 +272,10 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
 
     if (mounted) setState(() {});
     Sensory.instance.init();
+    // Lo último del arranque: recoger lo del widget y dejarlo publicado. Al
+    // final y no al principio porque para entonces el valle ya está cargado y
+    // las piezas que lleguen caen sobre el pueblo que les toca.
+    _collect();
   }
 
   static const int _gallery = int.fromEnvironment('GALLERY', defaultValue: -1);
@@ -198,6 +284,7 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Towny',
+      navigatorKey: _nav,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,

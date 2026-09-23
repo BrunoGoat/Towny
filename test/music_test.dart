@@ -453,6 +453,84 @@ void main() {
       );
     });
   });
+  group('la música de lo que llegó del widget', () {
+    ({int rate, int channels, int bits, List<int> pcm}) leer() =>
+        _wav('assets/sfx/${Sensory.arrivalTrack}');
+
+    test('está, y es del mismo tipo de archivo que todo lo demás', () {
+      expect(File('assets/sfx/${Sensory.arrivalTrack}').existsSync(), isTrue);
+      final w = leer();
+      expect(w.channels, 1);
+      expect(w.bits, 16);
+      expect(w.rate, 16000);
+    });
+
+    test('no es la crónica', () {
+      // Se llegó a probar reproduciendo la crónica y cortándola a los once
+      // segundos: son los once segundos en que la crónica todavía no ha
+      // llegado a ninguna parte, así que lo que se oía era una introducción
+      // interrumpida. Son dos piezas porque son dos cosas.
+      expect(Sensory.arrivalTrack, isNot(Sensory.reelTrack));
+    });
+
+    test('dura más que la cinemática que acompaña', () {
+      final w = leer();
+      final dura = w.pcm.length / w.rate;
+      final reel = Reel.arrivals(
+        [_unPuebloLargo()],
+        [ReelStep(DateTime(2026, 2, 9, 21), 0, null)],
+      )!;
+      expect(
+        dura,
+        greaterThanOrEqualTo(reel.seconds),
+        reason: 'la música se acaba antes que la cinemática',
+      );
+    });
+
+    test('y no dura tanto como para que estorbe', () {
+      // El otro lado del mismo acoplamiento, y aquí importa más que en la
+      // crónica: esto no se pide, sale solo al abrir la app. Una fanfarria de
+      // medio minuto cada vez que volvés de tocar el widget deja de ser un
+      // premio a la tercera.
+      final w = leer();
+      expect(w.pcm.length / w.rate, lessThan(20.0));
+    });
+
+    test('no recorta', () {
+      final pcm = leer().pcm;
+      final tope = pcm.map((v) => v.abs()).reduce(math.max);
+      expect(tope, lessThan(32700), reason: 'pico pegado al techo');
+      expect(
+        tope,
+        greaterThan(9000),
+        reason: 'se escribió tan floja que se pierde',
+      );
+    });
+
+    test('crece, que es lo único que la hace sonar a llegada', () {
+      // El mismo fallo que ya se cometió una vez con la crónica, medido de la
+      // misma manera. Ver el test de allí.
+      final w = leer();
+      final porMedioSegundo = <double>[];
+      final paso = w.rate ~/ 2;
+      for (var s = 0; (s + 1) * paso <= w.pcm.length; s++) {
+        var suma = 0.0;
+        for (var i = s * paso; i < (s + 1) * paso; i++) {
+          suma += w.pcm[i] * w.pcm[i].toDouble();
+        }
+        porMedioSegundo.add(math.sqrt(suma / paso));
+      }
+      expect(porMedioSegundo.length, greaterThan(16));
+      final techo = porMedioSegundo.reduce(math.max);
+      expect(
+        techo / math.max(1.0, porMedioSegundo.first),
+        greaterThan(3.0),
+        reason: 'de la entrada al acorde de casa no hay arco',
+      );
+      final donde = porMedioSegundo.indexOf(techo) / porMedioSegundo.length;
+      expect(donde, greaterThan(0.35), reason: 'lo más alto llega muy pronto');
+    });
+  });
 }
 
 /// Un pueblo con crónica de sobra, sólo para preguntarle al reloj cuánto dura.

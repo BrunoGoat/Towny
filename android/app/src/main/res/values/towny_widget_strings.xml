@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Lo poco que el cuadrito dice. En castellano, como toda la app. -->
+<resources>
+    <string name="towny_widget_label">Towny</string>
+    <string name="towny_widget_name">TOWNY</string>
+    <!-- La descripción que se lee al elegirlo en la bandeja de widgets. -->
+    <string name="towny_widget_about">Poné una pieza sin entrar.</string>
+    <!-- Lo que aparece en una fila después del primer toque. Dentro de la app
+         una pieza se pone manteniendo el dedo; acá se pone tocando dos veces,
+         que es lo mismo dicho con lo que hay. -->
+    <string name="towny_widget_again">Otra vez</string>
+    <string name="towny_widget_empty">Abrí Towny y fundá tu primer pueblo.</string>
+</resources>

@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- El pueblo, en la pantalla de inicio.
+
+     Seis filas escritas a mano y no una lista de verdad: el valle tiene seis
+     solares y no va a tener siete, así que una lista con su servicio y su
+     fábrica sería andamio para un número que ya sabemos. Las que sobran se
+     esconden. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/towny_widget_card"
+    android:paddingStart="6dp"
+    android:paddingEnd="6dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="6dp">
+
+    <!-- Antes de fundar no hay nada que tocar, y decirlo es mejor que un
+         cuadro vacío que parece roto. -->
+    <TextView
+        android:id="@+id/towny_empty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:textSize="14sp"
+        android:textColor="@color/towny_widget_faint"
+        android:text="@string/towny_widget_empty" />
+
+    <!-- Fila 0: la marca, el nombre y cómo vas hoy. Toda ella se toca. -->
+    <LinearLayout
+        android:id="@+id/towny_row_0"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/towny_widget_row"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingTop="9dp"
+        android:paddingBottom="9dp">
+
+        <ImageView
+            android:id="@+id/towny_mark_0"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:scaleType="fitCenter"
+            android:importantForAccessibility="no" />
+
+        <TextView
+            android:id="@+id/towny_name_0"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="11dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textSize="15sp"
+            android:textColor="@color/towny_widget_ink" />
+
+        <TextView
+            android:id="@+id/towny_ask_0"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:visibility="gone"
+            android:textSize="11sp"
+            android:letterSpacing="0.09"
+            android:textAllCaps="true"
+            android:textColor="@color/towny_widget_accent"
+            android:text="@string/towny_widget_again" />
+
+        <ImageView
+            android:id="@+id/towny_dot_0"
+            android:layout_width="11dp"
+            android:layout_height="11dp"
+            android:layout_marginStart="9dp"
+            android:importantForAccessibility="no" />
+    </LinearLayout>
+    <!-- Fila 1: la marca, el nombre y cómo vas hoy. Toda ella se toca. -->
+    <LinearLayout
+        android:id="@+id/towny_row_1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/towny_widget_row"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingTop="9dp"
+        android:paddingBottom="9dp">
+
+        <ImageView
+            android:id="@+id/towny_mark_1"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:scaleType="fitCenter"
+            android:importantForAccessibility="no" />
+
+        <TextView
+            android:id="@+id/towny_name_1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="11dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textSize="15sp"
+            android:textColor="@color/towny_widget_ink" />
+
+        <TextView
+            android:id="@+id/towny_ask_1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:visibility="gone"
+            android:textSize="11sp"
+            android:letterSpacing="0.09"
+            android:textAllCaps="true"
+            android:textColor="@color/towny_widget_accent"
+            android:text="@string/towny_widget_again" />
+
+        <ImageView
+            android:id="@+id/towny_dot_1"
+            android:layout_width="11dp"
+            android:layout_height="11dp"
+            android:layout_marginStart="9dp"
+            android:importantForAccessibility="no" />
+    </LinearLayout>
+    <!-- Fila 2: la marca, el nombre y cómo vas hoy. Toda ella se toca. -->
+    <LinearLayout
+        android:id="@+id/towny_row_2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/towny_widget_row"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingTop="9dp"
+        android:paddingBottom="9dp">
+
+        <ImageView
+            android:id="@+id/towny_mark_2"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:scaleType="fitCenter"
+            android:importantForAccessibility="no" />
+
+        <TextView
+            android:id="@+id/towny_name_2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="11dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textSize="15sp"
+            android:textColor="@color/towny_widget_ink" />
+
+        <TextView
+            android:id="@+id/towny_ask_2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:visibility="gone"
+            android:textSize="11sp"
+            android:letterSpacing="0.09"
+            android:textAllCaps="true"
+            android:textColor="@color/towny_widget_accent"
+            android:text="@string/towny_widget_again" />
+
+        <ImageView
+            android:id="@+id/towny_dot_2"
+            android:layout_width="11dp"
+            android:layout_height="11dp"
+            android:layout_marginStart="9dp"
+            android:importantForAccessibility="no" />
+    </LinearLayout>
+    <!-- Fila 3: la marca, el nombre y cómo vas hoy. Toda ella se toca. -->
+    <LinearLayout
+        android:id="@+id/towny_row_3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/towny_widget_row"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingTop="9dp"
+        android:paddingBottom="9dp">
+
+        <ImageView
+            android:id="@+id/towny_mark_3"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:scaleType="fitCenter"
+            android:importantForAccessibility="no" />
+
+        <TextView
+            android:id="@+id/towny_name_3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="11dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textSize="15sp"
+            android:textColor="@color/towny_widget_ink" />
+
+        <TextView
+            android:id="@+id/towny_ask_3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:visibility="gone"
+            android:textSize="11sp"
+            android:letterSpacing="0.09"
+            android:textAllCaps="true"
+            android:textColor="@color/towny_widget_accent"
+            android:text="@string/towny_widget_again" />
+
+        <ImageView
+            android:id="@+id/towny_dot_3"
+            android:layout_width="11dp"
+            android:layout_height="11dp"
+            android:layout_marginStart="9dp"
+            android:importantForAccessibility="no" />
+    </LinearLayout>
+    <!-- Fila 4: la marca, el nombre y cómo vas hoy. Toda ella se toca. -->
+    <LinearLayout
+        android:id="@+id/towny_row_4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/towny_widget_row"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingTop="9dp"
+        android:paddingBottom="9dp">
+
+        <ImageView
+            android:id="@+id/towny_mark_4"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:scaleType="fitCenter"
+            android:importantForAccessibility="no" />
+
+        <TextView
+            android:id="@+id/towny_name_4"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="11dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textSize="15sp"
+            android:textColor="@color/towny_widget_ink" />
+
+        <TextView
+            android:id="@+id/towny_ask_4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:visibility="gone"
+            android:textSize="11sp"
+            android:letterSpacing="0.09"
+            android:textAllCaps="true"
+            android:textColor="@color/towny_widget_accent"
+            android:text="@string/towny_widget_again" />
+
+        <ImageView
+            android:id="@+id/towny_dot_4"
+            android:layout_width="11dp"
+            android:layout_height="11dp"
+            android:layout_marginStart="9dp"
+            android:importantForAccessibility="no" />
+    </LinearLayout>
+    <!-- Fila 5: la marca, el nombre y cómo vas hoy. Toda ella se toca. -->
+    <LinearLayout
+        android:id="@+id/towny_row_5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/towny_widget_row"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingTop="9dp"
+        android:paddingBottom="9dp">
+
+        <ImageView
+            android:id="@+id/towny_mark_5"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:scaleType="fitCenter"
+            android:importantForAccessibility="no" />
+
+        <TextView
+            android:id="@+id/towny_name_5"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="11dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textSize="15sp"
+            android:textColor="@color/towny_widget_ink" />
+
+        <TextView
+            android:id="@+id/towny_ask_5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:visibility="gone"
+            android:textSize="11sp"
+            android:letterSpacing="0.09"
+            android:textAllCaps="true"
+            android:textColor="@color/towny_widget_accent"
+            android:text="@string/towny_widget_again" />
+
+        <ImageView
+            android:id="@+id/towny_dot_5"
+            android:layout_width="11dp"
+            android:layout_height="11dp"
+            android:layout_marginStart="9dp"
+            android:importantForAccessibility="no" />
+    </LinearLayout>
+
+    <!-- El nombre, abajo y en voz baja. Es lo que abre la app y es lo que dice
+         de quién es este cuadrito en una pantalla llena de cuadritos. -->
+    <TextView
+        android:id="@+id/towny_open"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingTop="5dp"
+        android:paddingBottom="3dp"
+        android:textSize="10sp"
+        android:letterSpacing="0.28"
+        android:textColor="@color/towny_widget_faint"
+        android:text="@string/towny_widget_name" />
+</LinearLayout>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Y de noche. Ver `values/towny_widget_colors.xml`. -->
+<resources>
+    <color name="towny_widget_card">#191821</color>
+    <color name="towny_widget_ink">#EFE2CE</color>
+    <color name="towny_widget_faint">#8C8272</color>
+    <color name="towny_widget_accent">#E09A45</color>
+    <color name="towny_widget_hollow">#4DEFE2CE</color>
+    <color name="towny_widget_ripple">#33EFE2CE</color>
+</resources>

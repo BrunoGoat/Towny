@@ -46,7 +46,7 @@ void main() {
           final r = Reel.of([_seguidas(n)])!;
           expect(
             r.markOf(n - 1),
-            closeTo(r.seconds - Reel.tail, 1e-9),
+            closeTo(r.seconds - Reel.chronicleTail, 1e-9),
             reason: 'con $n piezas',
           );
         }
@@ -56,10 +56,10 @@ void main() {
     test('hay un valle vacío al principio y un pueblo entero al final', () {
       final r = Reel.of([_seguidas(60)])!;
       // La entrada: el prado, sin nada.
-      expect(r.at(Reel.lead * 0.5, 1).done, 0);
-      expect(r.at(Reel.lead * 0.5, 1).when, r.from);
+      expect(r.at(Reel.chronicleLead * 0.5, 1).done, 0);
+      expect(r.at(Reel.chronicleLead * 0.5, 1).when, r.from);
       // Y la cola: todo puesto, con tiempo de mirarlo.
-      final entra = r.seconds - Reel.tail;
+      final entra = r.seconds - Reel.chronicleTail;
       expect(r.at(entra + 0.01, 1).done, 60);
       expect(r.at(r.seconds - 0.01, 1).done, 60);
     });
@@ -258,6 +258,87 @@ void main() {
           }
         }
       }
+    });
+  });
+  group('la reproducción corta, la de lo que llegó del widget', () {
+    /// Los últimos [k] pasos de un hábito, que es lo que llega del buzón.
+    List<ReelStep> ultimas(Habit h, int k, {int slot = 0}) => [
+      for (final p in h.pieces.skip(h.pieces.length - k))
+        ReelStep(p.placedAt, slot, null),
+    ];
+
+    test('el pueblo está hecho desde el primer fotograma menos lo que cae', () {
+      final h = _seguidas(40);
+      final r = Reel.arrivals([h], ultimas(h, 3))!;
+      expect(r.base, [37]);
+      // Antes de la primera, el pueblo tal como lo dejaste.
+      expect(r.at(0, 1).counts, [37]);
+      expect(r.at(Reel.arrivalLead * 0.5, 1).counts, [37]);
+      // Y al final, entero.
+      expect(r.at(r.seconds, 1).counts, [40]);
+      expect(r.at(r.seconds, 1).done, 3);
+    });
+
+    test('todas caen dentro del rato de en medio', () {
+      final h = _seguidas(40);
+      final r = Reel.arrivals([h], ultimas(h, 5))!;
+      for (var i = 0; i < r.pieces; i++) {
+        expect(r.markOf(i), greaterThan(Reel.arrivalLead));
+        expect(
+          r.markOf(i),
+          lessThanOrEqualTo(r.seconds - Reel.arrivalTail + 1e-9),
+          reason: 'la pieza $i cae dentro de la cola',
+        );
+      }
+    });
+
+    test('dura lo mismo caigan una o doce', () {
+      final h = _seguidas(40);
+      final una = Reel.arrivals([h], ultimas(h, 1))!;
+      final doce = Reel.arrivals([h], ultimas(h, 12))!;
+      expect(una.seconds, doce.seconds);
+      // Y la de una no se ve en el último fotograma: le queda la cola entera.
+      expect(una.markOf(0), lessThan(una.seconds - Reel.arrivalTail + 1e-9));
+    });
+
+    test('sin nada que enseñar no hay reproducción', () {
+      expect(Reel.arrivals([_seguidas(40)], const []), isNull);
+    });
+
+    test('la cuenta de partida nunca baja de cero', () {
+      // Lo que llega no está en la lista del hábito: se borró el pueblo entre
+      // medias, o el guardado vino raro. La cuenta no puede quedar negativa.
+      final h = _seguidas(2);
+      final r = Reel.arrivals(
+        [h],
+        [
+          for (var i = 0; i < 5; i++)
+            ReelStep(_inicio.add(Duration(hours: i)), 0, null),
+        ],
+      )!;
+      expect(r.base.first, greaterThanOrEqualTo(0));
+      expect(r.at(0, 1).counts.first, greaterThanOrEqualTo(0));
+    });
+
+    test('dos pueblos a la vez, cada uno con lo suyo', () {
+      final leer = _seguidas(20, slot: 0, id: 'a');
+      final correr = _seguidas(9, slot: 1, id: 'b', desde: 0.4);
+      final r = Reel.arrivals(
+        [leer, correr],
+        [
+          ReelStep(leer.pieces.last.placedAt, 0, null),
+          ReelStep(correr.pieces.last.placedAt, 1, null),
+        ],
+      )!;
+      expect(r.base, [19, 8]);
+      expect(r.at(r.seconds, 2).counts, [20, 9]);
+    });
+
+    test('la crónica sigue partiendo del prado vacío', () {
+      // Lo que no puede pasar por añadir la corta: que la larga se entere.
+      final r = Reel.of([_seguidas(30)])!;
+      expect(r.base, [0]);
+      expect(r.at(0, 1).counts, [0]);
     });
   });
 }

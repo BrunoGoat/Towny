@@ -4,6 +4,7 @@ import 'package:la_muralla/data/character.dart';
 import 'package:la_muralla/model/appearance.dart';
 import 'package:la_muralla/model/habit.dart';
 import 'package:la_muralla/model/piece.dart';
+import 'package:la_muralla/model/reel.dart';
 import 'package:la_muralla/model/store.dart';
 import 'package:la_muralla/ui/reel_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -142,6 +143,56 @@ void main() {
   ) async {
     final s = await _store([_habit(0)]);
     await tester.pumpWidget(_marco(ReelScreen(store: s)));
+    await tester.pump(const Duration(seconds: 1));
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('la corta enseña el pueblo hecho y le tira encima lo que llegó', (
+    tester,
+  ) async {
+    final h = _habit(40);
+    final s = await _store([h]);
+    // Las tres últimas son las que se tocaron en el widget.
+    final llegaron = [
+      for (final p in h.pieces.skip(37)) ReelStep(p.placedAt, 0, null),
+    ];
+    await tester.pumpWidget(
+      _marco(ReelScreen.arrivals(store: s, pieces: llegaron)),
+    );
+    await _correr(tester, segundos: 14);
+    expect(tester.takeException(), isNull);
+    // La tarjeta cuenta lo que llegó, no el pueblo entero: quien abre la app
+    // ya sabe cuántas piezas tiene, y lo que no sabe es cuántas puso sin mirar.
+    expect(find.text('3'), findsOneWidget);
+    expect(find.text('piezas'), findsOneWidget);
+    expect(find.text('desde la pantalla de inicio'), findsOneWidget);
+    expect(find.text('AL VALLE'), findsOneWidget);
+  });
+
+  testWidgets('con una sola pieza también, y dice «pieza»', (tester) async {
+    // El caso de todos los días: una pieza, una vez, sin abrir la app.
+    final h = _habit(12);
+    final s = await _store([h]);
+    await tester.pumpWidget(
+      _marco(
+        ReelScreen.arrivals(
+          store: s,
+          pieces: [ReelStep(h.pieces.last.placedAt, 0, null)],
+        ),
+      ),
+    );
+    await _correr(tester, segundos: 14);
+    expect(tester.takeException(), isNull);
+    expect(find.text('1'), findsOneWidget);
+    expect(find.text('pieza'), findsOneWidget);
+  });
+
+  testWidgets('y sin nada que enseñar se va sola en vez de quedarse en negro', (
+    tester,
+  ) async {
+    final s = await _store([_habit(5)]);
+    await tester.pumpWidget(
+      _marco(ReelScreen.arrivals(store: s, pieces: const [])),
+    );
     await tester.pump(const Duration(seconds: 1));
     expect(tester.takeException(), isNull);
   });

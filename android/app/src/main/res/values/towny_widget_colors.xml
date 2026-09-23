@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Los colores del cuadrito de la pantalla de inicio, de día.
+
+     De día y de noche, y no uno solo: esto vive sobre el fondo de pantalla de
+     alguien, no sobre el cielo de la app, así que la única manera de que se
+     lea es seguir al teléfono. Son los mismos cuatro tonos que usa la app —el
+     crema del papel, el pardo de la tinta y el ámbar— y no un juego nuevo. -->
+<resources>
+    <color name="towny_widget_card">#F2EBDC</color>
+    <color name="towny_widget_ink">#241F16</color>
+    <color name="towny_widget_faint">#8A7C64</color>
+    <color name="towny_widget_accent">#B0762A</color>
+    <color name="towny_widget_hollow">#59241F16</color>
+    <color name="towny_widget_ripple">#33241F16</color>
+</resources>
