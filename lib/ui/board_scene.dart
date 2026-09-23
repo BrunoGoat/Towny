@@ -13,7 +13,9 @@ import '../engine/shooting_star.dart';
 import '../engine/sigils.dart';
 import '../engine/star_draw.dart';
 import '../engine/tones.dart';
+import '../fx/sensory.dart';
 import '../model/board_seen.dart';
+import '../model/board_slots.dart';
 import '../model/habit.dart';
 import '../model/notice.dart';
 import 'paper_ink.dart';
@@ -47,6 +49,31 @@ class BoardMotion {
 
   /// Cuánta ayuda se está enseñando. Se apaga sola en cuanto alguien toca.
   double hint = 1;
+
+  /// Qué papel lleva la mano, o null.
+  ///
+  /// Mientras dura, ese papel no se dibuja donde está clavado sino donde lo
+  /// lleva el dedo, y nada de lo guardado se toca: el hueco nuevo se escribe
+  /// al soltarlo. Rehacer el plano en cada fotograma obligaría a volver a
+  /// maquetar el texto de las diez hojas sesenta veces por segundo.
+  int? grab;
+
+  /// Adónde va: el sitio del hueco sobre el que está ahora mismo.
+  double grabX = 0, grabY = 0;
+
+  /// Cuánto ha despegado de la madera, de 0 a 1. Es lo que hace que se note
+  /// que está en la mano y no clavado.
+  double grabK = 0;
+
+  /// Sobre qué hueco está, o -1.
+  ///
+  /// Aquí dentro y no en el estado de la pantalla, por la misma razón que todo
+  /// lo demás de esta clase: el pintor se construye una vez por `build` y se
+  /// pinta sesenta veces por segundo. Estuvo fuera media hora y el resultado
+  /// era exactamente lo que este comentario avisa — la tiza se quedaba
+  /// marcando el hueco del que salió el papel mientras el papel ya iba por
+  /// otro, porque uno lo leía en vivo y el otro copiado.
+  int over = -1;
 }
 
 /// El tablón de la plaza, de cerca y en tres dimensiones.
@@ -78,6 +105,7 @@ class BoardScene extends StatefulWidget {
     required this.hourOfDay,
     required this.onLeave,
     this.onUnpin,
+    this.onMove,
     this.letra = 0,
     this.motion,
   });
@@ -85,6 +113,10 @@ class BoardScene extends StatefulWidget {
   /// Quitar del tablón una nota tuya, por lo que dice. Nulo cuando el tablón
   /// es de sólo lectura — el de mentira de los ajustes.
   final void Function(String said)? onUnpin;
+
+  /// Llevar un papel a otro hueco. Nulo en el tablón de mentira de los
+  /// ajustes, que no tiene dónde guardar el sitio.
+  final void Function(int paper, int slot)? onMove;
 
   /// Para los tests: el objeto que se mueve, para poder mirarlo desde fuera.
   final BoardMotion? motion;
@@ -136,8 +168,14 @@ class _BoardSceneState extends State<BoardScene>
       _ink = _entintar();
       _m.open = null;
       _m.openK = 0;
-      _cam.distanceTarget = widget.plan.readDistance(_size);
-      _clampCam();
+      // La cámara sólo vuelve a su sitio cuando cambió **lo que hay**: una
+      // nota clavada o quitada es un tablón nuevo y conviene volver a verlo
+      // entero. Cambiar dos papeles de sitio no lo es, y devolver la cámara
+      // ahí sería llevarte al otro lado del tablón justo después de soltar.
+      if (old.plan.papers.length != widget.plan.papers.length) {
+        _cam.distanceTarget = widget.plan.readDistance(_size);
+        _clampCam();
+      }
       _wake();
     }
   }
@@ -181,6 +219,11 @@ class _BoardSceneState extends State<BoardScene>
     _cam.step(dt);
     final quiere = _m.held ? 1.0 : 0.0;
     _m.openK += (quiere - _m.openK) * (1 - math.exp(-dt * 9.0));
+    // Despegar de la madera y volver a ella. Más rápido que descolgar, que es
+    // un viaje: esto es levantar la mano.
+    final enMano = _m.grab != null ? 1.0 : 0.0;
+    _m.grabK += (enMano - _m.grabK) * (1 - math.exp(-dt * 14.0));
+    if (_m.grab == null && _m.grabK < 0.004) _m.grabK = 0;
     if (!_m.held && _m.openK < 0.004) {
       _m.openK = 0;
       _m.open = null;
@@ -225,6 +268,7 @@ class _BoardSceneState extends State<BoardScene>
         (c.pitch - c.pitchTarget).abs() < 1e-4 &&
         (c.distance - c.distanceTarget).abs() < 1e-4 &&
         ((_m.held ? 1.0 : 0.0) - _m.openK).abs() < 1e-3 &&
+        ((_m.grab != null ? 1.0 : 0.0) - _m.grabK).abs() < 1e-3 &&
         _m.leaves <= 0 &&
         _m.hint <= 0;
   }
@@ -331,6 +375,81 @@ class _BoardSceneState extends State<BoardScene>
     _irse();
   }
 
+  // ------------------------------------------------------ llevarlo a otro sitio
+
+  /// Sobre qué hueco está el dedo ahora mismo.
+  ///
+  /// El más cercano en pantalla, y no «el que esté debajo»: entre dos huecos
+  /// hay madera, y un arrastre que suelta el papel sólo cuando el dedo acierta
+  /// dentro de un rectángulo se siente roto justo en los bordes, que es donde
+  /// uno apunta cuando quiere meter algo entre dos.
+  int _nearestSlot(Offset at) {
+    final p = _projector();
+    var mejor = 0;
+    var cerca = double.infinity;
+    for (var k = 0; k < BoardPlan.capacity; k++) {
+      final (cx, cy) = BoardPlan.spotOf(k, 0);
+      final c = p.cameraOf(V3(cx, cy, BoardPlan.plankDepth));
+      if (c.z <= p.near) continue;
+      final d = (Offset(p.screenX(c.x, c.z), p.screenY(c.y, c.z)) - at)
+          .distanceSquared;
+      if (d < cerca) {
+        cerca = d;
+        mejor = k;
+      }
+    }
+    return mejor;
+  }
+
+  /// Poner el papel que lleva la mano sobre el hueco [slot].
+  void _hover(int slot) {
+    final i = _m.grab;
+    if (i == null) return;
+    final (cx, cy) = BoardPlan.spotOf(
+      slot,
+      stableHash(noticeId(widget.plan.papers[i].notice)),
+    );
+    if (_m.over != slot) {
+      _m.over = slot;
+      Sensory.instance.tick();
+    }
+    _m.grabX = cx;
+    _m.grabY = cy;
+    _wake();
+  }
+
+  void _levantar(Offset at) {
+    if (_m.leaves > 0 || _m.held || widget.onMove == null) return;
+    final p = _projector();
+    final plan = widget.plan;
+    for (var i = 0; i < plan.papers.length; i++) {
+      final q = projectQuad(p, plan.papers[i].cornersAt(0));
+      if (q == null || !insideQuad(q, at)) continue;
+      // De la última a la primera no: se prueba en orden y gana la primera que
+      // contiene el dedo, igual que al descolgar.
+      Sensory.instance.press();
+      _m.hint = 0;
+      setState(() {
+        _m.grab = i;
+        _m.over = -1;
+      });
+      _hover(_nearestSlot(at));
+      return;
+    }
+  }
+
+  void _soltar() {
+    final i = _m.grab;
+    if (i == null) return;
+    final slot = _m.over;
+    setState(() {
+      _m.grab = null;
+      _m.over = -1;
+    });
+    Sensory.instance.tick();
+    if (slot >= 0) widget.onMove?.call(i, slot);
+  }
+
   /// Empezar a irse. No hay vuelta atrás: la cámara se va y la pantalla se
   /// apaga hasta salir.
   void _irse() {
@@ -344,7 +463,7 @@ class _BoardSceneState extends State<BoardScene>
   bool _fuera = false;
 
   void _drag(ScaleUpdateDetails d) {
-    if (_m.leaves > 0) return;
+    if (_m.leaves > 0 || _m.grab != null) return;
     _m.hint = 0;
     _wake();
     if (d.pointerCount >= 2) {
@@ -405,6 +524,16 @@ class _BoardSceneState extends State<BoardScene>
           behavior: HitTestBehavior.opaque,
           onScaleUpdate: _drag,
           onTapUp: (d) => _tap(d.localPosition),
+          // Mantener el dedo encima de un papel lo despega de la madera, y de
+          // ahí en adelante va donde va el dedo. Con mantener y no con
+          // arrastrar sin más: arrastrar ya es correr el tablón a los lados, y
+          // un tablón que se mueve o mueve un papel según dónde empezó el dedo
+          // es un tablón en el que no se puede confiar.
+          onLongPressStart: (d) => _levantar(d.localPosition),
+          onLongPressMoveUpdate: (d) =>
+              _m.grab == null ? null : _hover(_nearestSlot(d.localPosition)),
+          onLongPressEnd: (_) => _soltar(),
+          onLongPressCancel: _soltar,
           child: CustomPaint(
             size: Size.infinite,
             painter: BoardPainter(
@@ -433,26 +562,10 @@ class _BoardSceneState extends State<BoardScene>
                     child: Align(
                       alignment: Alignment.bottomCenter,
                       child: Padding(
-                        padding: const EdgeInsets.only(bottom: 22),
-                        child: TextButton.icon(
-                          onPressed: () => widget.onUnpin!(quitar),
-                          icon: const Icon(Icons.delete_outline, size: 17),
-                          label: const Text('Quitarla del tablón'),
-                          style: TextButton.styleFrom(
-                            foregroundColor: Colors.white.withValues(
-                              alpha: 0.92,
-                            ),
-                            backgroundColor: Colors.black.withValues(
-                              alpha: 0.32,
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 10,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                          ),
+                        padding: const EdgeInsets.only(bottom: 26),
+                        child: _Unpin(
+                          onTap: () => widget.onUnpin!(quitar),
+                          k: _m.openK,
                         ),
                       ),
                     ),
@@ -460,6 +573,54 @@ class _BoardSceneState extends State<BoardScene>
           ),
         );
       },
+    );
+  }
+}
+
+/// Quitar del tablón la nota que se está leyendo.
+///
+/// Una palabra, y nada alrededor. Era una píldora negra con un icono de papelera
+/// y cuatro palabras —«Quitarla del tablón»—, en blanco sobre negro y en un
+/// idioma de color que no es el de ninguna otra pantalla de la app. Lo que hay
+/// detrás es un papel descolgado que ocupa media pantalla: lo único que la
+/// palabra tiene que hacer es dejarse leer encima de él, y para eso basta con
+/// aliento y espacio.
+///
+/// Entra con la hoja, no antes: aparecer de golpe mientras el papel todavía
+/// está volando hacia la cámara es lo que hacía que pareciera un aviso.
+class _Unpin extends StatelessWidget {
+  const _Unpin({required this.onTap, required this.k});
+
+  final VoidCallback onTap;
+
+  /// Cuánto lleva descolgada la hoja, de 0 a 1.
+  final double k;
+
+  @override
+  Widget build(BuildContext context) {
+    final entra = ((k - 0.55) / 0.35).clamp(0.0, 1.0);
+    return Opacity(
+      opacity: entra,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+          child: Text(
+            'QUITARLA',
+            style: TextStyle(
+              color: const Color(0xFFF3EEE3).withValues(alpha: 0.92),
+              fontSize: 11.5,
+              letterSpacing: 2.4,
+              fontWeight: FontWeight.w600,
+              shadows: const [
+                Shadow(color: Color(0xCC000000), blurRadius: 12),
+                Shadow(color: Color(0x99000000), blurRadius: 26),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -770,11 +931,28 @@ class BoardPainter extends CustomPainter {
 
   // --------------------------------------------------------------- el papel
 
+  /// El papel [i] tal como hay que dibujarlo ahora: en su sitio, o donde lo
+  /// lleve la mano.
+  BoardPaper _at(int i) {
+    if (i != motion.grab) return plan.papers[i];
+    return plan.papers[i].moveTo(motion.grabX, motion.grabY);
+  }
+
   void _papers(Canvas canvas, Projector p, Size size) {
     final orden = <(double, int, List<Offset>)>[];
     for (var i = 0; i < plan.papers.length; i++) {
-      final abierta = i == motion.open ? motion.openK : 0.0;
-      final esquinas = plan.papers[i].cornersAt(abierta);
+      // El que va en la mano se dibuja **en el hueco al que va**, un punto
+      // crecido, despegado de la madera y derecho: es el mismo gesto que el de
+      // descolgarlo, a un quinto.
+      //
+      // En el hueco y no bajo el dedo, que es lo que lo hace legible sin tener
+      // que marcar nada aparte: el propio papel enseña dónde va a quedar. Se
+      // llegó a dibujar un rectángulo de tiza en el hueco de destino y no se
+      // veía nunca — estaba justo debajo del papel.
+      final abierta = i == motion.grab
+          ? motion.grabK * 0.18
+          : (i == motion.open ? motion.openK : 0.0);
+      final esquinas = _at(i).cornersAt(abierta);
       final quad = projectQuad(p, esquinas);
       if (quad == null) continue;
       final centro = V3(
@@ -787,6 +965,8 @@ class BoardPainter extends CustomPainter {
     // De lejos a cerca, y la descolgada siempre la última: se ha despegado del
     // tablón y tiene que tapar a las demás aunque su centro caiga detrás.
     orden.sort((a, b) {
+      if (a.$2 == motion.grab) return 1;
+      if (b.$2 == motion.grab) return -1;
       if (a.$2 == motion.open) return 1;
       if (b.$2 == motion.open) return -1;
       return b.$1.compareTo(a.$1);

@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 
 import '../core/rng.dart';
@@ -104,6 +106,14 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
 
   late BoardPlan _plan;
 
+  /// Lo que hay clavado y en qué hueco va cada uno, guardado aparte del plano.
+  ///
+  /// El plano no lo dice —una vez armado, un papel sólo sabe en qué punto de
+  /// la madera cayó— y para cambiar dos de sitio hace falta saber quién tiene
+  /// cuál.
+  List<Notice> _said = const [];
+  List<int> _slots = const [];
+
   /// Qué tirada del dado va. Cero es el tablón de verdad.
   int _roll = 0;
 
@@ -132,18 +142,57 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
     });
   }
 
+  /// Llevar el papel [i] al hueco [slot].
+  ///
+  /// El plano se rehace una vez, al soltar. Durante el arrastre no se toca
+  /// nada: lo que se ve moverse lo dibuja la escena por su cuenta, que es lo
+  /// que evita volver a maquetar diez hojas sesenta veces por segundo.
+  ///
+  /// Y **sin llave nueva**, al revés que clavar o quitar. La llave rehace la
+  /// escena entera, y rehacerla devuelve la cámara a la entrada: acabás de
+  /// soltar un papel en el lado derecho del tablón y el tablón te lleva al
+  /// izquierdo. Aquí no hace falta, porque la escena ya se entera sola de que
+  /// el plano cambió.
+  void _mover(int i, int slot) {
+    if (i < 0 || i >= _slots.length || slot < 0) return;
+    final mio = _slots[i];
+    if (mio == slot) return;
+    final huecos = [..._slots];
+    final otro = huecos.indexOf(slot);
+    if (otro >= 0) huecos[otro] = mio;
+    huecos[i] = slot;
+
+    // En el tablón de mentira de los ajustes no hay nada que guardar: sus
+    // notas son bandos sacados al azar y su pueblo no existe. El gesto se
+    // prueba igual, y eso es justo para lo que está ese tablón.
+    if (widget.store != null) {
+      BoardSlots.instance.place(
+        widget.habit.id,
+        [for (final n in _said) noticeId(n)],
+        i,
+        slot,
+      );
+    }
+    setState(() {
+      _slots = huecos;
+      _plan = BoardPlan.of(_said, slots: huecos);
+    });
+  }
+
   BoardPlan _real() {
     final said = boardNotices(widget.habit, valley: widget.valley);
+    _said = said;
+    _slots = BoardSlots.instance.assign(
+      widget.habit.id,
+      said,
+      slots: NoticeBoard.capacity,
+    );
     return BoardPlan.of(
       said,
       // Dónde quedó clavado cada papel. La misma tabla que mira el pueblo para
       // dibujar la silueta de su tablón, así que lo que se ve desde el valle y
       // lo que se ve al entrar es lo mismo.
-      slots: BoardSlots.instance.assign(
-        widget.habit.id,
-        said,
-        slots: NoticeBoard.capacity,
-      ),
+      slots: _slots,
     );
   }
 
@@ -180,7 +229,11 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
       }
       huecos.add(libres[i]);
     }
-    setState(() => _plan = BoardPlan.of(said, slots: huecos));
+    setState(() {
+      _said = said;
+      _slots = huecos;
+      _plan = BoardPlan.of(said, slots: huecos);
+    });
   }
 
   @override
@@ -203,6 +256,11 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
                 palette: widget.theme.palette,
                 hourOfDay: _hora,
                 onLeave: () => Navigator.of(context).maybePop(),
+                // Llevar un papel a otro hueco. Va también en el tablón de
+                // mentira de los ajustes: no hay nada que guardar allí, pero
+                // probar el gesto sin tener que fundar un pueblo es
+                // precisamente para lo que ese tablón existe.
+                onMove: _mover,
                 onUnpin: widget.store == null
                     ? null
                     : (said) {
@@ -248,6 +306,10 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
 ///
 /// Discreto a propósito: el tablón es para leerlo, y lo primero que se hace al
 /// llegar es mirar qué hay clavado. Escribir viene después, y sólo a veces.
+///
+/// Del mismo vidrio que las hojas de la app y no de `Frosted`, que de día es
+/// papel claro: esto va sobre un tablón de madera al sol, y un rectángulo de
+/// papel encima de otro se lee como un fallo de recorte.
 class _PinButton extends StatelessWidget {
   const _PinButton({required this.theme, required this.onTap});
 
@@ -256,21 +318,30 @@ class _PinButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = theme;
+    final velo = SheetInk.of(theme);
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: Frosted(
-        theme: t,
-        radius: 30,
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.push_pin_outlined, size: 16, color: t.fgSoft),
-            const SizedBox(width: 8),
-            Text('Clavar una nota', style: t.bodySoft.copyWith(fontSize: 13)),
-          ],
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(30),
+        child: BackdropFilter(
+          filter: ui.ImageFilter.blur(sigmaX: velo.bruma, sigmaY: velo.bruma),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+            decoration: BoxDecoration(
+              color: velo.tinte.withValues(alpha: velo.tapa),
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(color: velo.canto),
+            ),
+            child: Text(
+              'Clavar una nota',
+              style: theme.bodySoft.copyWith(
+                fontSize: 13,
+                color: velo.cuerpo,
+                shadows: velo.aliento,
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -282,6 +353,13 @@ class _PinButton extends StatelessWidget {
 /// Una línea y poco más. Lo que se clava en un tablón es un recordatorio o una
 /// promesa, no una entrada de diario: para lo largo ya está la bitácora, donde
 /// va la leyenda de cada pieza.
+///
+/// **Minimalista quiere decir que no hay nada que leer antes de escribir.**
+/// Había un rótulo, un párrafo explicando de qué iba el papel, una caja con su
+/// marco y su contador, y un botón ámbar del ancho de la pantalla: cinco cosas
+/// para pedir una línea. Ahora hay un renglón y, debajo, la palabra que lo
+/// clava. Lo que hacía el párrafo —decir que la nota va en papel tuyo y con tu
+/// letra— lo dice mejor el propio tablón en cuanto se clava la primera.
 class _WriteSheet extends StatefulWidget {
   const _WriteSheet({required this.theme});
 
@@ -294,85 +372,140 @@ class _WriteSheet extends StatefulWidget {
 class _WriteSheetState extends State<_WriteSheet> {
   final TextEditingController _c = TextEditingController();
 
+  /// Lo más largo que puede ser una nota. El papel del tablón no da para más,
+  /// y una nota que no cabe en su papel no es una nota corta mal contada: es
+  /// otra cosa, y para esa otra cosa está la bitácora.
+  static const int _tope = 90;
+
+  @override
+  void initState() {
+    super.initState();
+    _c.addListener(() => setState(() {}));
+  }
+
   @override
   void dispose() {
     _c.dispose();
     super.dispose();
   }
 
+  void _clavar() {
+    final texto = _c.text.trim();
+    if (texto.isEmpty) return;
+    Navigator.of(context).pop(texto);
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = widget.theme;
+    final velo = SheetInk.of(t);
+    final hay = _c.text.trim().isNotEmpty;
+    // Lo que queda, y sólo cuando queda poco. Un contador puesto siempre
+    // convierte escribir una línea en rellenar un formulario.
+    final queda = _tope - _c.text.characters.length;
     return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
-      child: Frosted(
-        theme: t,
-        strong: true,
-        radius: 28,
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('UNA NOTA TUYA', style: t.label),
-            const SizedBox(height: 8),
-            Text(
-              'Se clava en el tablón, en papel limpio y con tu letra, para que '
-              'no se confunda con lo que el pueblo averiguó.',
-              style: t.bodySoft.copyWith(fontSize: 12.5, height: 1.35),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        child: BackdropFilter(
+          filter: ui.ImageFilter.blur(sigmaX: velo.bruma, sigmaY: velo.bruma),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(24, 14, 24, 14),
+            decoration: BoxDecoration(
+              color: velo.tinte.withValues(alpha: velo.tapa),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(28),
+              ),
+              border: Border(top: BorderSide(color: velo.canto)),
             ),
-            const SizedBox(height: 14),
-            TextField(
-              controller: _c,
-              autofocus: true,
-              maxLength: 90,
-              maxLines: 2,
-              minLines: 1,
-              textCapitalization: TextCapitalization.sentences,
-              style: t.body,
-              cursorColor: t.accent,
-              decoration: InputDecoration(
-                hintText: 'Lo que quieras acordarte de mirar acá.',
-                hintStyle: t.bodySoft.copyWith(fontSize: 13),
-                counterStyle: t.bodySoft.copyWith(fontSize: 10),
-                filled: true,
-                fillColor: t.fg.withValues(alpha: 0.05),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(color: t.stroke),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(color: t.stroke),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(
-                    color: t.accent.withValues(alpha: 0.7),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 38,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: velo.cuerpo.withValues(alpha: 0.22),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-              ),
-              onSubmitted: (v) => Navigator.of(context).pop(v),
-            ),
-            const SizedBox(height: 6),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: () => Navigator.of(context).pop(_c.text),
-                style: FilledButton.styleFrom(
-                  backgroundColor: t.accent.withValues(alpha: 0.85),
-                  foregroundColor: t.dark ? Colors.black : Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _c,
+                  autofocus: true,
+                  maxLength: _tope,
+                  maxLines: 3,
+                  minLines: 1,
+                  textCapitalization: TextCapitalization.sentences,
+                  textInputAction: TextInputAction.done,
+                  style: t.body.copyWith(
+                    fontSize: 17,
+                    height: 1.3,
+                    color: velo.cuerpo,
                   ),
+                  cursorColor: t.accent,
+                  decoration: InputDecoration(
+                    // Sin marco, sin relleno y sin contador: la caja de texto
+                    // no tiene por qué parecer una caja.
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+                    counterText: '',
+                    border: InputBorder.none,
+                    hintText: 'Lo que quieras acordarte de mirar acá.',
+                    hintStyle: t.body.copyWith(
+                      fontSize: 17,
+                      height: 1.3,
+                      color: velo.cuerpo.withValues(alpha: 0.38),
+                    ),
+                  ),
+                  onSubmitted: (_) => _clavar(),
                 ),
-                child: const Text('Clavarla'),
-              ),
+                const SizedBox(height: 10),
+                Container(height: 1, color: velo.canto),
+                Row(
+                  children: [
+                    if (queda <= 20)
+                      Text(
+                        '$queda',
+                        style: t.bodySoft.copyWith(
+                          fontSize: 12,
+                          color: queda <= 0 ? t.accent : velo.tenue,
+                        ),
+                      ),
+                    const Spacer(),
+                    // La acción, en una palabra y en ámbar. Apagada mientras no
+                    // hay nada que clavar, en vez de escondida: un botón que
+                    // aparece de golpe al escribir la primera letra es un botón
+                    // que se mueve debajo del dedo.
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: hay ? _clavar : null,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 14,
+                        ),
+                        child: Text(
+                          'CLAVARLA',
+                          style: TextStyle(
+                            color: hay ? t.accent : velo.tenue,
+                            fontSize: 11.5,
+                            letterSpacing: 2.4,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

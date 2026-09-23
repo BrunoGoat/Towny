@@ -79,6 +79,39 @@ class BoardSlots {
     return out;
   }
 
+  /// Lleva el papel [which] de [ids] al hueco [slot], a mano.
+  ///
+  /// **Cambiándolo de sitio con el que estuviera allí, no tapándolo.** Un
+  /// tablón en el que soltar un papel encima de otro lo hace desaparecer no es
+  /// un tablón: es una papelera con aspecto de tablón. Y el que se va se
+  /// queda con el hueco que dejó éste, que es lo que uno hace con la mano
+  /// cuando cambia dos papeles de sitio.
+  ///
+  /// Pide la lista entera de lo que hay clavado ahora mismo, y no sólo el
+  /// papel que se mueve, por una razón concreta: la tabla guarda también
+  /// huecos de notas que ya no están —el horario de hace tres meses, un bando
+  /// que dejó de ser verdad— y cambiar de sitio con una de ésas dejaría dos
+  /// papeles vivos en el mismo agujero.
+  void place(String townId, List<String> ids, int which, int slot) {
+    if (which < 0 || which >= ids.length || slot < 0) return;
+    final key = '$townId/${ids[which]}';
+    final mio = _where[key];
+    if (mio == null || mio == slot) return;
+    for (var i = 0; i < ids.length; i++) {
+      if (i == which) continue;
+      final otro = '$townId/${ids[i]}';
+      if (_where[otro] == slot) {
+        _where[otro] = mio;
+        break;
+      }
+    }
+    _where[key] = slot;
+    _keep();
+  }
+
+  /// En qué hueco está ahora mismo ese papel, si es que está en alguno.
+  int? slotOf(String townId, String id) => _where['$townId/$id'];
+
   /// El hueco que le toca a un papel que se clava hoy por primera vez.
   ///
   /// Se sortea de su propio nombre, y desde ahí se va probando a saltos de un

@@ -364,3 +364,16 @@ sueles aparecer, qué día de la semana se te da mejor y cuál peor, qué pasa a
 siguiente de un día en blanco, cuánto tardás en volver después de un hueco, qué
 dos hábitos van juntos y cuáles nunca, cuánto hace que esto dura y quién va
 delante en el valle.
+
+Y podés clavar las tuyas. Escribirlas es un renglón y una palabra: no hay
+rótulo, ni un párrafo explicando de qué va el papel, ni un contador desde el
+primer carácter. Quitarlas es otra palabra, y aparece sola cuando tenés una
+tuya descolgada — un botón de quitar al lado de cada papel clavado sería un
+tablón con diez cruces encima.
+
+**Y los papeles se pueden cambiar de sitio.** Manteniendo el dedo encima, el
+papel se despega de la madera y se va plantando en el hueco al que apunte la
+mano; al soltarlo se queda ahí, y si había otro, los dos se cambian de sitio —
+un tablón en el que soltar un papel encima de otro lo hace desaparecer no es un
+tablón, es una papelera. El sitio se guarda, igual que se guardaba el que le
+tocó al clavarse: un tablón de verdad no recoloca nada solo.

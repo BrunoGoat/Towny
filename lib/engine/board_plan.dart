@@ -111,6 +111,36 @@ class BoardPlan {
   /// hoja, lo que se corre de su sitio y cuánto se tuerce— sale de la nota y
   /// no del azar, así que el tablón está siempre igual: uno vuelve a mirar una
   /// nota y sigue donde estaba.
+  /// Dónde cae un papel clavado en el hueco [hueco].
+  ///
+  /// Aparte y público porque lo pregunta también el dedo: para llevar un papel
+  /// a otro sitio hay que saber dónde está cada sitio, y eso no puede salir de
+  /// una cuenta escrita dos veces — el día que una de las dos se moviera, el
+  /// papel se soltaría en un hueco y aparecería en otro.
+  ///
+  /// [semilla] es el nombre del papel hecho número: de ahí sale el desvío con
+  /// el que se clava, que es lo que hace que diez papeles en diez huecos no
+  /// parezcan una cuadrícula. Cero da el centro exacto del hueco, que es lo
+  /// que hace falta para medir distancias.
+  static (double, double) spotOf(int hueco, int semilla) {
+    const halfWidth = cols * colPitch / 2 + margin;
+    const low = 0.42;
+    const high = low + rows * rowPitch + 0.3;
+    const band = (high - low - 0.3) / rows;
+    const usable = 2 * halfWidth - 2 * margin;
+    final row = hueco % rows, col = hueco ~/ rows;
+    return (
+      -halfWidth +
+          margin +
+          (col + 0.5) * (usable / cols) +
+          hashJitter((colPitch - paperW * 2) * 0.44, semilla, 22),
+      low +
+          0.15 +
+          (rows - 1 - row + 0.5) * band +
+          hashJitter((rowPitch - paperH * 2) * 0.44, semilla, 23),
+    );
+  }
+
   /// [slots] dice en qué hueco va cada una de [said], en el mismo orden, y es
   /// lo que se acuerda de dónde quedó clavado cada papel — lo reparte
   /// [BoardSlots].
@@ -124,8 +154,6 @@ class BoardPlan {
     const halfWidth = cols * colPitch / 2 + margin;
     const low = 0.42;
     const high = low + rows * rowPitch + 0.3;
-    const band = (high - low - 0.3) / rows;
-    const usable = 2 * halfWidth - 2 * margin;
     const medio = (low + high) / 2;
     const w = paperW, h = paperH;
     // El aire que se le deja al filo. Una hoja pegada al canto de la madera se
@@ -147,23 +175,13 @@ class BoardPlan {
     for (var i = 0; i < math.min(said.length, capacity); i++) {
       final hueco = slots[i];
       if (hueco < 0 || hueco >= capacity) continue;
-      final row = hueco % rows, col = hueco ~/ rows;
       // Todo lo que hace que un papel sea ese papel —cuánto se sale de su
       // hueco, cuánto se tuerce, de qué resma es— sale de su propio nombre y
       // no de su sitio en la lista. Si saliera de la lista, el día que una
       // nota deja de estar, todas las de detrás cambiarían de inclinación y de
       // color a la vez y el tablón parecería otro.
       final semilla = stableHash(noticeId(said[i]));
-      final cx =
-          -halfWidth +
-          margin +
-          (col + 0.5) * (usable / cols) +
-          hashJitter((colPitch - paperW * 2) * 0.44, semilla, 22);
-      final cy =
-          low +
-          0.15 +
-          (rows - 1 - row + 0.5) * band +
-          hashJitter((rowPitch - paperH * 2) * 0.44, semilla, 23);
+      final (cx, cy) = spotOf(hueco, semilla);
       papers.add(
         BoardPaper(
           notice: said[i],
@@ -373,6 +391,26 @@ class BoardPaper {
     // por los costados.
     return math.max(porAlto, porAncho) * 1.02 + rest + lift;
   }
+
+  /// El mismo papel clavado en otro sitio de la madera.
+  ///
+  /// Para llevarlo con el dedo: mientras dura el gesto se dibuja aquí sin
+  /// tocar nada de lo guardado, y sólo al soltarlo se escribe el hueco nuevo.
+  /// Si se rehiciera el plano en cada fotograma, habría que volver a maquetar
+  /// el texto de las diez hojas sesenta veces por segundo.
+  BoardPaper moveTo(double x, double y) => BoardPaper(
+    notice: notice,
+    index: index,
+    cx: x,
+    cy: y,
+    grow: grow,
+    openCx: x,
+    openCy: y,
+    w: w,
+    h: h,
+    lean: lean,
+    paper: paper,
+  );
 
   /// Las cuatro esquinas, en el mundo, con [open] entre 0 y 1.
   List<V3> cornersAt(double open) {
