@@ -171,6 +171,32 @@ void main() {
       expect(h.resting, isFalse, reason: 'el pueblo siguió dormido');
     });
 
+    test('tres del mismo hábito en un día son tres piezas', () async {
+      // Nada limita cuántas veces se puede tocar la misma fila, y es a
+      // propósito: dentro de la app tampoco hay un tope de una por día, y una
+      // app que te dejara apuntar dos cosas hechas y te contara una sola
+      // estaría mintiendo sobre lo único que promete contar bien.
+      final s = await _store();
+      final h = s.habits.first;
+      final t0 = DateTime.now().subtract(const Duration(hours: 8));
+      final uno = t0.add(const Duration(hours: 3));
+      final dos = t0.add(const Duration(hours: 5));
+      final puestas = s.applyArrivals(
+        Arrival.parseAll(
+          _inbox([(1, h.id, t0), (2, h.id, uno), (3, h.id, dos)]),
+        ),
+      );
+      expect(puestas.length, 3);
+      expect(h.total, 3);
+      // Y cada una con su hora, que es lo que hace que el tablón sepa a qué
+      // hora aparecés de verdad.
+      expect(h.pieces.map((p) => p.placedAt.hour).toList(), [
+        t0.hour,
+        uno.hour,
+        dos.hour,
+      ]);
+    });
+
     test(
       'varias, en el orden en que pasaron y no en el que llegaron',
       () async {
