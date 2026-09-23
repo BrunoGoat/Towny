@@ -32,6 +32,17 @@ en pantalla, el que se pinta después no esté más lejos. Es exactamente el fal
 que se ve, comprobado por máquina, porque «se ve mal desde ciertos ángulos» a ojo
 se escapa.
 
+Sin z-buffer, **cualquier cosa pintada al final se pinta encima de todo**, y eso
+incluye lo que no parece geometría. El resplandor de las ventanas encendidas se
+pintaba así —una pasada de halos cálidos sobre el pueblo ya levantado— y el
+resultado era que la luz de una ventana de la fila de atrás salía a través de la
+casa de delante. Ahora cada halo va intercalado en el orden de pintado, justo
+detrás de su ventana, y lo tapa lo que esté delante. Lo vigila
+`test/lamp_test.dart`, que no compara con ninguna imagen guardada: cuenta
+cuántos tonos distintos hay dentro de un tejado. Una cara plana se pinta de un
+color plano, así que un degradado ahí dentro sólo puede venir de algo pintado
+encima fuera de orden.
+
 ## Sonido
 
 Cinco sonidos —poner una pieza, toque, reparar, obra terminada, hito del pueblo—

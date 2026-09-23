@@ -79,6 +79,10 @@ class TownPainter extends CustomPainter {
   /// laid over the town after the masonry is down. x, y, radius, strength.
   final List<double> _lamps = [];
 
+  /// Cuántos números lleva cada lámpara: dónde cae, cómo de grande, cuánto
+  /// alumbra y a qué cara pertenece.
+  static const int _lampStride = 5;
+
   /// True while the town being painted is the one being built, so a tap is
   /// only ever resolved against a piece of that town.
   bool _picking = false;
@@ -168,8 +172,7 @@ class TownPainter extends CustomPainter {
     }
     _drawRings(canvas, p, town, overlay: false);
     _collectTown(p, size);
-    _flush(canvas);
-    _drawLamps(canvas, size);
+    _flush(canvas, size);
     _drawBirds(canvas, p, size, town);
     _drawRings(canvas, p, town, overlay: true);
     _drawTownGhost(canvas, p, size, town);
@@ -513,31 +516,32 @@ class TownPainter extends CustomPainter {
     }
   }
 
-  /// The light the lit windows throw, laid over the town once its walls are
-  /// down. Half of what a town at night is, is the glow around the windows
-  /// rather than the windows themselves.
-  void _drawLamps(Canvas canvas, Size size) {
-    if (_lamps.isEmpty) return;
+  /// La luz que echa una ventana encendida. La mitad de lo que es un pueblo de
+  /// noche es el halo alrededor de las ventanas, no las ventanas.
+  ///
+  /// **Se pinta en su sitio del orden, no al final.** Se pintaba al final,
+  /// sobre el pueblo ya levantado, y eso en un rasterizador sin búfer de
+  /// profundidad quiere decir exactamente lo que parece: el resplandor de una
+  /// ventana de la fila de atrás salía **a través** de la casa de delante, y
+  /// desde lejos el pueblo entero se veía con manchas cálidas encima de los
+  /// tejados que las tapan. El halo es geometría como todo lo demás y tiene
+  /// que ir donde le toca — detrás de lo que está delante.
+  void _lampAt(Canvas canvas, Size size, Paint paint, int i) {
+    final x = _lamps[i], y = _lamps[i + 1];
+    final r = _lamps[i + 2] * 3.0, k = _lamps[i + 3];
+    if (x < -r || x > size.width + r || y < -r || y > size.height + r) return;
     const warm = Color(0xFFFFC978);
-    final paint = Paint()..blendMode = BlendMode.plus;
-    for (var i = 0; i < _lamps.length; i += 4) {
-      final x = _lamps[i], y = _lamps[i + 1];
-      final r = _lamps[i + 2] * 3.0, k = _lamps[i + 3];
-      if (x < -r || x > size.width + r || y < -r || y > size.height + r) {
-        continue;
-      }
-      paint.shader = ui.Gradient.radial(
-        Offset(x, y),
-        r,
-        [
-          warm.withValues(alpha: 0.16 * k),
-          warm.withValues(alpha: 0.055 * k),
-          const Color(0x00000000),
-        ],
-        [0.0, 0.38, 1.0],
-      );
-      canvas.drawCircle(Offset(x, y), r, paint);
-    }
+    paint.shader = ui.Gradient.radial(
+      Offset(x, y),
+      r,
+      [
+        warm.withValues(alpha: 0.16 * k),
+        warm.withValues(alpha: 0.055 * k),
+        const Color(0x00000000),
+      ],
+      [0.0, 0.38, 1.0],
+    );
+    canvas.drawCircle(Offset(x, y), r, paint);
   }
 
   /// The sign over each town: its symbol, its name and how much of it is
@@ -1730,7 +1734,7 @@ class TownPainter extends CustomPainter {
     if (!lit) return hazeAt(colour, p, piece.cx, piece.cz, pal).toARGB32();
     // A lit window is a light, not a yellow rectangle. Remember where it fell
     // so a glow can be laid over the town once the walls are down.
-    if (_lamps.length < 4 * 220) {
+    if (_lamps.length < _lampStride * 220) {
       final at = p.project(f.centroid);
       if (at != null) {
         final r = p.focal / at.depth * 0.34;
@@ -1739,7 +1743,11 @@ class TownPainter extends CustomPainter {
             ..add(at.x)
             ..add(at.y)
             ..add(math.min(r, 34))
-            ..add(clampD(1 - decay * 0.7, 0.2, 1.0));
+            ..add(clampD(1 - decay * 0.7, 0.2, 1.0))
+            // A qué cara pertenece: la que está a punto de emitirse con este
+            // color, que es la ventana misma. De ahí sale su sitio en el
+            // orden de pintado.
+            ..add(_faceCount.toDouble());
         }
       }
     }
@@ -2172,7 +2180,7 @@ class TownPainter extends CustomPainter {
   /// There is no sort here any more and there is not meant to be one: by the
   /// time a face reaches this list its place has already been decided by
   /// geometry rather than guessed from a distance.
-  void _flush(Canvas canvas) {
+  void _flush(Canvas canvas, Size size) {
     if (_faceCount == 0) return;
     final paint = Paint()
       ..style = PaintingStyle.fill
@@ -2187,6 +2195,12 @@ class TownPainter extends CustomPainter {
       ..strokeWidth = 1.0
       ..strokeJoin = StrokeJoin.round
       ..isAntiAlias = true;
+    // Las lámparas van intercaladas, cada una justo detrás de su ventana: las
+    // caras se recorren de lejos a cerca, así que todo lo que se pinte después
+    // de un halo lo tapa, que es exactamente lo que tiene que pasar. Salen en
+    // orden de cara porque se apuntaron durante el mismo recorrido.
+    final lampara = Paint()..blendMode = BlendMode.plus;
+    var luz = 0;
     for (var k = 0; k < _faceCount; k++) {
       final f = _facePool[k];
       _scratch.reset();
@@ -2199,6 +2213,16 @@ class TownPainter extends CustomPainter {
       canvas.drawPath(_scratch, paint);
       seam.color = paint.color;
       canvas.drawPath(_scratch, seam);
+      while (luz < _lamps.length && _lamps[luz + 4] <= k) {
+        _lampAt(canvas, size, lampara, luz);
+        luz += _lampStride;
+      }
+    }
+    // Y las que quedaron sin cara: una ventana recortada por el plano cercano
+    // no llega a emitirse, y su luz se apuntó igual.
+    while (luz < _lamps.length) {
+      _lampAt(canvas, size, lampara, luz);
+      luz += _lampStride;
     }
   }
 
