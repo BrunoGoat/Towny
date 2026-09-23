@@ -134,6 +134,17 @@ class _ReelScreenState extends State<ReelScreen>
   /// Si ésta es la corta, la de lo que llegó del widget.
   bool get _short => widget.arrivals != null;
 
+  /// Si la corta ya encuadró el pueblo de un salto.
+  ///
+  /// La crónica puede permitirse llegar al encuadre despacio: empieza mirando
+  /// un prado vacío y tiene un minuto para acercarse. La corta empieza con el
+  /// pueblo entero delante y dura once segundos — si entra con la misma
+  /// aproximación mansa, los primeros cuatro se van en un pueblo diminuto en
+  /// medio de la pantalla y las piezas caen antes de que se le vea la cara.
+  /// Así que el primer fotograma se planta donde toca y a partir de ahí ya se
+  /// mueve como la otra.
+  bool _snapped = false;
+
   @override
   void initState() {
     super.initState();
@@ -308,7 +319,8 @@ class _ReelScreenState extends State<ReelScreen>
     final caja = _built(m);
     if (caja != null) {
       final (centro, puntos) = caja;
-      final lento = 1 - math.exp(-dt * 1.15);
+      final plantar = _short && !_snapped;
+      final lento = plantar ? 1.0 : 1 - math.exp(-dt * 1.15);
       _cam.travel += (centro.x - _cam.travel) * lento;
       _cam.focusZ += (centro.z - _cam.focusZ) * lento;
       _cam.focusY += (centro.y - _cam.focusY) * lento;
@@ -334,8 +346,13 @@ class _ReelScreenState extends State<ReelScreen>
           // nada que contar alrededor.
           margin: 0.90,
         );
-        _cam.distance += (quiere - _cam.distance) * (1 - math.exp(-dt * 0.9));
+        // Y el acercamiento, que en la corta va más vivo por lo mismo que el
+        // giro: once segundos no dan para una aproximación de minuto.
+        _cam.distance +=
+            (quiere - _cam.distance) *
+            (plantar ? 1.0 : (1 - math.exp(-dt * (_short ? 2.4 : 0.9))));
         _cam.distanceTarget = _cam.distance;
+        if (plantar) _snapped = true;
       }
     }
     _cam.reaches(-400, 400);
@@ -367,7 +384,12 @@ class _ReelScreenState extends State<ReelScreen>
     final x1 = caja.x1, y1 = caja.y1, z1 = caja.z1;
     // Un poco de prado alrededor: un pueblo pegado a los bordes de la pantalla
     // no se ve estar en ningún sitio.
-    const aire = 1.8;
+    //
+    // Menos en la corta, y no por gusto. Lo que se está mirando ahí no es un
+    // pueblo entero creciendo: son tres piezas cayendo sobre un pueblo que ya
+    // estaba, y una piedra vista desde donde cabe todo el valle es un píxel
+    // que cambia de color. Se entra más cerca.
+    final aire = _short ? 1.0 : 1.8;
 
     // Y sitio por debajo para la tarjeta del final, que es lo único en toda la
     // pantalla que tapa algo — y lo que taparía es justo lo que se ha tardado
@@ -387,7 +409,11 @@ class _ReelScreenState extends State<ReelScreen>
     // No es un fallo de cuentas, es la perspectiva — el punto medio de una
     // caja en el mundo no cae en el punto medio de su dibujo cuando se la mira
     // desde arriba en escorzo — y se corrige aquí, que es donde se ve.
-    final hondo = (y1 - y0) * 0.45 + 0.8 + _lift * ((y1 - y0) * 1.5 + 4.0);
+    // Y su tarjeta también es más corta —dos líneas en vez de cuatro—, así
+    // que el hueco que hay que reservarle debajo es menos.
+    final hondo = _short
+        ? (y1 - y0) * 0.20 + 0.5 + _lift * ((y1 - y0) * 1.1 + 3.0)
+        : (y1 - y0) * 0.45 + 0.8 + _lift * ((y1 - y0) * 1.5 + 4.0);
 
     for (final x in [x0 - aire, x1 + aire]) {
       for (final y in [y0 - hondo, y1 + 1.0]) {

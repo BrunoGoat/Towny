@@ -8,6 +8,7 @@ import 'package:la_muralla/data/character.dart';
 import 'package:la_muralla/model/appearance.dart';
 import 'package:la_muralla/model/habit.dart';
 import 'package:la_muralla/model/piece.dart';
+import 'package:la_muralla/model/reel.dart';
 import 'package:la_muralla/model/store.dart';
 import 'package:la_muralla/ui/reel_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -102,6 +103,77 @@ void main() {
       // Dentro de `runAsync`, o se cuelga en la segunda: fuera de él el reloj
       // del test está parado, y `toImage` está esperando a un hilo que no
       // avanza mientras el test no le deje avanzar.
+      await tester.runAsync(() async {
+        final img = await boundary.toImage(pixelRatio: 1.6);
+        final png = await img.toByteData(format: ui.ImageByteFormat.png);
+        File(name).writeAsBytesSync(png!.buffer.asUint8List());
+        img.dispose();
+      });
+      // ignore: avoid_print
+      print('escrito $name');
+    }
+  });
+  testWidgets('fotogramas de la corta', (tester) async {
+    // La de lo que llegó del widget: un pueblo hecho al que le caen encima
+    // tres piezas. Lo que hay que mirar aquí es otra cosa que en la larga —
+    // que el pueblo se vea entero desde el primer fotograma y que la cámara
+    // se mueva lo bastante en once segundos como para que se note.
+    const out = String.fromEnvironment('OUT', defaultValue: '/tmp/reel');
+    Directory('$out/corta').createSync(recursive: true);
+
+    SharedPreferences.setMockInitialValues({});
+    final store = Store();
+    await store.load();
+    final h = Habit(
+      id: 'h0',
+      name: 'Leer',
+      symbol: 'libro',
+      slot: 0,
+      createdAt: DateTime(2026, 1, 5),
+      character: TownCharacter.all.first.order,
+      pieces: [
+        for (var i = 0; i < 90; i++)
+          Piece(
+            index: i,
+            placedAt: DateTime(2026, 1, 5, 19).add(Duration(days: i)),
+          ),
+      ],
+    );
+    store.habits
+      ..clear()
+      ..add(h);
+    final llegaron = [
+      for (final p in h.pieces.skip(87)) ReelStep(p.placedAt, 0, null),
+    ];
+
+    final key = GlobalKey();
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(
+          size: Size(390, 844),
+          devicePixelRatio: 2,
+          padding: EdgeInsets.only(top: 44, bottom: 24),
+        ),
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: RepaintBoundary(
+            key: key,
+            child: ReelScreen.arrivals(store: store, pieces: llegaron),
+          ),
+        ),
+      ),
+    );
+
+    const cuando = [1.0, 2.5, 4.0, 5.5, 8.0, 12.5];
+    var t = 0.0;
+    for (final quiero in cuando) {
+      while (t < quiero) {
+        await tester.pump(const Duration(milliseconds: 50));
+        t += 0.05;
+      }
+      final boundary =
+          key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+      final name = '$out/corta/t${quiero.toStringAsFixed(1)}.png';
       await tester.runAsync(() async {
         final img = await boundary.toImage(pixelRatio: 1.6);
         final png = await img.toByteData(format: ui.ImageByteFormat.png);
