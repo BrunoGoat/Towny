@@ -292,12 +292,24 @@ void main() {
       }
     });
 
-    test('dura lo mismo caigan una o doce', () {
+    test('dura lo que tenga que durar, y no siempre lo mismo', () {
+      // Al revés que la crónica, y a propósito. Allí la duración es fija
+      // porque lo que se cuenta es un año y el año no cabe de otra manera;
+      // aquí se cuentan las piezas que pusiste anoche, una por una, y diez
+      // segundos para enseñar **una** son nueve de pantalla quieta: la
+      // cinemática se vuelve un peaje por haber usado el widget.
       final h = _seguidas(40);
       final una = Reel.arrivals([h], ultimas(h, 1))!;
+      final tres = Reel.arrivals([h], ultimas(h, 3))!;
       final doce = Reel.arrivals([h], ultimas(h, 12))!;
-      expect(una.seconds, doce.seconds);
-      // Y la de una no se ve en el último fotograma: le queda la cola entera.
+      expect(una.seconds, lessThan(tres.seconds));
+      expect(tres.seconds, lessThan(doce.seconds));
+      // Una sola no puede costar más de unos segundos.
+      expect(una.seconds, lessThan(6.0));
+      // Y doce tampoco pueden irse de las manos: a partir de unas cuantas
+      // caen a puñados, que es mejor de ver que más rato.
+      expect(doce.seconds, lessThan(12.0));
+      // La de una no se ve en el último fotograma: le queda la cola entera.
       expect(una.markOf(0), lessThan(una.seconds - Reel.arrivalTail + 1e-9));
     });
 

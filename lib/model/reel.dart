@@ -36,7 +36,7 @@ class Reel {
   static const double chronicleLead = 2.6;
 
   /// El de la otra reproducción, la corta. Ver [arrivals].
-  static const double arrivalLead = 2.0;
+  static const double arrivalLead = 1.2;
 
   /// Y el de después: el pueblo terminado, quieto, mientras la música resuelve.
   ///
@@ -47,7 +47,29 @@ class Reel {
   static const double chronicleTail = 7.0;
 
   /// Y el suyo. Ver [arrivals].
-  static const double arrivalTail = 5.0;
+  static const double arrivalTail = 3.0;
+
+  /// Lo que se le da a cada pieza que llegó, más allá de la primera.
+  static const double perArrival = 1.15;
+
+  /// Y lo más que puede durar el rato en que caen, por muchas que sean.
+  static const double arrivalSpanCap = 6.0;
+
+  /// Cuánto dura la corta con [n] piezas dentro.
+  ///
+  /// **Dinámica, al revés que la crónica.** Allí la duración es fija porque lo
+  /// que se está contando es un año entero y el año no cabe de otra manera.
+  /// Aquí lo que se cuenta son las piezas que pusiste anoche, una por una, y
+  /// once segundos para enseñar **una** son diez de pantalla quieta: la
+  /// cinemática se vuelve un peaje por haber usado el widget, que es
+  /// exactamente lo contrario de para lo que está.
+  static double secondsFor(int n) {
+    if (n <= 0) return 0;
+    final span = math.min((n - 1) * perArrival, arrivalSpanCap);
+    // Un respiro mínimo aunque venga una sola: sin él, la única pieza cae en
+    // el mismo instante en que acaba la entrada.
+    return arrivalLead + math.max(span, 0.8) + arrivalTail;
+  }
 
   /// Una por pieza, en el orden en que se pusieron de verdad.
   final List<ReelStep> steps;
@@ -108,9 +130,9 @@ class Reel {
   /// Y desde cuántos días. Doce piezas en una tarde tampoco son una crónica.
   static const int enoughDays = 7;
 
-  /// Si vale la pena ofrecerlo.
-  static bool worthIt(List<Habit> habits) {
-    final all = _chronological(habits);
+  /// Si vale la pena ofrecerlo. Con [only] puesto, mirando un solo pueblo.
+  static bool worthIt(List<Habit> habits, {int only = -1}) {
+    final all = _chronological(habits, only: only);
     if (all.length < enough) return false;
     return all.last.when.difference(all.first.when).inDays >= enoughDays;
   }
@@ -121,8 +143,11 @@ class Reel {
   /// misma cola, ordenadas por su fecha. Es la única manera de que el segundo
   /// pueblo aparezca cuando apareció de verdad, que es de las pocas cosas que
   /// esta pantalla puede contar y ninguna otra de la app cuenta.
-  static Reel? of(List<Habit> habits, {double seconds = 62.0}) {
-    final all = _chronological(habits);
+  /// Con [only] puesto, sólo las de ese pueblo: es la crónica de uno solo, que
+  /// se mira de otra manera —girando alrededor de su plaza— porque de un solo
+  /// pueblo no hay nada a lo que saltar.
+  static Reel? of(List<Habit> habits, {double seconds = 62.0, int only = -1}) {
+    final all = _chronological(habits, only: only);
     if (all.length < 2) return null;
 
     final mark = _spread(all, seconds, chronicleLead, chronicleTail);
@@ -144,16 +169,14 @@ class Reel {
   /// dejaste tocadas anoche. Lo único distinto de verdad es [base]: la cuenta
   /// de la que se parte no es cero.
   ///
-  /// **Y dura lo mismo caigan una o doce**, por lo mismo que la crónica: ver
-  /// lo que hiciste no puede costar más cuanto más hayas hecho. Con una, cae
-  /// una y se mira el pueblo; con doce, caen a puñados, que es mejor de ver
-  /// que más rato.
+  /// **Y dura lo que haya que durar**: ver [secondsFor].
   static Reel? arrivals(
     List<Habit> habits,
     List<ReelStep> pieces, {
-    double seconds = 11.0,
+    double? seconds,
   }) {
     if (pieces.isEmpty) return null;
+    final dura = seconds ?? secondsFor(pieces.length);
     final all = [...pieces]..sort((a, b) => a.when.compareTo(b.when));
     final base = List<int>.filled(habits.length, 0);
     for (var i = 0; i < habits.length; i++) {
@@ -170,8 +193,8 @@ class Reel {
       if (base[i] < 0) base[i] = 0;
     }
 
-    final mark = _spread(all, seconds, arrivalLead, arrivalTail);
-    return Reel._(all, seconds, mark, base, arrivalLead, arrivalTail);
+    final mark = _spread(all, dura, arrivalLead, arrivalTail);
+    return Reel._(all, dura, mark, base, arrivalLead, arrivalTail);
   }
 
   /// En qué segundo cae cada una.
@@ -231,9 +254,10 @@ class Reel {
   /// lista del hábito ya no está en orden de reloj. Una reproducción que
   /// retrocede en el tiempo a mitad de camino sería un fallo muy raro de
   /// encontrar y muy fácil de evitar aquí.
-  static List<ReelStep> _chronological(List<Habit> habits) {
+  static List<ReelStep> _chronological(List<Habit> habits, {int only = -1}) {
     final all = <ReelStep>[];
     for (var h = 0; h < habits.length; h++) {
+      if (only >= 0 && h != only) continue;
       for (final p in habits[h].pieces) {
         all.add(ReelStep(p.placedAt, h, p.label));
       }

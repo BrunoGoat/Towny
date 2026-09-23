@@ -100,7 +100,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
   }
 
   /// The whole catalogue, three rows tall, read down and then across.
-  Widget _reelOfMarks(UiTheme t, _Veil velo) {
+  Widget _reelOfMarks(UiTheme t, SheetInk velo) {
     final columns = (habitSymbols.length + _rows - 1) ~/ _rows;
     return SizedBox(
       height: _rows * _tile + (_rows - 1) * _gap,
@@ -128,7 +128,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
 
   /// One square of the reel, or an empty square where the list runs out — so
   /// the last column is the same width as every other one.
-  Widget _markTile(UiTheme t, _Veil velo, int at) {
+  Widget _markTile(UiTheme t, SheetInk velo, int at) {
     if (at >= habitSymbols.length) {
       return const SizedBox(width: _tile, height: _tile);
     }
@@ -216,7 +216,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
   /// cuarenta y seis a ciento ocho, y el que quedó es éste.
   static const double _mark = 74.0;
 
-  Widget _sigil(UiTheme t, _Veil velo, double size) {
+  Widget _sigil(UiTheme t, SheetInk velo, double size) {
     // El lápiz crece con la marca hasta cierto punto y ahí se para: es un aviso
     // de que la cosa se puede tocar, y un aviso del tamaño de un pulgar deja de
     // ser un aviso para ser un botón encima de la marca.
@@ -290,7 +290,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
   }
 
   /// Dónde se escribe el nombre: centrado y sin caja ninguna.
-  Widget _field(UiTheme t, _Veil velo, double size) => TextField(
+  Widget _field(UiTheme t, SheetInk velo, double size) => TextField(
     controller: _name,
     onChanged: (_) => _keep(),
     textAlign: TextAlign.center,
@@ -319,7 +319,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
 
   /// Qué clase de sitio es este pueblo: la comarca entre dos filetes, y su
   /// línea debajo.
-  Widget _region(UiTheme t, _Veil velo, TownCharacter ch) => Column(
+  Widget _region(UiTheme t, SheetInk velo, TownCharacter ch) => Column(
     key: ValueKey(ch.region),
     crossAxisAlignment: CrossAxisAlignment.center,
     children: [
@@ -358,7 +358,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
 
   /// Un filete de pelo. Es la única raya que dibuja esta hoja, y de ella salen
   /// todas sus separaciones.
-  Widget _hair(_Veil velo, [double? ancho]) => Container(
+  Widget _hair(SheetInk velo, [double? ancho]) => Container(
     width: ancho,
     height: 1,
     color: velo.cuerpo.withValues(alpha: 0.16),
@@ -375,7 +375,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
   /// pueblo y ponerse a ello no tiene que rellenar un formulario, y un campo
   /// vacío acá no le quita nada a nadie. No se enseñan en ningún día bueno —
   /// salen en el susurro de vuelta y en la hoja que pregunta si seguimos.
-  Widget _theTwoLines(UiTheme t, _Veil velo) => Column(
+  Widget _theTwoLines(UiTheme t, SheetInk velo) => Column(
     children: [
       _softLine(
         t,
@@ -397,7 +397,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
 
   Widget _softLine(
     UiTheme t,
-    _Veil velo,
+    SheetInk velo,
     TextEditingController c,
     String label,
     String hint,
@@ -457,7 +457,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
   /// viaje el martes que viene. Que la única manera de pausar fuera desaparecer
   /// cuatro días y esperar a que la app preguntara sería pedirle a la gente que
   /// falle primero para poder decir que no va a poder.
-  Widget _exits(UiTheme t, _Veil velo) {
+  Widget _exits(UiTheme t, SheetInk velo) {
     final h = widget.store.habit;
     final duerme = h.resting;
     // El rojo de aviso, en la versión que se lee sobre este velo: el oscuro se
@@ -525,7 +525,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
   }
 
   /// Las seis comarcas, para elegir una al fundar.
-  Widget _regionPicker(UiTheme t, _Veil velo) => Row(
+  Widget _regionPicker(UiTheme t, SheetInk velo) => Row(
     children: [
       for (final c in TownCharacter.all)
         Expanded(
@@ -566,7 +566,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
   );
 
   /// El carrete de marcas, que se abre debajo del nombre.
-  Widget _reelSlot(UiTheme t, _Veil velo) => AnimatedSize(
+  Widget _reelSlot(UiTheme t, SheetInk velo) => AnimatedSize(
     duration: const Duration(milliseconds: 190),
     curve: Curves.easeOutCubic,
     alignment: Alignment.topCenter,
@@ -592,41 +592,10 @@ class _HabitsSheetState extends State<HabitsSheet> {
     ),
   );
 
-  /// De qué está hecho el velo: su color, lo sólido que es y cuánto desenfoca
-  /// lo que queda debajo.
-  ///
-  /// De noche es siempre el mismo —oscuro sobre oscuro, que es lo que
-  /// funciona— y lo único que se elige es cuánto tapa, con un deslizador. De
-  /// día se elige entre cinco, porque de día es donde se rompía: una crema casi
-  /// opaca sobre un prado verde no es aire espesándose, es un papel puesto
-  /// encima. Las cinco tiran de lo mismo: que el velo saque su color de la
-  /// escena en vez de traerlo de fuera, y que deje ver algo de lo que hay
-  /// debajo.
-  _Veil _veil(UiTheme t) {
-    final p = t.palette;
-    // De noche: oscuro sobre oscuro al noventa y cinco por ciento, que es el
-    // número al que se llegó probándolo con un deslizador.
-    if (t.dark) {
-      return _Veil(tinte: t.panelStrong, tapa: 0.95, bruma: 0, cuerpo: t.fg);
-    }
-    // Y de día, lo mismo. Se probaron quince maneras de hacerlo claro —crema,
-    // prado, cielo, escarcha, miel, musgo, pizarra, y ocho vidrios de distinta
-    // transparencia— y la que quedó fue ésta: vidrio **ahumado**. En un
-    // mediodía verde y brillante, oscurecer separa mejor que aclarar, que es
-    // justo lo que ya funcionaba a las once de la noche; y la hoja se ve igual
-    // a cualquier hora en vez de darse la vuelta a las siete de la tarde.
-    //
-    // La tinta va clara encima, y no blanca: crema con una gota del color del
-    // pueblo. El blanco de papel sobre esto es lo único que se sigue viendo de
-    // fuera.
-    return _Veil(
-      tinte: Color.lerp(p.ink, Colors.black, 0.30)!,
-      tapa: 0.72,
-      bruma: 18,
-      cuerpo: Color.lerp(const Color(0xFFF3EEE3), p.accent, 0.16)!,
-      oscuro: true,
-    );
-  }
+  /// El velo de esta hoja. La receta vive en [SheetInk] desde que la tarjeta
+  /// del final de la cinemática pasó a usar la misma: una hoja ahumada con
+  /// letra crema y una tarjeta de papel blanco en la misma app son dos apps.
+  SheetInk _veil(UiTheme t) => SheetInk.of(t);
 
   /// Envuelve algo en un desenfoque de lo que tenga detrás, o no lo envuelve.
   ///
@@ -825,42 +794,3 @@ class _HabitsSheetState extends State<HabitsSheet> {
 /// vidrio ahumado pide letra clara y uno de escarcha la pide oscura, y
 /// elegirlas por separado es la manera de acabar con letra parda sobre un
 /// vidrio casi negro.
-class _Veil {
-  const _Veil({
-    required this.tinte,
-    required this.tapa,
-    required this.bruma,
-    required this.cuerpo,
-    this.oscuro = false,
-  });
-
-  /// De qué color está teñido el vidrio.
-  final Color tinte;
-
-  /// Y cuánto pinta: cero es un cristal limpio, uno es una pared.
-  final double tapa;
-
-  /// Cuánto desenfoca lo que queda debajo. En estos diez es lo que hace el
-  /// trabajo, más que la pintura.
-  final double bruma;
-
-  /// La tinta de todo lo que se escribe encima.
-  final Color cuerpo;
-
-  /// Si el vidrio oscurece el pueblo en vez de aclararlo. Cambia el rojo del
-  /// botón de borrar, que es lo único que no sale de [cuerpo].
-  final bool oscuro;
-
-  /// Lo mismo, apagado: para lo que acompaña y no es el nombre.
-  Color get suave => cuerpo.withValues(alpha: 0.66);
-
-  /// El aliento que va detrás de las letras: el propio color del velo, soplado
-  /// alrededor. El velo es casi transparente —es un vidrio, esa es la gracia—
-  /// así que el texto cae encima de la plaza y se pierde entre una fuente y
-  /// medio tejado. Esto espesa el velo **sólo donde hay letra**: no se lee como
-  /// una sombra, se lee como que ahí el cristal está un poco más empañado.
-  List<Shadow> get aliento => [
-    Shadow(color: tinte.withValues(alpha: 0.95), blurRadius: 10),
-    Shadow(color: tinte.withValues(alpha: 0.75), blurRadius: 22),
-  ];
-}

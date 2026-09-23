@@ -195,6 +195,88 @@ class SheetSurface extends StatelessWidget {
 }
 
 /// A frosted panel used for every floating surface in the app.
+/// La tinta de una hoja puesta sobre el pueblo: de qué color es el vidrio y
+/// de qué color se escribe encima.
+///
+/// Vivía dentro de la hoja de hábitos, que es donde se encontró. Está aquí
+/// porque la usan dos pantallas y **tienen que verse iguales**: una hoja
+/// ahumada con letra crema y una tarjeta de papel blanco en la misma app son
+/// dos apps.
+///
+/// De noche es siempre lo mismo —oscuro sobre oscuro, que es lo que funciona—
+/// y de día es lo mismo también: vidrio **ahumado**. Se probaron quince
+/// maneras de hacerlo claro —crema, prado, cielo, escarcha, miel, musgo,
+/// pizarra y ocho vidrios de distinta transparencia— y ninguna sobrevivió a un
+/// mediodía verde y brillante: una crema casi opaca sobre un prado no es aire
+/// espesándose, es un papel puesto encima. Oscurecer separa mejor que aclarar,
+/// que es justo lo que ya funcionaba a las once de la noche, y así la hoja se
+/// ve igual a cualquier hora en vez de darse la vuelta a las siete de la tarde.
+class SheetInk {
+  const SheetInk({
+    required this.tinte,
+    required this.tapa,
+    required this.bruma,
+    required this.cuerpo,
+    this.oscuro = false,
+  });
+
+  /// La de esta hora, que es la de siempre con dos números distintos.
+  factory SheetInk.of(UiTheme t) {
+    final p = t.palette;
+    // De noche: oscuro sobre oscuro al noventa y cinco por ciento, que es el
+    // número al que se llegó probándolo con un deslizador.
+    if (t.dark) {
+      return SheetInk(tinte: t.panelStrong, tapa: 0.95, bruma: 0, cuerpo: t.fg);
+    }
+    // Y de día, ahumado. La tinta va clara encima, y no blanca: crema con una
+    // gota del color del pueblo. El blanco de papel sobre esto es lo único que
+    // se sigue viendo de fuera.
+    return SheetInk(
+      tinte: Color.lerp(p.ink, Colors.black, 0.30)!,
+      tapa: 0.72,
+      bruma: 18,
+      cuerpo: Color.lerp(const Color(0xFFF3EEE3), p.accent, 0.16)!,
+      oscuro: true,
+    );
+  }
+
+  /// De qué color está teñido el vidrio.
+  final Color tinte;
+
+  /// Y cuánto pinta: cero es un cristal limpio, uno es una pared.
+  final double tapa;
+
+  /// Cuánto desenfoca lo que queda debajo. En estos diez es lo que hace el
+  /// trabajo, más que la pintura.
+  final double bruma;
+
+  /// La tinta de todo lo que se escribe encima.
+  final Color cuerpo;
+
+  /// Si el vidrio oscurece el pueblo en vez de aclararlo. Cambia el rojo del
+  /// botón de borrar, que es lo único que no sale de [cuerpo].
+  final bool oscuro;
+
+  /// Lo mismo, apagado: para lo que acompaña y no es el nombre.
+  Color get suave => cuerpo.withValues(alpha: 0.66);
+
+  /// Y más apagado todavía, para lo que sólo rotula.
+  Color get tenue => cuerpo.withValues(alpha: 0.46);
+
+  /// El canto del vidrio, cuando hace falta dibujarlo.
+  Color get canto => cuerpo.withValues(alpha: 0.18);
+
+  /// El aliento que va detrás de las letras: el propio color del velo, soplado
+  /// alrededor. El velo es casi transparente —es un vidrio, esa es la gracia—
+  /// así que el texto cae encima de la plaza y se pierde entre una fuente y
+  /// medio tejado. Esto espesa el velo **sólo donde hay letra**: no se lee como
+  /// una sombra, se lee como que ahí el cristal está un poco más empañado.
+  List<Shadow> get aliento => [
+    Shadow(color: tinte.withValues(alpha: 0.95), blurRadius: 10),
+    Shadow(color: tinte.withValues(alpha: 0.75), blurRadius: 22),
+  ];
+}
+
 class Frosted extends StatelessWidget {
   const Frosted({
     super.key,

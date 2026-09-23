@@ -21,6 +21,12 @@ import 'overlays.dart';
 import 'reel_screen.dart';
 import 'style.dart';
 
+/// Qué pueblos tienen historia bastante como para mirarla crecer.
+List<int> _conCronica(Store store) => [
+  for (var i = 0; i < store.habits.length; i++)
+    if (Reel.worthIt(store.habits, only: i)) i,
+];
+
 /// Everything about the app that is a setting rather than a town.
 ///
 /// It used to live at the bottom of the journey, under the stats and the
@@ -337,13 +343,26 @@ class _SettingsSheetState extends State<SettingsSheet> {
         // habla de vos. Va primero porque es la que existe de verdad — la otra
         // enseña un pueblo que todavía no es tuyo.
         if (Reel.worthIt(store.habits))
-          _Row(
-            theme: t,
-            icon: Icons.play_circle_outline,
-            title: 'Ver cómo se hizo',
-            subtitle: 'Tu valle entero desde el primer día, en un minuto.',
-            page: () => ReelScreen(store: store),
-          ),
+          if (_conCronica(store).length > 1)
+            _Row(
+              theme: t,
+              icon: Icons.play_circle_outline,
+              title: 'Ver cómo se hizo',
+              subtitle:
+                  'El valle entero, o uno de tus pueblos desde el primer día.',
+              open: () => _WhichReel(store: store, theme: t),
+            )
+          else
+            _Row(
+              theme: t,
+              icon: Icons.play_circle_outline,
+              title: 'Ver cómo se hizo',
+              subtitle: 'Tu pueblo entero desde el primer día, en un minuto.',
+              page: () => ReelScreen.town(
+                store: store,
+                habit: _conCronica(store).firstOrNull ?? 0,
+              ),
+            ),
         _Row(
           theme: t,
           icon: Icons.tune,
@@ -723,6 +742,70 @@ class _Row extends StatelessWidget {
             Icon(Icons.chevron_right, size: 19, color: t.fgFaint),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Cuál de las dos maneras de mirar atrás.
+///
+/// **Son dos cosas distintas, no dos tamaños de la misma.** El valle entero se
+/// mira saltando: hay piezas cayendo en tres pueblos a la vez y lo que cuenta
+/// es cuándo apareció cada uno y cómo se repartieron los meses. Un pueblo se
+/// mira girando alrededor de su plaza, que es lo que se puede hacer cuando no
+/// hay nada a lo que saltar, y ahí lo que cuenta es cómo creció ése.
+///
+/// Sólo sale cuando hay más de un pueblo con historia. Con uno solo no hay
+/// nada que elegir, y una pregunta con una sola respuesta es un paso de más.
+class _WhichReel extends StatelessWidget {
+  const _WhichReel({required this.store, required this.theme});
+
+  final Store store;
+  final UiTheme theme;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = theme;
+    final cuales = _conCronica(store);
+    return SheetSurface(
+      theme: t,
+      padding: const EdgeInsets.fromLTRB(22, 16, 22, 26),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 38,
+              height: 4,
+              decoration: BoxDecoration(
+                color: t.fg.withValues(alpha: 0.22),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text('VER CÓMO SE HIZO', style: t.label),
+          const SizedBox(height: 10),
+          _Row(
+            theme: t,
+            icon: Icons.grass,
+            title: 'El valle entero',
+            subtitle:
+                'Salta de pieza en pieza y de pueblo en pueblo, en el orden '
+                'en que pasaron.',
+            page: () => ReelScreen(store: store),
+          ),
+          for (final i in cuales)
+            _Row(
+              theme: t,
+              icon: Icons.location_city,
+              title: store.habits[i].name,
+              subtitle:
+                  'Sólo este pueblo, con la cámara dando la vuelta a su plaza.',
+              page: () => ReelScreen.town(store: store, habit: i),
+            ),
+        ],
       ),
     );
   }

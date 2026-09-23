@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- La fila que está esperando que confirmes.
+
+     Teñida entera, y no sólo con el botón puesto: lo que hay que dejar claro
+     es que **esta fila** está a medio camino, y eso se dice con la fila, no
+     con un adorno al final de ella. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/towny_widget_armed" />
+    <corners android:radius="13dp" />
+</shape>

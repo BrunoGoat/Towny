@@ -774,62 +774,62 @@ def cronica():
 
 
 def regreso():
-    """Re mayor, sesenta y seis. Tres compases, once segundos, y se acaba.
+    """Re mayor, setenta y seis. Tres compases cortos, y resuelve en el primero.
 
     Suena cuando abrís la app y el pueblo tiene piezas puestas que todavía no
     viste caer — las que dejaste tocadas en el widget. No es la crónica en
     pequeño y no puede serlo: la crónica cuenta un año y tiene sitio para
-    crecer tres veces; esto cuenta una tarde y lo que tiene que hacer es
-    levantar la vista, dejar caer lo que haya, y resolver antes de que a nadie
-    le empiece a estorbar. Once segundos, una vez, y a lo tuyo.
+    crecer tres veces; ésta cuenta una tarde.
 
-    De ahí que sea la misma vuelta de acordes de la crónica cortada por el
-    medio —Re, Sol, Re— y no una pieza nueva: lo que llega tiene que sonar a
-    que llega **al mismo sitio**. Lo que cambia es que aquí no hay
-    desarrollo. El primer compás es el pueblo como lo dejaste, el segundo es lo
-    que cae, y el tercero es el acorde de casa abierto y sonando solo.
+    **Y la cinemática que acompaña ya no dura siempre lo mismo.** Dura lo que
+    haya que durar: cuatro segundos si dejaste una pieza, diez si dejaste seis
+    (`Reel.secondsFor`). Una pieza escrita para un final a los nueve segundos
+    se corta a la mitad en el caso normal, que es el de una sola pieza. Así que
+    ésta **llega a casa pronto** —el acorde de tónica ancho cae poco después
+    del primer compás— y lo que viene detrás no es desarrollo sino dos
+    respiraciones sobre lo mismo, cada vez más abiertas. Cortada en cualquier
+    punto a partir del segundo tres suena acabada, que es la única manera de
+    escribir música para algo que no sabe cuánto va a durar.
 
-    Los tiempos están escritos contra `Reel.arrivals` en `lib/model/reel.dart`:
-    la entrada dura lo que el pueblo está quieto, las piezas caen dentro del
-    segundo compás, y el tercero es la cola. Si se mueve uno, se mueven los
-    dos."""
+    La vuelta de acordes es la de la crónica partida por el medio —Sol, Re,
+    Sol, Re— para que lo que llega suene a que llega **al mismo sitio**."""
     sr = SR_HI
-    bar, beat = 4 * 60 / 66.0, 60 / 66.0
+    bar, beat = 4 * 60 / 76.0, 60 / 76.0
     BARS = 3
-    total = BARS * bar                      # casi once segundos
+    total = BARS * bar
 
-    # Sin tercera el primero, igual que en la crónica: el pueblo que estabas
-    # mirando todavía no es una noticia.
+    # Sin tercera el primero: el pueblo que estabas mirando todavía no es una
+    # noticia. Y de ahí en adelante, casa y nada más que casa.
     chords = [
-        [n('D2'), n('A3'), n('D4')],
-        [n('G2'), n('B3'), n('D4'), n('F#4')],
+        [n('G2'), n('D4'), n('G4')],
         [n('D2'), n('A2'), n('D3'), n('F#3'), n('A3'), n('D4')],
+        [n('D2'), n('A2'), n('D3'), n('F#3'), n('A3'), n('D4'), n('F#4')],
     ]
-    swell = [.22, .70, 1.00]
-    voices = [2, 3, 4]
+    swell = [.34, 1.00, .80]
+    voices = [2, 4, 4]
 
     ln = int((total + 3.0) * sr)
     out = [0.0] * ln
     for b, notes in enumerate(chords):
-        largo = (bar * 2.4) if b == BARS - 1 else (bar * 1.6)
+        largo = (bar * 2.6) if b == BARS - 1 else (bar * 1.5)
         stack(out, notes, largo, sr, cut=720 + 90 * swell[b], spread=11,
-              gain=0.80 * swell[b], rise=bar * 0.40, fall=bar * 1.0,
+              gain=0.80 * swell[b], rise=bar * 0.32, fall=bar * 1.0,
               at=b * bar, voices=voices[b], tilt=1.85)
 
-    # La voz, que dice media frase y la resuelve. Cuatro notas: no hay sitio
-    # para más y no hace falta — lo que se está mirando dura lo mismo.
+    # La voz: sube y se posa. Tres notas para llegar y una que se queda, y
+    # después dos respiraciones sobre la misma nota de casa.
     tema = [
-        (4.0, 'F#4', 2.2, .62), (6.0, 'A4', 2.2, .70),
-        (8.0, 'B4', 2.4, .76), (10.0, 'A4', 4.0, .60),
+        (1.0, 'B4', 1.6, .60), (2.4, 'A4', 1.4, .66),
+        (4.0, 'D5', 3.0, .82),
+        (8.0, 'A4', 2.4, .56), (11.0, 'F#4', 3.4, .50),
     ]
     for at, note, dur, vel in notes_of(tema, beat):
         b = min(BARS - 1, int(at / bar))
         breath(out, at, n(note), dur, vel * 0.34 * (0.45 + 0.55 * swell[b]),
                sr, seed=7)
 
-    # El motor, apretando de una por compás a una por tiempo. Es el mismo truco
-    # de la crónica en tres compases en vez de diecisiete.
-    paso = [4.0, 2.0, 4.0]
+    # El motor, apretando sólo en el compás de llegada.
+    paso = [2.0, 1.0, 2.0]
     for b in range(BARS):
         notes = [x for x in chords[b] if x >= n('A3')] or chords[b][1:]
         k = 0
@@ -842,9 +842,11 @@ def regreso():
             t += paso[b]
             k += 1
 
-    # Y dos campanas al llegar a casa, que es lo único que aquí hace de
-    # celebración.
-    luces = [(8.0, 'D6', 3.0, .40), (11.0, 'A5', 3.4, .30)]
+    # Y las campanas de llegar a casa, que es lo único que aquí hace de
+    # celebración. En el acorde de tónica, no al final: el final puede no
+    # llegar nunca.
+    luces = [(4.0, 'D6', 3.0, .44), (6.0, 'A5', 3.0, .32),
+             (9.0, 'F#6', 3.4, .28)]
     for at, note, dur, vel in notes_of(luces, beat):
         bell(out, at, n(note), dur, vel * 0.26, sr)
 
@@ -853,7 +855,6 @@ def regreso():
     out = highpass(out, 38, sr)
     out = wow(out, sr, cents=4.0, cycles=(1, 3), seed=11)
     return saturate(out, 1.20)
-
 
 # ------------------------------------------------------------------ escribir
 

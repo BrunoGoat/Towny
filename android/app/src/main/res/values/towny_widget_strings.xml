@@ -5,9 +5,14 @@
     <string name="towny_widget_name">TOWNY</string>
     <!-- La descripción que se lee al elegirlo en la bandeja de widgets. -->
     <string name="towny_widget_about">Poné una pieza sin entrar.</string>
-    <!-- Lo que aparece en una fila después del primer toque. Dentro de la app
-         una pieza se pone manteniendo el dedo; acá se pone tocando dos veces,
-         que es lo mismo dicho con lo que hay. -->
-    <string name="towny_widget_again">Otra vez</string>
+    <!-- El botón que aparece en una fila después del primer toque.
+
+         Dentro de la app una pieza se pone manteniendo el dedo hasta que
+         cierra un anillo; acá se pone tocando dos veces, que es lo mismo dicho
+         con lo que hay. Lo que decía antes era «Otra vez», y no se entendía:
+         una palabra suelta al final de una fila describe algo, no pide nada, y
+         la pregunta que dejaba era «¿otra vez qué?». Un verbo dentro de un
+         botón no deja esa duda. -->
+    <string name="towny_widget_confirm">Poner pieza</string>
     <string name="towny_widget_empty">Abrí Towny y fundá tu primer pueblo.</string>
 </resources>

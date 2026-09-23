@@ -164,7 +164,9 @@ void main() {
       ),
     );
 
-    const cuando = [1.0, 2.5, 4.0, 5.5, 8.0, 12.5];
+    // La corta ya no dura siempre lo mismo: con tres piezas son seis
+    // segundos y pico. El primero es para mirar la niebla de la entrada.
+    const cuando = [0.2, 1.0, 2.0, 3.2, 5.0, 8.0];
     var t = 0.0;
     for (final quiero in cuando) {
       while (t < quiero) {
@@ -174,6 +176,74 @@ void main() {
       final boundary =
           key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
       final name = '$out/corta/t${quiero.toStringAsFixed(1)}.png';
+      await tester.runAsync(() async {
+        final img = await boundary.toImage(pixelRatio: 1.6);
+        final png = await img.toByteData(format: ui.ImageByteFormat.png);
+        File(name).writeAsBytesSync(png!.buffer.asUint8List());
+        img.dispose();
+      });
+      // ignore: avoid_print
+      print('escrito $name');
+    }
+  });
+  testWidgets('fotogramas de un pueblo solo', (tester) async {
+    // La otra manera de mirar atrás: sin saltos, girando alrededor de la
+    // plaza. Lo que hay que mirar acá es que el acercamiento no lata — que la
+    // cámara no se aleje en cada ráfaga y vuelva a acercarse en cada pausa.
+    const out = String.fromEnvironment('OUT', defaultValue: '/tmp/reel');
+    Directory('$out/pueblo').createSync(recursive: true);
+
+    SharedPreferences.setMockInitialValues({});
+    final store = Store();
+    await store.load();
+    store.habits
+      ..clear()
+      ..add(
+        Habit(
+          id: 'h0',
+          name: 'Leer',
+          symbol: 'libro',
+          slot: 0,
+          createdAt: DateTime(2026, 1, 5),
+          character: TownCharacter.all.first.order,
+          pieces: [
+            for (var i = 0; i < 220; i++)
+              Piece(
+                index: i,
+                placedAt: DateTime(2026, 1, 5, 19).add(Duration(days: i)),
+              ),
+          ],
+        ),
+      );
+
+    final key = GlobalKey();
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(
+          size: Size(390, 844),
+          devicePixelRatio: 2,
+          padding: EdgeInsets.only(top: 44, bottom: 24),
+        ),
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: RepaintBoundary(
+            key: key,
+            child: ReelScreen.town(store: store, habit: 0),
+          ),
+        ),
+      ),
+    );
+
+    const cuando = [0.6, 3.0, 12.0, 30.0, 50.0, 66.0];
+    var t = 0.0;
+    for (final quiero in cuando) {
+      while (t < quiero) {
+        await tester.pump(const Duration(milliseconds: 50));
+        t += 0.05;
+      }
+      final boundary =
+          key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+      final name = '$out/pueblo/t${quiero.toStringAsFixed(1)}.png';
       await tester.runAsync(() async {
         final img = await boundary.toImage(pixelRatio: 1.6);
         final png = await img.toByteData(format: ui.ImageByteFormat.png);

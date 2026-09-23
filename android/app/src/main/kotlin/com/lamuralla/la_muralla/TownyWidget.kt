@@ -25,11 +25,17 @@ import android.widget.RemoteViews
  * hiciste, «llevás nueve días seguidos» es una cuenta que castiga el día que
  * se rompe, y ésa no la lleva la app por dentro ni la va a llevar por fuera.
  *
- * **Lo que pasa al tocar.** El primer toque pregunta y el segundo pone. No es
- * un paso de más: dentro de la app poner una pieza pide mantener el dedo
- * hasta que se cierra un anillo, porque poner una piedra tiene que ser una
- * decisión y no un temblor. Un widget no puede pedir que mantengas el dedo,
- * así que pide dos toques. Un roce en el bolsillo no construye nada.
+ * **Lo que pasa al tocar.** El primer toque abre un botón que dice «Poner
+ * pieza» y tiñe la fila; el segundo, sobre cualquier parte de la fila, la
+ * pone. No es un paso de más: dentro de la app poner una pieza pide mantener
+ * el dedo hasta que se cierra un anillo, porque poner una piedra tiene que ser
+ * una decisión y no un temblor. Un widget no puede pedir que mantengas el
+ * dedo, así que pide dos toques. Un roce en el bolsillo no construye nada.
+ *
+ * El primer intento de decir eso era la palabra «Otra vez» al final de la
+ * fila, y no se entendía: una palabra suelta describe algo, no pide nada, y la
+ * pregunta que dejaba era «¿otra vez qué?». Un verbo dentro de algo con forma
+ * de botón no deja esa duda.
  *
  * **Y lo que no pasa.** El widget no toca el pueblo. Deja el toque apuntado en
  * [WidgetBox] con su hora, y la pieza la pone la app la próxima vez que
@@ -149,6 +155,14 @@ class TownyWidget : AppWidgetProvider() {
                 }
 
             val preguntando = armed != null && armed == id
+            // La fila entera teñida mientras espera, no sólo el botón puesto:
+            // lo que hay que dejar claro es que **ésta** está a medio camino.
+            views.setInt(
+                ROW[i],
+                "setBackgroundResource",
+                if (preguntando) R.drawable.towny_widget_row_armed
+                else R.drawable.towny_widget_row
+            )
             views.setViewVisibility(ASK[i], if (preguntando) View.VISIBLE else View.GONE)
             views.setViewVisibility(
                 COUNT[i],

@@ -12,4 +12,8 @@
     <color name="towny_widget_accent">#B0762A</color>
     <color name="towny_widget_hollow">#59241F16</color>
     <color name="towny_widget_ripple">#33241F16</color>
+    <!-- La tinta de dentro del botón ámbar. Oscura siempre: el ámbar es
+         claro a cualquier hora y el crema encima de él no se lee. -->
+    <color name="towny_widget_onaccent">#20180C</color>
+    <color name="towny_widget_armed">#26B0762A</color>
 </resources>

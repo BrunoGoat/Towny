@@ -246,20 +246,44 @@ enseña cero, no las tres de ayer.
 **Se toca dos veces, no una.** Dentro de la app una pieza se pone manteniendo el
 dedo hasta que se cierra un anillo, y eso está escrito a propósito: poner una
 piedra tiene que ser una decisión y no un temblor. Un widget no puede pedir que
-mantengas el dedo, así que pide que toques otra vez, y la pregunta se retira
+mantengas el dedo, así que el primer toque tiñe la fila y abre un botón que
+dice **Poner pieza**; el segundo la pone, y si te vas, la pregunta se retira
 sola a los cinco segundos. Un roce en el bolsillo no construye nada.
 
 **Y al abrir la app, la ves caer.** Poner una pieza sin entrar te deja sin lo
 único que esta app tiene de recompensa —la piedra bajando, el golpe, el polvo—,
-así que la próxima vez que abrís, antes de nada, hay once segundos: el pueblo
-tal como lo dejaste, la cámara girando, y encima cayendo las piezas que
-tocaste, con su música. Dura lo mismo caigan una o doce, por lo mismo que la
-crónica: ver lo que hiciste no puede costar más cuanto más hayas hecho.
+así que la próxima vez que abrís, antes de nada, la cámara baja sobre el pueblo
+tal como lo dejaste y van cayendo las piezas que tocaste, con su música. Dura
+lo que tenga que durar: cuatro segundos si dejaste una, diez si dejaste seis.
+Al revés que la crónica, que dura siempre lo mismo — allí lo que se cuenta es
+un año y el año no cabe de otra manera; aquí diez segundos para enseñar una
+pieza son nueve de pantalla quieta, y la cinemática se vuelve un peaje por
+haber usado el widget.
 
 Lo que el widget **no** hace es poner la pieza él. Deja el toque apuntado con su
 hora y la pieza la pone la app cuando se abre, con esa hora. Levantar un pueblo
 entero cada vez que alguien pasa por su pantalla de inicio sería cobrarle a la
 batería de otro lo que aquí es un apunte de dos líneas.
+
+## Ver cómo se hizo
+
+Dos maneras, y no dos tamaños de la misma.
+
+**El valle entero** se mira saltando. Hay piezas cayendo en tres pueblos a la
+vez, así que la cámara va detrás de la última: se acerca a la que acaba de
+caer, y cuando la siguiente es de otro pueblo, **corta**. Girar alrededor de un
+pueblo mientras pasan cosas en los otros dos es enseñar una esquina del valle y
+llamarlo la crónica del valle.
+
+**Un pueblo** se mira girando alrededor de su plaza, que es lo que se puede
+hacer cuando no hay nada a lo que saltar, y ahí lo que se cuenta es cómo creció
+ése.
+
+En las dos, la cámara **arranca lejos y sólo se acerca**. Llega a su tope en el
+primer tercio y a partir de ahí nada más gira: lo que crece hasta llenar el
+cuadro es el pueblo, no el zoom. Antes el encuadre salía de lo que había
+construido en cada fotograma, y eso, visto seguido, era una cámara que
+respiraba — se alejaba en cada ráfaga y volvía a acercarse en cada pausa.
 
 ## El segundo pueblo se gana
 

@@ -473,17 +473,45 @@ void main() {
       expect(Sensory.arrivalTrack, isNot(Sensory.reelTrack));
     });
 
-    test('dura más que la cinemática que acompaña', () {
+    test('dura más que la más larga de las cinemáticas que acompaña', () {
+      // La corta ya no dura siempre lo mismo: dura lo que haya que durar,
+      // entre cuatro segundos con una pieza y diez con seis. Lo que la música
+      // tiene que cubrir es el caso largo, y lo que tiene que aguantar que le
+      // corten es el corto — de eso se ocupa el test de abajo.
       final w = leer();
       final dura = w.pcm.length / w.rate;
-      final reel = Reel.arrivals(
-        [_unPuebloLargo()],
-        [ReelStep(DateTime(2026, 2, 9, 21), 0, null)],
-      )!;
+      final masLarga = Reel.secondsFor(40);
       expect(
         dura,
-        greaterThanOrEqualTo(reel.seconds),
+        greaterThanOrEqualTo(masLarga),
         reason: 'la música se acaba antes que la cinemática',
+      );
+    });
+
+    test('y llega a casa pronto, porque puede cortarse en cualquier sitio', () {
+      // Con una sola pieza la cinemática dura cuatro segundos y pico. Una
+      // pieza escrita para resolver a los nueve se corta a la mitad justo en
+      // el caso normal, y lo que se oiría sería una introducción interrumpida.
+      // Así que el acorde de casa —lo más fuerte que suena— tiene que caer
+      // dentro de la cinemática más corta.
+      final w = leer();
+      final paso = w.rate ~/ 2;
+      var techo = 0.0, donde = 0.0;
+      for (var s = 0; (s + 1) * paso <= w.pcm.length; s++) {
+        var suma = 0.0;
+        for (var i = s * paso; i < (s + 1) * paso; i++) {
+          suma += w.pcm[i] * w.pcm[i].toDouble();
+        }
+        final r = math.sqrt(suma / paso);
+        if (r > techo) {
+          techo = r;
+          donde = s * 0.5;
+        }
+      }
+      expect(
+        donde,
+        lessThanOrEqualTo(Reel.secondsFor(1)),
+        reason: 'lo más alto cae a los $donde s y la corta acaba antes',
       );
     });
 

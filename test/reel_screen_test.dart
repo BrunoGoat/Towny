@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:la_muralla/data/character.dart';
@@ -195,5 +197,58 @@ void main() {
     );
     await tester.pump(const Duration(seconds: 1));
     expect(tester.takeException(), isNull);
+  });
+  testWidgets('el acercamiento no vuelve atrás nunca', (tester) async {
+    // El fallo que esto vigila se vio mirándolo y no leyéndolo: el encuadre
+    // salía de lo que había construido en ese fotograma, así que crecía con
+    // cada pieza y la cámara se alejaba un poco en cada ráfaga y volvía a
+    // acercarse en cada pausa. Visto seguido es un zoom que respira, y no hay
+    // texto en pantalla que lo delate.
+    final s = await _store([_habit(160)]);
+    await tester.pumpWidget(_marco(ReelScreen.town(store: s, habit: 0)));
+    final estado = tester.state<ReelScreenState>(find.byType(ReelScreen));
+    var antes = double.infinity;
+    var peor = 0.0;
+    for (var t = 0.0; t < 60; t += 0.05) {
+      await tester.pump(const Duration(milliseconds: 50));
+      final d = estado.camera.distance;
+      if (d > antes) peor = math.max(peor, d - antes);
+      antes = d;
+    }
+    expect(
+      peor,
+      lessThan(1e-6),
+      reason: 'la cámara se alejó $peor en mitad de la cinemática',
+    );
+  });
+
+  testWidgets('y en el valle tampoco, aunque salte de pueblo en pueblo', (
+    tester,
+  ) async {
+    final s = await _store([
+      _habit(70, id: 'a'),
+      _habit(50, id: 'b', slot: 1, desde: 20),
+    ]);
+    await tester.pumpWidget(_marco(ReelScreen(store: s)));
+    final estado = tester.state<ReelScreenState>(find.byType(ReelScreen));
+    var antes = double.infinity;
+    for (var t = 0.0; t < 60; t += 0.05) {
+      await tester.pump(const Duration(milliseconds: 50));
+      final d = estado.camera.distance;
+      expect(d, lessThanOrEqualTo(antes + 1e-6), reason: 'se alejó en $t s');
+      antes = d;
+    }
+  });
+
+  testWidgets('la crónica de un pueblo no enseña los otros', (tester) async {
+    // Lo que se pidió es poder mirar **un** pueblo, no el valle encuadrado
+    // sobre uno: si las piezas de los demás siguieran cayendo, la cinemática
+    // contaría otra cosa de la que dice contar.
+    final s = await _store([_habit(40, id: 'a'), _habit(40, id: 'b', slot: 1)]);
+    await tester.pumpWidget(_marco(ReelScreen.town(store: s, habit: 1)));
+    await _correr(tester);
+    expect(tester.takeException(), isNull);
+    // Cuarenta, las de ese pueblo, y no ochenta.
+    expect(find.text('40'), findsOneWidget);
   });
 }

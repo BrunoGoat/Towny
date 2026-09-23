@@ -7,4 +7,6 @@
     <color name="towny_widget_accent">#E09A45</color>
     <color name="towny_widget_hollow">#4DEFE2CE</color>
     <color name="towny_widget_ripple">#33EFE2CE</color>
+    <color name="towny_widget_onaccent">#20180C</color>
+    <color name="towny_widget_armed">#33E09A45</color>
 </resources>

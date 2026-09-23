@@ -61,17 +61,26 @@
             android:textSize="15sp"
             android:textColor="@color/towny_widget_ink" />
 
+        <!-- El botón de confirmar, que sale sólo cuando la fila está
+             armada. Con forma de botón y con un verbo: una palabra suelta al
+             final de una fila se lee como una etiqueta, no como algo que hay
+             que pulsar. -->
         <TextView
             android:id="@+id/towny_ask_0"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:visibility="gone"
-            android:textSize="11sp"
-            android:letterSpacing="0.09"
-            android:textAllCaps="true"
-            android:textColor="@color/towny_widget_accent"
-            android:text="@string/towny_widget_again" />
+            android:background="@drawable/towny_widget_pill"
+            android:paddingStart="13dp"
+            android:paddingEnd="13dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:textSize="12sp"
+            android:letterSpacing="0.06"
+            android:textStyle="bold"
+            android:textColor="@color/towny_widget_onaccent"
+            android:text="@string/towny_widget_confirm" />
 
         <!-- Cuántas piezas lleva hoy ese pueblo. Un número y no un punto: lo
              que alguien quiere saber desde fuera no es sólo si apareció hoy,
@@ -129,17 +138,26 @@
             android:textSize="15sp"
             android:textColor="@color/towny_widget_ink" />
 
+        <!-- El botón de confirmar, que sale sólo cuando la fila está
+             armada. Con forma de botón y con un verbo: una palabra suelta al
+             final de una fila se lee como una etiqueta, no como algo que hay
+             que pulsar. -->
         <TextView
             android:id="@+id/towny_ask_1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:visibility="gone"
-            android:textSize="11sp"
-            android:letterSpacing="0.09"
-            android:textAllCaps="true"
-            android:textColor="@color/towny_widget_accent"
-            android:text="@string/towny_widget_again" />
+            android:background="@drawable/towny_widget_pill"
+            android:paddingStart="13dp"
+            android:paddingEnd="13dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:textSize="12sp"
+            android:letterSpacing="0.06"
+            android:textStyle="bold"
+            android:textColor="@color/towny_widget_onaccent"
+            android:text="@string/towny_widget_confirm" />
 
         <!-- Cuántas piezas lleva hoy ese pueblo. Un número y no un punto: lo
              que alguien quiere saber desde fuera no es sólo si apareció hoy,
@@ -197,17 +215,26 @@
             android:textSize="15sp"
             android:textColor="@color/towny_widget_ink" />
 
+        <!-- El botón de confirmar, que sale sólo cuando la fila está
+             armada. Con forma de botón y con un verbo: una palabra suelta al
+             final de una fila se lee como una etiqueta, no como algo que hay
+             que pulsar. -->
         <TextView
             android:id="@+id/towny_ask_2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:visibility="gone"
-            android:textSize="11sp"
-            android:letterSpacing="0.09"
-            android:textAllCaps="true"
-            android:textColor="@color/towny_widget_accent"
-            android:text="@string/towny_widget_again" />
+            android:background="@drawable/towny_widget_pill"
+            android:paddingStart="13dp"
+            android:paddingEnd="13dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:textSize="12sp"
+            android:letterSpacing="0.06"
+            android:textStyle="bold"
+            android:textColor="@color/towny_widget_onaccent"
+            android:text="@string/towny_widget_confirm" />
 
         <!-- Cuántas piezas lleva hoy ese pueblo. Un número y no un punto: lo
              que alguien quiere saber desde fuera no es sólo si apareció hoy,
@@ -265,17 +292,26 @@
             android:textSize="15sp"
             android:textColor="@color/towny_widget_ink" />
 
+        <!-- El botón de confirmar, que sale sólo cuando la fila está
+             armada. Con forma de botón y con un verbo: una palabra suelta al
+             final de una fila se lee como una etiqueta, no como algo que hay
+             que pulsar. -->
         <TextView
             android:id="@+id/towny_ask_3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:visibility="gone"
-            android:textSize="11sp"
-            android:letterSpacing="0.09"
-            android:textAllCaps="true"
-            android:textColor="@color/towny_widget_accent"
-            android:text="@string/towny_widget_again" />
+            android:background="@drawable/towny_widget_pill"
+            android:paddingStart="13dp"
+            android:paddingEnd="13dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:textSize="12sp"
+            android:letterSpacing="0.06"
+            android:textStyle="bold"
+            android:textColor="@color/towny_widget_onaccent"
+            android:text="@string/towny_widget_confirm" />
 
         <!-- Cuántas piezas lleva hoy ese pueblo. Un número y no un punto: lo
              que alguien quiere saber desde fuera no es sólo si apareció hoy,
@@ -333,17 +369,26 @@
             android:textSize="15sp"
             android:textColor="@color/towny_widget_ink" />
 
+        <!-- El botón de confirmar, que sale sólo cuando la fila está
+             armada. Con forma de botón y con un verbo: una palabra suelta al
+             final de una fila se lee como una etiqueta, no como algo que hay
+             que pulsar. -->
         <TextView
             android:id="@+id/towny_ask_4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:visibility="gone"
-            android:textSize="11sp"
-            android:letterSpacing="0.09"
-            android:textAllCaps="true"
-            android:textColor="@color/towny_widget_accent"
-            android:text="@string/towny_widget_again" />
+            android:background="@drawable/towny_widget_pill"
+            android:paddingStart="13dp"
+            android:paddingEnd="13dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:textSize="12sp"
+            android:letterSpacing="0.06"
+            android:textStyle="bold"
+            android:textColor="@color/towny_widget_onaccent"
+            android:text="@string/towny_widget_confirm" />
 
         <!-- Cuántas piezas lleva hoy ese pueblo. Un número y no un punto: lo
              que alguien quiere saber desde fuera no es sólo si apareció hoy,
@@ -401,17 +446,26 @@
             android:textSize="15sp"
             android:textColor="@color/towny_widget_ink" />
 
+        <!-- El botón de confirmar, que sale sólo cuando la fila está
+             armada. Con forma de botón y con un verbo: una palabra suelta al
+             final de una fila se lee como una etiqueta, no como algo que hay
+             que pulsar. -->
         <TextView
             android:id="@+id/towny_ask_5"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:visibility="gone"
-            android:textSize="11sp"
-            android:letterSpacing="0.09"
-            android:textAllCaps="true"
-            android:textColor="@color/towny_widget_accent"
-            android:text="@string/towny_widget_again" />
+            android:background="@drawable/towny_widget_pill"
+            android:paddingStart="13dp"
+            android:paddingEnd="13dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:textSize="12sp"
+            android:letterSpacing="0.06"
+            android:textStyle="bold"
+            android:textColor="@color/towny_widget_onaccent"
+            android:text="@string/towny_widget_confirm" />
 
         <!-- Cuántas piezas lleva hoy ese pueblo. Un número y no un punto: lo
              que alguien quiere saber desde fuera no es sólo si apareció hoy,
