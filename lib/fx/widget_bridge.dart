@@ -27,6 +27,11 @@ class WidgetBridge {
   WidgetBridge._();
   static final WidgetBridge instance = WidgetBridge._();
 
+  /// Uno nuevo, para los tests. El de verdad es único y recuerda si del otro
+  /// lado hay alguien; un test que lo apague se lo apagaría a los siguientes.
+  @visibleForTesting
+  factory WidgetBridge.fresh() => WidgetBridge._();
+
   @visibleForTesting
   static const MethodChannel channel = MethodChannel('towny/widget');
 

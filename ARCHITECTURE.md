@@ -142,6 +142,14 @@ Dentro de `engine/`, que es el más poblado:
 | `folk.dart`, `folk_body.dart`, `streets.dart` | quién vive ahí, de qué está hecho y por dónde anda |
 | `sigils.dart` | las marcas de los hábitos, trazadas a mano |
 
+El widget de la pantalla de inicio vive entero en `android/` —Kotlin, `RemoteViews`
+y unas preferencias suyas— y habla con la app por un canal de tres verbos
+(`lib/fx/widget_bridge.dart`): la app **publica** el resumen que hay que pintar,
+el widget **apunta** los toques en su buzón, y la app **confirma** cuando ya
+puso las piezas. Cada lado escribe sólo en lo suyo, que es lo que evita tener
+que sincronizar dos procesos; y confirmar va aparte de leer para que morirse por
+el medio no pueda ni perder una pieza ni contarla dos veces.
+
 Hay dos reglas de forma que vigila `test/tree_test.dart` y no la buena voluntad:
 a todo fichero de `lib/` se llega desde `main.dart` —un huérfano compila igual y
 no se puede abrir desde la app— y **nada por debajo de `ui/` sabe que `ui/`

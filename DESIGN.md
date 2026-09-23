@@ -223,6 +223,31 @@ que se guardaron, y probablemente el bueno.
 > nada y ninguno lleva un signo de exclamación. Hay un test que lo exige sobre
 > todos los textos que la app puede llegar a mandar.
 
+## Desde la pantalla de inicio
+
+Hay un widget con una fila por pueblo: la marca, el nombre y un punto. El punto
+dice si **hoy** ya hay una pieza puesta ahí, y es lo único que cuenta de cómo
+vas — llevar rachas de la puerta para afuera sería meterle a la app justo lo que
+no hace de la puerta para adentro.
+
+**Se toca dos veces, no una.** Dentro de la app una pieza se pone manteniendo el
+dedo hasta que se cierra un anillo, y eso está escrito a propósito: poner una
+piedra tiene que ser una decisión y no un temblor. Un widget no puede pedir que
+mantengas el dedo, así que pide que toques otra vez, y la pregunta se retira
+sola a los cinco segundos. Un roce en el bolsillo no construye nada.
+
+**Y al abrir la app, la ves caer.** Poner una pieza sin entrar te deja sin lo
+único que esta app tiene de recompensa —la piedra bajando, el golpe, el polvo—,
+así que la próxima vez que abrís, antes de nada, hay once segundos: el pueblo
+tal como lo dejaste, la cámara girando, y encima cayendo las piezas que
+tocaste, con su música. Dura lo mismo caigan una o doce, por lo mismo que la
+crónica: ver lo que hiciste no puede costar más cuanto más hayas hecho.
+
+Lo que el widget **no** hace es poner la pieza él. Deja el toque apuntado con su
+hora y la pieza la pone la app cuando se abre, con esa hora. Levantar un pueblo
+entero cada vez que alguien pasa por su pantalla de inicio sería cobrarle a la
+batería de otro lo que aquí es un apunte de dos líneas.
+
 ## El segundo pueblo se gana
 
 El valle empieza con un solo solar. El segundo se abre con **10 días con pieza
