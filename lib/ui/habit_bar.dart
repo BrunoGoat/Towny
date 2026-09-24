@@ -128,8 +128,11 @@ class _Mark extends StatelessWidget {
     final t = theme;
     // Dimmed when the habit has been left: the row of symbols is itself a
     // small readout of how every habit is going.
-    final ink = (on ? t.accent : t.fg).withValues(
-      alpha: on ? 1.0 : 0.30 + 0.34 * lit,
+    // La tinta de abajo sale del prado y no del cielo: ver [UiTheme.grassInk].
+    // Iba en `t.fg` —pardo oscuro mientras el cielo está claro— al treinta por
+    // ciento sobre un verde de pradera, que es no ir.
+    final ink = (on ? t.accent : t.grassInk).withValues(
+      alpha: on ? 1.0 : 0.46 + 0.30 * lit,
     );
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -178,7 +181,9 @@ class _Mark extends StatelessWidget {
                       child: Icon(
                         Icons.bedtime,
                         size: 9,
-                        color: (on ? t.accent : t.fg).withValues(alpha: 0.7),
+                        color: (on ? t.accent : t.grassInk).withValues(
+                          alpha: 0.8,
+                        ),
                       ),
                     ),
                 ],
@@ -193,7 +198,7 @@ class _Mark extends StatelessWidget {
               decoration: BoxDecoration(
                 color: on
                     ? t.accent.withValues(alpha: 0.9)
-                    : t.fg.withValues(alpha: 0.16),
+                    : t.grassInk.withValues(alpha: 0.30),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -253,13 +258,13 @@ class _AddMark extends StatelessWidget {
                     painter: _UnlockRing(
                       progress,
                       t.accent.withValues(alpha: 0.75),
-                      t.fg.withValues(alpha: 0.14),
+                      t.grassInk.withValues(alpha: 0.26),
                     ),
                     child: Center(
                       child: Icon(
                         Icons.add,
                         size: 12,
-                        color: t.fg.withValues(alpha: 0.34),
+                        color: t.grassInk.withValues(alpha: 0.50),
                         shadows: t.halo,
                       ),
                     ),
@@ -268,7 +273,7 @@ class _AddMark extends StatelessWidget {
               : Icon(
                   Icons.add,
                   size: 18,
-                  color: t.fg.withValues(alpha: enabled ? 0.42 : 0.16),
+                  color: t.grassInk.withValues(alpha: enabled ? 0.58 : 0.26),
                   shadows: t.halo,
                 ),
         ),

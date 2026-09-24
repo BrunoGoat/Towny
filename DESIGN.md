@@ -265,6 +265,30 @@ hora y la pieza la pone la app cuando se abre, con esa hora. Levantar un pueblo
 entero cada vez que alguien pasa por su pantalla de inicio sería cobrarle a la
 batería de otro lo que aquí es un apunte de dos líneas.
 
+## La única vez que la app te pregunta
+
+Todo lo demás pasa solo: las casas salen del hash del pueblo, los hitos del
+orden que le tocó al fundarlo, y no hay nada que decidir en ninguna pantalla.
+Un botón y ninguna elección es la mitad de lo que hace a esta app descansada.
+
+Pero cada varias semanas, justo en la pieza en la que empezaría una obra
+grande, el pueblo levanta la vista y pregunta: **¿qué levantamos ahora?** Dos
+obras, con su retrato, su nombre, lo que cuestan y lo que son.
+
+**Las dos salen sorteadas** de entre las seis que le tocan más pronto. La
+ventana de seis está por el precio —el catálogo va de un pozo de ocho piezas a
+una catedral de doscientas, y ofrecer las dos juntas sería una trampa— pero
+dentro de ella el sorteo es de verdad: la que dejás no se pierde del catálogo,
+pero **no es la de la próxima vez**. Puede volver a salir y puede que no.
+
+Eso último es lo que hace que sea una pregunta. Antes la que no elegías
+encabezaba la lista siguiente, así que las dos se construían igual, una detrás
+de la otra, y elegir no decidía nada: sólo cambiaba el orden de dos cosas que
+ibas a tener de todas formas.
+
+Y se puede cerrar sin contestar. Entonces deciden ellos, ahora, lo que habrían
+decidido solos.
+
 ## Ver cómo se hizo
 
 Dos maneras, y no dos tamaños de la misma.

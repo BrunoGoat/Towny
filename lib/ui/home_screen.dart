@@ -573,10 +573,12 @@ class _HomeScreenState extends State<HomeScreen>
         return;
       }
       Sensory.instance.tick();
-      showModalBottomSheet<void>(
+      // En el medio de la pantalla y no subiendo desde abajo. Una hoja que
+      // sube es para lo que uno pide; esto no lo pidió nadie —sale solo, una
+      // vez cada varias semanas— y lo que hace es parar el valle un momento
+      // para preguntar. Eso se pone delante, no debajo.
+      showDialog<void>(
         context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
         barrierColor: sheetScrim(_theme.dark),
         builder: (_) => ChoiceSheet(
           options: ahora,
@@ -587,8 +589,8 @@ class _HomeScreenState extends State<HomeScreen>
         ),
       ).whenComplete(() {
         _asking = false;
-        // Arrastrar la hoja hacia abajo también es cerrarla sin contestar, y
-        // no pasa por ningún botón. Si sigue sin contestarse, deciden ellos.
+        // Tocar fuera de la tarjeta también es cerrarla sin contestar, y no
+        // pasa por ningún botón. Si sigue sin contestarse, deciden ellos.
         widget.store.letThemDecide();
       });
     });

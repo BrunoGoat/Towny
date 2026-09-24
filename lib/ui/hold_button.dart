@@ -200,8 +200,8 @@ class _HoldToPlaceState extends State<HoldToPlace>
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 11,
-                    color: t.fg.withValues(alpha: 0.46),
-                    shadows: t.halo,
+                    color: t.grassInk.withValues(alpha: 0.66),
+                    shadows: t.grassHalo,
                   ),
                 ),
               ),
@@ -229,8 +229,10 @@ class _HoldToPlaceState extends State<HoldToPlace>
                 fontSize: 8.5,
                 letterSpacing: 2.6,
                 fontWeight: FontWeight.w600,
-                color: _charge > 0.02 ? t.accent : t.fg.withValues(alpha: 0.45),
-                shadows: t.halo,
+                color: _charge > 0.02
+                    ? t.accent
+                    : t.grassInk.withValues(alpha: 0.76),
+                shadows: t.grassHalo,
               ),
               child: Text(
                 _down && _fired && widget.rapid
@@ -280,7 +282,9 @@ class _HoldPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final c = Offset(size.width / 2, size.height / 2);
     final r = size.width * 0.42;
-    final fg = theme.fg;
+    // La tinta de abajo, que es la del prado y no la del cielo. El aro se
+    // dibujaba en pardo al treinta por ciento sobre un verde de pradera.
+    final fg = theme.grassInk;
 
     // A soft breath of shade so the ring reads over pale stone as well as sky.
     canvas.drawCircle(
@@ -291,8 +295,10 @@ class _HoldPainter extends CustomPainter {
           c,
           r * 1.35,
           [
-            (theme.dark ? Colors.black : const Color(0xFF3A3426)).withValues(
-              alpha: theme.dark ? 0.24 : 0.13,
+            // Y el aliento va oscuro siempre, no sólo de noche: lo que tiene
+            // detrás es prado a cualquier hora.
+            (theme.dark ? Colors.black : const Color(0xFF241F16)).withValues(
+              alpha: theme.dark ? 0.24 : 0.22,
             ),
             Colors.transparent,
           ],
@@ -307,7 +313,7 @@ class _HoldPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.4
-        ..color = fg.withValues(alpha: 0.30),
+        ..color = fg.withValues(alpha: 0.42),
     );
 
     // The charge closing round it.

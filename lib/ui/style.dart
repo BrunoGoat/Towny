@@ -106,6 +106,41 @@ class UiTheme {
     fontWeight: FontWeight.w600,
   );
 
+  /// La tinta de lo que va **sobre el prado**, que no es la de lo que va sobre
+  /// el cielo.
+  ///
+  /// Toda la interfaz saca su tinta de `skyTop` —el techo del cielo— y eso es
+  /// lo correcto para los rótulos de arriba y los botones del costado, que es
+  /// lo que tienen detrás. Pero el botón de poner y la fila de hábitos viven
+  /// abajo del todo, y lo que tienen detrás es el prado. A las cinco y media
+  /// de la tarde el cielo todavía es claro, así que la tinta sale parda
+  /// oscura, y parda oscura sobre un verde de pradera al treinta por ciento de
+  /// opacidad es exactamente lo que se vio en un teléfono: no se lee nada.
+  ///
+  /// Un prado es verde medio o verde oscuro a cualquier hora del día, así que
+  /// aquí no hay dos casos ni cruce que respetar: va tinta clara y un aliento
+  /// oscuro detrás, siempre.
+  ///
+  /// **Y clara de verdad, no «la del lado claro».** El primer intento fue
+  /// pedírsela a [SheetInk], que contesta la misma pregunta para las hojas; y
+  /// [SheetInk] de noche escribe con [fg], que es la tinta que cruza de pardo
+  /// a crema en un cuarto de hora. Medido: a las cinco y media larga de la
+  /// tarde, en mitad de ese cruce, salía un gris medio —luminancia 0,26— que
+  /// contra un prado de 0,13 va a uno coma siete a uno. Sobre el vidrio
+  /// ahumado de una hoja ese gris se lee igual, porque el vidrio es mucho más
+  /// oscuro que el prado; aquí no hay vidrio.
+  ///
+  /// El cruce existe porque el cielo cambia. El prado no.
+  Color get grassInk =>
+      Color.lerp(const Color(0xFFF3EEE3), palette.accent, 0.14)!;
+
+  /// Y el aliento oscuro que la despega del prado. Oscuro a cualquier hora,
+  /// por lo mismo.
+  List<Shadow> get grassHalo => const [
+    Shadow(color: Color(0x9E14130E), blurRadius: 10),
+    Shadow(color: Color(0x6B14130E), blurRadius: 22),
+  ];
+
   /// A soft halo so type can sit straight on the scene without a card behind
   /// it and still be legible over stone, grass or sky.
   List<Shadow> get halo => [

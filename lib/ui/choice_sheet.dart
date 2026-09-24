@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 
 import '../core/math3.dart';
@@ -22,11 +24,11 @@ import 'style.dart';
 /// app que se abandona.
 ///
 /// Pero cada varias semanas, cuando toca empezar una obra grande, el pueblo
-/// levanta la vista y pregunta. Dos obras que le tocaban igual de pronto; la
-/// que no salga no se pierde, encabeza la lista de la próxima vez. Así que no
-/// hay manera de elegir mal, que es lo que permite que la pregunta no dé
-/// pereza: no estás optimizando nada, estás decidiendo en qué orden quieres
-/// ver crecer tu propio valle.
+/// levanta la vista y pregunta. Dos obras sorteadas de entre las que le tocan
+/// pronto; la que dejás no se pierde del catálogo, pero tampoco es la de la
+/// próxima vez — puede volver a salir y puede que no. Eso es lo que hace que
+/// sea una pregunta y no un orden: con la regla vieja las dos se construían
+/// igual, una detrás de la otra, y elegir no decidía nada.
 ///
 /// Y se puede cerrar sin contestar. Entonces deciden ellos, que es lo que
 /// hacían antes de que se pudiera elegir.
@@ -67,105 +69,152 @@ class _ChoiceSheetState extends State<ChoiceSheet> {
   @override
   Widget build(BuildContext context) {
     final t = widget.theme;
-    return Frosted(
-      theme: t,
-      strong: true,
-      radius: 30,
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 22),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
+    final velo = SheetInk.of(t);
+    final alto = MediaQuery.of(context).size.height;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: 420, maxHeight: alto * 0.84),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(26),
+            child: BackdropFilter(
+              filter: ui.ImageFilter.blur(
+                sigmaX: velo.bruma,
+                sigmaY: velo.bruma,
+              ),
               child: Container(
-                width: 38,
-                height: 4,
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
                 decoration: BoxDecoration(
-                  color: t.fg.withValues(alpha: 0.22),
-                  borderRadius: BorderRadius.circular(2),
+                  color: velo.tinte.withValues(alpha: velo.tapa),
+                  borderRadius: BorderRadius.circular(26),
+                  border: Border.all(color: velo.canto),
                 ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text('EL PUEBLO PREGUNTA', style: t.label),
-            const SizedBox(height: 10),
-            Text('¿Qué levantamos ahora?', style: t.title),
-            const SizedBox(height: 6),
-            Text(
-              'Las dos están listas para empezar. La que no elijas será la '
-              'primera la próxima vez.',
-              style: t.bodySoft.copyWith(fontSize: 12.5, height: 1.4),
-            ),
-            const SizedBox(height: 16),
-            for (var i = 0; i < widget.options.length; i++) ...[
-              if (i > 0) const SizedBox(height: 10),
-              _Option(
-                mark: widget.options[i],
-                place: widget.place,
-                theme: t,
-                chosen: _at == i,
-                onTap: () => _tap(i),
-              ),
-            ],
-            const SizedBox(height: 18),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: _at == null
-                    ? null
-                    : () {
-                        widget.onPick(widget.options[_at!]);
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // La pregunta, y nada más que la pregunta. Tenía encima un
+                    // rótulo —«EL PUEBLO PREGUNTA»— y debajo un párrafo
+                    // explicando las reglas, y las dos cosas sobraban: lo que
+                    // hay que hacer se ve, y las reglas ya no son las que ese
+                    // párrafo contaba.
+                    Text(
+                      '¿Qué levantamos ahora?',
+                      style: t.title.copyWith(
+                        color: velo.cuerpo,
+                        shadows: velo.aliento,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        // Las dos columnas, de la misma altura aunque una
+                        // tenga el doble de texto. Sin esto, la del hito de
+                        // nombre corto acaba a media tarjeta y la otra sigue
+                        // hasta abajo, y lo que se lee es que una de las dos
+                        // importa menos.
+                        child: IntrinsicHeight(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              for (
+                                var i = 0;
+                                i < widget.options.length;
+                                i++
+                              ) ...[
+                                if (i > 0) const SizedBox(width: 12),
+                                Expanded(
+                                  child: _Option(
+                                    mark: widget.options[i],
+                                    place: widget.place,
+                                    theme: t,
+                                    ink: velo,
+                                    chosen: _at == i,
+                                    onTap: () => _tap(i),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(height: 1, color: velo.canto),
+                    // La respuesta, en una palabra. Era un botón ámbar del
+                    // ancho de la tarjeta, que encima de dos retratos es lo
+                    // único que se mira.
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: _at == null
+                          ? null
+                          : () {
+                              widget.onPick(widget.options[_at!]);
+                              Navigator.of(context).pop();
+                            },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: Center(
+                          child: Text(
+                            _at == null ? 'ELEGÍ UNA' : 'QUE EMPIECEN',
+                            style: TextStyle(
+                              color: _at == null ? velo.tenue : t.accent,
+                              fontSize: 11.5,
+                              letterSpacing: 2.4,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        widget.onLeave();
                         Navigator.of(context).pop();
                       },
-                style: FilledButton.styleFrom(
-                  backgroundColor: t.accent.withValues(alpha: 0.85),
-                  foregroundColor: t.dark ? Colors.black : Colors.white,
-                  disabledBackgroundColor: t.fg.withValues(alpha: 0.10),
-                  disabledForegroundColor: t.fgFaint,
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                child: Text(
-                  _at == null
-                      ? 'Elegí una'
-                      : 'Que empiecen: ${widget.options[_at!].name}',
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Center(
-              child: TextButton(
-                onPressed: () {
-                  widget.onLeave();
-                  Navigator.of(context).pop();
-                },
-                child: Text(
-                  'Que decidan ellos',
-                  style: t.bodySoft.copyWith(fontSize: 12.5),
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Center(
+                          child: Text(
+                            'Que decidan ellos',
+                            style: t.bodySoft.copyWith(
+                              fontSize: 12.5,
+                              color: velo.tenue,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
 
-/// Una de las dos, con la obra dibujada.
+/// Una de las dos, con la obra dibujada **en grande y arriba**.
 ///
 /// Dibujada y no descrita: son ciento y pico obras y sus nombres no siempre
 /// dicen mucho —«atarazana», «lonja»— y lo que se está decidiendo es qué
 /// quiere uno ver en su valle, que es una cosa que se decide mirando. Sale del
 /// mismo render que el pueblo, con el mismo sol de ahora mismo.
+///
+/// En columna y no en fila: el retrato era una miniatura de ochenta y dos
+/// píxeles al lado de un párrafo, o sea un icono. Puesto arriba y del ancho de
+/// su columna mide el doble, y a ese tamaño ya se distingue una ermita de una
+/// atalaya, que es de lo que iba la pregunta.
 class _Option extends StatelessWidget {
   const _Option({
     required this.mark,
     required this.place,
     required this.theme,
+    required this.ink,
     required this.chosen,
     required this.onTap,
   });
@@ -173,6 +222,7 @@ class _Option extends StatelessWidget {
   final Landmark mark;
   final TownCharacter place;
   final UiTheme theme;
+  final SheetInk ink;
   final bool chosen;
   final VoidCallback onTap;
 
@@ -186,68 +236,69 @@ class _Option extends StatelessWidget {
         duration: const Duration(milliseconds: 170),
         curve: Curves.easeOut,
         decoration: BoxDecoration(
-          color: t.fg.withValues(alpha: chosen ? 0.10 : 0.04),
-          borderRadius: BorderRadius.circular(18),
+          color: chosen
+              ? t.accent.withValues(alpha: 0.12)
+              : ink.tinte.withValues(alpha: 0.38),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: chosen ? t.accent.withValues(alpha: 0.85) : t.stroke,
+            color: chosen ? t.accent.withValues(alpha: 0.85) : ink.canto,
             width: chosen ? 1.6 : 1,
           ),
         ),
-        padding: const EdgeInsets.fromLTRB(12, 12, 14, 12),
-        child: Row(
+        padding: const EdgeInsets.all(8),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(
-              width: 82,
-              height: 82,
+            AspectRatio(
+              aspectRatio: 1,
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(11),
                 child: CustomPaint(
                   painter: WorkPortrait(
                     mark: mark,
                     place: place,
                     palette: t.palette,
                   ),
-                  size: const Size(82, 82),
+                  size: Size.infinite,
                 ),
               ),
             ),
-            const SizedBox(width: 13),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          mark.name,
-                          style: t.body.copyWith(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        '${mark.cost}',
-                        style: t.body.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: chosen ? t.accent : t.fgSoft,
-                        ),
-                      ),
-                      const SizedBox(width: 3),
-                      Text(
-                        mark.cost == 1 ? 'pieza' : 'piezas',
-                        style: t.bodySoft.copyWith(fontSize: 11),
-                      ),
-                    ],
+            const SizedBox(height: 10),
+            Text(
+              mark.name,
+              style: t.body.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+                height: 1.2,
+                color: ink.cuerpo,
+              ),
+            ),
+            const SizedBox(height: 3),
+            Row(
+              children: [
+                Text(
+                  '${mark.cost}',
+                  style: t.body.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: chosen ? t.accent : ink.suave,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    mark.blurb,
-                    style: t.bodySoft.copyWith(fontSize: 12, height: 1.35),
-                  ),
-                ],
+                ),
+                const SizedBox(width: 3),
+                Text(
+                  mark.cost == 1 ? 'pieza' : 'piezas',
+                  style: t.bodySoft.copyWith(fontSize: 11, color: ink.tenue),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              mark.blurb,
+              style: t.bodySoft.copyWith(
+                fontSize: 11.5,
+                height: 1.35,
+                color: ink.suave,
               ),
             ),
           ],

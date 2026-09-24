@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:la_muralla/engine/palette.dart';
+import 'package:la_muralla/engine/tones.dart';
 import 'package:la_muralla/model/store.dart';
+import 'package:la_muralla/ui/habit_bar.dart';
 import 'package:la_muralla/ui/habit_sigil.dart';
 import 'package:la_muralla/ui/habits_sheet.dart';
+import 'package:la_muralla/ui/hold_button.dart';
 import 'package:la_muralla/ui/legend_card.dart';
 import 'package:la_muralla/ui/overlays.dart';
 import 'package:la_muralla/ui/style.dart';
@@ -61,6 +64,7 @@ void _dentro(WidgetTester tester, Size size, String quien) {
 void main() {
   _cuando();
   _pieles();
+  _abajo();
   testWidgets('el cartel del pueblo cabe y no se queda puesto', (tester) async {
     for (final size in _pantallas) {
       tester.view.physicalSize = size;
@@ -432,6 +436,117 @@ void _pieles() {
             m.color.a,
             greaterThan(0.6),
             reason: 'a las $hora una marca sin elegir va casi transparente',
+          );
+        }
+        await tester.pumpWidget(const SizedBox());
+      }
+    });
+  });
+}
+
+/// El contraste entre dos colores, como lo mide todo el mundo.
+double _contraste(Color a, Color b) {
+  final x = a.computeLuminance(), y = b.computeLuminance();
+  final alto = x > y ? x : y, bajo = x > y ? y : x;
+  return (alto + 0.05) / (bajo + 0.05);
+}
+
+void _abajo() {
+  group('lo que va sobre el prado', () {
+    // El fallo, visto en un teléfono a las cinco y media de la tarde: el botón
+    // de poner y la fila de hábitos casi no se veían. La causa no es el
+    // tamaño ni la opacidad: **toda la interfaz saca su tinta del techo del
+    // cielo**, que es lo correcto para los rótulos de arriba, y a esa hora el
+    // cielo todavía está claro, así que la tinta sale parda oscura. Parda
+    // oscura sobre un verde de pradera no se lee, y lo de abajo tiene prado
+    // detrás a cualquier hora.
+    const horas = [6.0, 9.0, 11.0, 13.0, 17.6, 19.0, 19.6, 21.0, 23.0, 3.0];
+
+    test('va en tinta clara, no en la del cielo', () {
+      for (final hora in horas) {
+        final t = UiTheme(Palette.forMoment(hora, 1.0));
+        expect(
+          t.grassInk.computeLuminance(),
+          greaterThan(0.45),
+          reason: 'a las $hora la tinta de abajo sale oscura',
+        );
+      }
+    });
+
+    test('y se separa del prado de esa hora', () {
+      // Lo que de verdad importa, medido: la tinta contra el verde que tiene
+      // detrás. Tres a uno es el suelo por debajo del cual un texto chico deja
+      // de leerse de un vistazo.
+      for (final hora in horas) {
+        final t = UiTheme(Palette.forMoment(hora, 1.0));
+        final prado = meadowTone(t.palette);
+        expect(
+          _contraste(t.grassInk, prado),
+          greaterThan(3.0),
+          reason:
+              'a las $hora la tinta de abajo y el prado van a '
+              '${_contraste(t.grassInk, prado).toStringAsFixed(2)} a uno',
+        );
+      }
+    });
+
+    testWidgets('y el botón y los hábitos la usan de verdad', (tester) async {
+      // Lo anterior mide un color del tema; esto mide que abajo se use. Es la
+      // mitad que se rompe sola: alguien escribe `t.fg` porque es lo que se
+      // escribe en todas las demás pantallas y nadie se entera hasta que lo
+      // mira a las cinco y media de la tarde.
+      SharedPreferences.setMockInitialValues({});
+      final store = Store();
+      await store.load();
+      store.renameHabit(0, name: 'Leer', symbol: 'libro');
+      store.debugFill(40);
+
+      for (final hora in [11.0, 17.6, 21.0]) {
+        final t = UiTheme(Palette.forMoment(hora, 1.0));
+        await tester.pumpWidget(
+          _marco(
+            const Size(390, 844),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  HabitBar(
+                    store: store,
+                    theme: t,
+                    onSelect: (_) {},
+                    onManage: () {},
+                    onAdd: () {},
+                  ),
+                  HoldToPlace(theme: t, onPlace: () {}, onCharge: (_) {}),
+                ],
+              ),
+            ),
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 200));
+
+        final letras = tester.widget<Text>(find.text('MANTENER'));
+        final tinta =
+            letras.style?.color ??
+            DefaultTextStyle.of(
+              tester.element(find.text('MANTENER')),
+            ).style.color!;
+        expect(
+          tinta.computeLuminance(),
+          greaterThan(0.45),
+          reason: 'a las $hora «MANTENER» va en tinta oscura',
+        );
+
+        for (final s in tester.widgetList<HabitSigil>(
+          find.byType(HabitSigil),
+        )) {
+          // El del pueblo que se está mirando va en ámbar, que es su sitio.
+          if (s.color.r == t.accent.r && s.color.b == t.accent.b) continue;
+          expect(
+            s.color.computeLuminance(),
+            greaterThan(0.40),
+            reason: 'a las $hora una marca de la fila va en tinta oscura',
           );
         }
         await tester.pumpWidget(const SizedBox());

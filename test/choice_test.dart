@@ -142,20 +142,57 @@ void main() {
       }
     });
 
-    test('la que no sale es la primera de la vez siguiente', () {
-      // Elegir no es renunciar, es decidir el orden. Si al descartar una se
-      // perdiera, la elección costaría una obra y la app estaría cobrando por
-      // dejarte decidir.
-      final g = _grow(_piecesFor(4), pick: (o) => o.last);
-      expect(g.asks.length, greaterThanOrEqualTo(2));
+    test('la que dejás puede volver a salir o no, y ésa es la gracia', () {
+      // La regla vieja era que la descartada encabezaba la pregunta siguiente,
+      // y con eso elegir no decidía nada: las dos se construían igual, una
+      // detrás de la otra, y lo único que cambiaba era el orden. Ahora las dos
+      // se sortean de entre las que le tocan pronto, así que dejar una es
+      // dejarla de verdad — puede volver, y puede que no.
+      final g = _grow(_piecesFor(10), pick: (o) => o.last);
+      expect(g.asks.length, greaterThanOrEqualTo(4));
+      var volvio = 0, no = 0;
       for (var i = 0; i + 1 < g.asks.length; i++) {
-        final descartada = g.asks[i].options.first;
+        if (g.asks[i + 1].options.contains(g.asks[i].options.first)) {
+          volvio++;
+        } else {
+          no++;
+        }
+      }
+      expect(
+        no,
+        greaterThan(0),
+        reason: 'la descartada volvió a salir **siempre**: no se sortea nada',
+      );
+      expect(
+        volvio,
+        greaterThan(0),
+        reason: 'la descartada no volvió a salir nunca: se está perdiendo',
+      );
+    });
+
+    test('pero no se pierde: sigue en el catálogo del pueblo', () {
+      // Lo que no puede pasar es que dejar una la borre. Dejando siempre la
+      // primera, todas las que se dejaron tienen que seguir estando —sin
+      // construir, y disponibles— al final del recorrido.
+      final plan = _plan;
+      final g = _grow(_piecesFor(10), pick: (o) => o.last);
+      final dejadas = {for (final a in g.asks) a.options.first}
+        ..removeAll(g.chronicle);
+      expect(dejadas, isNotEmpty);
+      final puestas = {
+        for (final id in g.chronicle)
+          if (!id.startsWith(TownPlan.kindMark)) id,
+      };
+      for (final id in dejadas) {
         expect(
-          g.asks[i + 1].options.first,
-          descartada,
-          reason:
-              'se descartó «$descartada» en la pregunta $i y no volvió a '
-              'ofrecerse la primera en la siguiente',
+          plan.order.contains(id),
+          isTrue,
+          reason: '«$id» se cayó del orden del pueblo',
+        );
+        expect(
+          puestas.contains(id),
+          isFalse,
+          reason: '«$id» se dejó y aun así se construyó',
         );
       }
     });
@@ -175,19 +212,36 @@ void main() {
       }
     });
 
-    test('y si nunca se la elige, sigue en la lista para siempre', () {
-      // Contestando siempre la segunda, la primera se aplaza indefinidamente:
-      // cada vez vuelve a salir la primera y cada vez se la vuelve a saltar.
-      // No es un fallo, es lo que se pidió — y lo que importa es que no se
-      // pierde: sigue ahí, la próxima vez que se conteste al revés.
-      final g = _grow(_piecesFor(6), pick: (o) => o.last);
-      final aplazada = g.asks.first.options.first;
-      expect(g.chronicle.contains(aplazada), isFalse);
+    test('y una que se deja una y otra vez vuelve a ofrecerse', () {
+      // No se pierde por dejarla, aunque no salga en la pregunta siguiente:
+      // mientras no se construya sigue en la ventana de las que le tocan
+      // pronto, y de ahí se sortea otra vez.
+      final g = _grow(_piecesFor(12), pick: (o) => o.last);
+      final tomadas = {for (final a in g.asks) a.taken};
+      final veces = <String, int>{};
+      for (final a in g.asks) {
+        for (final id in a.options) {
+          veces.update(id, (n) => n + 1, ifAbsent: () => 1);
+        }
+      }
+      // Alguna que se ofreció más de una vez y nunca se eligió. Que exista es
+      // la prueba: se dejó, no salió a la siguiente, y aun así volvió.
+      final porfiadas = [
+        for (final e in veces.entries)
+          if (e.value > 1 && !tomadas.contains(e.key)) e.key,
+      ];
       expect(
-        g.asks.last.options,
-        contains(aplazada),
-        reason: '«$aplazada» dejó de ofrecerse: se perdió del catálogo',
+        porfiadas,
+        isNotEmpty,
+        reason: 'ninguna obra dejada volvió a ofrecerse: se pierden',
       );
+      for (final id in porfiadas) {
+        expect(
+          g.chronicle.contains(id),
+          isFalse,
+          reason: '«$id» no se eligió nunca y se construyó igual',
+        );
+      }
     });
 
     test('no contestar levanta exactamente el pueblo de antes', () {
@@ -196,19 +250,9 @@ void main() {
       // opción es justo la que el plan daba solo.
       final plan = _plan;
       final g = _grow(600);
-      for (final a in g.asks) {
-        final used = {
-          for (final id in a.before)
-            if (!id.startsWith(TownPlan.kindMark)) id,
-        };
-        expect(
-          a.taken,
-          plan.landmarkFor(0, used),
-          reason: 'con ${a.at} piezas no eligió lo que salía solo',
-        );
-      }
-      // Y la crónica entera es, obra por obra, la que el plan levantaba solo
-      // antes de que hubiera nada que preguntar.
+      // Contestar la primera de las dos es lo mismo que no contestar: la
+      // crónica entera tiene que salir, obra por obra, igual que la que el
+      // plan levanta solo.
       final solo = [
         for (final w in plan.walk(const []).take(g.chronicle.length)) w.id,
       ];
@@ -397,12 +441,13 @@ void main() {
     }
 
     testWidgets('no se puede confirmar sin haber elegido', (tester) async {
-      // La hoja no llega con una respuesta ya puesta: las dos obras empiezan
-      // iguales y el botón no hace nada hasta que se señala una.
+      // La tarjeta no llega con una respuesta ya puesta: las dos obras
+      // empiezan iguales, y hasta que se señala una la acción ni siquiera se
+      // llama lo mismo.
       final r = await pump(tester);
-      final boton = tester.widget<FilledButton>(find.byType(FilledButton));
-      expect(boton.onPressed, isNull);
-      await tester.tap(find.byType(FilledButton));
+      expect(find.text('ELEGÍ UNA'), findsOneWidget);
+      expect(find.text('QUE EMPIECEN'), findsNothing);
+      await tester.tap(find.text('ELEGÍ UNA'));
       await tester.pumpAndSettle();
       expect(r.picked, isEmpty);
     });
@@ -411,9 +456,20 @@ void main() {
       final r = await pump(tester);
       await tester.tap(find.text('Puente de piedra'));
       await tester.pumpAndSettle();
-      await tester.tap(find.byType(FilledButton));
+      await tester.tap(find.text('QUE EMPIECEN'));
       await tester.pumpAndSettle();
       expect(r.picked, ['puente']);
+    });
+
+    testWidgets('y no queda nada del formulario que era', (tester) async {
+      // Lo que se quitó, y que no vuelva por descuido: el rótulo de encima, el
+      // párrafo que explicaba unas reglas que ya no son las que rigen, y el
+      // botón ámbar del ancho de la tarjeta.
+      await pump(tester);
+      expect(find.text('EL PUEBLO PREGUNTA'), findsNothing);
+      expect(find.textContaining('la próxima vez'), findsNothing);
+      expect(find.byType(FilledButton), findsNothing);
+      expect(find.text('¿Qué levantamos ahora?'), findsOneWidget);
     });
 
     testWidgets('«que decidan ellos» decide, no aplaza', (tester) async {

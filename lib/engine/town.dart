@@ -321,32 +321,61 @@ class TownPlan {
   List<String>? _order;
   int? _orderOf;
 
-  /// El hito número `no` de este pueblo: el primero de su orden que todavía no
-  /// construyó.
+  /// El hito número `no` de este pueblo cuando nadie contesta: la primera de
+  /// las dos que se le habrían ofrecido.
+  ///
+  /// Que sea una de las dos y no «la primera de la lista» es lo que hace que
+  /// el pueblo que se ve venir sea el mismo que el que se pregunta. Un pueblo
+  /// al que nunca se le conteste se construye solo, como siempre.
   String landmarkFor(int no, Set<String> used) =>
       landmarkChoices(no, used).first;
 
+  /// De cuántas se sortean las dos que se ofrecen.
+  ///
+  /// Seis. Las seis primeras de su propio orden que el pueblo todavía no
+  /// levantó, y de ahí salen dos al azar.
+  ///
+  /// La ventana existe por el precio. El catálogo va por niveles —un pozo son
+  /// ocho piezas y una catedral doscientas— y sortear entre las ciento y pico
+  /// sería ofrecerle a un pueblo de tres semanas elegir entre un horno y una
+  /// obra de un año. Con seis, las dos que salen son las que le tocaban de
+  /// todas formas por ahí, así que ninguna de las dos es una trampa.
+  static const int choiceWindow = 6;
+
   /// Las obras entre las que el pueblo puede elegir para su hito número [no].
   ///
-  /// Las dos primeras de su propio orden que todavía no ha levantado. Las dos
-  /// son igual de suyas y les tocaba igual de pronto: la que no salga no se
-  /// pierde, sigue la primera de la lista y le toca la próxima vez. Elegir
-  /// aquí no es renunciar a nada, es decidir el orden.
+  /// **Dos al azar de entre las que le tocan pronto**, y no las dos primeras
+  /// de la lista. La diferencia importa y es la que se pidió: con las dos
+  /// primeras, la que no elegías era exactamente la que salía la próxima vez,
+  /// así que elegir no decidía nada — sólo cambiaba el orden de dos cosas que
+  /// ibas a construir igual, una detrás de la otra. Ahora la que dejás puede
+  /// volver a salir o no, que es lo que hace que la pregunta sea una pregunta.
   ///
-  /// La primera sigue siendo la que sale si nadie elige, así que un pueblo al
-  /// que nunca se le conteste se construye exactamente igual que antes de que
-  /// esto existiera.
+  /// El sorteo sale de la semilla del pueblo y del número del hito, así que
+  /// las mismas dos salen siempre: cerrar la app y volver a abrirla no reparte
+  /// otra vez, y dos hábitos de la misma región no ven lo mismo.
   List<String> landmarkChoices(int no, Set<String> used, {int count = 2}) {
-    final out = <String>[];
+    final cerca = <String>[];
     for (final id in order) {
       if (used.contains(id)) continue;
-      out.add(id);
-      if (out.length == count) return out;
+      cerca.add(id);
+      if (cerca.length == choiceWindow) break;
     }
-    // Catálogo entero construido, que son ciento y pico obras y muchos años.
-    // Vuelve a empezar en vez de dejar al pueblo sin nada que hacer.
+    if (cerca.length <= count) {
+      // Queda menos que elegir que opciones que ofrecer: el catálogo entero
+      // construido, que son ciento y pico obras y muchos años. Vuelve a
+      // empezar en vez de dejar al pueblo sin nada que hacer.
+      final out = [...cerca];
+      for (var k = 0; out.length < count; k++) {
+        final id = order[(no + k) % order.length];
+        if (!out.contains(id)) out.add(id);
+      }
+      return out;
+    }
+    // Sin reponer: dos veces la misma obra no es una elección.
+    final out = <String>[];
     for (var k = 0; out.length < count; k++) {
-      out.add(order[(no + k) % order.length]);
+      out.add(cerca.removeAt(hashInt(cerca.length, seed, 0x9E37, no, k)));
     }
     return out;
   }
