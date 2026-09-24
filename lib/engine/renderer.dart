@@ -53,7 +53,6 @@ class TownPainter extends CustomPainter {
   List<BoardHit> get boards => hits.boards;
   List<LecternHit> get lecterns => hits.lecterns;
   List<SkyHit> get skies => hits.skies;
-  List<DomeHit> get domes => hits.domes;
 
   /// Filled every frame: where each town's sign is, for the gesture layer.
 
@@ -179,7 +178,6 @@ class TownPainter extends CustomPainter {
     _drawTownLabels(canvas, p, size, town);
     _drawTownSigns(canvas, p, size);
     _findBoards(p, size);
-    _findDomes(p, size);
     _drawParticles(canvas, p);
     fondo.drawAtmosphere(canvas, size, horizonY);
     fondo.drawStarLight(canvas, size, p);
@@ -599,45 +597,6 @@ class TownPainter extends CustomPainter {
     if (x1 - x0 < 12 && y1 - y0 < 12) return null;
     if (x1 < 0 || x0 > size.width || y1 < 0 || y0 > size.height) return null;
     return Rect.fromLTRB(x0, y0, x1, y1).inflate(9);
-  }
-
-  /// Dónde está cada cúpula, para poder tocarla.
-  ///
-  /// Se mide del propio edificio y no de un punto colgado encima: lo que se
-  /// toca es lo que se ve, y desde lejos, cuando la cúpula es una mancha de
-  /// cuatro píxeles, no hay nada que tocar — que es lo correcto.
-  void _findDomes(Projector p, Size size) {
-    for (var i = 0; i < scene.towns.length; i++) {
-      final b = scene.towns[i].layout.standing('observatorio');
-      if (b == null) continue;
-      var x0 = double.infinity, y0 = double.infinity;
-      var x1 = -double.infinity, y1 = -double.infinity;
-      var whole = true;
-      // Las cuatro esquinas de la cúpula y su cima: con el centro solo, una
-      // cúpula cerca ocuparía media pantalla y su blanco sería un punto.
-      const r = 1.5;
-      for (final v in [
-        V3(b.cx - r, b.peakY - 1.6, b.cz - r),
-        V3(b.cx + r, b.peakY - 1.6, b.cz - r),
-        V3(b.cx - r, b.peakY - 1.6, b.cz + r),
-        V3(b.cx + r, b.peakY - 1.6, b.cz + r),
-        V3(b.cx, b.peakY, b.cz),
-      ]) {
-        final at = p.project(v);
-        if (at == null) {
-          whole = false;
-          break;
-        }
-        if (at.x < x0) x0 = at.x;
-        if (at.x > x1) x1 = at.x;
-        if (at.y < y0) y0 = at.y;
-        if (at.y > y1) y1 = at.y;
-      }
-      if (!whole) continue;
-      if (x1 - x0 < 14 && y1 - y0 < 14) continue;
-      if (x1 < 0 || x0 > size.width || y1 < 0 || y0 > size.height) continue;
-      domes.add(DomeHit(i, Rect.fromLTRB(x0, y0, x1, y1).inflate(8)));
-    }
   }
 
   void _drawTownSigns(Canvas canvas, Projector p, Size size) {

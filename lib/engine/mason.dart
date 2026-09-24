@@ -101,7 +101,7 @@ class Mason {
   /// this one's: wider or narrower on the ground by [spread], taller or lower
   /// by [storey], steeper or flatter in the roof by [pitch]. It happens here,
   /// at the one door every piece goes through, rather than in each recipe —
-  /// which is why it also reaches the hundred and twelve. A castle in the
+  /// which is why it also reaches every landmark. A castle in the
   /// Sierra used to be the same castle as a castle on the Costa, down to the
   /// centimetre, and a town whose landmarks are somebody else's landmarks is
   /// not a place.

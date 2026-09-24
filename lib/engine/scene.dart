@@ -114,17 +114,6 @@ class SignHit {
 ///
 /// The board is a thing standing in the plaza and not a button floating over
 /// the town, so this is worked out from the plank's own four corners.
-/// La cúpula de un observatorio en pantalla, para que un dedo la encuentre.
-///
-/// Lo que se guarda es del valle y no de un pueblo, así que da igual cuál se
-/// toque: todos abren el mismo cuaderno. Pero se toca el de un pueblo, que es
-/// lo que hace que sea un sitio y no una pantalla de ajustes.
-class DomeHit {
-  const DomeHit(this.town, this.rect);
-  final int town;
-  final Rect rect;
-}
-
 /// Dónde quedó la constelación de esta noche, para que un dedo la encuentre.
 class SkyHit {
   const SkyHit(this.id, this.rect);
@@ -287,9 +276,6 @@ class TouchMap {
   /// La constelación de esta noche, si salió.
   final List<SkyHit> skies = [];
 
-  /// Y cada cúpula, que se abren al tocarlas.
-  final List<DomeHit> domes = [];
-
   /// Se vacía entero al empezar cada fotograma. Que lo haga el propio mapa es
   /// lo que evita el fallo de olvidarse una: seis `clear()` en fila al
   /// principio de `paint` se convierten en cinco en cuanto alguien añade la
@@ -300,6 +286,5 @@ class TouchMap {
     boards.clear();
     lecterns.clear();
     skies.clear();
-    domes.clear();
   }
 }

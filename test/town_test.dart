@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:la_muralla/core/rng.dart';
 import 'package:la_muralla/data/character.dart';
 import 'package:la_muralla/data/landmarks.dart';
+import 'package:la_muralla/data/landmarks_retired.dart';
 import 'package:la_muralla/engine/mason.dart';
 import 'package:la_muralla/engine/town.dart';
 import 'package:la_muralla/model/habit.dart';
@@ -213,8 +214,25 @@ void main() {
   });
 
   group('the catalogue', () {
-    test('there are at least a hundred different landmarks', () {
-      expect(landmarks.length, greaterThanOrEqualTo(100));
+    test('there are enough landmarks for a long life', () {
+      // Sesenta, y el número bajó a propósito: eran ciento trece y la mitad
+      // se confundían entre sí —tejar, tinte, batán, tenada, majada, todas el
+      // mismo cobertizo con otro nombre—. Un catálogo en el que no se
+      // distingue una obra de otra no es más largo, es más borroso.
+      expect(landmarks.length, greaterThanOrEqualTo(55));
+
+      // Y las retiradas siguen sabiéndose levantar, que es lo que protege a
+      // un pueblo que ya tiene una en pie: ver `landmarks_retired.dart`.
+      expect(retiredLandmarks.length, greaterThanOrEqualTo(50));
+      final vivas = landmarks.map((l) => l.id).toSet();
+      for (final l in retiredLandmarks) {
+        expect(vivas.contains(l.id), isFalse, reason: l.id);
+        expect(
+          TownPlan.landmarkOf(l.id),
+          isNotNull,
+          reason: 'una crónica vieja ya no sabría levantar ${l.id}',
+        );
+      }
     });
 
     test('every landmark has its own id and its own name', () {
@@ -233,7 +251,7 @@ void main() {
     test('every tier has enough in it to keep a long town varied', () {
       for (var t = 0; t < 3; t++) {
         final n = landmarks.where((l) => l.tier == t).length;
-        expect(n, greaterThanOrEqualTo(20), reason: 'tier $t has only $n');
+        expect(n, greaterThanOrEqualTo(12), reason: 'tier $t has only $n');
       }
     });
 
@@ -359,10 +377,11 @@ void main() {
       }
     });
 
-    test('a long life meets a hundred landmarks without repeating one', () {
-      final seen = road(TownCharacter.all.first, 100);
-      expect(seen.length, 100, reason: 'only ${seen.length} landmarks come up');
-      expect(seen.toSet().length, 100, reason: 'a landmark came round twice');
+    test('a long life meets the whole catalogue without repeating one', () {
+      final n = landmarks.length;
+      final seen = road(TownCharacter.all.first, n);
+      expect(seen.length, n, reason: 'only ${seen.length} landmarks come up');
+      expect(seen.toSet().length, n, reason: 'a landmark came round twice');
     });
   });
 
@@ -374,7 +393,7 @@ void main() {
       expect(orders.length, TownCharacter.all.length);
     });
 
-    test('two towns meet the hundred and twelve in a different order', () {
+    test('two towns meet the catalogue in a different order', () {
       // Four habits must not feel like the same thing four times, and the
       // clearest way they would is by hitting the same landmarks on the same
       // days. Every plot walks its own road.

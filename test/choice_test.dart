@@ -425,8 +425,8 @@ void main() {
           home: Scaffold(
             body: ChoiceSheet(
               options: [
-                landmarks.firstWhere((l) => l.id == 'acueducto'),
-                landmarks.firstWhere((l) => l.id == 'puente'),
+                landmarks.firstWhere((l) => l.id == 'catedral'),
+                landmarks.firstWhere((l) => l.id == 'coso'),
               ],
               place: TownCharacter.all.first,
               theme: UiTheme(Palette.forMoment(11, 1.0)),
@@ -454,11 +454,11 @@ void main() {
 
     testWidgets('elegir una y confirmar la devuelve', (tester) async {
       final r = await pump(tester);
-      await tester.tap(find.text('Puente de piedra'));
+      await tester.tap(find.text('Coso y graderío'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('QUE EMPIECEN'));
       await tester.pumpAndSettle();
-      expect(r.picked, ['puente']);
+      expect(r.picked, ['coso']);
     });
 
     testWidgets('y no queda nada del formulario que era', (tester) async {
@@ -487,9 +487,9 @@ void main() {
       tester,
     ) async {
       await pump(tester);
-      expect(find.text('Acueducto'), findsOneWidget);
-      expect(find.text('Puente de piedra'), findsOneWidget);
-      for (final id in ['acueducto', 'puente']) {
+      expect(find.text('Catedral'), findsOneWidget);
+      expect(find.text('Coso y graderío'), findsOneWidget);
+      for (final id in ['catedral', 'coso']) {
         final m = landmarks.firstWhere((l) => l.id == id);
         expect(find.text('${m.cost}'), findsWidgets, reason: id);
       }

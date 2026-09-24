@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:la_muralla/data/character.dart';
+import 'package:la_muralla/data/landmarks.dart';
 import 'package:la_muralla/data/pacing.dart';
 import 'package:la_muralla/engine/town.dart';
 import 'package:la_muralla/model/habit.dart';
@@ -274,36 +275,45 @@ void main() {
     // ahí arriba y otras no, y tocarla suena y no la apunta nadie. Lo que
     // queda de aquello son estas dos, que siguen valiendo por otra razón — el
     // observatorio es un hito del catálogo y tiene que salir en los seis.
-    test('el observatorio se levanta, y no de golpe', () async {
-      final s = await freshStore();
-      // Buscamos a qué altura lo levanta este pueblo, y comprobamos que
-      // efectivamente antes no y después sí. El número exacto depende del
-      // carácter del pueblo, así que se busca en vez de escribirse a mano.
-      final plan = TownPlan.of(s.character);
-      var at = -1;
-      for (var n = 0; n <= 6000; n += 1) {
-        if (plan.built('observatorio', n)) {
-          at = n;
-          break;
-        }
+    test('a todo pueblo le acaba tocando el catálogo entero', () async {
+      // Un hito que en un carácter no sale nunca es un hito que ese hábito no
+      // ve jamás, y eso no se notaría hasta que alguien llegase. Antes esto
+      // preguntaba por el observatorio, que era la obra que le tocaba a todo
+      // el mundo; el observatorio se retiró y la pregunta de verdad era ésta,
+      // que además vale para las sesenta.
+      //
+      // Se cuenta desde el catálogo y no desde una lista escrita a mano: una
+      // obra nueva entra sola en la cuenta, y una retirada sale sola.
+      for (final c in TownCharacter.all) {
+        final plan = TownPlan.of(c);
+        final faltan = [
+          for (final l in landmarks)
+            if (!plan.built(l.id, 12000)) l.id,
+        ];
+        expect(
+          faltan,
+          isEmpty,
+          reason: '${c.region} no levanta $faltan ni con doce mil piezas',
+        );
       }
-      expect(at, greaterThan(0), reason: 'este pueblo no lo construye nunca');
-      expect(plan.built('observatorio', at - 1), isFalse);
-      expect(plan.built('observatorio', at + 500), isTrue);
-      // ignore: avoid_print
-      print('observatorio a las $at piezas');
     });
 
-    test('todos los pueblos lo construyen tarde o temprano', () async {
-      // Un hito que en un carácter no sale nunca es un hito que ese hábito no
-      // ve jamás, y eso no se notaría hasta que alguien llegase.
-      for (final c in TownCharacter.all) {
-        expect(
-          TownPlan.of(c).built('observatorio', 4000),
-          isTrue,
-          reason:
-              '${c.region} no levanta observatorio ni con cuatro mil piezas',
-        );
+    test('y ninguna se levanta de golpe', () async {
+      // Lo que costó piezas tiene que verse costar: antes de la última pieza
+      // no está terminada, y después sí.
+      final s = await freshStore();
+      final plan = TownPlan.of(s.character);
+      for (final l in landmarks.take(8)) {
+        var at = -1;
+        for (var n = 0; n <= 12000; n++) {
+          if (plan.built(l.id, n)) {
+            at = n;
+            break;
+          }
+        }
+        expect(at, greaterThan(0), reason: '${l.name}: no se construye nunca');
+        expect(plan.built(l.id, at - 1), isFalse, reason: l.name);
+        expect(plan.built(l.id, at + 500), isTrue, reason: l.name);
       }
     });
 

@@ -8,7 +8,7 @@ import '../engine/town.dart' show BuildingKind;
 /// laid the same way — one achievement, one piece, never moved — but the place
 /// they build is not: its houses are taller or wider, its roofs are tile or
 /// slate or thatch, its streets are tight or open, its walls are limewashed
-/// white or ochre or grey stone, and its hundred and twelve landmarks arrive
+/// white or ochre or grey stone, and its landmarks arrive
 /// in a different order.
 ///
 /// Characters are assigned by plot, not at random, so the six are always as

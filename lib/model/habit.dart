@@ -82,7 +82,7 @@ class Habit {
   /// What kind of place this habit builds, chosen the day it was founded.
   ///
   /// Never changed afterwards, and there is no way to: the character decides
-  /// how wide the plots are and in what order the hundred and twelve arrive,
+  /// how wide the plots are and in what order the catalogue arrives,
   /// so changing it would move pieces that were laid years ago. The one
   /// promise this app makes is that a piece stays where it was put.
   final int character;

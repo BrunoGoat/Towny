@@ -47,9 +47,9 @@ muralla es un ladrillo más larga», pero una pieza de una casa significa «la c
 está casi terminada», y tres días después la casa **está** terminada. Siempre hay
 un final cerca, más cerca que el próximo hito.
 
-**Hitos.** Ciento trece obras genuinamente distintas —pozo, horno, molino de
-viento, puente, castillo, faro, iglesia, lagar, observatorio…—, repartidas en
-tres categorías según lo grandes que son, y levantadas **con las piezas reales**,
+**Hitos.** Sesenta obras genuinamente distintas —pozo, molino de viento,
+castillo, faro, iglesia, catedral, coso, claustro…—, repartidas en tres
+categorías según lo grandes que son, y levantadas **con las piezas reales**,
 una a una, durante las semanas que cuesta ganarlas. Nunca aparecen de golpe.
 Llegan con una cadencia que se va abriendo: el primero pronto, para que valga la
 pena esperarlo, y el vigésimo no cada quince días.

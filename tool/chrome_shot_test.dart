@@ -116,7 +116,7 @@ void main() {
                 body: ChoiceSheet(
                   options: [
                     landmarks.firstWhere((l) => l.id == 'iglesia'),
-                    landmarks.firstWhere((l) => l.id == 'observatorio'),
+                    landmarks.firstWhere((l) => l.id == 'catedral'),
                   ],
                   place: TownCharacter.all.first,
                   theme: t,

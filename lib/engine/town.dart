@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import '../core/rng.dart';
 import '../data/character.dart';
 import '../data/landmarks.dart';
+import '../data/landmarks_retired.dart';
 import 'mason.dart';
 
 export 'mason.dart' show PieceKind;
@@ -243,26 +244,19 @@ class TownPlan {
   /// ni una piedra.
   static const List<String> _openers = [
     'pozo',
-    'horno',
     'molinoViento',
     'cruz',
     'capilla',
-    'molinoAgua',
     'palomar',
-    'puente',
-    'reloj',
-    'fuente',
     'mercado',
     'castillo',
-    'ermita',
     'faro',
     'iglesia',
-    'lagar',
     'atalaya',
-    'observatorio',
     'claustro',
-    'acueducto',
     'concejo',
+    'puertaVilla',
+    'coso',
   ];
 
   /// Un número estable a partir de un texto. FNV-1a, que es corto y reparte
@@ -333,11 +327,11 @@ class TownPlan {
   /// De cuántas se sortean las dos que se ofrecen.
   ///
   /// Seis. Las seis primeras de su propio orden que el pueblo todavía no
-  /// levantó, y de ahí salen dos al azar.
+  /// levantó, y de ahí salen dos.
   ///
   /// La ventana existe por el precio. El catálogo va por niveles —un pozo son
-  /// ocho piezas y una catedral doscientas— y sortear entre las ciento y pico
-  /// sería ofrecerle a un pueblo de tres semanas elegir entre un horno y una
+  /// seis piezas y una catedral treinta y seis— y sortear entre las sesenta
+  /// sería ofrecerle a un pueblo de tres semanas elegir entre un corral y una
   /// obra de un año. Con seis, las dos que salen son las que le tocaban de
   /// todas formas por ahí, así que ninguna de las dos es una trampa.
   static const int choiceWindow = 6;
@@ -354,6 +348,15 @@ class TownPlan {
   /// El sorteo sale de la semilla del pueblo y del número del hito, así que
   /// las mismas dos salen siempre: cerrar la app y volver a abrirla no reparte
   /// otra vez, y dos hábitos de la misma región no ven lo mismo.
+  ///
+  /// **Y a cada una se le da su propio número, en vez de barajar la lista.**
+  /// Parece lo mismo y no lo es. Sacándolas por índice —«la que esté en el
+  /// puesto que salga de este azar»— el resultado depende de *cuántas* haya y
+  /// de *quiénes* sean las otras cinco, así que meter una obra nueva en el
+  /// catálogo reordenaba la cola entera por delante: cada actualización
+  /// cambiaba lo que el pueblo iba a construir dentro de un año. Con un número
+  /// por obra, la nota de cada una no depende de las demás, y una obra nueva
+  /// sólo puede hacer una cosa: presentarse a la rifa como una más.
   List<String> landmarkChoices(int no, Set<String> used, {int count = 2}) {
     final cerca = <String>[];
     for (final id in order) {
@@ -363,8 +366,8 @@ class TownPlan {
     }
     if (cerca.length <= count) {
       // Queda menos que elegir que opciones que ofrecer: el catálogo entero
-      // construido, que son ciento y pico obras y muchos años. Vuelve a
-      // empezar en vez de dejar al pueblo sin nada que hacer.
+      // construido, que son sesenta obras y muchos años. Vuelve a empezar en
+      // vez de dejar al pueblo sin nada que hacer.
       final out = [...cerca];
       for (var k = 0; out.length < count; k++) {
         final id = order[(no + k) % order.length];
@@ -372,12 +375,15 @@ class TownPlan {
       }
       return out;
     }
-    // Sin reponer: dos veces la misma obra no es una elección.
-    final out = <String>[];
-    for (var k = 0; out.length < count; k++) {
-      out.add(cerca.removeAt(hashInt(cerca.length, seed, 0x9E37, no, k)));
-    }
-    return out;
+    final papeleta = {
+      for (final id in cerca)
+        id: hash01(character.order, 0x9E37, idHash(id), no),
+    };
+    cerca.sort((a, b) {
+      final c = papeleta[a]!.compareTo(papeleta[b]!);
+      return c != 0 ? c : a.compareTo(b);
+    });
+    return cerca.take(count).toList();
   }
 
   /// Las cuatro de antes del primer hito, barajadas y **sin repetir**.
@@ -462,7 +468,13 @@ class TownPlan {
   static Landmark? landmarkOf(String id) {
     if (id.startsWith(kindMark)) return null;
     if (_byId == null || _byIdOf != landmarks.length) {
-      _byId = {for (final l in landmarks) l.id: l};
+      // Las retiradas entran aquí y en ningún otro sitio. No se sortean ni se
+      // ofrecen —para eso está `landmarks` a secas—, pero una crónica vieja
+      // las nombra y hay que saber levantarlas: ver `landmarks_retired.dart`.
+      _byId = {
+        for (final l in retiredLandmarks) l.id: l,
+        for (final l in landmarks) l.id: l,
+      };
       _byIdOf = landmarks.length;
     }
     return _byId![id];
@@ -598,7 +610,7 @@ class TownPlan {
   }
 
   /// What the town is putting up right now, how much of it is left, and
-  /// whether it is one of the hundred and twelve landmarks.
+  /// whether it is one of the catalogue's landmarks.
   (String, int, bool)? underway(
     int placed, [
     List<String> chronicle = const [],
@@ -791,7 +803,7 @@ class TownLayout {
   final double cx, cz;
 
   /// What kind of place this is: how tall its houses stand, how tight its
-  /// streets run, and the order it meets the hundred and twelve.
+  /// streets run, and the order it meets the catalogue.
   final TownCharacter character;
   final TownPlan plan;
 
