@@ -27,8 +27,9 @@ class Palette {
     required this.contrast,
     required this.hour,
     required this.starAlpha,
+    Color? skyClean,
     this.season = Season.none,
-  });
+  }) : skyClean = skyClean ?? skyTop;
 
   final Color skyTop, skyHorizon, haze, ground, groundFar;
   final Color stone, stoneWarm, stoneCool, mortar;
@@ -46,6 +47,21 @@ class Palette {
   /// Quien necesite la hora de verdad —la fugaz, el tablón, la música— la
   /// tiene aparte y no la saca de acá.
   final double hour;
+
+  /// El techo del cielo **como estaría si el pueblo estuviera cuidado**.
+  ///
+  /// Igual que [skyTop] salvo en un pueblo dejado: el abandono tira del cielo
+  /// hacia un gris de ceniza, y ese gris es *claro*. Para lo que se pinta
+  /// dentro de la escena eso está bien —un pueblo dejado tiene el cielo
+  /// apagado—, pero la interfaz no puede salir de ahí: elige entre tinta
+  /// parda y tinta crema mirando cuánta luz hay arriba, y un cielo de noche
+  /// aclarado por la ceniza le decía que era de día. El resultado era que en
+  /// un pueblo abandonado los rótulos volvían al pardo de mediodía sobre un
+  /// cielo casi negro.
+  ///
+  /// Así que la interfaz mira este, que depende sólo de la hora. El descuido
+  /// apaga el valle; no tiene por qué apagar también las letras.
+  final Color skyClean;
 
   /// En qué punto del año está el valle.
   final Season season;
@@ -345,6 +361,7 @@ class _PaletteSpec {
     Color s(Color c, double amount) => Color.lerp(c, grimSky, decay * amount)!;
     return Palette(
       skyTop: s(skyTop, 0.45),
+      skyClean: skyTop,
       skyHorizon: s(skyHorizon, 0.52),
       haze: s(haze, 0.58),
       ground: w(ground, 0.40),

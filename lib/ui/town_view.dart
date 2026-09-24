@@ -427,9 +427,7 @@ class _TownViewState extends State<TownView>
   /// así que la luz y lo que suena cambian a la vez.
   double get _hour {
     if (_hourOverride >= 0) return _hourOverride.toDouble();
-    if (Appearance.instance.fakeHour) return Appearance.instance.fakeHourAt;
-    final now = DateTime.now();
-    return now.hour + now.minute / 60.0;
+    return Appearance.instance.hourNow;
   }
 
   Palette _buildPalette() => Palette.forMoment(
@@ -546,9 +544,13 @@ class _TownViewState extends State<TownView>
     // Se mira si cambió algo que importe y no cada fotograma a ciegas: el color
     // del cielo va en ocho bits, así que entre minuto y minuto es el mismo
     // número y esto no dispara nada.
-    if (pal.skyTop != antes.skyTop ||
-        pal.skyHorizon != antes.skyHorizon ||
-        pal.accent != antes.accent) {
+    //
+    // Y se mira el cielo **sin el abandono** (ver [Palette.skyClean]), que es
+    // del que sale la interfaz. El de verdad se aclara un poco en cada
+    // fotograma mientras un pueblo se apaga o se vuelve a encender, y eso no
+    // le cambia a la interfaz ni un color: avisar ahí era despertar a media
+    // app durante los segundos que dura el desvanecido.
+    if (pal.skyClean != antes.skyClean || pal.accent != antes.accent) {
       widget.onPaletteChanged(pal);
     }
 

@@ -39,7 +39,22 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
   final TownViewController _wall = TownViewController();
-  late UiTheme _theme = UiTheme(Palette.forMoment(12, 1));
+
+  /// El color de la interfaz, sacado de la luz que hay en el valle.
+  ///
+  /// Arranca en la hora de ahora y no en un mediodía de mentira. Con el
+  /// mediodía clavado, entrar de noche era entrar en pardo: el primer
+  /// fotograma iba con la tinta del mediodía, el pueblo avisaba de la luz de
+  /// verdad un fotograma después y los rótulos cambiaban de color en la cara
+  /// de quien acababa de abrir la app. Con la hora de verdad no hay nada que
+  /// corregir después.
+  late UiTheme _theme = UiTheme(
+    Palette.forMoment(
+      Appearance.instance.hourNow,
+      1,
+      season: Appearance.instance.season,
+    ),
+  );
 
   /// A landmark of the town, and which number it is, waiting to be shown.
   (Landmark, int)? _revealTown;
@@ -299,7 +314,7 @@ class _HomeScreenState extends State<HomeScreen>
                 final next = UiTheme(p);
                 if (next.dark != _theme.dark ||
                     next.accent != _theme.accent ||
-                    next.palette.skyTop != _theme.palette.skyTop) {
+                    next.palette.skyClean != _theme.palette.skyClean) {
                   setState(() => _theme = next);
                 }
               },

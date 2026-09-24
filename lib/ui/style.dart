@@ -18,32 +18,42 @@ class UiTheme {
     // horizonte todavía es naranja claro mientras el techo ya es azul de
     // medianoche: la interfaz se pintaba en pardo de mediodía sobre un cielo
     // casi negro y desaparecía. Al amanecer, lo mismo al revés.
-    final luz = _luz(palette.skyTop);
+    //
+    // Y el cielo **sin el abandono encima**: ver [Palette.skyClean]. La
+    // ceniza de un pueblo dejado aclara el cielo, y mirando el aclarado la
+    // interfaz creía que era de día a las diez de la noche.
+    final luz = _luz(palette.skyClean);
 
     /// Cuánta noche hay ahí arriba, de cero a uno. Sólo para el matiz.
     night = clampD(1 - (luz - 0.16) / 0.40, 0, 1);
 
-    // El paso de una tinta a la otra: suave, pero **corto**, y donde toca.
+    // El paso de una tinta a la otra: **un salto, y en el punto exacto.**
     //
-    // Donde toca es mientras el cielo todavía aguanta las dos: por encima de
-    // 0,44 de luz el pardo se separa de sobra, y por debajo de 0,43 el crema
-    // se separa mucho más. En medio hay un dedo de cielo en el que ninguna de
-    // las dos va holgada, y por eso se cruza justo ahí y deprisa —un cuarto de
-    // hora de reloj— en vez de esperar a que anochezca del todo.
+    // Esto se desvanecía de pardo a crema en un cuarto de hora de reloj, y a
+    // mitad del desvanecido la tinta es un gris medio. Medido contra el cielo
+    // de ese mismo minuto: **1,14 a 1** a las cinco y treinta y cinco de la
+    // tarde. Uno a uno es texto invisible; 1,14 es lo mismo con otro nombre.
+    // O sea que el arreglo suave costaba ocho minutos de rótulos borrados dos
+    // veces al día, justo a la hora en que alguien mira la app al salir del
+    // trabajo. Ningún degradado vale eso.
     //
-    // Y corto porque a medio camino la tinta es un gris medio, y en ese mismo
-    // dedo el cielo también: gris medio sobre gris medio no se lee. Un
-    // degradado largo y bonito de dos horas serían dos horas de texto perdido,
-    // que es exactamente lo que se quería arreglar. El halo se refuerza
-    // mientras dura el cruce, que es lo que sostiene esos minutos.
-    final paso = _suave(clampD((0.435 - luz) / 0.008, 0, 1));
+    // Así que se salta. Y el sitio por donde saltar no se elige a ojo: es el
+    // cielo en el que las dos tintas se leen **igual de bien**. Por encima de
+    // él el pardo va mejor, por debajo el crema, y ahí mismo las dos van a
+    // 3,47 a 1 — el mejor peor caso que hay, porque cualquier otro punto del
+    // cielo le pide a una de las dos que aguante más allá de donde aguanta.
+    // Medido sobre este mismo código: `luz` 0,4589, que con el reloj de
+    // verano cae sobre las cinco y diez de la tarde.
+    //
+    // El salto se ve una vez al atardecer y otra al amanecer, y dura un
+    // fotograma. Lo otro duraba ocho minutos.
+    const cruce = 0.4589;
+    final noche = luz < cruce;
 
-    // La materia de los paneles cambia con él, un pelo antes. Un panel no
-    // puede ir a medio camino —a mitad de un desvanecido es gris medio y la
-    // letra encima también— así que salta; y salta pronto para que el peor
-    // instante del cruce sea tinta media sobre un panel ya oscuro, que se lee,
-    // y no tinta media sobre crema, que no.
-    dark = paso > 0.40;
+    // Los paneles saltan con ella, en el mismo instante y no antes: ahora que
+    // la tinta no pasa por el medio, no hay ningún momento malo del que haya
+    // que adelantarse.
+    dark = noche;
 
     // **Lo que sí cambia hora a hora es la tinta dentro de su propio lado.**
     // De día va del pardo frío de mediodía a uno más cálido y un punto más
@@ -61,9 +71,13 @@ class UiTheme {
       const Color(0xFFF3EEE3),
       clampD((night - 0.45) / 0.55, 0, 1),
     )!;
-    fg = Color.lerp(pardo, crema, paso)!;
+    fg = noche ? crema : pardo;
 
-    _cruce = 1 - (paso * 2 - 1).abs();
+    // Cerca del salto ninguna de las dos va holgada —3,47 a 1 es lo que hay—
+    // así que el halo se refuerza durante los minutos de alrededor. Ya no
+    // sostiene un gris imposible; sostiene una tinta buena sobre el cielo que
+    // peor la trata.
+    _cruce = clampD(1 - (luz - cruce).abs() / 0.045, 0, 1);
     fgSoft = fg.withValues(alpha: 0.62);
     fgFaint = fg.withValues(alpha: 0.34);
     // Deliberately faint. A panel here should read as a change in the air,
@@ -95,9 +109,6 @@ class UiTheme {
 
   /// Lo clara que es una franja de cielo, de cero a uno.
   static double _luz(Color c) => c.r * 0.3 + c.g * 0.55 + c.b * 0.15;
-
-  /// Una ese suave, para que el cambio de tinta no tenga esquinas.
-  static double _suave(double t) => t * t * (3 - 2 * t);
 
   TextStyle get label => TextStyle(
     color: fgSoft,

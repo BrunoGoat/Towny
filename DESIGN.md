@@ -381,6 +381,27 @@ pero a tamaño verdadero la Osa Mayor cruza la pantalla de canto a canto y deja
 de ser un detalle del cielo para ser el fondo. La escala es lo único de esto que
 no es de verdad, y es a propósito.
 
+**La interfaz sale de esa luz, y de nada más.** Los rótulos, los botones y las
+hojas sacan su tinta del cielo que tienen detrás: parda mientras haya luz
+arriba, crema en cuanto no la hay. De eso salen dos reglas que costaron sangre.
+
+La primera: **la tinta cambia de golpe, no desvaneciéndose.** Un desvanecido de
+un cuarto de hora es bonito en un vídeo y a mitad de camino es un gris medio
+sobre un cielo que a esa hora también es gris medio — medido, 1,14 a 1, texto
+invisible durante ocho minutos, dos veces al día, justo a la hora a la que
+alguien mira la app al salir del trabajo. El salto ocurre en el único punto en
+el que las dos tintas se leen igual de bien (3,47 a 1 las dos), dura un
+fotograma, y pasa una vez al atardecer y otra al amanecer.
+
+La segunda: **es de la hora, no del estado del pueblo.** Un pueblo dejado se
+apaga y el cielo se le llena de ceniza, que es gris claro; la interfaz leía esa
+ceniza como luz de día y escribía en pardo de mediodía a las diez de la noche.
+El descuido apaga el valle. No tiene por qué apagar también las letras.
+
+Y lo de abajo —el botón de poner, la fila de hábitos— no tiene cielo detrás
+sino prado, que es verde medio a cualquier hora, así que ahí no hay dos casos:
+tinta clara y un aliento oscuro detrás, siempre.
+
 ## El tablón
 
 El pueblo va anotando lo que nota de vos, y lo cuelga en su tablón: a qué hora

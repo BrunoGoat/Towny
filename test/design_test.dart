@@ -65,6 +65,7 @@ void main() {
   _cuando();
   _pieles();
   _abajo();
+  _arriba();
   testWidgets('el cartel del pueblo cabe y no se queda puesto', (tester) async {
     for (final size in _pantallas) {
       tester.view.physicalSize = size;
@@ -550,6 +551,83 @@ void _abajo() {
           );
         }
         await tester.pumpWidget(const SizedBox());
+      }
+    });
+  });
+}
+
+void _arriba() {
+  group('lo que va sobre el cielo', () {
+    /// Las veinticuatro horas, de cuatro en cuatro minutos: lo que se busca
+    /// aquí es un mal instante, y un mal instante dura minutos.
+    Iterable<double> todasLasHoras() sync* {
+      for (var h = 0.0; h < 24.0; h += 1 / 15) {
+        yield h;
+      }
+    }
+
+    test('la tinta nunca pasa por el gris de en medio', () {
+      // El fallo, medido: la tinta de arriba se desvanecía de parda a crema
+      // en un cuarto de hora de reloj, y a mitad del desvanecido era un gris
+      // medio sobre un cielo que a esa hora también es gris medio. A las
+      // cinco y treinta y cinco de la tarde iban a **1,14 a 1**, que es texto
+      // invisible durante ocho minutos, dos veces al día.
+      //
+      // Tres a uno es el suelo de un texto chico. Aquí se pide algo más
+      // porque la tinta de arriba **puede** cumplirlo a cualquier hora: no
+      // hay ninguna en la que las dos tintas vayan mal a la vez, sólo había
+      // que dejar de mezclarlas.
+      var peor = 99.0;
+      var cuando = -1.0;
+      for (final hora in todasLasHoras()) {
+        final t = UiTheme(Palette.forMoment(hora, 1.0));
+        final r = _contraste(t.fg, t.palette.skyTop);
+        if (r < peor) {
+          peor = r;
+          cuando = hora;
+        }
+      }
+      expect(
+        peor,
+        greaterThan(3.3),
+        reason:
+            'a las ${cuando.toStringAsFixed(2)} la tinta de arriba y el '
+            'cielo van a ${peor.toStringAsFixed(2)} a uno',
+      );
+    });
+
+    test('y un pueblo dejado se escribe igual que uno cuidado', () {
+      // El fallo, contado por quien lo vio: «en los pueblos abandonados
+      // vuelve el color pardo en vez de blanco».
+      //
+      // El abandono tira del cielo hacia un gris de ceniza, y ese gris es
+      // claro: a las diez de la noche un pueblo dejado tiene el cielo casi
+      // negro con una capa de ceniza encima, y la interfaz —que elegía tinta
+      // mirando cuánta luz hay arriba— leía esa ceniza como luz de día y
+      // escribía en pardo de mediodía. Medido antes del arreglo: con una
+      // integridad de 0,2 la tinta no cruzaba a crema hasta más de hora y
+      // media después que en el pueblo de al lado.
+      //
+      // La hora manda; el descuido apaga el valle y no las letras.
+      for (final hora in todasLasHoras()) {
+        final cuidado = UiTheme(Palette.forMoment(hora, 1.0));
+        for (final integridad in [0.75, 0.5, 0.25, 0.0]) {
+          final dejado = UiTheme(Palette.forMoment(hora, integridad));
+          expect(
+            dejado.fg,
+            cuidado.fg,
+            reason:
+                'a las ${hora.toStringAsFixed(2)}, con integridad '
+                '$integridad, la tinta cambia de color',
+          );
+          expect(
+            dejado.dark,
+            cuidado.dark,
+            reason:
+                'a las ${hora.toStringAsFixed(2)}, con integridad '
+                '$integridad, los paneles cambian de lado',
+          );
+        }
       }
     });
   });

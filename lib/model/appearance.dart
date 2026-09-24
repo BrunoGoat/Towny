@@ -57,6 +57,19 @@ class Appearance extends ChangeNotifier {
     await _keep();
   }
 
+  /// La hora con la que se pinta todo, de 0 a 24: la del reloj, o la fingida
+  /// si se está jugando con ella.
+  ///
+  /// Una sola, y aquí: el valle, el tablón y el color de la interfaz tienen
+  /// que estar los tres en el mismo minuto. Cuando cada uno se la calculaba
+  /// por su cuenta bastaba con que uno se olvidara de mirar la hora fingida
+  /// para entrar al tablón y que amaneciera de golpe.
+  double get hourNow {
+    if (_fakeHour) return _fakeHourAt;
+    final now = DateTime.now();
+    return now.hour + now.minute / 60.0;
+  }
+
   // -------------------------------------------------------------- el año
 
   /// De qué lado del ecuador está el valle.

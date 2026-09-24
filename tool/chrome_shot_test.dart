@@ -40,7 +40,19 @@ void main() {
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
 
-    for (final hora in [11.0, 17.6, 19.6, 23.0]) {
+    // La hora, y cuántos días lleva el pueblo sin que nadie ponga una pieza.
+    // Lo segundo es lo que apaga el valle, y con el valle apagado el cielo se
+    // aclara de ceniza: es el caso en el que la interfaz volvía al pardo de
+    // mediodía a las diez de la noche.
+    const casos = [
+      (11.0, 0),
+      (17.2, 0),
+      (17.6, 0),
+      (19.6, 0),
+      (23.0, 0),
+      (22.0, 30),
+    ];
+    for (final (hora, dejado) in casos) {
       SharedPreferences.setMockInitialValues({});
       await Appearance.instance.load();
       await Appearance.instance.setSoundOff(true);
@@ -49,9 +61,9 @@ void main() {
       final store = Store();
       await store.load();
       store.renameHabit(0, name: 'Leer', symbol: 'libro');
-      store.debugFill(38);
+      store.debugFill(38, endedDaysAgo: dejado);
       store.addHabit('Correr', 'carrera');
-      store.debugFill(12);
+      store.debugFill(12, endedDaysAgo: dejado);
       store.select(0);
 
       final key = GlobalKey();
@@ -73,7 +85,10 @@ void main() {
       for (var i = 0; i < 24; i++) {
         await tester.pump(const Duration(milliseconds: 60));
       }
-      await _shot(tester, key, '$out/hora-${hora.toStringAsFixed(1)}.png');
+      final nombre = dejado > 0
+          ? 'dejado-${hora.toStringAsFixed(1)}'
+          : 'hora-${hora.toStringAsFixed(1)}';
+      await _shot(tester, key, '$out/$nombre.png');
       await tester.pumpWidget(const SizedBox());
     }
     // ignore: avoid_print
