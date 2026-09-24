@@ -1134,14 +1134,18 @@ class TownLayout {
     // never lines up into a barracks. A landmark sits square: it is the thing
     // the street is arranged around, not one more house on it.
     final jitter = b.isLandmark ? 0.0 : 0.22;
+    // Un monumento se levanta en sus propias proporciones: ver [Landmark.rigid].
+    // Y mirando de frente, además — una cruz que unas veces cae de canto y
+    // otras de perfil es la misma cruz torcida.
+    final propio = b.landmark?.rigid ?? false;
     final m = Mason(
       b.cx + hashRange(-jitter, jitter, s, 3),
       b.cz + hashRange(-jitter, jitter, s, 4),
       s,
-      hash01(s, 5) < 0.5,
-      spread: character.spread,
-      storey: character.storey,
-      pitch: character.pitch,
+      propio ? true : hash01(s, 5) < 0.5,
+      spread: propio ? 1.0 : character.spread,
+      storey: propio ? 1.0 : character.storey,
+      pitch: propio ? 1.0 : character.pitch,
     );
 
     final mark = b.landmark;

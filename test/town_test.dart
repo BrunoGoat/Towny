@@ -276,27 +276,67 @@ void main() {
       }
     });
 
-    test('every landmark stands on the ground and holds together', () {
+    test('nada vuela: cada pieza se apoya en algo que tiene debajo', () {
+      // **Ésta es la prueba que faltaba, y por eso había piezas volando.**
+      //
+      // La versión anterior daba por buena una pieza si *alguna* de las
+      // anteriores llegaba a esa altura, mirase a donde mirase. Con eso, una
+      // veleta a cuatro metros del suelo quedaba aprobada porque al otro lado
+      // del solar había una torre igual de alta. Lo que hay que comprobar es
+      // que tenga algo **debajo**, no en alguna parte.
+      //
+      // Se mide en las seis comarcas y no sólo en las proporciones en las que
+      // están escritas las recetas: el estirado es afín, así que lo que se
+      // toca se sigue tocando, pero el tejado tiene un cuarto número —lo
+      // empinado que construye el sitio— y una chimenea clavada a una altura
+      // fija se queda en el aire en cuanto el tejado baja.
+      final fallos = <String>[];
       for (final l in landmarks) {
-        final m = Mason(0, 0, 999, true);
-        l.build(m);
-        final built = m.finish(l.cost);
-        expect(
-          built.first.y0,
-          lessThan(0.001),
-          reason: '${l.name} starts in the air',
-        );
-        final tops = <double>[0];
-        for (final s in built) {
-          final rests = s.y0 < 0.02 || tops.any((t) => s.y0 < t + 0.03);
-          expect(
-            rests,
-            isTrue,
-            reason: '${l.name}: a ${s.kind.name} hangs at ${s.y0}',
+        for (final c in TownCharacter.all) {
+          final propio = l.rigid;
+          final m = Mason(
+            0,
+            0,
+            999,
+            true,
+            spread: propio ? 1.0 : c.spread,
+            storey: propio ? 1.0 : c.storey,
+            pitch: propio ? 1.0 : c.pitch,
           );
-          tops.add(s.y1);
+          l.build(m);
+          final built = m.finish(l.cost);
+          expect(
+            built.first.y0,
+            lessThan(0.001),
+            reason: '${l.name} empieza en el aire',
+          );
+          for (var i = 0; i < built.length; i++) {
+            final s = built[i];
+            if (s.y0 < 0.03) continue;
+            var apoyada = false;
+            for (var j = 0; j < i && !apoyada; j++) {
+              final b = built[j];
+              // Se tocan por arriba y se pisan por abajo. El solape pide algo
+              // más que rozarse por un canto: una esquina que toca otra
+              // esquina no sostiene nada.
+              final anchoX = (s.w + b.w) / 2 - (s.cx - b.cx).abs();
+              final anchoZ = (s.d + b.d) / 2 - (s.cz - b.cz).abs();
+              apoyada =
+                  b.y1 >= s.y0 - 0.06 &&
+                  b.y0 <= s.y0 + 0.06 &&
+                  anchoX > 0.04 &&
+                  anchoZ > 0.04;
+            }
+            if (!apoyada) {
+              fallos.add(
+                '${l.id} (${l.name}) en ${c.region}: pieza $i, un '
+                '${s.kind.name} flota a ${s.y0.toStringAsFixed(2)}',
+              );
+            }
+          }
         }
       }
+      expect(fallos, isEmpty, reason: fallos.join('\n'));
     });
 
     test('no landmark sprawls further than its own plot allows', () {
@@ -327,46 +367,6 @@ void main() {
       }
     });
 
-    test('nothing heavy is left standing on thin air', () {
-      // The rule the eye actually applies: a wall, a roof or a chimney has to
-      // have something under it that it is really sitting on, not merely some
-      // other part of the same building that happens to be as tall. This is
-      // what stops a miller's cottage ending up perched on a bell tower.
-      const mass = {
-        PieceKind.floor,
-        PieceKind.plinth,
-        PieceKind.dome,
-        PieceKind.roof,
-        PieceKind.spire,
-        PieceKind.chimney,
-      };
-      bool over(Spec a, Spec b) =>
-          (a.cx - b.cx).abs() < (a.w + b.w) * 0.45 &&
-          (a.cz - b.cz).abs() < (a.d + b.d) * 0.45;
-
-      for (final l in landmarks) {
-        final m = Mason(0, 0, 999, true);
-        l.build(m);
-        final built = m.finish(l.cost);
-        for (var i = 0; i < built.length; i++) {
-          final s = built[i];
-          if (s.y0 < 0.02 || !mass.contains(s.kind)) continue;
-          var held = false;
-          for (var j = 0; j < built.length && !held; j++) {
-            if (i == j) continue;
-            final u = built[j];
-            held = u.y0 <= s.y0 + 0.03 && u.y1 > s.y0 - 0.03 && over(s, u);
-          }
-          expect(
-            held,
-            isTrue,
-            reason:
-                '\${l.name}: a \${s.kind.name} at \${s.y0.toStringAsFixed(2)} '
-                'has nothing under it',
-          );
-        }
-      }
-    });
 
     test('the room a landmark is given never depends on its recipe', () {
       // The spacing decides where every later building stands, so it must not
