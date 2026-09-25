@@ -1,0 +1,110 @@
+# Pendientes
+
+Lo que está empezado, lo que está medido y lo que está decidido a medias, para
+que no se pierda entre sesiones. Cada cosa dice **en qué punto está** y **qué
+hace falta para seguir**.
+
+---
+
+## 1. Que la app hable otros idiomas
+
+**En qué punto está.** El inventario está hecho y es lo que hay que mirar
+antes de escribir una línea de código: **`TEXTOS.md`**, con las 1.187 entradas
+—unas 1.800 frases— que ve quien usa la app, agrupadas por dónde salen y con
+archivo, renglón y clase de cada una. No está escrito a mano: se regenera con
+
+```bash
+flutter test tool/textos_test.dart    # vuelca el catálogo a /tmp/towny
+python3 tool/textos.py                # escribe TEXTOS.md
+```
+
+**Qué falta para seguir: decidir qué se borra.** Son más frases de las que
+parecía, y de ahí salió la pausa. Las cuentas, para poder decidir:
+
+| Bloque | Frases | Nota |
+|---|---|---|
+| Bandos del tablón | 872 | **El 48% de todo.** Costumbrismo de pueblo castellano: es lo más caro de traducir y lo que peor viaja |
+| Obras del catálogo | 120 | Nombre + la frase que se dice el día que se remata |
+| Obras retiradas | 106 | Sólo las ven los pueblos que ya las levantaron |
+| La interfaz entera | 347 | Las 35 pantallas |
+| Lo que el tablón dice de vos | 90 | Con huecos: números, fechas, nombres |
+| Símbolos de hábito | 72 | Etiquetas del selector de marcas |
+| Nombres de la gente | 87 | **No se traducen**: son nombres propios |
+| Constelaciones | 24 | **Hoy no se leen en ningún sitio** |
+| Comarcas, casas, sonidos, música, avisos, widget | ~90 | |
+
+**Sin los bandos y sin las retiradas, un idioma son unas 700 frases.** Con
+todo, 1.800.
+
+**Tres decisiones que hay que tomar antes de empezar:**
+
+1. **Los bandos.** Todos, ninguno, o una tanda de 150 que se reparta entre
+   ellos — el tablón cambia igual cada día y nadie cuenta cuántos hay.
+2. **Los nombres de la gente.** «Sancho de Aguilar» en una app en inglés no
+   está mal: es un pueblo castellano. Pero si se quiere que el pueblo sea de
+   quien lo juega, cada idioma necesita su propia lista de 49 nombres, 24
+   oficios y 14 procedencias. Es una decisión de diseño, no de traducción.
+3. **Las 24 palabras de las constelaciones.** O vuelven a usarse, o se borran:
+   traducirlas a cinco idiomas es pagar por algo que no se ve.
+
+**El plan, cuando haya decisión.** Un archivo por idioma con las frases, `es`
+como original, y la interfaz pidiendo cada frase por su código en vez de
+llevarla escrita dentro. Con una prueba que falle si un idioma se deja una
+frase sin traducir — que es la única manera de que no se pudra sola.
+
+---
+
+## 2. Deuda medida
+
+- **La notificación tarda ~282 ms en el peor caso.** El ~20% de las piezas
+  cambian la rejilla de calles y obligan a recalcular el pueblo entero para
+  decidir qué decir. Es lo único de la app que hace trabajo pesado fuera de un
+  fotograma. Hay que re-medirlo y, si sigue, cortarlo: la notificación no
+  necesita el pueblo, necesita saber qué obra está en marcha.
+- **Tres scripts muertos en `tool/`**: `tiers.sh`, `city.sh` y `matrix.sh`
+  apuntan a `/home/user/the-wall` y a un Flutter que no existe en esta
+  máquina.
+- **Campos que no lee nadie**: `name`, `latin` y `blurb` en las ocho
+  constelaciones, desde que dejaron de anotarse.
+- **`ndkVersion` en `android/app/build.gradle.kts`**: ningún plugin del
+  proyecto trae código nativo, así que no lo usa nada.
+
+---
+
+## 3. Ideas que quedaron sobre la mesa
+
+En orden de lo que más daría por lo que menos cuesta:
+
+1. **Fechar la obra, no sólo la pieza.** La bitácora ya fecha cada pieza; las
+   obras no. «Catedral · empezada el 3 de mayo, rematada el 2 de julio,
+   sesenta y un días» convierte el pueblo en un calendario de tu propia vida.
+   Se deriva de lo que ya está guardado: ni un dato nuevo.
+2. **Volver a mirar un día.** En ajustes está «ver el pueblo a futuro». El
+   pasado vale más: tu pueblo el día que empezaste, hace un año, el día que
+   casi lo dejás. Es una vista, no un guardado.
+3. **La lámina.** Guardar o compartir una imagen del pueblo a la hora que
+   elijas. El render ya lo hace para el README.
+4. **El widget con el pueblo dentro.** Hoy cuenta piezas; el puente ya manda
+   un PNG por hábito, así que mandar un render chico del pueblo es más de lo
+   mismo.
+5. **Jubilar un hábito con dignidad.** Hay pausa y hay pueblo a la deriva.
+   Falta un final que no sea un fracaso: «este pueblo está terminado», se
+   queda en el valle como monumento, sin deterioro y sin culpa.
+6. **Accesibilidad.** No hay «menos movimiento» ni tamaño de letra. La cámara
+   deriva sola, las nubes corren, la gente camina.
+7. **Más maravillas.** La gramática está limpia y una obra nueva son quince
+   minutos — pero sesenta que se distinguen valen más que ochenta borrosas.
+   Mejor esperar a echar una de menos.
+
+---
+
+## 4. Decisiones abiertas
+
+- **Las obras retiradas.** Hoy siguen en pie en los pueblos que ya las
+  levantaron: no se ofrecen más, pero no se borran. La alternativa es que esos
+  pueblos se rehagan sin ellas, y eso mueve piedras que ya estaban puestas.
+  Mientras no se decida, sus 106 frases siguen contando para los idiomas.
+- **Lo que no se va a hacer**, y conviene que siga escrito: rachas que
+  castiguen, medallas encima del pueblo, comparación con otra gente,
+  notificaciones que pidan atención, y cobrar por el catálogo. Cada una
+  convierte «un registro de lo que hiciste» en «una app que te vigila».

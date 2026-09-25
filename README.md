@@ -20,4 +20,5 @@ descubre usándola.
 
 Las APK de prueba están en [*Releases*](../../releases). Android 7.0 o superior.
 
-*Por dentro: [por qué es así](DESIGN.md) · [cómo está hecho](ARCHITECTURE.md).*
+*Por dentro: [por qué es así](DESIGN.md) · [cómo está hecho](ARCHITECTURE.md) ·
+[lo que queda por hacer](PENDIENTES.md).*
