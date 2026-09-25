@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/rng.dart';
 import '../data/demo.dart';
 import '../data/doings.dart';
 import '../data/landmarks.dart';
@@ -13,6 +14,7 @@ import '../model/piece.dart';
 import '../model/reel.dart';
 import '../model/store.dart';
 import 'backup_sheet.dart';
+import 'choice_sheet.dart';
 import 'debug_sheet.dart';
 import 'folk_gallery_screen.dart';
 import 'gallery_screen.dart';
@@ -372,6 +374,18 @@ class _SettingsSheetState extends State<SettingsSheet> {
         ),
         _Row(
           theme: t,
+          icon: Icons.fork_right,
+          title: 'Ver la tarjeta de elegir',
+          subtitle:
+              'La pregunta que sale al empezar una obra, con dos al azar del '
+              'catálogo. Mirar y ya: no elige nada ni toca tu pueblo.',
+          act: (nav) {
+            nav.pop();
+            _verLaPregunta(nav, t, store);
+          },
+        ),
+        _Row(
+          theme: t,
           icon: Icons.restart_alt,
           title: 'Ver la primera vez otra vez',
           subtitle:
@@ -403,6 +417,41 @@ class _SettingsSheetState extends State<SettingsSheet> {
       ],
     );
   }
+}
+
+/// La tarjeta de elegir, enseñada por enseñarla.
+///
+/// Sale sola una vez cada varias semanas, cuando toca empezar una obra grande,
+/// y eso la hace la pantalla más difícil de revisar de la app: para verla hay
+/// que esperar a que el pueblo la pida. Desde aquí se abre cuando uno quiera.
+///
+/// **Y no elige nada.** Contestar aquí no empieza ninguna obra, no gasta la
+/// pregunta de verdad y no escribe una línea en la crónica: las dos respuestas
+/// cierran la tarjeta y se acabó. Una herramienta para mirar que además toca
+/// lo que mira no sirve para mirar.
+///
+/// Las dos que salen son del catálogo entero y al azar, no las que le tocarían
+/// al pueblo ahora. Es a propósito: lo que hay que ver de esta pantalla es si
+/// aguanta **cualquier** pareja —un pozo de seis piezas contra una catedral de
+/// treinta y tres, un nombre de una palabra contra «Panteón de los
+/// fundadores»— y para eso la pareja de verdad es la menos útil de todas,
+/// porque es siempre la misma hasta que se construye algo.
+void _verLaPregunta(NavigatorState nav, UiTheme t, Store store) {
+  final dado = SeqRandom(DateTime.now().microsecondsSinceEpoch);
+  final a = dado.intN(landmarks.length);
+  var b = dado.intN(landmarks.length);
+  if (b == a) b = (a + 1) % landmarks.length;
+  showDialog<void>(
+    context: nav.context,
+    barrierColor: sheetScrim(t.dark),
+    builder: (_) => ChoiceSheet(
+      options: [landmarks[a], landmarks[b]],
+      place: store.habit.place,
+      theme: t,
+      onPick: (_) {},
+      onLeave: () {},
+    ),
+  );
 }
 
 /// Deshacer la última pieza.

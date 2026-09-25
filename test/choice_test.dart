@@ -7,8 +7,10 @@ import 'package:la_muralla/data/character.dart';
 import 'package:la_muralla/data/landmarks.dart';
 import 'package:la_muralla/engine/palette.dart';
 import 'package:la_muralla/engine/town.dart';
+import 'package:la_muralla/model/appearance.dart';
 import 'package:la_muralla/model/store.dart';
 import 'package:la_muralla/ui/choice_sheet.dart';
+import 'package:la_muralla/ui/settings_sheet.dart';
 import 'package:la_muralla/ui/style.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -405,6 +407,107 @@ void main() {
         otra.plan.underway(otra.total, otra.habit.chronicle)!.$1,
         q.last.name,
       );
+    });
+  });
+
+  group('el botón de ajustes que la enseña', () {
+    /// Abre los ajustes de verdad y busca la fila.
+    Future<Store> abrirAjustes(WidgetTester tester) async {
+      SharedPreferences.setMockInitialValues({});
+      await Appearance.instance.load();
+      final store = Store();
+      await store.load();
+      store.renameHabit(0, name: 'Leer', symbol: 'libro');
+      store.debugFill(120);
+      // **Y con el pueblo justo en una pregunta de verdad.** Si no, contestar
+      // en la tarjeta de mentira no escribiría nada ni siendo de verdad
+      // —`chooseWork` se va sin hacer nada cuando nadie está preguntando— y el
+      // test de abajo pasaría por el motivo equivocado.
+      while (store.plan.choiceFor(store.habit.total, store.habit.chronicle) ==
+              null &&
+          store.habit.total < 900) {
+        store.debugFill(1);
+      }
+      expect(
+        store.plan.choiceFor(store.habit.total, store.habit.chronicle),
+        isNotNull,
+        reason: 'no se encontró una pieza en la que el pueblo pregunte',
+      );
+      await tester.binding.setSurfaceSize(const Size(393, 820));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      // Los ajustes se abren como hoja, que es como se abren en la app: la
+      // fila cierra la hoja antes de enseñar la tarjeta, y eso sólo funciona
+      // si la hoja es una ruta de verdad.
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => showModalBottomSheet<void>(
+                  context: context,
+                  backgroundColor: Colors.transparent,
+                  isScrollControlled: true,
+                  builder: (_) => SettingsSheet(
+                    store: store,
+                    theme: UiTheme(Palette.forMoment(11, 1.0)),
+                  ),
+                ),
+                child: const Text('ajustes'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('ajustes'));
+      await tester.pumpAndSettle();
+      return store;
+    }
+
+    testWidgets('enseña la tarjeta sin que la pida el pueblo', (tester) async {
+      // La pantalla sale sola una vez cada varias semanas: sin esto, para
+      // mirarla hay que esperar a que el pueblo la pida.
+      await abrirAjustes(tester);
+      final fila = find.text('Ver la tarjeta de elegir');
+      await tester.scrollUntilVisible(fila, 120);
+      await tester.ensureVisible(fila);
+      await tester.pumpAndSettle();
+      await tester.tap(fila);
+      await tester.pumpAndSettle();
+      expect(find.text('¿Qué levantamos ahora?'), findsOneWidget);
+    });
+
+    testWidgets('y contestar ahí no le toca el pueblo a nadie', (tester) async {
+      // **Lo que importa de este botón.** Una herramienta para mirar que
+      // además toca lo que mira no sirve para mirar: contestar aquí no puede
+      // empezar ninguna obra, ni gastar la pregunta de verdad, ni escribir una
+      // línea en la crónica.
+      final store = await abrirAjustes(tester);
+      final antes = [...store.habit.chronicle];
+      final piezas = store.habit.pieces.length;
+
+      final fila = find.text('Ver la tarjeta de elegir');
+      await tester.scrollUntilVisible(fila, 120);
+      await tester.ensureVisible(fila);
+      await tester.pumpAndSettle();
+      await tester.tap(fila);
+      await tester.pumpAndSettle();
+
+      // Elegir una y confirmar, que es el camino que sí escribe cuando la
+      // pregunta es de verdad. Se toca el retrato porque los nombres de las
+      // dos obras salen al azar del catálogo y no se saben de antemano.
+      final retrato = find.byWidgetPredicate(
+        (w) => w is CustomPaint && w.painter is WorkPortrait,
+      );
+      await tester.tap(retrato.first);
+      await tester.pumpAndSettle();
+      final confirmar = find.text('QUE EMPIECEN');
+      expect(confirmar, findsOneWidget, reason: 'no se pudo elegir ninguna');
+      await tester.tap(confirmar);
+      await tester.pumpAndSettle();
+      expect(find.text('¿Qué levantamos ahora?'), findsNothing);
+
+      expect(store.habit.chronicle, antes);
+      expect(store.habit.pieces.length, piezas);
     });
   });
 
