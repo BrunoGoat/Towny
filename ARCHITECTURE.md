@@ -121,7 +121,18 @@ flutter test tool/marks_sheet_test.dart   # el catálogo entero, de doce en doce
 flutter test tool/vocab_sheet_test.dart   # las palabras del albañil, una por casilla
 flutter test tool/bench_test.dart         # cuánto cuesta un fotograma, por etapas
 flutter test tool/censo_test.dart         # cuánto cuesta poner cien piezas
+
+flutter test tool/textos_test.dart        # y después:
+python3 tool/textos.py                    # escribe TEXTOS.md con todo lo que se lee
 ```
+
+`TEXTOS.md` es el inventario de **todas las frases que ve quien usa la app**,
+con el sitio del que sale cada una. Se genera, no se escribe: la mitad la
+vuelca el test —el catálogo de obras, los bandos, las comarcas, que son listas
+de Dart y leerlas con una expresión regular es adivinar— y la otra mitad sale
+de rastrear los literales de cada pantalla. Es lo que hay que mirar antes de
+tocar una palabra, y lo que habrá que traducir el día que la app hable en otro
+idioma.
 
 Las dos hojas de contacto son para juzgar el catálogo, que es una cosa que no
 se puede hacer de una en una: el expositor de la app enseña una obra y sirve
