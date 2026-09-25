@@ -23,13 +23,13 @@ nombres de fuente (`RockSalt.ttf`), la hoja de pruebas y los comentarios.
 | Bandos del tablón | 436 | 872 | sí — el grueso |
 | Lo que el tablón dice de vos | 90 | 90 | sí |
 | Nombres de la gente | 87 | 87 | no: nombres propios |
-| Lo que hace la gente | 6 | 6 | sí |
+| Lo que hace la gente | 13 | 13 | sí |
 | Símbolos de hábito | 72 | 72 | sí |
 | La interfaz | 347 | 347 | sí |
 | Notificaciones | 9 | 9 | sí |
 | Widget de Android | 6 | 6 | sí |
 
-**1187 entradas**, que son unas 1800 frases sueltas. Sin las retiradas y sin los bandos se quedan en unas 700.
+**1194 entradas**, que son unas 1807 frases sueltas. Sin las retiradas y sin los bandos se quedan en unas 700.
 
 
 
@@ -38,125 +38,125 @@ nombres de fuente (`RockSalt.ttf`), la hoja de pruebas y los comentarios.
 > **Cuándo se ve.** El **nombre** sale en tres sitios: en la tarjeta de elegir cuando el pueblo va a empezar una obra, en el cartel que flota sobre ella mientras se construye, y en la bitácora. La **frase** se dice una sola vez, el día que la obra se remata, y también se lee en la tarjeta de elegir y en el expositor. Una obra llega cada dos o tres semanas.
 
 - **O1** · [pozo] Pozo del concejo · 7 piezas · nivel 0
-    Ya no hay que bajar al río. Un pueblo empieza cuando tiene agua propia.
+    El agua deja de ser una caminata. Ahora es el sitio donde se habla al caer la tarde.
 - **O2** · [cruz] Cruz de término · 6 piezas · nivel 0
-    Marca dónde termina el pueblo. Que haya que marcarlo ya dice bastante.
+    Quien llega sabe que ya está en casa. Quien se va la mira una última vez.
 - **O3** · [palomar] Palomar · 7 piezas · nivel 0
-    Palomas para la mesa y para las cartas. Las dos cosas hacían falta.
+    Noticias que se esperan mirando al cielo. Casi siempre buenas.
 - **O4** · [colmenar] Colmenar · 6 piezas · nivel 0
-    Miel, cera para las velas y, con suerte, nadie picado.
+    Dulce en la mesa y luz en la noche, a cambio de dejarlas tranquilas.
 - **O5** · [huerto] Huerto del cura · 6 piezas · nivel 0
-    Cuatro bancales y un cerco. Lo que se come el cura y lo que reparte.
+    Lo que sobra se reparte, y nadie lleva la cuenta de a quién le tocó.
 - **O6** · [pajar] Pajar · 6 piezas · nivel 0
-    La paja del verano, para el invierno. Guardar es una manera de tener fe.
+    Guardar en agosto lo que hará falta en enero es una manera de creer que habrá enero.
 - **O7** · [corral] Corral · 6 piezas · nivel 0
-    Un cerco de estacas y ya nadie se pierde por la noche.
+    Al oscurecer se cuenta y se cierra. Esta noche no se pierde nada.
 - **O8** · [gallinero] Gallinero · 5 piezas · nivel 0
-    Huevos todos los días. La costumbre más antigua que hay.
+    La primera visita de cada mañana. Hay cariños que son sólo una costumbre.
 - **O9** · [alfar] Alfarería · 7 piezas · nivel 0
-    Barro, torno y horno. Todo lo que contiene algo en este pueblo nació en esta rueda.
+    Todo lo que guarda algo en este pueblo pasó por unas manos y una rueda.
 - **O10** · [camposanto] Camposanto · 8 piezas · nivel 0
-    Tapia, cipreses y una cruz. A partir de hoy hay gente que se quedó.
+    Ya hay gente que no se va a ir. Se viene a hablarles y se vuelve más liviano.
 - **O11** · [atalaya] Atalaya · 8 piezas · nivel 0
-    Se ve venir a quien viene. Dormir tranquilo también se construye.
+    Alguien mira por los demás mientras los demás duermen.
 - **O12** · [almenara] Almenara · 9 piezas · nivel 0
-    Un fuego arriba, y en una hora lo sabe todo el valle.
+    Un fuego arriba para decirle al valle que aquí estamos y que avisamos.
 - **O13** · [molinoViento] Molino de viento · 13 piezas · nivel 1
-    Aspas contra el poniente y trigo alrededor. El pueblo ya muele su propio pan.
+    Se oyen las aspas desde la cama. Mientras giran, hay pan.
 - **O14** · [almazara] Almazara y olivar · 14 piezas · nivel 1
-    Olivos viejos y una viga que aprieta. Aceite para la mesa y para las lámparas.
+    Aceite de olivos que plantó gente que no llegó a probarlo.
 - **O15** · [cerveceria] Cervecería · 12 piezas · nivel 1
-    Cebada, agua y tiempo. Y un sitio donde acaba el día.
+    Donde se acaba el día. Nadie te pregunta qué tal te fue si no querés contarlo.
 - **O16** · [mercado] Mercado cubierto · 13 piezas · nivel 1
-    Un techo, unas arcadas y un día fijo a la semana. Aquí empieza a haber dinero.
+    Un día fijo a la semana en que el pueblo entero se ve la cara.
 - **O17** · [salinas] Salinas · 15 piezas · nivel 1
-    Charcas cuadradas y sol. La sal es lo que hace que el invierno se pueda comer.
+    Sacarle al mar lo que hace que la comida dure. Trabajo lento y agradecido.
 - **O18** · [ceca] Casa de la moneda · 14 piezas · nivel 1
-    Moneda propia, con la marca del pueblo. Pocos sitios llegan a esto.
+    Una moneda con la marca de casa, que llega lejos y vuelve contando dónde estuvo.
 - **O19** · [tejedores] Gremio de tejedores · 13 piezas · nivel 1
-    Telares en la planta alta y un gremio que fija el precio. El oficio se defiende junto.
+    Nadie regatea solo. El oficio se defiende entre todos o no se defiende.
 - **O20** · [hospederia] Hospital de peregrinos · 15 piezas · nivel 1
-    Camas para los que van de paso rezando. Se les da lo que haga falta y no se pregunta.
+    Cama y comida para el que va de paso. No se pregunta de dónde viene.
 - **O21** · [botica] Botica · 11 piezas · nivel 1
-    Frascos, hierbas y un libro. Empieza a haber remedio para algunas cosas.
+    Ya no hay que aguantarlo todo. Algunas cosas ahora tienen remedio.
 - **O22** · [escuela] Escuela de gramática · 13 piezas · nivel 1
-    Latín y cuentas para quien quiera. A partir de hoy se puede salir de aquí sabiendo.
+    Los hijos van a saber cosas que sus padres no supieron nunca.
 - **O23** · [escribania] Escribanía · 12 piezas · nivel 1
-    Alguien que sabe escribir lo que se acuerda. Las palabras dejan de perderse.
+    Lo que se acuerda queda escrito, y se deja de discutir sobre lo que se dijo.
 - **O24** · [capilla] Capilla · 12 piezas · nivel 1
-    Campana propia. Ahora las horas del pueblo las marca el pueblo.
+    Un sitio pequeño para lo que no se cuenta en voz alta.
 - **O25** · [campanario] Campanario exento · 13 piezas · nivel 1
-    La campana en su propia torre, suelta, en medio de la plaza. Se oye en todo el término.
+    La campana dice la hora, la fiesta y la pena. Se oye desde el campo y se sabe.
 - **O26** · [claustro] Claustro · 18 piezas · nivel 1
-    Cuatro galerías alrededor de un jardín. Se construye para poder pensar dando vueltas.
+    Cuatro galerías para dar vueltas pensando sin molestar a nadie.
 - **O27** · [refectorio] Refectorio · 13 piezas · nivel 1
-    Una mesa larga y nadie habla. Comer juntos todos los días es una manera de ser uno.
+    Comer juntos todos los días, en silencio. Eso también es quererse.
 - **O28** · [bodega] Bodega · 12 piezas · nivel 1
-    Bajo tierra siempre hace la misma temperatura. El vino de este año espera al del que viene.
+    Abajo nadie tiene prisa: el vino de este año espera al del que viene.
 - **O29** · [silos] Silos de grano · 13 piezas · nivel 1
-    El grano de tres años, a cubierto. Un pueblo con silos llenos no le teme a un mal verano.
+    Grano para tres años. Se duerme distinto sabiendo eso.
 - **O30** · [faro] Faro · 17 piezas · nivel 1
-    Una luz que no se apaga, para los que vuelven de noche. Alguien tiene que subir cada tarde.
+    Alguien sube cada tarde a encenderlo por los que todavía no volvieron.
 - **O31** · [herreriaMayor] Herrería mayor · 13 piezas · nivel 1
-    Dos fraguas y un mazo. De aquí salen las rejas, los clavos y lo que haga falta.
+    Se oye el mazo desde la plaza. Cuando para, todos levantan la cabeza.
 - **O32** · [horca] Campo de la horca · 11 piezas · nivel 1
-    Se levanta a la vista del camino, y ésa es toda la idea. Un pueblo que juzga es un pueblo.
+    Hay reglas y se cumplen. No es bonito, y todos saben para qué está.
 - **O33** · [palenque] Palenque de torneos · 16 piezas · nivel 1
-    Arena, dos tribunas y una liza en medio. El pueblo entero cabe alrededor.
+    Una tarde de gritos al sol de la que se habla el resto del año.
 - **O34** · [huertoMonjes] Huerto de los monjes · 16 piezas · nivel 1
-    Cuadros de tierra, una acequia en cruz y una noria de brazo. Se come de lo que se cuida.
+    Se come de lo que se cuida. El mismo trabajo cada día, sin queja.
 - **O35** · [vinedo] Viñedo del cabildo · 14 piezas · nivel 1
-    Cepas en hilera y un lagar al fondo. El vino de misa y el de después.
+    El vino de la misa y el de después salen de la misma cepa.
 - **O36** · [colmenarMayor] Colmenar mayor · 12 piezas · nivel 1
-    Dos docenas de colmenas y un tilo delante. La miel de aquí se vende fuera.
+    La miel de aquí se conoce fuera. El pueblo empieza a tener fama de algo bueno.
 - **O37** · [castillo] Castillo · 52 piezas · nivel 2
-    Foso, cuatro torres y una torre del homenaje en medio. Ya no hay que huir a ninguna parte.
+    Se acabó huir al monte cada vez que se ve polvo en el camino.
 - **O38** · [homenaje] Torre del homenaje · 23 piezas · nivel 2
-    Cinco pisos de piedra y una escalera de caracol. Desde arriba se ve hasta el otro valle.
+    Desde arriba se ve el valle entero y, en medio, lo tuyo.
 - **O39** · [puertaVilla] Puerta de la villa · 21 piezas · nivel 2
-    Dos torreones y un arco en medio. Entrar en el pueblo pasa a ser un acto.
+    Llegar deja de ser aparecer. A partir de hoy se entra.
 - **O40** · [muralla] Lienzo de muralla · 23 piezas · nivel 2
-    Un tramo de verdad, con su adarve y sus torres. El pueblo deja de ser un sitio abierto.
+    Un pueblo que se cierra de noche y amanece con todos dentro.
 - **O41** · [alcazar] Alcázar · 31 piezas · nivel 2
-    Palacio por dentro y fortaleza por fuera. Quien manda aquí ya no vive como los demás.
+    Quien manda ya no vive como los demás, y se nota desde lejos.
 - **O42** · [palacio] Palacio del señor · 23 piezas · nivel 2
-    Tres alas alrededor de un patio de honor. Aquí se recibe, que es distinto de vivir.
+    Se recibe al que viene de fuera. El pueblo entero se pone de punta en blanco.
 - **O43** · [concejo] Casa del concejo · 20 piezas · nivel 2
-    Un balcón para leer los bandos y una sala para discutirlos. El pueblo se gobierna solo.
+    Aquí se discute a voces y se decide entre todos. Nadie viene a decirnos cómo.
 - **O44** · [lonja] Lonja de mercaderes · 20 piezas · nivel 2
-    Una sala con columnas donde se cierran los tratos. La palabra dada aquí vale en tres reinos.
+    La palabra dada aquí vale en tres reinos. De eso vive medio pueblo.
 - **O45** · [iglesia] Iglesia · 21 piezas · nivel 2
-    Nave, crucero y una torre con campanas. El pueblo ya tiene sitio donde bautizar y donde despedir.
+    Donde el pueblo se junta para lo primero y para lo último.
 - **O46** · [catedral] Catedral · 33 piezas · nivel 2
-    Dos torres, un crucero y un cimborrio. Se empieza sabiendo que la terminan los nietos.
+    Se empieza sabiendo que la terminarán los nietos, y se empieza igual.
 - **O47** · [monasterio] Monasterio · 27 piezas · nivel 2
-    Iglesia, claustro y huerta dentro de una tapia. Un pueblo entero que reza y trabaja aparte.
+    Gente que eligió una vida más chica para hacerla más honda.
 - **O48** · [abadia] Abadía · 24 piezas · nivel 2
-    Iglesia grande, granero enorme y una bodega debajo. Se reza, pero también se administra.
+    Se reza, se guarda y se reparte. En los malos años se nota quién guardaba.
 - **O49** · [colegiata] Colegiata · 22 piezas · nivel 2
-    Una iglesia con cabildo propio, y un claustrillo detrás para los canónigos.
+    Demasiada iglesia para un pueblo así, y ése es justo el orgullo.
 - **O50** · [sinagoga] Sinagoga · 20 piezas · nivel 2
-    Una sala clara con el arca al fondo y un patio con su fuente. Otra manera de ser de aquí.
+    Otra manera de rezar que también es de aquí, desde hace tanto como la otra.
 - **O51** · [mezquita] Mezquita · 21 piezas · nivel 2
-    Un bosque de arcos, un patio con naranjos y un alminar. Se oye desde todo el barrio.
+    La llamada se oye en todo el barrio, y el barrio sabe la hora sin mirar.
 - **O52** · [baptisterio] Baptisterio · 18 piezas · nivel 2
-    Ocho lados, una pila en medio y luz de arriba. Aquí entra en el pueblo el que nace.
+    Por aquí entra el que acaba de nacer. Sale con nombre y con gente.
 - **O53** · [hospitalMayor] Hospital mayor · 21 piezas · nivel 2
-    Dos naves en cruz y un altar en el centro, para que todas las camas lo vean. Cuidar también se organiza.
+    Se cuida al que no tiene quién lo cuide. Del pueblo también es eso.
 - **O54** · [universidad] Universidad · 29 piezas · nivel 2
-    Un patio con aulas alrededor y una escalera que todos suben. Lo que se sabe aquí se queda.
+    Vienen de fuera a aprender aquí, y los que se van dejan el nombre por ahí.
 - **O55** · [biblioteca] Biblioteca · 21 piezas · nivel 2
-    Una sala larga con ventanales y anaqueles hasta el techo. Copiar un libro lleva un año.
+    Un año entero para copiar un libro que va a leer alguien sin nacer.
 - **O56** · [teatro] Corral de misterios · 24 piezas · nivel 2
-    Un patio con galerías y un tablado al fondo. Una tarde al año el pueblo se cuenta a sí mismo.
+    Una tarde al año el pueblo se cuenta a sí mismo y se ríe de sí mismo.
 - **O57** · [coso] Coso y graderío · 28 piezas · nivel 2
-    Dos pisos de arcos en redondo y arena en medio. El pueblo entero cabe sentado.
+    Todo el pueblo sentado en el mismo sitio, gritando lo mismo.
 - **O58** · [jardin] Jardín del palacio · 26 piezas · nivel 2
-    Cuadros de boj, un estanque y un templete al fondo. Un sitio que no sirve para nada y hace falta.
+    No sirve para nada. Hacía falta igual.
 - **O59** · [arcoVilla] Arco de la villa · 19 piezas · nivel 2
-    Un arco que no cierra nada y no defiende nada. Se levanta sólo para decir que se pudo.
+    No cierra nada ni defiende nada. Se levantó por el gusto de poder.
 - **O60** · [panteon] Panteón de los fundadores · 18 piezas · nivel 2
-    Los nombres de los que empezaron esto, en piedra y bajo una cúpula. Ya hay a quién recordar.
+    Los que empezaron esto tienen dónde estar, y a quién agradecerle el pueblo.
 
 ## Las obras retiradas (53)
 
@@ -1208,8 +1208,15 @@ nombres de fuente (`RockSalt.ttf`), la hoja de pruebas y los comentarios.
 - **G2** · se queda mirando
 - **G3** · barre el umbral
 - **G4** · se sienta en una banqueta
-- **G5** · se echa una siesta
-- **G6** · se tumba a mirar las nubes
+- **G5** · tiende la ropa
+- **G6** · toca el laúd
+- **G7** · atiende el puesto
+- **G8** · saca agua
+- **G9** · lava la ropa
+- **G10** · pica piedra
+- **G11** · sierra un madero
+- **G12** · vuela una cometa
+- **G13** · se tumba a mirar las nubes
 
 ## Los símbolos de hábito (72)
 
@@ -1428,8 +1435,8 @@ El pueblo y todo lo que se abre desde él. Estas frases son las de los diálogos
 - **U28** · `Ver todo el valle`  <sub>home_screen.dart:380 · _HomeScreenState.build</sub>
 - **U29** · `El tablón del pueblo`  <sub>home_screen.dart:395 · _HomeScreenState.build</sub>
 - **U30** · `El libro de las leyendas`  <sub>home_screen.dart:408 · _HomeScreenState.build</sub>
-- **U31** · `Acá seguimos.`  <sub>home_screen.dart:658 · _HomeScreenState._askIfAdrift</sub>
-- **U32** · `El pueblo duerme. Volvé cuando puedas: no cuenta ningún día.`  <sub>home_screen.dart:683 · _HomeScreenState._openRest</sub>
+- **U31** · `Acá seguimos.`  <sub>home_screen.dart:657 · _HomeScreenState._askIfAdrift</sub>
+- **U32** · `El pueblo duerme. Volvé cuando puedas: no cuenta ningún día.`  <sub>home_screen.dart:682 · _HomeScreenState._openRest</sub>
 
 ### Los rótulos de arriba y del costado
 
@@ -1479,297 +1486,297 @@ Crear un hábito, cambiarle el nombre, la marca o la comarca, y pausarlo.
 
 La única vez que la app te pregunta algo: cada vez que el pueblo va a empezar un hito, entre dos.
 
-- **U62** · `¿Qué levantamos ahora?`  <sub>choice_sheet.dart:103 · _ChoiceSheetState.build</sub>
-- **U63** · `ELEGÍ UNA`  <sub>choice_sheet.dart:160 · _ChoiceSheetState.build</sub>
-- **U64** · `QUE EMPIECEN`  <sub>choice_sheet.dart:160 · _ChoiceSheetState.build</sub>
-- **U65** · `Que decidan ellos`  <sub>choice_sheet.dart:181 · _ChoiceSheetState.build</sub>
+- **U62** · `¿Qué construir?`  <sub>choice_sheet.dart:116 · ChoiceSheet.build</sub>
 
 ### El pueblo en escena
 
 Carteles y avisos que se pintan dentro de la escena, encima del pueblo.
 
-- **U66** · `BUDGET`  <sub>town_view.dart:180 · _TownViewState</sub>
-- **U67** · `CAM_YAW`  <sub>town_view.dart:201 · _TownViewState.initState</sub>
-- **U68** · `CAM_PITCH`  <sub>town_view.dart:202 · _TownViewState.initState</sub>
-- **U69** · `CAM_DIST`  <sub>town_view.dart:203 · _TownViewState.initState</sub>
-- **U70** · `CAM_X`  <sub>town_view.dart:208 · _TownViewState.initState</sub>
-- **U71** · `CAM_Z`  <sub>town_view.dart:209 · _TownViewState.initState</sub>
-- **U72** · `HOUR`  <sub>town_view.dart:422 · _TownViewState._entryFor</sub>
-- **U73** · `${building.name} en pie`  <sub>town_view.dart:740 · _TownViewState._onImpact</sub>
-- **U74** · `El valle abre un segundo solar. Ya podés fundar otro pueblo.`  <sub>town_view.dart:753 · _TownViewState._onImpact</sub>
-- **U75** · `El pueblo despierta antes de tiempo.`  <sub>town_view.dart:817 · _TownViewState._welcomeBack</sub>
-- **U76** · `Volviste. El pueblo entero vuelve a encenderse.`  <sub>town_view.dart:819 · _TownViewState._welcomeBack</sub>
-- **U77** · `El pueblo vuelve a encenderse`  <sub>town_view.dart:820 · _TownViewState._welcomeBack</sub>
+- **U63** · `BUDGET`  <sub>town_view.dart:180 · _TownViewState</sub>
+- **U64** · `CAM_YAW`  <sub>town_view.dart:201 · _TownViewState.initState</sub>
+- **U65** · `CAM_PITCH`  <sub>town_view.dart:202 · _TownViewState.initState</sub>
+- **U66** · `CAM_DIST`  <sub>town_view.dart:203 · _TownViewState.initState</sub>
+- **U67** · `CAM_X`  <sub>town_view.dart:208 · _TownViewState.initState</sub>
+- **U68** · `CAM_Z`  <sub>town_view.dart:209 · _TownViewState.initState</sub>
+- **U69** · `HOUR`  <sub>town_view.dart:422 · _TownViewState._entryFor</sub>
+- **U70** · `${building.name} en pie`  <sub>town_view.dart:740 · _TownViewState._onImpact</sub>
+- **U71** · `El valle abre un segundo solar. Ya podés fundar otro pueblo.`  <sub>town_view.dart:753 · _TownViewState._onImpact</sub>
+- **U72** · `El pueblo despierta antes de tiempo.`  <sub>town_view.dart:817 · _TownViewState._welcomeBack</sub>
+- **U73** · `Volviste. El pueblo entero vuelve a encenderse.`  <sub>town_view.dart:819 · _TownViewState._welcomeBack</sub>
+- **U74** · `El pueblo vuelve a encenderse`  <sub>town_view.dart:820 · _TownViewState._welcomeBack</sub>
 
 ### Lo que se dice al terminar algo
 
 La tarjeta que aparece el día que se remata una obra, con su frase.
 
-- **U78** · `HITO $ordinal DEL PUEBLO`  <sub>overlays.dart:75 · TownLandmarkOverlay.build</sub>
-- **U79** · `levantado con ${mark.cost} piezas tuyas`  <sub>overlays.dart:102 · TownLandmarkOverlay.build</sub>
-- **U80** · `A QUÉ HORA FUE`  <sub>overlays.dart:267 · _StoneCardState._when</sub>
-- **U81** · `PIEZA ${widget.number} · ${StoneCard.formatDate(widget.when)}`  <sub>overlays.dart:300 · _StoneCardState.build</sub>
-- **U82** · `qué fue`  <sub>overlays.dart:329 · _StoneCardState.build</sub>
-- **U83** · `escribir una leyenda`  <sub>overlays.dart:342 · _StoneCardState.build</sub>
+- **U75** · `HITO $ordinal DEL PUEBLO`  <sub>overlays.dart:75 · TownLandmarkOverlay.build</sub>
+- **U76** · `levantado con ${mark.cost} piezas tuyas`  <sub>overlays.dart:102 · TownLandmarkOverlay.build</sub>
+- **U77** · `A QUÉ HORA FUE`  <sub>overlays.dart:267 · _StoneCardState._when</sub>
+- **U78** · `PIEZA ${widget.number} · ${StoneCard.formatDate(widget.when)}`  <sub>overlays.dart:300 · _StoneCardState.build</sub>
+- **U79** · `qué fue`  <sub>overlays.dart:329 · _StoneCardState.build</sub>
+- **U80** · `escribir una leyenda`  <sub>overlays.dart:342 · _StoneCardState.build</sub>
 
 ### El tablón: escribir y quitar
 
 Lo que sale al tocar el tablón de la plaza: escribir una nota, borrarla.
 
-- **U84** · `Volver a repartir el tablón`  <sub>notice_board.dart:280 · _NoticeBoardScreenState.build</sub>
-- **U85** · `Clavar una nota`  <sub>notice_board.dart:333 · _PinButton.build</sub>
-- **U86** · `Lo que quieras acordarte de mirar acá.`  <sub>notice_board.dart:455 · _WriteSheetState.build</sub>
-- **U87** · `CLAVARLA`  <sub>notice_board.dart:490 · _WriteSheetState.build</sub>
+- **U81** · `Volver a repartir el tablón`  <sub>notice_board.dart:280 · _NoticeBoardScreenState.build</sub>
+- **U82** · `Clavar una nota`  <sub>notice_board.dart:333 · _PinButton.build</sub>
+- **U83** · `Lo que quieras acordarte de mirar acá.`  <sub>notice_board.dart:455 · _WriteSheetState.build</sub>
+- **U84** · `CLAVARLA`  <sub>notice_board.dart:490 · _WriteSheetState.build</sub>
 
 ### El tablón: mover una nota
 
 Lo que aparece al dejar una nota apretada para cambiarla de sitio.
 
-- **U88** · `QUITARLA`  <sub>board_scene.dart:610 · _Unpin.build</sub>
+- **U85** · `QUITARLA`  <sub>board_scene.dart:610 · _Unpin.build</sub>
 
 ### La bitácora
 
 El cuaderno con una entrada por pieza puesta, fechada.
 
-- **U89** · `BITÁCORA`  <sub>legends_book.dart:402 · _Cover.build</sub>
-- **U90** · `${Papyrus.roman(habit.total)} piezas asentadas`  <sub>legends_book.dart:421 · _Cover.build</sub>
-- **U91** · `ninguna con leyenda`  <sub>legends_book.dart:427 · _Cover.build</sub>
-- **U92** · `una lleva leyenda`  <sub>legends_book.dart:429 · _Cover.build</sub>
-- **U93** · `${Papyrus.roman(count)} llevan leyenda`  <sub>legends_book.dart:430 · _Cover.build</sub>
-- **U94** · `Aquí no hay nada escrito\ntodavía.\n\nDespués de asentar una pieza,\ntocala y contale al pueblo\nqué fue.`  <sub>legends_book.dart:446 · _Blank.build</sub>
-- **U95** · `EL ATRIL`  <sub>legends_book.dart:550 · _Head.build</sub>
-- **U96** · `Cerrar`  <sub>legends_book.dart:571 · _Head.build</sub>
+- **U86** · `BITÁCORA`  <sub>legends_book.dart:402 · _Cover.build</sub>
+- **U87** · `${Papyrus.roman(habit.total)} piezas asentadas`  <sub>legends_book.dart:421 · _Cover.build</sub>
+- **U88** · `ninguna con leyenda`  <sub>legends_book.dart:427 · _Cover.build</sub>
+- **U89** · `una lleva leyenda`  <sub>legends_book.dart:429 · _Cover.build</sub>
+- **U90** · `${Papyrus.roman(count)} llevan leyenda`  <sub>legends_book.dart:430 · _Cover.build</sub>
+- **U91** · `Aquí no hay nada escrito\ntodavía.\n\nDespués de asentar una pieza,\ntocala y contale al pueblo\nqué fue.`  <sub>legends_book.dart:446 · _Blank.build</sub>
+- **U92** · `EL ATRIL`  <sub>legends_book.dart:550 · _Head.build</sub>
+- **U93** · `Cerrar`  <sub>legends_book.dart:571 · _Head.build</sub>
 
 ### Las fechas en pergamino
 
 Cómo se escriben los días y los meses en la bitácora: números romanos y meses con nombre.
 
-- **U97** · `Chronicle`  <sub>papyrus.dart:23 · Papyrus</sub>
-- **U98** · `el ${roman(d.day)} día de ${months[d.month - 1]}, año ${roman(d.year)}`  <sub>papyrus.dart:83 · Papyrus.longDate</sub>
-- **U99** · `MES DE ${months[d.month - 1].toUpperCase()} · AÑO ${roman(d.year)}`  <sub>papyrus.dart:86 · Papyrus.monthHeading</sub>
-- **U100** · `Puesta la pieza ${Papyrus.roman(brick.index + 1)}, `  <sub>papyrus.dart:336 · PapyrusEntry.build</sub>
+- **U94** · `Chronicle`  <sub>papyrus.dart:23 · Papyrus</sub>
+- **U95** · `el ${roman(d.day)} día de ${months[d.month - 1]}, año ${roman(d.year)}`  <sub>papyrus.dart:83 · Papyrus.longDate</sub>
+- **U96** · `MES DE ${months[d.month - 1].toUpperCase()} · AÑO ${roman(d.year)}`  <sub>papyrus.dart:86 · Papyrus.monthHeading</sub>
+- **U97** · `Puesta la pieza ${Papyrus.roman(brick.index + 1)}, `  <sub>papyrus.dart:336 · PapyrusEntry.build</sub>
 
 ### La cinemática
 
 La película de cómo se construyó el pueblo, y la que sale al entrar cuando pusiste piezas desde el widget.
 
-- **U101** · `SALTAR`  <sub>reel_screen.dart:740 · _Skip.build</sub>
-- **U102** · `${d.day} de ${_Date._meses[d.month - 1]} de ${d.year}`  <sub>reel_screen.dart:783 · _Ending._fecha</sub>
-- **U103** · `desde la pantalla de inicio`  <sub>reel_screen.dart:866 · _Ending.build</sub>
-- **U104** · `AL VALLE`  <sub>reel_screen.dart:889 · _Ending.build</sub>
-- **U105** · `VOLVER AL VALLE`  <sub>reel_screen.dart:889 · _Ending.build</sub>
+- **U98** · `SALTAR`  <sub>reel_screen.dart:740 · _Skip.build</sub>
+- **U99** · `${d.day} de ${_Date._meses[d.month - 1]} de ${d.year}`  <sub>reel_screen.dart:783 · _Ending._fecha</sub>
+- **U100** · `desde la pantalla de inicio`  <sub>reel_screen.dart:866 · _Ending.build</sub>
+- **U101** · `AL VALLE`  <sub>reel_screen.dart:889 · _Ending.build</sub>
+- **U102** · `VOLVER AL VALLE`  <sub>reel_screen.dart:889 · _Ending.build</sub>
 
 ### El expositor de estructuras
 
 En ajustes: todo lo que el pueblo sabe construir, de una en una.
 
-- **U106** · `Una de las casas corrientes del pueblo.`  <sub>gallery_screen.dart:33 · _Exhibit</sub>
-- **U107** · `0 CARAS`  <sub>gallery_screen.dart:106 · _GalleryScreenState._cost</sub>
-- **U108** · `$cut CARAS (+${cut - raw})`  <sub>gallery_screen.dart:106 · _GalleryScreenState._cost</sub>
-- **U109** · `CAM_YAW`  <sub>gallery_screen.dart:115 · _GalleryScreenState.initState</sub>
-- **U110** · `CAM_PITCH`  <sub>gallery_screen.dart:116 · _GalleryScreenState.initState</sub>
-- **U111** · `CASA · ${exhibit.pieces} PIEZAS · $cost`  <sub>gallery_screen.dart:356 · _Header.build</sub>
-- **U112** · `HITO ${'·' * (tier + 1)} · ${exhibit.pieces} PIEZAS · $cost`  <sub>gallery_screen.dart:357 · _Header.build</sub>
-- **U113** · `Completa`  <sub>gallery_screen.dart:461 · _Controls.build</sub>
-- **U114** · `Pieza a pieza`  <sub>gallery_screen.dart:465 · _Controls.build</sub>
-- **U115** · `TODO LO QUE SE CONSTRUYE`  <sub>gallery_screen.dart:636 · _IndexSheet.build</sub>
-- **U116** · `casa · ${e.pieces} piezas`  <sub>gallery_screen.dart:666 · _IndexSheet.build</sub>
-- **U117** · `hito ${'·' * (e.tier + 1)} · ${e.pieces} piezas`  <sub>gallery_screen.dart:667 · _IndexSheet.build</sub>
+- **U103** · `Una de las casas corrientes del pueblo.`  <sub>gallery_screen.dart:33 · _Exhibit</sub>
+- **U104** · `0 CARAS`  <sub>gallery_screen.dart:106 · _GalleryScreenState._cost</sub>
+- **U105** · `$cut CARAS (+${cut - raw})`  <sub>gallery_screen.dart:106 · _GalleryScreenState._cost</sub>
+- **U106** · `CAM_YAW`  <sub>gallery_screen.dart:115 · _GalleryScreenState.initState</sub>
+- **U107** · `CAM_PITCH`  <sub>gallery_screen.dart:116 · _GalleryScreenState.initState</sub>
+- **U108** · `CASA · ${exhibit.pieces} PIEZAS · $cost`  <sub>gallery_screen.dart:356 · _Header.build</sub>
+- **U109** · `HITO ${'·' * (tier + 1)} · ${exhibit.pieces} PIEZAS · $cost`  <sub>gallery_screen.dart:357 · _Header.build</sub>
+- **U110** · `Completa`  <sub>gallery_screen.dart:461 · _Controls.build</sub>
+- **U111** · `Pieza a pieza`  <sub>gallery_screen.dart:465 · _Controls.build</sub>
+- **U112** · `TODO LO QUE SE CONSTRUYE`  <sub>gallery_screen.dart:636 · _IndexSheet.build</sub>
+- **U113** · `casa · ${e.pieces} piezas`  <sub>gallery_screen.dart:666 · _IndexSheet.build</sub>
+- **U114** · `hito ${'·' * (e.tier + 1)} · ${e.pieces} piezas`  <sub>gallery_screen.dart:667 · _IndexSheet.build</sub>
 
 ### El expositor de la gente
 
 En ajustes: todos los vecinos, con su nombre y lo que están haciendo.
 
-- **U118** · `en su puerta`  <sub>folk_gallery_screen.dart:262 · _Header._where</sub>
-- **U119** · `en la plaza`  <sub>folk_gallery_screen.dart:263 · _Header._where</sub>
-- **U120** · `donde hay agua`  <sub>folk_gallery_screen.dart:264 · _Header._where</sub>
-- **U121** · `al pie de una obra`  <sub>folk_gallery_screen.dart:265 · _Header._where</sub>
-- **U122** · `en el prado`  <sub>folk_gallery_screen.dart:266 · _Header._where</sub>
-- **U123** · `${at + 1} DE $total  ·  ${doing.id.toUpperCase()}`  <sub>folk_gallery_screen.dart:291 · _Header.build</sub>
-- **U124** · ` · peso ${doing.weight.toStringAsFixed(1)}`  <sub>folk_gallery_screen.dart:312 · _Header.build</sub>
-- **U125** · `región`  <sub>folk_gallery_screen.dart:375 · _Controls.build</sub>
-- **U126** · `crío`  <sub>folk_gallery_screen.dart:380 · _Controls.build</sub>
-- **U127** · `EN SU PUERTA`  <sub>folk_gallery_screen.dart:504 · _IndexSheet._head</sub>
-- **U128** · `EN LA PLAZA`  <sub>folk_gallery_screen.dart:505 · _IndexSheet._head</sub>
-- **U129** · `DONDE HAY AGUA`  <sub>folk_gallery_screen.dart:506 · _IndexSheet._head</sub>
-- **U130** · `AL PIE DE UNA OBRA`  <sub>folk_gallery_screen.dart:507 · _IndexSheet._head</sub>
-- **U131** · `EN EL PRADO`  <sub>folk_gallery_screen.dart:508 · _IndexSheet._head</sub>
+- **U115** · `en su puerta`  <sub>folk_gallery_screen.dart:262 · _Header._where</sub>
+- **U116** · `en la plaza`  <sub>folk_gallery_screen.dart:263 · _Header._where</sub>
+- **U117** · `donde hay agua`  <sub>folk_gallery_screen.dart:264 · _Header._where</sub>
+- **U118** · `al pie de una obra`  <sub>folk_gallery_screen.dart:265 · _Header._where</sub>
+- **U119** · `en el prado`  <sub>folk_gallery_screen.dart:266 · _Header._where</sub>
+- **U120** · `${at + 1} DE $total  ·  ${doing.id.toUpperCase()}`  <sub>folk_gallery_screen.dart:291 · _Header.build</sub>
+- **U121** · ` · peso ${doing.weight.toStringAsFixed(1)}`  <sub>folk_gallery_screen.dart:312 · _Header.build</sub>
+- **U122** · `región`  <sub>folk_gallery_screen.dart:375 · _Controls.build</sub>
+- **U123** · `crío`  <sub>folk_gallery_screen.dart:380 · _Controls.build</sub>
+- **U124** · `EN SU PUERTA`  <sub>folk_gallery_screen.dart:504 · _IndexSheet._head</sub>
+- **U125** · `EN LA PLAZA`  <sub>folk_gallery_screen.dart:505 · _IndexSheet._head</sub>
+- **U126** · `DONDE HAY AGUA`  <sub>folk_gallery_screen.dart:506 · _IndexSheet._head</sub>
+- **U127** · `AL PIE DE UNA OBRA`  <sub>folk_gallery_screen.dart:507 · _IndexSheet._head</sub>
+- **U128** · `EN EL PRADO`  <sub>folk_gallery_screen.dart:508 · _IndexSheet._head</sub>
 
 ### Pausar un hábito
 
 Poner un pueblo en pausa por una semana, dos o un mes, sin que se deteriore.
 
-- **U132** · `Una semana`  <sub>rest_sheet.dart:48 · _RestSheetState</sub>
-- **U133** · `un viaje, una gripe, una semana imposible`  <sub>rest_sheet.dart:48 · _RestSheetState</sub>
-- **U134** · `Dos semanas`  <sub>rest_sheet.dart:49 · _RestSheetState</sub>
-- **U135** · `unas vacaciones`  <sub>rest_sheet.dart:49 · _RestSheetState</sub>
-- **U136** · `Un mes`  <sub>rest_sheet.dart:50 · _RestSheetState</sub>
-- **U137** · `una mudanza, un examen, un mes de los otros`  <sub>rest_sheet.dart:50 · _RestSheetState</sub>
-- **U138** · `Tres meses`  <sub>rest_sheet.dart:51 · _RestSheetState</sub>
-- **U139** · `una temporada entera de tu vida`  <sub>rest_sheet.dart:51 · _RestSheetState</sub>
-- **U140** · `DORMIR EL PUEBLO`  <sub>rest_sheet.dart:78 · _RestSheetState.build</sub>
-- **U141** · `¿Hasta cuándo?`  <sub>rest_sheet.dart:80 · _RestSheetState.build</sub>
-- **U142** · `Mientras duerme no se apaga, no pierde nada y no cuenta ningún `  <sub>rest_sheet.dart:83 · _RestSheetState.build</sub>
-- **U143** · `día en contra. Podés volver antes cuando quieras: poner una `  <sub>rest_sheet.dart:84 · _RestSheetState.build</sub>
-- **U144** · `pieza lo despierta.`  <sub>rest_sheet.dart:85 · _RestSheetState.build</sub>
-- **U145** · `Elegí cuánto`  <sub>rest_sheet.dart:119 · _RestSheetState.build</sub>
-- **U146** · `Que duerma ${_days == 1 ? 'un día' : '$_days días'}`  <sub>rest_sheet.dart:120 · _RestSheetState.build</sub>
-- **U147** · `Esto no borra nada y no es lo mismo que eliminarlo.`  <sub>rest_sheet.dart:127 · _RestSheetState.build</sub>
+- **U129** · `Una semana`  <sub>rest_sheet.dart:48 · _RestSheetState</sub>
+- **U130** · `un viaje, una gripe, una semana imposible`  <sub>rest_sheet.dart:48 · _RestSheetState</sub>
+- **U131** · `Dos semanas`  <sub>rest_sheet.dart:49 · _RestSheetState</sub>
+- **U132** · `unas vacaciones`  <sub>rest_sheet.dart:49 · _RestSheetState</sub>
+- **U133** · `Un mes`  <sub>rest_sheet.dart:50 · _RestSheetState</sub>
+- **U134** · `una mudanza, un examen, un mes de los otros`  <sub>rest_sheet.dart:50 · _RestSheetState</sub>
+- **U135** · `Tres meses`  <sub>rest_sheet.dart:51 · _RestSheetState</sub>
+- **U136** · `una temporada entera de tu vida`  <sub>rest_sheet.dart:51 · _RestSheetState</sub>
+- **U137** · `DORMIR EL PUEBLO`  <sub>rest_sheet.dart:78 · _RestSheetState.build</sub>
+- **U138** · `¿Hasta cuándo?`  <sub>rest_sheet.dart:80 · _RestSheetState.build</sub>
+- **U139** · `Mientras duerme no se apaga, no pierde nada y no cuenta ningún `  <sub>rest_sheet.dart:83 · _RestSheetState.build</sub>
+- **U140** · `día en contra. Podés volver antes cuando quieras: poner una `  <sub>rest_sheet.dart:84 · _RestSheetState.build</sub>
+- **U141** · `pieza lo despierta.`  <sub>rest_sheet.dart:85 · _RestSheetState.build</sub>
+- **U142** · `Elegí cuánto`  <sub>rest_sheet.dart:119 · _RestSheetState.build</sub>
+- **U143** · `Que duerma ${_days == 1 ? 'un día' : '$_days días'}`  <sub>rest_sheet.dart:120 · _RestSheetState.build</sub>
+- **U144** · `Esto no borra nada y no es lo mismo que eliminarlo.`  <sub>rest_sheet.dart:127 · _RestSheetState.build</sub>
 
 ### El pueblo a la deriva
 
 Lo que dice la app cuando volvés después de mucho tiempo y el pueblo se apagó.
 
-- **U148** · `EL PUEBLO PREGUNTA`  <sub>adrift_sheet.dart:89 · AdriftSheet.build</sub>
-- **U149** · `Hace $days días que ${habit.name} no recibe una pieza.`  <sub>adrift_sheet.dart:95 · AdriftSheet.build</sub>
-- **U150** · `¿Seguimos intentando, o lo cambiamos? Las cuatro respuestas `  <sub>adrift_sheet.dart:100 · AdriftSheet.build</sub>
-- **U151** · `valen. A lo mejor el problema no sos vos.`  <sub>adrift_sheet.dart:101 · AdriftSheet.build</sub>
-- **U152** · `Seguimos`  <sub>adrift_sheet.dart:112 · AdriftSheet.build</sub>
-- **U153** · `No cambia nada. El pueblo te espera donde está.`  <sub>adrift_sheet.dart:113 · AdriftSheet.build</sub>
-- **U154** · `Hacerlo más chico`  <sub>adrift_sheet.dart:124 · AdriftSheet.build</sub>
-- **U155** · `Escribí lo mínimo que todavía cuenta como una pieza. `  <sub>adrift_sheet.dart:126 · AdriftSheet.build</sub>
-- **U156** · `Cinco minutos no son treinta, y no son cero.`  <sub>adrift_sheet.dart:127 · AdriftSheet.build</sub>
-- **U157** · `Cambiá lo mínimo que cuenta. Si «${habit.floor}» se `  <sub>adrift_sheet.dart:128 · AdriftSheet.build</sub>
-- **U158** · `volvió mucho, es que era mucho.`  <sub>adrift_sheet.dart:129 · AdriftSheet.build</sub>
-- **U159** · `Pausarlo`  <sub>adrift_sheet.dart:139 · AdriftSheet.build</sub>
-- **U160** · `El pueblo duerme con las luces encendidas y no cuenta `  <sub>adrift_sheet.dart:141 · AdriftSheet.build</sub>
-- **U161** · `ningún día en contra. Elegís hasta cuándo.`  <sub>adrift_sheet.dart:142 · AdriftSheet.build</sub>
-- **U162** · `Ya no lo quiero`  <sub>adrift_sheet.dart:152 · AdriftSheet.build</sub>
-- **U163** · `Dejar de intentarlo también es una decisión, y es `  <sub>adrift_sheet.dart:154 · AdriftSheet.build</sub>
-- **U164** · `distinta de no estar pudiendo ahora.`  <sub>adrift_sheet.dart:155 · AdriftSheet.build</sub>
-- **U165** · `LO ESCRIBISTE VOS`  <sub>adrift_sheet.dart:182 · AdriftSheet._yours</sub>
-- **U166** · `LO MÍNIMO QUE CUENTA, DIJISTE`  <sub>adrift_sheet.dart:182 · AdriftSheet._yours</sub>
+- **U145** · `EL PUEBLO PREGUNTA`  <sub>adrift_sheet.dart:89 · AdriftSheet.build</sub>
+- **U146** · `Hace $days días que ${habit.name} no recibe una pieza.`  <sub>adrift_sheet.dart:95 · AdriftSheet.build</sub>
+- **U147** · `¿Seguimos intentando, o lo cambiamos? Las cuatro respuestas `  <sub>adrift_sheet.dart:100 · AdriftSheet.build</sub>
+- **U148** · `valen. A lo mejor el problema no sos vos.`  <sub>adrift_sheet.dart:101 · AdriftSheet.build</sub>
+- **U149** · `Seguimos`  <sub>adrift_sheet.dart:112 · AdriftSheet.build</sub>
+- **U150** · `No cambia nada. El pueblo te espera donde está.`  <sub>adrift_sheet.dart:113 · AdriftSheet.build</sub>
+- **U151** · `Hacerlo más chico`  <sub>adrift_sheet.dart:124 · AdriftSheet.build</sub>
+- **U152** · `Escribí lo mínimo que todavía cuenta como una pieza. `  <sub>adrift_sheet.dart:126 · AdriftSheet.build</sub>
+- **U153** · `Cinco minutos no son treinta, y no son cero.`  <sub>adrift_sheet.dart:127 · AdriftSheet.build</sub>
+- **U154** · `Cambiá lo mínimo que cuenta. Si «${habit.floor}» se `  <sub>adrift_sheet.dart:128 · AdriftSheet.build</sub>
+- **U155** · `volvió mucho, es que era mucho.`  <sub>adrift_sheet.dart:129 · AdriftSheet.build</sub>
+- **U156** · `Pausarlo`  <sub>adrift_sheet.dart:139 · AdriftSheet.build</sub>
+- **U157** · `El pueblo duerme con las luces encendidas y no cuenta `  <sub>adrift_sheet.dart:141 · AdriftSheet.build</sub>
+- **U158** · `ningún día en contra. Elegís hasta cuándo.`  <sub>adrift_sheet.dart:142 · AdriftSheet.build</sub>
+- **U159** · `Ya no lo quiero`  <sub>adrift_sheet.dart:152 · AdriftSheet.build</sub>
+- **U160** · `Dejar de intentarlo también es una decisión, y es `  <sub>adrift_sheet.dart:154 · AdriftSheet.build</sub>
+- **U161** · `distinta de no estar pudiendo ahora.`  <sub>adrift_sheet.dart:155 · AdriftSheet.build</sub>
+- **U162** · `LO ESCRIBISTE VOS`  <sub>adrift_sheet.dart:182 · AdriftSheet._yours</sub>
+- **U163** · `LO MÍNIMO QUE CUENTA, DIJISTE`  <sub>adrift_sheet.dart:182 · AdriftSheet._yours</sub>
 
 ### El segundo hábito
 
 Lo que se lee cuando se abre el sitio para un segundo pueblo en el valle.
 
-- **U167** · `EL SEGUNDO PUEBLO`  <sub>unlock_sheet.dart:52 · UnlockSheet.build</sub>
-- **U168** · `Te falta un día.`  <sub>unlock_sheet.dart:55 · UnlockSheet.build</sub>
-- **U169** · `Te faltan $left días.`  <sub>unlock_sheet.dart:55 · UnlockSheet.build</sub>
-- **U170** · `El valle abre su segundo solar cuando el primero se sostiene: `  <sub>unlock_sheet.dart:60 · UnlockSheet.build</sub>
-- **U171** · `${Pacing.unlockDays} días con pieza de los últimos `  <sub>unlock_sheet.dart:61 · UnlockSheet.build</sub>
-- **U172** · `${Pacing.unlockWindow}. Llevás $done.`  <sub>unlock_sheet.dart:62 · UnlockSheet.build</sub>
-- **U173** · `No hace falta que sean seguidos. Podés fallar cuatro veces por `  <sub>unlock_sheet.dart:72 · UnlockSheet.build</sub>
-- **U174** · `el camino y la puerta se abre igual — acá no se miden rachas.`  <sub>unlock_sheet.dart:73 · UnlockSheet.build</sub>
-- **U175** · `Y una vez abierta no se cierra nunca, pase lo que pase después.`  <sub>unlock_sheet.dart:78 · UnlockSheet.build</sub>
+- **U164** · `EL SEGUNDO PUEBLO`  <sub>unlock_sheet.dart:52 · UnlockSheet.build</sub>
+- **U165** · `Te falta un día.`  <sub>unlock_sheet.dart:55 · UnlockSheet.build</sub>
+- **U166** · `Te faltan $left días.`  <sub>unlock_sheet.dart:55 · UnlockSheet.build</sub>
+- **U167** · `El valle abre su segundo solar cuando el primero se sostiene: `  <sub>unlock_sheet.dart:60 · UnlockSheet.build</sub>
+- **U168** · `${Pacing.unlockDays} días con pieza de los últimos `  <sub>unlock_sheet.dart:61 · UnlockSheet.build</sub>
+- **U169** · `${Pacing.unlockWindow}. Llevás $done.`  <sub>unlock_sheet.dart:62 · UnlockSheet.build</sub>
+- **U170** · `No hace falta que sean seguidos. Podés fallar cuatro veces por `  <sub>unlock_sheet.dart:72 · UnlockSheet.build</sub>
+- **U171** · `el camino y la puerta se abre igual — acá no se miden rachas.`  <sub>unlock_sheet.dart:73 · UnlockSheet.build</sub>
+- **U172** · `Y una vez abierta no se cierra nunca, pase lo que pase después.`  <sub>unlock_sheet.dart:78 · UnlockSheet.build</sub>
 
 ### Tus datos
 
 En ajustes: copiar el valle entero al portapapeles y volver a meterlo.
 
-- **U176** · `Copiado: ${widget.store.describe()}. Pegalo donde lo vayas a `  <sub>backup_sheet.dart:55 · _BackupSheetState._copy</sub>
-- **U177** · `encontrar — una nota, un mail a vos mismo.`  <sub>backup_sheet.dart:56 · _BackupSheetState._copy</sub>
-- **U178** · `No hay nada copiado ahora mismo.`  <sub>backup_sheet.dart:65 · _BackupSheetState._fromClipboard</sub>
-- **U179** · `Pegado. Mirá que sea el tuyo y confirmá abajo.`  <sub>backup_sheet.dart:69 · _BackupSheetState._fromClipboard</sub>
-- **U180** · `Listo: ${store.describe()}. Antes había $before.`  <sub>backup_sheet.dart:82 · _BackupSheetState._restore</sub>
-- **U181** · `¿Reemplazar lo que hay?`  <sub>backup_sheet.dart:96 · _BackupSheetState._confirm</sub>
-- **U182** · `Ahora mismo tenés ${widget.store.describe()}. Volver a meter una `  <sub>backup_sheet.dart:98 · _BackupSheetState._confirm</sub>
-- **U183** · `copia deja el valle exactamente como estaba en ella, y lo de ahora `  <sub>backup_sheet.dart:99 · _BackupSheetState._confirm</sub>
-- **U184** · `se pierde. Si no estás seguro, copiá esto primero.`  <sub>backup_sheet.dart:100 · _BackupSheetState._confirm</sub>
-- **U185** · `Reemplazar`  <sub>backup_sheet.dart:114 · _BackupSheetState._confirm</sub>
-- **U186** · `TUS DATOS`  <sub>backup_sheet.dart:149 · _BackupSheetState.build</sub>
-- **U187** · `Tenés ${widget.store.describe()}. Todo eso vive sólo en este `  <sub>backup_sheet.dart:152 · _BackupSheetState.build</sub>
-- **U188** · `teléfono: la app no manda nada a ningún lado y no hay cuenta `  <sub>backup_sheet.dart:153 · _BackupSheetState.build</sub>
-- **U189** · `que lo recupere. Sacá una copia de vez en cuando.`  <sub>backup_sheet.dart:154 · _BackupSheetState.build</sub>
-- **U190** · `Copiar mi valle`  <sub>backup_sheet.dart:162 · _BackupSheetState.build</sub>
-- **U191** · `Dejar de restaurar`  <sub>backup_sheet.dart:170 · _BackupSheetState.build</sub>
-- **U192** · `Volver a meterlo`  <sub>backup_sheet.dart:170 · _BackupSheetState.build</sub>
-- **U193** · `Pegá acá la copia que guardaste.`  <sub>backup_sheet.dart:196 · _BackupSheetState.build</sub>
-- **U194** · `Pegar`  <sub>backup_sheet.dart:205 · _BackupSheetState.build</sub>
-- **U195** · `Reemplazar lo que hay`  <sub>backup_sheet.dart:231 · _BackupSheetState.build</sub>
+- **U173** · `Copiado: ${widget.store.describe()}. Pegalo donde lo vayas a `  <sub>backup_sheet.dart:55 · _BackupSheetState._copy</sub>
+- **U174** · `encontrar — una nota, un mail a vos mismo.`  <sub>backup_sheet.dart:56 · _BackupSheetState._copy</sub>
+- **U175** · `No hay nada copiado ahora mismo.`  <sub>backup_sheet.dart:65 · _BackupSheetState._fromClipboard</sub>
+- **U176** · `Pegado. Mirá que sea el tuyo y confirmá abajo.`  <sub>backup_sheet.dart:69 · _BackupSheetState._fromClipboard</sub>
+- **U177** · `Listo: ${store.describe()}. Antes había $before.`  <sub>backup_sheet.dart:82 · _BackupSheetState._restore</sub>
+- **U178** · `¿Reemplazar lo que hay?`  <sub>backup_sheet.dart:96 · _BackupSheetState._confirm</sub>
+- **U179** · `Ahora mismo tenés ${widget.store.describe()}. Volver a meter una `  <sub>backup_sheet.dart:98 · _BackupSheetState._confirm</sub>
+- **U180** · `copia deja el valle exactamente como estaba en ella, y lo de ahora `  <sub>backup_sheet.dart:99 · _BackupSheetState._confirm</sub>
+- **U181** · `se pierde. Si no estás seguro, copiá esto primero.`  <sub>backup_sheet.dart:100 · _BackupSheetState._confirm</sub>
+- **U182** · `Reemplazar`  <sub>backup_sheet.dart:114 · _BackupSheetState._confirm</sub>
+- **U183** · `TUS DATOS`  <sub>backup_sheet.dart:149 · _BackupSheetState.build</sub>
+- **U184** · `Tenés ${widget.store.describe()}. Todo eso vive sólo en este `  <sub>backup_sheet.dart:152 · _BackupSheetState.build</sub>
+- **U185** · `teléfono: la app no manda nada a ningún lado y no hay cuenta `  <sub>backup_sheet.dart:153 · _BackupSheetState.build</sub>
+- **U186** · `que lo recupere. Sacá una copia de vez en cuando.`  <sub>backup_sheet.dart:154 · _BackupSheetState.build</sub>
+- **U187** · `Copiar mi valle`  <sub>backup_sheet.dart:162 · _BackupSheetState.build</sub>
+- **U188** · `Dejar de restaurar`  <sub>backup_sheet.dart:170 · _BackupSheetState.build</sub>
+- **U189** · `Volver a meterlo`  <sub>backup_sheet.dart:170 · _BackupSheetState.build</sub>
+- **U190** · `Pegá acá la copia que guardaste.`  <sub>backup_sheet.dart:196 · _BackupSheetState.build</sub>
+- **U191** · `Pegar`  <sub>backup_sheet.dart:205 · _BackupSheetState.build</sub>
+- **U192** · `Reemplazar lo que hay`  <sub>backup_sheet.dart:231 · _BackupSheetState.build</sub>
 
 ### Ajustes
 
 Todo lo de la hoja de ajustes: sonido, hora, año, avisos, y los atajos de desarrollo del final.
 
-- **U196** · `AJUSTES`  <sub>settings_sheet.dart:74 · _SettingsSheetState.build</sub>
-- **U197** · `BUILD $_build`  <sub>settings_sheet.dart:91 · _SettingsSheetState.build</sub>
-- **U198** · `BUILD`  <sub>settings_sheet.dart:109 · _SettingsSheetState.build</sub>
-- **U199** · `SONIDO`  <sub>settings_sheet.dart:117 · _SettingsSheetState._body</sub>
-- **U200** · `Sonido`  <sub>settings_sheet.dart:120 · _SettingsSheetState._body</sub>
-- **U201** · `El interruptor de todo, música incluida.`  <sub>settings_sheet.dart:121 · _SettingsSheetState._body</sub>
-- **U202** · `Efectos`  <sub>settings_sheet.dart:127 · _SettingsSheetState._body</sub>
-- **U203** · `Lo que suena al poner una pieza.`  <sub>settings_sheet.dart:128 · _SettingsSheetState._body</sub>
-- **U204** · `Música`  <sub>settings_sheet.dart:135 · _SettingsSheetState._body</sub>
-- **U205** · `De fondo, y distinta según la hora del día.`  <sub>settings_sheet.dart:136 · _SettingsSheetState._body</sub>
-- **U206** · `Volumen de la música`  <sub>settings_sheet.dart:144 · _SettingsSheetState._body</sub>
-- **U207** · `Volumen de los efectos`  <sub>settings_sheet.dart:150 · _SettingsSheetState._body</sub>
-- **U208** · `La mitad es como sonaba antes de que hubiera dónde tocarlo, así que `  <sub>settings_sheet.dart:158 · _SettingsSheetState._body</sub>
-- **U209** · `lo que muevas se mide contra algo que ya conocés.`  <sub>settings_sheet.dart:159 · _SettingsSheetState._body</sub>
-- **U210** · `EL TABLÓN`  <sub>settings_sheet.dart:164 · _SettingsSheetState._body</sub>
-- **U211** · `Las letras del tablón ya no se eligen: tus cuentas van todas de la `  <sub>settings_sheet.dart:166 · _SettingsSheetState._body</sub>
-- **U212** · `misma mano y cada bando sale con la del vecino que lo colgó. Un `  <sub>settings_sheet.dart:167 · _SettingsSheetState._body</sub>
-- **U213** · `tablón de plaza se lee así, no con una letra que se elige en un `  <sub>settings_sheet.dart:168 · _SettingsSheetState._body</sub>
-- **U214** · `menú.`  <sub>settings_sheet.dart:169 · _SettingsSheetState._body</sub>
-- **U215** · `Ver el tablón con un pueblo lleno`  <sub>settings_sheet.dart:176 · _SettingsSheetState._body</sub>
-- **U216** · `Un valle de mentira: entrenar durante 300 días. Trae un dado `  <sub>settings_sheet.dart:178 · _SettingsSheetState._body</sub>
-- **U217** · `que vuelve a repartirlo con notas al azar, para ver si el texto `  <sub>settings_sheet.dart:179 · _SettingsSheetState._body</sub>
-- **U218** · `cabe también en las que no salen nunca.`  <sub>settings_sheet.dart:180 · _SettingsSheetState._body</sub>
-- **U219** · `LA HORA`  <sub>settings_sheet.dart:193 · _SettingsSheetState._body</sub>
-- **U220** · `Fingir la hora`  <sub>settings_sheet.dart:196 · _SettingsSheetState._body</sub>
-- **U221** · `Para mirar el pueblo a cualquier hora sin esperarla. Cambia el `  <sub>settings_sheet.dart:198 · _SettingsSheetState._body</sub>
-- **U222** · `cielo, la música, las ventanas y las fugaces, porque las cuatro `  <sub>settings_sheet.dart:199 · _SettingsSheetState._body</sub>
-- **U223** · `salen de la misma hora.`  <sub>settings_sheet.dart:200 · _SettingsSheetState._body</sub>
-- **U224** · `Son las ${wants.fakeHourAt.floor().toString().padLeft(2, '0')}`  <sub>settings_sheet.dart:208 · _SettingsSheetState._body</sub>
-- **U225** · `Tirar una estrella fugaz`  <sub>settings_sheet.dart:216 · _SettingsSheetState._body</sub>
-- **U226** · `Sale ya mismo, sin esperar. Dura cinco segundos, cruza por donde `  <sub>settings_sheet.dart:218 · _SettingsSheetState._body</sub>
-- **U227** · `estés mirando y de noche pasa una cada cuatro minutos y medio `  <sub>settings_sheet.dart:219 · _SettingsSheetState._body</sub>
-- **U228** · `de media.`  <sub>settings_sheet.dart:220 · _SettingsSheetState._body</sub>
-- **U229** · `EL AÑO`  <sub>settings_sheet.dart:236 · _SettingsSheetState._body</sub>
-- **U230** · `Las estaciones`  <sub>settings_sheet.dart:239 · _SettingsSheetState._body</sub>
-- **U231** · `El valle cambia con el año: verde nuevo en primavera, dorado en `  <sub>settings_sheet.dart:241 · _SettingsSheetState._body</sub>
-- **U232** · `otoño, nieve en los tejados en invierno, y los días más cortos `  <sub>settings_sheet.dart:242 · _SettingsSheetState._body</sub>
-- **U233** · `o más largos según toque.`  <sub>settings_sheet.dart:243 · _SettingsSheetState._body</sub>
-- **U234** · `Estoy en el hemisferio sur`  <sub>settings_sheet.dart:250 · _SettingsSheetState._body</sub>
-- **U235** · `Para que diciembre sea verano y julio invierno. Sale del `  <sub>settings_sheet.dart:252 · _SettingsSheetState._body</sub>
-- **U236** · `idioma del teléfono; esto es para corregirlo.`  <sub>settings_sheet.dart:253 · _SettingsSheetState._body</sub>
-- **U237** · `Fingir el día del año`  <sub>settings_sheet.dart:260 · _SettingsSheetState._body</sub>
-- **U238** · `Para ver el invierno en marzo sin esperarlo, igual que se `  <sub>settings_sheet.dart:262 · _SettingsSheetState._body</sub>
-- **U239** · `finge la hora.`  <sub>settings_sheet.dart:263 · _SettingsSheetState._body</sub>
-- **U240** · `Invierno`  <sub>settings_sheet.dart:276 · _SettingsSheetState._body</sub>
-- **U241** · `Primavera`  <sub>settings_sheet.dart:277 · _SettingsSheetState._body</sub>
-- **U242** · `Verano`  <sub>settings_sheet.dart:278 · _SettingsSheetState._body</sub>
-- **U243** · `Otoño`  <sub>settings_sheet.dart:279 · _SettingsSheetState._body</sub>
-- **U244** · ` horas de luz`  <sub>settings_sheet.dart:289 · _SettingsSheetState._body</sub>
-- **U245** · `LO DEMÁS`  <sub>settings_sheet.dart:297 · _SettingsSheetState._body</sub>
-- **U246** · `Que el pueblo te avise`  <sub>settings_sheet.dart:302 · _SettingsSheetState._body</sub>
-- **U247** · `Sólo cuando llevás más de lo tuyo sin poner una pieza, a tu `  <sub>settings_sheet.dart:304 · _SettingsSheetState._body</sub>
-- **U248** · `hora y con tus palabras. Como mucho dos por ausencia.`  <sub>settings_sheet.dart:305 · _SettingsSheetState._body</sub>
-- **U249** · `Vibración`  <sub>settings_sheet.dart:319 · _SettingsSheetState._body</sub>
-- **U250** · `El peso de la pieza al caer.`  <sub>settings_sheet.dart:320 · _SettingsSheetState._body</sub>
-- **U251** · `Modo rápido`  <sub>settings_sheet.dart:326 · _SettingsSheetState._body</sub>
-- **U252** · `Mantener pone piezas seguidas. Para probar, no para usar: una `  <sub>settings_sheet.dart:328 · _SettingsSheetState._body</sub>
-- **U253** · `pieza es un logro.`  <sub>settings_sheet.dart:329 · _SettingsSheetState._body</sub>
-- **U254** · `Tus datos`  <sub>settings_sheet.dart:337 · _SettingsSheetState._body</sub>
-- **U255** · `Copiar tu valle y volver a meterlo.`  <sub>settings_sheet.dart:338 · _SettingsSheetState._body</sub>
-- **U256** · `Ver cómo se hizo`  <sub>settings_sheet.dart:350 · _SettingsSheetState._body</sub>
-- **U257** · `El valle entero, o uno de tus pueblos desde el primer día.`  <sub>settings_sheet.dart:352 · _SettingsSheetState._body</sub>
-- **U258** · `Tu pueblo entero desde el primer día, en un minuto.`  <sub>settings_sheet.dart:360 · _SettingsSheetState._body</sub>
-- **U259** · `Ver el pueblo a futuro`  <sub>settings_sheet.dart:369 · _SettingsSheetState._body</sub>
-- **U260** · `Cómo se vería con 100, 500 o 5000 piezas.`  <sub>settings_sheet.dart:370 · _SettingsSheetState._body</sub>
-- **U261** · `Ver la primera vez otra vez`  <sub>settings_sheet.dart:376 · _SettingsSheetState._body</sub>
-- **U262** · `Abre la pantalla de entrada como si acabaras de instalar la `  <sub>settings_sheet.dart:378 · _SettingsSheetState._body</sub>
-- **U263** · `app. No borra ninguna pieza.`  <sub>settings_sheet.dart:379 · _SettingsSheetState._body</sub>
-- **U264** · `El expositor`  <sub>settings_sheet.dart:388 · _SettingsSheetState._body</sub>
-- **U265** · `Las ${landmarks.length + BuildingKind.values.length} estructuras `  <sub>settings_sheet.dart:390 · _SettingsSheetState._body</sub>
-- **U266** · `que el pueblo sabe construir.`  <sub>settings_sheet.dart:391 · _SettingsSheetState._body</sub>
-- **U267** · `El expositor de la gente`  <sub>settings_sheet.dart:397 · _SettingsSheetState._body</sub>
-- **U268** · `Las ${Doing.all.length} cosas que hacen los vecinos cuando no `  <sub>settings_sheet.dart:399 · _SettingsSheetState._body</sub>
-- **U269** · `están andando, una a una y de cerca.`  <sub>settings_sheet.dart:400 · _SettingsSheetState._body</sub>
-- **U270** · `Quitar la última pieza`  <sub>settings_sheet.dart:439 · _Undo.build</sub>
-- **U271** · `Este pueblo todavía no tiene ninguna.`  <sub>settings_sheet.dart:443 · _Undo.build</sub>
-- **U272** · `La ${store.habit.total} de `  <sub>settings_sheet.dart:444 · _Undo.build</sub>
-- **U273** · `${store.habit.name}, puesta el `  <sub>settings_sheet.dart:445 · _Undo.build</sub>
-- **U274** · `¿Quitar la pieza ${store.habit.total}?`  <sub>settings_sheet.dart:467 · _Undo._ask</sub>
-- **U275** · `Dice «${last.label}». Se va con ella.`  <sub>settings_sheet.dart:470 · _Undo._ask</sub>
-- **U276** · `Vuelve a quedar en ${store.habit.total - 1}.`  <sub>settings_sheet.dart:471 · _Undo._ask</sub>
-- **U277** · `Quitarla`  <sub>settings_sheet.dart:485 · _Undo._ask</sub>
-- **U278** · `VER CÓMO SE HIZO`  <sub>settings_sheet.dart:788 · _WhichReel.build</sub>
-- **U279** · `El valle entero`  <sub>settings_sheet.dart:793 · _WhichReel.build</sub>
-- **U280** · `Salta de pieza en pieza y de pueblo en pueblo, en el orden `  <sub>settings_sheet.dart:795 · _WhichReel.build</sub>
-- **U281** · `en que pasaron.`  <sub>settings_sheet.dart:796 · _WhichReel.build</sub>
-- **U282** · `Sólo este pueblo, con la cámara dando la vuelta a su plaza.`  <sub>settings_sheet.dart:805 · _WhichReel.build</sub>
+- **U193** · `AJUSTES`  <sub>settings_sheet.dart:76 · _SettingsSheetState.build</sub>
+- **U194** · `BUILD $_build`  <sub>settings_sheet.dart:93 · _SettingsSheetState.build</sub>
+- **U195** · `BUILD`  <sub>settings_sheet.dart:111 · _SettingsSheetState.build</sub>
+- **U196** · `SONIDO`  <sub>settings_sheet.dart:119 · _SettingsSheetState._body</sub>
+- **U197** · `Sonido`  <sub>settings_sheet.dart:122 · _SettingsSheetState._body</sub>
+- **U198** · `El interruptor de todo, música incluida.`  <sub>settings_sheet.dart:123 · _SettingsSheetState._body</sub>
+- **U199** · `Efectos`  <sub>settings_sheet.dart:129 · _SettingsSheetState._body</sub>
+- **U200** · `Lo que suena al poner una pieza.`  <sub>settings_sheet.dart:130 · _SettingsSheetState._body</sub>
+- **U201** · `Música`  <sub>settings_sheet.dart:137 · _SettingsSheetState._body</sub>
+- **U202** · `De fondo, y distinta según la hora del día.`  <sub>settings_sheet.dart:138 · _SettingsSheetState._body</sub>
+- **U203** · `Volumen de la música`  <sub>settings_sheet.dart:146 · _SettingsSheetState._body</sub>
+- **U204** · `Volumen de los efectos`  <sub>settings_sheet.dart:152 · _SettingsSheetState._body</sub>
+- **U205** · `La mitad es como sonaba antes de que hubiera dónde tocarlo, así que `  <sub>settings_sheet.dart:160 · _SettingsSheetState._body</sub>
+- **U206** · `lo que muevas se mide contra algo que ya conocés.`  <sub>settings_sheet.dart:161 · _SettingsSheetState._body</sub>
+- **U207** · `EL TABLÓN`  <sub>settings_sheet.dart:166 · _SettingsSheetState._body</sub>
+- **U208** · `Las letras del tablón ya no se eligen: tus cuentas van todas de la `  <sub>settings_sheet.dart:168 · _SettingsSheetState._body</sub>
+- **U209** · `misma mano y cada bando sale con la del vecino que lo colgó. Un `  <sub>settings_sheet.dart:169 · _SettingsSheetState._body</sub>
+- **U210** · `tablón de plaza se lee así, no con una letra que se elige en un `  <sub>settings_sheet.dart:170 · _SettingsSheetState._body</sub>
+- **U211** · `menú.`  <sub>settings_sheet.dart:171 · _SettingsSheetState._body</sub>
+- **U212** · `Ver el tablón con un pueblo lleno`  <sub>settings_sheet.dart:178 · _SettingsSheetState._body</sub>
+- **U213** · `Un valle de mentira: entrenar durante 300 días. Trae un dado `  <sub>settings_sheet.dart:180 · _SettingsSheetState._body</sub>
+- **U214** · `que vuelve a repartirlo con notas al azar, para ver si el texto `  <sub>settings_sheet.dart:181 · _SettingsSheetState._body</sub>
+- **U215** · `cabe también en las que no salen nunca.`  <sub>settings_sheet.dart:182 · _SettingsSheetState._body</sub>
+- **U216** · `LA HORA`  <sub>settings_sheet.dart:195 · _SettingsSheetState._body</sub>
+- **U217** · `Fingir la hora`  <sub>settings_sheet.dart:198 · _SettingsSheetState._body</sub>
+- **U218** · `Para mirar el pueblo a cualquier hora sin esperarla. Cambia el `  <sub>settings_sheet.dart:200 · _SettingsSheetState._body</sub>
+- **U219** · `cielo, la música, las ventanas y las fugaces, porque las cuatro `  <sub>settings_sheet.dart:201 · _SettingsSheetState._body</sub>
+- **U220** · `salen de la misma hora.`  <sub>settings_sheet.dart:202 · _SettingsSheetState._body</sub>
+- **U221** · `Son las ${wants.fakeHourAt.floor().toString().padLeft(2, '0')}`  <sub>settings_sheet.dart:210 · _SettingsSheetState._body</sub>
+- **U222** · `Tirar una estrella fugaz`  <sub>settings_sheet.dart:218 · _SettingsSheetState._body</sub>
+- **U223** · `Sale ya mismo, sin esperar. Dura cinco segundos, cruza por donde `  <sub>settings_sheet.dart:220 · _SettingsSheetState._body</sub>
+- **U224** · `estés mirando y de noche pasa una cada cuatro minutos y medio `  <sub>settings_sheet.dart:221 · _SettingsSheetState._body</sub>
+- **U225** · `de media.`  <sub>settings_sheet.dart:222 · _SettingsSheetState._body</sub>
+- **U226** · `EL AÑO`  <sub>settings_sheet.dart:238 · _SettingsSheetState._body</sub>
+- **U227** · `Las estaciones`  <sub>settings_sheet.dart:241 · _SettingsSheetState._body</sub>
+- **U228** · `El valle cambia con el año: verde nuevo en primavera, dorado en `  <sub>settings_sheet.dart:243 · _SettingsSheetState._body</sub>
+- **U229** · `otoño, nieve en los tejados en invierno, y los días más cortos `  <sub>settings_sheet.dart:244 · _SettingsSheetState._body</sub>
+- **U230** · `o más largos según toque.`  <sub>settings_sheet.dart:245 · _SettingsSheetState._body</sub>
+- **U231** · `Estoy en el hemisferio sur`  <sub>settings_sheet.dart:252 · _SettingsSheetState._body</sub>
+- **U232** · `Para que diciembre sea verano y julio invierno. Sale del `  <sub>settings_sheet.dart:254 · _SettingsSheetState._body</sub>
+- **U233** · `idioma del teléfono; esto es para corregirlo.`  <sub>settings_sheet.dart:255 · _SettingsSheetState._body</sub>
+- **U234** · `Fingir el día del año`  <sub>settings_sheet.dart:262 · _SettingsSheetState._body</sub>
+- **U235** · `Para ver el invierno en marzo sin esperarlo, igual que se `  <sub>settings_sheet.dart:264 · _SettingsSheetState._body</sub>
+- **U236** · `finge la hora.`  <sub>settings_sheet.dart:265 · _SettingsSheetState._body</sub>
+- **U237** · `Invierno`  <sub>settings_sheet.dart:278 · _SettingsSheetState._body</sub>
+- **U238** · `Primavera`  <sub>settings_sheet.dart:279 · _SettingsSheetState._body</sub>
+- **U239** · `Verano`  <sub>settings_sheet.dart:280 · _SettingsSheetState._body</sub>
+- **U240** · `Otoño`  <sub>settings_sheet.dart:281 · _SettingsSheetState._body</sub>
+- **U241** · ` horas de luz`  <sub>settings_sheet.dart:291 · _SettingsSheetState._body</sub>
+- **U242** · `LO DEMÁS`  <sub>settings_sheet.dart:299 · _SettingsSheetState._body</sub>
+- **U243** · `Que el pueblo te avise`  <sub>settings_sheet.dart:304 · _SettingsSheetState._body</sub>
+- **U244** · `Sólo cuando llevás más de lo tuyo sin poner una pieza, a tu `  <sub>settings_sheet.dart:306 · _SettingsSheetState._body</sub>
+- **U245** · `hora y con tus palabras. Como mucho dos por ausencia.`  <sub>settings_sheet.dart:307 · _SettingsSheetState._body</sub>
+- **U246** · `Vibración`  <sub>settings_sheet.dart:321 · _SettingsSheetState._body</sub>
+- **U247** · `El peso de la pieza al caer.`  <sub>settings_sheet.dart:322 · _SettingsSheetState._body</sub>
+- **U248** · `Modo rápido`  <sub>settings_sheet.dart:328 · _SettingsSheetState._body</sub>
+- **U249** · `Mantener pone piezas seguidas. Para probar, no para usar: una `  <sub>settings_sheet.dart:330 · _SettingsSheetState._body</sub>
+- **U250** · `pieza es un logro.`  <sub>settings_sheet.dart:331 · _SettingsSheetState._body</sub>
+- **U251** · `Tus datos`  <sub>settings_sheet.dart:339 · _SettingsSheetState._body</sub>
+- **U252** · `Copiar tu valle y volver a meterlo.`  <sub>settings_sheet.dart:340 · _SettingsSheetState._body</sub>
+- **U253** · `Ver cómo se hizo`  <sub>settings_sheet.dart:352 · _SettingsSheetState._body</sub>
+- **U254** · `El valle entero, o uno de tus pueblos desde el primer día.`  <sub>settings_sheet.dart:354 · _SettingsSheetState._body</sub>
+- **U255** · `Tu pueblo entero desde el primer día, en un minuto.`  <sub>settings_sheet.dart:362 · _SettingsSheetState._body</sub>
+- **U256** · `Ver el pueblo a futuro`  <sub>settings_sheet.dart:371 · _SettingsSheetState._body</sub>
+- **U257** · `Cómo se vería con 100, 500 o 5000 piezas.`  <sub>settings_sheet.dart:372 · _SettingsSheetState._body</sub>
+- **U258** · `Ver la tarjeta de elegir`  <sub>settings_sheet.dart:378 · _SettingsSheetState._body</sub>
+- **U259** · `La pregunta que sale al empezar una obra, con dos al azar del `  <sub>settings_sheet.dart:380 · _SettingsSheetState._body</sub>
+- **U260** · `catálogo. Mirar y ya: no elige nada ni toca tu pueblo.`  <sub>settings_sheet.dart:381 · _SettingsSheetState._body</sub>
+- **U261** · `Ver la primera vez otra vez`  <sub>settings_sheet.dart:390 · _SettingsSheetState._body</sub>
+- **U262** · `Abre la pantalla de entrada como si acabaras de instalar la `  <sub>settings_sheet.dart:392 · _SettingsSheetState._body</sub>
+- **U263** · `app. No borra ninguna pieza.`  <sub>settings_sheet.dart:393 · _SettingsSheetState._body</sub>
+- **U264** · `El expositor`  <sub>settings_sheet.dart:402 · _SettingsSheetState._body</sub>
+- **U265** · `Las ${landmarks.length + BuildingKind.values.length} estructuras `  <sub>settings_sheet.dart:404 · _SettingsSheetState._body</sub>
+- **U266** · `que el pueblo sabe construir.`  <sub>settings_sheet.dart:405 · _SettingsSheetState._body</sub>
+- **U267** · `El expositor de la gente`  <sub>settings_sheet.dart:411 · _SettingsSheetState._body</sub>
+- **U268** · `Las ${Doing.all.length} cosas que hacen los vecinos cuando no `  <sub>settings_sheet.dart:413 · _SettingsSheetState._body</sub>
+- **U269** · `están andando, una a una y de cerca.`  <sub>settings_sheet.dart:414 · _SettingsSheetState._body</sub>
+- **U270** · `Quitar la última pieza`  <sub>settings_sheet.dart:487 · _Undo.build</sub>
+- **U271** · `Este pueblo todavía no tiene ninguna.`  <sub>settings_sheet.dart:491 · _Undo.build</sub>
+- **U272** · `La ${store.habit.total} de `  <sub>settings_sheet.dart:492 · _Undo.build</sub>
+- **U273** · `${store.habit.name}, puesta el `  <sub>settings_sheet.dart:493 · _Undo.build</sub>
+- **U274** · `¿Quitar la pieza ${store.habit.total}?`  <sub>settings_sheet.dart:515 · _Undo._ask</sub>
+- **U275** · `Dice «${last.label}». Se va con ella.`  <sub>settings_sheet.dart:518 · _Undo._ask</sub>
+- **U276** · `Vuelve a quedar en ${store.habit.total - 1}.`  <sub>settings_sheet.dart:519 · _Undo._ask</sub>
+- **U277** · `Quitarla`  <sub>settings_sheet.dart:533 · _Undo._ask</sub>
+- **U278** · `VER CÓMO SE HIZO`  <sub>settings_sheet.dart:836 · _WhichReel.build</sub>
+- **U279** · `El valle entero`  <sub>settings_sheet.dart:841 · _WhichReel.build</sub>
+- **U280** · `Salta de pieza en pieza y de pueblo en pueblo, en el orden `  <sub>settings_sheet.dart:843 · _WhichReel.build</sub>
+- **U281** · `en que pasaron.`  <sub>settings_sheet.dart:844 · _WhichReel.build</sub>
+- **U282** · `Sólo este pueblo, con la cámara dando la vuelta a su plaza.`  <sub>settings_sheet.dart:853 · _WhichReel.build</sub>
 
 ### Las letras del tablón
 

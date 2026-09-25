@@ -272,8 +272,21 @@ orden que le tocó al fundarlo, y no hay nada que decidir en ninguna pantalla.
 Un botón y ninguna elección es la mitad de lo que hace a esta app descansada.
 
 Pero cada varias semanas, justo en la pieza en la que empezaría una obra
-grande, el pueblo levanta la vista y pregunta: **¿qué levantamos ahora?** Dos
-obras, con su retrato, su nombre, lo que cuestan y lo que son.
+grande, el pueblo levanta la vista y pregunta: **¿qué construir?** Dos obras,
+con su retrato grande, su nombre, lo que cuestan y lo que significan.
+
+**Tocar una es elegirla**, y ahí se acaba la pantalla. Tuvo dos renglones
+debajo —uno para confirmar y otro para «que decidan ellos»— y los dos sobraban:
+señalar una y después decir que sí es decir dos veces lo mismo cuando lo que se
+elige son dos cosas dibujadas, y para no contestar ya está tocar fuera, que es
+como se cierra cualquier cosa que aparece en medio de la pantalla. Lo que queda
+en la tarjeta son los dos dibujos, que es de lo que iba la pregunta.
+
+**Lo que dice cada obra no es lo que tiene, es lo que cambia.** «Nave, crucero
+y una torre con campanas» describe una iglesia a alguien que va a comprarla;
+quien la está eligiendo quiere saber qué se siente teniéndola —«donde el pueblo
+se junta para lo primero y para lo último»—. Las sesenta están escritas así: el
+catálogo cuenta vidas, no fachadas.
 
 **Las dos salen sorteadas** de entre las seis que le tocan más pronto. La
 ventana de seis está por el precio —el catálogo va de un pozo de ocho piezas a
@@ -286,8 +299,8 @@ encabezaba la lista siguiente, así que las dos se construían igual, una detrá
 de la otra, y elegir no decidía nada: sólo cambiaba el orden de dos cosas que
 ibas a tener de todas formas.
 
-Y se puede cerrar sin contestar. Entonces deciden ellos, ahora, lo que habrían
-decidido solos.
+Y se puede cerrar sin contestar, tocando fuera. Entonces deciden ellos, ahora,
+lo que habrían decidido solos.
 
 ## Ver cómo se hizo
 

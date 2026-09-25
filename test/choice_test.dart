@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:la_muralla/core/math3.dart';
 import 'package:la_muralla/data/character.dart';
@@ -473,7 +474,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(fila);
       await tester.pumpAndSettle();
-      expect(find.text('¿Qué levantamos ahora?'), findsOneWidget);
+      expect(find.text('¿Qué construir?'), findsOneWidget);
     });
 
     testWidgets('y contestar ahí no le toca el pueblo a nadie', (tester) async {
@@ -492,19 +493,15 @@ void main() {
       await tester.tap(fila);
       await tester.pumpAndSettle();
 
-      // Elegir una y confirmar, que es el camino que sí escribe cuando la
-      // pregunta es de verdad. Se toca el retrato porque los nombres de las
-      // dos obras salen al azar del catálogo y no se saben de antemano.
+      // Elegir una, que es el camino que sí escribe cuando la pregunta es de
+      // verdad. Se toca el retrato porque los nombres de las dos obras salen
+      // al azar del catálogo y no se saben de antemano.
       final retrato = find.byWidgetPredicate(
         (w) => w is CustomPaint && w.painter is WorkPortrait,
       );
       await tester.tap(retrato.first);
       await tester.pumpAndSettle();
-      final confirmar = find.text('QUE EMPIECEN');
-      expect(confirmar, findsOneWidget, reason: 'no se pudo elegir ninguna');
-      await tester.tap(confirmar);
-      await tester.pumpAndSettle();
-      expect(find.text('¿Qué levantamos ahora?'), findsNothing);
+      expect(find.text('¿Qué construir?'), findsNothing);
 
       expect(store.habit.chronicle, antes);
       expect(store.habit.pieces.length, piezas);
@@ -512,78 +509,112 @@ void main() {
   });
 
   group('la hoja', () {
-    /// La hoja, montada con dos obras cualquiera.
-    Future<({List<String> picked, List<int> left})> pump(
-      WidgetTester tester,
-    ) async {
+    /// La hoja, montada con dos obras cualquiera y abierta como la abre la
+    /// app: encima de todo, en su propia ruta. Abierta a mano dentro de un
+    /// `Scaffold` no valdría, porque elegir cierra la tarjeta y no habría
+    /// ruta que cerrar.
+    Future<List<String>> pump(WidgetTester tester, {Size? size}) async {
       final picked = <String>[];
-      // Lista y no contador: un registro guarda el valor del momento en que se
-      // arma, así que un `int` se quedaría en cero para siempre por mucho que
-      // la hoja lo subiera después.
-      final left = <int>[];
-      await tester.binding.setSurfaceSize(const Size(393, 820));
+      await tester.binding.setSurfaceSize(size ?? const Size(393, 820));
       addTearDown(() => tester.binding.setSurfaceSize(null));
+      // **El contexto, por encima del `Scaffold`.** No es un detalle del
+      // andamio: `showDialog` se lleva a la ruta nueva los temas heredados
+      // del contexto desde el que se la abre, y `DefaultTextStyle` es uno de
+      // ellos. Abierta desde dentro del `Scaffold` la tarjeta hereda la
+      // tipografía del `Material` que el `Scaffold` pone debajo y **el fallo
+      // no se reproduce**; la app la abre desde el contexto de la pantalla,
+      // que está por encima, y ahí no hay ninguna.
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: ChoiceSheet(
-              options: [
-                landmarks.firstWhere((l) => l.id == 'catedral'),
-                landmarks.firstWhere((l) => l.id == 'coso'),
-              ],
-              place: TownCharacter.all.first,
-              theme: UiTheme(Palette.forMoment(11, 1.0)),
-              onPick: (m) => picked.add(m.id),
-              onLeave: () => left.add(1),
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: TextButton(
+                onPressed: () => showDialog<void>(
+                  context: context,
+                  builder: (_) => ChoiceSheet(
+                    options: [
+                      landmarks.firstWhere((l) => l.id == 'catedral'),
+                      landmarks.firstWhere((l) => l.id == 'coso'),
+                    ],
+                    place: TownCharacter.all.first,
+                    theme: UiTheme(Palette.forMoment(11, 1.0)),
+                    onPick: (m) => picked.add(m.id),
+                  ),
+                ),
+                child: const Text('preguntar'),
+              ),
             ),
           ),
         ),
       );
+      await tester.tap(find.text('preguntar'));
       await tester.pumpAndSettle();
-      return (picked: picked, left: left);
+      return picked;
     }
 
-    testWidgets('no se puede confirmar sin haber elegido', (tester) async {
-      // La tarjeta no llega con una respuesta ya puesta: las dos obras
-      // empiezan iguales, y hasta que se señala una la acción ni siquiera se
-      // llama lo mismo.
-      final r = await pump(tester);
-      expect(find.text('ELEGÍ UNA'), findsOneWidget);
-      expect(find.text('QUE EMPIECEN'), findsNothing);
-      await tester.tap(find.text('ELEGÍ UNA'));
-      await tester.pumpAndSettle();
-      expect(r.picked, isEmpty);
-    });
-
-    testWidgets('elegir una y confirmar la devuelve', (tester) async {
-      final r = await pump(tester);
+    testWidgets('tocar una obra es elegirla, y ahí se acaba', (tester) async {
+      // Había un paso más: señalar una y después confirmar en un renglón de
+      // abajo. Señalar y decir que sí es decir dos veces lo mismo cuando lo
+      // que se elige son dos cosas dibujadas.
+      final picked = await pump(tester);
       await tester.tap(find.text('Coso y graderío'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('QUE EMPIECEN'));
-      await tester.pumpAndSettle();
-      expect(r.picked, ['coso']);
+      expect(picked, ['coso']);
+      expect(find.text('¿Qué construir?'), findsNothing);
     });
 
     testWidgets('y no queda nada del formulario que era', (tester) async {
       // Lo que se quitó, y que no vuelva por descuido: el rótulo de encima, el
-      // párrafo que explicaba unas reglas que ya no son las que rigen, y el
-      // botón ámbar del ancho de la tarjeta.
+      // párrafo de las reglas, el botón ámbar del ancho de la tarjeta, y los
+      // dos renglones de abajo —confirmar y «que decidan ellos»—, que eran
+      // tres maneras de contestar la misma pregunta.
       await pump(tester);
       expect(find.text('EL PUEBLO PREGUNTA'), findsNothing);
       expect(find.textContaining('la próxima vez'), findsNothing);
       expect(find.byType(FilledButton), findsNothing);
-      expect(find.text('¿Qué levantamos ahora?'), findsOneWidget);
+      expect(find.text('ELEGÍ UNA'), findsNothing);
+      expect(find.text('QUE EMPIECEN'), findsNothing);
+      expect(find.text('Que decidan ellos'), findsNothing);
+      expect(find.text('¿Qué construir?'), findsOneWidget);
     });
 
-    testWidgets('«que decidan ellos» decide, no aplaza', (tester) async {
-      // Si cerrar no escribiera nada, la crónica se quedaría un hueco corta
-      // hasta la pieza siguiente, y en ese hueco una actualización del
-      // catálogo podría cambiar la obra que está a punto de empezar.
-      final r = await pump(tester);
-      await tester.tap(find.text('Que decidan ellos'));
-      await tester.pumpAndSettle();
-      expect(r.picked, isEmpty);
-      expect(r.left.length, 1);
+    testWidgets('el título entra en un renglón hasta en el móvil más '
+        'estrecho', (tester) async {
+      // «¿Qué levantamos ahora?» partía en dos, y dos renglones de título
+      // encima de dos dibujos ocupan el sitio de los dibujos.
+      await pump(tester, size: const Size(320, 700));
+      final p = tester.renderObject<RenderParagraph>(
+        find.descendant(
+          of: find.text('¿Qué construir?'),
+          matching: find.byType(RichText),
+        ),
+      );
+      expect(p.didExceedMaxLines, isFalse, reason: 'el título se cortó');
+      expect(p.size.height, lessThan(34), reason: '${p.size.height}px de alto');
+    });
+
+    testWidgets('se escribe con la letra de la app y sin subrayar', (
+      tester,
+    ) async {
+      // **El fallo que se vio en el teléfono.** Una tarjeta abierta con
+      // `showDialog` cuelga del pasillo de rutas, fuera del `Scaffold`, y
+      // arriba del todo no hay ningún `Material` del que heredar tipografía.
+      // Flutter entonces escribe con su letra de emergencia: monoespaciada y
+      // subrayada en amarillo doble. Salía así la tarjeta entera.
+      await pump(tester);
+      final malas = <String>[];
+      for (final e in find.byType(RichText).evaluate()) {
+        final style = (e.widget as RichText).text.style;
+        if (style == null) continue;
+        final texto = (e.widget as RichText).text.toPlainText();
+        if (style.decoration == TextDecoration.underline) {
+          malas.add('«$texto» subrayado');
+        }
+        if (style.fontFamily == 'monospace') {
+          malas.add('«$texto» en monoespaciada');
+        }
+      }
+      expect(malas, isEmpty, reason: malas.join(', '));
     });
 
     testWidgets('las dos obras salen con su nombre y su precio', (
@@ -596,6 +627,38 @@ void main() {
         final m = landmarks.firstWhere((l) => l.id == id);
         expect(find.text('${m.cost}'), findsWidgets, reason: id);
       }
+    });
+
+    testWidgets('el dibujo manda sobre lo escrito', (tester) async {
+      // Lo que se está decidiendo es qué quiere uno ver en su valle, y eso se
+      // decide mirando: si el retrato no es con diferencia lo más grande de
+      // la columna, la tarjeta vuelve a ser una lista con una miniatura al
+      // lado, que es de donde venía.
+      //
+      // El listón está en el 45% y no en la mitad por la letra de las
+      // pruebas: aquí cada letra es un cuadrado del alto de la línea, así que
+      // un párrafo mide casi el doble de renglones que en un teléfono. Con
+      // una letra de verdad esto pasa del sesenta por ciento; con una
+      // miniatura de ochenta y dos píxeles —lo que había antes— daría
+      // veinticinco.
+      await pump(tester);
+      final retrato = find
+          .byWidgetPredicate(
+            (w) => w is CustomPaint && w.painter is WorkPortrait,
+          )
+          .first;
+      final alto = tester.getSize(retrato).height;
+      final columna = tester
+          .getSize(
+            find
+                .ancestor(
+                  of: find.text('Catedral'),
+                  matching: find.byType(Column),
+                )
+                .first,
+          )
+          .height;
+      expect(alto, greaterThan(columna * 0.45), reason: '$alto de $columna');
     });
   });
 

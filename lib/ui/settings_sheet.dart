@@ -449,7 +449,6 @@ void _verLaPregunta(NavigatorState nav, UiTheme t, Store store) {
       place: store.habit.place,
       theme: t,
       onPick: (_) {},
-      onLeave: () {},
     ),
   );
 }

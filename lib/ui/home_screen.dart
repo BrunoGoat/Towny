@@ -600,7 +600,6 @@ class _HomeScreenState extends State<HomeScreen>
           place: widget.store.habit.place,
           theme: _theme,
           onPick: (mark) => widget.store.chooseWork(mark.id),
-          onLeave: widget.store.letThemDecide,
         ),
       ).whenComplete(() {
         _asking = false;

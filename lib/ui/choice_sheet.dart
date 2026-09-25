@@ -32,50 +32,40 @@ import 'style.dart';
 ///
 /// Y se puede cerrar sin contestar. Entonces deciden ellos, que es lo que
 /// hacían antes de que se pudiera elegir.
-class ChoiceSheet extends StatefulWidget {
+class ChoiceSheet extends StatelessWidget {
   const ChoiceSheet({
     super.key,
     required this.options,
     required this.place,
     required this.theme,
     required this.onPick,
-    required this.onLeave,
   });
 
   final List<Landmark> options;
   final TownCharacter place;
   final UiTheme theme;
+
+  /// Contestar. Tocar una obra **es** elegirla: la tarjeta se cierra y se
+  /// empieza. No hay paso de confirmar, y no lo hay a propósito — señalar una
+  /// y luego decir que sí es decir dos veces lo mismo, y de las dos la
+  /// segunda no añade nada: lo que se elige es una de dos cosas dibujadas, no
+  /// un formulario.
   final void Function(Landmark) onPick;
 
-  /// Cerrar sin contestar. No es «luego lo pregunto otra vez»: es que deciden
-  /// ellos, ahora, lo que habrían decidido solos.
-  final VoidCallback onLeave;
-
-  @override
-  State<ChoiceSheet> createState() => _ChoiceSheetState();
-}
-
-class _ChoiceSheetState extends State<ChoiceSheet> {
-  /// Cuál está señalada. Ninguna hasta que se toca una: la hoja no llega con
-  /// una respuesta ya puesta, porque entonces la de al lado tendría que
-  /// ganarle a algo y no es lo que pasa — las dos empiezan iguales.
-  int? _at;
-
-  void _tap(int i) {
-    Sensory.instance.tick();
-    setState(() => _at = i);
-  }
-
+  /// Cerrar sin contestar se hace tocando fuera, que es como se cierra
+  /// cualquier cosa que aparece en medio de la pantalla. Entonces deciden
+  /// ellos, y de eso se encarga quien abrió la tarjeta: ella no tiene botón
+  /// de irse.
   @override
   Widget build(BuildContext context) {
-    final t = widget.theme;
+    final t = theme;
     final velo = SheetInk.of(t);
     final alto = MediaQuery.of(context).size.height;
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 420, maxHeight: alto * 0.84),
+          constraints: BoxConstraints(maxWidth: 440, maxHeight: alto * 0.84),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(26),
             child: BackdropFilter(
@@ -83,111 +73,91 @@ class _ChoiceSheetState extends State<ChoiceSheet> {
                 sigmaX: velo.bruma,
                 sigmaY: velo.bruma,
               ),
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-                decoration: BoxDecoration(
-                  color: velo.tinte.withValues(alpha: velo.tapa),
-                  borderRadius: BorderRadius.circular(26),
-                  border: Border.all(color: velo.canto),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // La pregunta, y nada más que la pregunta. Tenía encima un
-                    // rótulo —«EL PUEBLO PREGUNTA»— y debajo un párrafo
-                    // explicando las reglas, y las dos cosas sobraban: lo que
-                    // hay que hacer se ve, y las reglas ya no son las que ese
-                    // párrafo contaba.
-                    Text(
-                      '¿Qué levantamos ahora?',
-                      style: t.title.copyWith(
-                        color: velo.cuerpo,
-                        shadows: velo.aliento,
+              // **Material, aunque no se vea ninguno.** Un `showDialog` pone
+              // lo suyo en el pasillo de rutas, fuera del `Scaffold`, y ahí
+              // arriba no hay ningún `Material` del que heredar tipografía.
+              // Flutter entonces escribe con su letra de emergencia: negrita
+              // monoespaciada y subrayada en amarillo doble. Salía así en el
+              // teléfono —toda la tarjeta subrayada de amarillo— mientras que
+              // en el resto de la app no, porque el resto vive dentro de un
+              // `Scaffold`. Transparente: no pinta nada, sólo pone letra.
+              child: Material(
+                type: MaterialType.transparency,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(14, 18, 14, 14),
+                  decoration: BoxDecoration(
+                    color: velo.tinte.withValues(alpha: velo.tapa),
+                    borderRadius: BorderRadius.circular(26),
+                    border: Border.all(color: velo.canto),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // La pregunta, y nada más que la pregunta. Tenía encima
+                      // un rótulo —«EL PUEBLO PREGUNTA»— y debajo un párrafo
+                      // explicando las reglas, y las dos cosas sobraban: lo
+                      // que hay que hacer se ve.
+                      //
+                      // Y corta: «¿Qué levantamos ahora?» partía en dos
+                      // renglones en un teléfono estrecho, y dos renglones de
+                      // título encima de dos dibujos ocupan el sitio de los
+                      // dibujos. Tres palabras caben siempre.
+                      //
+                      // Y encogida antes que partida: en un teléfono de 320
+                      // puntos con la letra ancha del sistema no hay sitio ni
+                      // para tres palabras, y un título medio punto más chico
+                      // se lee igual — uno cortado con puntos suspensivos, no.
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            '¿Qué construir?',
+                            maxLines: 1,
+                            softWrap: false,
+                            style: t.title.copyWith(
+                              color: velo.cuerpo,
+                              shadows: velo.aliento,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 18),
-                    Flexible(
-                      child: SingleChildScrollView(
-                        // Las dos columnas, de la misma altura aunque una
-                        // tenga el doble de texto. Sin esto, la del hito de
-                        // nombre corto acaba a media tarjeta y la otra sigue
-                        // hasta abajo, y lo que se lee es que una de las dos
-                        // importa menos.
-                        child: IntrinsicHeight(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              for (
-                                var i = 0;
-                                i < widget.options.length;
-                                i++
-                              ) ...[
-                                if (i > 0) const SizedBox(width: 12),
-                                Expanded(
-                                  child: _Option(
-                                    mark: widget.options[i],
-                                    place: widget.place,
-                                    theme: t,
-                                    ink: velo,
-                                    chosen: _at == i,
-                                    onTap: () => _tap(i),
+                      const SizedBox(height: 14),
+                      Flexible(
+                        child: SingleChildScrollView(
+                          // Las dos columnas, de la misma altura aunque una
+                          // tenga el doble de texto. Sin esto, la del hito de
+                          // nombre corto acaba a media tarjeta y la otra sigue
+                          // hasta abajo, y lo que se lee es que una de las dos
+                          // importa menos.
+                          child: IntrinsicHeight(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                for (var i = 0; i < options.length; i++) ...[
+                                  if (i > 0) const SizedBox(width: 10),
+                                  Expanded(
+                                    child: _Option(
+                                      mark: options[i],
+                                      place: place,
+                                      theme: t,
+                                      ink: velo,
+                                      onTap: () {
+                                        Sensory.instance.tick();
+                                        onPick(options[i]);
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
                                   ),
-                                ),
+                                ],
                               ],
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Container(height: 1, color: velo.canto),
-                    // La respuesta, en una palabra. Era un botón ámbar del
-                    // ancho de la tarjeta, que encima de dos retratos es lo
-                    // único que se mira.
-                    GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: _at == null
-                          ? null
-                          : () {
-                              widget.onPick(widget.options[_at!]);
-                              Navigator.of(context).pop();
-                            },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        child: Center(
-                          child: Text(
-                            _at == null ? 'ELEGÍ UNA' : 'QUE EMPIECEN',
-                            style: TextStyle(
-                              color: _at == null ? velo.tenue : t.accent,
-                              fontSize: 11.5,
-                              letterSpacing: 2.4,
-                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () {
-                        widget.onLeave();
-                        Navigator.of(context).pop();
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Center(
-                          child: Text(
-                            'Que decidan ellos',
-                            style: t.bodySoft.copyWith(
-                              fontSize: 12.5,
-                              color: velo.tenue,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -215,7 +185,6 @@ class _Option extends StatelessWidget {
     required this.place,
     required this.theme,
     required this.ink,
-    required this.chosen,
     required this.onTap,
   });
 
@@ -223,7 +192,9 @@ class _Option extends StatelessWidget {
   final TownCharacter place;
   final UiTheme theme;
   final SheetInk ink;
-  final bool chosen;
+
+  /// Tocar aquí es elegir esta obra. No hay estado de «señalada» porque no
+  /// hay nada después que confirmar.
   final VoidCallback onTap;
 
   @override
@@ -232,26 +203,22 @@ class _Option extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 170),
-        curve: Curves.easeOut,
+      child: Container(
         decoration: BoxDecoration(
-          color: chosen
-              ? t.accent.withValues(alpha: 0.12)
-              : ink.tinte.withValues(alpha: 0.38),
+          color: ink.tinte.withValues(alpha: 0.38),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: chosen ? t.accent.withValues(alpha: 0.85) : ink.canto,
-            width: chosen ? 1.6 : 1,
-          ),
+          border: Border.all(color: ink.canto),
         ),
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(6),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Más alto que ancho: casi todo lo que se ofrece aquí es una
+            // torre, una nave o una tapia con algo dentro, y encuadrarlo en
+            // un cuadrado deja aire arriba y abajo en vez de obra.
             AspectRatio(
-              aspectRatio: 1,
+              aspectRatio: 0.92,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(11),
                 child: CustomPaint(
@@ -282,7 +249,7 @@ class _Option extends StatelessWidget {
                   style: t.body.copyWith(
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
-                    color: chosen ? t.accent : ink.suave,
+                    color: ink.suave,
                   ),
                 ),
                 const SizedBox(width: 3),

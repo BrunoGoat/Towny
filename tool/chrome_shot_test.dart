@@ -109,29 +109,49 @@ void main() {
           key: key,
           child: MediaQuery(
             data: const MediaQueryData(size: size),
+            // Abierta como la abre la app: en su propia ruta, encima de
+            // todo. Puesta a mano dentro del `Scaffold` se veía mejor de lo
+            // que era —heredaba la tipografía del `Material` de debajo— y el
+            // teléfono enseñaba otra cosa: letra de emergencia, subrayada en
+            // amarillo. Una lámina que no puede enseñar ese fallo no sirve.
             child: MaterialApp(
               debugShowCheckedModeBanner: false,
-              home: Scaffold(
-                backgroundColor: const Color(0xFF5E7040),
-                body: ChoiceSheet(
-                  options: [
-                    landmarks.firstWhere((l) => l.id == 'iglesia'),
-                    landmarks.firstWhere((l) => l.id == 'catedral'),
-                  ],
-                  place: TownCharacter.all.first,
-                  theme: t,
-                  onPick: (_) {},
-                  onLeave: () {},
+              home: Builder(
+                // Por encima del `Scaffold` a propósito: `showDialog` se
+                // lleva los temas heredados del contexto que la abre, así que
+                // abrirla desde dentro le regalaría la tipografía del
+                // `Material` del `Scaffold` y la lámina enseñaría una tarjeta
+                // mejor de la que sale en el teléfono.
+                builder: (context) => Scaffold(
+                  backgroundColor: const Color(0xFF5E7040),
+                  body: TextButton(
+                    onPressed: () => showDialog<void>(
+                      context: context,
+                      barrierColor: sheetScrim(t.dark),
+                      builder: (_) => ChoiceSheet(
+                        options: [
+                          landmarks.firstWhere((l) => l.id == 'iglesia'),
+                          landmarks.firstWhere((l) => l.id == 'catedral'),
+                        ],
+                        place: TownCharacter.all.first,
+                        theme: t,
+                        onPick: (_) {},
+                      ),
+                    ),
+                    child: const Text(''),
+                  ),
                 ),
               ),
             ),
           ),
         ),
       );
+      await tester.tap(find.byType(TextButton));
       for (var i = 0; i < 12; i++) {
         await tester.pump(const Duration(milliseconds: 60));
       }
       await _shot(tester, key, '$out/elegir-${hora.toStringAsFixed(0)}.png');
+      await tester.pumpWidget(const SizedBox());
     }
     // ignore: avoid_print
     print('escritas en $out');
