@@ -16,6 +16,7 @@ class Landmark {
     this.blurb,
     this.build, {
     this.rigid = false,
+    this.scale = 1.0,
   });
 
   /// Stable identity. Never reuse one: it is what a saved town remembers.
@@ -57,6 +58,28 @@ class Landmark {
   /// comarca. Si es un monumento o una máquina, es suyo.
   final bool rigid;
 
+  /// Cuánto se aprieta la receta al construirla de verdad.
+  ///
+  /// Las obras grandes están escritas a tamaño de plano —una catedral de once
+  /// de nave, un castillo de nueve de muralla— porque así se piensan y así se
+  /// leen escritas. Pero el solar que el pueblo le deja a un hito de su nivel
+  /// no da para tanto: los solares se reparten dejando libre el setenta y dos
+  /// por ciento de la suma de los dos sitios, así que una obra que ocupe todo
+  /// su sitio se mete en la casa de al lado.
+  ///
+  /// Y meterse en la casa de al lado no es sólo feo. Este rasterizador corta
+  /// la geometría donde dos cuerpos se cruzan, y dos edificios que se tocan
+  /// dejan de ser dos nudos para ser uno: medido, un pueblo de sesenta y
+  /// cinco edificios pasó de sesenta y cinco grupos a quince, y el coste de
+  /// cortar subió de siete mil novecientas caras a catorce mil. Cada pieza
+  /// nueva vuelve a cortarlos a todos.
+  ///
+  /// Así que se aprieta aquí, en una sola línea por obra, en vez de repasar
+  /// doscientos números a mano: uniforme —ancho y alto a la vez— para que
+  /// nada cambie de proporción. Lo empinado del tejado no entra, que ése es
+  /// de la comarca.
+  final double scale;
+
   /// How much room the town keeps clear around this landmark.
   ///
   /// Fixed per tier, deliberately, rather than measured from the recipe. The
@@ -73,7 +96,7 @@ class Landmark {
   double? _reach;
 
   double _measure() {
-    final m = Mason(0, 0, 0x5EED, true);
+    final m = Mason(0, 0, 0x5EED, true, spread: scale, storey: scale);
     build(m);
     var r = 0.0;
     for (final s in m.finish(cost)) {
@@ -942,129 +965,161 @@ final List<Landmark> landmarks = [
   Landmark(
     'castillo',
     'Castillo',
-    45,
+    52,
     2,
-    'Cuatro torres, foso y una torre del homenaje en medio. A partir de hoy nadie entra si no se le abre.',
+    'Foso, cuatro torres y una torre del homenaje en medio. Ya no hay que huir a ninguna parte.',
     (m) {
-      m.water(7.0, 7.0);
-      m.plinth(5.6, 5.6, 0.5);
-      // Four corner towers, each built up its own side of the courtyard.
-      for (final sx in [-1.0, 1.0]) {
-        for (final sz in [-1.0, 1.0]) {
-          for (var i = 0; i < 4; i++) {
-            m.box(
-              PieceKind.floor,
-              1.5,
-              1.5,
-              0.85,
-              dx: sx * 2.1,
-              dz: sz * 2.1,
-              at: 0.5 + i * 0.85,
-            );
-          }
-          m.box(
-            PieceKind.parapet,
-            1.75,
-            1.75,
-            0.4,
-            dx: sx * 2.1,
-            dz: sz * 2.1,
-            at: 3.9,
-          );
-          m.spire(1.55, 1.55, 0.9, dx: sx * 2.1, dz: sz * 2.1, at: 4.3);
-        }
+      // Un castillo de verdad: foso alrededor, muralla con cuatro torres en
+      // las esquinas, puerta con su puente, y la torre grande en el patio.
+      m.water(11.8, 1.8, dz: -5.0);
+      m.water(11.8, 1.8, dz: 5.0);
+      m.water(1.8, 8.2, dx: -5.0);
+      m.water(1.8, 8.2, dx: 5.0);
+      m.box(PieceKind.parapet, 9.0, 0.6, 2.3, dz: -4.2, at: 0);
+      m.box(PieceKind.parapet, 9.0, 0.6, 2.3, dz: 4.2, at: 0);
+      m.box(PieceKind.parapet, 0.6, 9.0, 2.3, dx: -4.2, at: 0);
+      m.box(PieceKind.parapet, 0.6, 9.0, 2.3, dx: 4.2, at: 0);
+      m.box(PieceKind.parapet, 8.4, 0.34, 0.42, dz: -4.2, at: 2.3);
+      m.box(PieceKind.parapet, 8.4, 0.34, 0.42, dz: 4.2, at: 2.3);
+      m.box(PieceKind.parapet, 0.34, 8.4, 0.42, dx: -4.2, at: 2.3);
+      m.box(PieceKind.parapet, 0.34, 8.4, 0.42, dx: 4.2, at: 2.3);
+      for (final c in const [
+        (-4.2, -4.2),
+        (4.2, -4.2),
+        (-4.2, 4.2),
+        (4.2, 4.2),
+      ]) {
+        m.box(PieceKind.parapet, 1.9, 1.9, 2.4, dx: c.$1, dz: c.$2, at: 0);
+        m.box(PieceKind.floor, 1.85, 1.85, 0.9, dx: c.$1, dz: c.$2, at: 2.4);
+        m.box(
+          PieceKind.parapet,
+          2.2,
+          2.2,
+          0.42,
+          dx: c.$1,
+          dz: c.$2,
+          ridge: true,
+          at: 3.2,
+        );
+        m.spire(2.0, 2.0, 1.3, dx: c.$1, dz: c.$2, at: 3.62);
       }
-      // The curtain wall between them.
-      for (final s in [-1.0, 1.0]) {
-        m.box(PieceKind.floor, 2.7, 0.9, 2.6, dz: s * 2.1, at: 0.5);
-        m.box(PieceKind.parapet, 2.7, 1.1, 0.42, dz: s * 2.1, at: 3.1);
-        m.box(PieceKind.floor, 0.9, 2.7, 2.6, dx: s * 2.1, at: 0.5);
-        m.box(PieceKind.parapet, 1.1, 2.7, 0.42, dx: s * 2.1, at: 3.1);
-      }
-      // The keep in the middle of the courtyard.
-      m.box(PieceKind.floor, 2.6, 2.6, 1.2, at: 0.5);
-      m.box(PieceKind.floor, 2.5, 2.5, 1.1, at: 1.7);
-      m.box(PieceKind.floor, 2.45, 2.45, 1.05, at: 2.8);
-      m.box(PieceKind.parapet, 2.8, 2.8, 0.45, at: 3.85);
-      m.spire(2.5, 2.5, 1.4, at: 4.3);
-      m.banner(1.2, at: 5.7);
-      m.box(PieceKind.porch, 1.2, 0.6, 1.3, dz: 2.75, at: 0.5);
-      m.beam(3.0, 1.4, 0.3, dz: 3.6, at: 0.4);
-      m.stair(1.4, 0.4, 1.2, dz: 4.4);
-      m.banner(1.0, dx: -1.0, dz: 2.1, at: 3.52);
-      m.banner(1.0, dx: 1.0, dz: 2.1, at: 3.52);
+      m.box(PieceKind.parapet, 3.2, 1.7, 2.9, dz: 4.2, at: 0);
+      m.arcade(1.3, 1.9, 1.8, dz: 4.2, at: 0);
+      m.box(PieceKind.parapet, 3.5, 2.0, 0.46, dz: 4.2, ridge: true, at: 2.9);
+      m.banner(1.35, dx: -1.05, dz: 4.2, at: 3.36);
+      m.banner(1.35, dx: 1.05, dz: 4.2, at: 3.36);
+      m.box(PieceKind.plinth, 2.0, 2.6, 0.42, dz: 5.0, at: 0);
+      m.stair(1.7, 0.42, 0.95, dz: 5.9);
+      m.plinth(4.2, 4.2, 0.55);
+      m.floor(3.6, 3.6, 1.6);
+      m.floor(3.5, 3.5, 1.5);
+      m.floor(3.4, 3.4, 1.4);
+      final almenas = m.y;
+      m.parapet(4.0, 4.0, 0.55);
+      m.box(PieceKind.floor, 1.5, 1.5, 1.3, at: m.y);
+      m.spire(1.7, 1.7, 1.5, at: m.y + 1.3);
+      m.banner(1.5, dx: 1.35, dz: 1.35, at: almenas + 0.55);
+      m.outbuilding(2.3, 1.7, 1.25, 0.62, dx: -2.9, dz: 1.4);
+      m.outbuilding(2.0, 1.5, 1.15, 0.58, dx: 2.9, dz: 1.6);
+      m.box(PieceKind.plinth, 1.0, 1.0, 0.3, dx: -2.6, dz: -1.2, at: 0);
+      m.box(
+        PieceKind.parapet,
+        0.78,
+        0.78,
+        0.45,
+        dx: -2.6,
+        dz: -1.2,
+        ridge: true,
+        at: 0.3,
+      );
+      m.field(2.6, 1.8, dx: 2.4, dz: -2.4);
+      m.tree(1.25, 2.3, dx: -2.8, dz: -2.8);
+      m.tree(1.15, 2.1, dx: 2.8, dz: 2.8);
     },
+    scale: 0.65,
   ),
 
   Landmark(
     'homenaje',
     'Torre del homenaje',
-    24,
+    23,
     2,
-    'La torre última. Si cae todo lo demás, aquí se aguanta.',
+    'Cinco pisos de piedra y una escalera de caracol. Desde arriba se ve hasta el otro valle.',
     (m) {
-      m.plinth(4.0, 4.0, 0.6);
-      m.plinth(3.4, 3.4, 0.5);
-      m.shaft(2.9, 8, 0.9);
-      m.parapet(3.3, 3.3, 0.5);
-      for (final sx in [-1.0, 1.0]) {
-        for (final sz in [-1.0, 1.0]) {
-          m.box(
-            PieceKind.parapet,
-            0.8,
-            0.8,
-            0.7,
-            dx: sx * 1.4,
-            dz: sz * 1.4,
-            at: 8.7,
-          );
-        }
+      // Un dado de piedra enorme con el talud abajo, y nada más. Lo que la
+      // hace impresionante es que no tenga adornos.
+      m.box(PieceKind.parapet, 6.4, 0.5, 1.5, dz: -3.0, at: 0);
+      m.box(PieceKind.parapet, 6.4, 0.5, 1.5, dz: 3.0, at: 0);
+      m.box(PieceKind.parapet, 0.5, 6.4, 1.5, dx: -3.0, at: 0);
+      m.box(PieceKind.parapet, 0.5, 6.4, 1.5, dx: 3.0, at: 0);
+      m.plinth(5.0, 5.0, 0.9);
+      m.plinth(4.4, 4.4, 0.6);
+      m.box(PieceKind.parapet, 4.0, 4.0, 1.7, at: m.y);
+      m.box(PieceKind.parapet, 3.95, 3.95, 1.6, at: m.y + 1.7);
+      m.box(PieceKind.parapet, 3.9, 3.9, 1.6, at: m.y + 3.3);
+      m.floor(3.85, 3.85, 1.5, dx: 0, dz: 0);
+      final remate = m.y;
+      m.parapet(4.5, 4.5, 0.62);
+      for (final c in const [
+        (-1.75, -1.75),
+        (1.75, -1.75),
+        (-1.75, 1.75),
+        (1.75, 1.75),
+      ]) {
+        m.box(
+          PieceKind.parapet,
+          0.75,
+          0.75,
+          0.55,
+          dx: c.$1,
+          dz: c.$2,
+          ridge: true,
+          at: remate + 0.62,
+        );
       }
-      m.spire(2.8, 2.8, 1.5);
-      m.banner(1.2);
-      m.stair(1.6, 1.1, 1.4, dz: 2.6);
-      m.arcade(2.4, 1.0, 0.5, dz: 1.55, at: 6.4);
-      m.palisade(4.4, 1.0, dz: -2.5);
-      m.palisade(4.4, 1.0, dx: -2.5, along: false);
-      m.palisade(4.4, 1.0, dx: 2.5, along: false);
-      m.water(5.2, 1.6, dz: 3.2);
-      m.tree(1.2, 2.2, dx: -2.8, dz: 2.4);
+      m.banner(1.5, at: remate + 0.62);
+      m.box(PieceKind.floor, 1.5, 1.5, 2.2, dx: 2.4, dz: 2.4, at: 0);
+      m.stair(1.5, 1.5, 2.4, dz: 3.4);
+      m.arcade(1.4, 1.5, 0.7, dz: 2.55, at: 1.5);
+      m.water(1.3, 1.3, dx: -2.6, dz: 3.4);
+      m.tree(1.3, 2.4, dx: 3.4, dz: -3.2);
+      m.tree(1.2, 2.2, dx: -3.4, dz: -3.4);
+      m.field(3.0, 1.4, dz: -3.9);
     },
+    scale: 0.65,
   ),
 
   Landmark(
     'puertaVilla',
-    // Dos menos y no una: su puerta estaba escrita dentro del bucle que
-    // levanta los dos torreones, así que eran dos puertas y son dos logros.
     'Puerta de la villa',
     21,
     2,
-    'Ya se puede cerrar el pueblo por la noche. Un dentro de verdad.',
+    'Dos torreones y un arco en medio. Entrar en el pueblo pasa a ser un acto.',
     (m) {
-      m.plinth(5.2, 2.6, 0.45);
-      for (final s in [-1.0, 1.0]) {
-        for (var i = 0; i < 4; i++) {
-          m.box(
-            PieceKind.floor,
-            1.6,
-            2.2,
-            0.9,
-            dx: s * 1.9,
-            at: 0.45 + i * 0.9,
-          );
-        }
-        m.box(PieceKind.parapet, 1.9, 2.5, 0.45, dx: s * 1.9, at: 4.05);
-        m.roof(1.75, 2.35, 0.9, dx: s * 1.9, at: 4.5);
+      // Dos torreones **separados**, con el hueco de la puerta entre ellos y
+      // el arco cruzándolo: ver el arco de la villa, que es el mismo
+      // problema. Un trozo de muralla a cada lado para que se entienda que
+      // es una puerta y no dos torres.
+      for (final dx in const [-2.6, 2.6]) {
+        m.box(PieceKind.plinth, 2.7, 2.7, 0.5, dx: dx, at: 0);
+        m.box(PieceKind.parapet, 2.3, 2.3, 3.4, dx: dx, at: 0.5);
+        m.box(PieceKind.floor, 2.25, 2.25, 1.3, dx: dx, at: 3.9);
+        m.box(PieceKind.parapet, 2.6, 2.6, 0.5, dx: dx, ridge: true, at: 5.2);
+        m.spire(2.4, 2.4, 1.6, dx: dx, at: 5.7);
       }
-      m.box(PieceKind.arcade, 2.2, 2.2, 3.0, at: 0.45);
-      m.box(PieceKind.floor, 2.2, 2.0, 1.1, at: 3.45);
-      m.box(PieceKind.parapet, 2.5, 2.3, 0.45, at: 4.55);
-      m.banner(1.1, dx: -0.7, at: 5.0);
-      m.banner(1.1, dx: 0.7, at: 5.0);
-      m.box(PieceKind.parapet, 3.0, 0.5, 1.6, dz: -1.5, at: 0.45);
-      m.box(PieceKind.parapet, 3.0, 0.5, 1.6, dz: 1.5, at: 0.45);
-      m.stair(1.4, 0.45, 1.0, dz: 1.9);
+      m.arcade(3.3, 1.5, 2.3, at: 2.4);
+      m.box(PieceKind.parapet, 6.2, 2.4, 0.6, ridge: true, at: 3.9);
+      m.box(PieceKind.parapet, 2.6, 0.32, 0.45, dz: 1.0, at: 4.5);
+      m.banner(1.4, dx: -0.85, dz: 0.95, at: 4.5);
+      m.banner(1.4, dx: 0.85, dz: 0.95, at: 4.5);
+      m.box(PieceKind.parapet, 2.4, 0.6, 2.2, dx: -5.0, at: 0);
+      m.box(PieceKind.parapet, 2.4, 0.6, 2.2, dx: 5.0, at: 0);
+      m.box(PieceKind.parapet, 2.2, 0.34, 0.42, dx: -5.0, at: 2.2);
+      m.box(PieceKind.parapet, 2.2, 0.34, 0.42, dx: 5.0, at: 2.2);
+      m.box(PieceKind.plinth, 3.2, 2.8, 0.22, dz: 2.6, at: 0);
+      m.tree(1.3, 2.4, dx: -5.2, dz: 2.4);
     },
+    scale: 0.65,
   ),
 
   Landmark(
@@ -1072,33 +1127,31 @@ final List<Landmark> landmarks = [
     'Lienzo de muralla',
     23,
     2,
-    'Un lienzo con adarve y almenas. Se camina por encima del propio pueblo.',
+    'Un tramo de verdad, con su adarve y sus torres. El pueblo deja de ser un sitio abierto.',
     (m) {
-      m.plinth(6.0, 1.6, 0.4);
-      for (var i = 0; i < 5; i++) {
-        m.box(PieceKind.floor, 1.15, 1.2, 2.2, dx: -2.4 + i * 1.2, at: 0.4);
+      // Un lienzo largo con tres torres, el adarve por arriba y el foso
+      // delante. Se lee de un vistazo por lo largo que es.
+      m.box(PieceKind.parapet, 11.0, 0.9, 2.6, at: 0);
+      m.box(PieceKind.parapet, 10.6, 0.34, 0.5, dz: -0.28, at: 2.6);
+      m.box(PieceKind.parapet, 10.6, 0.34, 0.5, dz: 0.28, at: 2.6);
+      for (final dx in const [-4.2, 0.0, 4.2]) {
+        m.box(PieceKind.parapet, 1.9, 1.9, 3.4, dx: dx, at: 0);
+        m.box(PieceKind.parapet, 2.2, 2.2, 0.45, dx: dx, ridge: true, at: 3.4);
+        m.spire(2.0, 2.0, 1.2, dx: dx, at: 3.85);
       }
-      m.box(PieceKind.parapet, 6.0, 1.5, 0.5, at: 2.6);
-      for (var i = 0; i < 7; i++) {
-        m.box(
-          PieceKind.parapet,
-          0.55,
-          1.5,
-          0.45,
-          dx: -2.55 + i * 0.85,
-          at: 3.1,
-        );
-      }
-      m.box(PieceKind.floor, 1.7, 1.7, 3.4, dx: -2.8, at: 0.4);
-      m.box(PieceKind.parapet, 2.0, 2.0, 0.5, dx: -2.8, at: 3.8);
-      m.spire(1.8, 1.8, 1.0, dx: -2.8, at: 4.3);
-      m.box(PieceKind.floor, 1.7, 1.7, 3.4, dx: 2.8, at: 0.4);
-      m.box(PieceKind.parapet, 2.0, 2.0, 0.5, dx: 2.8, at: 3.8);
-      m.spire(1.8, 1.8, 1.0, dx: 2.8, at: 4.3);
-      m.banner(0.9, dx: -2.8, at: 5.3);
-      m.water(6.4, 1.2, dz: -1.6);
-      m.stair(1.2, 0.4, 1.0, dz: 1.3);
+      m.water(11.4, 1.8, dz: -2.2);
+      m.box(PieceKind.plinth, 2.2, 2.0, 0.3, dz: -2.2, at: 0);
+      m.arcade(1.5, 2.0, 1.0, at: 0);
+      m.stair(1.6, 2.6, 2.4, dz: 2.4);
+      m.banner(1.4, dx: -4.2, dz: 0.6, at: 3.85);
+      m.banner(1.4, dx: 4.2, dz: 0.6, at: 3.85);
+      m.box(PieceKind.parapet, 2.6, 0.5, 1.1, dx: -5.0, dz: 1.2, at: 0);
+      m.box(PieceKind.parapet, 2.6, 0.5, 1.1, dx: 5.0, dz: 1.2, at: 0);
+      m.tree(1.3, 2.4, dx: -5.6, dz: 2.6);
+      m.tree(1.2, 2.2, dx: 5.6, dz: 2.6);
+      m.field(4.0, 1.4, dz: 3.0);
     },
+    scale: 0.65,
   ),
 
   Landmark(
@@ -1106,357 +1159,363 @@ final List<Landmark> landmarks = [
     'Alcázar',
     31,
     2,
-    'Palacio y fortaleza a la vez. Quien manda vive donde se defiende.',
+    'Palacio por dentro y fortaleza por fuera. Quien manda aquí ya no vive como los demás.',
     (m) {
-      m.plinth(5.4, 4.4, 0.55);
-      m.plinth(4.8, 3.9, 0.45);
-      for (final s in [-1.0, 1.0]) {
-        for (var i = 0; i < 5; i++) {
-          m.box(
-            PieceKind.floor,
-            1.4,
-            1.4,
-            0.85,
-            dx: s * 1.8,
-            dz: -1.3,
-            at: 1.0 + i * 0.85,
-          );
-        }
+      m.box(PieceKind.parapet, 10.4, 0.55, 2.0, dz: -4.6, at: 0);
+      m.box(PieceKind.parapet, 0.55, 9.8, 2.0, dx: -4.6, at: 0);
+      m.box(PieceKind.parapet, 0.55, 9.8, 2.0, dx: 4.6, at: 0);
+      m.box(PieceKind.parapet, 10.0, 0.32, 0.4, dz: -4.6, at: 2.0);
+      for (final c in const [(-4.6, -4.6), (4.6, -4.6)]) {
+        m.box(PieceKind.floor, 2.0, 2.0, 3.4, dx: c.$1, dz: c.$2, at: 0);
         m.box(
           PieceKind.parapet,
-          1.65,
-          1.65,
-          0.42,
-          dx: s * 1.8,
-          dz: -1.3,
-          at: 5.25,
+          2.3,
+          2.3,
+          0.45,
+          dx: c.$1,
+          dz: c.$2,
+          ridge: true,
+          at: 3.4,
         );
-        m.spire(1.45, 1.45, 0.95, dx: s * 1.8, dz: -1.3, at: 5.67);
+        m.spire(2.1, 2.1, 1.4, dx: c.$1, dz: c.$2, at: 3.85);
       }
-      m.box(PieceKind.floor, 4.2, 2.4, 1.3, dz: 0.5, at: 1.0);
-      m.box(PieceKind.floor, 4.1, 2.35, 1.2, dz: 0.5, at: 2.3);
-      m.box(PieceKind.floor, 4.0, 2.3, 1.1, dz: 0.5, at: 3.5);
-      m.roof(4.4, 2.7, 1.0, dz: 0.5, at: 4.6, along: true);
-      m.box(PieceKind.dormer, 0.8, 0.7, 0.65, dx: -1.2, dz: 1.1, at: 4.6);
-      m.box(PieceKind.dormer, 0.8, 0.7, 0.65, dx: 1.2, dz: 1.1, at: 4.6);
-      m.arcade(3.8, 1.2, 0.6, dz: 1.75, at: 1.0, along: true);
-      m.stair(1.8, 1.0, 1.4, dz: 2.7);
-      m.banner(1.1, dz: 0.5, at: 5.6);
-      m.chimney(0.4, 1.1, dx: -1.6, dz: 0.5);
-      m.chimney(0.36, 1.0, dx: 1.6, dz: 0.5);
-      m.water(6.0, 1.4, dz: -2.9);
-      m.tree(1.3, 2.4, dx: -3.0, dz: 1.8);
-      m.tree(1.2, 2.2, dx: 3.0, dz: 1.8);
-      m.palisade(5.6, 0.9, dz: 3.3);
+      m.plinth(8.4, 4.4, 0.5, dz: 2.2);
+      m.floor(7.8, 4.0, 1.8, dz: 2.2);
+      m.floor(7.7, 3.9, 1.6, dz: 2.2);
+      m.parapet(8.2, 4.3, 0.5, dz: 2.2);
+      m.roof(8.0, 4.2, 1.1, dz: 2.2);
+      m.arcade(7.4, 1.7, 0.9, dz: 0.55, at: 0.5);
+      m.arcade(7.4, 1.5, 0.9, dz: 0.55, at: 2.3);
+      m.box(PieceKind.floor, 2.4, 2.4, 5.2, dx: -3.2, dz: 2.2, at: 0);
+      m.box(
+        PieceKind.parapet,
+        2.7,
+        2.7,
+        0.5,
+        dx: -3.2,
+        dz: 2.2,
+        ridge: true,
+        at: 5.2,
+      );
+      m.spire(2.5, 2.5, 1.8, dx: -3.2, dz: 2.2, at: 5.7);
+      m.banner(1.5, dx: -3.2, dz: 2.2, at: 5.7);
+      m.water(3.4, 3.4, dz: -2.0);
+      m.field(2.0, 2.0, dx: -2.8, dz: -2.0);
+      m.field(2.0, 2.0, dx: 2.8, dz: -2.0);
+      m.box(PieceKind.plinth, 1.0, 1.0, 0.3, dz: -2.0, at: 0);
+      m.box(PieceKind.parapet, 0.8, 0.8, 0.45, dz: -2.0, ridge: true, at: 0.3);
+      m.stair(2.4, 0.5, 1.0, dz: -0.4);
+      m.tree(1.3, 2.4, dx: -3.4, dz: -3.4);
+      m.tree(1.3, 2.2, dx: 3.4, dz: -3.4);
+      m.tree(1.2, 2.0, dx: 3.6, dz: 0.2);
+      m.outbuilding(2.2, 1.6, 1.2, 0.6, dx: 3.2, dz: -3.6);
     },
+    scale: 0.65,
   ),
 
   Landmark(
     'palacio',
     'Palacio del señor',
-    24,
+    23,
     2,
-    'Galería de arcos, torres a los lados y jardín detrás. Aquí ya no se construye sólo por necesidad.',
+    'Tres alas alrededor de un patio de honor. Aquí se recibe, que es distinto de vivir.',
     (m) {
-      m.plinth(5.0, 3.4, 0.5);
-      m.arcade(4.6, 1.4, 3.0, rise: true);
-      m.beam(4.8, 3.2, 0.26);
-      m.box(PieceKind.floor, 4.4, 3.0, 1.25, at: 2.16);
-      m.box(PieceKind.floor, 4.35, 2.95, 1.15, at: 3.41);
-      m.box(PieceKind.parapet, 4.7, 3.3, 0.42, at: 4.56);
-      m.roof(4.6, 3.2, 1.0, at: 4.98, along: true);
-      for (final s in [-1.0, 1.0]) {
-        m.box(PieceKind.floor, 1.3, 1.3, 5.4, dx: s * 2.6, dz: -1.5, at: 0.5);
-        m.box(
-          PieceKind.parapet,
-          1.55,
-          1.55,
-          0.42,
-          dx: s * 2.6,
-          dz: -1.5,
-          at: 5.9,
-        );
-        m.spire(1.35, 1.35, 1.1, dx: s * 2.6, dz: -1.5, at: 6.32);
-        m.banner(0.9, dx: s * 2.6, dz: -1.5, at: 7.42);
-        m.box(PieceKind.dormer, 0.8, 0.7, 0.6, dx: s * 1.3, dz: 1.2, at: 4.98);
-      }
-      m.chimney(0.4, 1.2, dx: -0.8);
-      m.chimney(0.36, 1.1, dx: 0.8);
-      m.stair(2.0, 0.5, 1.4, dz: 2.4);
-      m.water(2.2, 2.2, dz: 3.4);
-      m.tree(1.3, 2.4, dx: -2.6, dz: 3.0);
-      m.tree(1.3, 2.3, dx: 2.6, dz: 3.0);
-      m.field(4.4, 1.2, dz: 4.6);
+      // En U: cuerpo al fondo y dos alas abriéndose, con el patio de honor
+      // en medio. La silueta no se parece a ninguna otra del catálogo.
+      m.box(PieceKind.plinth, 9.0, 2.6, 0.45, dz: -2.8, at: 0);
+      m.box(PieceKind.floor, 8.4, 2.2, 1.9, dz: -2.8, at: 0.45);
+      m.box(PieceKind.floor, 8.3, 2.1, 1.7, dz: -2.8, at: 2.35);
+      m.roof(8.8, 2.7, 1.2, dz: -2.8, at: 4.05);
+      m.box(PieceKind.plinth, 2.6, 4.4, 0.45, dx: -3.2, dz: 0.6, at: 0);
+      m.box(PieceKind.floor, 2.2, 4.0, 1.9, dx: -3.2, dz: 0.6, at: 0.45);
+      m.roof(2.7, 4.5, 1.0, dx: -3.2, dz: 0.6, along: false, at: 2.35);
+      m.box(PieceKind.plinth, 2.6, 4.4, 0.45, dx: 3.2, dz: 0.6, at: 0);
+      m.box(PieceKind.floor, 2.2, 4.0, 1.9, dx: 3.2, dz: 0.6, at: 0.45);
+      m.roof(2.7, 4.5, 1.0, dx: 3.2, dz: 0.6, along: false, at: 2.35);
+      m.arcade(4.0, 1.9, 0.8, dz: -1.5, at: 0.45);
+      m.box(PieceKind.floor, 2.8, 2.8, 4.6, dz: -2.8, at: 0);
+      m.box(PieceKind.parapet, 3.1, 3.1, 0.5, ridge: true, dz: -2.8, at: 4.6);
+      m.spire(2.9, 2.9, 2.0, dz: -2.8, at: 5.1);
+      m.banner(1.4, dx: -1.0, dz: -2.8, at: 5.1);
+      m.banner(1.4, dx: 1.0, dz: -2.8, at: 5.1);
+      m.water(2.2, 2.2, dz: 0.8);
+      m.field(1.8, 1.8, dx: -1.6, dz: 2.4);
+      m.field(1.8, 1.8, dx: 1.6, dz: 2.4);
+      m.box(PieceKind.parapet, 6.6, 0.4, 0.75, dz: 3.6, at: 0);
+      m.stair(2.6, 0.45, 1.0, dz: -0.6);
+      m.tree(1.3, 2.4, dx: -3.4, dz: 3.2);
+      m.tree(1.3, 2.3, dx: 3.4, dz: 3.2);
     },
+    scale: 0.65,
   ),
 
   Landmark(
     'concejo',
     'Casa del concejo',
-    21,
+    20,
     2,
-    'Balcón sobre la plaza y campana propia. Las decisiones se toman aquí, y en voz alta.',
+    'Un balcón para leer los bandos y una sala para discutirlos. El pueblo se gobierna solo.',
     (m) {
-      m.plinth(4.6, 3.0, 0.45);
-      m.arcade(4.2, 1.35, 2.6, rise: true);
-      m.beam(4.4, 2.8, 0.24);
-      m.box(PieceKind.floor, 4.0, 2.6, 1.25, at: 2.04);
-      m.box(PieceKind.floor, 3.95, 2.55, 1.1, at: 3.29);
-      m.roof(4.35, 3.0, 1.0, at: 4.39, along: true);
-      m.box(PieceKind.dormer, 0.8, 0.7, 0.65, dx: -1.2, dz: 1.0, at: 4.39);
-      m.box(PieceKind.dormer, 0.8, 0.7, 0.65, dx: 1.2, dz: 1.0, at: 4.39);
-      m.box(PieceKind.floor, 1.2, 1.2, 6.2, dz: -1.9, at: 0);
-      m.box(PieceKind.parapet, 1.45, 1.45, 0.4, dz: -1.9, at: 6.2);
-      m.spire(1.25, 1.25, 1.2, dz: -1.9, at: 6.6);
-      m.banner(1.0, dz: -1.9, at: 7.8);
-      m.box(PieceKind.dormer, 0.55, 0.16, 0.55, dz: -2.55, at: 4.95);
-      m.chimney(0.38, 1.1, dx: -1.5);
-      m.chimney(0.34, 1.0, dx: 1.5);
-      m.stair(2.0, 0.45, 1.2, dz: 1.9);
-      m.banner(1.0, dx: -1.6, dz: 1.5, at: 2.3);
-      m.banner(1.0, dx: 1.6, dz: 1.5, at: 2.3);
-      m.tree(1.2, 2.2, dx: -3.0, dz: 1.6);
-      m.tree(1.2, 2.1, dx: 3.0, dz: 1.6);
-      m.box(
-        PieceKind.plinth,
-        0.9,
-        0.9,
-        0.3,
-        dx: 2.6,
-        dz: -1.6,
-        ridge: true,
-        at: 0,
-      );
+      // Lo que hace a un ayuntamiento: soportal abierto abajo, balcón corrido
+      // arriba y el campanario del reloj encima.
+      m.box(PieceKind.plinth, 6.6, 4.2, 0.4, at: 0);
+      m.arcade(6.2, 1.9, 3.8, rise: true, at: 0.4);
+      m.box(PieceKind.floor, 6.2, 3.8, 1.8, at: 2.3);
+      m.box(PieceKind.parapet, 6.6, 0.34, 0.45, dz: 1.82, at: 2.4);
+      m.box(PieceKind.parapet, 6.7, 4.3, 0.42, ridge: true, at: 4.1);
+      m.roof(6.8, 4.4, 1.3, at: 4.52);
+      m.dormer(0.9, 0.7, dz: 1.2);
+      m.dormer(0.9, 0.7, dz: -1.2);
+      // La torre del reloj, **desde el suelo y a un costado**. Encajada
+      // encima del tejado del salón era una torre apoyada en unas tejas: el
+      // tejado sube lo que sube en cada comarca y la torre se quedaba
+      // flotando por encima del caballete en media docena de ellas.
+      m.box(PieceKind.floor, 2.1, 2.1, 6.2, dx: 4.0, at: 0);
+      m.arcade(1.8, 1.4, 1.8, dx: 4.0, at: 6.2);
+      m.box(PieceKind.parapet, 2.4, 2.4, 0.42, dx: 4.0, ridge: true, at: 7.6);
+      m.spire(2.2, 2.2, 1.7, dx: 4.0, at: 8.02);
+      m.banner(1.4, dx: -2.6, dz: 1.9, at: 2.85);
+      m.banner(1.4, dx: 2.6, dz: 1.9, at: 2.85);
+      m.stair(2.4, 0.4, 0.9, dz: 2.5);
+      m.box(PieceKind.parapet, 1.3, 0.45, 0.35, dx: -3.6, dz: 1.4, at: 0);
+      m.box(PieceKind.parapet, 1.3, 0.45, 0.35, dx: -3.6, dz: -1.4, at: 0);
+      m.tree(1.3, 2.4, dx: -4.6, dz: -1.4);
+      m.tree(1.2, 2.2, dx: 4.4, dz: 2.6);
+      m.box(PieceKind.plinth, 5.0, 1.6, 0.22, dz: 3.2, at: 0);
     },
+    scale: 0.65,
   ),
 
   Landmark(
     'lonja',
     'Lonja de mercaderes',
-    21,
+    20,
     2,
-    'Bajo estos arcos se cierran los tratos. Media comarca viene a este suelo.',
+    'Una sala con columnas donde se cierran los tratos. La palabra dada aquí vale en tres reinos.',
     (m) {
-      m.plinth(5.0, 3.6, 0.4);
-      m.arcade(4.6, 1.6, 3.2, rise: true);
-      m.beam(4.8, 3.4, 0.28);
-      m.box(PieceKind.floor, 4.4, 3.2, 1.4, at: 2.28);
-      m.box(PieceKind.parapet, 4.75, 3.5, 0.45, at: 3.68);
-      m.roof(4.6, 3.4, 1.1, at: 4.13, along: true);
-      for (final s in [-1.0, 1.0]) {
-        m.box(PieceKind.floor, 1.2, 1.2, 4.6, dx: s * 2.5, dz: -1.7, at: 0.4);
+      // Una sola sala enorme, alta y sin pisos, sobre una lonja de arcos. Lo
+      // que impresiona de una lonja es el vacío de dentro.
+      m.box(PieceKind.plinth, 8.2, 5.2, 0.5, at: 0);
+      m.box(PieceKind.floor, 7.6, 4.6, 3.6, at: 0.5);
+      m.box(PieceKind.parapet, 7.9, 4.9, 0.55, ridge: true, at: 4.1);
+      m.roof(8.0, 5.0, 1.2, at: 4.65);
+      m.arcade(7.2, 2.4, 1.0, dz: 2.3, at: 0.5);
+      m.arcade(7.2, 2.4, 1.0, dz: -2.3, at: 0.5);
+      m.arcade(4.2, 2.4, 1.0, dx: -3.3, along: false, at: 0.5);
+      m.arcade(4.2, 2.4, 1.0, dx: 3.3, along: false, at: 0.5);
+      for (final c in const [
+        (-3.8, -2.6),
+        (3.8, -2.6),
+        (-3.8, 2.6),
+        (3.8, 2.6),
+      ]) {
         m.box(
           PieceKind.parapet,
-          1.45,
-          1.45,
-          0.4,
-          dx: s * 2.5,
-          dz: -1.7,
-          at: 5.0,
+          0.75,
+          0.75,
+          0.7,
+          dx: c.$1,
+          dz: c.$2,
+          ridge: true,
+          at: 4.65,
         );
-        m.spire(1.25, 1.25, 1.0, dx: s * 2.5, dz: -1.7, at: 5.4);
-        m.box(PieceKind.dormer, 0.8, 0.7, 0.6, dx: s * 1.3, dz: 1.2, at: 4.13);
-        m.banner(1.0, dx: s * 1.8, dz: 1.8, at: 2.0);
       }
-      m.stair(2.2, 0.4, 1.2, dz: 2.3);
-      m.chimney(0.36, 1.1, dx: -1.0);
-      m.box(
-        PieceKind.plinth,
-        1.0,
-        1.0,
-        0.3,
-        dx: 3.0,
-        dz: 1.8,
-        ridge: true,
-        at: 0,
-      );
-      m.post(0.3, 1.3, dx: 3.0, dz: 1.8, at: 0.3);
-      m.tree(1.2, 2.2, dx: -3.2, dz: 1.8);
+      m.banner(1.4, dx: -3.8, dz: 2.6, at: 5.35);
+      m.banner(1.4, dx: 3.8, dz: 2.6, at: 5.35);
+      m.stair(3.0, 0.5, 1.0, dz: 3.3);
+      m.box(PieceKind.parapet, 1.4, 0.5, 0.36, dx: -4.6, dz: 1.6, at: 0);
+      m.box(PieceKind.parapet, 1.4, 0.5, 0.36, dx: 4.6, dz: 1.6, at: 0);
+      m.tree(1.3, 2.4, dx: -4.8, dz: -1.8);
+      m.tree(1.2, 2.2, dx: 4.8, dz: -1.8);
+      m.box(PieceKind.plinth, 5.4, 1.5, 0.22, dz: 4.0, at: 0);
     },
+    scale: 0.65,
   ),
 
   Landmark(
     'iglesia',
     'Iglesia',
-    22,
+    21,
     2,
-    'Nave, dos naves laterales y campanario. El edificio donde cabe el pueblo entero.',
+    'Nave, crucero y una torre con campanas. El pueblo ya tiene sitio donde bautizar y donde despedir.',
     (m) {
-      m.plinth(3.2, 5.0, 0.4);
-      m.box(PieceKind.floor, 2.8, 4.6, 1.9, at: 0.4);
-      m.roof(3.2, 5.0, 1.3, at: 2.3, along: false);
-      for (final s in [-1.0, 1.0]) {
-        m.box(PieceKind.floor, 1.0, 4.0, 1.1, dx: s * 1.9, at: 0.4);
-        m.roof(1.2, 4.2, 0.55, dx: s * 1.9, at: 1.5, along: false);
-        m.arcade(3.6, 0.95, 0.5, dx: s * 1.9, along: false, at: 0.4);
-      }
-      m.box(PieceKind.floor, 1.6, 1.6, 5.4, dz: -3.0, at: 0);
-      m.box(PieceKind.parapet, 1.85, 1.85, 0.4, dz: -3.0, at: 5.4);
-      m.spire(1.65, 1.65, 1.8, dz: -3.0, at: 5.8);
-      m.banner(0.9, dz: -3.0, at: 7.6);
-      m.box(PieceKind.dormer, 0.6, 0.18, 0.6, dz: -3.85, at: 4.0);
-      m.box(PieceKind.floor, 1.6, 1.2, 1.5, dz: 2.8, at: 0.4);
-      m.roof(1.8, 1.4, 0.7, dz: 2.8, at: 1.9, along: true);
-      m.stair(1.6, 0.4, 0.9, dz: 3.6);
-      m.box(
-        PieceKind.plinth,
-        0.8,
-        0.8,
-        0.3,
-        dx: 2.9,
-        dz: 1.4,
-        ridge: true,
-        at: 0,
-      );
-      m.post(0.24, 1.4, dx: 2.9, dz: 1.4, at: 0.3);
-      m.tree(1.3, 2.6, dx: -2.9, dz: 1.6);
-      m.tree(1.2, 2.3, dx: 2.9, dz: -1.4);
-      m.palisade(4.6, 0.6, dx: -2.9, along: false);
+      // Nave larga, crucero cruzado y torre a los pies: la planta de cruz es
+      // lo que la distingue de la capilla, que es una caja con campanario.
+      m.box(PieceKind.plinth, 4.0, 9.0, 0.45, at: 0);
+      m.box(PieceKind.floor, 3.5, 8.4, 2.6, at: 0.45);
+      m.roof(3.9, 8.8, 1.5, along: false, at: 3.05);
+      m.box(PieceKind.plinth, 7.4, 3.2, 0.45, dz: -1.6, at: 0);
+      m.box(PieceKind.floor, 6.9, 2.8, 2.6, dz: -1.6, at: 0.45);
+      m.roof(7.3, 3.2, 1.3, dz: -1.6, at: 3.05);
+      m.box(PieceKind.floor, 2.6, 2.6, 5.6, dz: 4.0, at: 0);
+      m.arcade(2.2, 1.4, 2.2, dz: 4.0, at: 5.6);
+      m.box(PieceKind.parapet, 2.9, 2.9, 0.5, dz: 4.0, ridge: true, at: 7.0);
+      m.spire(2.7, 2.7, 2.4, dz: 4.0, at: 7.5);
+      // El cimborrio arranca de **los muros** del crucero y no de su tejado:
+      // un tejado sube lo que sube en cada comarca, y lo que se apoye en su
+      // punta se queda en el aire donde se construye plano.
+      m.box(PieceKind.floor, 2.5, 2.5, 1.3, dz: -1.6, at: 3.05);
+      m.dome(2.7, 2.7, 1.5, dz: -1.6, at: 4.35);
+      m.arcade(2.4, 2.0, 0.6, dz: 5.5, at: 0);
+      m.box(PieceKind.parapet, 0.42, 0.5, 1.3, dx: -1.95, dz: 1.2, at: 0.45);
+      m.box(PieceKind.parapet, 0.42, 0.5, 1.3, dx: 1.95, dz: 1.2, at: 0.45);
+      m.stair(2.2, 0.45, 0.9, dz: 5.8);
+      m.box(PieceKind.parapet, 4.6, 0.4, 0.8, dx: -3.4, dz: 2.6, at: 0);
+      m.tree(1.3, 2.6, dx: 3.4, dz: 3.4);
+      m.tree(1.3, 2.4, dx: -3.6, dz: 4.4);
+      m.tree(1.2, 2.2, dx: 3.6, dz: -3.6);
+      m.field(3.0, 1.4, dx: -3.2, dz: -3.4);
     },
+    scale: 0.65,
   ),
 
   Landmark(
     'catedral',
     'Catedral',
-    36,
+    33,
     2,
-    'Dos torres al poniente, cimborrio y contrafuertes. Se empieza sabiendo que la terminan otros.',
+    'Dos torres, un crucero y un cimborrio. Se empieza sabiendo que la terminan los nietos.',
     (m) {
-      m.plinth(4.0, 6.4, 0.5);
-      m.box(PieceKind.floor, 3.5, 5.9, 2.4, at: 0.5);
-      m.box(PieceKind.floor, 3.45, 5.85, 1.1, at: 2.9);
-      m.roof(3.9, 6.3, 1.5, at: 4.0, along: false);
-      for (final s in [-1.0, 1.0]) {
-        m.box(PieceKind.floor, 1.3, 5.2, 1.5, dx: s * 2.4, at: 0.5);
-        m.roof(1.5, 5.4, 0.7, dx: s * 2.4, at: 2.0, along: false);
-        m.arcade(4.8, 1.2, 0.6, dx: s * 2.4, along: false, at: 0.5);
-        m.arcade(4.8, 0.9, 0.5, dx: s * 1.6, along: false, at: 2.9);
-        for (var i = 0; i < 3; i++) {
-          m.box(
-            PieceKind.parapet,
-            0.4,
-            0.4,
-            1.4,
-            dx: s * 3.15,
-            dz: -1.6 + i * 1.6,
-            at: 2.0,
-          );
-        }
-        // The pair of west towers.
-        m.box(PieceKind.floor, 1.7, 1.7, 6.4, dx: s * 1.5, dz: -3.9, at: 0);
+      // Lo mismo que la iglesia, llevado al límite: nave más alta, dos torres
+      // a los pies, cimborrio sobre el crucero y contrafuertes a los lados.
+      m.box(PieceKind.plinth, 5.0, 10.4, 0.5, at: 0);
+      m.box(PieceKind.floor, 4.4, 9.8, 4.2, at: 0.5);
+      m.box(PieceKind.parapet, 4.7, 10.1, 0.5, ridge: true, at: 4.7);
+      m.roof(4.6, 10.0, 1.8, along: false, at: 5.2);
+      m.box(PieceKind.plinth, 9.6, 4.0, 0.5, dz: -1.8, at: 0);
+      m.box(PieceKind.floor, 9.0, 3.5, 4.2, dz: -1.8, at: 0.5);
+      m.roof(9.4, 3.9, 1.5, dz: -1.8, at: 4.7);
+      m.box(PieceKind.floor, 3.2, 3.2, 5.4, dz: -1.8, at: 4.7);
+      m.dome(3.4, 3.4, 2.2, dz: -1.8, at: 10.1);
+      for (final dx in const [-1.7, 1.7]) {
+        m.box(PieceKind.floor, 2.4, 2.4, 6.6, dx: dx, dz: 4.6, at: 0);
+        m.arcade(2.0, 1.5, 2.0, dx: dx, dz: 4.6, at: 6.6);
         m.box(
           PieceKind.parapet,
-          1.95,
-          1.95,
-          0.45,
-          dx: s * 1.5,
-          dz: -3.9,
-          at: 6.4,
+          2.7,
+          2.7,
+          0.5,
+          dx: dx,
+          dz: 4.6,
+          ridge: true,
+          at: 8.1,
         );
-        m.spire(1.75, 1.75, 2.2, dx: s * 1.5, dz: -3.9, at: 6.85);
-        m.banner(0.9, dx: s * 1.5, dz: -3.9, at: 9.05);
-        m.box(
-          PieceKind.dormer,
-          0.55,
-          0.18,
-          0.55,
-          dx: s * 1.5,
-          dz: -4.75,
-          at: 4.7,
-        );
+        m.spire(2.5, 2.5, 2.6, dx: dx, dz: 4.6, at: 8.6);
       }
-      m.box(PieceKind.floor, 1.4, 1.4, 1.6, at: 5.5);
-      m.spire(1.3, 1.3, 2.4, at: 7.1);
-      m.box(PieceKind.floor, 2.0, 1.6, 2.0, dz: 3.6, at: 0.5);
-      m.roof(2.2, 1.8, 0.9, dz: 3.6, at: 2.5, along: true);
-      m.box(PieceKind.arcade, 1.6, 0.6, 2.2, dz: -3.05, at: 0.5);
-      m.stair(2.4, 0.5, 1.1, dz: 4.6);
-      m.box(
-        PieceKind.plinth,
-        0.9,
-        0.9,
-        0.34,
-        dx: 3.4,
-        dz: 2.0,
-        ridge: true,
-        at: 0,
-      );
-      m.tree(1.3, 2.6, dx: -3.6, dz: 2.2);
+      for (final dz in const [-4.6, -3.0, 1.0, 2.6]) {
+        m.box(PieceKind.parapet, 0.45, 0.6, 3.4, dx: -2.4, dz: dz, at: 0.5);
+        m.box(PieceKind.parapet, 0.45, 0.6, 3.4, dx: 2.4, dz: dz, at: 0.5);
+      }
+      m.arcade(2.6, 2.4, 0.7, dz: 5.6, at: 0);
+      m.box(PieceKind.parapet, 3.0, 0.8, 0.6, dz: 5.6, ridge: true, at: 2.4);
+      m.stair(3.0, 0.5, 0.9, dz: 5.95);
+      m.box(PieceKind.parapet, 0.6, 0.6, 1.4, dz: -5.0, at: 4.7);
+      m.banner(1.4, dx: -1.7, dz: 5.5, at: 8.6);
+      m.banner(1.4, dx: 1.7, dz: 5.5, at: 8.6);
+      m.tree(1.3, 2.6, dx: -4.4, dz: 4.4);
+      m.tree(1.3, 2.4, dx: 4.4, dz: 4.4);
     },
+    scale: 0.65,
   ),
 
   Landmark(
     'monasterio',
     'Monasterio',
-    28,
+    27,
     2,
-    'Iglesia, claustro y huerto. Un pueblo pequeño dentro del pueblo.',
+    'Iglesia, claustro y huerta dentro de una tapia. Un pueblo entero que reza y trabaja aparte.',
     (m) {
-      // The church along one side, the cloister beside it.
-      m.plinth(2.6, 5.4, 0.4, dx: -1.9);
-      m.box(PieceKind.floor, 2.3, 5.0, 1.9, dx: -1.9, at: 0.4);
-      m.roof(2.6, 5.4, 1.2, dx: -1.9, at: 2.3, along: false);
-      m.box(PieceKind.floor, 1.3, 1.3, 4.6, dx: -1.9, dz: -3.3, at: 0);
-      m.box(PieceKind.parapet, 1.55, 1.55, 0.4, dx: -1.9, dz: -3.3, at: 4.6);
-      m.spire(1.35, 1.35, 1.5, dx: -1.9, dz: -3.3, at: 5.0);
-      m.banner(0.8, dx: -1.9, dz: -3.3, at: 6.5);
-      m.plinth(4.4, 4.4, 0.26, dx: 1.9);
-      for (final s in [-1.0, 1.0]) {
-        m.arcade(4.0, 1.15, 0.7, dx: 1.9, dz: s * 1.75, at: 0.26, along: true);
-        m.arcade(4.0, 1.15, 0.7, dx: 1.9 + s * 1.75, at: 0.26, along: false);
-        m.beam(4.3, 0.8, 0.18, dx: 1.9, dz: s * 1.75, at: 1.41);
-        m.beam(0.8, 4.3, 0.18, dx: 1.9 + s * 1.75, at: 1.41);
-        m.roof(4.5, 1.1, 0.5, dx: 1.9, dz: s * 1.75, at: 1.59, along: true);
-        m.roof(1.1, 4.5, 0.5, dx: 1.9 + s * 1.75, at: 1.59, along: false);
-      }
-      m.water(1.1, 1.1, dx: 1.9);
-      m.plinth(0.7, 0.7, 0.3, dx: 1.9);
-      m.tree(1.0, 1.7, dx: 1.0, dz: 0.9);
-      m.field(1.1, 1.1, dx: 2.8, dz: -0.9);
-      m.field(3.6, 1.2, dz: 4.0);
-      m.palisade(7.0, 0.8, dz: 4.8);
-      m.tree(1.2, 2.2, dx: -3.6, dz: 2.6);
-      m.stair(1.4, 0.4, 0.8, dx: -1.9, dz: 3.4);
+      // Un recinto: tapia, iglesia a un lado, claustro al otro y la huerta al
+      // fondo. Es el único hito que es **varios edificios**.
+      m.box(PieceKind.parapet, 12.0, 0.4, 1.1, dz: -5.4, at: 0);
+      m.box(PieceKind.parapet, 12.0, 0.4, 1.1, dz: 5.4, at: 0);
+      m.box(PieceKind.parapet, 0.4, 11.2, 1.1, dx: -5.8, at: 0);
+      m.box(PieceKind.parapet, 0.4, 11.2, 1.1, dx: 5.8, at: 0);
+      m.box(PieceKind.plinth, 3.4, 7.6, 0.4, dx: -3.6, dz: -1.0, at: 0);
+      m.box(PieceKind.floor, 3.0, 7.0, 2.8, dx: -3.6, dz: -1.0, at: 0.4);
+      m.roof(3.4, 7.4, 1.4, dx: -3.6, dz: -1.0, along: false, at: 3.2);
+      m.box(PieceKind.floor, 2.2, 2.2, 5.4, dx: -3.6, dz: 2.4, at: 0);
+      m.box(
+        PieceKind.parapet,
+        2.5,
+        2.5,
+        0.45,
+        dx: -3.6,
+        dz: 2.4,
+        ridge: true,
+        at: 5.4,
+      );
+      m.spire(2.3, 2.3, 2.0, dx: -3.6, dz: 2.4, at: 5.85);
+      m.arcade(4.6, 1.5, 0.9, dx: 1.8, dz: -2.6, at: 0);
+      m.arcade(4.6, 1.5, 0.9, dx: 1.8, dz: 1.8, at: 0);
+      m.arcade(4.4, 1.5, 0.9, dx: -0.4, dz: -0.4, along: false, at: 0);
+      m.arcade(4.4, 1.5, 0.9, dx: 4.0, dz: -0.4, along: false, at: 0);
+      m.roof(4.9, 1.1, 0.5, dx: 1.8, dz: -2.6, at: 1.5);
+      m.roof(4.9, 1.1, 0.5, dx: 1.8, dz: 1.8, at: 1.5);
+      m.roof(1.1, 4.7, 0.5, dx: -0.4, dz: -0.4, along: false, at: 1.5);
+      m.roof(1.1, 4.7, 0.5, dx: 4.0, dz: -0.4, along: false, at: 1.5);
+      m.water(1.0, 1.0, dx: 1.8, dz: -0.4);
+      m.box(PieceKind.plinth, 0.9, 0.9, 0.3, dx: 1.8, dz: -0.4, at: 0);
+      m.field(3.0, 1.6, dx: 1.4, dz: 3.8);
+      m.field(3.0, 1.6, dx: 4.4, dz: 3.8);
+      m.field(3.0, 1.6, dx: 1.4, dz: -4.4);
+      m.tree(1.3, 2.4, dx: 4.6, dz: -4.4);
+      m.tree(1.2, 2.2, dx: -5.0, dz: 4.4);
+      m.arcade(2.0, 1.8, 0.6, dz: -5.4, at: 0);
+      m.stair(1.8, 0.4, 0.8, dz: -6.0);
     },
+    scale: 0.65,
   ),
 
   Landmark(
     'abadia',
     'Abadía',
-    25,
+    24,
     2,
-    'Nave, torres gemelas y una comunidad que reza a horas fijas desde antes que amanezca.',
+    'Iglesia grande, granero enorme y una bodega debajo. Se reza, pero también se administra.',
     (m) {
-      m.plinth(3.4, 5.6, 0.45);
-      m.box(PieceKind.floor, 3.0, 5.2, 2.1, at: 0.45);
-      m.roof(3.4, 5.6, 1.4, at: 2.55, along: false);
-      for (final s in [-1.0, 1.0]) {
-        m.box(PieceKind.floor, 1.1, 4.4, 1.2, dx: s * 2.05, at: 0.45);
-        m.roof(1.3, 4.6, 0.6, dx: s * 2.05, at: 1.65, along: false);
-        m.arcade(4.0, 1.0, 0.55, dx: s * 2.05, along: false, at: 0.45);
-        m.box(PieceKind.floor, 1.4, 1.4, 4.8, dx: s * 1.1, dz: -3.4, at: 0);
-        m.box(
-          PieceKind.parapet,
-          1.65,
-          1.65,
-          0.4,
-          dx: s * 1.1,
-          dz: -3.4,
-          at: 4.8,
-        );
-        m.spire(1.45, 1.45, 1.6, dx: s * 1.1, dz: -3.4, at: 5.2);
+      m.box(PieceKind.plinth, 4.6, 9.4, 0.45, dx: -2.4, at: 0);
+      m.box(PieceKind.floor, 4.0, 8.8, 3.4, dx: -2.4, at: 0.45);
+      m.box(PieceKind.parapet, 4.3, 9.1, 0.45, dx: -2.4, ridge: true, at: 3.85);
+      m.roof(4.2, 9.0, 1.6, dx: -2.4, along: false, at: 4.3);
+      m.box(PieceKind.floor, 2.6, 2.6, 6.2, dx: -2.4, dz: 3.6, at: 0);
+      m.box(
+        PieceKind.parapet,
+        2.9,
+        2.9,
+        0.45,
+        dx: -2.4,
+        dz: 3.6,
+        ridge: true,
+        at: 6.2,
+      );
+      m.spire(2.7, 2.7, 2.4, dx: -2.4, dz: 3.6, at: 6.65);
+      for (final dz in const [-3.4, -1.2, 1.0]) {
+        m.box(PieceKind.parapet, 0.45, 0.7, 2.8, dx: -4.5, dz: dz, at: 0.45);
+        m.box(PieceKind.parapet, 0.45, 0.7, 2.8, dx: -0.3, dz: dz, at: 0.45);
       }
-      m.box(PieceKind.floor, 1.2, 1.2, 1.3, at: 3.95);
-      m.spire(1.1, 1.1, 1.9, at: 5.25);
-      m.box(PieceKind.floor, 3.0, 1.6, 1.4, dz: 3.5, at: 0.45);
-      m.roof(3.2, 1.8, 0.8, dz: 3.5, at: 1.85, along: true);
-      m.chimney(0.34, 1.0, dx: 1.0, dz: 3.5);
-      m.stair(1.8, 0.45, 1.0, dz: 4.4);
-      m.field(3.0, 1.2, dz: 5.4);
-      m.tree(1.3, 2.5, dx: -3.2, dz: 2.4);
-      m.tree(1.2, 2.3, dx: 3.2, dz: 2.4);
-      m.palisade(5.0, 0.7, dz: 6.1);
+      m.box(PieceKind.plinth, 5.0, 6.4, 0.4, dx: 3.2, dz: -1.0, at: 0);
+      m.box(PieceKind.floor, 4.5, 5.8, 2.6, dx: 3.2, dz: -1.0, at: 0.4);
+      m.roof(4.9, 6.2, 1.8, dx: 3.2, dz: -1.0, along: false, at: 3.0);
+      m.arcade(2.0, 2.0, 0.7, dx: 3.2, dz: 2.2, at: 0);
+      m.dome(1.8, 2.4, 0.9, dx: 3.4, dz: 3.6, at: 0);
+      m.box(
+        PieceKind.chimney,
+        0.32,
+        0.32,
+        0.5,
+        dx: 3.4,
+        dz: 3.2,
+        ridge: true,
+        at: 0.7,
+      );
+      m.field(4.0, 1.6, dz: -5.4);
+      m.palisade(5.4, 0.7, dz: -6.2);
+      m.tree(1.3, 2.5, dx: 5.4, dz: 4.2);
+      m.tree(1.2, 2.2, dx: -5.4, dz: 5.2);
+      m.stair(2.0, 0.45, 0.85, dz: 5.4);
     },
+    scale: 0.65,
   ),
 
   Landmark(
@@ -1464,29 +1523,43 @@ final List<Landmark> landmarks = [
     'Colegiata',
     22,
     2,
-    'No es catedral porque no hay obispo. Por lo demás, lo es.',
+    'Una iglesia con cabildo propio, y un claustrillo detrás para los canónigos.',
     (m) {
-      m.plinth(3.2, 5.2, 0.42);
-      m.box(PieceKind.floor, 2.85, 4.8, 2.2, at: 0.42);
-      m.roof(3.2, 5.2, 1.3, at: 2.62, along: false);
-      for (final s in [-1.0, 1.0]) {
-        m.box(PieceKind.floor, 1.05, 4.2, 1.3, dx: s * 1.95, at: 0.42);
-        m.roof(1.25, 4.4, 0.6, dx: s * 1.95, at: 1.72, along: false);
-        m.arcade(3.8, 1.05, 0.5, dx: s * 1.95, along: false, at: 0.42);
-        m.box(PieceKind.dormer, 0.6, 0.5, 0.5, dx: s * 0.9, dz: 1.2, at: 2.62);
-      }
-      m.box(PieceKind.floor, 1.7, 1.7, 5.6, dz: -3.1, at: 0.42);
-      m.arcade(1.4, 0.9, 0.4, dz: -3.95, at: 4.6);
-      m.box(PieceKind.parapet, 1.95, 1.95, 0.42, dz: -3.1, at: 6.02);
-      m.spire(1.75, 1.75, 1.9, dz: -3.1, at: 6.44);
-      m.banner(0.9, dz: -3.1, at: 8.34);
-      m.box(PieceKind.floor, 1.8, 1.4, 1.6, dz: 2.9, at: 0.42);
-      m.roof(2.0, 1.6, 0.75, dz: 2.9, at: 2.02, along: true);
-      m.stair(1.7, 0.42, 0.95, dz: 3.7);
-      m.plinth(0.85, 0.85, 0.32, dx: 2.9, dz: 1.6);
-      m.post(0.24, 1.3, dx: 2.9, dz: 1.6, at: 0.32);
-      m.tree(1.3, 2.5, dx: -2.9, dz: 1.8);
+      // Iglesia con claustrillo pegado: dos cosas distintas cosidas, que es
+      // exactamente lo que es una colegiata.
+      m.box(PieceKind.plinth, 4.2, 7.6, 0.45, dx: -1.6, at: 0);
+      m.box(PieceKind.floor, 3.7, 7.0, 3.0, dx: -1.6, at: 0.45);
+      m.roof(4.1, 7.4, 1.5, dx: -1.6, along: false, at: 3.45);
+      m.box(PieceKind.floor, 2.4, 2.4, 6.0, dx: -1.6, dz: 3.2, at: 0);
+      m.arcade(2.0, 1.3, 2.0, dx: -1.6, dz: 3.2, at: 6.0);
+      m.box(
+        PieceKind.parapet,
+        2.7,
+        2.7,
+        0.45,
+        dx: -1.6,
+        dz: 3.2,
+        ridge: true,
+        at: 7.3,
+      );
+      m.spire(2.5, 2.5, 2.2, dx: -1.6, dz: 3.2, at: 7.75);
+      m.arcade(4.0, 1.5, 0.9, dx: 2.6, dz: -2.4, at: 0);
+      m.arcade(4.0, 1.5, 0.9, dx: 2.6, dz: 1.6, at: 0);
+      m.arcade(4.0, 1.5, 0.9, dx: 0.9, along: false, dz: -0.4, at: 0);
+      m.arcade(4.0, 1.5, 0.9, dx: 4.3, along: false, dz: -0.4, at: 0);
+      m.roof(4.3, 1.1, 0.5, dx: 2.6, dz: -2.4, at: 1.5);
+      m.roof(4.3, 1.1, 0.5, dx: 2.6, dz: 1.6, at: 1.5);
+      m.roof(1.1, 4.3, 0.5, dx: 0.9, dz: -0.4, along: false, at: 1.5);
+      m.roof(1.1, 4.3, 0.5, dx: 4.3, dz: -0.4, along: false, at: 1.5);
+      m.field(1.6, 1.6, dx: 2.6, dz: -0.4);
+      m.water(0.9, 0.9, dx: 2.6, dz: -0.4);
+      m.box(PieceKind.parapet, 0.55, 0.55, 1.3, dx: -1.6, dz: -3.4, at: 3.45);
+      m.arcade(2.2, 1.9, 0.6, dx: -1.6, dz: 4.6, at: 0);
+      m.stair(2.0, 0.45, 0.85, dz: 4.9);
+      m.tree(1.3, 2.5, dx: -3.8, dz: -3.0);
+      m.tree(1.2, 2.2, dx: 4.6, dz: 3.0);
     },
+    scale: 0.65,
   ),
 
   Landmark(
@@ -1494,35 +1567,31 @@ final List<Landmark> landmarks = [
     'Sinagoga',
     20,
     2,
-    'El pueblo tiene sitio para más de una manera de rezar.',
+    'Una sala clara con el arca al fondo y un patio con su fuente. Otra manera de ser de aquí.',
     (m) {
-      m.plinth(3.4, 4.2, 0.44);
-      m.box(PieceKind.floor, 3.0, 3.8, 2.3, at: 0.44);
-      m.box(PieceKind.floor, 2.95, 3.75, 1.0, at: 2.74);
-      m.roof(3.35, 4.15, 1.1, at: 3.74, along: false);
-      m.arcade(3.4, 1.2, 0.55, dz: 2.0, at: 0.44);
-      m.beam(3.6, 0.65, 0.2, dz: 2.0, at: 1.64);
-      m.roof(3.8, 1.0, 0.45, dz: 2.1, at: 1.84, along: true);
-      for (final s in [-1.0, 1.0]) {
-        m.box(PieceKind.floor, 0.9, 0.9, 4.4, dx: s * 1.75, dz: -1.8, at: 0.44);
-        m.box(
-          PieceKind.parapet,
-          1.1,
-          1.1,
-          0.35,
-          dx: s * 1.75,
-          dz: -1.8,
-          at: 4.84,
-        );
-        m.dome(0.95, 0.95, 0.7, dx: s * 1.75, dz: -1.8, at: 5.19);
-        m.box(PieceKind.dormer, 0.55, 0.5, 0.5, dx: s * 0.9, dz: 0.9, at: 3.74);
+      m.box(PieceKind.plinth, 6.4, 5.4, 0.5, dz: -1.4, at: 0);
+      m.box(PieceKind.floor, 5.8, 4.8, 3.6, dz: -1.4, at: 0.5);
+      m.box(PieceKind.parapet, 6.1, 5.1, 0.5, dz: -1.4, ridge: true, at: 4.1);
+      m.dome(4.6, 4.0, 1.9, dz: -1.4, at: 4.6);
+      for (final dx in const [-2.9, 2.9]) {
+        m.box(PieceKind.parapet, 0.7, 0.7, 0.9, dx: dx, dz: -3.6, at: 4.6);
+        m.box(PieceKind.parapet, 0.7, 0.7, 0.9, dx: dx, dz: 0.8, at: 4.6);
       }
-      m.stair(1.6, 0.44, 0.9, dz: 2.8);
-      m.tree(1.2, 2.3, dx: -2.9, dz: 1.6);
-      m.tree(1.2, 2.2, dx: 2.9, dz: 1.6);
-      m.water(1.0, 1.0, dz: -2.6);
-      m.palisade(4.0, 0.6, dz: -3.2);
+      m.arcade(4.4, 2.2, 0.8, dz: 1.4, at: 0.5);
+      m.box(PieceKind.parapet, 4.8, 1.0, 0.5, dz: 1.4, ridge: true, at: 2.7);
+      m.box(PieceKind.parapet, 6.2, 0.4, 1.0, dz: 4.6, at: 0);
+      m.box(PieceKind.parapet, 0.4, 3.4, 1.0, dx: -3.0, dz: 3.0, at: 0);
+      m.box(PieceKind.parapet, 0.4, 3.4, 1.0, dx: 3.0, dz: 3.0, at: 0);
+      m.water(1.4, 1.4, dz: 3.0);
+      m.box(PieceKind.plinth, 1.1, 1.1, 0.3, dz: 3.0, at: 0);
+      m.box(PieceKind.parapet, 0.85, 0.85, 0.5, dz: 3.0, ridge: true, at: 0.3);
+      m.field(1.6, 1.6, dx: -2.0, dz: 3.2);
+      m.field(1.6, 1.6, dx: 2.0, dz: 3.2);
+      m.stair(2.2, 0.5, 0.9, dz: 2.1);
+      m.tree(1.3, 2.4, dx: -3.6, dz: 4.6);
+      m.tree(1.2, 2.2, dx: 3.6, dz: 4.6);
     },
+    scale: 0.65,
   ),
 
   Landmark(
@@ -1530,30 +1599,41 @@ final List<Landmark> landmarks = [
     'Mezquita',
     21,
     2,
-    'Cúpula, alminar y patio con agua. La misma villa, otra voz.',
+    'Un bosque de arcos, un patio con naranjos y un alminar. Se oye desde todo el barrio.',
     (m) {
-      m.plinth(4.4, 4.4, 0.42);
-      m.box(PieceKind.floor, 4.0, 4.0, 2.0, at: 0.42);
-      m.dome(3.6, 3.6, 1.6, at: 2.42);
-      m.dome(1.3, 1.3, 0.8, dx: -1.3, dz: -1.3, at: 2.42);
-      m.dome(1.3, 1.3, 0.8, dx: 1.3, dz: -1.3, at: 2.42);
-      m.dome(1.3, 1.3, 0.8, dx: -1.3, dz: 1.3, at: 2.42);
-      m.dome(1.3, 1.3, 0.8, dx: 1.3, dz: 1.3, at: 2.42);
-      m.box(PieceKind.floor, 1.0, 1.0, 6.2, dx: -2.7, dz: -2.0, at: 0);
-      m.arcade(0.8, 0.8, 0.8, dx: -2.7, dz: -2.0, at: 5.0);
-      m.box(PieceKind.parapet, 1.25, 1.25, 0.34, dx: -2.7, dz: -2.0, at: 6.2);
-      m.dome(1.05, 1.05, 0.8, dx: -2.7, dz: -2.0, at: 6.54);
-      m.banner(0.8, dx: -2.7, dz: -2.0, at: 7.34);
-      m.arcade(4.0, 1.3, 0.6, dz: 2.4, at: 0.42, along: true);
-      m.beam(4.2, 0.7, 0.22, dz: 2.4, at: 1.72);
-      m.roof(4.4, 1.1, 0.5, dz: 2.5, at: 1.94, along: true);
-      m.water(1.6, 1.6, dz: 3.6);
-      m.plinth(1.0, 1.0, 0.3, dz: 3.6);
-      m.stair(1.8, 0.42, 0.9, dz: 3.0);
-      m.tree(1.2, 2.2, dx: -3.0, dz: 2.6);
-      m.tree(1.2, 2.1, dx: 3.0, dz: 2.6);
-      m.palisade(5.0, 0.7, dz: 4.4);
+      // Una mezquita es un **bosque de columnas**: la sala es toda arcada,
+      // sin pisos, y el alminar sale del patio.
+      m.box(PieceKind.plinth, 8.0, 6.0, 0.45, dz: -1.6, at: 0);
+      for (final dz in const [-3.6, -2.2, -0.8, 0.6]) {
+        m.arcade(7.4, 2.8, 1.1, dz: dz, at: 0.45);
+      }
+      m.box(PieceKind.parapet, 8.0, 6.0, 0.5, dz: -1.6, ridge: true, at: 3.25);
+      m.roof(8.2, 6.2, 1.1, dz: -1.6, at: 3.75);
+      m.dome(2.6, 2.6, 1.5, dz: -3.2, at: 3.75);
+      m.box(PieceKind.floor, 2.0, 2.0, 6.4, dx: -3.2, dz: 3.4, at: 0);
+      m.arcade(1.7, 1.2, 1.7, dx: -3.2, dz: 3.4, at: 6.4);
+      m.box(
+        PieceKind.parapet,
+        2.3,
+        2.3,
+        0.4,
+        dx: -3.2,
+        dz: 3.4,
+        ridge: true,
+        at: 7.6,
+      );
+      m.spire(2.1, 2.1, 1.6, dx: -3.2, dz: 3.4, at: 8.0);
+      m.box(PieceKind.parapet, 8.0, 0.4, 1.2, dz: 5.4, at: 0);
+      m.box(PieceKind.parapet, 0.4, 4.2, 1.2, dx: 3.8, dz: 3.4, at: 0);
+      m.water(2.0, 1.2, dz: 3.4);
+      m.tree(1.2, 2.0, dx: 1.6, dz: 2.6);
+      m.tree(1.2, 2.1, dx: 1.6, dz: 4.2);
+      m.tree(1.2, 2.0, dx: -0.2, dz: 2.6);
+      m.tree(1.2, 2.1, dx: -0.2, dz: 4.2);
+      m.arcade(2.2, 2.0, 0.6, dz: 5.4, at: 0);
+      m.stair(2.0, 0.45, 0.85, dz: 5.9);
     },
+    scale: 0.65,
   ),
 
   Landmark(
@@ -1561,82 +1641,64 @@ final List<Landmark> landmarks = [
     'Baptisterio',
     18,
     2,
-    'Octógono con una pila en medio. Aquí entra la gente al pueblo por primera vez.',
+    'Ocho lados, una pila en medio y luz de arriba. Aquí entra en el pueblo el que nace.',
     (m) {
-      m.plinth(3.6, 3.6, 0.5);
-      m.plinth(3.2, 3.2, 0.4);
-      m.box(PieceKind.floor, 2.9, 2.9, 1.4, at: 0.9);
-      m.arcade(2.7, 1.0, 2.7, at: 2.3, rise: true);
-      m.box(PieceKind.floor, 2.85, 2.85, 0.9, at: 3.3);
-      m.box(PieceKind.parapet, 3.1, 3.1, 0.35, at: 4.2);
-      m.dome(2.8, 2.8, 1.6, at: 4.55);
-      m.dome(0.7, 0.7, 0.5, at: 6.15);
-      m.banner(0.8, at: 6.65);
-      for (final s in [-1.0, 1.0]) {
-        m.box(
-          PieceKind.parapet,
-          0.5,
-          0.5,
-          1.2,
-          dx: s * 1.35,
-          dz: -1.35,
-          at: 3.3,
-        );
-        m.box(
-          PieceKind.parapet,
-          0.5,
-          0.5,
-          1.2,
-          dx: s * 1.35,
-          dz: 1.35,
-          at: 3.3,
-        );
-      }
-      m.box(PieceKind.arcade, 1.2, 0.6, 1.6, dz: 1.75, at: 0.9);
-      m.stair(1.6, 0.9, 1.0, dz: 2.5);
-      m.water(1.4, 1.4, dz: 3.4);
-      m.tree(1.2, 2.3, dx: -2.6, dz: 2.2);
-      m.tree(1.2, 2.2, dx: 2.6, dz: 2.2);
+      // Un octógono exento: tres cuerpos que se van estrechando y la linterna
+      // encima. Pequeño de planta y alto, que es lo contrario que la lonja.
+      m.box(PieceKind.plinth, 5.6, 5.6, 0.5, at: 0);
+      m.box(PieceKind.plinth, 4.8, 4.8, 0.45, at: 0.5);
+      m.box(PieceKind.floor, 4.0, 4.0, 2.4, at: 0.95);
+      m.arcade(3.6, 1.4, 3.6, at: 3.35);
+      m.box(PieceKind.parapet, 4.3, 4.3, 0.5, ridge: true, at: 4.75);
+      m.dome(3.9, 3.9, 2.0, at: 5.25);
+      m.box(PieceKind.floor, 1.2, 1.2, 0.9, at: 6.55);
+      m.spire(1.4, 1.4, 1.0, at: 7.45);
+      m.arcade(2.4, 2.2, 0.8, dz: 2.4, at: 0.95);
+      m.box(PieceKind.parapet, 2.8, 1.0, 0.5, dz: 2.4, ridge: true, at: 3.15);
+      m.stair(2.6, 0.95, 1.2, dz: 3.5);
+      m.water(1.6, 1.6, dx: -3.4, dz: -1.6);
+      m.box(PieceKind.parapet, 4.4, 0.4, 0.7, dz: -3.4, at: 0);
+      m.box(PieceKind.parapet, 0.4, 2.6, 0.7, dx: -2.2, dz: -2.2, at: 0);
+      m.box(PieceKind.parapet, 0.4, 2.6, 0.7, dx: 2.2, dz: -2.2, at: 0);
+      m.tree(1.3, 2.5, dx: -3.4, dz: 2.4);
+      m.tree(1.2, 2.2, dx: 3.4, dz: 2.4);
+      m.tree(1.2, 2.0, dx: 3.4, dz: -2.6);
     },
+    scale: 0.65,
   ),
 
   Landmark(
     'hospitalMayor',
     'Hospital mayor',
-    22,
+    21,
     2,
-    'Salas largas y camas de verdad. Estar enfermo deja de ser estar solo.',
+    'Dos naves en cruz y un altar en el centro, para que todas las camas lo vean. Cuidar también se organiza.',
     (m) {
-      m.plinth(5.2, 3.4, 0.44);
-      m.box(PieceKind.floor, 4.8, 3.05, 1.35, at: 0.44);
-      m.box(PieceKind.floor, 4.75, 3.0, 1.2, at: 1.79);
-      m.roof(5.15, 3.45, 1.1, at: 2.99, along: true);
-      m.arcade(4.6, 1.2, 0.65, dz: 1.75, at: 0.44, along: true);
-      m.beam(4.8, 0.7, 0.2, dz: 1.75, at: 1.64);
-      m.roof(5.0, 1.1, 0.5, dz: 1.85, at: 1.84, along: true);
-      for (var i = 0; i < 4; i++) {
-        m.box(
-          PieceKind.dormer,
-          0.75,
-          0.65,
-          0.6,
-          dx: -1.8 + i * 1.2,
-          dz: 1.2,
-          at: 2.99,
-        );
-      }
-      m.chimney(0.38, 1.1, dx: -2.0);
-      m.chimney(0.34, 1.0, dx: 2.0);
-      m.box(PieceKind.floor, 1.4, 1.4, 4.6, dx: -3.0, dz: -0.8, at: 0);
-      m.box(PieceKind.parapet, 1.65, 1.65, 0.4, dx: -3.0, dz: -0.8, at: 4.6);
-      m.spire(1.45, 1.45, 1.4, dx: -3.0, dz: -0.8, at: 5.0);
-      m.banner(0.9, dx: -3.0, dz: -0.8, at: 6.4);
-      m.box(PieceKind.parapet, 0.7, 0.3, 0.55, at: 4.09);
-      m.stair(2.0, 0.44, 1.0, dz: 2.4);
-      m.water(1.2, 1.2, dx: 3.2, dz: 1.8);
-      m.field(3.0, 1.2, dz: -2.6);
-      m.tree(1.2, 2.3, dx: -3.4, dz: 2.4);
+      // La planta en cruz no es un adorno: es la idea del sitio, cuatro salas
+      // que miran todas al mismo centro.
+      m.box(PieceKind.plinth, 3.8, 10.0, 0.45, at: 0);
+      m.box(PieceKind.floor, 3.3, 9.4, 2.8, at: 0.45);
+      m.roof(3.7, 9.8, 1.4, along: false, at: 3.25);
+      m.box(PieceKind.plinth, 10.0, 3.8, 0.45, at: 0);
+      m.box(PieceKind.floor, 9.4, 3.3, 2.8, at: 0.45);
+      m.roof(9.8, 3.7, 1.4, at: 3.25);
+      m.box(PieceKind.floor, 3.2, 3.2, 1.6, at: 3.25);
+      m.box(PieceKind.parapet, 3.5, 3.5, 0.45, ridge: true, at: 4.85);
+      m.dome(3.3, 3.3, 1.9, at: 5.3);
+      m.box(PieceKind.floor, 1.0, 1.0, 0.8, at: 7.2);
+      m.spire(1.2, 1.2, 0.9, at: 8.0);
+      m.arcade(2.6, 2.2, 0.7, dz: 5.2, at: 0);
+      m.box(PieceKind.parapet, 3.0, 0.9, 0.5, dz: 5.2, ridge: true, at: 2.2);
+      m.stair(2.4, 0.45, 0.9, dz: 5.9);
+      m.water(1.4, 1.4, dx: -3.4, dz: -3.4);
+      m.box(PieceKind.plinth, 1.1, 1.1, 0.3, dx: -3.4, dz: -3.4, at: 0);
+      m.field(2.6, 2.6, dx: 3.4, dz: -3.4);
+      m.field(2.6, 2.6, dx: -3.4, dz: 3.4);
+      m.tree(1.3, 2.5, dx: 3.4, dz: 3.4);
+      m.tree(1.2, 2.2, dx: 3.6, dz: -1.0);
+      m.box(PieceKind.parapet, 5.0, 0.4, 0.8, dz: -5.6, at: 0);
     },
+    scale: 0.65,
   ),
 
   Landmark(
@@ -1644,92 +1706,79 @@ final List<Landmark> landmarks = [
     'Universidad',
     29,
     2,
-    'Claustro, aulas y libros encadenados. Gente que viene de lejos sólo a leer.',
+    'Un patio con aulas alrededor y una escalera que todos suben. Lo que se sabe aquí se queda.',
     (m) {
-      m.plinth(5.0, 5.0, 0.4);
-      for (final s in [-1.0, 1.0]) {
-        m.arcade(4.6, 1.4, 0.8, dz: s * 1.9, at: 0.4, along: true);
-        m.arcade(4.6, 1.4, 0.8, dx: s * 1.9, at: 0.4, along: false);
-        m.beam(4.8, 0.9, 0.22, dz: s * 1.9, at: 1.8);
-        m.beam(0.9, 4.8, 0.22, dx: s * 1.9, at: 1.8);
-        m.box(PieceKind.floor, 4.8, 0.9, 1.2, dz: s * 1.9, at: 2.02);
-        m.box(PieceKind.floor, 0.9, 4.8, 1.2, dx: s * 1.9, at: 2.02);
-        m.roof(5.0, 1.2, 0.6, dz: s * 1.95, at: 3.22, along: true);
-        m.roof(1.2, 5.0, 0.6, dx: s * 1.95, at: 3.22, along: false);
-        m.box(
-          PieceKind.dormer,
-          0.7,
-          0.6,
-          0.55,
-          dx: s * 1.2,
-          dz: 1.95,
-          at: 3.22,
-        );
+      // Un patio cuadrado de dos pisos de arcos, con la torre del reloj en
+      // una esquina. Es el claustro llevado a lo civil, y más alto.
+      m.box(PieceKind.plinth, 11.0, 10.4, 0.4, at: 0);
+      for (final dz in const [-4.4, 4.4]) {
+        m.arcade(10.2, 2.1, 1.4, dz: dz, at: 0.4);
+        m.arcade(10.2, 1.9, 1.4, dz: dz, at: 2.5);
+        m.roof(10.6, 1.7, 0.7, dz: dz, at: 4.4);
       }
-      m.box(PieceKind.floor, 1.5, 1.5, 5.0, dx: -2.6, dz: -2.6, at: 0.4);
-      m.box(PieceKind.parapet, 1.75, 1.75, 0.4, dx: -2.6, dz: -2.6, at: 5.4);
-      m.spire(1.55, 1.55, 1.5, dx: -2.6, dz: -2.6, at: 5.8);
-      m.banner(0.9, dx: -2.6, dz: -2.6, at: 7.3);
-      m.box(PieceKind.arcade, 1.4, 0.9, 2.0, dz: 2.4, at: 0.4);
-      m.stair(1.8, 0.4, 1.0, dz: 3.0);
-      m.tree(1.1, 1.9, dx: -0.9, dz: 0.9);
-      m.tree(1.1, 1.8, dx: 0.9, dz: -0.9);
-      m.water(1.1, 1.1);
-      m.plinth(0.7, 0.7, 0.3);
+      for (final dx in const [-4.6, 4.6]) {
+        m.arcade(7.2, 2.1, 1.4, dx: dx, along: false, at: 0.4);
+        m.arcade(7.2, 1.9, 1.4, dx: dx, along: false, at: 2.5);
+        m.roof(1.7, 7.6, 0.7, dx: dx, along: false, at: 4.4);
+      }
+      m.box(PieceKind.floor, 2.6, 2.6, 5.6, dx: -4.6, dz: -4.4, at: 0.4);
+      m.arcade(2.2, 1.4, 2.2, dx: -4.6, dz: -4.4, at: 6.0);
+      m.box(
+        PieceKind.parapet,
+        2.9,
+        2.9,
+        0.45,
+        dx: -4.6,
+        dz: -4.4,
+        ridge: true,
+        at: 7.4,
+      );
+      m.spire(2.7, 2.7, 2.2, dx: -4.6, dz: -4.4, at: 7.85);
+      m.field(3.0, 2.6, dx: -1.8, dz: -1.6);
+      m.field(3.0, 2.6, dx: 1.8, dz: -1.6);
+      m.field(3.0, 2.6, dx: -1.8, dz: 1.6);
+      m.field(3.0, 2.6, dx: 1.8, dz: 1.6);
+      m.water(1.3, 1.3);
+      m.box(PieceKind.plinth, 1.0, 1.0, 0.3, at: 0);
+      m.box(PieceKind.parapet, 0.8, 0.8, 0.45, ridge: true, at: 0.3);
+      m.arcade(2.8, 2.6, 1.5, dz: 4.4, at: 0.4);
+      m.box(PieceKind.parapet, 3.2, 1.7, 0.6, dz: 4.4, ridge: true, at: 3.0);
+      m.banner(1.4, dx: -1.4, dz: 4.4, at: 3.6);
+      m.banner(1.4, dx: 1.4, dz: 4.4, at: 3.6);
+      m.stair(2.8, 0.4, 0.9, dz: 5.6);
+      m.tree(1.3, 2.5, dx: 4.8, dz: -5.4);
     },
+    scale: 0.65,
   ),
 
   Landmark(
     'biblioteca',
     'Biblioteca',
-    20,
+    21,
     2,
-    'Estanterías hasta el techo. Lo que sabía uno ya lo pueden saber todos.',
+    'Una sala larga con ventanales y anaqueles hasta el techo. Copiar un libro lleva un año.',
     (m) {
-      m.plinth(4.4, 3.0, 0.5);
-      m.plinth(4.0, 2.7, 0.4);
-      m.arcade(3.7, 1.3, 0.6, dz: 1.15, at: 0.9, along: true);
-      m.box(PieceKind.floor, 3.7, 2.4, 1.5, at: 0.9);
-      m.box(PieceKind.floor, 3.65, 2.35, 1.3, at: 2.4);
-      m.box(PieceKind.parapet, 4.0, 2.7, 0.42, at: 3.7);
-      m.roof(3.85, 2.6, 0.95, at: 4.12, along: true);
-      for (final s in [-1.0, 1.0]) {
-        m.box(
-          PieceKind.parapet,
-          0.55,
-          0.55,
-          1.0,
-          dx: s * 1.7,
-          dz: -1.05,
-          at: 3.7,
-        );
-        m.box(
-          PieceKind.parapet,
-          0.55,
-          0.55,
-          1.0,
-          dx: s * 1.7,
-          dz: 1.05,
-          at: 3.7,
-        );
-        m.box(
-          PieceKind.dormer,
-          0.7,
-          0.6,
-          0.55,
-          dx: s * 1.1,
-          dz: 0.95,
-          at: 4.12,
-        );
+      // Una sola sala altísima, de ventanal en ventanal, sobre un podio.
+      // Nada de pisos: lo que se ve es la altura de dentro.
+      m.box(PieceKind.plinth, 6.0, 10.0, 0.6, at: 0);
+      m.box(PieceKind.plinth, 5.4, 9.4, 0.4, at: 0.6);
+      m.box(PieceKind.floor, 4.8, 8.8, 4.4, at: 1.0);
+      m.box(PieceKind.parapet, 5.1, 9.1, 0.55, ridge: true, at: 5.4);
+      m.roof(5.0, 9.0, 1.4, along: false, at: 5.95);
+      for (final dz in const [-3.2, -1.1, 1.0, 3.1]) {
+        m.box(PieceKind.parapet, 0.5, 0.7, 3.8, dx: -2.5, dz: dz, at: 1.0);
+        m.box(PieceKind.parapet, 0.5, 0.7, 3.8, dx: 2.5, dz: dz, at: 1.0);
       }
-      m.chimney(0.34, 1.0, dx: -0.6);
-      m.stair(1.8, 0.9, 1.1, dz: 2.1);
-      m.banner(1.0, dx: -1.4, dz: 1.4, at: 2.2);
-      m.banner(1.0, dx: 1.4, dz: 1.4, at: 2.2);
-      m.tree(1.2, 2.3, dx: -2.9, dz: 1.6);
-      m.tree(1.2, 2.2, dx: 2.9, dz: 1.6);
-      m.field(3.0, 1.0, dz: -2.2);
+      m.arcade(3.0, 2.6, 0.8, dz: 5.0, at: 1.0);
+      m.box(PieceKind.parapet, 3.4, 1.0, 0.6, dz: 5.0, ridge: true, at: 3.6);
+      m.stair(3.2, 1.0, 1.0, dz: 5.9);
+      m.box(PieceKind.parapet, 1.4, 0.5, 0.4, dx: -3.4, dz: 4.4, at: 0);
+      m.box(PieceKind.parapet, 1.4, 0.5, 0.4, dx: 3.4, dz: 4.4, at: 0);
+      m.tree(1.3, 2.6, dx: -4.2, dz: 2.4);
+      m.tree(1.3, 2.4, dx: 4.2, dz: 2.4);
+      m.field(3.4, 1.6, dz: -5.6);
     },
+    scale: 0.65,
   ),
 
   Landmark(
@@ -1737,57 +1786,77 @@ final List<Landmark> landmarks = [
     'Corral de misterios',
     24,
     2,
-    'Corredores, un tablado y bancos. Una vez al año el pueblo se cuenta a sí mismo.',
+    'Un patio con galerías y un tablado al fondo. Una tarde al año el pueblo se cuenta a sí mismo.',
     (m) {
-      m.plinth(4.6, 4.2, 0.3);
-      for (final s in [-1.0, 1.0]) {
-        m.box(PieceKind.floor, 0.9, 3.6, 1.1, dx: s * 1.8, at: 0.3);
-        m.arcade(3.4, 1.0, 0.5, dx: s * 1.8, along: false, at: 1.4);
-        m.beam(1.1, 3.6, 0.2, dx: s * 1.8, at: 2.4);
-        m.box(PieceKind.floor, 1.0, 3.6, 1.0, dx: s * 1.8, at: 2.6);
-        m.roof(1.2, 3.8, 0.5, dx: s * 1.8, at: 3.6, along: false);
-        m.banner(1.0, dx: s * 1.8, dz: -1.6, at: 4.1);
-      }
-      m.box(PieceKind.floor, 3.0, 0.9, 1.1, dz: -1.7, at: 0.3);
-      m.arcade(2.8, 1.0, 0.5, dz: -1.7, at: 1.4, along: true);
-      m.beam(3.2, 1.1, 0.2, dz: -1.7, at: 2.4);
-      m.roof(3.4, 1.3, 0.5, dz: -1.7, at: 2.6, along: true);
-      m.box(PieceKind.porch, 2.4, 1.2, 0.8, dz: 1.2, at: 0.3);
-      m.post(0.2, 1.6, dx: -1.0, dz: 1.7, at: 1.1);
-      m.post(0.2, 1.6, dx: 1.0, dz: 1.7, at: 1.1);
-      m.beam(2.6, 0.3, 0.18, dz: 1.7, at: 2.7);
-      m.roof(2.8, 1.5, 0.5, dz: 1.4, at: 2.88, along: true);
-      m.stair(1.6, 0.3, 0.8, dz: 2.4);
-      m.tree(1.2, 2.2, dx: -3.0, dz: 2.2);
+      // Un corral de comedias: patio descubierto, galerías de madera en tres
+      // lados y el tablado al fondo, bajo cubierta.
+      m.box(PieceKind.plinth, 8.0, 7.0, 0.3, at: 0);
+      m.arcade(7.6, 1.6, 1.0, dz: -2.9, at: 0.3);
+      m.arcade(7.6, 1.5, 1.0, dz: -2.9, at: 1.9);
+      m.arcade(5.6, 1.6, 1.0, dx: -3.4, along: false, at: 0.3);
+      m.arcade(5.6, 1.5, 1.0, dx: -3.4, along: false, at: 1.9);
+      m.arcade(5.6, 1.6, 1.0, dx: 3.4, along: false, at: 0.3);
+      m.arcade(5.6, 1.5, 1.0, dx: 3.4, along: false, at: 1.9);
+      m.roof(7.9, 1.3, 0.6, dz: -2.9, at: 3.4);
+      m.roof(1.3, 5.9, 0.6, dx: -3.4, along: false, at: 3.4);
+      m.roof(1.3, 5.9, 0.6, dx: 3.4, along: false, at: 3.4);
+      m.box(PieceKind.plinth, 4.6, 2.0, 0.85, dz: 2.6, at: 0.3);
+      m.box(PieceKind.floor, 4.2, 0.5, 2.6, dz: 3.4, at: 1.15);
+      m.box(PieceKind.parapet, 0.42, 1.9, 2.6, dx: -2.0, dz: 2.6, at: 1.15);
+      m.box(PieceKind.parapet, 0.42, 1.9, 2.6, dx: 2.0, dz: 2.6, at: 1.15);
+      m.roof(4.9, 2.4, 0.9, dz: 2.8, at: 3.75);
+      m.banner(1.3, dx: -2.0, dz: 2.6, at: 3.75);
+      m.banner(1.3, dx: 2.0, dz: 2.6, at: 3.75);
+      m.field(6.4, 4.4, dz: -0.4);
+      m.box(PieceKind.parapet, 3.0, 0.45, 0.4, dz: -3.9, at: 0);
+      m.stair(2.0, 0.3, 0.8, dz: -4.2);
+      m.tree(1.3, 2.4, dx: -4.4, dz: 3.4);
+      m.tree(1.2, 2.2, dx: 4.4, dz: 3.4);
+      m.post(0.22, 2.0, dx: -3.9, dz: -3.6, at: 0);
+      m.banner(1.1, dx: -3.9, dz: -3.6, at: 2.0);
     },
+    scale: 0.65,
   ),
 
   Landmark(
     'coso',
     'Coso y graderío',
-    26,
+    28,
     2,
-    'Ruedo de arena y graderío de piedra. Cabe el pueblo entero mirando lo mismo.',
+    'Dos pisos de arcos en redondo y arena en medio. El pueblo entero cabe sentado.',
     (m) {
-      m.plinth(5.6, 5.6, 0.24);
-      m.field(3.6, 3.6);
-      for (final s in [-1.0, 1.0]) {
-        m.box(PieceKind.plinth, 5.2, 0.9, 0.7, dz: s * 2.15, at: 0.24);
-        m.box(PieceKind.plinth, 0.9, 5.2, 0.7, dx: s * 2.15, at: 0.24);
-        m.arcade(5.0, 1.1, 0.7, dz: s * 2.15, at: 0.94, along: true);
-        m.arcade(5.0, 1.1, 0.7, dx: s * 2.15, at: 0.94, along: false);
-        m.beam(5.4, 1.0, 0.2, dz: s * 2.15, at: 2.04);
-        m.beam(1.0, 5.4, 0.2, dx: s * 2.15, at: 2.04);
-        m.roof(5.6, 1.3, 0.5, dz: s * 2.2, at: 2.24, along: true);
-        m.roof(1.3, 5.6, 0.5, dx: s * 2.2, at: 2.24, along: false);
-        m.banner(1.2, dx: s * 2.4, dz: -2.4, at: 2.24);
-        m.banner(1.2, dx: s * 2.4, dz: 2.4, at: 2.24);
+      // **La obra más grande que sabe hacer el pueblo**: un anillo cerrado de
+      // arcos, dos pisos, con la arena dentro. Cuatro lienzos de arcada por
+      // planta, que en esta geometría es lo que se lee como un anfiteatro.
+      m.field(7.6, 7.6);
+      for (final lado in const [-1, 1]) {
+        m.arcade(10.0, 2.4, 1.3, dz: lado * 4.4, at: 0);
+        m.arcade(10.0, 2.2, 1.3, dz: lado * 4.4, at: 2.4);
+        m.arcade(8.0, 2.4, 1.3, dx: lado * 4.4, along: false, at: 0);
+        m.arcade(8.0, 2.2, 1.3, dx: lado * 4.4, along: false, at: 2.4);
       }
-      m.box(PieceKind.arcade, 1.4, 1.0, 1.6, dz: -2.15, at: 0.24);
-      m.stair(1.6, 0.24, 0.9, dz: 3.0);
-      m.tree(1.2, 2.3, dx: -3.4, dz: 3.0);
-      m.tree(1.2, 2.2, dx: 3.4, dz: 3.0);
+      m.box(PieceKind.parapet, 10.4, 1.5, 0.5, dz: -4.4, ridge: true, at: 4.6);
+      m.box(PieceKind.parapet, 10.4, 1.5, 0.5, dz: 4.4, ridge: true, at: 4.6);
+      m.box(PieceKind.parapet, 1.5, 8.4, 0.5, dx: -4.4, ridge: true, at: 4.6);
+      m.box(PieceKind.parapet, 1.5, 8.4, 0.5, dx: 4.4, ridge: true, at: 4.6);
+      for (final c in const [
+        (-4.4, -4.4),
+        (4.4, -4.4),
+        (-4.4, 4.4),
+        (4.4, 4.4),
+      ]) {
+        m.box(PieceKind.floor, 1.7, 1.7, 5.1, dx: c.$1, dz: c.$2, at: 0);
+        m.banner(1.5, dx: c.$1, dz: c.$2, at: 5.1);
+      }
+      m.box(PieceKind.plinth, 2.6, 1.6, 0.35, dz: 5.4, at: 0);
+      m.stair(2.2, 0.35, 0.9, dz: 5.9);
+      m.arcade(2.4, 2.6, 1.3, dz: 4.4, at: 0);
+      m.box(PieceKind.parapet, 3.0, 1.6, 0.5, dz: 4.4, ridge: true, at: 2.6);
+      m.box(PieceKind.parapet, 3.4, 0.5, 0.6, dz: -5.4, at: 0);
+      m.tree(1.3, 2.4, dx: -5.5, dz: -5.0);
+      m.tree(1.2, 2.2, dx: 5.5, dz: -5.0);
     },
+    scale: 0.65,
   ),
 
   Landmark(
@@ -1795,84 +1864,75 @@ final List<Landmark> landmarks = [
     'Jardín del palacio',
     26,
     2,
-    'Setos, agua en medio y un banco a la sombra. Lo primero que se hace sin que sirva para nada.',
+    'Cuadros de boj, un estanque y un templete al fondo. Un sitio que no sirve para nada y hace falta.',
     (m) {
-      m.plinth(5.4, 5.4, 0.18);
-      m.water(2.4, 2.4);
-      m.plinth(1.2, 1.2, 0.3);
-      m.post(0.4, 0.7, at: 0.3);
-      m.dome(0.6, 0.6, 0.4, at: 1.0);
-      for (final sx in [-1.0, 1.0]) {
-        for (final sz in [-1.0, 1.0]) {
-          m.field(1.5, 1.5, dx: sx * 1.8, dz: sz * 1.8);
-          m.tree(1.1, 1.9, dx: sx * 1.8, dz: sz * 1.8);
-          m.palisade(1.7, 0.45, dx: sx * 1.8, dz: sz * 2.7);
-        }
+      // Todo el hito es suelo: parterres, agua y setos, con un templete
+      // pequeño al fondo. Es la única obra del catálogo que casi no sube.
+      m.box(PieceKind.parapet, 12.0, 0.36, 0.85, dz: -5.6, at: 0);
+      m.box(PieceKind.parapet, 12.0, 0.36, 0.85, dz: 5.6, at: 0);
+      m.box(PieceKind.parapet, 0.36, 11.2, 0.85, dx: -5.8, at: 0);
+      m.box(PieceKind.parapet, 0.36, 11.2, 0.85, dx: 5.8, at: 0);
+      for (final c in const [
+        (-2.9, -2.9),
+        (2.9, -2.9),
+        (-2.9, 2.9),
+        (2.9, 2.9),
+      ]) {
+        m.field(4.0, 4.0, dx: c.$1, dz: c.$2);
+        m.palisade(3.9, 0.5, dx: c.$1, dz: c.$2 - 2.0);
       }
-      for (final s in [-1.0, 1.0]) {
-        m.palisade(5.4, 0.7, dz: s * 2.9);
-        m.palisade(5.4, 0.7, dx: s * 2.9, along: false);
-      }
-      m.plinth(1.4, 1.0, 0.4, dz: -2.6);
-      m.post(0.22, 1.6, dx: -0.5, dz: -2.6, at: 0.4);
-      m.post(0.22, 1.6, dx: 0.5, dz: -2.6, at: 0.4);
-      m.beam(1.5, 1.0, 0.16, dz: -2.6, at: 2.0);
-      m.roof(1.7, 1.2, 0.5, dz: -2.6, at: 2.16);
+      m.water(2.6, 2.6);
+      m.box(PieceKind.plinth, 3.2, 3.2, 0.24, at: 0);
+      m.box(PieceKind.plinth, 1.0, 1.0, 0.3, at: 0);
+      m.box(PieceKind.parapet, 0.8, 0.8, 0.5, ridge: true, at: 0.3);
+      m.box(PieceKind.plinth, 3.6, 3.6, 0.45, dz: -4.0, at: 0);
+      m.arcade(3.0, 2.2, 3.0, dz: -4.0, at: 0.45);
+      m.box(PieceKind.parapet, 3.4, 3.4, 0.4, dz: -4.0, ridge: true, at: 2.65);
+      m.dome(3.2, 3.2, 1.5, dz: -4.0, at: 3.05);
+      m.stair(2.4, 0.45, 0.9, dz: -2.0);
+      m.tree(1.4, 2.8, dx: -5.0, dz: -5.0);
+      m.tree(1.4, 2.6, dx: 5.0, dz: -5.0);
+      m.tree(1.4, 2.8, dx: -5.0, dz: 5.0);
+      m.tree(1.4, 2.6, dx: 5.0, dz: 5.0);
+      m.arcade(2.2, 1.9, 0.5, dz: 5.6, at: 0);
+      m.box(PieceKind.parapet, 2.6, 0.9, 0.45, dz: 5.6, ridge: true, at: 1.9);
     },
+    scale: 0.65,
   ),
 
   Landmark(
     'arcoVilla',
     'Arco de la villa',
-    20,
+    19,
     2,
-    'Un arco por el que no hace falta pasar. Está para decir que se llegó.',
+    'Un arco que no cierra nada y no defiende nada. Se levanta sólo para decir que se pudo.',
     (m) {
-      m.plinth(4.6, 2.0, 0.5);
-      for (final s in [-1.0, 1.0]) {
-        m.box(PieceKind.floor, 1.2, 1.7, 3.2, dx: s * 1.65, at: 0.5);
-        m.box(PieceKind.parapet, 1.4, 1.9, 0.4, dx: s * 1.65, at: 3.7);
-        m.box(
-          PieceKind.parapet,
-          0.4,
-          0.4,
-          0.9,
-          dx: s * 1.65,
-          dz: -0.6,
-          at: 4.1,
-        );
-        m.box(PieceKind.parapet, 0.4, 0.4, 0.9, dx: s * 1.65, dz: 0.6, at: 4.1);
-      }
-      m.box(PieceKind.arcade, 2.1, 1.7, 2.6, at: 0.5);
-      m.beam(4.6, 1.9, 0.3, at: 3.1);
-      m.box(PieceKind.floor, 3.4, 1.6, 1.1, at: 3.4);
-      m.box(PieceKind.parapet, 3.7, 1.9, 0.4, at: 4.5);
-      m.banner(1.2, dx: -1.0, at: 4.9);
-      m.banner(1.2, dx: 1.0, at: 4.9);
-      m.box(PieceKind.dormer, 1.0, 0.2, 0.7, dz: -0.9, at: 3.6);
-      m.box(
-        PieceKind.plinth,
-        0.8,
-        0.8,
-        0.3,
-        dx: -2.9,
-        dz: 1.0,
-        ridge: true,
-        at: 0,
-      );
-      m.box(
-        PieceKind.plinth,
-        0.8,
-        0.8,
-        0.3,
-        dx: 2.9,
-        dz: 1.0,
-        ridge: true,
-        at: 0,
-      );
-      m.stair(2.0, 0.5, 1.0, dz: 1.4);
-      m.tree(1.2, 2.2, dx: -3.2, dz: -1.4);
+      // **Lo que hace que un arco se lea como un arco es el agujero.** Dos
+      // pilares separados de verdad, con aire entre ellos, y el arco cruzando
+      // ese aire: si se rellena el hueco con obra, por mucha arcada que se le
+      // dibuje encima lo que se ve es un bloque.
+      m.box(PieceKind.plinth, 7.6, 3.6, 0.45, at: 0);
+      m.box(PieceKind.plinth, 2.4, 3.0, 0.4, dx: -2.5, at: 0.45);
+      m.box(PieceKind.plinth, 2.4, 3.0, 0.4, dx: 2.5, at: 0.45);
+      m.box(PieceKind.parapet, 2.0, 2.7, 3.9, dx: -2.5, at: 0.85);
+      m.box(PieceKind.parapet, 2.0, 2.7, 3.9, dx: 2.5, at: 0.85);
+      m.arcade(3.4, 1.3, 2.7, at: 3.45);
+      m.box(PieceKind.parapet, 7.2, 3.1, 0.55, ridge: true, at: 4.75);
+      m.box(PieceKind.parapet, 6.6, 2.8, 0.85, ridge: true, at: 5.3);
+      m.box(PieceKind.parapet, 3.6, 2.4, 0.95, ridge: true, at: 6.15);
+      m.post(0.46, 3.0, dx: -3.3, dz: 1.5, at: 0.85);
+      m.post(0.46, 3.0, dx: -1.7, dz: 1.5, at: 0.85);
+      m.post(0.46, 3.0, dx: 1.7, dz: 1.5, at: 0.85);
+      m.post(0.46, 3.0, dx: 3.3, dz: 1.5, at: 0.85);
+      m.banner(1.5, dx: -2.5, dz: 0.9, at: 6.15);
+      m.banner(1.5, dx: 2.5, dz: 0.9, at: 6.15);
+      m.stair(3.2, 0.45, 0.95, dz: 2.25);
+      m.box(PieceKind.plinth, 3.0, 2.0, 0.2, dz: -2.4, at: 0);
+      m.tree(1.3, 2.4, dx: -4.8, dz: 2.0);
+      m.tree(1.2, 2.2, dx: 4.8, dz: 2.0);
     },
+    scale: 0.65,
+    rigid: true,
   ),
 
   Landmark(
@@ -1880,51 +1940,30 @@ final List<Landmark> landmarks = [
     'Panteón de los fundadores',
     18,
     2,
-    'Cúpula sobre los que empezaron todo esto. La primera piedra la puso alguien.',
+    'Los nombres de los que empezaron esto, en piedra y bajo una cúpula. Ya hay a quién recordar.',
     (m) {
-      m.plinth(4.0, 4.0, 0.55);
-      m.plinth(3.5, 3.5, 0.45);
-      m.arcade(3.2, 1.3, 3.2, at: 1.0, rise: true);
-      m.beam(3.6, 3.6, 0.26, at: 2.3);
-      m.box(PieceKind.floor, 3.1, 3.1, 1.1, at: 2.56);
-      m.box(PieceKind.parapet, 3.4, 3.4, 0.38, at: 3.66);
-      m.dome(3.1, 3.1, 1.8, at: 4.04);
-      m.dome(0.8, 0.8, 0.55, at: 5.84);
-      m.post(0.24, 0.6, at: 6.39);
-      for (final s in [-1.0, 1.0]) {
-        m.box(
-          PieceKind.parapet,
-          0.45,
-          0.45,
-          1.0,
-          dx: s * 1.5,
-          dz: -1.5,
-          at: 3.66,
-        );
-        m.box(
-          PieceKind.parapet,
-          0.45,
-          0.45,
-          1.0,
-          dx: s * 1.5,
-          dz: 1.5,
-          at: 3.66,
-        );
-      }
-      m.stair(1.8, 1.0, 1.1, dz: 2.6);
-      m.tree(1.3, 2.6, dx: -2.8, dz: 2.4);
-      m.tree(1.3, 2.5, dx: 2.8, dz: 2.4);
-      m.palisade(4.4, 0.6, dz: 3.4);
-      m.box(
-        PieceKind.plinth,
-        0.7,
-        0.7,
-        0.28,
-        dx: -2.6,
-        dz: -1.8,
-        ridge: true,
-        at: 0,
-      );
+      // Una rotonda: podio, escalinata, pórtico de columnas y cúpula. Es la
+      // única obra del catálogo que es redonda por fuera y por dentro.
+      m.box(PieceKind.plinth, 6.2, 6.2, 0.45, at: 0);
+      m.box(PieceKind.plinth, 5.4, 5.4, 0.4, at: 0.45);
+      m.box(PieceKind.floor, 4.4, 4.4, 2.6, at: 0.85);
+      m.box(PieceKind.parapet, 4.9, 4.9, 0.5, ridge: true, at: 3.45);
+      m.dome(4.4, 4.4, 2.2, at: 3.95);
+      m.arcade(3.4, 2.6, 1.1, dz: 2.6, at: 0.85);
+      m.box(PieceKind.parapet, 3.7, 1.35, 0.55, ridge: true, at: 3.45);
+      m.spire(3.4, 1.4, 1.0, dz: 2.6, at: 4.0);
+      m.post(0.42, 2.6, dx: -1.35, dz: 3.05, at: 0.85);
+      m.post(0.42, 2.6, dx: -0.45, dz: 3.05, at: 0.85);
+      m.post(0.42, 2.6, dx: 0.45, dz: 3.05, at: 0.85);
+      m.post(0.42, 2.6, dx: 1.35, dz: 3.05, at: 0.85);
+      m.stair(3.6, 0.85, 1.2, dz: 4.2);
+      m.tree(1.3, 2.6, dx: -3.6, dz: 3.2);
+      m.tree(1.3, 2.4, dx: 3.6, dz: 3.2);
+      m.box(PieceKind.parapet, 1.4, 0.45, 0.35, dx: -3.4, dz: 1.4, at: 0);
+      m.box(PieceKind.parapet, 1.4, 0.45, 0.35, dx: 3.4, dz: 1.4, at: 0);
+      m.palisade(5.6, 0.7, dz: -3.4);
     },
+    scale: 0.65,
+    rigid: true,
   ),
 ];

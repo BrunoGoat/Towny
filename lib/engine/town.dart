@@ -1138,13 +1138,15 @@ class TownLayout {
     // Y mirando de frente, además — una cruz que unas veces cae de canto y
     // otras de perfil es la misma cruz torcida.
     final propio = b.landmark?.rigid ?? false;
+    // Y lo apretadas que van las grandes: ver [Landmark.scale].
+    final aprieto = b.landmark?.scale ?? 1.0;
     final m = Mason(
       b.cx + hashRange(-jitter, jitter, s, 3),
       b.cz + hashRange(-jitter, jitter, s, 4),
       s,
       propio ? true : hash01(s, 5) < 0.5,
-      spread: propio ? 1.0 : character.spread,
-      storey: propio ? 1.0 : character.storey,
+      spread: (propio ? 1.0 : character.spread) * aprieto,
+      storey: (propio ? 1.0 : character.storey) * aprieto,
       pitch: propio ? 1.0 : character.pitch,
     );
 

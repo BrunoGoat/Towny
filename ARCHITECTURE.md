@@ -117,9 +117,17 @@ tests no saben hacer:
 ```bash
 flutter test tool/shot_test.dart          # la foto del README
 flutter test tool/reel_frames_test.dart   # fotogramas de la cinemática a disco
+flutter test tool/marks_sheet_test.dart   # el catálogo entero, de doce en doce
+flutter test tool/vocab_sheet_test.dart   # las palabras del albañil, una por casilla
 flutter test tool/bench_test.dart         # cuánto cuesta un fotograma, por etapas
 flutter test tool/censo_test.dart         # cuánto cuesta poner cien piezas
 ```
+
+Las dos hojas de contacto son para juzgar el catálogo, que es una cosa que no
+se puede hacer de una en una: el expositor de la app enseña una obra y sirve
+para ver si *esa* está bien, y lo que hay que ver es si **se distinguen entre
+sí**. Con `--dart-define=SOLO=castillo,coso` se miran unas pocas, y con `GIRO`
+y `REGION` las mismas desde otro lado o en otra comarca.
 
 Los dos primeros existen porque los tests dicen que algo no se cae y que los
 números salen bien, y ninguna de las dos cosas dice si está bien encuadrado. Los
@@ -145,6 +153,8 @@ Dentro de `engine/`, que es el más poblado:
 | | |
 |---|---|
 | `town.dart`, `mason.dart`, `solids.dart` | qué se construye y de qué caras está hecho |
+| `landmarks.dart` | las sesenta obras, cada una en una docena de líneas |
+| `landmarks_retired.dart` | las que ya no se ofrecen y hay que saber levantar igual |
 | `world.dart`, `bsp.dart` | en qué orden se pinta, resuelto una vez al poner la pieza |
 | `scene.dart` | lo que hay que pintar, dicho antes de pintarlo |
 | `renderer.dart` | el rasterizador: recortar, sombrear y rellenar caras |

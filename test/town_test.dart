@@ -299,8 +299,8 @@ void main() {
             0,
             999,
             true,
-            spread: propio ? 1.0 : c.spread,
-            storey: propio ? 1.0 : c.storey,
+            spread: (propio ? 1.0 : c.spread) * l.scale,
+            storey: (propio ? 1.0 : c.storey) * l.scale,
             pitch: propio ? 1.0 : c.pitch,
           );
           l.build(m);
@@ -341,7 +341,9 @@ void main() {
 
     test('no landmark sprawls further than its own plot allows', () {
       for (final l in landmarks) {
-        final m = Mason(0, 0, 7, true);
+        // Con el aprieto puesto: lo que tiene que caber en el solar es lo que
+        // se levanta, no lo que está escrito. Ver [Landmark.scale].
+        final m = Mason(0, 0, 7, true, spread: l.scale, storey: l.scale);
         l.build(m);
         var reach = 0.0;
         for (final s in m.finish(l.cost)) {

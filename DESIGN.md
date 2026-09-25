@@ -402,6 +402,36 @@ Y lo de abajo —el botón de poner, la fila de hábitos— no tiene cielo detr�
 sino prado, que es verde medio a cualquier hora, así que ahí no hay dos casos:
 tinta clara y un aliento oscuro detrás, siempre.
 
+### Cómo se escribe una obra
+
+Una obra no es un modelo: es una receta de una docena de líneas escritas en el
+vocabulario del albañil —zócalo, planta, tejado, arcada, cúpula, chapitel,
+estacada, campo, agua, aspas, bandera—. Por eso puede haber sesenta en vez de
+cuatro, y por eso una nueva son quince minutos y no un modelo 3D.
+
+Tres reglas, y las tres salen de errores que se vieron en el teléfono:
+
+**Lo que va encima pregunta por la línea de obra; lo que va al lado dice
+`at: 0`.** El albañil lleva la cuenta de por dónde va la obra, y una pieza que
+se pone «a cuatro coma setenta y dos» deja de estar donde tiene que estar en
+cuanto la receta cambia de un piso — o en cuanto la comarca de al lado
+construye los tejados más planos. Todas las piezas volando del catálogo viejo
+eran alturas escritas a mano.
+
+**Nada se apoya en la punta de un cono ni en el caballete de un tejado.** Un
+chapitel acaba en un vértice y un tejado sube lo que sube en cada comarca: la
+bandera de la atalaya, el cimborrio de la iglesia y la torre del reloj del
+concejo estaban las tres encaramadas ahí, y las tres se veían flotar. Lo que
+tenga que subir sube desde el muro.
+
+**Y una obra ocupa su solar, no el de al lado.** El pueblo reparte los solares
+dejando libre el setenta y dos por ciento de la suma de los dos sitios; una
+obra que se pase se mete en la casa vecina, y entonces el rasterizador deja de
+poder cortarlas por separado: medido, un pueblo de sesenta y cinco edificios
+pasó de sesenta y cinco nudos a quince y el coste de cortar casi se dobló. Las
+grandes se escriben a tamaño de plano y se aprietan en una línea al
+construirse.
+
 ## El tablón
 
 El pueblo va anotando lo que nota de vos, y lo cuelga en su tablón: a qué hora
