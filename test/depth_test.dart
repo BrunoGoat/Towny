@@ -336,10 +336,19 @@ void main() {
 
         for (final cosa in creados.sublist(3)) {
           final suya = Aabb.of(cosa.faces)!;
-          // Sólo lo que queda limpiamente por delante del cuerpo. Una banqueta
-          // va debajo y no delante: ahí no es la cámara quien decide el orden y
-          // no hay nada que exigir.
+          // Sólo lo que queda limpiamente por delante del cuerpo **y a su
+          // altura de ancho**. Una banqueta va debajo y no delante: ahí no es
+          // la cámara quien decide el orden y no hay nada que exigir. Y un
+          // palo de la cuerda de tender va a medio metro hacia el costado, y
+          // la cuerda misma pasa por encima de la cabeza: están por delante,
+          // sí, pero el cuerpo no los puede tapar ni mirándolos de espaldas,
+          // porque no están detrás de él. Lo que esta prueba vigila es lo que
+          // se lleva **encima**: lo que cae dentro de la silueta del cuerpo
+          // mirándolo de frente, que es donde el orden lo decide de qué lado
+          // está la cámara y no la lista.
           if (suya.z0 <= caja.z1 + 0.004) continue;
+          if (suya.x0 > caja.x1 + 0.004 || suya.x1 < caja.x0 - 0.004) continue;
+          if (suya.y0 > caja.y1 + 0.004 || suya.y1 < caja.y0 - 0.004) continue;
           medidos++;
 
           for (final pitch in [0.0, 0.5, -0.3]) {

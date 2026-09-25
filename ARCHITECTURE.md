@@ -118,6 +118,7 @@ tests no saben hacer:
 flutter test tool/shot_test.dart          # la foto del README
 flutter test tool/reel_frames_test.dart   # fotogramas de la cinemática a disco
 flutter test tool/marks_sheet_test.dart   # el catálogo entero, de doce en doce
+flutter test tool/doings_sheet_test.dart  # lo que hace la gente, cuatro instantes cada una
 flutter test tool/vocab_sheet_test.dart   # las palabras del albañil, una por casilla
 flutter test tool/bench_test.dart         # cuánto cuesta un fotograma, por etapas
 flutter test tool/censo_test.dart         # cuánto cuesta poner cien piezas
@@ -134,10 +135,12 @@ de rastrear los literales de cada pantalla. Es lo que hay que mirar antes de
 tocar una palabra, y lo que habrá que traducir el día que la app hable en otro
 idioma.
 
-Las dos hojas de contacto son para juzgar el catálogo, que es una cosa que no
-se puede hacer de una en una: el expositor de la app enseña una obra y sirve
-para ver si *esa* está bien, y lo que hay que ver es si **se distinguen entre
-sí**. Con `--dart-define=SOLO=castillo,coso` se miran unas pocas, y con `GIRO`
+Las tres hojas de contacto son para juzgar un catálogo, que es una cosa que no
+se puede hacer de una en una: el expositor de la app enseña una obra —o un
+vecino— y sirve para ver si *ése* está bien, y lo que hay que ver es si **se
+distinguen entre sí**. La de la gente pone además cuatro instantes del mismo
+gesto uno al lado de otro, porque lo que separa a dos actividades no es la
+postura: es el movimiento, y una foto quieta no lo enseña. Con `--dart-define=SOLO=castillo,coso` se miran unas pocas, y con `GIRO`
 y `REGION` las mismas desde otro lado o en otra comarca.
 
 Los dos primeros existen porque los tests dicen que algo no se cae y que los

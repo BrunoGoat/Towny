@@ -530,6 +530,372 @@ List<Solid> folkSolids(
         );
       }
 
+    case PropKind.pail:
+      // El caldero del pozo: la soga desde la mano y el caldero al final, y
+      // lo que cuenta la historia es que **sube y baja** con el espinazo.
+      //
+      // La mano va por fuera del hombro y no donde la pondría `hold`: a esta
+      // altura, el sitio donde se sostienen las cosas cae dentro de la
+      // cabeza, y la soga le salía por la oreja.
+      final h = hold(1, 0.92, 0.02);
+      final m = (h.$1 + 0.11, h.$2, h.$3 + 0.06);
+      final sube = 0.16 + math.max(0.0, swing) * 0.70;
+      final cx = m.$1 + 0.09;
+      link(m, (cx, sube + 0.20, m.$3), 0.010, 0xFF6A5A44, 0.92);
+      // El asa, que es lo que lo separa de un cajón colgado.
+      link(
+        (cx - 0.090, sube + 0.145, m.$3),
+        (cx + 0.090, sube + 0.145, m.$3),
+        0.008,
+        0xFF5A4A38,
+        0.90,
+      );
+      box(
+        cx - 0.098,
+        sube,
+        m.$3 - 0.098,
+        cx + 0.098,
+        sube + 0.145,
+        m.$3 + 0.098,
+        0xFF8A6A3E,
+        0.90,
+      );
+      // El aro de arriba, un pelo más ancho: sin él es una caja.
+      box(
+        cx - 0.108,
+        sube + 0.126,
+        m.$3 - 0.108,
+        cx + 0.108,
+        sube + 0.158,
+        m.$3 + 0.108,
+        0xFF6B5236,
+        0.94,
+      );
+
+    case PropKind.tub:
+      // El barreño en el suelo, por delante, con la ropa dentro asomando. Se
+      // lava de rodillas: el cuerpo ya está abajo, así que el barreño tiene
+      // que estar **delante** y no debajo, o se lo come.
+      const cz = 0.47;
+      box(-0.215, 0.0, cz - 0.175, 0.215, 0.105, cz + 0.175, 0xFF7A6242, 0.88);
+      box(
+        -0.235,
+        0.095,
+        cz - 0.195,
+        0.235,
+        0.135,
+        cz + 0.195,
+        0xFF5E4A31,
+        0.92,
+      );
+      // El paño mojado, que asoma por el canto y se mueve con el frote.
+      final frota = swing * 0.045;
+      box(
+        -0.110 + frota,
+        0.100,
+        cz - 0.090,
+        0.130 + frota,
+        0.150,
+        cz + 0.110,
+        0xFFE8E2D2,
+        1.05,
+      );
+
+    case PropKind.rod:
+      // La caña: una diagonal larga que sale del costado y cruza toda la
+      // silueta hacia arriba, y el sedal cayendo al agua desde la punta. Es
+      // la silueta más larga de todas, y por eso se reconoce de lejos.
+      final m = hold(1, 0.30, 0.02);
+      final punta = (m.$1 + 0.30, m.$2 + 0.78, m.$3 + 1.00);
+      link(m, punta, 0.012, _wood2, 0.95);
+      link(punta, (punta.$1, 0.01, punta.$3 + 0.06), 0.004, 0xFFD8D2C0, 1.06);
+      // El flotador, donde el sedal toca el agua.
+      box(
+        punta.$1 - 0.028,
+        0.010,
+        punta.$3 + 0.032,
+        punta.$1 + 0.028,
+        0.060,
+        punta.$3 + 0.088,
+        0xFFBF4A32,
+        1.04,
+      );
+
+    case PropKind.lute:
+      // El laúd contra el pecho, **grande y de madera clara**.
+      //
+      // Hicieron falta tres intentos. Con una caja chica y oscura y el mástil
+      // hacia arriba, a veinte píxeles era un bulto con un palo — o sea lo
+      // mismo que lleva quien saca agua del pozo. Lo que lo hace un laúd son
+      // tres cosas: que la caja mida lo que la cabeza, que sea más clara que
+      // cualquier sayo (si no, contra un pardo no existe), y que el mástil
+      // salga por fuera de la silueta, que es lo único que no puede tener
+      // ninguna otra cosa que se lleve encima.
+      final m = hold(-1, 0.50, 0.11);
+      final y = m.$2, z = m.$3;
+      box(-0.255, y - 0.105, z, 0.020, y + 0.135, z + 0.110, 0xFFD9AE68, 1.0);
+      // La tapa, por delante y más clara todavía: le da el bulto redondo.
+      box(
+        -0.230,
+        y - 0.080,
+        z + 0.105,
+        -0.005,
+        y + 0.110,
+        z + 0.134,
+        0xFFF0D69B,
+        1.06,
+      );
+      // La boca, el agujero redondo.
+      box(
+        -0.150,
+        y - 0.005,
+        z + 0.130,
+        -0.070,
+        y + 0.060,
+        z + 0.142,
+        0xFF43301E,
+        0.84,
+      );
+      // El mástil, largo y cruzado, asomando por el hombro del otro lado.
+      link(
+        (-0.030, y + 0.110, z + 0.055),
+        (0.340, y + 0.330, z - 0.010),
+        0.022,
+        0xFFC79A54,
+        1.0,
+      );
+      // El clavijero, doblado al final, que es lo que remata el mástil.
+      box(
+        0.312,
+        y + 0.318,
+        z - 0.060,
+        0.392,
+        y + 0.420,
+        z + 0.014,
+        0xFF43301E,
+        0.92,
+      );
+
+    case PropKind.stall:
+      // El puesto: el tablero sobre dos caballetes y el género encima. La
+      // persona queda **detrás** del tablero, que es lo que hace la postura.
+      const z0 = 0.30, z1 = 0.74, alto = 0.46;
+      box(-0.46, alto - 0.040, z0, 0.46, alto, z1, 0xFF8A6F47, 0.92);
+      for (final px in [-0.36, 0.36]) {
+        box(
+          px - 0.030,
+          0.0,
+          z0 + 0.040,
+          px + 0.030,
+          alto - 0.040,
+          z0 + 0.100,
+          _wood2,
+          0.86,
+        );
+        box(
+          px - 0.030,
+          0.0,
+          z1 - 0.100,
+          px + 0.030,
+          alto - 0.040,
+          z1 - 0.040,
+          _wood2,
+          0.86,
+        );
+      }
+      // El género: tres montones de distinto color, que es lo que dice que se
+      // vende algo y no que hay una tabla.
+      const generos = [
+        (-0.30, 0xFFB4553A),
+        (-0.02, 0xFF7E8E4C),
+        (0.28, 0xFFC9A94E),
+      ];
+      for (final (px, tinte) in generos) {
+        box(
+          px - 0.085,
+          alto,
+          0.40,
+          px + 0.085,
+          alto + 0.090,
+          0.62,
+          tinte,
+          1.02,
+        );
+      }
+
+    case PropKind.mallet:
+      // El sillar en el suelo y la maza cayéndole encima. El golpe es lo que
+      // se ve: la maza baja con el mismo compás con el que se dobla el
+      // espinazo, así que la figura entera golpea a la vez.
+      const cz = 0.50;
+      box(-0.190, 0.0, cz - 0.150, 0.190, 0.215, cz + 0.150, 0xFFB9B2A2, 0.90);
+      box(
+        -0.160,
+        0.215,
+        cz - 0.120,
+        0.160,
+        0.255,
+        cz + 0.120,
+        0xFFA79F8D,
+        0.94,
+      );
+      final golpe = 0.32 + math.max(0.0, -swing) * 0.40;
+      // La mano, por delante de la cabeza y por debajo: picando se dobla el
+      // espinazo, la cabeza se va hacia adelante, y el mango le entraba por
+      // la frente.
+      final m = hold(1, 0.46, 0.13);
+      link(m, (0.045, golpe + 0.055, cz - 0.02), 0.014, _wood2, 0.95);
+      box(
+        -0.055,
+        golpe,
+        cz - 0.095,
+        0.145,
+        golpe + 0.110,
+        cz + 0.055,
+        0xFF5C5348,
+        0.92,
+      );
+
+    case PropKind.saw:
+      // El madero sobre el caballete y la sierra pasando por él. Lo que se ve
+      // moverse es la hoja, de lado a lado, y el cuerpo va con ella.
+      const cz = 0.46, alto = 0.40;
+      box(-0.055, 0.0, cz - 0.150, 0.055, alto, cz - 0.075, _wood2, 0.86);
+      box(-0.055, 0.0, cz + 0.075, 0.055, alto, cz + 0.150, _wood2, 0.86);
+      box(
+        -0.340,
+        alto,
+        cz - 0.080,
+        0.340,
+        alto + 0.120,
+        cz + 0.080,
+        0xFF9A7B4E,
+        0.93,
+      );
+      final pasada = swing * 0.150;
+      // La hoja: clara, fina y alta, cruzando el madero.
+      box(
+        pasada - 0.030,
+        alto + 0.055,
+        cz - 0.135,
+        pasada + 0.030,
+        alto + 0.235,
+        cz + 0.135,
+        0xFFD2D6D8,
+        1.08,
+      );
+      box(
+        pasada - 0.034,
+        alto + 0.225,
+        cz - 0.060,
+        pasada + 0.034,
+        alto + 0.265,
+        cz + 0.060,
+        _wood2,
+        0.95,
+      );
+
+    case PropKind.scythe:
+      // La guadaña: el mango largo y la hoja **a ras de suelo**, barriendo de
+      // lado a lado. Ninguna otra cosa del pueblo se mueve tan abajo y tan
+      // ancho, y por eso se distingue del que barre.
+      final m = hold(1, 0.62, 0.0);
+      final corte = swing * 0.34;
+      final pie = (corte * 0.6, 0.075, 0.56);
+      link(m, pie, 0.016, _wood2, 0.94);
+      // El agarre de en medio, que es lo que la hace guadaña y no palo.
+      box(
+        m.$1 - 0.030 - 0.055,
+        m.$2 - 0.230,
+        m.$3 + 0.150,
+        m.$1 - 0.030 + 0.055,
+        m.$2 - 0.180,
+        m.$3 + 0.210,
+        _wood2,
+        0.90,
+      );
+      // Y la hoja, larga y curva hacia dentro, casi tocando la hierba.
+      link(
+        pie,
+        (pie.$1 - 0.46 + corte * 0.5, 0.045, pie.$3 + 0.24),
+        0.022,
+        0xFFC8CCCE,
+        1.06,
+      );
+
+    case PropKind.kite:
+      // La cometa allá arriba y el hilo tenso. Es lo único del pueblo que
+      // pasa por encima de las cabezas, así que se ve desde cualquier sitio.
+      final m = hold(1, 0.80, 0.05);
+      final vaiven = swing * 0.12;
+      final cx = 0.62 + vaiven, cy = 1.62 + swing * 0.10, cz = 0.92;
+      link(m, (cx, cy - 0.10, cz), 0.005, 0xFFE4DCC6, 1.04);
+      // El rombo: dos cajas cruzadas, que a esta distancia es un rombo.
+      box(
+        cx - 0.215,
+        cy - 0.052,
+        cz - 0.022,
+        cx + 0.215,
+        cy + 0.052,
+        cz + 0.022,
+        0xFFC1543C,
+        1.06,
+      );
+      box(
+        cx - 0.062,
+        cy - 0.245,
+        cz - 0.022,
+        cx + 0.062,
+        cy + 0.245,
+        cz + 0.022,
+        0xFFD98C3C,
+        1.04,
+      );
+      // Y la cola, tres lazos colgando, que es lo que dice que vuela.
+      for (var k = 0; k < 3; k++) {
+        final cai = cy - 0.27 - k * 0.135;
+        box(
+          cx - 0.030 - vaiven * (k + 1) * 0.6,
+          cai - 0.048,
+          cz - 0.016,
+          cx + 0.030 - vaiven * (k + 1) * 0.6,
+          cai,
+          cz + 0.016,
+          0xFFE4DCC6,
+          1.02,
+        );
+      }
+
+    case PropKind.line:
+      // La cuerda entre dos palos con la ropa colgada. Pasa **por encima** de
+      // la cabeza y la ropa cuelga a los lados, nunca en medio: colgada en el
+      // centro le tapaba la cara a quien la tiende.
+      const alto = 1.24;
+      for (final px in [-0.64, 0.64]) {
+        box(px - 0.028, 0.0, 0.30, px + 0.028, alto, 0.356, _wood2, 0.88);
+      }
+      link(
+        (-0.64, alto - 0.02, 0.328),
+        (0.64, alto - 0.02, 0.328),
+        0.008,
+        0xFF6A5A44,
+        0.94,
+      );
+      const ropa = [(-0.48, 0xFFE8E2D2), (0.46, 0xFFCFC7B2)];
+      for (final (px, tinte) in ropa) {
+        final ondea = swing * 0.030;
+        box(
+          px - 0.105 + ondea,
+          alto - 0.42,
+          0.300,
+          px + 0.105 + ondea,
+          alto - 0.03,
+          0.356,
+          tinte,
+          1.03,
+        );
+      }
+
     case PropKind.stool:
       // Una banqueta de tres patas. El asiento a la altura a la que la tabla
       // ya le ha bajado el cuerpo, así que se sienta en ella y no sobre ella.

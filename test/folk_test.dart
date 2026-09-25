@@ -512,7 +512,91 @@ void main() {
       }
     });
 
-    test('las noventa y cuatro dan geometría, y ninguna se queda en nada', () {
+    test('lo que se lleva no le atraviesa el cuerpo a quien lo lleva', () {
+      // **Lo que caza esto**: un objeto metido dentro de la persona. Un
+      // caldero que sale del pecho, un laúd clavado en la barriga, una caña
+      // que le cruza la cabeza. Pasa sin que nadie lo note porque el objeto
+      // se escribe con números sueltos y el cuerpo está a una distancia que
+      // no se mira — y después, en el pueblo, se ve un vecino con una cosa
+      // saliéndole de dentro.
+      //
+      // **Cómo se mide.** El cuerpo y la cabeza son dos cajas rectas, así que
+      // su caja envolvente es exacta. El objeto no: una soga o un mango van
+      // en diagonal, y su caja envolvente es mucho más grande que la soga, de
+      // modo que compararlas daría por malo casi todo. Lo que se compara son
+      // **puntos sobre las aristas** del objeto: si una vara cruza el pecho,
+      // alguno de sus puntos cae dentro. Y se deja tocar —un objeto apoyado
+      // en el cuerpo está bien— pidiendo que entre de verdad, más de un
+      // centímetro y medio de los de esta escala.
+      const dentro = 0.015;
+      const pasos = 10;
+      for (final d in Doing.all) {
+        if (d.prop == PropKind.none) continue;
+        final quien = Townsfolk.showcase(d, kid: d.who == Who.kid);
+        for (final t in [0.0, 0.9, 1.8, 2.7, 3.6, 4.5]) {
+          final piezas = folkSolids(quien, quien.at(t), 1.0);
+          final cuerpo = [for (final s in piezas.take(2)) Aabb.of(s.faces)!];
+          for (final cosa in piezas.skip(3)) {
+            for (final f in cosa.faces) {
+              for (var i = 0; i < f.v.length; i++) {
+                final a = f.v[i], b = f.v[(i + 1) % f.v.length];
+                for (var k = 0; k <= pasos; k++) {
+                  final u = k / pasos;
+                  final x = a.x + (b.x - a.x) * u;
+                  final y = a.y + (b.y - a.y) * u;
+                  final z = a.z + (b.z - a.z) * u;
+                  for (final c in cuerpo) {
+                    final metido =
+                        x > c.x0 + dentro &&
+                        x < c.x1 - dentro &&
+                        y > c.y0 + dentro &&
+                        y < c.y1 - dentro &&
+                        z > c.z0 + dentro &&
+                        z < c.z1 - dentro;
+                    expect(
+                      metido,
+                      isFalse,
+                      reason:
+                          '${d.id}: lo que lleva le entra en el cuerpo por '
+                          '(${x.toStringAsFixed(2)}, ${y.toStringAsFixed(2)}, '
+                          '${z.toStringAsFixed(2)})',
+                    );
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    test('y cada una se mueve de una manera que no tiene ninguna otra', () {
+      // Dos filas con nombres distintos y el mismo gesto son una actividad
+      // con dos nombres. Pasó: había una siesta en la puerta y alguien
+      // mirando las nubes en el prado, tumbados los dos con los mismos
+      // números. Lo que distingue a una de otra es la mezcla de postura,
+      // vaivén y objeto — si dos coinciden en todo, sobra una.
+      final huellas = <String, String>{};
+      for (final d in [Doing.idle, ...Doing.all]) {
+        final huella = [
+          d.lying,
+          d.prop.name,
+          d.sink.toStringAsFixed(2),
+          d.bob.toStringAsFixed(3),
+          d.rate.toStringAsFixed(2),
+          d.wag.toStringAsFixed(3),
+          d.lean.toStringAsFixed(3),
+        ].join('|');
+        expect(
+          huellas.containsKey(huella),
+          isFalse,
+          reason: '${d.id} y ${huellas[huella]} son el mismo gesto',
+        );
+        huellas[huella] = d.id;
+      }
+    });
+
+    test('todas dan geometría, y ninguna se queda en nada', () {
       // Lo que esto caza es una fila de la tabla con los números a cero: una
       // actividad que existe, se sortea, y se ve igual que no hacer nada.
       for (final d in Doing.all) {

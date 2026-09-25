@@ -67,6 +67,36 @@ enum PropKind {
 
   /// Una banqueta de tres patas. Quien la tiene se sienta en ella.
   stool,
+
+  /// Un caldero colgado de una soga, que sube y baja con el gesto.
+  pail,
+
+  /// Un barreño en el suelo con ropa dentro.
+  tub,
+
+  /// Una caña larga con su sedal hasta el agua.
+  rod,
+
+  /// Un laúd: la caja de peras contra el pecho y el mástil cruzado.
+  lute,
+
+  /// Un tablero sobre caballetes con el género encima.
+  stall,
+
+  /// Una maza que baja sobre un sillar.
+  mallet,
+
+  /// Un madero sobre el caballete y la sierra pasando por él.
+  saw,
+
+  /// Una guadaña: el mango largo y la hoja a ras de suelo.
+  scythe,
+
+  /// Una cometa en lo alto, con su hilo.
+  kite,
+
+  /// Una cuerda entre dos palos con la ropa colgada.
+  line,
 }
 
 /// Una cosa que se hace.
@@ -161,13 +191,23 @@ class Doing {
 
   /// Las que están bien.
   ///
-  /// **Nueve, y crece de a poco.** Hubo noventa y cuatro y se fueron todas: la
-  /// mitad no se distinguía de estar quieto y la otra mitad llevaba un objeto
-  /// que no era el objeto —la escoba era un palo—. Un catálogo grande de cosas
-  /// que no se entienden vale menos que nueve que sí.
+  /// **Catorce, y crece de a poco.** Hubo noventa y cuatro y se fueron todas:
+  /// la mitad no se distinguía de estar quieto y la otra mitad llevaba un
+  /// objeto que no era el objeto —la escoba era un palo—. Un catálogo grande
+  /// de cosas que no se entienden vale menos que catorce que sí.
   ///
-  /// Para entrar en esta lista hay que pasar el expositor: mirarla de cerca,
-  /// dando la vuelta, y saber qué está haciendo sin leer el nombre.
+  /// Para entrar en esta lista hay que pasar dos cosas. Una, el expositor:
+  /// mirarla de cerca, dando la vuelta, y saber qué está haciendo sin leer el
+  /// nombre. Y dos, **no ser otra con otro nombre**. Hubo una siesta en la
+  /// puerta y alguien mirando las nubes en el prado, y eran la misma persona
+  /// tumbada con los mismos números: dos filas, un gesto. Se quedó la del
+  /// prado, que es donde tumbarse se lee como tumbarse y no como caerse.
+  ///
+  /// Lo que distingue a una de otra no es el nombre ni el sitio: es la
+  /// **silueta** y el **movimiento**. Por eso cada una tiene su objeto, y por
+  /// eso ninguna repite el gesto de otra — quien pica piedra dobla el espinazo
+  /// a golpes, quien sierra va de lado, quien saca agua sube y baja el
+  /// caldero, y quien vuela una cometa es el único que mira hacia arriba.
   static const List<Doing> all = [
     // ------------------------------------------------------ en su propia puerta
     Doing(
@@ -194,25 +234,135 @@ class Doing {
       turn: 0.7,
       prop: PropKind.stool,
     ),
+
     Doing(
-      'siesta',
-      'se echa una siesta',
+      'tender',
+      'tiende la ropa',
       where: Where.door,
-      who: Who.grown,
-      weight: 1.0,
-      bob: 0.010,
-      rate: 0.30,
-      turn: 0.0,
-      lying: true,
+      weight: 1.1,
+      bob: 0.016,
+      rate: 0.7,
+      lean: 0.02,
+      turn: 0.2,
+      prop: PropKind.line,
     ),
 
     // ---------------------------------------------------------------- la plaza
+    Doing(
+      'laud',
+      'toca el laúd',
+      where: Where.square,
+      weight: 0.9,
+      bob: 0.006,
+      rate: 1.2,
+      wag: 0.030,
+      lean: 0.02,
+      turn: 0.3,
+      prop: PropKind.lute,
+    ),
+    Doing(
+      'puesto',
+      'atiende el puesto',
+      where: Where.square,
+      who: Who.grown,
+      weight: 1.4,
+      bob: 0.005,
+      rate: 0.5,
+      lean: 0.035,
+      turn: 0.6,
+      prop: PropKind.stall,
+    ),
 
     // ------------------------------------------------------------- donde hay agua
+    Doing(
+      'pozo',
+      'saca agua',
+      where: Where.water,
+      who: Who.grown,
+      weight: 1.5,
+      bob: -0.045,
+      rate: 0.9,
+      lean: 0.05,
+      turn: 0.0,
+      prop: PropKind.pail,
+    ),
+    Doing(
+      'lavar',
+      'lava la ropa',
+      where: Where.water,
+      weight: 1.4,
+      sink: 0.72,
+      bob: 0.012,
+      rate: 2.2,
+      wag: 0.014,
+      lean: 0.05,
+      turn: 0.05,
+      prop: PropKind.tub,
+    ),
+    Doing(
+      'pescar',
+      'pesca',
+      where: Where.water,
+      weight: 1.2,
+      sink: 0.92,
+      bob: 0.004,
+      rate: 0.35,
+      turn: 0.08,
+      prop: PropKind.rod,
+    ),
 
     // ------------------------------------------------------------ al pie de la obra
+    Doing(
+      'cantero',
+      'pica piedra',
+      where: Where.work,
+      who: Who.grown,
+      weight: 1.5,
+      bob: -0.050,
+      rate: 1.9,
+      lean: 0.06,
+      turn: 0.0,
+      prop: PropKind.mallet,
+    ),
+    Doing(
+      'serrar',
+      'sierra un madero',
+      where: Where.work,
+      weight: 1.3,
+      bob: 0.006,
+      rate: 2.4,
+      wag: 0.045,
+      lean: 0.04,
+      turn: 0.0,
+      prop: PropKind.saw,
+    ),
 
     // ---------------------------------------------------------------- el prado
+    Doing(
+      'segar',
+      'siega',
+      where: Where.meadow,
+      who: Who.grown,
+      weight: 1.3,
+      bob: -0.028,
+      rate: 0.9,
+      wag: 0.060,
+      lean: 0.05,
+      turn: 0.0,
+      prop: PropKind.scythe,
+    ),
+    Doing(
+      'cometa',
+      'vuela una cometa',
+      where: Where.meadow,
+      who: Who.kid,
+      weight: 1.2,
+      bob: 0.012,
+      rate: 0.6,
+      lean: -0.07,
+      turn: 0.2,
+      prop: PropKind.kite,
+    ),
     Doing(
       'leer',
       'lee',
