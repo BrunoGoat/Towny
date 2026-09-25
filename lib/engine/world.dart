@@ -278,21 +278,50 @@ BuiltTown _build(TownLayout layout, int placed, BuiltTown? before) {
       }
     }
     if (hasWeather(piece.kind)) {
-      final reach =
-          piece.kind == PieceKind.banner || piece.kind == PieceKind.sail
-          ? math.max(piece.w, piece.y1 - piece.y0)
-          : 0.0;
       weather.add(i);
-      weatherBox.add(
-        Aabb(
-          piece.x0 - reach,
-          piece.y0,
-          piece.z0 - reach,
-          piece.x1 + reach,
-          piece.y1,
-          piece.z1 + reach,
-        ),
-      );
+      if (piece.kind == PieceKind.sail) {
+        // **Las aspas son un disco plano, y con esto se ordenan como tal.**
+        //
+        // Aquí estaba el fallo que se veía desde detrás del molino: la caja
+        // con la que se ordenan las aspas se inflaba lo que miden de ancho en
+        // las dos direcciones del suelo, así que un aspa de cuatro metros
+        // llevaba una caja de doce por doce alrededor de la torre. Una caja
+        // que se traga al edificio no se puede separar de él con ningún
+        // plano, y sin plano que los separe el orden entre los dos lo decide
+        // el azar: de frente salía bien y de espaldas las aspas se pintaban
+        // **encima** de la torre, cruzándola de lado a lado.
+        //
+        // Lo que se dibuja es un disco en un plano, a dieciséis centímetros
+        // por delante del centro de la pieza. Ésa es su caja: ancha y alta
+        // como el disco, y del grosor de un tablón. Con eso sí hay plano que
+        // las separe de la torre, y desde atrás la torre las tapa.
+        const grosor = 0.22;
+        final cz = (piece.z0 + piece.z1) / 2 - 0.16;
+        weatherBox.add(
+          Aabb(
+            piece.x0,
+            piece.y0,
+            cz - grosor,
+            piece.x1,
+            piece.y1,
+            cz + grosor,
+          ),
+        );
+      } else {
+        final reach = piece.kind == PieceKind.banner
+            ? math.max(piece.w, piece.y1 - piece.y0)
+            : 0.0;
+        weatherBox.add(
+          Aabb(
+            piece.x0 - reach,
+            piece.y0,
+            piece.z0 - reach,
+            piece.x1 + reach,
+            piece.y1,
+            piece.z1 + reach,
+          ),
+        );
+      }
     }
     for (final solid in solidsOf(piece, place: layout.character)) {
       final b = Aabb.of(solid.faces);

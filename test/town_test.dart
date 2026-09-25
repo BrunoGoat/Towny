@@ -369,7 +369,6 @@ void main() {
       }
     });
 
-
     test('the room a landmark is given never depends on its recipe', () {
       // The spacing decides where every later building stands, so it must not
       // move when a recipe is edited: a town that rearranges itself on an app

@@ -1991,8 +1991,13 @@ class TownPainter extends CustomPainter {
 
     // The wheel turns at the wind's own pace, and freewheels a little when the
     // gust drops, so it never looks like a clock hand.
+    //
+    // Y despacio: iba a algo más de una vuelta cada cinco segundos con viento
+    // fuerte, que en un pueblo de este tamaño se lee como un ventilador. Un
+    // molino de verdad da unas diez vueltas por minuto, y eso es lo que hace
+    // que mirarlo calme en vez de meter prisa.
     final turn =
-        scene.time * (0.55 + 0.75 * _windForce) + hash01(piece.seed, 17) * 6.28;
+        scene.time * (0.22 + 0.34 * _windForce) + hash01(piece.seed, 17) * 6.28;
 
     void blade(
       double ang,

@@ -180,7 +180,7 @@ final List<Landmark> landmarks = [
       m.dome(0.54, 0.54, 0.5, at: banco);
       m.dome(0.54, 0.54, 0.5, dx: 0.82, at: banco);
       m.palisade(2.9, 0.8, dz: -1.15);
-      m.tree(1.1, 1.8, dx: 1.4, dz: 0.95);
+      m.tree(1.1, 1.8, dx: 1.75, dz: -1.15);
     },
   ),
 
@@ -207,12 +207,15 @@ final List<Landmark> landmarks = [
     0,
     'La paja del verano, para el invierno. Guardar es una manera de tener fe.',
     (m) {
-      m.plinth(2.3, 1.8, 0.2);
-      m.floor(2.0, 1.55, 1.15);
-      m.roof(2.35, 1.9, 0.85);
-      m.dormer(0.5, 0.45, dz: 0.35);
-      m.field(2.0, 0.9, dz: -1.6);
-      m.palisade(2.4, 0.6, dz: -2.1);
+      // Un pajar no tiene ventanas ni tejas: es un muro ciego con un portón y
+      // un techo de paja gordo. Con planta de vivienda y tejado de teja era
+      // una casa más, que es lo que se vio en la hoja de contacto.
+      m.box(PieceKind.plinth, 2.5, 2.0, 0.22, at: 0);
+      m.box(PieceKind.parapet, 2.15, 1.7, 1.3, at: 0.22);
+      m.box(PieceKind.thatch, 2.6, 2.15, 1.05, at: 1.52);
+      m.box(PieceKind.parapet, 1.05, 0.42, 0.85, dz: 0.95, at: 0);
+      m.field(2.2, 0.9, dz: -1.75);
+      m.palisade(2.5, 0.6, dz: -2.2);
     },
   ),
 
@@ -280,15 +283,15 @@ final List<Landmark> landmarks = [
     (m) {
       // Tapia de piedra y no estacas: el corral, el colmenar y éste eran el
       // mismo cerco con otro nombre, y a un metro de distancia no se sabía
-      // cuál era cuál.
-      m.box(PieceKind.parapet, 3.3, 0.26, 0.8, dz: -1.62, at: 0);
-      m.box(PieceKind.parapet, 3.3, 0.26, 0.8, dz: 1.62, at: 0);
-      m.box(PieceKind.parapet, 0.26, 3.5, 0.8, dx: -1.62, at: 0);
-      m.box(PieceKind.parapet, 0.26, 3.5, 0.8, dx: 1.62, at: 0);
-      m.plinth(0.95, 0.95, 0.26);
-      m.post(0.22, 1.3, at: m.y);
-      m.beam(0.8, 0.22, 0.22, at: m.y + 1.0);
-      m.tree(1.0, 2.7, dx: 1.0, dz: 1.0);
+      // cuál era cuál. Y baja, que lo que hay que ver es lo de dentro.
+      m.box(PieceKind.parapet, 3.3, 0.26, 0.58, dz: -1.62, at: 0);
+      m.box(PieceKind.parapet, 3.3, 0.26, 0.58, dz: 1.62, at: 0);
+      m.box(PieceKind.parapet, 0.26, 3.5, 0.58, dx: -1.62, at: 0);
+      m.box(PieceKind.parapet, 0.26, 3.5, 0.58, dx: 1.62, at: 0);
+      m.plinth(0.95, 0.95, 0.28, dx: -0.5);
+      m.post(0.24, 1.5, dx: -0.5, at: m.y);
+      m.beam(0.85, 0.24, 0.24, dx: -0.5, at: m.y + 1.16);
+      m.tree(0.95, 2.7, dx: 1.05, dz: 1.05);
     },
   ),
 
@@ -781,11 +784,13 @@ final List<Landmark> landmarks = [
     1,
     'El grano de tres años, a cubierto. Un pueblo con silos llenos no le teme a un mal verano.',
     (m) {
-      m.box(PieceKind.plinth, 5.8, 2.0, 0.32, at: 0);
+      m.box(PieceKind.plinth, 5.6, 1.9, 0.32, at: 0);
       for (var i = 0; i < 3; i++) {
-        final dx = -1.8 + i * 1.8;
-        m.box(PieceKind.floor, 1.4, 1.4, 2.5, dx: dx, at: 0.32);
-        m.spire(1.55, 1.55, 0.85, dx: dx, at: 2.82);
+        final dx = -1.75 + i * 1.75;
+        // Ciegos y altos: un silo no tiene ventanas, y con planta de vivienda
+        // los tres salían siendo una hilera de casas con el tejado en punta.
+        m.box(PieceKind.parapet, 1.3, 1.3, 3.3, dx: dx, at: 0.32);
+        m.spire(1.45, 1.45, 1.1, dx: dx, at: 3.62);
       }
       m.stair(1.25, 0.32, 0.72, dz: 1.3);
       m.field(4.2, 1.2, dz: -2.3);
