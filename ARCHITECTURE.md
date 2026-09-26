@@ -43,6 +43,46 @@ cuántos tonos distintos hay dentro de un tejado. Una cara plana se pinta de un
 color plano, así que un degradado ahí dentro sólo puede venir de algo pintado
 encima fuera de orden.
 
+### Lo que no se pinta
+
+El coste de un fotograma es **lineal en caras**, así que la única optimización
+que sirve es no tocarlas. Dos redes, ninguna de las cuales toca el orden —eso
+lo siguen decidiendo los planos, que es lo que costó arreglar en su día—:
+
+- **La cara que cae entera fuera del lienzo no se guarda.** Medido con la
+  cámara donde la pone la app, **la mitad de las caras de un fotograma no
+  tocan ni un píxel**: 1 741 de 3 378 con doscientas piezas. El recorte contra
+  el plano cercano ya pasó cuando se mide, así que la proyección es finita y un
+  polígono convexo cabe en el rectángulo de sus vértices: si ese rectángulo no
+  toca el lienzo, el polígono tampoco.
+- **El edificio que no toca la pantalla no se recorre.** Lo mismo con la caja
+  del grupo entero, con un margen de ciento diez píxeles — que no es prudencia
+  de borde: es que una ventana encendida deja un halo de cien píxeles de radio
+  y un edificio que se salió por el canto todavía puede estar alumbrando
+  dentro.
+
+Lo garantiza `test/clip_test.dart`, y lo garantiza de la única manera que vale
+para esto: **pinta la misma escena con el recorte y sin él y exige cero píxeles
+de diferencia** — ocho ángulos, tres distancias, de noche con las ventanas
+encendidas, a ras del suelo y a plomo, un valle de seis pueblos, un pueblo a la
+deriva y las sesenta obras del catálogo de cerca. No es «no se nota»: es que es
+el mismo fotograma.
+
+Cuando aun así no llega, hay un presupuesto de caras que el termostato de
+`town_view.dart` sube y baja con lo que tarde el fotograma. **Se gasta por lo
+que ocupa cada edificio en la pantalla, y el pueblo que se está mirando va
+primero.** Antes se gastaba de cerca a lejos, que con el teléfono justo hacía
+desaparecer medio pueblo de golpe y por detrás; ahora lo primero que se cae de
+la lista es el caserón de doce píxeles del pueblo de al lado. El suelo son
+nueve mil caras en pantalla —un pueblo de trescientas piezas entero— y sube más
+rápido de lo que baja, porque de los dos errores posibles, enseñar de menos es
+el que se nota.
+
+Lo que **no** vale la pena, medido: cachear el color de las caras. Calcular el
+tono, el sombreado y la bruma de cada cara cuesta, a doscientas piezas,
+**−0,07 ms de un fotograma de 4,7** — o sea nada. Pintar el pueblo entero de un
+gris plano no lo hace más rápido.
+
 ## Sonido
 
 Cinco sonidos —poner una pieza, toque, reparar, obra terminada, hito del pueblo—

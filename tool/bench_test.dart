@@ -21,12 +21,21 @@ import 'package:la_muralla/fx/effects.dart';
 /// vale la pena optimizar, porque a ojo siempre se acierta en lo que no es.
 const _size = Size(390, 844);
 
-TownScene _escena(int piezas, {int pueblos = 1, double yaw = 0.6}) {
+/// Con la cámara donde la pone la app y no a una distancia fija: encuadrar el
+/// pueblo es `radio * 1,9`, y con la cámara lejos la mitad de lo que se mide
+/// —cuánto cuesta lo que se sale del encuadre— no ocurre.
+TownScene _escena(
+  int piezas, {
+  int pueblos = 1,
+  double yaw = 0.6,
+  double cerca = 1.9,
+}) {
+  final radio = TownLayout(piezas, TownCharacter.all.first, seed: 7).radius;
   final cam = OrbitCamera()
     ..yaw = yaw
-    ..pitch = 0.34
-    ..distance = 40
-    ..focusY = 2.0;
+    ..pitch = 0.46
+    ..distance = (radio * cerca).clamp(9.0, 60.0)
+    ..focusY = 1.4;
   final towns = <TownEntry>[];
   for (var k = 0; k < pueblos; k++) {
     final ch = TownCharacter.all[k % TownCharacter.all.length];
@@ -103,16 +112,21 @@ void main() {
 
   test('cuánto cuesta un fotograma', () {
     // ignore: avoid_print
-    print('\n  piezas  pueblos   total    fondo   pueblo   caras');
-    for (final (n, p) in [
-      (60, 1),
-      (200, 1),
-      (600, 1),
-      (1500, 1),
-      (600, 2),
-      (600, 6),
+    print(
+      '\n  piezas  pueblos  cámara   total    fondo   pueblo   caras  '
+      'sin recorte',
+    );
+    for (final (n, p, c) in [
+      (60, 1, 1.9),
+      (200, 1, 1.9),
+      (200, 1, 0.9),
+      (600, 1, 1.9),
+      (600, 1, 0.9),
+      (1500, 1, 1.9),
+      (600, 2, 1.9),
+      (600, 6, 1.9),
     ]) {
-      final s = _escena(n, pueblos: p);
+      final s = _escena(n, pueblos: p, cerca: c);
       var caras = 0;
       for (final e in s.towns) {
         caras += builtTown(
@@ -122,13 +136,18 @@ void main() {
       }
       // ignore: avoid_print
       final t = _cronometra(s);
+      TownPainter.clipping = false;
+      final crudo = _cronometra(s);
+      TownPainter.clipping = true;
       final f = _cronometraFondo(s);
       print(
         '  ${n.toString().padLeft(6)}  ${p.toString().padLeft(7)}  '
+        '${(c == 1.9 ? 'encuadre' : 'cerca').padLeft(8)}  '
         '${t.toStringAsFixed(2).padLeft(6)}  '
         '${f.toStringAsFixed(2).padLeft(6)}  '
         '${(t - f).toStringAsFixed(2).padLeft(7)}  '
-        '${caras.toString().padLeft(6)}',
+        '${caras.toString().padLeft(6)}  '
+        '${crudo.toStringAsFixed(2).padLeft(9)}',
       );
     }
   }, timeout: const Timeout(Duration(minutes: 10)));

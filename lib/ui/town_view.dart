@@ -181,10 +181,24 @@ class _TownViewState extends State<TownView>
     defaultValue: -1,
   );
 
-  /// How many pieces are worth drawing. Given away when the frame gets long
-  /// and won back when it does not, so an old phone shows a smaller town
-  /// rather than a stuttering one.
+  /// Cuántas caras **de las que se ven** vale la pena dibujar. Se cede cuando
+  /// el fotograma se alarga y se recupera cuando no, para que un teléfono
+  /// viejo enseñe un pueblo más pobre en vez de uno a tirones.
+  ///
+  /// Lo que se recorta ya no es «lo que está lejos» sino «lo que ocupa menos
+  /// pantalla», y el pueblo que se está mirando se sirve primero: eso vive en
+  /// el renderizador. Aquí sólo está el termostato.
   int _budget = _budgetOverride > 0 ? _budgetOverride : 15000;
+
+  /// El suelo del termostato: nueve mil caras en pantalla es un pueblo de
+  /// trescientas piezas entero, así que por debajo de eso no se baja nunca.
+  ///
+  /// Estaba en cuatro mil, que son menos de las que tiene un pueblo de
+  /// doscientas — y por eso un teléfono que se quedaba corto un momento se
+  /// comía medio pueblo y tardaba en devolverlo. Bajar es más lento y subir
+  /// más rápido por el mismo motivo: de los dos errores posibles, enseñar de
+  /// menos es el que se nota.
+  static const int _suelo = 9000;
   double _frameAvg = 16;
 
   late Palette _palette;
@@ -459,10 +473,10 @@ class _TownViewState extends State<TownView>
 
     if (_budgetOverride <= 0) {
       _frameAvg = _frameAvg * 0.92 + dtRaw * 1000 * 0.08;
-      if (_frameAvg > 21 && _budget > 4000) {
-        _budget -= 260;
-      } else if (_frameAvg < 13 && _budget < 22000) {
-        _budget += 150;
+      if (_frameAvg > 24 && _budget > _suelo) {
+        _budget -= 220;
+      } else if (_frameAvg < 15 && _budget < 26000) {
+        _budget += 420;
       }
     }
 

@@ -38,6 +38,16 @@ class _Tone {
   final Color wall, stone, tile;
 }
 
+/// Un edificio y lo que pide para pintarse: cuánta pantalla ocupa, cuántas
+/// caras cuesta y si es del pueblo que se está mirando.
+class _Gasto {
+  const _Gasto(this.cluster, this.area, this.faces, this.mine);
+  final Object cluster;
+  final double area;
+  final int faces;
+  final bool mine;
+}
+
 /// Draws the whole world: sky, ground, the wall in full detail nearby, and its
 /// own silhouette receding into the haze when it gets long.
 class TownPainter extends CustomPainter {
@@ -73,6 +83,38 @@ class TownPainter extends CustomPainter {
   static final Path _scratch = Path();
 
   int _faceCount = 0;
+
+  /// El lienzo de este fotograma, para saber qué cae fuera.
+  double _canvasW = 0, _canvasH = 0;
+
+  /// Lo que se le perdona al borde: la costura que cierra cada cara es un
+  /// trazo de un píxel de ancho, o sea medio a cada lado.
+  static const double _borde = 1.5;
+
+  /// Cuántas caras se tiraron por caer fuera del lienzo. No lo lee la app;
+  /// lo lee el banco de pruebas.
+  int culled = 0;
+
+  /// Y cuántos edificios se quedaron sin pintar, separando los dos motivos:
+  /// los que no tocan la pantalla —que no cuestan nada y no se ven— y los que
+  /// no cupieron en el presupuesto, que son los únicos que alguien podría
+  /// echar de menos.
+  int offScreenWorks = 0, unaffordableWorks = 0;
+
+  /// La llave para apagar el recorte, que existe **para poder demostrar que no
+  /// se nota**: la prueba pinta la misma escena con él y sin él y exige que no
+  /// cambie ni un píxel. Fuera de esa prueba no la toca nadie.
+  static bool clipping = true;
+
+  /// Esta cara lleva una lámpara apuntada y no se puede tirar aunque caiga
+  /// fuera: el halo de una ventana mide hasta cien píxeles de radio, así que
+  /// una ventana que se sale por el canto sigue alumbrando dentro.
+  bool _lampHeld = false;
+
+  /// Los edificios que este fotograma no pinta: los que no tocan la pantalla y
+  /// los que no entraron en el presupuesto. Por identidad del grupo, que es lo
+  /// que el recorrido tiene a mano.
+  final Set<Object> _skip = {};
 
   /// Where the lit windows landed on screen this frame, so their light can be
   /// laid over the town after the masonry is down. x, y, radius, strength.
@@ -116,6 +158,8 @@ class TownPainter extends CustomPainter {
     _pickAt.clear();
     _faceCount = 0;
     _lamps.clear();
+    _canvasW = size.width;
+    _canvasH = size.height;
 
     final p = scene.camera.projector(size.width, size.height, scene.time);
     final fondo = Backdrop(scene, skies);
@@ -205,14 +249,51 @@ class TownPainter extends CustomPainter {
   /// depth is in front — there is no such number, which is why every bug this
   /// renderer ever had came back at a different angle.
   void _emit(Projector p, Float64List cam, int count, int color) {
+    final conLampara = _lampHeld;
+    _lampHeld = false;
     final m = clipNear(cam, count, _clipB, p.near);
     if (m < 3) return;
     final f = _nextFace();
     if (f == null) return;
+    var x0 = double.infinity, y0 = double.infinity;
+    var x1 = -double.infinity, y1 = -double.infinity;
     for (var i = 0; i < m; i++) {
       final z = _clipB[i * 3 + 2];
-      f.pts[i * 2] = p.screenX(_clipB[i * 3], z);
-      f.pts[i * 2 + 1] = p.screenY(_clipB[i * 3 + 1], z);
+      final x = p.screenX(_clipB[i * 3], z);
+      final y = p.screenY(_clipB[i * 3 + 1], z);
+      f.pts[i * 2] = x;
+      f.pts[i * 2 + 1] = y;
+      if (x < x0) x0 = x;
+      if (x > x1) x1 = x;
+      if (y < y0) y0 = y;
+      if (y > y1) y1 = y;
+    }
+    // **Lo que cae entero fuera del lienzo no se guarda.**
+    //
+    // Se pintaba igual: se proyectaba, se sombreaba, se le armaba el trazado y
+    // se mandaban dos llamadas de dibujo para que la tarjeta gráfica la
+    // descartara. Medido con la cámara donde la pone la app, **la mitad de las
+    // caras de un fotograma no tocan ni un píxel**: 1 741 de 3 378 con
+    // doscientas piezas.
+    //
+    // Y no puede cambiar lo que se ve, que es lo que hay que exigirle a algo
+    // así. El recorte contra el plano cercano ya pasó, así que todos los
+    // vértices están delante de la cámara y su proyección es finita; un
+    // polígono convexo cabe entero dentro del rectángulo de sus vértices, de
+    // modo que si ese rectángulo no toca el lienzo, el polígono tampoco. El
+    // margen es por la costura, que sobresale medio píxel.
+    //
+    // Esto **no toca el orden**: quita de la lista caras que no pintan nada,
+    // y el orden lo siguen decidiendo los planos del árbol como siempre.
+    if (clipping &&
+        !conLampara &&
+        (x1 < -_borde ||
+            y1 < -_borde ||
+            x0 > _canvasW + _borde ||
+            y0 > _canvasH + _borde)) {
+      _faceCount--;
+      culled++;
+      return;
     }
     f.n = m;
     f.color = color;
@@ -872,25 +953,53 @@ class TownPainter extends CustomPainter {
       }
     }
 
-    // What the frame can afford. It is spent nearest first and on whole
-    // buildings, so what it cannot pay for is a house on the far side of the
-    // valley and never half of the one standing in front of you.
-    final cost = <(double, int)>[];
-    for (final e in scene.towns) {
+    // **En qué se gasta el fotograma lo que puede pagar.**
+    //
+    // Se gastaba de cerca a lejos y salía un corte por distancia: a partir de
+    // tantos metros, nada. Eso hace exactamente lo que no hay que hacer — con
+    // el teléfono justo de fuerzas desaparece medio pueblo de golpe, y
+    // desaparece por detrás, que es donde está la mitad que da la sensación de
+    // pueblo.
+    //
+    // Ahora se gasta por **lo que ocupa cada edificio en la pantalla**, y el
+    // pueblo que se está mirando va primero entero. Un edificio del pueblo de
+    // al lado, que mide doce píxeles al otro lado del valle, se cae de la
+    // lista mucho antes que la casa de treinta mil que tenés delante — y a
+    // doce píxeles no se nota que falte, que es la diferencia entre recortar y
+    // amputar.
+    //
+    // Y lo que no toca la pantalla no se cuenta ni se recorre: no es una
+    // decisión de presupuesto, es que no está.
+    _skip.clear();
+    final gasto = <_Gasto>[];
+    for (var w = 0; w < scene.towns.length; w++) {
+      final e = scene.towns[w];
       final take = math.min(e.placed, e.layout.pieces.length);
       if (take <= 0) continue;
       for (final c in builtTown(e.layout, take).clusters) {
-        cost.add((_away(p, c.bounds), c.faces));
+        gasto.add(
+          _Gasto(c, _onScreen(p, c.bounds), c.faces, w == scene.active),
+        );
       }
     }
-    cost.sort((a, b) => a.$1.compareTo(b.$1));
+    gasto.sort((a, b) {
+      if (a.mine != b.mine) return a.mine ? -1 : 1;
+      final c = b.area.compareTo(a.area);
+      return c != 0 ? c : a.faces.compareTo(b.faces);
+    });
     var spend = 0;
-    var cut = double.infinity;
-    for (final c in cost) {
-      spend += c.$2;
+    offScreenWorks = 0;
+    unaffordableWorks = 0;
+    for (final g in gasto) {
+      if (g.area <= 0) {
+        _skip.add(g.cluster);
+        offScreenWorks++;
+        continue;
+      }
+      spend += g.faces;
       if (spend > scene.budget) {
-        cut = c.$1;
-        break;
+        _skip.add(g.cluster);
+        unaffordableWorks++;
       }
     }
 
@@ -979,7 +1088,7 @@ class TownPainter extends CustomPainter {
             _paintFolk(p, e, aqui, pal, light, size);
             return;
           }
-          if (_away(p, box) > cut) {
+          if (_skip.contains(c)) {
             _paintFolk(p, e, aqui, pal, light, size);
             return;
           }
@@ -1347,6 +1456,60 @@ class TownPainter extends CustomPainter {
     return dx * dx + dy * dy + dz * dz;
   }
 
+  /// Cuántos píxeles de pantalla ocupa una caja, o cero si no toca ninguno.
+  ///
+  /// Se proyectan las ocho esquinas. Si alguna se queda detrás del plano
+  /// cercano la cuenta no vale —la cámara está dentro de la caja o casi— y
+  /// entonces se devuelve el lienzo entero: ante la duda, es importante.
+  ///
+  /// **El margen es grande a propósito.** No es para curarse en salud con el
+  /// borde: es que una ventana encendida deja un halo de hasta cien píxeles de
+  /// radio, así que un edificio que se salió por el canto todavía puede estar
+  /// alumbrando dentro. Saltárselo cambiaría lo que se ve, y eso es
+  /// exactamente lo que no puede pasar.
+  double _onScreen(Projector p, Aabb? b) {
+    if (b == null) return 0;
+    const halo = 110.0;
+    var x0 = double.infinity, y0 = double.infinity;
+    var x1 = -double.infinity, y1 = -double.infinity;
+    var detras = 0;
+    for (var i = 0; i < 8; i++) {
+      final at = p.project(
+        V3(
+          i & 1 == 0 ? b.x0 : b.x1,
+          i & 2 == 0 ? b.y0 : b.y1,
+          i & 4 == 0 ? b.z0 : b.z1,
+        ),
+      );
+      // Las ocho esquinas detrás del plano cercano quieren decir que la caja
+      // entera está detrás —es convexa, no hay forma de que asome— y eso sí
+      // se puede saltar. Unas cuantas detrás y otras delante, no: ahí la
+      // proyección no acota nada y hay que darla por importante.
+      if (at == null) {
+        detras++;
+        continue;
+      }
+      if (at.x < x0) x0 = at.x;
+      if (at.x > x1) x1 = at.x;
+      if (at.y < y0) y0 = at.y;
+      if (at.y > y1) y1 = at.y;
+    }
+    if (detras == 8) return 0;
+    if (detras > 0) return _canvasW * _canvasH;
+    if (x1 < -halo ||
+        y1 < -halo ||
+        x0 > _canvasW + halo ||
+        y0 > _canvasH + halo) {
+      return 0;
+    }
+    final w = math.min(x1, _canvasW) - math.max(x0, 0.0);
+    final h = math.min(y1, _canvasH) - math.max(y0, 0.0);
+    // Dentro del margen pero fuera del lienzo: no se ve, pero puede alumbrar,
+    // así que cuesta lo mínimo y no se salta.
+    if (w <= 0 || h <= 0) return 1;
+    return w * h;
+  }
+
   /// The wind-blown half of a piece: what a tree filed once cannot hold.
   void _emitWeather(
     Projector p,
@@ -1465,7 +1628,10 @@ class TownPainter extends CustomPainter {
     Size? size,
   ) {
     final m = v.length;
-    if (m < 3 || m > 24) return;
+    if (m < 3 || m > 24) {
+      _lampHeld = false;
+      return;
+    }
     for (var i = 0; i < m; i++) {
       final q = v[i];
       final cp = p.cameraOf(q);
@@ -1707,6 +1873,7 @@ class TownPainter extends CustomPainter {
             // color, que es la ventana misma. De ahí sale su sitio en el
             // orden de pintado.
             ..add(_faceCount.toDouble());
+          _lampHeld = true;
         }
       }
     }

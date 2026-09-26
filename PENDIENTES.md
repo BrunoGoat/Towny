@@ -56,6 +56,37 @@ frase sin traducir — que es la única manera de que no se pudra sola.
 
 ## 2. Deuda medida
 
+### Lo que queda del render
+
+Hecho ya: tirar lo que no toca la pantalla y un presupuesto que recorta por
+tamaño en pantalla en vez de por distancia (`ARCHITECTURE.md`). Con eso el
+fotograma baja entre un 20 % y un 45 % según el encuadre. Lo que sigue sobre la
+mesa, con lo medido al lado:
+
+- **Una sola llamada de dibujo.** Hoy cada cara son dos `drawPath` con
+  antialias —el relleno y la costura que tapa el pelo entre caras vecinas—, y
+  eso es **dos tercios del fotograma**. Juntarlas todas en un `drawVertices`
+  con color por vértice deja 11,5 ms en 4,4 a doscientas piezas, y 19,1 en 7,6
+  a seiscientas. El orden no corre peligro: los triángulos se rasterizan en el
+  orden de la lista, igual que las llamadas sueltas. Lo que sí cambia es que
+  se pierde el suavizado por primitiva, así que **hay que verlo en un teléfono
+  antes de decidir** — las costuras mejoran (los triángulos comparten vértices
+  exactos), la silueta contra el cielo puede empeorar.
+- **El edificio simplificado de lejos.** Una versión de cada grupo con su
+  silueta y sin ventanas ni buhardillas, construida una vez. Es lo que debería
+  hacer el presupuesto en vez de dejar de pintar.
+- **Quitar las caras enterradas al construir.** Entre un 15 y un 30 % de las
+  caras no se ven nunca. Regla imprescindible: **sólo se borra una cara si la
+  pieza que la tapa es más vieja**, porque la que cae se dibuja aparte y
+  dejaría un agujero mientras está en el aire.
+- **El arranque.** Levantar el pueblo de cero cuesta **434 ms a doscientas
+  piezas**, 707 a seiscientas y un segundo a mil, en el hilo principal. Pasa al
+  abrir la app, al cambiar de hábito y en cada paso de la cinemática. O se va a
+  otro isolate o se construye por grupos a lo largo de varios fotogramas.
+- **Un contador en ajustes** con el fotograma medio, las caras y el presupuesto
+  de ahora mismo. Todo lo de arriba está medido en una máquina de escritorio;
+  lo que importa es lo que pasa en el teléfono.
+
 - **La notificación tarda ~282 ms en el peor caso.** El ~20% de las piezas
   cambian la rejilla de calles y obligan a recalcular el pueblo entero para
   decidir qué decir. Es lo único de la app que hace trabajo pesado fuera de un
