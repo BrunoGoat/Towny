@@ -111,8 +111,8 @@ python3 tool/make_music.py        # regenera la música
 python3 tool/make_icons.py        # recorta el icono desde tool/icon/towny.png
 ```
 
-Y cuatro que no prueban nada — son para **mirar y medir**, que es lo que los
-tests no saben hacer:
+Y unos cuantos que no prueban nada — son para **mirar y medir**, que es lo que
+los tests no saben hacer:
 
 ```bash
 flutter test tool/shot_test.dart          # la foto del README
@@ -120,6 +120,8 @@ flutter test tool/reel_frames_test.dart   # fotogramas de la cinemática a disco
 flutter test tool/marks_sheet_test.dart   # el catálogo entero, de doce en doce
 flutter test tool/doings_sheet_test.dart  # lo que hace la gente, cuatro instantes cada una
 flutter test tool/vocab_sheet_test.dart   # las palabras del albañil, una por casilla
+flutter test tool/book_shot_test.dart     # el libro del atril: portada, calendario y una hoja a media vuelta
+flutter test tool/chrome_shot_test.dart   # la pantalla a varias horas y la tarjeta de elegir
 flutter test tool/bench_test.dart         # cuánto cuesta un fotograma, por etapas
 flutter test tool/censo_test.dart         # cuánto cuesta poner cien piezas
 
@@ -176,6 +178,15 @@ Dentro de `engine/`, que es el más poblado:
 | `tones.dart` | de qué color va el prado, la hoja, la nieve y lo que está lejos |
 | `folk.dart`, `folk_body.dart`, `streets.dart` | quién vive ahí, de qué está hecho y por dónde anda |
 | `sigils.dart` | las marcas de los hábitos, trazadas a mano |
+
+De `model/`, el que hace falta conocer para entender el libro del atril:
+`works_log.dart` fecha las obras. No guarda nada: cruza la crónica con el plan
+para saber en qué pieza empieza y acaba cada hito, y de ahí saca las fechas de
+las piezas de sus extremos. Lo dibuja `ui/works_calendar.dart`, que reparte las
+obras en páginas de calendario —una por año mientras quepan— y las pinta como
+barras contra una regla de meses; lo que va pintado va también en palabras, en
+una etiqueta de accesibilidad, que es de donde lo leen el lector de pantalla y
+las pruebas.
 
 El widget de la pantalla de inicio vive entero en `android/` —Kotlin, `RemoteViews`
 y unas preferencias suyas— y habla con la app por un canal de tres verbos

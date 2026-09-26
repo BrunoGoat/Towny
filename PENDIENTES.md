@@ -73,26 +73,23 @@ frase sin traducir — que es la única manera de que no se pudra sola.
 
 ## 3. Ideas que quedaron sobre la mesa
 
-En orden de lo que más daría por lo que menos cuesta:
+En orden de lo que más daría por lo que menos cuesta. *(Fechar las obras, que
+encabezaba esta lista, ya está hecho: el calendario del libro del atril.)*
 
-1. **Fechar la obra, no sólo la pieza.** La bitácora ya fecha cada pieza; las
-   obras no. «Catedral · empezada el 3 de mayo, rematada el 2 de julio,
-   sesenta y un días» convierte el pueblo en un calendario de tu propia vida.
-   Se deriva de lo que ya está guardado: ni un dato nuevo.
-2. **Volver a mirar un día.** En ajustes está «ver el pueblo a futuro». El
+1. **Volver a mirar un día.** En ajustes está «ver el pueblo a futuro». El
    pasado vale más: tu pueblo el día que empezaste, hace un año, el día que
    casi lo dejás. Es una vista, no un guardado.
-3. **La lámina.** Guardar o compartir una imagen del pueblo a la hora que
+2. **La lámina.** Guardar o compartir una imagen del pueblo a la hora que
    elijas. El render ya lo hace para el README.
-4. **El widget con el pueblo dentro.** Hoy cuenta piezas; el puente ya manda
+3. **El widget con el pueblo dentro.** Hoy cuenta piezas; el puente ya manda
    un PNG por hábito, así que mandar un render chico del pueblo es más de lo
    mismo.
-5. **Jubilar un hábito con dignidad.** Hay pausa y hay pueblo a la deriva.
+4. **Jubilar un hábito con dignidad.** Hay pausa y hay pueblo a la deriva.
    Falta un final que no sea un fracaso: «este pueblo está terminado», se
    queda en el valle como monumento, sin deterioro y sin culpa.
-6. **Accesibilidad.** No hay «menos movimiento» ni tamaño de letra. La cámara
+5. **Accesibilidad.** No hay «menos movimiento» ni tamaño de letra. La cámara
    deriva sola, las nubes corren, la gente camina.
-7. **Más maravillas.** La gramática está limpia y una obra nueva son quince
+6. **Más maravillas.** La gramática está limpia y una obra nueva son quince
    minutos — pero sesenta que se distinguen valen más que ochenta borrosas.
    Mejor esperar a echar una de menos.
 

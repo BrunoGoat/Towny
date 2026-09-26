@@ -11,6 +11,7 @@ import '../model/board_seen.dart';
 import '../model/habit.dart';
 import '../model/piece.dart';
 import '../model/store.dart';
+import '../model/works_log.dart';
 import 'adrift_sheet.dart';
 import 'board_glyph.dart';
 import 'choice_sheet.dart';
@@ -521,6 +522,7 @@ class _HomeScreenState extends State<HomeScreen>
               child: TownLandmarkOverlay(
                 mark: _revealTown!.$1,
                 ordinal: _revealTown!.$2,
+                span: _cuandoSe(_revealTown!.$1),
                 theme: t,
                 onDismiss: () => setState(() => _revealTown = null),
               ),
@@ -528,6 +530,16 @@ class _HomeScreenState extends State<HomeScreen>
         ],
       ),
     );
+  }
+
+  /// Cuándo se levantó este hito, para decirlo en la tarjeta del día que se
+  /// remata. La última vez que se construyó: un pueblo no repite hitos, pero
+  /// si algún día los repitiera, el que acaba de terminarse es el último.
+  WorkSpan? _cuandoSe(Landmark mark) {
+    for (final o in worksOf(widget.store.habit).reversed) {
+      if (o.id == mark.id) return o;
+    }
+    return null;
   }
 
   /// El más de la barra. Dos puertas distintas detrás del mismo botón: la de

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../data/landmarks.dart';
 import '../fx/sensory.dart';
+import '../model/works_log.dart';
 import 'legend_card.dart';
 import 'papyrus.dart';
 import 'style.dart';
@@ -18,12 +19,30 @@ class TownLandmarkOverlay extends StatelessWidget {
     required this.theme,
     required this.onDismiss,
     required this.ordinal,
+    this.span,
   });
 
   final Landmark mark;
   final UiTheme theme;
   final VoidCallback onDismiss;
   final int ordinal;
+
+  /// Cuándo se empezó y cuándo se remató, si se sabe.
+  ///
+  /// Es el momento en que esa fecha vale algo: la obra acaba de terminarse y
+  /// lo que hay debajo de ella son dos meses de tu vida. Dicho aquí, el hito
+  /// deja de ser un adorno del pueblo y pasa a ser una marca en el calendario.
+  final WorkSpan? span;
+
+  /// «del 3 de mayo al 2 de julio · 61 días»
+  String? get _cuando {
+    final s = span;
+    if (s == null || !s.done) return null;
+    final a = '${s.began.day} de ${Papyrus.months[s.began.month - 1]}';
+    final b = '${s.ended!.day} de ${Papyrus.months[s.ended!.month - 1]}';
+    final d = s.days!;
+    return 'del $a al $b · $d ${d == 1 ? 'día' : 'días'}';
+  }
 
   static const _icons = [
     Icons.water_drop_outlined,
@@ -106,6 +125,18 @@ class TownLandmarkOverlay extends StatelessWidget {
                         letterSpacing: 1.2,
                       ),
                     ),
+                    if (_cuando != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        _cuando!,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: t.fgFaint,
+                          fontSize: 11,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

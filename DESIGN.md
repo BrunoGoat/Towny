@@ -369,6 +369,50 @@ pestaña *Leyendas* es una hoja de papiro que se lee de la primera pieza a la
 Al lado están *El pueblo*, con lo que llevás en pie y tus dos cifras, e *Hitos*,
 con lo terminado, lo que está en obra y lo que viene.
 
+## El libro del atril
+
+En la plaza hay un atril, y lo que se abre al tocarlo es un libro: dos páginas
+de papiro, y la hoja se pasa con el dedo. Que sea un libro no es adorno — una
+lista que se desliza no tiene fondo, y un libro tiene páginas contadas y se
+sabe por dónde se va.
+
+**Es un códice, no un escaneo.** Tablas forradas de cuero, cantoneras de latón
+en las cuatro esquinas, y el canto de las hojas asomando por los dos costados:
+apilado a la izquierda lo leído y a la derecha lo que queda, así que la mano
+sabe por dónde va sin leer el número. El papel se oscurece al meterse en el
+pliegue, que es lo que le da volumen a dos rectángulos de papel. Cada página
+lleva su renglón de sección arriba y su folio abajo, por la parte de fuera.
+
+**Y la hoja pasa por delante.** Girar media vuelta sobre el lomo lleva la hoja
+de un lado al otro con cualquiera de los dos signos de la perspectiva, porque
+el ancho va con el coseno; lo que cambia es la profundidad. Con el signo
+equivocado el canto libre se hundía por detrás del libro y salía por el otro
+lado, que es algo que el papel no hace.
+
+### El calendario de las obras
+
+La bitácora fecha cada pieza desde el primer día. Las obras no estaban
+fechadas, y las obras son lo que uno recuerda: *«catedral, del 3 de mayo al 2
+de julio, sesenta y un días»* convierte el pueblo en un calendario de tu propia
+vida — mirás la colegiata y sabés qué dos meses fueron.
+
+Va delante de las leyendas, porque las obras son los años y las leyendas son
+los días. Una página por año: los meses bajan por la hoja y cada obra es una
+barra que empieza donde se puso la primera piedra y acaba donde se remató. Lo
+que se lee de un vistazo no es cuánto costó cada una sino **cuánto duró**, y
+dónde están los huecos — los meses en que el pueblo creció en casas y no hizo
+época. La que está en obra va en rojo y sin cerrar.
+
+**No se guarda ni un dato nuevo.** Sale de lo que ya estaba escrito: la crónica
+dice en qué orden se construye, el plan en qué pieza empieza cada obra y
+cuántas cuesta, y cada pieza lleva su fecha desde siempre. Por eso funciona
+hacia atrás, en pueblos levantados hace un año por una versión de la app que no
+sabía nada de esto. Y por eso mismo cuentan **días de calendario y no piezas**:
+veinte piezas pueden ser veinte días o tres meses, y eso es toda la idea.
+
+La misma fecha se dice en la tarjeta del día que se remata una obra, que es el
+momento en que vale algo.
+
 ## El cielo
 
 Ciclo día/noche real: el sol sale por el este, cruza, se pone, y después la luna
