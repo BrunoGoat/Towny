@@ -7,9 +7,12 @@ import 'package:la_muralla/data/character.dart';
 import 'package:la_muralla/data/landmarks.dart';
 import 'package:la_muralla/engine/camera.dart';
 import 'package:la_muralla/engine/palette.dart';
+import 'package:la_muralla/engine/solid.dart';
 import 'package:la_muralla/engine/renderer.dart';
+import 'package:la_muralla/engine/mason.dart';
 import 'package:la_muralla/engine/scene.dart';
 import 'package:la_muralla/engine/town.dart';
+import 'package:la_muralla/engine/world.dart';
 import 'package:la_muralla/fx/effects.dart';
 
 /// **La prueba de que tirar lo que no se ve no se nota.**
@@ -109,6 +112,49 @@ TownPainter _frame(TownScene scene) {
   return painter;
 }
 
+/// Una obra a medio levantar con su última pieza todavía en el aire, y la
+/// cámara puesta encima de ella.
+///
+/// Encima de ella a propósito: lo que hay que poder ver es el hueco que
+/// dejaría debajo si se hubiera archivado mal, y desde el encuadre de la obra
+/// entera ese hueco son cuatro píxeles.
+TownScene _cayendo(Landmark mark, double t) {
+  final place = TownCharacter.all.first;
+  final layout = TownLayout.showcase(place, landmark: mark, placed: mark.cost);
+  final ultima = layout.pieces[mark.cost - 1];
+  final cam = OrbitCamera()
+    ..yaw = 0.7
+    ..pitch = 0.30
+    ..distance = 7
+    ..focusY = (ultima.y0 + ultima.y1) / 2
+    ..travel = (ultima.x0 + ultima.x1) / 2
+    ..focusZ = (ultima.z0 + ultima.z1) / 2;
+  cam.wallLength = layout.radius * 2;
+  cam.snap();
+  final fx = PlacementFx(mark.cost - 1)..t = t;
+  return TownScene(
+    placed: mark.cost,
+    palette: Palette.forMoment(11, 1),
+    camera: cam,
+    integrity: 1,
+    time: 2.0,
+    hourOfDay: 11,
+    effects: EffectSystem(),
+    labelledBricks: const {},
+    towns: [
+      TownEntry(
+        layout: layout,
+        name: mark.name,
+        symbol: 'libro',
+        integrity: 1,
+        placed: mark.cost,
+      ),
+    ],
+    active: 0,
+    fx: fx,
+  );
+}
+
 Future<(ByteData, int)> _pinta(WidgetTester tester, TownScene scene) async {
   final hits = TouchMap();
   final painter = TownPainter(scene, hits);
@@ -136,8 +182,193 @@ int _difieren(ByteData a, ByteData b) {
   return n;
 }
 
+/// Cuánto cambian: cuántos píxeles se mueven de verdad y cuál es el peor.
+({int reales, int peor}) _cuanto(ByteData a, ByteData b) {
+  final x = a.buffer.asUint8List();
+  final y = b.buffer.asUint8List();
+  var reales = 0, peor = 0;
+  for (var i = 0; i < x.length; i += 4) {
+    var d = 0;
+    for (var c = 0; c < 3; c++) {
+      final e = (x[i + c] - y[i + c]).abs();
+      if (e > d) d = e;
+    }
+    if (d > 24) reales++;
+    if (d > peor) peor = d;
+  }
+  return (reales: reales, peor: peor);
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  group('las caras enterradas no se archivan, y no se nota', () {
+    /// Levanta y pinta [hacer] dos veces: una archivando hasta lo que no se
+    /// ve y otra sin archivarlo. Entre las dos hay que tirar los pueblos
+    /// guardados, porque lo que cambia es la piedra y no la cámara.
+    Future<void> igual(
+      WidgetTester tester,
+      String cual,
+      TownScene Function() hacer, {
+      double margen = 0.004,
+    }) async {
+      buryHidden = false;
+      forgetTowns();
+      final (antes, _) = await _pinta(tester, hacer());
+      buryHidden = true;
+      forgetTowns();
+      final (luego, _) = await _pinta(tester, hacer());
+      final d = _cuanto(antes, luego);
+      // **Aquí el listón no puede ser cero, y conviene decir por qué.**
+      //
+      // Cada cara se pinta con un trazo de un píxel alrededor para cerrar la
+      // costura con sus vecinas, y ese trazo lo llevaban también las caras
+      // enterradas: el culo de una casa dejaba un pelo de su color asomando
+      // por la línea donde la casa toca la hierba. Al no archivarlas, ese
+      // pelo desaparece. Además, con otras caras el árbol de planos corta por
+      // otro sitio, y un borde suavizado que se mueve medio píxel cambia el
+      // píxel. Las dos cosas son de medio píxel; ninguna es un agujero.
+      //
+      // Lo que sí tiene que ser imposible es el agujero, y un agujero no se
+      // parece a esto: una pared que falta son miles de píxeles cambiando de
+      // piedra a hierba. Por eso se mide **cuánto** cambia cada píxel y no
+      // cuántos: hasta aquí llega el pelo de una costura, de aquí en adelante
+      // sólo llega la hierba.
+      final cabe = 390 * 844 * margen;
+      expect(
+        d.reales,
+        lessThan(cabe),
+        reason: '$cual: ${d.reales} píxeles cambiaron de verdad',
+      );
+      expect(d.peor, lessThan(140), reason: '$cual: uno cambió ${d.peor}');
+    }
+
+    tearDown(() {
+      buryHidden = true;
+      forgetTowns();
+    });
+
+    testWidgets('en un pueblo, desde ocho ángulos', (tester) async {
+      for (var i = 0; i < 8; i++) {
+        await igual(
+          tester,
+          'yaw $i/8',
+          () => _valle(200, yaw: i * 0.785, dist: 22),
+        );
+      }
+    });
+
+    testWidgets('de noche y a la deriva, que es cuando se abren huecos', (
+      tester,
+    ) async {
+      // De noche el listón es más flojo, y por una razón concreta: los halos
+      // de las ventanas se pintan intercalados en el orden de las caras, así
+      // que al haber menos caras se recomponen un puesto antes o después. Lo
+      // que cambia es sobre qué pared se apoya un resplandor, no dónde está
+      // la pared — y que ninguna luz atraviese una casa lo sigue vigilando
+      // `lamp_test.dart`, que pasa igual.
+      await igual(
+        tester,
+        'noche',
+        () => _valle(200, hora: 22.5, dist: 16),
+        margen: 0.02,
+      );
+      await igual(
+        tester,
+        'deriva',
+        () => _valle(200, dist: 20, hora: 19.5, integrity: 0.2),
+      );
+    });
+
+    testWidgets('a ras del suelo, que es donde se vería un culo que falta', (
+      tester,
+    ) async {
+      await igual(tester, 'a ras', () => _valle(200, pitch: 0.02, dist: 18));
+      await igual(tester, 'a plomo', () => _valle(200, pitch: 1.45, dist: 18));
+    });
+
+    testWidgets('con una pieza en el aire encima de cada tipo de obra', (
+      tester,
+    ) async {
+      // **El caso que obliga a la regla de «sólo tapa el más viejo».** La
+      // pieza que cae se dibuja aparte, levantada; si al archivarse hubiera
+      // borrado la cara de abajo de lo que tiene debajo, el agujero se vería
+      // durante todo el vuelo.
+      for (final mark in landmarks) {
+        for (final t in [0.3, 0.8]) {
+          // Y que la pieza esté de verdad en el aire: una prueba que compara
+          // dos fotogramas en los que no vuela nada no prueba nada.
+          buryHidden = true;
+          forgetTowns();
+          final (conVuelo, _) = await _pinta(tester, _cayendo(mark, t));
+          final (quieta, _) = await _pinta(tester, _obra(mark));
+          expect(
+            _difieren(conVuelo, quieta),
+            greaterThan(0),
+            reason: '${mark.name}: no se movió nada',
+          );
+          await igual(
+            tester,
+            '${mark.name} a $t de caer',
+            () => _cayendo(mark, t),
+          );
+        }
+      }
+    });
+
+    testWidgets('y obra por obra del catálogo, de cerca', (tester) async {
+      for (final mark in landmarks) {
+        await igual(tester, mark.name, () => _obra(mark));
+      }
+    });
+
+    test('una pieza nueva nunca tapa la cara de una vieja', () {
+      // **La propiedad que protege a la pieza que vuela**, comprobada por sí
+      // misma y no por los píxeles: en el catálogo de verdad casi nunca pasa
+      // que una pieza sea más ancha que la de debajo, así que un fallo aquí
+      // no se vería en ninguna obra existente — y se vería el día que se
+      // escriba una que sí, con la app ya en la calle.
+      //
+      // Así que la obra se escribe aquí: una caja angosta y encima otra que
+      // la desborda por los cuatro lados. La cara de arriba de la angosta
+      // está tapada del todo por la ancha, pero la ancha es **más nueva**: si
+      // se archivara sin ella, mientras la ancha estuviera en el aire se
+      // vería el agujero.
+      //
+      // Se cumple por dos motivos a la vez, y está bien que sean dos. El de
+      // fondo es que se archiva en orden: cuando le toca a la angosta, la
+      // ancha todavía no existe, así que no hay con qué taparla. El escrito
+      // es la comparación de edades en `enterrada`, que sobra mientras ese
+      // orden se respete y deja de sobrar el día que alguien lo cambie. Lo
+      // que fija esta prueba es la propiedad, no cuál de los dos la sostiene.
+      final torpe = Landmark('probeta', 'Probeta', 2, 0, 'Dos cajas.', (m) {
+        m.box(PieceKind.floor, 1.0, 1.0, 1.0);
+        m.box(PieceKind.floor, 2.0, 2.0, 1.0);
+      });
+      buryHidden = true;
+      forgetTowns();
+      final layout = TownLayout.showcase(
+        TownCharacter.all.first,
+        landmark: torpe,
+        placed: 2,
+      );
+      final built = builtTown(layout, 2);
+      final arriba = <Facet>[];
+      for (final c in built.clusters) {
+        for (final f in c.source) {
+          if (f.n.y > 0.999 && f.piece == 0) arriba.add(f);
+        }
+      }
+      expect(
+        arriba,
+        isNotEmpty,
+        reason:
+            'se archivó sin la cara de arriba de la pieza de abajo, y esa '
+            'cara se ve mientras la de encima está cayendo',
+      );
+      forgetTowns();
+    });
+  });
 
   group('el presupuesto recorta, no amputa', () {
     test('un pueblo de trescientas piezas nunca se queda a medias', () {

@@ -97,7 +97,15 @@ class BuiltTown {
     this.placed,
     this.sign, {
     this.knots = const [],
+    this.solid = const [],
   });
+
+  /// Las cajas macizas archivadas hasta aquí, con la pieza que las puso.
+  ///
+  /// Se guardan para que el pueblo pueda seguir creciendo de a una pieza sin
+  /// perder lo que ya sabía: una cara nueva se mide contra todo lo que había
+  /// antes, y lo que había antes no se vuelve a levantar.
+  final List<Massive> solid;
   final Order? root;
   final List<BuiltCluster> clusters;
 
@@ -120,6 +128,40 @@ class BuiltTown {
 
   /// What town, and how far along, this was built for.
   final int sign;
+}
+
+/// La llave para archivar también lo enterrado, que existe **para poder
+/// demostrar que no se nota**: la prueba levanta el mismo pueblo con ella y
+/// sin ella, lo pinta las dos veces y exige que no cambie ni un píxel. Fuera
+/// de esa prueba no la toca nadie.
+bool buryHidden = true;
+
+/// Tira los pueblos guardados. Sólo hace falta en las pruebas, que levantan
+/// el mismo pueblo dos veces con reglas distintas y no pueden quedarse con el
+/// de antes.
+void forgetTowns() => _cache.clear();
+
+/// Una caja maciza ya archivada, y de qué pieza es.
+class Massive {
+  const Massive(this.box, this.piece);
+  final Aabb box;
+  final int piece;
+}
+
+/// Si este sólido es una caja recta: seis caras y todas a escuadra.
+///
+/// Sólo contra ésas se mide lo que se tapa, y es a propósito. Un cuerpo recto
+/// **es** su caja envolvente, así que «esta cara está contra ella» quiere
+/// decir «esta cara está contra piedra maciza» y no hay que discutirlo. De un
+/// tejado a dos aguas o de un cuerpo cualquiera no se puede decir lo mismo con
+/// su caja, y de los que no se puede decir, no se dice.
+bool _straight(Solid s) {
+  if (s.faces.length != 6) return false;
+  for (final f in s.faces) {
+    final a = f.n.x.abs(), b = f.n.y.abs(), c = f.n.z.abs();
+    if (math.max(a, math.max(b, c)) < 0.999) return false;
+  }
+  return true;
 }
 
 /// Kept from one achievement to the next, so laying a piece re-files that
@@ -217,6 +259,140 @@ BuiltTown _build(TownLayout layout, int placed, BuiltTown? before) {
     weatherBox.addAll(before.weatherBox);
   }
 
+  // **Las caras que no se ven nunca no se archivan.**
+  //
+  // Un pueblo es piedra apilada: el suelo de un piso está contra el techo del
+  // de abajo, la casa apoya en su zócalo, el zócalo apoya en la tierra. Todas
+  // esas caras se cortaban, se ordenaban, se proyectaban y se pintaban, y
+  // ninguna se ha visto jamás. Medido sobre un pueblo de doscientas piezas
+  // son **una de cada cuatro**.
+  //
+  // Dos reglas, las dos exactas:
+  //
+  // 1. La cara que mira hacia abajo y está en la tierra. La cámara no baja del
+  //    horizonte —el ángulo está limitado por encima de cero— así que el culo
+  //    de lo que está apoyado en el suelo no se puede ver desde ningún sitio.
+  // 2. La cara pegada contra una caja maciza que la cubre entera. Si del otro
+  //    lado hay piedra hasta más allá de sus bordes, lo que la tapa es la
+  //    piedra, y da igual desde dónde se mire.
+  //
+  // **Y sólo tapa lo que es más viejo que ella.** No es una cautela: la pieza
+  // que está cayendo se dibuja aparte, levantada en el aire, y si hubiera
+  // dejado un agujero debajo al archivarse, ese agujero se vería durante todo
+  // el vuelo. La que cae es siempre la última, así que con esta regla nunca es
+  // la que tapa a nadie.
+  final macizos = <Massive>[];
+  final rejilla = <int, List<int>>{};
+  if (before != null && before.placed <= take) {
+    macizos.addAll(before.solid);
+  }
+  void indexar(int at) {
+    final b = macizos[at].box;
+    for (var x = (b.x0 / 6).floor(); x <= (b.x1 / 6).floor(); x++) {
+      for (var z = (b.z0 / 6).floor(); z <= (b.z1 / 6).floor(); z++) {
+        rejilla.putIfAbsent(x * 100003 + z, () => <int>[]).add(at);
+      }
+    }
+  }
+
+  for (var i = 0; i < macizos.length; i++) {
+    indexar(i);
+  }
+
+  /// Si esta cara está enterrada y no hace falta archivarla.
+  bool enterrada(Facet f, int piece) {
+    var x0 = double.infinity, y0 = double.infinity, z0 = double.infinity;
+    var x1 = -double.infinity, y1 = -double.infinity, z1 = -double.infinity;
+    for (final q in f.v) {
+      if (q.x < x0) x0 = q.x;
+      if (q.y < y0) y0 = q.y;
+      if (q.z < z0) z0 = q.z;
+      if (q.x > x1) x1 = q.x;
+      if (q.y > y1) y1 = q.y;
+      if (q.z > z1) z1 = q.z;
+    }
+    if (f.n.y < -0.999 && y1 <= 0.002) return true;
+    final eje = f.n.x.abs() > 0.999
+        ? 0
+        : f.n.y.abs() > 0.999
+        ? 1
+        : f.n.z.abs() > 0.999
+        ? 2
+        : -1;
+    if (eje < 0) return false;
+    final hacia = switch (eje) {
+      0 => f.n.x,
+      1 => f.n.y,
+      _ => f.n.z,
+    };
+    final plano = switch (eje) {
+      0 => x0,
+      1 => y0,
+      _ => z0,
+    };
+    final vistos = <int>{};
+    for (var cx = (x0 / 6).floor(); cx <= (x1 / 6).floor(); cx++) {
+      for (var cz = (z0 / 6).floor(); cz <= (z1 / 6).floor(); cz++) {
+        for (final at in rejilla[cx * 100003 + cz] ?? const <int>[]) {
+          if (!vistos.add(at)) continue;
+          final m = macizos[at];
+          if (m.piece > piece) continue;
+          final b = m.box;
+          final borde = hacia < 0
+              ? switch (eje) {
+                  0 => b.x1,
+                  1 => b.y1,
+                  _ => b.z1,
+                }
+              : switch (eje) {
+                  0 => b.x0,
+                  1 => b.y0,
+                  _ => b.z0,
+                };
+          if ((borde - plano).abs() > 1e-3) continue;
+          final cubre = switch (eje) {
+            0 =>
+              b.y0 <= y0 + 1e-4 &&
+                  b.y1 >= y1 - 1e-4 &&
+                  b.z0 <= z0 + 1e-4 &&
+                  b.z1 >= z1 - 1e-4,
+            1 =>
+              b.x0 <= x0 + 1e-4 &&
+                  b.x1 >= x1 - 1e-4 &&
+                  b.z0 <= z0 + 1e-4 &&
+                  b.z1 >= z1 - 1e-4,
+            _ =>
+              b.x0 <= x0 + 1e-4 &&
+                  b.x1 >= x1 - 1e-4 &&
+                  b.y0 <= y0 + 1e-4 &&
+                  b.y1 >= y1 - 1e-4,
+          };
+          if (cubre) return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /// Archiva un sólido: poda lo que no se va a ver y apunta su caja.
+  void file(Solid solid, Aabb box, Set<int> mine) {
+    final visibles = buryHidden
+        ? <Facet>[
+            for (final f in solid.faces)
+              if (!enterrada(f, solid.piece)) f,
+          ]
+        : solid.faces;
+    if (_straight(solid)) {
+      macizos.add(Massive(box, solid.piece));
+      indexar(macizos.length - 1);
+    }
+    if (visibles.isEmpty) return;
+    faces.add(visibles);
+    bounds.add(box);
+    held.add(mine);
+    kept.add(null);
+  }
+
   /// Files one lot of furniture: not a piece, so it belongs to no achievement.
   void furnish(List<Solid> solids) {
     for (final solid in solids) {
@@ -231,10 +407,7 @@ BuiltTown _build(TownLayout layout, int placed, BuiltTown? before) {
           }
         }
       }
-      faces.add(solid.faces);
-      bounds.add(box);
-      held.add(const <int>{});
-      kept.add(null);
+      file(solid, box, const <int>{});
     }
   }
 
@@ -335,10 +508,7 @@ BuiltTown _build(TownLayout layout, int placed, BuiltTown? before) {
           }
         }
       }
-      faces.add(solid.faces);
-      bounds.add(b);
-      held.add({solid.piece});
-      kept.add(null);
+      file(solid, b, {solid.piece});
     }
   }
   if (faces.isEmpty && weather.isEmpty) {
@@ -350,6 +520,7 @@ BuiltTown _build(TownLayout layout, int placed, BuiltTown? before) {
       null,
       placed,
       _sign(layout, take),
+      solid: macizos,
     );
   }
 
@@ -449,6 +620,7 @@ BuiltTown _build(TownLayout layout, int placed, BuiltTown? before) {
     placed,
     _sign(layout, take),
     knots: knots,
+    solid: macizos,
   );
 }
 

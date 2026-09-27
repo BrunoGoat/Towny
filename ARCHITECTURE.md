@@ -68,6 +68,34 @@ encendidas, a ras del suelo y a plomo, un valle de seis pueblos, un pueblo a la
 deriva y las sesenta obras del catálogo de cerca. No es «no se nota»: es que es
 el mismo fotograma.
 
+Y hay una tercera, ésta al construir y no al pintar: **la cara enterrada no se
+archiva**. Un pueblo es piedra apilada —el suelo de un piso contra el techo del
+de abajo, la casa sobre su zócalo, el zócalo sobre la tierra— y todas esas
+caras se cortaban, se ordenaban y se pintaban sin haberse visto jamás. Se
+descartan dos clases, las dos exactas: la que mira hacia abajo y está en la
+tierra (la cámara no baja del horizonte), y la que está pegada contra una caja
+maciza que la cubre entera. Una de cada cuatro caras antes de cortar, que
+después de cortar son un 13% menos de caras y un 20% menos de tiempo de
+levantar el pueblo.
+
+**Sólo tapa lo que es más viejo.** La pieza que está cayendo se dibuja aparte,
+levantada en el aire, y si al archivarse hubiera borrado la cara de debajo, el
+agujero se vería durante todo el vuelo. Se cumple por partida doble: se archiva
+en orden, así que cuando le toca a una cara la pieza que la taparía todavía no
+existe; y además se compara la edad. Lo fija una prueba con una obra escrita a
+mano para eso — una caja angosta y encima otra que la desborda — porque en el
+catálogo de verdad ese caso no se da y se daría el día que se escriba una obra
+que lo tenga.
+
+Esta última **no da cero píxeles**, y conviene saber por qué antes de mirar el
+número: cada cara lleva un trazo de un píxel alrededor para cerrar la costura
+con sus vecinas, y las enterradas lo llevaban también — el culo de una casa
+dejaba un pelo de su color en la línea donde toca la hierba. Al no archivarlas
+ese pelo desaparece, y con otras caras el árbol corta por otro sitio y los
+bordes suavizados se mueven medio píxel. Lo que la prueba exige entonces es
+**cuánto** cambia cada píxel y no cuántos: hasta ahí llega una costura, y un
+agujero —una pared que falta, piedra que pasa a hierba— no cabe en ese margen.
+
 Cuando aun así no llega, hay un presupuesto de caras que el termostato de
 `town_view.dart` sube y baja con lo que tarde el fotograma. **Se gasta por lo
 que ocupa cada edificio en la pantalla, y el pueblo que se está mirando va
