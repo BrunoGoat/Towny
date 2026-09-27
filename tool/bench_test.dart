@@ -114,7 +114,7 @@ void main() {
     // ignore: avoid_print
     print(
       '\n  piezas  pueblos  cámara   total    fondo   pueblo   caras  '
-      'sin recorte',
+      'sin recorte  una a una',
     );
     for (final (n, p, c) in [
       (60, 1, 1.9),
@@ -139,6 +139,9 @@ void main() {
       TownPainter.clipping = false;
       final crudo = _cronometra(s);
       TownPainter.clipping = true;
+      TownPainter.batched = false;
+      final sueltas = _cronometra(s);
+      TownPainter.batched = true;
       final f = _cronometraFondo(s);
       print(
         '  ${n.toString().padLeft(6)}  ${p.toString().padLeft(7)}  '
@@ -147,7 +150,8 @@ void main() {
         '${f.toStringAsFixed(2).padLeft(6)}  '
         '${(t - f).toStringAsFixed(2).padLeft(7)}  '
         '${caras.toString().padLeft(6)}  '
-        '${crudo.toStringAsFixed(2).padLeft(9)}',
+        '${crudo.toStringAsFixed(2).padLeft(9)}  '
+        '${sueltas.toStringAsFixed(2).padLeft(10)}',
       );
     }
   }, timeout: const Timeout(Duration(minutes: 10)));

@@ -2311,8 +2311,25 @@ class TownPainter extends CustomPainter {
   /// There is no sort here any more and there is not meant to be one: by the
   /// time a face reaches this list its place has already been decided by
   /// geometry rather than guessed from a distance.
+  /// Manda las caras de una en una —relleno y costura— o todas juntas.
+  ///
+  /// Ver [_flushBatched]. Se puede apagar desde aquí porque el cambio es de
+  /// los que hay que poder mirar con y sin.
+  static bool batched = true;
+
+  /// Cuántos triángulos caben en una tanda. Cuando se llena, se manda y se
+  /// empieza otra: así el gasto de memoria no depende del tamaño del pueblo.
+  static const int _batch = 16384;
+  static final Float32List _verts = Float32List(_batch * 6);
+  static final Int32List _tints = Int32List(_batch * 3);
+  int _tris = 0;
+
   void _flush(Canvas canvas, Size size) {
     if (_faceCount == 0) return;
+    if (batched) {
+      _flushBatched(canvas, size);
+      return;
+    }
     final paint = Paint()
       ..style = PaintingStyle.fill
       ..isAntiAlias = true;
@@ -2355,6 +2372,76 @@ class TownPainter extends CustomPainter {
       _lampAt(canvas, size, lampara, luz);
       luz += _lampStride;
     }
+  }
+
+  /// **Todas las caras en una sola llamada de dibujo.**
+  ///
+  /// Cada cara costaba dos: el relleno y un trazo de un píxel alrededor para
+  /// cerrar la costura con sus vecinas. A doscientas piezas eso son casi siete
+  /// mil llamadas por fotograma, y **dos tercios del tiempo se iban ahí**.
+  /// Aquí se convierten en triángulos —una cara convexa es un abanico desde su
+  /// primer vértice— y se mandan de una vez con el color en cada vértice.
+  ///
+  /// **El orden no corre ningún peligro, que es lo primero que hay que
+  /// preguntarle a esto.** Los triángulos se rasterizan en el orden de la
+  /// lista, uno encima de otro, exactamente igual que las llamadas sueltas: no
+  /// hay z-buffer ni reordenamiento, y quien decide el orden sigue siendo el
+  /// árbol de planos. Lo único que cambia es cómo se entrega una lista que ya
+  /// venía ordenada.
+  ///
+  /// Y la costura desaparece sin hacer falta: dos triángulos que comparten
+  /// vértices exactos no dejan pelo entre ellos. Lo que se pierde es el
+  /// suavizado del contorno contra el cielo, que es la única razón por la que
+  /// esto se puede apagar y mirar.
+  ///
+  /// Las lámparas parten la tanda: van con otro modo de fusión y en su sitio
+  /// del orden, justo detrás de su ventana.
+  void _flushBatched(Canvas canvas, Size size) {
+    final paint = Paint();
+    final lampara = Paint()..blendMode = BlendMode.plus;
+    _tris = 0;
+    var luz = 0;
+    for (var k = 0; k < _faceCount; k++) {
+      final f = _facePool[k];
+      if (_tris + f.n - 2 > _batch) _sendBatch(canvas, paint);
+      for (var i = 1; i < f.n - 1; i++) {
+        final at = _tris * 6;
+        _verts[at] = f.pts[0];
+        _verts[at + 1] = f.pts[1];
+        _verts[at + 2] = f.pts[i * 2];
+        _verts[at + 3] = f.pts[i * 2 + 1];
+        _verts[at + 4] = f.pts[(i + 1) * 2];
+        _verts[at + 5] = f.pts[(i + 1) * 2 + 1];
+        final c = _tris * 3;
+        _tints[c] = f.color;
+        _tints[c + 1] = f.color;
+        _tints[c + 2] = f.color;
+        _tris++;
+      }
+      while (luz < _lamps.length && _lamps[luz + 4] <= k) {
+        _sendBatch(canvas, paint);
+        _lampAt(canvas, size, lampara, luz);
+        luz += _lampStride;
+      }
+    }
+    _sendBatch(canvas, paint);
+    while (luz < _lamps.length) {
+      _lampAt(canvas, size, lampara, luz);
+      luz += _lampStride;
+    }
+  }
+
+  void _sendBatch(Canvas canvas, Paint paint) {
+    if (_tris == 0) return;
+    final v = ui.Vertices.raw(
+      ui.VertexMode.triangles,
+      Float32List.sublistView(_verts, 0, _tris * 6),
+      colors: Int32List.sublistView(_tints, 0, _tris * 3),
+    );
+    // Sin shader en la brocha, el color de cada vértice pasa tal cual.
+    canvas.drawVertices(v, BlendMode.dst, paint);
+    v.dispose();
+    _tris = 0;
   }
 
   // ------------------------------------------------------------- extras

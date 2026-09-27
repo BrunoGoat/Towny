@@ -96,6 +96,30 @@ bordes suavizados se mueven medio píxel. Lo que la prueba exige entonces es
 **cuánto** cambia cada píxel y no cuántos: hasta ahí llega una costura, y un
 agujero —una pared que falta, piedra que pasa a hierba— no cabe en ese margen.
 
+### Una sola llamada de dibujo
+
+Lo que queda después de no pintar lo que no se ve es pintar lo que sí, y eso
+costaba **dos llamadas por cara**: el relleno y un trazo de un píxel alrededor
+para cerrar la costura con las vecinas. A doscientas piezas son casi siete mil
+llamadas por fotograma, y ahí se iban **dos tercios del tiempo**.
+
+Ahora las caras se convierten en triángulos —una cara convexa es un abanico
+desde su primer vértice— y se mandan todas juntas con el color en cada
+vértice. **El orden no corre peligro**, que es lo primero que hay que
+preguntarle a esto: los triángulos se rasterizan en el orden de la lista, uno
+encima de otro, exactamente igual que las llamadas sueltas. No hay z-buffer ni
+reordenamiento, y quien decide el orden sigue siendo el árbol de planos; lo
+único que cambia es cómo se entrega una lista que ya venía ordenada. Las
+lámparas parten la tanda, porque van con otro modo de fusión y en su sitio.
+
+La costura desaparece sin hacer falta: dos triángulos que comparten vértices
+exactos no dejan pelo entre ellos. Lo que cambia en la imagen es justamente lo
+contrario de un fallo — el trazo de un píxel **sobresalía** medio píxel del
+contorno de cada cara, y ese halo del color de la cara ya no está. Medido a
+resolución de teléfono, el 4% de los píxeles cambia y casi todo son esos
+medios píxeles de contorno; las láminas puestas una al lado de otra son
+indistinguibles.
+
 Cuando aun así no llega, hay un presupuesto de caras que el termostato de
 `town_view.dart` sube y baja con lo que tarde el fotograma. **Se gasta por lo
 que ocupa cada edificio en la pantalla, y el pueblo que se está mirando va

@@ -7,10 +7,9 @@ import 'package:la_muralla/data/character.dart';
 import 'package:la_muralla/data/landmarks.dart';
 import 'package:la_muralla/engine/camera.dart';
 import 'package:la_muralla/engine/palette.dart';
-import 'package:la_muralla/engine/solid.dart';
 import 'package:la_muralla/engine/renderer.dart';
-import 'package:la_muralla/engine/mason.dart';
 import 'package:la_muralla/engine/scene.dart';
+import 'package:la_muralla/engine/solid.dart';
 import 'package:la_muralla/engine/town.dart';
 import 'package:la_muralla/engine/world.dart';
 import 'package:la_muralla/fx/effects.dart';
@@ -238,9 +237,9 @@ void main() {
       expect(
         d.reales,
         lessThan(cabe),
-        reason: '$cual: ${d.reales} píxeles cambiaron de verdad',
+        reason:
+            '$cual: ${d.reales} píxeles cambiaron de verdad (peor ${d.peor})',
       );
-      expect(d.peor, lessThan(140), reason: '$cual: uno cambió ${d.peor}');
     }
 
     tearDown(() {

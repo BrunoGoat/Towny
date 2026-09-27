@@ -59,20 +59,12 @@ frase sin traducir — que es la única manera de que no se pudra sola.
 ### Lo que queda del render
 
 Hecho ya: tirar lo que no toca la pantalla, un presupuesto que recorta por
-tamaño en pantalla en vez de por distancia, y no archivar las caras enterradas
-(`ARCHITECTURE.md`). Con eso el fotograma baja entre un 20 % y un 45 % según el
-encuadre, y levantar el pueblo de cero un 20 %. Lo que sigue sobre la
+tamaño en pantalla en vez de por distancia, no archivar las caras enterradas, y
+mandar todas las caras en una sola llamada de dibujo (`ARCHITECTURE.md`). El
+fotograma pasó de 12,0 a 4,3 ms con doscientas piezas y de 40,2 a 14,8 con mil
+quinientas; levantar el pueblo de cero, un 20 % menos. Lo que sigue sobre la
 mesa, con lo medido al lado:
 
-- **Una sola llamada de dibujo.** Hoy cada cara son dos `drawPath` con
-  antialias —el relleno y la costura que tapa el pelo entre caras vecinas—, y
-  eso es **dos tercios del fotograma**. Juntarlas todas en un `drawVertices`
-  con color por vértice deja 11,5 ms en 4,4 a doscientas piezas, y 19,1 en 7,6
-  a seiscientas. El orden no corre peligro: los triángulos se rasterizan en el
-  orden de la lista, igual que las llamadas sueltas. Lo que sí cambia es que
-  se pierde el suavizado por primitiva, así que **hay que verlo en un teléfono
-  antes de decidir** — las costuras mejoran (los triángulos comparten vértices
-  exactos), la silueta contra el cielo puede empeorar.
 - **El edificio simplificado de lejos.** Una versión de cada grupo con su
   silueta y sin ventanas ni buhardillas, construida una vez. Es lo que debería
   hacer el presupuesto en vez de dejar de pintar.
