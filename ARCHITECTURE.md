@@ -135,6 +135,35 @@ tono, el sombreado y la bruma de cada cara cuesta, a doscientas piezas,
 **−0,07 ms de un fotograma de 4,7** — o sea nada. Pintar el pueblo entero de un
 gris plano no lo hace más rápido.
 
+### El pueblo se levanta en otro hilo
+
+Cortar y ordenar un pueblo de doscientas piezas cuesta unos **280 ms** —tres
+tercios parejos: sacar los sólidos, cortar los ochenta grupos, y ordenarlos
+entre sí— y se pagaban en el primer fotograma que lo pedía, o sea al abrir la
+app. No hay forma de que eso sea barato; sí de que no lo pague el hilo de la
+pantalla.
+
+`warmTown` se lo encarga a otro isolate mientras sigue puesta la pantalla de
+apertura, que es un valle sin pueblo, que es exactamente lo que hay mientras
+tanto. Cuando vuelve queda en la caché de siempre, así que el primer fotograma
+que pregunte lo encuentra hecho. Los otros pueblos del valle se encargan
+después sin esperar a nadie, para que subir a mirarlo tampoco cueste.
+
+**Un plano no se puede mandar a otro hilo**: lleva dentro el catálogo de obras,
+y una obra es una receta, o sea una función. Lo que se manda es el encargo
+—ocho datos planos— y el plano se levanta del otro lado. Dos planos del mismo
+encargo son el mismo plano pieza por pieza, y `townOrder` es el único sitio
+donde se arma un encargo justamente para que la vista y el arranque no puedan
+pedir cosas distintas.
+
+Y si algo sale mal del otro lado no pasa nada: la caché sigue vacía y el
+fotograma lo levanta como antes. Es más: un pueblo que volviera equivocado
+tampoco se usaría, porque lo guardado lleva la firma de las piezas con las que
+se levantó y el fotograma la comprueba. Por eso las dos pruebas de
+`warm_test.dart` son dos y no una: la de la huella dice que lo que se pinta es
+idéntico a lo de aquí, y la del reloj dice que **se usó** — si hubiera vuelto
+mal, el primer fotograma tardaría lo que tardaba antes.
+
 ## Sonido
 
 Cinco sonidos —poner una pieza, toque, reparar, obra terminada, hito del pueblo—

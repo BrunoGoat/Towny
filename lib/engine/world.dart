@@ -1,6 +1,8 @@
+import 'dart:isolate';
 import 'dart:math' as math;
 
 import '../core/math3.dart';
+import '../data/character.dart';
 import 'bsp.dart';
 import 'solid.dart';
 import 'solids.dart';
@@ -164,14 +166,100 @@ bool _straight(Solid s) {
   return true;
 }
 
+/// Todo lo que hace falta para levantar un pueblo, y nada que no se pueda
+/// mandar a otro hilo.
+///
+/// Un plano no se puede mandar: lleva dentro el catálogo de obras, y una obra
+/// es una receta, o sea una función. Pero un plano **se deriva** de estos ocho
+/// datos y siempre sale el mismo, así que se manda el encargo y el plano se
+/// levanta del otro lado. Dos planos construidos con el mismo encargo son el
+/// mismo plano pieza por pieza, que es lo que permite que el pueblo que vuelve
+/// encaje con el que espera aquí.
+class TownOrder {
+  const TownOrder({
+    required this.placed,
+    required this.character,
+    required this.cx,
+    required this.cz,
+    required this.chronicle,
+    required this.folk,
+    required this.notices,
+    required this.seed,
+  });
+
+  final int placed;
+  final int character;
+  final double cx, cz;
+  final List<String> chronicle, folk;
+  final List<int> notices;
+  final int seed;
+
+  TownLayout get layout => TownLayout(
+    placed,
+    TownCharacter.byOrder(character),
+    cx: cx,
+    cz: cz,
+    chronicle: chronicle,
+    folk: folk,
+    notices: notices,
+    seed: seed,
+  );
+}
+
+/// Los encargos que están en el horno, para no pedir dos veces el mismo.
+final Map<String, Future<void>> _warming = {};
+
+/// Levanta el pueblo **en otro hilo** y lo deja guardado.
+///
+/// Cortar y ordenar un pueblo de doscientas piezas cuesta doscientos ochenta
+/// milisegundos, y hasta ahora se pagaban en el primer fotograma que lo pedía:
+/// al abrir la app, la pantalla se quedaba quieta ese rato. No hay forma de
+/// que eso sea barato —es la mitad del trabajo de todo el motor— pero sí de
+/// que no sea el hilo de la pantalla el que lo pague.
+///
+/// Cuando vuelve, queda en la misma caché de siempre, así que el primer
+/// fotograma que pregunte lo encuentra hecho y no construye nada. Si algo
+/// sale mal del otro lado no pasa nada: la caché sigue vacía y el fotograma
+/// lo levanta como lo levantaba antes.
+Future<void> warmTown(TownOrder order) {
+  final key = _keyOf(order.cx, order.cz, order.character);
+  final ya = _warming[key];
+  if (ya != null) return ya;
+  final hecho = _cache[key];
+  if (hecho != null && hecho.placed == order.placed) return Future.value();
+  final trabajo = Isolate.run(() => _build(order.layout, order.placed, null))
+      .then((built) {
+        if (built.placed == order.placed) _cache[key] = built;
+      })
+      .catchError((Object _) {})
+      // **Con llaves, y no con flecha.** `_warming.remove` devuelve lo que
+      // quitó, que es este mismo futuro; y `whenComplete` espera al futuro
+      // que le devuelvan antes de completarse. Escrito con flecha, la
+      // limpieza se quedaba esperándose a sí misma y el encargo no volvía
+      // nunca. Tardó en aparecer porque no falla: se cuelga.
+      .whenComplete(() {
+        _warming.remove(key);
+      });
+  _warming[key] = trabajo;
+  return trabajo;
+}
+
 /// Kept from one achievement to the next, so laying a piece re-files that
 /// piece's own corner of the town and leaves the rest of it alone. Layouts are
 /// thrown away and rebuilt whenever their count moves, which is why the cache
 /// is keyed by where the town stands rather than by the object.
 final Map<String, BuiltTown> _cache = {};
 
+/// Bajo qué nombre se guarda un pueblo: dónde está y de qué comarca es.
+///
+/// Una sola función porque lo preguntan dos: el que lo levanta aquí y el que
+/// lo encarga a otro hilo. Con dos copias de la misma cadena, el día que una
+/// cambie el pueblo que vuelve del otro hilo se guardaría bajo un nombre que
+/// nadie busca — y no se rompería nada, que es lo peor que puede pasar.
+String _keyOf(double cx, double cz, int character) => '$cx,$cz,$character';
+
 BuiltTown builtTown(TownLayout layout, int placed) {
-  final key = '${layout.cx},${layout.cz},${layout.character.order}';
+  final key = _keyOf(layout.cx, layout.cz, layout.character.order);
   final had = _cache[key];
   if (had != null &&
       had.placed == placed &&

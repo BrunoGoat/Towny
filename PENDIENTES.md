@@ -60,18 +60,15 @@ frase sin traducir — que es la única manera de que no se pudra sola.
 
 Hecho ya: tirar lo que no toca la pantalla, un presupuesto que recorta por
 tamaño en pantalla en vez de por distancia, no archivar las caras enterradas, y
-mandar todas las caras en una sola llamada de dibujo (`ARCHITECTURE.md`). El
+mandar todas las caras en una sola llamada de dibujo, y levantar el pueblo en
+otro hilo mientras se ve la pantalla de apertura (`ARCHITECTURE.md`). El
 fotograma pasó de 12,0 a 4,3 ms con doscientas piezas y de 40,2 a 14,8 con mil
-quinientas; levantar el pueblo de cero, un 20 % menos. Lo que sigue sobre la
+quinientas; y los 280 ms de levantarlo de cero ya no los paga la pantalla. Lo que sigue sobre la
 mesa, con lo medido al lado:
 
 - **El edificio simplificado de lejos.** Una versión de cada grupo con su
   silueta y sin ventanas ni buhardillas, construida una vez. Es lo que debería
   hacer el presupuesto en vez de dejar de pintar.
-- **El arranque.** Levantar el pueblo de cero cuesta **280 ms a doscientas
-  piezas** —eran 434 antes de podar— y 400 a seiscientas, en el hilo principal. Pasa al
-  abrir la app, al cambiar de hábito y en cada paso de la cinemática. O se va a
-  otro isolate o se construye por grupos a lo largo de varios fotogramas.
 - **Un contador en ajustes** con el fotograma medio, las caras y el presupuesto
   de ahora mismo. Todo lo de arriba está medido en una máquina de escritorio;
   lo que importa es lo que pasa en el teléfono.

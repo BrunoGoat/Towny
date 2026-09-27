@@ -16,6 +16,7 @@ import '../engine/scene.dart';
 import '../engine/shooting_star.dart';
 import '../engine/solids.dart';
 import '../engine/town.dart';
+import '../engine/world.dart';
 import '../fx/effects.dart';
 import '../fx/sensory.dart';
 import '../model/appearance.dart';
@@ -63,6 +64,38 @@ class TownViewController {
   /// How wide the town in front of you reaches, for framing.
   double get townRadius => _state?._town.radius ?? 8;
   Palette? get palette => _state?._palette;
+}
+
+/// El encargo de un pueblo: lo que hace falta para levantarlo, y nada más.
+///
+/// Vive suelto y no dentro de la vista porque lo piden dos sitios: la vista,
+/// que construye el plano y lo pinta, y el arranque de la app, que se lo manda
+/// a otro hilo para que cuando la vista lo pida ya esté hecho. Si los dos
+/// armaran el encargo por su cuenta y uno cambiara, el pueblo que vuelve del
+/// otro hilo no sería el que la vista espera — y no se rompería nada, pero el
+/// trabajo se tiraría a la basura sin que nadie se enterara.
+TownOrder townOrder(Habit h, {required List<Habit> valley, int? placed}) {
+  final (cx, cz) = Habit.centreOf(h.slot);
+  return TownOrder(
+    placed: placed ?? h.total,
+    character: h.place.order,
+    cx: cx,
+    cz: cz,
+    chronicle: h.chronicle,
+    // La misma lista que guarda el hábito, no una copia: lo que se apunte
+    // justo debajo lo tiene que ver el plano sin volver a construirlo.
+    folk: h.folk,
+    // En qué huecos de su tablón hay papel. Sale de las mismas dos cuentas
+    // que lo clavan al acercarse —qué hay que decir, y dónde quedó clavado
+    // cada papel—, así que la silueta que se ve desde el valle es la de lo que
+    // hay de verdad y en su sitio.
+    notices: BoardSlots.instance.assign(
+      h.id,
+      boardNotices(h, valley: valley),
+      slots: NoticeBoard.capacity,
+    ),
+    seed: h.townSeed,
+  );
 }
 
 class TownView extends StatefulWidget {
@@ -240,30 +273,7 @@ class _TownViewState extends State<TownView>
     // Only ever one layout per habit in flight: the old one is dropped the
     // moment its count changes.
     _valley.removeWhere((k, _) => k.startsWith('${h.id}:'));
-    final (cx, cz) = Habit.centreOf(h.slot);
-    final said = boardNotices(h, valley: widget.store.habits);
-    final made = TownLayout(
-      n,
-      h.place,
-      cx: cx,
-      cz: cz,
-      chronicle: h.chronicle,
-      // La misma lista que guarda el hábito, no una copia: lo que se apunte
-      // justo debajo lo tiene que ver el plano sin volver a construirlo.
-      folk: h.folk,
-      // En qué huecos de su tablón hay papel. Sale de las mismas dos cuentas
-      // que lo clavan al acercarse —qué hay que decir, y dónde quedó clavado
-      // cada papel—, así que la silueta que se ve desde el valle es la de lo
-      // que hay de verdad y en su sitio. Se calcula una vez por pueblo y sólo
-      // se rehace cuando le cambia la cuenta de piezas, que es cuando puede
-      // cambiar lo que el pueblo sabe.
-      notices: BoardSlots.instance.assign(
-        h.id,
-        said,
-        slots: NoticeBoard.capacity,
-      ),
-      seed: h.townSeed,
-    );
+    final made = townOrder(h, valley: widget.store.habits, placed: n).layout;
     // Quién ha nacido. Aquí y no en el almacén porque aquí ya está el plano
     // construido —levantarlo otra vez para contar casas cuesta lo que cuesta
     // un pueblo— y porque esto pasa exactamente una vez por cada cuenta de

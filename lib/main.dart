@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'data/character.dart';
 import 'engine/palette.dart';
+import 'engine/world.dart';
 import 'fx/notifier.dart';
 import 'fx/sensory.dart';
 import 'fx/widget_bridge.dart';
@@ -17,6 +20,7 @@ import 'ui/gallery_screen.dart';
 import 'ui/home_screen.dart';
 import 'ui/reel_screen.dart';
 import 'ui/style.dart';
+import 'ui/town_view.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -270,8 +274,32 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
       store.select(0);
     }
 
+    // **El pueblo se levanta antes de enseñar la pantalla, y en otro hilo.**
+    //
+    // Cortar y ordenar un pueblo de doscientas piezas cuesta casi trescientos
+    // milisegundos, y se pagaban en el primer fotograma que lo pedía: la app
+    // abría y se quedaba quieta ese rato. Ahora se le encarga a otro hilo
+    // mientras sigue puesta la pantalla de apertura —que es un valle sin
+    // pueblo, que es justo lo que hay mientras tanto— y cuando la vista lo
+    // pida ya estará hecho.
+    //
+    // Con un tope, porque esto no puede ser lo que impida abrir la app: si en
+    // dos segundos no volvió, se sigue igual y el primer fotograma lo levanta
+    // como lo levantaba antes.
+    if (store.loaded && store.habits.isNotEmpty) {
+      await warmTown(
+        townOrder(store.habit, valley: store.habits),
+      ).timeout(const Duration(seconds: 2), onTimeout: () {});
+    }
     if (mounted) setState(() {});
     Sensory.instance.init();
+    // Y los demás pueblos del valle, sin prisa y sin esperar a nadie: cuando
+    // se suba a mirar el valle entero ya estarán hechos, y si no se sube no le
+    // costó a nadie un fotograma.
+    for (final h in store.habits) {
+      if (identical(h, store.habit)) continue;
+      unawaited(warmTown(townOrder(h, valley: store.habits)));
+    }
     // Lo último del arranque: recoger lo del widget y dejarlo publicado. Al
     // final y no al principio porque para entonces el valle ya está cargado y
     // las piezas que lleguen caen sobre el pueblo que les toca.
