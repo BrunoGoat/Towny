@@ -45,7 +45,14 @@ Widget _marco(Size size, Widget child) => MediaQuery(
 /// una fila de veinticuatro horas no cabe en ningún teléfono y no tiene que
 /// caber. Lo que sí se comprueba de esas listas es lo de siempre, porque la
 /// lista misma es un hijo de la hoja como cualquier otro.
-void _dentro(WidgetTester tester, Size size, String quien) {
+/// [abajo] en falso comprueba sólo los dos costados: es para lo que rueda, donde
+/// que algo esté por debajo del filo no quiere decir que no se pueda leer.
+void _dentro(
+  WidgetTester tester,
+  Size size,
+  String quien, {
+  bool abajo = true,
+}) {
   final enCarrete = find
       .descendant(of: find.byType(ListView), matching: find.byType(Text))
       .evaluate()
@@ -64,11 +71,13 @@ void _dentro(WidgetTester tester, Size size, String quien) {
       lessThan(size.width + 1),
       reason: '$quien se sale por la derecha en $size',
     );
-    expect(
-      at.dy + box.size.height,
-      lessThan(size.height + 1),
-      reason: '$quien se sale por abajo en $size',
-    );
+    if (abajo) {
+      expect(
+        at.dy + box.size.height,
+        lessThan(size.height + 1),
+        reason: '$quien se sale por abajo en $size',
+      );
+    }
   }
 }
 
@@ -356,6 +365,26 @@ void _pieles() {
       final store = Store();
       await store.load();
       store.renameHabit(store.active, name: _largo, symbol: store.habit.symbol);
+      // Con todo escrito y con un segundo pueblo en el valle, que es la hoja
+      // más alta que puede haber: sin el segundo no sale la fila de la regla
+      // —no hay detrás de qué ponerse— y el alto que se comprueba no es el
+      // peor. La hoja creció tres bloques de golpe al escribirse el plan, la
+      // identidad y la regla, y en un teléfono de 320 se salía por tres
+      // píxeles.
+      store.pledgeHabit(
+        store.active,
+        hour: 22,
+        place: 'en la mesa de la cocina',
+        identity: 'alguien que se levanta temprano',
+      );
+      store.describeHabit(
+        store.active,
+        why: 'para tener más energía durante el día',
+        floor: 'abrir el libro y leer una página',
+      );
+      store.addHabit('Correr', 'carrera');
+      store.active = 0;
+      store.stackHabit(store.habits[0], store.habits[1]);
       for (final size in _pantallas) {
         tester.view.physicalSize = size;
         tester.view.devicePixelRatio = 1;
@@ -379,7 +408,28 @@ void _pieles() {
           );
           expect(find.text(_largo), findsOneWidget);
           expect(find.text('Eliminar este hábito'), findsOneWidget);
-          _dentro(tester, size, 'la hoja');
+          // Con todo escrito, en un teléfono de 320 la hoja ya no cabe entera:
+          // son seis renglones tuyos, el reloj del plan y la fila de la regla.
+          // Por eso rueda, y lo que hay que exigirle entonces no es que quepa
+          // sino que se pueda llegar a todo — se arrastra hasta el final y la
+          // última fila tiene que quedar dentro de la pantalla.
+          // La hoja mide lo que la pantalla porque rueda por dentro, así que
+          // lo que dice si cabe es dónde acaba su última fila.
+          final cabe =
+              tester.getRect(find.text('Eliminar este hábito')).bottom <=
+              size.height;
+          _dentro(tester, size, 'la hoja', abajo: cabe);
+          if (!cabe) {
+            await tester.ensureVisible(find.text('Eliminar este hábito'));
+            await tester.pump();
+            final ultima = tester.getRect(find.text('Eliminar este hábito'));
+            expect(
+              ultima.bottom,
+              lessThan(size.height + 1),
+              reason: 'no se llega al final de la hoja en $size',
+            );
+            expect(ultima.top, greaterThan(-1), reason: 'se pasó de largo');
+          }
           await tester.pumpWidget(const SizedBox());
         }
       }
