@@ -8,7 +8,7 @@ import 'package:la_muralla/model/appearance.dart';
 import 'package:la_muralla/ui/first_run.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Las cuatro pantallas de la primera vez, a disco, para poder mirarlas.
+/// Las seis pantallas de la primera vez, a disco, para poder mirarlas.
 ///
 ///   flutter test tool/first_run_shot_test.dart --dart-define=OUT=/tmp/fr
 void main() {
@@ -20,7 +20,7 @@ void main() {
     await Appearance.instance.setSoundOff(true);
   });
 
-  testWidgets('las cuatro', (tester) async {
+  testWidgets('las seis', (tester) async {
     const out = String.fromEnvironment('OUT', defaultValue: '/tmp/fr');
     Directory(out).createSync(recursive: true);
     // El lienzo del test mide 800x600 si no se le dice otra cosa, y una
@@ -42,7 +42,9 @@ void main() {
           debugShowCheckedModeBanner: false,
           home: RepaintBoundary(
             key: key,
-            child: FirstRun(onDone: (_, _, _, _) {}),
+            child: FirstRun(
+              onDone: (_, _, {why, floor, vowHour, vowPlace, identity}) {},
+            ),
           ),
         ),
       ),
@@ -74,10 +76,35 @@ void main() {
     await tester.enterText(find.byType(TextField).first, 'Leer');
     await tester.pump();
     await tester.tap(find.text('SEGUIR'));
-    await foto('3-motivo');
+    await foto('3-plan');
+    // El reloj abre centrado en la hora que sea ahora mismo, así que se lleva
+    // al principio del día y se busca las diez de la noche desde ahí.
+    final reel = find.byType(ListView);
+    await tester.drag(reel, const Offset(2400, 0));
+    await tester.pump();
+    await tester.scrollUntilVisible(
+      find.text('22'),
+      60,
+      scrollable: find.descendant(of: reel, matching: find.byType(Scrollable)),
+    );
+    await tester.ensureVisible(find.text('22'));
+    await tester.pump();
+    await tester.tap(find.text('22'));
+    await tester.enterText(find.byType(TextField).first, 'la cama');
+    await tester.pump();
+    await foto('4-plan-escrito');
+    await tester.tap(find.text('SEGUIR'));
+    await foto('5-motivo');
     await tester.enterText(find.byType(TextField).first, 'para dormir mejor');
     await tester.pump();
     await tester.tap(find.text('SEGUIR'));
-    await foto('4-minimo');
+    await foto('6-quien');
+    await tester.enterText(
+      find.byType(TextField).first,
+      'alguien que lee todos los días',
+    );
+    await tester.pump();
+    await tester.tap(find.text('SEGUIR'));
+    await foto('7-minimo');
   }, timeout: const Timeout(Duration(minutes: 5)));
 }

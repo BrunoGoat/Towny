@@ -22,6 +22,20 @@ class Papyrus {
 
   static const String serif = 'Chronicle';
 
+  /// La letra del libro, entera y sin nada heredado.
+  ///
+  /// **El espaciado va puesto a cero a propósito.** Un `Text` hereda de la hoja
+  /// de estilos de Material lo que no se le diga, y de ahí venía un
+  /// `letterSpacing` de 0,25 que nadie había pedido — un cuarto de píxel por
+  /// letra, que en una fecha de treinta caracteres son siete píxeles y medio.
+  /// Eso bastaba para que el reparto de las páginas mintiera: la fecha se medía
+  /// con un `TextPainter`, que no hereda nada, cabía en un renglón, y luego se
+  /// pintaba en dos. La última leyenda de esas páginas se salía por abajo, y
+  /// sólo se veía con la letra de verdad — con la de las pruebas, que es
+  /// cuadrada, los cortes caían en otro sitio.
+  ///
+  /// Así que esto no es cosmética: es lo que hace que medir y pintar den el
+  /// mismo número.
   static TextStyle body(
     double size, {
     FontWeight w = FontWeight.w400,
@@ -32,6 +46,7 @@ class Papyrus {
     fontSize: size,
     height: 1.5,
     fontWeight: w,
+    letterSpacing: 0,
   );
 
   /// Roman numerals, because a chronicle does not count in Arabic.

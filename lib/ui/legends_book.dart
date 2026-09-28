@@ -8,9 +8,11 @@ import '../core/rng.dart';
 import '../fx/sensory.dart';
 import '../model/habit.dart';
 import '../model/piece.dart';
+import '../model/review.dart';
 import '../model/works_log.dart';
 import 'habit_sigil.dart';
 import 'papyrus.dart';
+import 'review_page.dart';
 import 'style.dart';
 import 'works_calendar.dart';
 
@@ -375,6 +377,15 @@ class _LegendsBookState extends State<LegendsBook>
           ),
         );
       }
+    }
+
+    // **Después la cuenta**, que es lo mismo mirado desde otro sitio: el
+    // calendario dice qué se levantó y cuándo, y la cuenta dice qué fue de vos
+    // ese mes y ese año. Va entre los años y los días porque es lo que hay en
+    // medio, y va en el libro y no en una pantalla propia porque un resumen al
+    // que hay que ir no se mira nunca: éste se encuentra hojeando.
+    for (final cuenta in Review.latest(widget.habit)) {
+      out.add(_Sheet(ReviewPage(review: cuenta), head: 'LA CUENTA'));
     }
 
     if (legends.isEmpty) {

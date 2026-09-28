@@ -130,16 +130,25 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
   /// región sorteada. Crear otro dejaría el de fábrica al lado, vacío.
   Future<void> _found(
     String name,
-    String symbol,
+    String symbol, {
     String? why,
     String? floor,
-  ) async {
+    int? vowHour,
+    String? vowPlace,
+    String? identity,
+  }) async {
     store.renameHabit(
       0,
       name: name.isEmpty ? 'Mi hábito' : name,
       symbol: symbol,
     );
     store.describeHabit(0, why: why, floor: floor);
+    store.pledgeHabit(
+      0,
+      hour: vowHour,
+      place: vowPlace,
+      identity: identity,
+    );
     store.justFounded = true;
     await Appearance.instance.setOnboarded();
     if (mounted) setState(() {});

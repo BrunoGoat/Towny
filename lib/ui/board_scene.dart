@@ -106,6 +106,7 @@ class BoardScene extends StatefulWidget {
     required this.onLeave,
     this.onUnpin,
     this.onMove,
+    this.offer,
     this.letra = 0,
     this.motion,
   });
@@ -113,6 +114,19 @@ class BoardScene extends StatefulWidget {
   /// Quitar del tablón una nota tuya, por lo que dice. Nulo cuando el tablón
   /// es de sólo lectura — el de mentira de los ajustes.
   final void Function(String said)? onUnpin;
+
+  /// Lo que se puede hacer con la nota que está descolgada, si se puede hacer
+  /// algo: una palabra y lo que pasa al tocarla.
+  ///
+  /// Hay dos notas con las que se puede hacer algo, y las dos piden lo mismo:
+  /// que la decisión se tome donde se leyó. La del plan que falta ofrece
+  /// escribirlo; la que dice que dos hábitos van juntos ofrece firmarlo como
+  /// regla. Sin esto habría que salir del tablón, buscar la hoja del hábito y
+  /// acordarse de lo que decía el papel, que es la manera de que no se haga
+  /// nunca.
+  ///
+  /// Nulo —o devolviendo nulo— deja el papel como estaba: leerlo y ya.
+  final (String, VoidCallback)? Function(Notice said)? offer;
 
   /// Llevar un papel a otro hueco. Nulo en el tablón de mentira de los
   /// ajustes, que no tiene dónde guardar el sitio.
@@ -512,14 +526,26 @@ class _BoardSceneState extends State<BoardScene>
         // leerla hay que descolgarla. Un botón de quitar al lado de cada papel
         // clavado sería un tablón con diez cruces encima.
         final abierta = _m.open;
+        // La nota que está descolgada y bastante abierta para poder leerla.
+        // Todo lo que se ofrece sobre un papel sale de aquí, así que la
+        // condición de «hay una hoja abierta» se escribe una vez.
+        final leyendo =
+            abierta != null &&
+                _m.openK > 0.55 &&
+                abierta < widget.plan.papers.length
+            ? widget.plan.papers[abierta].notice
+            : null;
         final quitar =
             widget.onUnpin != null &&
-                abierta != null &&
-                _m.openK > 0.55 &&
-                abierta < widget.plan.papers.length &&
-                widget.plan.papers[abierta].notice.kind == NoticeKind.mine
-            ? widget.plan.papers[abierta].notice.said
+                leyendo != null &&
+                leyendo.kind == NoticeKind.mine
+            ? leyendo.said
             : null;
+        // Y si no hay nada que quitar, lo que se pueda hacer con ella. Nunca
+        // las dos cosas a la vez: son la misma palabra en el mismo sitio.
+        final hacer = quitar != null || leyendo == null
+            ? null
+            : widget.offer?.call(leyendo);
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
           onScaleUpdate: _drag,
@@ -556,7 +582,7 @@ class _BoardSceneState extends State<BoardScene>
               },
               repaint: _frame,
             ),
-            child: quitar == null
+            child: quitar == null && hacer == null
                 ? null
                 : SafeArea(
                     child: Align(
@@ -564,7 +590,10 @@ class _BoardSceneState extends State<BoardScene>
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 26),
                         child: _Unpin(
-                          onTap: () => widget.onUnpin!(quitar),
+                          word: quitar == null ? hacer!.$1 : 'Quitarla',
+                          onTap: quitar == null
+                              ? hacer!.$2
+                              : () => widget.onUnpin!(quitar),
                           k: _m.openK,
                         ),
                       ),
@@ -577,7 +606,8 @@ class _BoardSceneState extends State<BoardScene>
   }
 }
 
-/// Quitar del tablón la nota que se está leyendo.
+/// Lo que se puede hacer con la nota que se está leyendo: quitarla del tablón,
+/// escribir el plan que falta, firmar la regla.
 ///
 /// Una palabra, y nada alrededor. Era una píldora negra con un icono de papelera
 /// y cuatro palabras —«Quitarla del tablón»—, en blanco sobre negro y en un
@@ -589,8 +619,10 @@ class _BoardSceneState extends State<BoardScene>
 /// Entra con la hoja, no antes: aparecer de golpe mientras el papel todavía
 /// está volando hacia la cámara es lo que hacía que pareciera un aviso.
 class _Unpin extends StatelessWidget {
-  const _Unpin({required this.onTap, required this.k});
+  const _Unpin({required this.word, required this.onTap, required this.k});
 
+  /// La palabra, en una sola: acá no cabe una frase y no hace falta ninguna.
+  final String word;
   final VoidCallback onTap;
 
   /// Cuánto lleva descolgada la hoja, de 0 a 1.
@@ -607,7 +639,7 @@ class _Unpin extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
           child: Text(
-            'QUITARLA',
+            word.toUpperCase(),
             style: TextStyle(
               color: const Color(0xFFF3EEE3).withValues(alpha: 0.92),
               fontSize: 11.5,

@@ -105,24 +105,38 @@ void main() {
     // estas notas tiene su propio listón —veinte piezas y siete de cada diez
     // en la misma franja para la hora, seis huecos para la vuelta, veinte
     // puntos de diferencia para el par— y ninguna aparece por pedirlo.
-    test('y el tablón sale lleno', () {
-      final entrenar = valle.first;
-      final obra = TownPlan.of(
-        entrenar.place,
-      ).underway(entrenar.total, entrenar.chronicle);
-      final notas = noticesFor(
-        entrenar,
+    /// Lo que tiene clavado el tablón de [h].
+    List<Notice> tablon(Habit h, {DateTime? at}) {
+      final cuando = at ?? hoy;
+      final obra = TownPlan.of(h.place).underway(h.total, h.chronicle);
+      return noticesFor(
+        h,
         others: valle,
         underway: obra?.$1,
         left: obra?.$2 ?? 0,
-        at: hoy,
+        at: cuando,
       );
-      final tipos = {for (final n in notas) n.kind};
-      // Todas menos las dos que no salen de acá: una cabra perdida no es algo
+    }
+
+    test('y el tablón sale lleno', () {
+      // El valle entero y no un pueblo: la regla se enseña en el tablón de quien
+      // la cumple —leer va detrás de entrenar— así que no puede estar en el
+      // mismo papel que el resto.
+      final tipos = {
+        for (final h in valle)
+          for (final n in tablon(h)) n.kind,
+      };
+      // Todas menos cuatro. Dos no salen de acá: una cabra perdida no es algo
       // que se sepa de nadie, y una nota tuya no la deduce el pueblo — la
-      // escribís vos y sale del propio hábito.
+      // escribís vos. Y dos están tapadas a propósito por las nuevas, que es
+      // lo que comprueba la prueba de abajo.
       for (final quiere in NoticeKind.values) {
-        if (quiere == NoticeKind.pueblo || quiere == NoticeKind.mine) continue;
+        if (quiere == NoticeKind.pueblo ||
+            quiere == NoticeKind.mine ||
+            quiere == NoticeKind.hour ||
+            quiere == NoticeKind.pair) {
+          continue;
+        }
         expect(
           tipos,
           contains(quiere),
@@ -131,6 +145,20 @@ void main() {
               'una de las que se hizo para poder mirar',
         );
       }
+    });
+
+    test('y las dos notas nuevas tapan a las viejas que decían lo mismo', () {
+      // Donde hay plan escrito no hay nota de horario: las dos hablan de la
+      // hora y una de las dos además dice que lo decidiste vos. Y donde hay
+      // regla firmada no hay observación del par, por lo mismo.
+      final deEntrenar = {for (final n in tablon(valle.first)) n.kind};
+      expect(deEntrenar, contains(NoticeKind.plan));
+      expect(deEntrenar, contains(NoticeKind.who));
+      expect(deEntrenar, isNot(contains(NoticeKind.hour)));
+
+      final deLeer = {for (final n in tablon(valle[1])) n.kind};
+      expect(deLeer, contains(NoticeKind.rule));
+      expect(deLeer, isNot(contains(NoticeKind.pair)));
     });
 
     // Y lleno cualquier día, no sólo el que se eligió para el test: el ajuste

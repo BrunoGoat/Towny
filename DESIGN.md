@@ -152,6 +152,55 @@ tamaño**. Leer treinta minutos y leer cinco ponen exactamente la misma piedra.
 Lo único que faltaba era que eso estuviera dicho con tus palabras antes de
 necesitarlo.
 
+## Las tres que decidiste vos
+
+Todo lo que el tablón dice de vos sale de tus piezas y no hay que escribirlo:
+a qué hora aparecés, qué día de la semana es el flojo, cuánto tardás en volver.
+Hay tres cosas que no se pueden deducir de nada porque no son observaciones,
+son decisiones — y son las tres que más cambian lo que pasa después.
+
+**El plan: a qué hora y en qué sitio.** «Voy a leer» es una intención, y una
+intención se vuelve a decidir todos los días hasta el día en que no. «Voy a leer
+a las 22, en la cama» está decidido, y lo único que queda es cumplirlo. El sitio
+no es un adorno: es de donde el hábito nuevo saca el recordatorio, porque la
+cama ya está ahí todas las noches sin que haya que acordarse de ella.
+
+La hora se toca en un reloj de veinticuatro casillas y el sitio se escribe. La
+hora se guarda como número y no dentro de la frase, y eso es lo que permite lo
+único que la app puede hacer con un plan: **compararlo con lo que hacés**. El
+pueblo ve a qué hora caen tus piezas, así que cuando lo escrito hace meses ya no
+es lo tuyo, el tablón lo dice — *el plan dice a las 22 y aparecés a las 7* — y
+ahí mismo se cambia. Cambiar un plan que ya no es tuyo no es rendirse: un plan
+viejo no te ahorra ninguna decisión.
+
+Y si no hay ninguno escrito pero el pueblo ya sabe a qué hora aparecés, el
+tablón no propone una hora inventada: propone **la tuya**, y la nota se puede
+firmar desde ahí.
+
+**La identidad: en quién te convierte.** No es lo mismo que «para qué lo
+querés», y la diferencia es la que hace que un hábito dure. Un para qué se
+cumple —se duerme mejor, se corre la carrera— y el día que se cumple, el hábito
+se queda sin motivo. Una identidad no se cumple nunca: se es o no se es. Se
+escribe sin el sujeto —*alguien que lee todos los días*— y el pueblo pone el
+resto: **este pueblo es de alguien que lee todos los días**, con los días que lo
+llevás siendo debajo. Cada pieza es un voto a favor de esa frase, y el pueblo
+entero es el recuento — que es también la razón por la que un día que falles
+sigue en pie: un voto perdido no cambia un recuento.
+
+**La regla: detrás de qué va.** El tablón ya sabía cuáles de tus hábitos van
+juntos —*Correr arrastra a Estirar*— y eso era una observación. Firmarla la
+convierte en una decisión: **después de correr, estirar**. La diferencia es que
+un hábito enganchado a otro que ya existe no necesita recordatorio ninguno,
+porque el recordatorio es el otro. Se firma desde el propio papel que hizo la
+observación, y desde ese momento el tablón enseña la regla en su lugar, con las
+dos cifras que dicen si está haciendo algo: los días del primero contra los
+demás días. Si las dos barras se parecen, la regla está escrita y no sirve.
+
+Las tres se preguntan al fundar y las tres se pueden saltar, como las otras dos
+líneas. Ninguna se pierde por saltarla: están en la hoja del hábito para
+siempre, y el pueblo pide el plan por su cuenta en cuanto sabe a qué hora
+aparecés.
+
 ## La primera vez
 
 Antes, la primera vez que alguien abría Towny se encontraba un prado vacío, un
@@ -159,16 +208,20 @@ botón grande y un hábito de mentira llamado «Mi hábito». Todo lo que hace a
 app distinta estaba ahí desde el primer minuto y no lo contaba nadie: se
 descubría a los tres meses, o no se descubría.
 
-Ahora son cuatro pantallas, una pregunta en cada una, sobre el valle vacío de
-verdad con el cielo de esa hora. Qué es esto · qué querés hacer · para qué lo
-querés · qué es lo mínimo que cuenta.
+Ahora son seis pantallas, una pregunta en cada una, sobre el valle vacío de
+verdad con el cielo de esa hora. Qué es esto · qué querés hacer · cuándo y dónde
+· para qué lo querés · en quién te convierte · qué es lo mínimo que cuenta.
 
-**Cuatro pantallas y no una hoja con cuatro campos.** Un formulario se contesta
-mirando los huecos que faltan por rellenar, y las dos últimas preguntas no se
-contestan bien así: son las dos únicas cosas de toda la app que se escriben para
-leerlas mucho después, y merecen que no haya nada más en pantalla cuando se
-escriben. Las dos se pueden saltar — se guardaron para el día malo, y obligar a
-escribirlas el día uno es la manera de que salgan mal.
+**Seis pantallas y no una hoja con seis campos.** Un formulario se contesta
+mirando los huecos que faltan por rellenar, y las cuatro últimas preguntas no se
+contestan bien así: son lo único de toda la app que se escribe para leerlo mucho
+después, y merecen que no haya nada más en pantalla cuando se escriben. Las
+cuatro se pueden saltar — se guardaron para el día malo, y obligar a escribirlas
+el día uno es la manera de que salgan mal.
+
+La del plan es la única que se enseña armándose: la frase entera se va
+escribiendo debajo mientras se elige la hora y se escribe el sitio, porque lo que
+se está contestando ahí no son dos campos, es una promesa.
 
 Y en cuanto se funda, **la plaza sube del suelo**: primero el enlosado, que dice
 dónde está el centro; después el tablón, que es lo que el pueblo va a decir de
@@ -413,6 +466,43 @@ veinte piezas pueden ser veinte días o tres meses, y eso es toda la idea.
 La misma fecha se dice en la tarjeta del día que se remata una obra, que es el
 momento en que vale algo.
 
+### La cuenta del mes y del año
+
+Todo lo demás que esta app enseña es el presente: cuántas piezas llevás, qué está
+en obra, si el pueblo está encendido. Eso sirve para hoy y para nada más, porque
+lo que uno no sabe nunca de un hábito no es cómo va hoy —eso se ve— sino **cómo
+fue el mes**. Y sin eso no hay manera de corregir: se sigue haciendo lo mismo,
+mejor o peor, sin saber qué de lo que se hizo funcionó.
+
+En el libro, entre el calendario y las leyendas, hay hasta cuatro páginas de
+cuenta: **este mes, el mes pasado, este año y el año pasado**. Las dos cadencias
+hacen falta y no son la misma: el mes es lo bastante corto para acordarse de lo
+que pasó dentro y lo bastante largo para que una semana mala no lo decida; el
+año es donde se ven las cosas que un mes no puede enseñar — que los huecos son
+más cortos que en enero, que el pueblo tiene cuatro obras que hace un año no
+existían.
+
+Cada página dice seis cosas y ninguna es una felicitación: lo que pusiste (en
+cuántos de los días que contaban), **contra el tramo anterior** en puntos, los
+huecos y el más largo —y que volviste de todos—, lo que se levantó y lo que quedó
+en obra, si el plan se cumplió, y quién sos con los días que lo llevás siendo.
+
+Y acaba en una pregunta que la app no contesta: **¿qué es lo único que haría que
+el mes que viene fuera mejor?** Es lo único que una revisión tiene que hacer y lo
+único que ningún número puede hacer por vos; la respuesta se clava en el tablón,
+que es donde van las cosas que uno se dice a sí mismo.
+
+**Está en el libro y no en una pantalla propia** a propósito. Un resumen al que
+hay que ir no se mira nunca; éste se encuentra hojeando, que es lo que uno hace
+con un libro. Y como el calendario, no guarda un solo dato nuevo: sale de las
+fechas de las piezas, de la crónica y de las pausas, así que las revisiones de
+los meses de hace dos años ya están escritas.
+
+Tres reglas que no son obvias y que deciden si la cuenta es honrada: un día
+dormido no es un día en blanco ni parte un hueco por la mitad; los días en blanco
+del final de un mes que sigue abierto **no son un hueco** —todavía no—; y hoy en
+blanco no cuenta en contra, porque el día no ha terminado.
+
 ## El cielo
 
 Ciclo día/noche real: el sol sale por el este, cruza, se pone, y después la luna
@@ -496,6 +586,14 @@ sueles aparecer, qué día de la semana se te da mejor y cuál peor, qué pasa a
 siguiente de un día en blanco, cuánto tardás en volver después de un hueco, qué
 dos hábitos van juntos y cuáles nunca, cuánto hace que esto dura y quién va
 delante en el valle.
+
+Tres de los papeles no son observaciones sino lo que decidiste vos —el plan, la
+identidad y la regla—, y con dos de ellos **se puede hacer algo sin salir del
+tablón**: el del plan que falta lo escribe ahí mismo, y el que dice que dos
+hábitos van juntos se firma como regla. Es una palabra encima del papel
+descolgado, la misma que quita una nota tuya. Mandar a alguien a buscar la hoja
+del hábito para contestar una cosa que el tablón acaba de preguntar es perder la
+única vez que iba a contestarla.
 
 Y podés clavar las tuyas. Escribirlas es un renglón y una palabra: no hay
 rótulo, ni un párrafo explicando de qué va el papel, ni un contador desde el

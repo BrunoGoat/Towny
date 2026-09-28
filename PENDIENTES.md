@@ -109,6 +109,17 @@ encabezaba esta lista, ya está hecho: el calendario del libro del atril.)*
 6. **Más maravillas.** La gramática está limpia y una obra nueva son quince
    minutos — pero sesenta que se distinguen valen más que ochenta borrosas.
    Mejor esperar a echar una de menos.
+7. **El aviso a la hora del plan.** Ahora que el plan guarda una hora de verdad
+   (`Habit.vowHour`), el recordatorio podría caer ahí en vez de a la hora que el
+   avisador deduce solo. Es lo único que falta para que el plan escrito haga
+   trabajo además de estar escrito, y es un cambio de una línea en
+   `fx/notifier.dart` — pero hay que decidir qué pasa con quien no escribió
+   ninguno y con el hábito que aparece a otra hora que la que prometió.
+8. **La identidad en la hoja que pregunta si seguimos.** Al desenganchate salen
+   el motivo y el mínimo. La frase de identidad —«este pueblo es de alguien que
+   lee todos los días»— es la que más pesa de las tres en ese momento exacto, y
+   hay que probar si pesa demasiado: en la hoja del abandono puede leerse como un
+   reproche, que es justo lo que esa hoja no puede ser.
 
 ---
 

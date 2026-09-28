@@ -7,8 +7,10 @@ import '../data/character.dart';
 import '../data/symbols.dart';
 import '../fx/sensory.dart';
 import '../model/habit.dart';
+import '../model/pledge.dart';
 import '../model/store.dart';
 import 'habit_sigil.dart';
+import 'plan_picker.dart';
 import 'rest_sheet.dart';
 import 'style.dart';
 
@@ -44,6 +46,14 @@ class _HabitsSheetState extends State<HabitsSheet> {
   /// Para qué es esto, y qué es lo más chico que cuenta. Las dos opcionales.
   late final TextEditingController _why;
   late final TextEditingController _floor;
+
+  /// En quién te convierte, y el plan: a qué hora y en qué sitio. También
+  /// opcionales, y también editables para siempre — un plan que ya no es el
+  /// tuyo se cambia acá, que es lo que el tablón manda hacer cuando ve que la
+  /// hora escrita no es la hora a la que aparecés.
+  late final TextEditingController _identity;
+  late final TextEditingController _spot;
+  int? _hour;
   late String _symbol;
   late int _place;
   bool _creating = false;
@@ -71,6 +81,9 @@ class _HabitsSheetState extends State<HabitsSheet> {
     _name = TextEditingController(text: _creating ? '' : h.name);
     _why = TextEditingController(text: _creating ? '' : (h.why ?? ''));
     _floor = TextEditingController(text: _creating ? '' : (h.floor ?? ''));
+    _identity = TextEditingController(text: _creating ? '' : (h.identity ?? ''));
+    _spot = TextEditingController(text: _creating ? '' : (h.vowPlace ?? ''));
+    _hour = _creating ? null : h.vowHour;
     _symbol = _creating ? habitSymbols.first : h.symbol;
     _place = _creating
         ? TownCharacter.forSlot(widget.store.habits.length).order
@@ -83,6 +96,8 @@ class _HabitsSheetState extends State<HabitsSheet> {
     _name.dispose();
     _why.dispose();
     _floor.dispose();
+    _identity.dispose();
+    _spot.dispose();
     _reel.dispose();
     super.dispose();
   }
@@ -187,6 +202,15 @@ class _HabitsSheetState extends State<HabitsSheet> {
     final store = widget.store;
     store.renameHabit(store.active, name: _name.text, symbol: _symbol);
     store.describeHabit(store.active, why: _why.text, floor: _floor.text);
+    store.pledgeHabit(
+      store.active,
+      hour: _hour,
+      // Quitar la hora es tocar la que estaba puesta, así que hay que decirlo:
+      // en nulo, `pledgeHabit` entiende «no la toques».
+      clearHour: _hour == null,
+      place: _spot.text,
+      identity: _identity.text,
+    );
   }
 
   void _found() {
@@ -197,6 +221,9 @@ class _HabitsSheetState extends State<HabitsSheet> {
       character: _place,
       why: _why.text,
       floor: _floor.text,
+      vowHour: _hour,
+      vowPlace: _spot.text,
+      identity: _identity.text,
     );
     Navigator.of(context).pop();
   }
@@ -292,7 +319,12 @@ class _HabitsSheetState extends State<HabitsSheet> {
   /// Dónde se escribe el nombre: centrado y sin caja ninguna.
   Widget _field(UiTheme t, SheetInk velo, double size) => TextField(
     controller: _name,
-    onChanged: (_) => _keep(),
+    // Repinta porque el nombre va dentro de la frase del plan: «voy a leer a
+    // las 22» cambia con cada letra del nombre.
+    onChanged: (_) {
+      setState(() {});
+      _keep();
+    },
     textAlign: TextAlign.center,
     style: t.body.copyWith(
       fontSize: size,
@@ -364,6 +396,165 @@ class _HabitsSheetState extends State<HabitsSheet> {
     color: velo.cuerpo.withValues(alpha: 0.16),
   );
 
+  /// El plan: a qué hora y en qué sitio.
+  ///
+  /// Va debajo de las líneas y no encima porque no es una de ellas: las tres de
+  /// arriba se escriben una vez y se leen años después, y ésta se cambia. Un
+  /// plan es de cuando se escribió, y el día en que la vida se mueve de sitio
+  /// —otro trabajo, otro horario, un hijo— lo que hay que hacer con el viejo es
+  /// cambiarlo, no cumplirlo.
+  ///
+  /// La frase armada va debajo del todo, y es la única cosa de esta hoja que
+  /// está escrita en ámbar: es lo que dijiste vos.
+  Widget _thePlan(UiTheme t, SheetInk velo) {
+    final nombre = _name.text.trim().isEmpty
+        ? (_creating ? '' : widget.store.habit.name)
+        : _name.text;
+    final frase = vowLine(nombre, _hour, _spot.text);
+    return Column(
+      children: [
+        Text(
+          'EL PLAN',
+          style: t.label.copyWith(
+            fontSize: 9,
+            letterSpacing: 1.8,
+            color: velo.suave,
+            shadows: velo.aliento,
+          ),
+        ),
+        const SizedBox(height: 7),
+        HourReel(
+          hour: _hour,
+          onPick: (h) => setState(() {
+            // Volver a tocar la hora elegida la quita. Es la única manera de
+            // deshacer un plan con hora sin borrar el sitio, y es el gesto que
+            // uno hace solo: se toca lo que está encendido para apagarlo.
+            _hour = _hour == h ? null : h;
+            _keep();
+          }),
+          ink: velo.cuerpo.withValues(alpha: 0.82),
+          accent: t.accent,
+          plate: velo.tinte.withValues(alpha: 0.42),
+          edge: velo.cuerpo.withValues(alpha: 0.20),
+          shadows: velo.aliento,
+        ),
+        const SizedBox(height: 4),
+        _softLine(t, velo, _spot, 'EN QUÉ SITIO', 'en la cama'),
+        if (frase != null) ...[
+          const SizedBox(height: 10),
+          Text(
+            frase,
+            textAlign: TextAlign.center,
+            style: t.bodySoft.copyWith(
+              fontSize: 13.5,
+              height: 1.35,
+              color: t.accent,
+              shadows: velo.aliento,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// La regla: detrás de qué otro hábito va éste.
+  ///
+  /// Sólo cuando hay otro pueblo en el valle, porque sin otro hábito no hay
+  /// detrás de qué ponerse. Y sólo editando y no al fundar: la regla se guarda
+  /// contra el identificador del otro hábito, y el de éste todavía no existe.
+  ///
+  /// «Nada» es una opción y va primera, que es lo que hace que deshacer la
+  /// regla sea un toque y no haya que adivinar cómo se quita.
+  Widget _theRule(UiTheme t, SheetInk velo) {
+    final store = widget.store;
+    final h = store.habit;
+    final otros = [
+      for (final o in store.habits)
+        if (o.id != h.id) o,
+    ];
+    if (otros.isEmpty) return const SizedBox.shrink();
+    final antes = afterOf(h, store.habits);
+    return Column(
+      children: [
+        Text(
+          'DESPUÉS DE',
+          style: t.label.copyWith(
+            fontSize: 9,
+            letterSpacing: 1.8,
+            color: velo.suave,
+            shadows: velo.aliento,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 7,
+          runSpacing: 7,
+          children: [
+            _ruleChip(t, velo, 'nada', antes == null, () {
+              store.stackHabit(h, null);
+              setState(() {});
+            }),
+            for (final o in otros)
+              _ruleChip(t, velo, o.name, antes?.id == o.id, () {
+                store.stackHabit(h, o);
+                setState(() {});
+              }),
+          ],
+        ),
+        if (antes != null) ...[
+          const SizedBox(height: 10),
+          Text(
+            ruleSaid(h, store.habits)!,
+            textAlign: TextAlign.center,
+            style: t.bodySoft.copyWith(
+              fontSize: 13.5,
+              height: 1.35,
+              color: t.accent,
+              shadows: velo.aliento,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _ruleChip(
+    UiTheme t,
+    SheetInk velo,
+    String text,
+    bool chosen,
+    VoidCallback onTap,
+  ) => GestureDetector(
+    behavior: HitTestBehavior.opaque,
+    onTap: () {
+      Sensory.instance.tick();
+      onTap();
+    },
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        color: chosen
+            ? t.accent.withValues(alpha: 0.20)
+            : velo.tinte.withValues(alpha: 0.42),
+        border: Border.all(
+          color: chosen ? t.accent : velo.cuerpo.withValues(alpha: 0.20),
+        ),
+      ),
+      child: Text(
+        text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: t.bodySoft.copyWith(
+          fontSize: 12.5,
+          color: chosen ? t.accent : velo.cuerpo.withValues(alpha: 0.82),
+          shadows: velo.aliento,
+        ),
+      ),
+    ),
+  );
+
   /// Las dos líneas que sólo se leen el día malo.
   ///
   /// Van juntas y debajo del nombre porque son la misma pregunta hecha por los
@@ -392,6 +583,18 @@ class _HabitsSheetState extends State<HabitsSheet> {
         'LO MÍNIMO QUE CUENTA',
         'abrir el libro y leer una página',
       ),
+      const SizedBox(height: 8),
+      // Y la tercera, que no habla de la acción sino de vos. Va con las otras
+      // dos porque es de la misma clase de cosa —una línea escrita a mano que
+      // no se mide ni se comprueba— y la última porque es la que más tarda en
+      // contestarse bien: sale mejor a los tres meses que el primer día.
+      _softLine(
+        t,
+        velo,
+        _identity,
+        'EN QUIÉN TE CONVIERTE',
+        'alguien que lee todos los días',
+      ),
     ],
   );
 
@@ -415,7 +618,13 @@ class _HabitsSheetState extends State<HabitsSheet> {
       const SizedBox(height: 3),
       TextField(
         controller: c,
-        onChanged: (_) => _keep(),
+        // Se repinta además de guardarse: la frase del plan se va escribiendo
+        // debajo mientras se escribe el sitio, y sin esto no se movería hasta
+        // el siguiente toque en cualquier otra cosa.
+        onChanged: (_) {
+          setState(() {});
+          _keep();
+        },
         textAlign: TextAlign.center,
         textCapitalization: TextCapitalization.none,
         maxLength: 70,
@@ -693,7 +902,15 @@ class _HabitsSheetState extends State<HabitsSheet> {
                     _reelSlot(t, velo),
                     const SizedBox(height: 14),
                     _theTwoLines(t, velo),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
+                    _hair(velo),
+                    const SizedBox(height: 10),
+                    _thePlan(t, velo),
+                    if (!_creating) ...[
+                      const SizedBox(height: 12),
+                      _theRule(t, velo),
+                    ],
+                    const SizedBox(height: 12),
                     if (_creating) ...[
                       Text(
                         'QUÉ CLASE DE PUEBLO',

@@ -122,15 +122,23 @@ class PaperInk {
     // chico que a media altura. Buscando por mitades, el tamaño que sale es
     // siempre el mayor que cabe, así que subir el deslizador nunca puede
     // escribir más chico.
+    //
+    // Y no cabe de dos maneras, no de una: puede pasarse de alto, o puede
+    // pasarse de renglones y salir cortado con puntos suspensivos aunque sobre
+    // papel por abajo. Las dos son «no cabe». Mirando sólo el alto, un titular
+    // largo se recortaba y ahí se quedaba —el alto ya estaba bien, porque lo
+    // que no entraba estaba tirado— y eso es lo que le pasaba a la frase que
+    // escribe el usuario: «este pueblo es de alguien que entrena antes de que
+    // empiece el día» acababa en «…» con media hoja en blanco debajo.
     _layAt(1);
     shrunk = 1;
-    if (_alto <= textHeight) return;
+    if (_cabe) return;
 
     var lo = 0.0, hi = 1.0;
     for (var i = 0; i < 8; i++) {
       final k = (lo + hi) / 2;
       _layAt(k);
-      if (_alto <= textHeight) {
+      if (_cabe) {
         lo = k;
       } else {
         hi = k;
@@ -188,6 +196,13 @@ class PaperInk {
 
   double get _alto =>
       _said.height + (corrido ? 0 : 13 + _because.height) + _chart;
+
+  /// Si lo maquetado ahora mismo entra en el papel: ni se pasa de alto ni se
+  /// queda ningún renglón fuera.
+  bool get _cabe =>
+      _alto <= textHeight &&
+      !_said.didExceedMaxLines &&
+      !_because.didExceedMaxLines;
 
   void _layAt(double k) {
     final ancho = textWidth;
@@ -250,10 +265,7 @@ class PaperInk {
   )..layout(maxWidth: width);
 
   /// Si al papel no le cabe lo que lleva escrito, ni encogiéndolo.
-  bool get overflows =>
-      _said.didExceedMaxLines ||
-      _because.didExceedMaxLines ||
-      _alto > textHeight;
+  bool get overflows => !_cabe;
 
   /// Pinta la hoja. [detail] dice cuánto texto se gana a la distancia a la que
   /// está: de lejos una hoja es una mancha clara sobre madera, que es lo que es

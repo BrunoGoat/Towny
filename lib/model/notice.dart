@@ -29,6 +29,16 @@ enum NoticeKind {
   /// Two habits that go together, or never do.
   pair,
 
+  /// El plan: a qué hora y en qué sitio dijiste que lo ibas a hacer, y si eso
+  /// es lo que pasa de verdad.
+  plan,
+
+  /// En quién te convierte esto, con los días que llevás siéndolo debajo.
+  who,
+
+  /// La regla: detrás de qué otro hábito va éste.
+  rule,
+
   /// How long this has been going on.
   life,
 
@@ -73,6 +83,7 @@ class Notice {
     this.mark = -1,
     this.span = 1,
     this.more,
+    this.about,
   });
 
   final NoticeKind kind;
@@ -97,4 +108,15 @@ class Notice {
 
   /// One more thing, for the same moment.
   final String? more;
+
+  /// De qué otro hábito habla esta nota, cuando habla de otro y se puede hacer
+  /// algo con él.
+  ///
+  /// Lo lleva la nota que empareja dos hábitos, y lleva el del que va
+  /// **primero**: es lo que permite convertir la observación en una regla
+  /// —«después de correr, estirar»— sin que el tablón tenga que adivinar de
+  /// quién estaba hablando. Va en nulo cuando no hay nada que firmar: si los dos
+  /// hábitos casi nunca caen el mismo día, la observación es verdad y la regla
+  /// sería una mentira.
+  final String? about;
 }

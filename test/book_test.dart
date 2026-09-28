@@ -9,22 +9,38 @@ import 'package:la_muralla/ui/legends_book.dart';
 import 'package:la_muralla/ui/style.dart';
 import 'package:la_muralla/ui/works_calendar.dart';
 
-Habit _habit(List<String?> labels) => Habit(
-  id: 'h1758000000000001',
-  name: 'Leer todos los días',
-  symbol: 'rueda',
-  slot: 0,
-  createdAt: DateTime(2026, 3, 1),
-  character: TownCharacter.all.first.order,
-  pieces: [
-    for (var i = 0; i < labels.length; i++)
-      Piece(
-        index: i,
-        placedAt: DateTime(2026, 3, 1).add(Duration(days: i)),
-        label: labels[i],
-      ),
-  ],
-);
+/// Un pueblo con una leyenda por día, acabando hoy.
+///
+/// Las fechas son de verdad y no fijas por una razón concreta: el libro lleva
+/// páginas de cuenta —así fue el mes, así va el año— y esas páginas sólo
+/// existen cuando el tramo tiene dos semanas de días contados dentro. Un pueblo
+/// de cinco días que acaba hoy no las tiene, así que estas pruebas miden lo que
+/// vienen a medir: la portada, las leyendas y cuántas hojas hay.
+Habit _habit(List<String?> labels) {
+  final hoy = DateTime.now();
+  final desde = DateTime(
+    hoy.year,
+    hoy.month,
+    hoy.day,
+    20,
+  ).subtract(Duration(days: labels.length - 1));
+  return Habit(
+    id: 'h1758000000000001',
+    name: 'Leer todos los días',
+    symbol: 'rueda',
+    slot: 0,
+    createdAt: desde,
+    character: TownCharacter.all.first.order,
+    pieces: [
+      for (var i = 0; i < labels.length; i++)
+        Piece(
+          index: i,
+          placedAt: desde.add(Duration(days: i)),
+          label: labels[i],
+        ),
+    ],
+  );
+}
 
 /// Un pueblo de [n] piezas, una por día, con su crónica escrita: el que hace
 /// falta para que haya obras rematadas y calendario.

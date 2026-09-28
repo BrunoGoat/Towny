@@ -443,6 +443,9 @@ class Store extends ChangeNotifier {
     int? character,
     String? why,
     String? floor,
+    int? vowHour,
+    String? vowPlace,
+    String? identity,
   }) {
     final slot = _freeSlot();
     final h = Habit(
@@ -453,6 +456,15 @@ class Store extends ChangeNotifier {
       character: character ?? TownCharacter.forSlot(slot).order,
       why: why == null || why.trim().isEmpty ? null : why.trim(),
       floor: floor == null || floor.trim().isEmpty ? null : floor.trim(),
+      vowHour: vowHour != null && vowHour >= 0 && vowHour <= 23
+          ? vowHour
+          : null,
+      vowPlace: vowPlace == null || vowPlace.trim().isEmpty
+          ? null
+          : vowPlace.trim(),
+      identity: identity == null || identity.trim().isEmpty
+          ? null
+          : identity.trim(),
       createdAt: DateTime.now(),
     );
     habits.add(h);
@@ -491,6 +503,50 @@ class Store extends ChangeNotifier {
       final t = floor.trim();
       h.floor = t.isEmpty ? null : t;
     }
+    _save();
+    notifyListeners();
+  }
+
+  /// El plan y la identidad: a qué hora, en qué sitio, y en quién te convierte.
+  ///
+  /// Las tres se borran dejándolas en blanco, igual que el motivo y el mínimo.
+  /// La hora necesita decirlo aparte porque en blanco no es un número: [hour]
+  /// nulo quiere decir «no la toques», y [clearHour] quiere decir «quitala».
+  void pledgeHabit(
+    int index, {
+    int? hour,
+    bool clearHour = false,
+    String? place,
+    String? identity,
+  }) {
+    if (index < 0 || index >= habits.length) return;
+    final h = habits[index];
+    if (clearHour) {
+      h.vowHour = null;
+    } else if (hour != null && hour >= 0 && hour <= 23) {
+      h.vowHour = hour;
+    }
+    if (place != null) {
+      final t = place.trim();
+      h.vowPlace = t.isEmpty ? null : t;
+    }
+    if (identity != null) {
+      final t = identity.trim();
+      h.identity = t.isEmpty ? null : t;
+    }
+    _save();
+    notifyListeners();
+  }
+
+  /// Firmar la regla: [h] va detrás de [after]. Con [after] nulo se deshace.
+  ///
+  /// Un hábito no puede ir detrás de sí mismo, y no se comprueba nada más: una
+  /// cadena de tres —estirar detrás de correr, correr detrás de desayunar— es
+  /// una cadena buena, y dos hábitos que se apuntan el uno al otro se leen como
+  /// dos reglas raras y no rompen nada.
+  void stackHabit(Habit h, Habit? after) {
+    if (after != null && after.id == h.id) return;
+    h.afterId = after?.id;
     _save();
     notifyListeners();
   }

@@ -300,7 +300,8 @@ Dentro de `engine/`, que es el más poblado:
 | `folk.dart`, `folk_body.dart`, `streets.dart` | quién vive ahí, de qué está hecho y por dónde anda |
 | `sigils.dart` | las marcas de los hábitos, trazadas a mano |
 
-De `model/`, el que hace falta conocer para entender el libro del atril:
+De `model/`, los tres que hacen falta conocer para entender el libro del atril:
+
 `works_log.dart` fecha las obras. No guarda nada: cruza la crónica con el plan
 para saber en qué pieza empieza y acaba cada hito, y de ahí saca las fechas de
 las piezas de sus extremos. Lo dibuja `ui/works_calendar.dart`, que reparte las
@@ -308,6 +309,25 @@ obras en páginas de calendario —una por año mientras quepan— y las pinta c
 barras contra una regla de meses; lo que va pintado va también en palabras, en
 una etiqueta de accesibilidad, que es de donde lo leen el lector de pantalla y
 las pruebas.
+
+`review.dart` es la cuenta de un mes o de un año, y tampoco guarda nada: recorre
+los días del tramo contra las fechas de las piezas y las pausas, y de ahí salen
+los días que contaban, los huecos, las obras que remataron dentro y la
+comparación con el tramo anterior —que es el mismo cálculo sobre la ventana de
+antes, hecho una sola vez y sin volver a encadenarse—. `Review.latest` dice
+cuáles valen la pena: este mes, el pasado, este año y el pasado, y ninguna que
+no tenga nada dentro. Las escribe `ui/review_page.dart`, que saca las frases a
+una función aparte (`reviewLines`) para poder comprobar lo que dicen sin dibujar
+una página.
+
+`pledge.dart` son las tres cosas que no se deducen de las piezas —el plan, la
+identidad y la regla— y todo lo que se puede decir de ellas: cómo se lee cada una
+en voz alta, a qué hora aparecés de verdad, cuánto se cumple el plan y cuánto la
+regla. Los campos viven en `Habit` (`vowHour`, `vowPlace`, `identity`,
+`afterId`), las frases y las cuentas viven aquí, y las notas que salen de ellas
+en `findings.dart` como cualquier otra. La regla se guarda contra el
+**identificador** del otro hábito, así que renombrarlo no la rompe y borrarlo la
+deshace sin que nadie tenga que limpiar nada.
 
 El widget de la pantalla de inicio vive entero en `android/` —Kotlin, `RemoteViews`
 y unas preferencias suyas— y habla con la app por un canal de tres verbos
@@ -325,5 +345,5 @@ existe**, que es lo que deja probar el motor sin levantar Flutter.
 Nada de la **forma** del pueblo se guarda en disco: se deriva del identificador
 de cada pieza. Una casa levantada hace un año se vuelve a dibujar idéntica en
 cada arranque. Lo que sí se guarda son las piezas con su fecha y su leyenda, los
-hábitos, la crónica de obra de cada pueblo —lo que ya se decidió construir— y las
-constelaciones vistas.
+hábitos —con las cuatro líneas que escribiste y el plan—, la crónica de obra de
+cada pueblo —lo que ya se decidió construir— y las constelaciones vistas.

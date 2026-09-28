@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'habit.dart';
 import 'notice.dart';
 import 'piece.dart';
+import 'pledge.dart';
 import 'rhythm.dart';
 
 /// Everything worth pinning up about one habit, in the order it should be read.
@@ -23,12 +24,19 @@ List<Notice> noticesFor(
     if (n != null) out.add(n);
   }
 
-  // What is coming first, then who you are on a normal week, then the two
-  // hard ones — and those two in that order, because "un fallo se lleva al
-  // siguiente" read on its own is worth much less than read next to "y volvés
-  // a los dos días".
+  // What is coming first, then the three things you decided —quién sos, el
+  // plan, la regla—, then who you are on a normal week, then the two hard ones
+  // — and those two in that order, because "un fallo se lleva al siguiente"
+  // read on its own is worth much less than read next to "y volvés a los dos
+  // días".
   add(ahead(h, underway, left, now));
-  add(peakHour(h));
+  add(whoYouAre(h));
+  // El plan habla de la hora, así que cuando sale, la nota del horario sobra:
+  // dirían lo mismo con dos papeles, y uno de los dos sin la mitad que importa.
+  final elPlan = planned(h);
+  add(elPlan);
+  add(stacked(h, others, now));
+  if (elPlan == null || elPlan.bars.isEmpty) add(peakHour(h));
   add(standoutDay(h, now));
   add(pairing(h, others, now));
   add(relapse(h, now));
@@ -120,6 +128,201 @@ Notice? ahead(Habit h, String? what, int left, DateTime now) {
   );
 }
 
+// ------------------------------------------------ las tres que decidiste vos
+
+/// El plan: a qué hora y en qué sitio dijiste que lo ibas a hacer.
+///
+/// Es la única nota del tablón que no es una observación. Las otras nueve salen
+/// de tus piezas y no se pueden discutir; ésta la escribiste vos, y lo que el
+/// pueblo hace con ella es lo único que puede hacer: enseñártela y decirte si
+/// se está cumpliendo.
+///
+/// Tres papeles distintos según lo que haya:
+///
+///  * **Sin plan y con costumbre.** El pueblo ya sabe a qué hora aparecés, así
+///    que lo que falta es darlo por decidido. No se propone ninguna hora
+///    inventada: se propone la tuya.
+///  * **Con plan que ya no es el tuyo.** Dijiste a las diez y aparecés a las
+///    siete. El papel lo dice sin regañar, porque no hay nada que regañar: el
+///    plan viejo es el que está mal.
+///  * **Con plan.** La frase entera, y qué parte de las piezas cae en su hora.
+Notice? planned(Habit h) {
+  final dicho = vowOf(h);
+  final uso = habitualHour(h);
+
+  if (dicho == null) {
+    if (uso == null) return null;
+    return Notice(
+      NoticeKind.plan,
+      'Siempre ${hourSaid(uso.$1)}, y sin plan escrito.',
+      'Ahí caen el ${_pct(uso.$2)} de tus piezas. Falta decir en qué sitio y '
+          'darlo por decidido.',
+      bars: _clockBars(h),
+      ticks: _clockTicks,
+      mark: uso.$1,
+      more:
+          'Un plan con hora y sitio —«voy a leer a las 22, en la cama»— no es '
+          'un recordatorio: es una decisión que se toma una vez y no se vuelve '
+          'a tomar. Escribirlo hace que pase mucho más a menudo que quererlo '
+          'mucho. Las barras son las veinticuatro horas del día, y la marcada '
+          'es la tuya.',
+    );
+  }
+
+  final hora = h.vowHour;
+  final cumple = planKept(h);
+  final desvio = planDrift(h);
+  // Tres horas de diferencia no es despistarse: es otro momento del día. Por
+  // debajo de eso el plan sigue siendo el tuyo y no hay nada que avisar.
+  if (hora != null && uso != null && cumple != null && desvio != null &&
+      desvio >= 3) {
+    return Notice(
+      NoticeKind.plan,
+      'El plan dice ${hourSaid(hora)} y aparecés ${hourSaid(uso.$1)}.',
+      '«$dicho» El ${_pct(cumple)} de tus ${h.total} ${_pieces(h.total)} cae '
+          'a la hora del plan.',
+      bars: _clockBars(h),
+      ticks: _clockTicks,
+      mark: uso.$1,
+      more:
+          'Cambiar el plan no es rendirse. Un plan que ya no es el tuyo no te '
+          'ahorra ninguna decisión, y el que sí lo es te la ahorra todos los '
+          'días: se cambia en la hoja del hábito, y no pasa nada más. Las '
+          'barras son las veinticuatro horas del día, y la marcada es la hora '
+          'a la que de verdad aparecés.',
+    );
+  }
+
+  return Notice(
+    NoticeKind.plan,
+    dicho,
+    cumple == null
+        ? 'Lo escribiste vos. El pueblo lo tiene clavado para que no haya que '
+              'acordarse de decidirlo otra vez.'
+        : 'Se cumple el ${_pct(cumple)} de las veces: ésa es la parte de tus '
+              '${h.total} ${_pieces(h.total)} que cae a esa hora.',
+    bars: hora == null ? const [] : _clockBars(h),
+    ticks: hora == null ? const [] : _clockTicks,
+    mark: hora ?? -1,
+    more: hora == null
+        ? null
+        : 'Las veinticuatro horas del día, y en cada una cuántas piezas '
+              'pusiste. La marcada es la que dice el plan.',
+  );
+}
+
+/// En quién te convierte esto.
+///
+/// La nota más corta del tablón y la que menos cuentas lleva, porque lo que
+/// dice no es una medición: es la frase que escribiste, devuelta por el pueblo
+/// con los días que llevás siéndolo debajo. Una meta se cumple y se acaba el
+/// hábito; esto no se acaba nunca, y cada pieza es un voto.
+Notice? whoYouAre(Habit h) {
+  final dicho = identitySaid(h);
+  if (dicho == null) return null;
+  final votos = identityVotes(h);
+  return Notice(
+    NoticeKind.who,
+    dicho,
+    votos == 0
+        ? 'Todavía sin un solo día detrás. La primera pieza es el primer voto.'
+        : 'Lo llevás siendo $votos ${votos == 1 ? 'día' : 'días'}, y cada uno '
+              'es un voto a favor de esa frase.',
+    more:
+        'No es una meta. Una meta se cumple y entonces el hábito deja de tener '
+        'para qué; esto no se cumple nunca, se es o no se es, y lo que decide '
+        'cuál de las dos cosas es lo que hiciste ayer. Por eso el pueblo sigue '
+        'en pie un día que falles: un voto perdido no cambia un recuento.',
+  );
+}
+
+/// La regla: detrás de qué otro hábito va éste.
+///
+/// Lo que el tablón ya decía —que dos hábitos van juntos— firmado. La
+/// diferencia entre las dos cosas es que la observación describe y la regla
+/// decide: si estirar va detrás de correr, estirar no necesita recordatorio
+/// ninguno, porque el recordatorio es correr.
+///
+/// Se enseña con las dos cifras, igual que la nota que empareja dos hábitos,
+/// porque una sola no dice nada: cumplirla el ochenta por ciento sólo significa
+/// algo si los demás días no es lo mismo.
+Notice? stacked(Habit h, List<Habit> others, DateTime now) {
+  final antes = afterOf(h, others);
+  final dicho = ruleSaid(h, others);
+  if (antes == null || dicho == null) return null;
+  final score = ruleKept(h, others, at: now);
+  if (score == null) {
+    return Notice(
+      NoticeKind.rule,
+      dicho,
+      'Regla nueva. Todavía no hay días bastantes para saber si se cumple.',
+      more:
+          'Un hábito enganchado a otro que ya existe no necesita recordatorio: '
+          'el recordatorio es el otro. Cuando haya unos cuantos días, acá va a '
+          'estar la cuenta de cuántas veces se cumplió de verdad.',
+    );
+  }
+  return Notice(
+    NoticeKind.rule,
+    dicho,
+    'Los días de ${antes.name}, ${h.name} cae el ${_pct(score.kept)} de las '
+    'veces. El resto de los días, el ${_pct(score.without)}.',
+    bars: [score.kept, score.without],
+    ticks: ['con ${antes.name}', 'sin ${antes.name}'],
+    mark: 0,
+    more:
+        'Contado sobre los ${score.of + score.ofWithout} días en que los dos '
+        'pueblos ya existían y ninguno dormía: ${score.of} con '
+        '${antes.name} y ${score.ofWithout} sin. Si las dos barras se parecen, '
+        'la regla está escrita pero no está haciendo nada.',
+  );
+}
+
+/// Las veinticuatro horas del día en barras, contra la hora más cargada.
+///
+/// Dos notas las enseñan —el horario y el plan— y es la misma evidencia: qué
+/// parte del día es la tuya. Vive aquí para que no haya dos maneras de
+/// dibujarla que puedan dejar de coincidir.
+List<double> _clockBars(Habit h) {
+  final byHour = List<int>.filled(24, 0);
+  for (final p in h.pieces) {
+    byHour[p.placedAt.hour]++;
+  }
+  var top = 1;
+  for (final c in byHour) {
+    if (c > top) top = c;
+  }
+  return [for (final c in byHour) c / top];
+}
+
+/// Los pies del reloj: sólo las cuatro que orientan.
+const List<String> _clockTicks = [
+  '0',
+  '',
+  '',
+  '',
+  '',
+  '',
+  '6',
+  '',
+  '',
+  '',
+  '',
+  '',
+  '12',
+  '',
+  '',
+  '',
+  '',
+  '',
+  '18',
+  '',
+  '',
+  '',
+  '',
+  '',
+];
+
 /// What one blank day does to the next.
 ///
 /// The most useful thing in here, because it turns "un día no pasa nada" into
@@ -194,43 +397,14 @@ Notice? peakHour(Habit h) {
     // that hides a third of the truth to sound tidier.
     if (best / n < 0.7) continue;
     final end = (at + width) % 24;
-    var top = 1;
-    for (final c in byHour) {
-      if (c > top) top = c;
-    }
     return Notice(
       NoticeKind.hour,
       width == 1
           ? 'Casi siempre a las $at${_partOfDay(at)}.'
           : 'Casi siempre entre las $at y las $end${_partOfDay(at)}.',
       'Ahí caen el ${_pct(best / n)} de tus piezas.',
-      bars: [for (final c in byHour) c / top],
-      ticks: const [
-        '0',
-        '',
-        '',
-        '',
-        '',
-        '',
-        '6',
-        '',
-        '',
-        '',
-        '',
-        '',
-        '12',
-        '',
-        '',
-        '',
-        '',
-        '',
-        '18',
-        '',
-        '',
-        '',
-        '',
-        '',
-      ],
+      bars: _clockBars(h),
+      ticks: _clockTicks,
       mark: at,
       span: width,
       more:
@@ -427,8 +601,23 @@ Notice? pairing(Habit h, List<Habit> others, DateTime now) {
   var bestGap = 0.20;
   for (final o in others) {
     if (o.id == h.id) continue;
-    for (final pair in [(h, o), (o, h)]) {
-      final n = _pairing(pair.$1, pair.$2, now);
+    // Si los dos ya están unidos por una regla firmada, la observación sobra:
+    // la nota de la regla dice lo mismo y además dice que lo decidiste vos.
+    if (h.afterId == o.id || o.afterId == h.id) continue;
+    // El otro primero: «Correr arrastra a Leer» en el tablón de Leer habla de
+    // Leer, que es de quien es el tablón. Y con dos hábitos que caen siempre el
+    // mismo día las dos direcciones empatan, así que el orden decide — y la que
+    // tiene que ganar es ésta, que es la única que se puede firmar como regla.
+    for (final pair in [(o, h), (h, o)]) {
+      // El que va primero, para poder firmar la regla desde el tablón — y sólo
+      // cuando el que va detrás es este hábito, porque una regla se firma en la
+      // hoja de quien la va a cumplir y éste es su tablón.
+      final n = _pairing(
+        pair.$1,
+        pair.$2,
+        now,
+        about: pair.$2.id == h.id ? pair.$1.id : null,
+      );
       if (n == null) continue;
       if (n.$2 > bestGap) {
         bestGap = n.$2;
@@ -439,7 +628,12 @@ Notice? pairing(Habit h, List<Habit> others, DateTime now) {
   return best;
 }
 
-(Notice, double)? _pairing(Habit a, Habit b, DateTime now) {
+(Notice, double)? _pairing(
+  Habit a,
+  Habit b,
+  DateTime now, {
+  String? about,
+}) {
   final da = daysOf(a), db = daysOf(b);
   if (da.isEmpty || db.isEmpty) return null;
   final from = da.first.isAfter(db.first) ? da.first : db.first;
@@ -483,6 +677,9 @@ Notice? pairing(Habit h, List<Habit> others, DateTime now) {
       bars: [near, far],
       ticks: ['con ${a.name}', 'sin ${a.name}'],
       mark: 0,
+      // Sólo se puede firmar lo que va junto. «Casi nunca el mismo día» es una
+      // observación verdadera y una regla imposible.
+      about: near > far ? about : null,
       more:
           'Contado sobre los ${withA + withoutA} días desde que existen los '
           'dos y ninguno dormía: '

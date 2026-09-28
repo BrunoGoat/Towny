@@ -39,8 +39,19 @@ Widget _marco(Size size, Widget child) => MediaQuery(
 );
 
 /// Que nada de lo que se escribe se salga de la pantalla.
+///
+/// Menos lo que va dentro de una lista que se desliza a lo largo —el reloj del
+/// plan, el carrete de las marcas—, donde estar fuera de cuadro es lo normal:
+/// una fila de veinticuatro horas no cabe en ningún teléfono y no tiene que
+/// caber. Lo que sí se comprueba de esas listas es lo de siempre, porque la
+/// lista misma es un hijo de la hoja como cualquier otro.
 void _dentro(WidgetTester tester, Size size, String quien) {
+  final enCarrete = find
+      .descendant(of: find.byType(ListView), matching: find.byType(Text))
+      .evaluate()
+      .toSet();
   for (final e in find.byType(Text).evaluate()) {
+    if (enCarrete.contains(e)) continue;
     final box = e.renderObject! as RenderBox;
     final at = box.localToGlobal(Offset.zero);
     expect(

@@ -14,6 +14,7 @@ import '../model/habit.dart';
 import '../model/notice.dart';
 import '../model/store.dart';
 import 'board_scene.dart';
+import 'plan_picker.dart';
 import 'style.dart';
 
 /// El tablón de la plaza, al que uno se acerca.
@@ -138,6 +139,80 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
     });
   }
 
+  /// Lo que se puede hacer con la nota que está descolgada.
+  ///
+  /// Dos notas y nada más, las dos del mismo estilo: el tablón dice algo que
+  /// hay que decidir y la decisión se toma ahí, sin salir. El resto de los
+  /// papeles son para leer.
+  ///
+  /// En el tablón de mentira de los ajustes no se ofrece nada: su pueblo no
+  /// existe y no habría dónde guardar lo que se decidiera.
+  (String, VoidCallback)? _offer(Notice said) {
+    final store = widget.store;
+    if (store == null) return null;
+    final h = widget.habit;
+    switch (said.kind) {
+      // El plan que falta. Sale cuando el pueblo ya sabe a qué hora aparecés y
+      // no hay nada escrito, y también cuando lo escrito ya no es lo que hacés:
+      // las dos veces lo que hace falta es la misma hoja.
+      case NoticeKind.plan:
+        return ('Escribirlo', () => _writePlan(h));
+      // Y la observación de que dos hábitos van juntos, para firmarla. Sólo
+      // cuando la nota dice de cuál habla y ése sigue en el valle.
+      case NoticeKind.pair:
+        final otro = said.about;
+        if (otro == null || otro == h.id || h.afterId == otro) return null;
+        Habit? antes;
+        for (final o in store.habits) {
+          if (o.id == otro) antes = o;
+        }
+        if (antes == null) return null;
+        final firme = antes;
+        return (
+          'Hacerlo regla',
+          () {
+            Sensory.instance.tick();
+            store.stackHabit(h, firme);
+            setState(() {
+              _plan = _real();
+              _roll++;
+            });
+          },
+        );
+      default:
+        return null;
+    }
+  }
+
+  /// Escribir el plan desde el tablón.
+  Future<void> _writePlan(Habit h) async {
+    Sensory.instance.tick();
+    final dicho = await showModalBottomSheet<(int?, String)>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => PlanSheet(
+        theme: widget.theme,
+        name: h.name,
+        hour: h.vowHour,
+        place: h.vowPlace,
+      ),
+    );
+    if (dicho == null || !mounted) return;
+    final store = widget.store;
+    if (store == null) return;
+    store.pledgeHabit(
+      store.habits.indexOf(h),
+      hour: dicho.$1,
+      clearHour: dicho.$1 == null,
+      place: dicho.$2,
+    );
+    setState(() {
+      _plan = _real();
+      _roll++;
+    });
+  }
+
   /// Llevar el papel [i] al hueco [slot].
   ///
   /// El plano se rehace una vez, al soltar. Durante el arrastre no se toca
@@ -257,6 +332,9 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
                 // probar el gesto sin tener que fundar un pueblo es
                 // precisamente para lo que ese tablón existe.
                 onMove: _mover,
+                // Y lo que se puede hacer con la nota descolgada: escribir el
+                // plan, firmar la regla.
+                offer: _offer,
                 onUnpin: widget.store == null
                     ? null
                     : (said) {

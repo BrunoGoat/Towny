@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:la_muralla/engine/palette.dart';
 import 'package:la_muralla/model/appearance.dart';
@@ -21,12 +22,29 @@ void main() {
 
   testWidgets('el libro', (tester) async {
     Directory(out).createSync(recursive: true);
+    // La letra del libro, que en una prueba no existe hasta que se carga: sin
+    // esto lo que sale es la fuente de los tests, que pinta cada letra como un
+    // cuadrado y no sirve para mirar una página.
+    await tester.runAsync(() async {
+      final bytes = await File('assets/fonts/RobotoSlab.ttf').readAsBytes();
+      await (FontLoader('Chronicle')
+            ..addFont(Future.value(bytes.buffer.asByteData())))
+          .load();
+    });
     SharedPreferences.setMockInitialValues({});
     await Appearance.instance.load();
     final store = Store();
     await store.load();
     store.renameHabit(0, name: 'Leer', symbol: 'libro');
     store.debugFill(520);
+    // Con el plan y la identidad escritos: las páginas de la cuenta llevan las
+    // dos, y sin ellas no hay manera de mirar cómo quedan.
+    store.pledgeHabit(
+      0,
+      hour: 22,
+      place: 'la cama',
+      identity: 'alguien que lee todos los días',
+    );
     tester.view.physicalSize = size * 3;
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
@@ -55,7 +73,7 @@ void main() {
     await _shot(tester, key, '$out/portada.png');
 
     // Las páginas siguientes.
-    for (var i = 1; i <= 3; i++) {
+    for (var i = 1; i <= 7; i++) {
       await tester.tap(find.byIcon(Icons.chevron_right_rounded));
       await tester.pumpAndSettle();
       await _shot(tester, key, '$out/pliego-$i.png');

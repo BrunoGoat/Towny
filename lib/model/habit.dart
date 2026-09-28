@@ -22,6 +22,10 @@ class Habit {
     int? character,
     this.why,
     this.floor,
+    this.vowHour,
+    this.vowPlace,
+    this.identity,
+    this.afterId,
     this.askedAt,
     this.nudgedAt,
     this.nudgesIgnored = 0,
@@ -78,6 +82,52 @@ class Habit {
   ///
   /// Se lee en los mismos dos momentos que [why]. Escribirlo es opcional.
   String? floor;
+
+  /// A qué hora vas a hacerlo, de 0 a 23.
+  ///
+  /// La mitad del plan. «Voy a leer» es una intención y se olvida; «voy a leer
+  /// a las diez, en la cama» es una decisión ya tomada, y lo único que queda
+  /// por hacer es cumplirla. La diferencia entre las dos cosas está medida:
+  /// quien escribe cuándo y dónde lo hace más del doble de veces que quien sólo
+  /// dice que quiere.
+  ///
+  /// La hora va en un número y no dentro de la frase a propósito. Es lo que
+  /// permite comparar lo que dijiste con lo que hacés —el pueblo ve a qué hora
+  /// caen tus piezas— y avisarte cuando el plan escrito hace meses ya no es el
+  /// tuyo. Una frase entera no se puede comparar con nada.
+  int? vowHour;
+
+  /// Y en qué sitio. La otra mitad.
+  ///
+  /// El sitio importa tanto como la hora, y por la misma razón: un hábito se
+  /// engancha a lo que ya está ahí. «En la cama», «en la cocina», «de camino al
+  /// trabajo» son cosas que pasan todos los días sin que haya que acordarse de
+  /// ellas, y eso es de donde el hábito nuevo saca el recordatorio.
+  String? vowPlace;
+
+  /// En quién te convierte esto. Sin el «alguien que»: sólo `alguien que lee
+  /// todos los días`, y el pueblo pone el resto de la frase.
+  ///
+  /// Es la única de las cuatro líneas que no habla de la acción sino de vos.
+  /// Un hábito que se sostiene no se sostiene por la meta —la meta se cumple y
+  /// se acaba el hábito— sino porque te lo crees: cada pieza es un voto a favor
+  /// de esa frase, y el pueblo entero es el recuento. Por eso el tablón la
+  /// devuelve con los días que lleva siéndolo debajo, que es la prueba.
+  String? identity;
+
+  /// Detrás de qué otro hábito va éste, si va detrás de alguno.
+  ///
+  /// El identificador del otro hábito, nunca su nombre: los nombres se cambian
+  /// y una regla no puede romperse porque alguien haya escrito mejor su hábito.
+  /// Si el otro hábito se borra, la regla deja de existir sola — nadie repara
+  /// nada, porque leer la regla es buscar ese hábito en el valle y no
+  /// encontrarlo.
+  ///
+  /// «Después de correr, estirar» es lo que hace que el hábito nuevo no
+  /// necesite recordatorio: el recordatorio es el hábito viejo. El pueblo ya
+  /// sabía cuáles van juntos —lo dice en el tablón— y esto es convertir esa
+  /// observación en una decisión.
+  String? afterId;
 
   /// What kind of place this habit builds, chosen the day it was founded.
   ///
@@ -256,6 +306,10 @@ class Habit {
     'm': notes,
     if (why != null && why!.isNotEmpty) 'y': why,
     if (floor != null && floor!.isNotEmpty) 'q': floor,
+    if (vowHour != null) 'vh': vowHour,
+    if (vowPlace != null && vowPlace!.isNotEmpty) 'vp': vowPlace,
+    if (identity != null && identity!.isNotEmpty) 'qn': identity,
+    if (afterId != null && afterId!.isNotEmpty) 'af': afterId,
     if (rests.isNotEmpty) 'r': rests,
     if (askedAt != null) 'k': askedAt!.millisecondsSinceEpoch,
     if (nudgedAt != null) 'g': nudgedAt!.millisecondsSinceEpoch,
@@ -299,6 +353,17 @@ class Habit {
       // que nunca durmió no tiene tramos. Nadie pierde nada por venir de antes.
       why: (j['y'] as String?)?.trim(),
       floor: (j['q'] as String?)?.trim(),
+      // Y otras cuatro que tampoco trae, por lo mismo: un pueblo fundado antes
+      // de que existiera el plan no tiene plan, y sigue siendo el mismo pueblo.
+      // La hora se guarda sólo si es una hora: un número de fuera del reloj
+      // —un archivo tocado a mano— se lee como que no hay plan.
+      vowHour: switch ((j['vh'] as num?)?.toInt()) {
+        final int v when v >= 0 && v <= 23 => v,
+        _ => null,
+      },
+      vowPlace: (j['vp'] as String?)?.trim(),
+      identity: (j['qn'] as String?)?.trim(),
+      afterId: (j['af'] as String?)?.trim(),
       rests: [for (final e in (j['r'] as List?) ?? []) e.toString()],
       askedAt: (j['k'] as num?) == null
           ? null
