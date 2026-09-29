@@ -26,6 +26,8 @@ class Habit {
     this.vowPlace,
     this.identity,
     this.afterId,
+    this.perWeek,
+    this.cadenceAskedAt,
     this.askedAt,
     this.nudgedAt,
     this.nudgesIgnored = 0,
@@ -115,19 +117,26 @@ class Habit {
   /// devuelve con los días que lleva siéndolo debajo, que es la prueba.
   String? identity;
 
-  /// Detrás de qué otro hábito va éste, si va detrás de alguno.
+  /// Detrás de qué otro hábito iba éste, en las copias que lo traen.
   ///
-  /// El identificador del otro hábito, nunca su nombre: los nombres se cambian
-  /// y una regla no puede romperse porque alguien haya escrito mejor su hábito.
-  /// Si el otro hábito se borra, la regla deja de existir sola — nadie repara
-  /// nada, porque leer la regla es buscar ese hábito en el valle y no
-  /// encontrarlo.
-  ///
-  /// «Después de correr, estirar» es lo que hace que el hábito nuevo no
-  /// necesite recordatorio: el recordatorio es el hábito viejo. El pueblo ya
-  /// sabía cuáles van juntos —lo dice en el tablón— y esto es convertir esa
-  /// observación en una decisión.
+  /// Hubo un tiempo en que dos hábitos se podían encadenar a mano —«después de
+  /// correr, estirar»— y esto guardaba cuál iba primero. Ya no se ofrece: que
+  /// dos hábitos van juntos es algo que el tablón ve y dice, no algo que haya
+  /// que declarar. Se sigue leyendo y escribiendo para no perder nada de una
+  /// copia vieja, y nada más lo mira.
   String? afterId;
+
+  /// Cuántos días por semana, de 1 a 7, si lo dijiste. Ver `model/cadence.dart`.
+  ///
+  /// No se pregunta al fundar: el primer día sólo se habla de para qué y de
+  /// en quién te convierte. Lo pregunta el pueblo al cumplir una semana, con
+  /// lo que ya ve marcado, y se puede cambiar después en la hoja del hábito.
+  /// Nulo es no haberlo dicho, y entonces vale lo que se ve.
+  int? perWeek;
+
+  /// Cuándo se preguntó por la frecuencia. Una vez en la vida del hábito, se
+  /// conteste o no.
+  DateTime? cadenceAskedAt;
 
   /// What kind of place this habit builds, chosen the day it was founded.
   ///
@@ -310,6 +319,8 @@ class Habit {
     if (vowPlace != null && vowPlace!.isNotEmpty) 'vp': vowPlace,
     if (identity != null && identity!.isNotEmpty) 'qn': identity,
     if (afterId != null && afterId!.isNotEmpty) 'af': afterId,
+    if (perWeek != null) 'pw': perWeek,
+    if (cadenceAskedAt != null) 'ca': cadenceAskedAt!.millisecondsSinceEpoch,
     if (rests.isNotEmpty) 'r': rests,
     if (askedAt != null) 'k': askedAt!.millisecondsSinceEpoch,
     if (nudgedAt != null) 'g': nudgedAt!.millisecondsSinceEpoch,
@@ -364,6 +375,15 @@ class Habit {
       vowPlace: (j['vp'] as String?)?.trim(),
       identity: (j['qn'] as String?)?.trim(),
       afterId: (j['af'] as String?)?.trim(),
+      // Una frecuencia fuera de la semana —un archivo tocado a mano— se lee
+      // como que no se dijo.
+      perWeek: switch ((j['pw'] as num?)?.toInt()) {
+        final int v when v >= 1 && v <= 7 => v,
+        _ => null,
+      },
+      cadenceAskedAt: (j['ca'] as num?) == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch((j['ca'] as num).toInt()),
       rests: [for (final e in (j['r'] as List?) ?? []) e.toString()],
       askedAt: (j['k'] as num?) == null
           ? null

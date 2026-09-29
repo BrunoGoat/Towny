@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'habit.dart';
 import 'piece.dart';
 import 'rhythm.dart';
@@ -178,8 +180,13 @@ double? cadenceOf(Habit h, {DateTime? at}) {
 const int minHistory = 14;
 
 /// A partir de cuántos días sin pieza este hábito va tarde **para vos**.
+///
+/// Y nunca antes de lo que dijiste: quien avisó que va dos veces por semana no
+/// va tarde al tercer día aunque la primera semana haya ido a diario.
 int lateAfter(Habit h, {DateTime? at}) {
-  final cada = cadenceOf(h, at: at) ?? 1.0;
+  final visto = cadenceOf(h, at: at) ?? 1.0;
+  final dicho = h.perWeek == null ? 1.0 : 7 / h.perWeek!;
+  final cada = math.max(visto, dicho);
   return (cada * NudgeRules.lateAt).round().clamp(
     NudgeRules.lateFloor,
     NudgeRules.lateCeiling,

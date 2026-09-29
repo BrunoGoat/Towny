@@ -4,12 +4,12 @@ import '../fx/sensory.dart';
 import '../model/habit.dart';
 import 'style.dart';
 
-/// La segunda vez —y la última— que esta app te pregunta algo.
+/// Una de las pocas veces que esta app te pregunta algo.
 ///
-/// La otra es [ChoiceSheet], cuando toca empezar una obra grande, y las dos
+/// Las otras son [ChoiceSheet], cuando toca empezar una obra grande, y la de
+/// la primera semana de cada hábito, cada cuánto va (`CadenceSheet`). Las tres
 /// funcionan por lo mismo: son raras. Una app de hábitos llena de preguntas es
-/// una app que se cierra, así que si va a haber dos en toda su vida, las dos
-/// tienen que valer la pena.
+/// una app que se cierra, así que las pocas que hay tienen que valer la pena.
 ///
 /// Ésta vale la pena porque distingue dos cosas que casi ninguna app
 /// distingue. Cuatro días en blanco seguidos no son cuatro incumplimientos:

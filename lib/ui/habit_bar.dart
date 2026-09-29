@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../data/pacing.dart';
 import '../engine/sigils.dart';
 import '../fx/sensory.dart';
 import '../model/habit.dart';
@@ -55,7 +54,7 @@ class HabitBar extends StatelessWidget {
     // el anillo. El primer día no: un candado en la cara de alguien que
     // todavía no puso su primera piedra es la app pidiéndole que se apure. En
     // cuanto hay algo hecho, el anillo aparece y ya no se va.
-    final ganados = locked ? store.unlockProgress : 0;
+    final meta = store.unlockGoal;
 
     // Esta fila no se esconde nunca, y el motivo no tiene nada que ver con el
     // candado: tocar tu propia marca es **la única puerta** que hay a la hoja
@@ -95,7 +94,7 @@ class HabitBar extends StatelessWidget {
             onTap: onAdd,
             enabled: store.canAddHabit,
             locked: locked,
-            progress: ganados / Pacing.unlockDays,
+            progress: locked ? meta.progress : 0,
           ),
         ],
       ),

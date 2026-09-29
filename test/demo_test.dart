@@ -126,15 +126,14 @@ void main() {
         for (final h in valle)
           for (final n in tablon(h)) n.kind,
       };
-      // Todas menos cuatro. Dos no salen de acá: una cabra perdida no es algo
+      // Todas menos tres. Dos no salen de acá: una cabra perdida no es algo
       // que se sepa de nadie, y una nota tuya no la deduce el pueblo — la
-      // escribís vos. Y dos están tapadas a propósito por las nuevas, que es
-      // lo que comprueba la prueba de abajo.
+      // escribís vos. Y la del horario está tapada a propósito por el plan,
+      // que es lo que comprueba la prueba de abajo.
       for (final quiere in NoticeKind.values) {
         if (quiere == NoticeKind.pueblo ||
             quiere == NoticeKind.mine ||
-            quiere == NoticeKind.hour ||
-            quiere == NoticeKind.pair) {
+            quiere == NoticeKind.hour) {
           continue;
         }
         expect(
@@ -149,16 +148,11 @@ void main() {
 
     test('y las dos notas nuevas tapan a las viejas que decían lo mismo', () {
       // Donde hay plan escrito no hay nota de horario: las dos hablan de la
-      // hora y una de las dos además dice que lo decidiste vos. Y donde hay
-      // regla firmada no hay observación del par, por lo mismo.
+      // hora y una de las dos además dice que lo decidiste vos.
       final deEntrenar = {for (final n in tablon(valle.first)) n.kind};
       expect(deEntrenar, contains(NoticeKind.plan));
       expect(deEntrenar, contains(NoticeKind.who));
       expect(deEntrenar, isNot(contains(NoticeKind.hour)));
-
-      final deLeer = {for (final n in tablon(valle[1])) n.kind};
-      expect(deLeer, contains(NoticeKind.rule));
-      expect(deLeer, isNot(contains(NoticeKind.pair)));
     });
 
     // Y lleno cualquier día, no sólo el que se eligió para el test: el ajuste

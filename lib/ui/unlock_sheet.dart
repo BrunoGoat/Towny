@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../data/pacing.dart';
+import '../model/cadence.dart';
 import '../model/store.dart';
 import 'style.dart';
 
@@ -26,8 +26,10 @@ class UnlockSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = theme;
-    final done = store.unlockProgress;
-    final left = Pacing.unlockDays - done;
+    final goal = store.unlockGoal;
+    final done = goal.have;
+    final left = goal.need - done;
+    final falla = goal.slack;
     return Frosted(
       theme: t,
       strong: true,
@@ -52,27 +54,38 @@ class UnlockSheet extends StatelessWidget {
             Text('EL SEGUNDO PUEBLO', style: t.label),
             const SizedBox(height: 10),
             Text(
-              left <= 1 ? 'Te falta un día.' : 'Te faltan $left días.',
+              left <= 1
+                  ? 'Te falta un día con pieza.'
+                  : 'Te faltan $left días con pieza.',
               style: t.title,
             ),
             const SizedBox(height: 6),
             Text(
-              'El valle abre su segundo solar cuando el primero se sostiene: '
-              '${Pacing.unlockDays} días con pieza de los últimos '
-              '${Pacing.unlockWindow}. Llevás $done.',
+              _rule(goal),
               style: t.bodySoft.copyWith(fontSize: 12.5, height: 1.4),
             ),
             const SizedBox(height: 16),
-            _days(t, done),
+            _days(t, done, goal.need),
             const SizedBox(height: 16),
             Text(
               // Lo importante de estas dos frases es que la segunda desarma la
               // primera: un candado que además castigue los fallos sería
               // exactamente la racha que esta app quitó de todas partes.
-              'No hace falta que sean seguidos. Podés fallar cuatro veces por '
-              'el camino y la puerta se abre igual — acá no se miden rachas.',
+              'No hace falta que sean seguidos. Podés fallar '
+              '${falla == 1 ? 'una vez' : '$falla veces'} por el camino y la '
+              'puerta se abre igual — acá no se miden rachas.',
               style: t.bodySoft.copyWith(fontSize: 12.5, height: 1.4),
             ),
+            // Sin frecuencia dicha se mide como de todos los días, y quien va
+            // dos veces por semana tiene que saber que eso se cambia.
+            if (!goal.declared) ...[
+              const SizedBox(height: 10),
+              Text(
+                '¿No es de todos los días? Decí cada cuánto va en la hoja del '
+                'hábito, y la cuenta se hace con eso.',
+                style: t.bodySoft.copyWith(fontSize: 12.5, height: 1.4),
+              ),
+            ],
             const SizedBox(height: 10),
             Text(
               'Y una vez abierta no se cierra nunca, pase lo que pase después.',
@@ -88,14 +101,31 @@ class UnlockSheet extends StatelessWidget {
     );
   }
 
-  /// Los catorce días de la ventana, uno por casilla, con los ganados
-  /// encendidos hasta los diez que hacen falta.
+  /// Lo que pide el valle, dicho contra el ritmo del hábito.
+  ///
+  /// Para quien va a diario es la frase de siempre. Para los demás se dice el
+  /// ritmo primero, porque la cifra sola —«tres días en cuatro semanas»— sin
+  /// él parece un error de la app.
+  static String _rule(UnlockGoal g) {
+    const intro =
+        'El valle abre su segundo solar cuando el primero se sostiene: ';
+    if (g.perWeek >= 7) {
+      return '$intro${g.need} días con pieza de los últimos ${g.window}. '
+          'Llevás ${g.have}.';
+    }
+    final semanas = g.window ~/ 7;
+    return '$intro${g.need} días con pieza en las últimas $semanas semanas, '
+        'sin contar más de ${g.perWeek} por semana, porque dijiste que va '
+        '${cadenceSaid(g.perWeek)}. Llevás ${g.have}.';
+  }
+
+  /// Los días que hacen falta, uno por casilla, con los ganados encendidos.
   ///
   /// Dibujado y no dicho: «6 de 10» es un dato y esto es una cuenta atrás que
   /// se ve llenarse, que es lo que hace que se quiera volver a mirar mañana.
-  Widget _days(UiTheme t, int done) => Row(
+  Widget _days(UiTheme t, int done, int need) => Row(
     children: [
-      for (var i = 0; i < Pacing.unlockDays; i++)
+      for (var i = 0; i < need; i++)
         Expanded(
           child: Padding(
             padding: const EdgeInsets.only(right: 4),

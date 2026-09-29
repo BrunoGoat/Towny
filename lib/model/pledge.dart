@@ -27,7 +27,6 @@ library;
 import 'dart:math' as math;
 
 import 'habit.dart';
-import 'piece.dart';
 import 'rhythm.dart';
 
 /// El plan, dicho entero: «Voy a leer a las 22, en la cama.»
@@ -103,7 +102,9 @@ String placeSaid(String place) {
 String lowerName(String name) {
   final t = name.trim();
   if (t.isEmpty) return t;
-  if (t.length > 1 && t[1] == t[1].toUpperCase() && t[1] != t[1].toLowerCase()) {
+  if (t.length > 1 &&
+      t[1] == t[1].toUpperCase() &&
+      t[1] != t[1].toLowerCase()) {
     return t;
   }
   return t[0].toLowerCase() + t.substring(1);
@@ -199,83 +200,6 @@ String? identitySaid(Habit h) {
 
 /// Cuántos días llevás siéndolo: los días con pieza, que son los votos.
 int identityVotes(Habit h) => daysOf(h).length;
-
-/// Detrás de qué hábito va éste, si la regla sigue en pie.
-///
-/// Se busca en el valle cada vez y no se guarda nada más que el identificador,
-/// así que una regla contra un hábito borrado no existe: no hay que limpiarla,
-/// deja de encontrarse.
-Habit? afterOf(Habit h, List<Habit> valley) {
-  final id = _clean(h.afterId);
-  if (id == null || id == h.id) return null;
-  for (final o in valley) {
-    if (o.id == id) return o;
-  }
-  return null;
-}
-
-/// La regla, dicha entera: «Después de correr, leer.»
-String? ruleSaid(Habit h, List<Habit> valley) {
-  final antes = afterOf(h, valley);
-  if (antes == null) return null;
-  return 'Después de ${lowerName(antes.name)}, ${lowerName(h.name)}.';
-}
-
-/// Cómo va una regla firmada.
-///
-/// Las dos cifras van juntas porque una sola no dice nada: «lo cumplís el 80%»
-/// suena bien hasta que se ve que los demás días también lo hacés el 78%, y
-/// entonces la regla no está haciendo nada. Lo que se lee es la diferencia.
-class RuleScore {
-  const RuleScore(this.kept, this.of, this.without, this.ofWithout);
-
-  /// De los días en que hiciste el hábito de antes, la parte en que también
-  /// hiciste éste — y cuántos días fueron.
-  final double kept;
-  final int of;
-
-  /// Y lo mismo los demás días.
-  final double without;
-  final int ofWithout;
-}
-
-/// Con qué frecuencia se cumple la regla.
-///
-/// Nulo si no hay regla o si los dos hábitos no han convivido lo bastante: «el
-/// 100%» sobre tres días no es un número que se pueda decir en voz alta.
-RuleScore? ruleKept(Habit h, List<Habit> valley, {DateTime? at}) {
-  final antes = afterOf(h, valley);
-  if (antes == null) return null;
-  final now = at ?? DateTime.now();
-  final mios = <int>{for (final d in daysOf(h)) dayKey(d)};
-  final suyos = <int>{for (final d in daysOf(antes)) dayKey(d)};
-  if (suyos.isEmpty) return null;
-  // Desde cuándo existe la regla no se sabe —no se guarda cuándo se firmó, y no
-  // hace falta—, así que se cuentan los días en que los dos pueblos ya
-  // existían. Contar los de antes sería reprocharte no haber cumplido una regla
-  // que todavía no existía.
-  var desde = dayStart(h.createdAt);
-  final nace = dayStart(antes.createdAt);
-  if (nace.isAfter(desde)) desde = nace;
-  final hoy = dayStart(now);
-  var de = 0, con = 0, sin = 0, conSin = 0;
-  for (var d = desde; !d.isAfter(hoy); d = d.add(const Duration(days: 1))) {
-    final k = dayKey(d);
-    // Un día en que cualquiera de los dos dormía no cuenta: uno de los dos no
-    // estaba jugando, igual que en la nota que empareja dos hábitos.
-    if (h.restedOn(d) && !mios.contains(k)) continue;
-    if (antes.restedOn(d) && !suyos.contains(k)) continue;
-    if (suyos.contains(k)) {
-      de++;
-      if (mios.contains(k)) con++;
-    } else {
-      sin++;
-      if (mios.contains(k)) conSin++;
-    }
-  }
-  if (de < 5) return null;
-  return RuleScore(con / de, de, sin == 0 ? 0 : conSin / sin, sin);
-}
 
 /// Un texto que puede venir vacío desde un archivo viejo o desde un campo que
 /// alguien dejó en blanco.

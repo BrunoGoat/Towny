@@ -132,9 +132,6 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
     String name,
     String symbol, {
     String? why,
-    String? floor,
-    int? vowHour,
-    String? vowPlace,
     String? identity,
   }) async {
     store.renameHabit(
@@ -142,8 +139,8 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
       name: name.isEmpty ? 'Mi hábito' : name,
       symbol: symbol,
     );
-    store.describeHabit(0, why: why, floor: floor);
-    store.pledgeHabit(0, hour: vowHour, place: vowPlace, identity: identity);
+    store.describeHabit(0, why: why);
+    store.pledgeHabit(0, identity: identity);
     store.justFounded = true;
     await Appearance.instance.setOnboarded();
     if (mounted) setState(() {});

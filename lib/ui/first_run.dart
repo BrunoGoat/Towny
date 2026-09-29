@@ -11,14 +11,12 @@ import '../engine/scene.dart';
 import '../engine/town.dart';
 import '../fx/effects.dart';
 import '../fx/sensory.dart';
-import '../model/pledge.dart';
 import 'habit_sigil.dart';
-import 'plan_picker.dart';
 import 'style.dart';
 
 /// Lo que se ve la primera vez que se abre la app.
 ///
-/// Seis pantallas, una pregunta en cada una, y al final un pueblo fundado.
+/// Cuatro pantallas, una pregunta en cada una, y al final un pueblo fundado.
 ///
 /// **Por qué existe.** Sin esto, la primera vez que alguien abría Towny se
 /// encontraba un prado vacío, un botón grande y un hábito de mentira llamado
@@ -27,31 +25,34 @@ import 'style.dart';
 /// día malo— estaba ahí desde el primer minuto y no lo contaba nadie. Se
 /// descubría a los tres meses o no se descubría.
 ///
-/// **Y por qué son seis pantallas y no una hoja con seis campos.** Un
-/// formulario se contesta entero mirando los huecos que faltan por rellenar, y
-/// las cuatro preguntas del final —cuándo y dónde, para qué, en quién te
-/// convierte, qué es lo mínimo— no se contestan bien así: son lo único de toda
-/// la app que se escribe para leerlo mucho después, y merecen que no haya nada
-/// más en pantalla cuando se escriben.
+/// **Y por qué son pantallas y no una hoja con campos.** Un formulario se
+/// contesta entero mirando los huecos que faltan por rellenar, y las dos
+/// preguntas del final —para qué y en quién te convierte— no se contestan bien
+/// así: son lo único de toda la app que se escribe para leerlo mucho después,
+/// y merecen que no haya nada más en pantalla cuando se escriben.
 ///
-/// Las cuatro se pueden saltar. Se guardaron para el día malo, y obligar a
-/// escribirlas el día uno es la manera de que salgan mal. Ninguna se pierde por
-/// haberla saltado: las cuatro están en la hoja del hábito para siempre, y el
-/// pueblo pide el plan por su cuenta en cuanto sabe a qué hora aparecés.
+/// **Y por qué sólo esas dos.** Se preguntaba además cuándo y dónde, y qué es
+/// lo mínimo que cuenta. Es lo que recomienda cualquier libro de hábitos, y
+/// convertía el primer minuto en una declaración de intenciones con hora y
+/// sitio — lo contrario de lo que hacía bien esta app, que es que no se sienta
+/// como una lista de cosas por cumplir. El primer día se habla de lo que
+/// querés; lo práctico lo propone el pueblo después, cuando ya tiene algo que
+/// enseñarte: a la semana pregunta cada cuánto va, y cuando ve a qué hora
+/// aparecés, te la ofrece para darla por dicha.
+///
+/// Las dos se pueden saltar. Ninguna se pierde por haberla saltado: están en
+/// la hoja del hábito para siempre.
 class FirstRun extends StatefulWidget {
   const FirstRun({super.key, required this.onDone});
 
   /// Lo que se contestó, para que quien lo pidió funde el pueblo.
   ///
-  /// Las cinco últimas son opcionales y llegan en nulo si se saltaron. El
+  /// Las dos últimas son opcionales y llegan en nulo si se saltaron. El
   /// nombre y la marca no: sin ellas no hay pueblo.
   final void Function(
     String name,
     String symbol, {
     String? why,
-    String? floor,
-    int? vowHour,
-    String? vowPlace,
     String? identity,
   })
   onDone;
@@ -65,16 +66,6 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
   String _symbol = habitSymbols.first;
   final _name = TextEditingController();
   final _why = TextEditingController();
-  final _floor = TextEditingController();
-
-  /// El plan: a qué hora y en qué sitio. La hora se toca, el sitio se escribe.
-  ///
-  /// La hora **no** viene puesta. El reloj se abre centrado en la de ahora
-  /// —que casi siempre es la de la que se va a hablar— pero elegirla es un
-  /// toque, porque un plan que la app rellenó sola no es una decisión de nadie
-  /// y sería lo primero que el pueblo dice de vos sin que lo hayas dicho.
-  int? _vowHour;
-  final _place = TextEditingController();
 
   /// En quién te convierte. Sin el «alguien que»: eso lo pone el pueblo.
   final _identity = TextEditingController();
@@ -89,8 +80,6 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
     _in.dispose();
     _name.dispose();
     _why.dispose();
-    _floor.dispose();
-    _place.dispose();
     _identity.dispose();
     super.dispose();
   }
@@ -109,23 +98,8 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
       _name.text.trim(),
       _symbol,
       why: dicho(_why),
-      floor: dicho(_floor),
-      vowHour: _vowHour,
-      vowPlace: dicho(_place),
       identity: dicho(_identity),
     );
-  }
-
-  /// Saltarse el plan lo deja sin escribir del todo, hora incluida.
-  ///
-  /// Hace falta decirlo porque la hora se puede haber tocado y luego haberse
-  /// decidido que no: «ahora no» quiere decir que no hay plan, y un plan a
-  /// medias guardado por descuido saldría mañana en el tablón como si lo
-  /// hubieras prometido.
-  void _skipPlan() {
-    _vowHour = null;
-    _place.clear();
-    _go(3);
   }
 
   /// La hora de verdad, para que el cielo de la primera pantalla sea el cielo
@@ -169,32 +143,30 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
                     child: switch (_step) {
                       0 => _welcome(t),
                       1 => _askName(t),
-                      2 => _askPlan(t),
-                      3 => _askWhy(t),
-                      4 => _askWho(t),
-                      _ => _askFloor(t),
+                      2 => _askWhy(t),
+                      _ => _askWho(t),
                     },
                   ),
                 ),
               ),
             ),
           ),
-          // Por dónde va, abajo del todo y en voz muy baja. Cuatro puntos no
-          // son una barra de progreso: son el tamaño de lo que falta, que acá
-          // es lo único tranquilizador que se puede decir.
+          // Por dónde va, abajo del todo y en voz muy baja. Tres puntos no son
+          // una barra de progreso: son el tamaño de lo que falta, que acá es
+          // lo único tranquilizador que se puede decir.
           if (_step > 0)
             Positioned(
               left: 0,
               right: 0,
               bottom: 18 + MediaQuery.of(context).padding.bottom,
-              child: _Dots(at: _step, of: 5, theme: t),
+              child: _Dots(at: _step, of: 3, theme: t),
             ),
         ],
       ),
     );
   }
 
-  // ------------------------------------------------------------- las cuatro
+  // ------------------------------------------------------------ las pantallas
 
   Widget _welcome(UiTheme t) => _Step(
     theme: t,
@@ -238,78 +210,6 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
     ),
   );
 
-  /// El plan: a qué hora y en qué sitio.
-  ///
-  /// La pregunta más barata de toda la pantalla y la que más cambia lo que pasa
-  /// después. «Voy a leer» es una intención, y una intención se decide otra vez
-  /// todos los días hasta el día en que no; «voy a leer a las 22, en la cama»
-  /// está decidido, y lo único que queda es cumplirlo. El sitio no es un
-  /// adorno: es de donde el hábito nuevo saca el recordatorio, porque la cama
-  /// ya está ahí todas las noches sin que haya que acordarse de ella.
-  ///
-  /// La frase se ve escribiéndose debajo mientras se elige, y es lo único de
-  /// las seis pantallas que se enseña armado: lo que se está contestando no son
-  /// dos campos, es una frase, y verla entera es lo que hace que se lea como
-  /// una promesa en vez de como un formulario.
-  Widget _askPlan(UiTheme t) {
-    final frase = vowLine(_name.text, _vowHour, _place.text);
-    return _Step(
-      theme: t,
-      title: '¿Cuándo y dónde?',
-      lines: const [
-        'Una intención se vuelve a decidir todos los días. Un plan, no.',
-        'Elegí la hora y escribí el sitio.',
-      ],
-      next: 'Seguir',
-      skip: 'Ahora no',
-      onSkip: _skipPlan,
-      onNext: frase == null ? null : () => _go(3),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          HourReel(
-            hour: _vowHour,
-            onPick: (h) => setState(() => _vowHour = h),
-            ink: t.fg.withValues(alpha: 0.78),
-            accent: t.accent,
-            plate: t.panelStrong,
-            edge: t.fg.withValues(alpha: 0.18),
-            shadows: t.halo,
-          ),
-          const SizedBox(height: 18),
-          _Field(
-            theme: t,
-            controller: _place,
-            hint: 'en la cama',
-            max: 40,
-            // Sin teclado de entrada: lo primero que hay que hacer acá es
-            // tocar una hora, y un teclado abierto tapa medio reloj.
-            focus: false,
-            onChanged: () => setState(() {}),
-          ),
-          const SizedBox(height: 22),
-          // La promesa, armándose. En ámbar y no en la tinta del texto: es lo
-          // único de la pantalla que dijiste vos.
-          SizedBox(
-            height: 40,
-            child: frase == null
-                ? null
-                : Text(
-                    frase,
-                    textAlign: TextAlign.center,
-                    style: t.body.copyWith(
-                      fontSize: 15,
-                      height: 1.3,
-                      color: t.accent,
-                      shadows: t.halo,
-                    ),
-                  ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _askWhy(UiTheme t) => _Step(
     theme: t,
     title: '¿Para qué lo querés?',
@@ -320,8 +220,8 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
     ],
     next: 'Seguir',
     skip: 'Ahora no',
-    onSkip: () => _go(4),
-    onNext: _why.text.trim().isEmpty ? null : () => _go(4),
+    onSkip: () => _go(3),
+    onNext: _why.text.trim().isEmpty ? null : () => _go(3),
     child: _Field(
       theme: t,
       controller: _why,
@@ -352,10 +252,11 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
       'El pueblo lo va a decir así: «este pueblo es de alguien que lee todos '
           'los días».',
     ],
-    next: 'Seguir',
+    next:
+        'Fundar ${_name.text.trim().isEmpty ? 'el pueblo' : _name.text.trim()}',
     skip: 'Ahora no',
-    onSkip: () => _go(5),
-    onNext: _identity.text.trim().isEmpty ? null : () => _go(5),
+    onSkip: _found,
+    onNext: _identity.text.trim().isEmpty ? null : _found,
     child: _Field(
       theme: t,
       controller: _identity,
@@ -364,31 +265,9 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
       onChanged: () => setState(() {}),
     ),
   );
-
-  Widget _askFloor(UiTheme t) => _Step(
-    theme: t,
-    title: '¿Y qué es lo mínimo que cuenta?',
-    lines: const [
-      'Para el día en que no da para más.',
-      'Una pieza no tiene tamaño: cinco minutos ponen la misma piedra que una '
-          'hora.',
-    ],
-    next:
-        'Fundar ${_name.text.trim().isEmpty ? 'el pueblo' : _name.text.trim()}',
-    skip: 'Ahora no',
-    onSkip: _found,
-    onNext: _floor.text.trim().isEmpty ? null : _found,
-    child: _Field(
-      theme: t,
-      controller: _floor,
-      hint: 'una página',
-      max: 60,
-      onChanged: () => setState(() {}),
-    ),
-  );
 }
 
-/// El molde de las cuatro: mucho aire, un título, lo que haga falta decir, y
+/// El molde de cada pantalla: mucho aire, un título, lo que haga falta decir, y
 /// abajo la salida.
 class _Step extends StatelessWidget {
   const _Step({
@@ -536,7 +415,6 @@ class _Field extends StatelessWidget {
     required this.max,
     required this.onChanged,
     this.big = false,
-    this.focus = true,
   });
 
   final UiTheme theme;
@@ -546,10 +424,6 @@ class _Field extends StatelessWidget {
   final VoidCallback onChanged;
   final bool big;
 
-  /// Si el teclado se abre solo al llegar. En la pantalla del plan no: lo
-  /// primero de esa pantalla es tocar una hora, y el teclado tapa el reloj.
-  final bool focus;
-
   @override
   Widget build(BuildContext context) {
     final t = theme;
@@ -558,7 +432,7 @@ class _Field extends StatelessWidget {
         TextField(
           controller: controller,
           onChanged: (_) => onChanged(),
-          autofocus: focus,
+          autofocus: true,
           textAlign: TextAlign.center,
           textCapitalization: TextCapitalization.sentences,
           maxLength: max,

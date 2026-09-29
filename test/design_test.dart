@@ -365,12 +365,10 @@ void _pieles() {
       final store = Store();
       await store.load();
       store.renameHabit(store.active, name: _largo, symbol: store.habit.symbol);
-      // Con todo escrito y con un segundo pueblo en el valle, que es la hoja
-      // más alta que puede haber: sin el segundo no sale la fila de la regla
-      // —no hay detrás de qué ponerse— y el alto que se comprueba no es el
-      // peor. La hoja creció tres bloques de golpe al escribirse el plan, la
-      // identidad y la regla, y en un teléfono de 320 se salía por tres
-      // píxeles.
+      // Con todo escrito, que es la hoja más alta que puede haber: las líneas,
+      // la frecuencia dicha y el plan. La hoja creció varios bloques de golpe
+      // al escribirse el plan y la identidad, y en un teléfono de 320 se
+      // salía por tres píxeles.
       store.pledgeHabit(
         store.active,
         hour: 22,
@@ -382,9 +380,9 @@ void _pieles() {
         why: 'para tener más energía durante el día',
         floor: 'abrir el libro y leer una página',
       );
+      store.setCadence(store.habit, 3);
       store.addHabit('Correr', 'carrera');
       store.active = 0;
-      store.stackHabit(store.habits[0], store.habits[1]);
       for (final size in _pantallas) {
         tester.view.physicalSize = size;
         tester.view.devicePixelRatio = 1;
@@ -409,7 +407,7 @@ void _pieles() {
           expect(find.text(_largo), findsOneWidget);
           expect(find.text('Eliminar este hábito'), findsOneWidget);
           // Con todo escrito, en un teléfono de 320 la hoja ya no cabe entera:
-          // son seis renglones tuyos, el reloj del plan y la fila de la regla.
+          // son los renglones tuyos, la frecuencia y el reloj del plan.
           // Por eso rueda, y lo que hay que exigirle entonces no es que quepa
           // sino que se pueda llegar a todo — se arrastra hasta el final y la
           // última fila tiene que quedar dentro de la pantalla.

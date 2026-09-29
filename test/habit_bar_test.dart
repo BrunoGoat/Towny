@@ -46,7 +46,7 @@ void main() {
     // el segundo solar abierto.
     expect(store.habits.length, 1);
     expect(store.canAddHabit, isFalse);
-    expect(store.unlockProgress, 0);
+    expect(store.unlockGoal.have, 0);
 
     await tester.pumpWidget(await barOf(store));
     expect(

@@ -8,12 +8,14 @@ import '../fx/sensory.dart';
 import '../model/appearance.dart';
 import '../model/board.dart';
 import '../model/board_seen.dart';
+import '../model/cadence.dart';
 import '../model/habit.dart';
 import '../model/piece.dart';
 import '../model/store.dart';
 import '../model/works_log.dart';
 import 'adrift_sheet.dart';
 import 'board_glyph.dart';
+import 'cadence_sheet.dart';
 import 'choice_sheet.dart';
 import 'cloud_flight.dart';
 import 'habits_sheet.dart';
@@ -110,6 +112,7 @@ class _HomeScreenState extends State<HomeScreen>
       _greet();
       _lookForNews();
       _askIfAdrift();
+      _askCadence();
     });
   }
 
@@ -676,6 +679,42 @@ class _HomeScreenState extends State<HomeScreen>
           onShrink: _openHabits,
           onRest: () => _openRest(h),
           onDrop: _openHabits,
+        ),
+      ).whenComplete(() => _asking = false);
+    });
+  }
+
+  /// La pregunta de la primera semana: cada cuánto va este hábito.
+  ///
+  /// Una vez en la vida de cada hábito, y nunca el mismo día que la pregunta de
+  /// si seguimos: si las dos tocan a la vez, gana ésa, y ésta espera a la
+  /// próxima vez que se abra la app. Dos hojas seguidas al abrir son un
+  /// formulario.
+  void _askCadence() {
+    if (_asking) return;
+    final store = widget.store;
+    final h = store.habit;
+    if (!cadenceDue(h)) return;
+    _asking = true;
+    // Detrás del saludo, igual que la otra pregunta.
+    Future.delayed(const Duration(milliseconds: 3200), () {
+      if (!mounted || store.habit != h) {
+        _asking = false;
+        return;
+      }
+      store.cadenceAsked(h);
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        barrierColor: sheetScrim(_theme.dark),
+        builder: (_) => CadenceSheet(
+          habit: h,
+          theme: _theme,
+          onPick: (n) {
+            store.setCadence(h, n);
+            _showWhisper('Anotado: ${cadenceSaid(n)}.');
+          },
         ),
       ).whenComplete(() => _asking = false);
     });

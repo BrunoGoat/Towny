@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:la_muralla/data/character.dart';
 import 'package:la_muralla/data/landmarks.dart';
-import 'package:la_muralla/data/pacing.dart';
 import 'package:la_muralla/engine/town.dart';
 import 'package:la_muralla/model/habit.dart';
 import 'package:la_muralla/model/piece.dart';
@@ -619,7 +618,8 @@ void main() {
           ),
         );
       }
-      expect(s.unlockProgress, Pacing.unlockDays);
+      expect(s.unlockGoal.have, 10);
+      expect(s.unlockGoal.need, 10);
       s.placePiece();
       expect(s.unlocked, isTrue);
       expect(s.canAddHabit, isTrue);
@@ -644,7 +644,7 @@ void main() {
       s.pieces.add(
         Piece(index: 0, placedAt: today.subtract(const Duration(days: 40))),
       );
-      expect(s.unlockProgress, 0);
+      expect(s.unlockGoal.have, 0);
       expect(s.unlocked, isTrue);
       expect(s.canAddHabit, isTrue);
     });
