@@ -191,7 +191,7 @@ void main() {
     // La paleta guarda en `hour` la hora ya remapeada, así que se puede leer
     // desde fuera sin abrir nada privado.
     double cycle(double clock, Season s) =>
-        Palette.forMoment(clock, 1.0, season: s).hour;
+        Palette.forMoment(clock, season: s).hour;
 
     test('sin estación no se mueve nada', () {
       // Lo que protege todo lo que ya estaba: las capturas, los tests de cielo
@@ -244,13 +244,13 @@ void main() {
 
   group('y se ve en el prado', () {
     Color prado(Season s, [double h = 13]) =>
-        meadowTone(Palette.forMoment(h, 1.0, season: s));
+        meadowTone(Palette.forMoment(h, season: s));
 
     test('sin estación, ni un bit de diferencia', () {
       // El seguro de todo lo anterior a las estaciones: con el año apagado,
       // el prado tiene que salir exactamente el de siempre, a cualquier hora.
       for (var h = 0.0; h < 24.0; h += 0.5) {
-        final antes = meadowTone(Palette.forMoment(h, 1.0));
+        final antes = meadowTone(Palette.forMoment(h));
         final ahora = prado(Season.none, h);
         expect(ahora, antes, reason: 'a las $h');
       }

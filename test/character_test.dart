@@ -49,7 +49,7 @@ class Measured {
     }
 
     // The walls, worked out the way the renderer works them out.
-    final pal = Palette.forMoment(11, 1.0);
+    final pal = Palette.forMoment(11);
     var r = 0.0, g = 0.0, b = 0.0;
     for (var i = 0; i < 400; i++) {
       final h = hash32(i, 0x51ed, 3);

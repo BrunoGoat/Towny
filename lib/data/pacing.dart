@@ -1,28 +1,19 @@
-/// How fast the town falls quiet when nobody comes back.
+/// Los ritmos que la app decide por su cuenta.
 ///
-/// The only rhythm the app still owns outside the town's own plan. Everything
-/// else — what gets built, when, and how long it takes — lives in the plan in
-/// `engine/town.dart`, expressed purely in achievements.
+/// Queda uno solo: cuándo se abre el segundo solar del valle. Lo que se
+/// construye, cuándo y cuánto cuesta vive en el plan de cada pueblo
+/// (`engine/town.dart`), dicho sólo en piezas.
 ///
-/// The numbers here are chosen for real use, not for a demo:
-///
-///  * A day and a half of grace, because life happens and a habit that
-///    punishes a single missed evening is a habit nobody keeps.
-///  * A fortnight from full to nearly dark, so the slide is slow enough to
-///    notice and steep enough to mind.
-///  * It never reaches zero. What you built stays built; only the lights go
-///    out, and one piece turns them all back on.
+/// Acá vivía también lo rápido que se apagaba un pueblo sin piezas: día y
+/// medio de gracia y dos semanas hasta quedar casi a oscuras, iguales para
+/// todos. Se quitó. Un hábito de una vez por semana pasaba seis días de cada
+/// siete apagándose sin haber faltado a nada, y un pueblo apagado le decía a
+/// quien lo miraba que estaba fallando — que es justo lo que esta app no
+/// quiere que se sienta. Lo construido se queda como está, con las luces
+/// puestas; volver se sigue celebrando, pero medido contra tu ritmo (ver
+/// `Store.awayAfter`).
 class Pacing {
   const Pacing._();
-
-  /// Days off before anything at all begins to dim.
-  static const double decayGraceDays = 1.6;
-
-  /// Days from the end of that grace to as empty as it ever gets.
-  static const double decayFullDays = 14.0;
-
-  /// The floor. A town is never abandoned, only unlit.
-  static const double minIntegrity = 0.12;
 
   /// Cuántos días con pieza hacen falta para poder fundar el segundo pueblo, y
   /// en cuántos días se pueden juntar.
@@ -38,12 +29,4 @@ class Pacing {
   /// la que está hecho todo lo demás de acá.
   static const int unlockDays = 10;
   static const int unlockWindow = 14;
-
-  static double integrityFor(double daysIdle) {
-    if (daysIdle <= decayGraceDays) return 1.0;
-    final t = (daysIdle - decayGraceDays) / decayFullDays;
-    final v = 1.0 - t;
-    if (v < minIntegrity) return minIntegrity;
-    return v > 1 ? 1 : v;
-  }
 }

@@ -143,12 +143,7 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
       symbol: symbol,
     );
     store.describeHabit(0, why: why, floor: floor);
-    store.pledgeHabit(
-      0,
-      hour: vowHour,
-      place: vowPlace,
-      identity: identity,
-    );
+    store.pledgeHabit(0, hour: vowHour, place: vowPlace, identity: identity);
     store.justFounded = true;
     await Appearance.instance.setOnboarded();
     if (mounted) setState(() {});
@@ -337,7 +332,7 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
           ? const _Opening()
           : (_gallery >= 0
                 ? GalleryScreen(
-                    theme: UiTheme(Palette.forMoment(11, 1)),
+                    theme: UiTheme(Palette.forMoment(11)),
                     start: _gallery,
                   )
                 : (Appearance.instance.onboarded

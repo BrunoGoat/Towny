@@ -18,11 +18,7 @@ class UiTheme {
     // horizonte todavía es naranja claro mientras el techo ya es azul de
     // medianoche: la interfaz se pintaba en pardo de mediodía sobre un cielo
     // casi negro y desaparecía. Al amanecer, lo mismo al revés.
-    //
-    // Y el cielo **sin el abandono encima**: ver [Palette.skyClean]. La
-    // ceniza de un pueblo dejado aclara el cielo, y mirando el aclarado la
-    // interfaz creía que era de día a las diez de la noche.
-    final luz = _luz(palette.skyClean);
+    final luz = _luz(palette.skyTop);
 
     /// Cuánta noche hay ahí arriba, de cero a uno. Sólo para el matiz.
     night = clampD(1 - (luz - 0.16) / 0.40, 0, 1);

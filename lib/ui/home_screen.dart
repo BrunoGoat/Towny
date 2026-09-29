@@ -52,7 +52,6 @@ class _HomeScreenState extends State<HomeScreen>
   late UiTheme _theme = UiTheme(
     Palette.forMoment(
       Appearance.instance.hourNow,
-      1,
       season: Appearance.instance.season,
     ),
   );
@@ -153,8 +152,12 @@ class _HomeScreenState extends State<HomeScreen>
   /// Decía «17 días sin piezas. El pueblo se está quedando a oscuras.», que es
   /// recibir a alguien con la cuenta de su ausencia. El dato era cierto y no
   /// servía para nada: quien vuelve ya sabe que estuvo fuera. Lo único que
-  /// hacía falta decirle es que no tiene nada que justificar y que una sola
-  /// pieza lo arregla entero — que en esta app, además, es literalmente verdad.
+  /// hacía falta decirle es que no tiene nada que justificar, y que no perdió
+  /// nada — que en esta app, además, es literalmente verdad.
+  ///
+  /// Sale cuando el hueco pasó de lo tuyo ([Store.awayAfter]) y no a un número
+  /// de días fijo: a quien pone piezas los domingos no hay que darle la
+  /// bienvenida cada domingo.
   void _greet() {
     final s = widget.store;
     final h = s.habit;
@@ -172,14 +175,14 @@ class _HomeScreenState extends State<HomeScreen>
       );
       return;
     }
-    if (s.integrityAtLaunch >= 0.92) return;
+    if (!s.isAway) return;
     // Cuanto más tiempo estuvo fuera, más claro hay que decirle que no hay
     // nada que recuperar. El caso largo es el que se pierde si se calla.
     final largo = s.daysIdle >= 10;
     var vuelta = largo
-        ? 'El pueblo te estaba esperando. No perdiste nada: una pieza y '
-              'vuelven las luces.'
-        : 'Acá seguís. Una pieza y el pueblo vuelve a encenderse.';
+        ? 'El pueblo te estaba esperando. No perdiste nada: está todo donde '
+              'lo dejaste.'
+        : 'Acá seguís. El pueblo también.';
     // Y en el hueco largo, lo que vos mismo escribiste el día que fundaste
     // esto — el motivo primero, y si no hay, lo mínimo que cuenta. Éste es
     // justo el momento para el que se guardaron: no hacen falta cuando hay
@@ -315,7 +318,7 @@ class _HomeScreenState extends State<HomeScreen>
                 final next = UiTheme(p);
                 if (next.dark != _theme.dark ||
                     next.accent != _theme.accent ||
-                    next.palette.skyClean != _theme.palette.skyClean) {
+                    next.palette.skyTop != _theme.palette.skyTop) {
                   setState(() => _theme = next);
                 }
               },

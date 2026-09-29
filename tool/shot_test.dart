@@ -41,27 +41,19 @@ void main() {
 
     final pal = Palette.forMoment(
       hora,
-      1.0,
       season: Season.on(DateTime(2026, 5, 20), Hemisphere.north),
     );
     final scene = TownScene(
       placed: piezas,
       palette: pal,
       camera: cam,
-      integrity: 1,
       time: 7.3,
       hourOfDay: hora,
       effects: EffectSystem(),
       labelledBricks: const {},
       budget: 60000,
       towns: [
-        TownEntry(
-          layout: l,
-          name: 'Leer',
-          symbol: 'libro',
-          integrity: 1,
-          placed: piezas,
-        ),
+        TownEntry(layout: l, name: 'Leer', symbol: 'libro', placed: piezas),
       ],
       active: 0,
       labels: false,

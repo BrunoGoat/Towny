@@ -137,7 +137,7 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final pal = Palette.forMoment(_hour, 1.0);
+    final pal = Palette.forMoment(_hour);
     final t = UiTheme(pal);
     final bottom = MediaQuery.of(context).viewInsets.bottom;
 
@@ -691,7 +691,6 @@ class _EmptyValley extends CustomPainter {
       placed: 0,
       palette: palette,
       camera: cam,
-      integrity: 1,
       time: 0,
       hourOfDay: palette.hour,
       effects: EffectSystem(),
@@ -701,7 +700,6 @@ class _EmptyValley extends CustomPainter {
           layout: TownLayout(0, TownCharacter.all.first, seed: 1),
           name: '',
           symbol: habitSymbols.first,
-          integrity: 1,
           placed: 0,
           founded: false,
         ),

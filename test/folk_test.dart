@@ -621,7 +621,7 @@ void main() {
 
   group('el día y la noche', () {
     double luz(double hora, {Season season = Season.none}) =>
-        Palette.forMoment(hora, 1.0, season: season).daylight;
+        Palette.forMoment(hora, season: season).daylight;
 
     test('de día están fuera y de noche dentro', () {
       expect(folkHome(luz(13)), 0.0);
@@ -653,27 +653,6 @@ void main() {
         folkHome(luz(18, season: invierno)),
         greaterThan(folkHome(luz(18, season: verano))),
       );
-    });
-  });
-
-  group('un pueblo desatendido se queda vacío', () {
-    test('cuanto peor está, menos gente sale', () {
-      var antes = folkOut(1.0);
-      for (final i in [0.9, 0.7, 0.5, 0.3, 0.12]) {
-        final ahora = folkOut(i);
-        expect(ahora, lessThan(antes), reason: 'con integridad $i');
-        antes = ahora;
-      }
-    });
-
-    test('con el pueblo entero sale todo el mundo', () {
-      expect(folkOut(1.0), greaterThanOrEqualTo(1.0));
-    });
-
-    test('pero nunca se queda solo del todo', () {
-      // Igual que la integridad no llega a cero: el pueblo se apaga, no se
-      // muere. Siempre queda alguien.
-      expect(folkOut(0.0), greaterThan(0.15));
     });
   });
 

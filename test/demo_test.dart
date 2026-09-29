@@ -699,7 +699,7 @@ void main() {
           ..yaw = 0
           ..pitch = 0
           ..distance = plan.readDistance(const Size(400, 860)),
-        palette: Palette.forMoment(13, 1.0),
+        palette: Palette.forMoment(13),
         habit: entrenar,
         hourOfDay: 13,
         motion: motion,
@@ -752,7 +752,7 @@ void main() {
           ..yaw = 0
           ..pitch = 0
           ..distance = plan.readDistance(const Size(400, 860)),
-        palette: Palette.forMoment(13, 1.0),
+        palette: Palette.forMoment(13),
         habit: entrenar,
         hourOfDay: 13,
         motion: motion,
@@ -801,7 +801,7 @@ void main() {
               home: NoticeBoardScreen(
                 valley: valle,
                 habit: entrenar,
-                theme: UiTheme(Palette.forMoment(13, 1.0)),
+                theme: UiTheme(Palette.forMoment(13)),
               ),
             ),
           ),
@@ -1357,7 +1357,7 @@ void _sierras() {
       // y el suelo lejano son casi el color del cielo, así que una cordillera
       // hecha de esos dos colores desaparece dentro de él.
       for (final hora in [0.0, 2.0, 4.0, 21.0, 22.5, 23.0]) {
-        final pal = Palette.forMoment(hora, 1.0);
+        final pal = Palette.forMoment(hora);
         for (var li = 0; li < 3; li++) {
           final (body, _) = rangeTone(pal, li, 3);
           expect(

@@ -78,7 +78,6 @@ class HabitBar extends StatelessWidget {
           for (var i = 0; i < store.habits.length; i++)
             _Mark(
               habit: store.habits[i],
-              lit: Store.integrityOf(store.habits[i]),
               on: i == store.active,
               crowned: i == crown,
               theme: t,
@@ -107,7 +106,6 @@ class HabitBar extends StatelessWidget {
 class _Mark extends StatelessWidget {
   const _Mark({
     required this.habit,
-    required this.lit,
     required this.on,
     required this.crowned,
     required this.theme,
@@ -115,7 +113,6 @@ class _Mark extends StatelessWidget {
   });
 
   final Habit habit;
-  final double lit;
   final bool on;
 
   /// The most pieces in the valley. A whole competition in one small mark.
@@ -126,14 +123,10 @@ class _Mark extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = theme;
-    // Dimmed when the habit has been left: the row of symbols is itself a
-    // small readout of how every habit is going.
     // La tinta de abajo sale del prado y no del cielo: ver [UiTheme.grassInk].
     // Iba en `t.fg` —pardo oscuro mientras el cielo está claro— al treinta por
     // ciento sobre un verde de pradera, que es no ir.
-    final ink = (on ? t.accent : t.grassInk).withValues(
-      alpha: on ? 1.0 : 0.46 + 0.30 * lit,
-    );
+    final ink = (on ? t.accent : t.grassInk).withValues(alpha: on ? 1.0 : 0.76);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,

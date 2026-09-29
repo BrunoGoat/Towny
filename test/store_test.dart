@@ -96,30 +96,45 @@ void main() {
     });
   });
 
-  group('decay and repair', () {
-    test('a fresh wall is intact', () async {
+  group('volver', () {
+    test('la primera pieza no vuelve de ningún sitio', () async {
       final s = await freshStore();
-      s.placePiece();
-      expect(s.integrity, 1.0);
-      expect(s.isDecaying, isFalse);
+      expect(s.isAway, isFalse);
+      final r = s.placePiece();
+      expect(r.returned, isFalse);
+      expect(s.isAway, isFalse);
     });
 
-    test('time away wears the wall down, one brick brings it back', () async {
+    test('nueve días fuera de un hábito diario es una vuelta', () async {
       final s = await freshStore();
       s.debugFill(20, endedDaysAgo: 9);
-      expect(s.integrity, lessThan(0.6));
-      expect(s.isDecaying, isTrue);
+      expect(s.isAway, isTrue);
 
       final r = s.placePiece();
-      expect(r.relit, isTrue);
-      expect(r.relitFrom, lessThan(0.6));
-      expect(s.integrity, 1.0);
+      expect(r.returned, isTrue);
+      expect(r.awayDays, greaterThan(8));
+      expect(s.isAway, isFalse);
     });
 
-    test('an empty wall cannot decay', () async {
-      final s = await freshStore();
-      expect(s.integrity, 1.0);
-    });
+    test(
+      'a quien viene los domingos no se le da la bienvenida cada domingo',
+      () async {
+        final s = await freshStore();
+        final hoy = DateTime.now();
+        for (var w = 6; w >= 1; w--) {
+          s.pieces.add(
+            Piece(
+              index: s.pieces.length,
+              placedAt: hoy.subtract(Duration(days: w * 7)),
+            ),
+          );
+        }
+        // Una semana justa desde la última: es su ritmo, no un hueco.
+        expect(Store.awayAfter(s.habit), 14);
+        expect(s.isAway, isFalse);
+        expect(s.placePiece().returned, isFalse);
+      },
+    );
   });
 
   group('what kind of place a habit builds', () {
@@ -554,13 +569,13 @@ void main() {
           placedAt: DateTime.now().subtract(const Duration(days: 20)),
         ),
       );
-      // Veinte días abandonado: está en el suelo.
-      expect(Store.integrityOf(s.habit), Pacing.minIntegrity);
+      // Veinte días sin venir: eso es estar fuera.
+      expect(s.isAway, isTrue);
 
       s.rest(s.habit, DateTime.now().add(const Duration(days: 7)));
       expect(s.habit.resting, isTrue);
       expect(Store.daysIdleOf(s.habit), 0);
-      expect(Store.integrityOf(s.habit), 1.0);
+      expect(s.isAway, isFalse);
     });
 
     test('poner una pieza despierta el pueblo', () async {

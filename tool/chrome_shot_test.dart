@@ -41,9 +41,8 @@ void main() {
     addTearDown(tester.view.reset);
 
     // La hora, y cuántos días lleva el pueblo sin que nadie ponga una pieza.
-    // Lo segundo es lo que apaga el valle, y con el valle apagado el cielo se
-    // aclara de ceniza: es el caso en el que la interfaz volvía al pardo de
-    // mediodía a las diez de la noche.
+    // Lo segundo ya no cambia cómo se ve el valle —no se apaga—, pero sí lo
+    // que dice la cabecera al volver.
     const casos = [
       (11.0, 0),
       (17.2, 0),
@@ -103,7 +102,7 @@ void main() {
     final key = GlobalKey();
 
     for (final hora in [11.0, 21.0]) {
-      final t = UiTheme(Palette.forMoment(hora, 1.0));
+      final t = UiTheme(Palette.forMoment(hora));
       await tester.pumpWidget(
         RepaintBoundary(
           key: key,

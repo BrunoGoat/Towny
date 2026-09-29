@@ -74,20 +74,15 @@ decidido no se vuelve a sortear.
 Las cifras están elegidas para el uso real, no para una demo con miles de
 piezas. Un mes corriente son unas 30–60 piezas; un año, entre 350 y 1100.
 
-Y el deterioro tiene su propio ritmo, que es el único que la app se reserva
-fuera del plan del pueblo:
-
-| | |
-|---|---|
-| Días de gracia antes de que algo se note | **1,6** |
-| De ahí a lo más apagado que llega | **14 días** |
-| Suelo | **12 %** — nunca llega a cero |
-
-Un día y medio de gracia porque la vida pasa, y un hábito que castiga una sola
-noche perdida es un hábito que nadie sostiene. Quince días de bajada porque tiene
-que ser lo bastante lenta como para notarla y lo bastante marcada como para que
-importe. Y no se pierde nunca nada de lo construido: sólo se apagan las luces,
-se apaga el color y se enturbia el cielo. **Una sola pieza lo repara entero.**
+**El pueblo no se apaga.** Se apagaba: al día y medio sin piezas empezaba a
+perder las luces, el color y la gente, y a las dos semanas estaba casi a
+oscuras. Se quitó por dos motivos. El primero, que el ritmo era el mismo para
+todos, y un hábito de una vez por semana pasaba seis días de cada siete
+apagándose sin haber faltado a nada. El segundo pesa más: un pueblo apagado le
+dice a quien lo mira que está fallando, y lo bueno de esta app es que es
+difícil saber si estás fallando — así que no se siente como un fallo; cuando
+cumplís, venís. Lo construido se queda como está, con las luces puestas, el
+tiempo que haga falta.
 
 ## Diseñado para el día malo
 
@@ -118,13 +113,15 @@ lo dice con esas palabras — *cada vez tardás menos en volver*.
 que ya viene con entusiasmo gratis. Quien abre esto después de tres semanas está
 en una bifurcación: «volví pero perdí todo» o «volví, sigamos». Así que al
 volver no se cuentan los días que faltaste — eso ya lo sabe quien vuelve — y la
-celebración crece con lo apagado que estaba el pueblo: desde el suelo, volver
-suena, se ve y mueve la cámara igual que rematar un hito.
+celebración crece con lo largo que fue el hueco: después de semanas fuera,
+volver suena, se ve y mueve la cámara igual que rematar un hito. Y el hueco se
+mide contra tu ritmo, no contra un número fijo: quien viene a diario vuelve de
+algún sitio al tercer día; quien viene los domingos, a las dos semanas.
 
 **Se puede pausar.** Un hábito que iba perfecto en enero puede no tener ningún
 sentido durante un viaje o una mudanza, y una app cuyas dos únicas opciones son
-seguir o fallar convierte eso en un fracaso. Mientras duerme, el pueblo no se
-apaga, no cuenta ningún día en contra y **sale de todos los denominadores del
+seguir o fallar convierte eso en un fracaso. Mientras duerme, el pueblo no
+cuenta ningún día en contra y **sale de todos los denominadores del
 tablón** — sin eso, tres semanas de pausa se leen como veintiún fallos y el
 pueblo acaba anunciando muy serio que los martes son tu día flojo porque
 pausaste tres martes. Siempre con fecha de vuelta: una pausa sin final es
@@ -540,10 +537,7 @@ alguien mira la app al salir del trabajo. El salto ocurre en el único punto en
 el que las dos tintas se leen igual de bien (3,47 a 1 las dos), dura un
 fotograma, y pasa una vez al atardecer y otra al amanecer.
 
-La segunda: **es de la hora, no del estado del pueblo.** Un pueblo dejado se
-apaga y el cielo se le llena de ceniza, que es gris claro; la interfaz leía esa
-ceniza como luz de día y escribía en pardo de mediodía a las diez de la noche.
-El descuido apaga el valle. No tiene por qué apagar también las letras.
+La segunda: **es de la hora y de nada más.**
 
 Y lo de abajo —el botón de poner, la fila de hábitos— no tiene cielo detrás
 sino prado, que es verde medio a cualquier hora, así que ahí no hay dos casos:

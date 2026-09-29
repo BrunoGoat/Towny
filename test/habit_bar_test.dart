@@ -27,7 +27,7 @@ void main() {
     home: Scaffold(
       body: HabitBar(
         store: store,
-        theme: UiTheme(Palette.forMoment(13, 1.0)),
+        theme: UiTheme(Palette.forMoment(13)),
         onSelect: (_) {},
         onManage: () {},
         onAdd: () {},
@@ -83,7 +83,7 @@ void main() {
         home: Scaffold(
           body: HabitBar(
             store: store,
-            theme: UiTheme(Palette.forMoment(13, 1.0)),
+            theme: UiTheme(Palette.forMoment(13)),
             onSelect: (_) {},
             onManage: () {},
             onAdd: () => tocado++,

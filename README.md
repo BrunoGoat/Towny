@@ -5,8 +5,8 @@
 Towny es una app de hábitos donde cada vez que cumplís ponés **una pieza**, y las
 piezas van levantando un pueblo. No hay un número que sube ni una barra que se
 llena: hay un sitio, en tres dimensiones, que crece con vos y que podés mirar
-desde donde quieras. Si dejás de venir no se pierde nada de lo construido — sólo
-se le van apagando las luces, y una sola pieza las vuelve a encender todas.
+desde donde quieras. Si dejás de venir no se pierde nada: el pueblo se queda
+como lo dejaste, esperándote, y volver se celebra.
 
 No está hecha para que seas perfecto, sino para que **abandonar del todo sea cada
 vez más difícil**, que es una cosa distinta y bastante más alcanzable. Por eso no

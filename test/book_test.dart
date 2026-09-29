@@ -70,7 +70,7 @@ Habit _pueblo(int n) {
 Future<void> _open(WidgetTester tester, Habit h) async {
   await tester.pumpWidget(
     MaterialApp(
-      home: LegendsBook(habit: h, theme: UiTheme(Palette.forMoment(13, 1.0))),
+      home: LegendsBook(habit: h, theme: UiTheme(Palette.forMoment(13))),
     ),
   );
   await tester.pumpAndSettle();

@@ -139,7 +139,7 @@ class _FolkGalleryScreenState extends State<FolkGalleryScreen>
   Widget build(BuildContext context) {
     final t = widget.theme;
     final media = MediaQuery.of(context);
-    final palette = Palette.forMoment(_hour, 1.0);
+    final palette = Palette.forMoment(_hour);
     _rebuild();
     final place = TownCharacter.all[_character];
 
@@ -147,7 +147,6 @@ class _FolkGalleryScreenState extends State<FolkGalleryScreen>
       placed: 0,
       palette: palette,
       camera: _cam,
-      integrity: 1,
       time: _time,
       hourOfDay: _hour,
       effects: _fx,
@@ -158,7 +157,6 @@ class _FolkGalleryScreenState extends State<FolkGalleryScreen>
           layout: TownLayout.showcase(place, placed: 0),
           name: _it.name,
           symbol: place.symbol,
-          integrity: 1,
           placed: 0,
         ),
       ],

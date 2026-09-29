@@ -138,8 +138,8 @@ class AdriftSheet extends StatelessWidget {
               icon: Icons.bedtime_outlined,
               said: 'Pausarlo',
               why:
-                  'El pueblo duerme con las luces encendidas y no cuenta '
-                  'ningún día en contra. Elegís hasta cuándo.',
+                  'El pueblo duerme y no cuenta ningún día en contra. '
+                  'Elegís hasta cuándo.',
               onTap: () {
                 Navigator.of(context).pop();
                 onRest();

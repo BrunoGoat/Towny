@@ -36,9 +36,8 @@ Future<ui.Image> _frame(double giro) async {
   TownPainter(
     TownScene(
       placed: l.cost,
-      palette: Palette.forMoment(11, 1.0),
+      palette: Palette.forMoment(11),
       camera: cam,
-      integrity: 1,
       time: 2.0,
       hourOfDay: 11,
       effects: EffectSystem(),
@@ -49,7 +48,6 @@ Future<ui.Image> _frame(double giro) async {
           layout: layout,
           name: 'Molino',
           symbol: 'torre',
-          integrity: 1,
           placed: l.cost,
         ),
       ],

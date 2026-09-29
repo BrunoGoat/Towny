@@ -20,8 +20,7 @@ import 'rhythm.dart';
 class PlaceResult {
   PlaceResult({
     required this.piece,
-    required this.relit,
-    required this.relitFrom,
+    this.awayDays = 0,
     this.startedNewDay = false,
     this.woke = false,
     this.unlocked = false,
@@ -29,9 +28,14 @@ class PlaceResult {
 
   final Piece piece;
 
-  /// True when this piece brought a town's lights back on.
-  final bool relit;
-  final double relitFrom;
+  /// Si esta pieza es una vuelta, cuántos días llevaba el pueblo sin verte.
+  ///
+  /// Cero casi siempre: sólo se apunta cuando el hueco pasó de lo tuyo (ver
+  /// [Store.awayAfter]). Una pieza el martes después de la del lunes no es
+  /// volver de ningún sitio.
+  final double awayDays;
+
+  bool get returned => awayDays > 0;
 
   final bool startedNewDay;
 
@@ -74,10 +78,6 @@ class Store extends ChangeNotifier {
   /// se cierra a mitad de la animación, al volver la plaza ya está puesta — que
   /// es lo que pasó de verdad.
   bool justFounded = false;
-
-  /// Set at launch so the first piece back can play the relighting against the
-  /// state the person actually walked in on.
-  double integrityAtLaunch = 1.0;
 
   Habit get habit => habits[active.clamp(0, habits.length - 1)];
 
@@ -395,7 +395,6 @@ class Store extends ChangeNotifier {
     // Dormir dos veces es dormir una vez más largo, no dos tramos solapados.
     wake(h, silent: true);
     h.rests.add(Rest(now, until).encode());
-    integrityAtLaunch = integrityOf(habit);
     _save();
     notifyListeners();
   }
@@ -422,7 +421,6 @@ class Store extends ChangeNotifier {
       moved = true;
     }
     if (!moved || silent) return;
-    integrityAtLaunch = integrityOf(habit);
     _save();
     notifyListeners();
   }
@@ -564,7 +562,6 @@ class Store extends ChangeNotifier {
     habits.removeAt(index);
     if (habits.isEmpty) habits.add(_blankHabit());
     if (active >= habits.length) active = habits.length - 1;
-    integrityAtLaunch = integrity;
     _save();
     notifyListeners();
   }
@@ -592,7 +589,6 @@ class Store extends ChangeNotifier {
   Piece? removeLastPiece() {
     if (habit.pieces.isEmpty) return null;
     final gone = habit.pieces.removeLast();
-    integrityAtLaunch = integrity;
     preview = null;
     _save();
     notifyListeners();
@@ -603,7 +599,6 @@ class Store extends ChangeNotifier {
     if (index < 0 || index >= habits.length || index == active) return;
     active = index;
     preview = null;
-    integrityAtLaunch = integrity;
     _save();
     notifyListeners();
   }
@@ -661,7 +656,6 @@ class Store extends ChangeNotifier {
     var moved = _checkUnlock();
     if (_writeUpWorks(habit) || _writeUpAll()) moved = true;
     if (moved) _save();
-    integrityAtLaunch = integrity;
     loaded = true;
     notifyListeners();
   }
@@ -791,7 +785,6 @@ class Store extends ChangeNotifier {
     _checkUnlock();
     preview = null;
     _writeUpAll();
-    integrityAtLaunch = integrity;
     _save();
     notifyListeners();
     return null;
@@ -829,7 +822,8 @@ class Store extends ChangeNotifier {
   /// se tocó anoche en el widget llega cuando alguien abre la app, con la hora
   /// a la que se tocó.
   PlaceResult lay(Habit h, DateTime when) {
-    final before = integrity;
+    final idle = daysIdleOf(h);
+    final away = h.pieces.isNotEmpty && idle >= awayAfter(h) ? idle : 0.0;
     final hadToday = _countOnFor(h, when) > 0;
     // Poner una pieza durante una pausa es volver, y volver antes de tiempo es
     // volver. Nadie tiene que despertar el pueblo a mano para poder usarlo.
@@ -866,8 +860,7 @@ class Store extends ChangeNotifier {
 
     return PlaceResult(
       piece: piece,
-      relit: before < 0.999,
-      relitFrom: before,
+      awayDays: away,
       startedNewDay: !hadToday,
       woke: wasResting,
       unlocked: abrio,
@@ -969,7 +962,7 @@ class Store extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ------------------------------------------------------------------- decay
+  // ------------------------------------------------------------------ huecos
 
   static double daysIdleOf(Habit h) {
     final last = h.lastPlacedAt;
@@ -977,21 +970,41 @@ class Store extends ChangeNotifier {
     // Dormido no es abandonado: mientras dura la pausa no corre el reloj.
     if (h.resting) return 0;
     // Y al despertar se cuenta desde que despertó, no desde la última pieza.
-    // Es la mitad de para lo que existe una pausa: se vuelve sin deuda, con el
-    // día y medio de gracia entero, y no arrastrando las tres semanas que el
-    // pueblo estuvo durmiendo con las luces encendidas.
+    // Es la mitad de para lo que existe una pausa: se vuelve sin deuda, y no
+    // arrastrando las tres semanas que el pueblo estuvo durmiendo.
     final woke = h.wokeAt;
     final since = woke != null && woke.isAfter(last) ? woke : last;
     final d = DateTime.now().difference(since).inMinutes / 1440.0;
     return d < 0 ? 0 : d;
   }
 
-  static double integrityOf(Habit h) =>
-      h.pieces.isEmpty ? 1.0 : Pacing.integrityFor(daysIdleOf(h));
-
   double get daysIdle => daysIdleOf(habit);
-  double get integrity => integrityOf(habit);
-  bool get isDecaying => integrity < 0.995;
+
+  /// A partir de cuántos días sin piezas la siguiente ya es una vuelta.
+  ///
+  /// Contra tu propio ritmo, como [adriftAfter] y por lo mismo: quien pone
+  /// piezas a diario vuelve de algún sitio al tercer día, y quien las pone los
+  /// domingos no vuelve de ninguno el domingo siguiente. Es la mitad de largo
+  /// que el umbral del desenganche, porque esto no pregunta nada: sólo
+  /// celebra, y celebrar de más cuesta mucho menos que preguntar de más.
+  ///
+  /// Antes esto lo decía la luz del pueblo, que se apagaba al día y medio
+  /// igual para todos. Un hábito de los domingos pasaba la semana entera a
+  /// oscuras sin haber faltado a nada.
+  ///
+  /// [typicalReturn] cuenta los días en blanco entre dos piezas —seis, de
+  /// domingo a domingo— y esto cuenta días desde la última, así que se le
+  /// suma uno: el domingo siguiente son siete. El doble de eso, con tres de
+  /// suelo para que a quien va a diario no se le dé la bienvenida por un solo
+  /// día en blanco, y dos semanas de techo.
+  static int awayAfter(Habit h) {
+    final mid = typicalReturn(h) ?? 0;
+    return ((mid + 1) * 2).clamp(3, 14);
+  }
+
+  /// Si el pueblo de delante lleva más de lo suyo sin piezas.
+  bool get isAway =>
+      habit.pieces.isNotEmpty && !habit.resting && daysIdle >= awayAfter(habit);
 
   // ------------------------------------------------------------ consistencia
 
@@ -1071,7 +1084,6 @@ class Store extends ChangeNotifier {
     // cerrada, igual que en un teléfono que nunca abrió la app.
     _unlocked = false;
     await _prefs?.remove(_key);
-    integrityAtLaunch = 1.0;
     notifyListeners();
   }
 
@@ -1138,7 +1150,6 @@ class Store extends ChangeNotifier {
       );
     }
     _writeUpWorks(h);
-    integrityAtLaunch = integrity;
     notifyListeners();
   }
 }

@@ -177,7 +177,7 @@ class Sensory {
 
   /// La mezcla de este instante. `hour` es la misma hora con la que se pinta
   /// el cielo, así que la música y la luz cambian juntas.
-  Future<void> music(double hour, double dt, double integrity) async {
+  Future<void> music(double hour, double dt) async {
     _lastHour = hour;
     if (!_musReady) return;
     if (_asleep || !_wants.hearsMusic) return;
@@ -187,10 +187,7 @@ class Sensory {
     if (_reelOn) return;
     _musIn = (_musIn + dt / 6.0).clamp(0.0, 1.0);
     final day = dayMix(_tune, hour);
-    // Un pueblo dejado pierde parte de su música, pero no toda: el silencio
-    // absoluto se lee como una app rota, no como un pueblo abandonado.
-    final level =
-        _musLevel * _musIn * (0.72 + 0.28 * integrity.clamp(0.0, 1.0));
+    final level = _musLevel * _musIn;
     final want = [for (var i = 0; i < 3; i++) day[i] * level];
     for (var i = 0; i < _mus.length && i < 3; i++) {
       // El estado se mueve siempre, con o sin llamada.

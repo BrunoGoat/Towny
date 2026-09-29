@@ -98,9 +98,8 @@ void _retrato(Canvas canvas, Doing d, double t, double giro, Size size) {
   TownPainter(
     TownScene(
       placed: 0,
-      palette: Palette.forMoment(11, 1.0),
+      palette: Palette.forMoment(11),
       camera: cam,
-      integrity: 1,
       time: t,
       hourOfDay: 11,
       effects: EffectSystem(),
@@ -111,7 +110,6 @@ void _retrato(Canvas canvas, Doing d, double t, double giro, Size size) {
           layout: TownLayout.showcase(TownCharacter.all.first, placed: 0),
           name: d.name,
           symbol: 'torre',
-          integrity: 1,
           placed: 0,
         ),
       ],

@@ -154,9 +154,8 @@ void _retrato(Canvas canvas, Landmark l) {
   TownPainter(
     TownScene(
       placed: m.count,
-      palette: Palette.forMoment(11, 1.0),
+      palette: Palette.forMoment(11),
       camera: cam,
-      integrity: 1,
       time: 3.0,
       hourOfDay: 11,
       effects: EffectSystem(),
@@ -167,7 +166,6 @@ void _retrato(Canvas canvas, Landmark l) {
           layout: layout,
           name: l.name,
           symbol: 'torre',
-          integrity: 1,
           placed: m.count,
         ),
       ],

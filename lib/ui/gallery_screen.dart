@@ -210,14 +210,13 @@ class _GalleryScreenState extends State<GalleryScreen>
   Widget build(BuildContext context) {
     final t = widget.theme;
     final media = MediaQuery.of(context);
-    final palette = Palette.forMoment(11, 1.0);
+    final palette = Palette.forMoment(11);
     _rebuild();
 
     final scene = TownScene(
       placed: _shown,
       palette: palette,
       camera: _cam,
-      integrity: 1,
       time: _time,
       hourOfDay: 11,
       effects: _fx,
@@ -229,7 +228,6 @@ class _GalleryScreenState extends State<GalleryScreen>
           layout: _layout,
           name: _it.title,
           symbol: 'torre',
-          integrity: 1,
           placed: _shown,
         ),
       ],

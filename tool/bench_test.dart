@@ -41,21 +41,14 @@ TownScene _escena(
     final ch = TownCharacter.all[k % TownCharacter.all.length];
     final l = TownLayout(piezas, ch, cx: k * 124.0, cz: 0, seed: 7 + k);
     towns.add(
-      TownEntry(
-        layout: l,
-        name: 'Pueblo $k',
-        symbol: 'libro',
-        integrity: 1,
-        placed: piezas,
-      ),
+      TownEntry(layout: l, name: 'Pueblo $k', symbol: 'libro', placed: piezas),
     );
   }
   cam.wallLength = towns.first.layout.radius * 2;
   return TownScene(
     placed: piezas,
-    palette: Palette.forMoment(14, 1.0),
+    palette: Palette.forMoment(14),
     camera: cam,
-    integrity: 1,
     time: 3.0,
     hourOfDay: 14,
     effects: EffectSystem(),

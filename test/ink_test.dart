@@ -25,7 +25,7 @@ void main() {
       // por muestra se admiten cuatro en todo el día: dos por crepúsculo.
       final justas = <double>[];
       for (var h = 0.0; h < 24; h += 0.05) {
-        final t = UiTheme(Palette.forMoment(h, 1.0));
+        final t = UiTheme(Palette.forMoment(h));
         if ((_luz(t.fg) - _luz(t.palette.skyTop)).abs() < 0.25) justas.add(h);
       }
       // ignore: avoid_print
@@ -44,7 +44,7 @@ void main() {
       // según entra la noche.
       final tintas = <Color>{};
       for (var h = 0.0; h < 24; h += 0.25) {
-        tintas.add(UiTheme(Palette.forMoment(h, 1.0)).fg);
+        tintas.add(UiTheme(Palette.forMoment(h)).fg);
       }
       expect(
         tintas.length,
@@ -53,12 +53,12 @@ void main() {
       );
       // Y las dos puntas de cada lado son distintas de verdad.
       expect(
-        UiTheme(Palette.forMoment(13, 1.0)).fg,
-        isNot(UiTheme(Palette.forMoment(18, 1.0)).fg),
+        UiTheme(Palette.forMoment(13)).fg,
+        isNot(UiTheme(Palette.forMoment(18)).fg),
       );
       expect(
-        UiTheme(Palette.forMoment(19, 1.0)).fg,
-        isNot(UiTheme(Palette.forMoment(3, 1.0)).fg),
+        UiTheme(Palette.forMoment(19)).fg,
+        isNot(UiTheme(Palette.forMoment(3)).fg),
       );
     });
 
@@ -69,7 +69,7 @@ void main() {
       // justo lo que se quería arreglar.
       var enMedio = 0;
       for (var h = 0.0; h < 24; h += 0.05) {
-        final fg = UiTheme(Palette.forMoment(h, 1.0)).fg;
+        final fg = UiTheme(Palette.forMoment(h)).fg;
         final l = _luz(fg);
         if (l > 0.25 && l < 0.55) enMedio++;
       }
@@ -84,7 +84,7 @@ void main() {
       // peor instante del cruce tiene que ser un pardo sobre un panel ya
       // oscuro, que se lee, y no un pardo sobre crema, que no.
       for (var h = 0.0; h < 24; h += 0.05) {
-        final t = UiTheme(Palette.forMoment(h, 1.0));
+        final t = UiTheme(Palette.forMoment(h));
         final l = _luz(t.fg);
         // Tinta a medio camino y panel todavía claro es la combinación que no
         // puede darse.
@@ -99,16 +99,16 @@ void main() {
     test('y a mediodía y de madrugada sigue siendo lo de siempre', () {
       // Las dos puntas no se mueven: pardo hondo al mediodía —o a un paso de
       // él, que el matiz también corre— y el crema de siempre de madrugada.
-      final medio = UiTheme(Palette.forMoment(13, 1.0));
+      final medio = UiTheme(Palette.forMoment(13));
       expect(medio.dark, isFalse);
       expect(_luz(medio.fg), lessThan(0.20));
-      final madrugada = UiTheme(Palette.forMoment(3, 1.0));
+      final madrugada = UiTheme(Palette.forMoment(3));
       expect(madrugada.dark, isTrue);
       expect(madrugada.fg, const Color(0xFFF3EEE3));
       // Y las siete y media de la tarde, que es lo que se reportó, ya es noche
       // para la interfaz aunque el horizonte siga naranja.
-      expect(UiTheme(Palette.forMoment(19.4, 1.0)).dark, isTrue);
-      expect(_luz(UiTheme(Palette.forMoment(19.4, 1.0)).fg), greaterThan(0.80));
+      expect(UiTheme(Palette.forMoment(19.4)).dark, isTrue);
+      expect(_luz(UiTheme(Palette.forMoment(19.4)).fg), greaterThan(0.80));
     });
   });
 }

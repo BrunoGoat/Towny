@@ -31,9 +31,8 @@ Future<ByteData> frame({
     ..distanceTarget = distance;
   final scene = TownScene(
     placed: 0,
-    palette: Palette.forMoment(hour, 1.0),
+    palette: Palette.forMoment(hour),
     camera: cam,
-    integrity: 1,
     time: 0,
     hourOfDay: 12,
     effects: EffectSystem(),
@@ -49,7 +48,6 @@ Future<ByteData> frame({
         layout: TownLayout(0, TownCharacter.all.first, cx: 600, cz: 600),
         name: 'Prueba',
         symbol: 'torre',
-        integrity: 1,
         placed: 0,
       ),
     ],
@@ -167,9 +165,9 @@ void main() {
     test('sigue cambiando con la hora, que es lo que no había que tocar', () {
       // Lo único que se pidió conservar: que el prado sea de otro color a otra
       // hora.
-      final noche = meadowTone(Palette.forMoment(1, 1.0));
-      final medio = meadowTone(Palette.forMoment(13, 1.0));
-      final tarde = meadowTone(Palette.forMoment(19, 1.0));
+      final noche = meadowTone(Palette.forMoment(1));
+      final medio = meadowTone(Palette.forMoment(13));
+      final tarde = meadowTone(Palette.forMoment(19));
       expect(
         noche.computeLuminance(),
         lessThan(medio.computeLuminance() * 0.4),

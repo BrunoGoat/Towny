@@ -34,7 +34,6 @@ TownScene _valle(
   double dist = 30,
   double hora = 14,
   int pueblos = 1,
-  double integrity = 1,
 }) {
   final cam = OrbitCamera()
     ..yaw = yaw
@@ -46,21 +45,14 @@ TownScene _valle(
     final ch = TownCharacter.all[k % TownCharacter.all.length];
     final l = TownLayout(piezas, ch, cx: k * 124.0, cz: 0, seed: 7 + k);
     towns.add(
-      TownEntry(
-        layout: l,
-        name: 'Pueblo $k',
-        symbol: 'libro',
-        integrity: integrity,
-        placed: piezas,
-      ),
+      TownEntry(layout: l, name: 'Pueblo $k', symbol: 'libro', placed: piezas),
     );
   }
   cam.wallLength = towns.first.layout.radius * 2;
   return TownScene(
     placed: piezas,
-    palette: Palette.forMoment(hora, integrity),
+    palette: Palette.forMoment(hora),
     camera: cam,
-    integrity: integrity,
     time: 3.0,
     hourOfDay: hora,
     effects: EffectSystem(),
@@ -82,9 +74,8 @@ TownScene _obra(Landmark mark, {double yaw = 0.7, double dist = 14}) {
   cam.wallLength = layout.radius * 2;
   return TownScene(
     placed: mark.cost,
-    palette: Palette.forMoment(11, 1),
+    palette: Palette.forMoment(11),
     camera: cam,
-    integrity: 1,
     time: 2.0,
     hourOfDay: 11,
     effects: EffectSystem(),
@@ -94,7 +85,6 @@ TownScene _obra(Landmark mark, {double yaw = 0.7, double dist = 14}) {
         layout: layout,
         name: mark.name,
         symbol: 'libro',
-        integrity: 1,
         placed: mark.cost,
       ),
     ],
@@ -133,9 +123,8 @@ TownScene _cayendo(Landmark mark, double t) {
   final fx = PlacementFx(mark.cost - 1)..t = t;
   return TownScene(
     placed: mark.cost,
-    palette: Palette.forMoment(11, 1),
+    palette: Palette.forMoment(11),
     camera: cam,
-    integrity: 1,
     time: 2.0,
     hourOfDay: 11,
     effects: EffectSystem(),
@@ -145,7 +134,6 @@ TownScene _cayendo(Landmark mark, double t) {
         layout: layout,
         name: mark.name,
         symbol: 'libro',
-        integrity: 1,
         placed: mark.cost,
       ),
     ],
@@ -272,11 +260,7 @@ void main() {
         () => _valle(200, hora: 22.5, dist: 16),
         margen: 0.02,
       );
-      await igual(
-        tester,
-        'deriva',
-        () => _valle(200, dist: 20, hora: 19.5, integrity: 0.2),
-      );
+      await igual(tester, 'tarde', () => _valle(200, dist: 20, hora: 19.5));
     });
 
     testWidgets('a ras del suelo, que es donde se vería un culo que falta', (
@@ -382,7 +366,6 @@ void main() {
             placed: n,
             palette: s.palette,
             camera: s.camera,
-            integrity: 1,
             time: s.time,
             hourOfDay: 14,
             effects: EffectSystem(),
@@ -411,7 +394,6 @@ void main() {
         placed: 260,
         palette: s.palette,
         camera: s.camera,
-        integrity: 1,
         time: s.time,
         hourOfDay: 14,
         effects: EffectSystem(),
@@ -505,16 +487,6 @@ void main() {
 
     testWidgets('en un valle de seis pueblos', (tester) async {
       await igual(tester, 'valle', _valle(300, pueblos: 6, dist: 90));
-    });
-
-    testWidgets('en un pueblo a la deriva, con el deterioro puesto', (
-      tester,
-    ) async {
-      await igual(
-        tester,
-        'deriva',
-        _valle(200, dist: 22, hora: 19.5, integrity: 0.25),
-      );
     });
 
     testWidgets('y obra por obra, de cerca, que es donde se vería el agujero', (
