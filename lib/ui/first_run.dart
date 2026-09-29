@@ -104,10 +104,16 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
   /// Ya se contestó todo y la cámara está bajando al pueblo.
   bool _leaving = false;
 
-  late final AnimationController _leave = AnimationController(
-    vsync: this,
-    duration: FirstRun.leaving,
-  );
+  /// Se crea al empezar y no la primera vez que se usa. Perezoso, una pantalla
+  /// que se cerraba sin llegar a fundar lo creaba por primera vez dentro de su
+  /// propio `dispose`, que es justo cuando ya no puede pedir su reloj.
+  late final AnimationController _leave;
+
+  @override
+  void initState() {
+    super.initState();
+    _leave = AnimationController(vsync: this, duration: FirstRun.leaving);
+  }
 
   @override
   void dispose() {
