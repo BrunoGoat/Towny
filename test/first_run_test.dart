@@ -21,6 +21,14 @@ Future<void> _asentar(WidgetTester tester) async {
   }
 }
 
+/// Lo que tarda en fundarse de verdad: la tarjeta se va y la cámara baja al
+/// pueblo antes de avisar, que es cuando el pueblo toma el relevo.
+Future<void> _bajar(WidgetTester tester) async {
+  for (var i = 0; i < 20; i++) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -75,6 +83,11 @@ void main() {
       // Y ésta es la última: no hay «lo mínimo que cuenta» detrás.
       await tester.tap(find.text('FUNDAR LEER'));
       await _asentar(tester);
+      // Mientras baja la cámara todavía no se fundó nada: el pueblo toma el
+      // relevo al llegar, no antes.
+      expect(elNombre, isNull);
+      expect(find.text('Leer'), findsWidgets, reason: 'el nombre, bajando');
+      await _bajar(tester);
 
       expect(elNombre, 'Leer');
       expect(laMarca, isNotEmpty);
@@ -110,6 +123,7 @@ void main() {
         await tester.tap(find.text('Ahora no'));
         await _asentar(tester);
       }
+      await _bajar(tester);
       expect(fundado, isTrue);
       expect(elMotivo, isNull);
       expect(laIdentidad, isNull);
@@ -132,6 +146,68 @@ void main() {
       await _asentar(tester);
       expect(find.text('¿Para qué lo querés?'), findsNothing);
       expect(fundado, isFalse);
+    });
+
+    testWidgets('cabe en un teléfono chico, con el teclado abierto', (
+      tester,
+    ) async {
+      for (final teclado in [0.0, 260.0]) {
+        tester.view.physicalSize = const Size(320, 568);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+        await tester.pumpWidget(
+          MediaQuery(
+            data: MediaQueryData(
+              size: const Size(320, 568),
+              padding: const EdgeInsets.only(top: 20),
+              viewInsets: EdgeInsets.only(bottom: teclado),
+            ),
+            child: MaterialApp(
+              debugShowCheckedModeBanner: false,
+              home: FirstRun(onDone: (_, _, {why, identity}) {}),
+            ),
+          ),
+        );
+        await _asentar(tester);
+        expect(tester.takeException(), isNull, reason: 'bienvenida, $teclado');
+        // Con el teclado abierto la tarjeta rueda: el botón está, pero hay que
+        // llegar a él.
+        await tester.ensureVisible(find.text('FUNDAR MI PUEBLO'));
+        await tester.pump();
+        await tester.tap(find.text('FUNDAR MI PUEBLO'));
+        await _asentar(tester);
+        expect(tester.takeException(), isNull, reason: 'nombre, $teclado');
+        await tester.enterText(find.byType(TextField).first, 'Leer');
+        await tester.pump();
+        await tester.ensureVisible(find.text('SEGUIR'));
+        await tester.pump();
+        await tester.tap(find.text('SEGUIR'));
+        await _asentar(tester);
+        expect(tester.takeException(), isNull, reason: 'para qué, $teclado');
+        await tester.pumpWidget(const SizedBox());
+      }
+    });
+
+    testWidgets('fundar dos veces seguidas funda una sola', (tester) async {
+      // Un dedo impaciente toca otra vez mientras baja la cámara.
+      var veces = 0;
+      await tester.pumpWidget(
+        _marco(FirstRun(onDone: (_, _, {why, identity}) => veces++)),
+      );
+      await _asentar(tester);
+      await tester.tap(find.text('FUNDAR MI PUEBLO'));
+      await _asentar(tester);
+      await tester.enterText(find.byType(TextField).first, 'Leer');
+      await tester.pump();
+      await tester.tap(find.text('SEGUIR'));
+      await _asentar(tester);
+      await tester.tap(find.text('Ahora no'));
+      await _asentar(tester);
+      await tester.tap(find.text('Ahora no'));
+      await tester.pump(const Duration(milliseconds: 60));
+      await tester.tap(find.text('Ahora no'), warnIfMissed: false);
+      await _bajar(tester);
+      expect(veces, 1);
     });
   });
 

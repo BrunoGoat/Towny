@@ -223,6 +223,21 @@ y merecen que no haya nada más en pantalla cuando se escriben. Las dos se puede
 saltar. Lo demás —cada cuánto, a qué hora, dónde— no se pregunta acá: lo propone
 el pueblo cuando ya tiene algo que enseñarte (ver arriba).
 
+**El valle está vivo y la tarjeta no depende de la hora.** El fondo lo pinta
+el mismo pintor que el pueblo —nubes que pasan, estrellas, pájaros de día,
+polen o luciérnagas en el aire— y la cámara se mece despacio y baja un poco con
+cada respuesta, hacia el claro donde va a estar el pueblo. Las preguntas van en
+una tarjeta de vidrio oscuro con el título en serif, letra crema y un dorado
+cálido para lo que se puede tocar: escritas directamente sobre el prado se leían
+a mediodía y desaparecían al atardecer.
+
+**Y fundar no es un corte.** Al contestar la última, la tarjeta baja, el nombre
+del pueblo aparece un momento sobre el valle, y la cámara se zambulle hasta la
+toma en la que arranca el pueblo. El pueblo empieza exactamente ahí —mismo
+valle, mismo pintor, misma cámara— y sigue bajando despacio mientras sube la
+plaza, así que lo único que se funde entre una pantalla y la otra es lo de
+encima.
+
 Y en cuanto se funda, **la plaza sube del suelo**: primero el enlosado, que dice
 dónde está el centro; después el tablón, que es lo que el pueblo va a decir de
 vos; y por último el atril, que es donde va a quedar escrito lo que digas vos.

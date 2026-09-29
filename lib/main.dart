@@ -332,9 +332,22 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
                     theme: UiTheme(Palette.forMoment(11)),
                     start: _gallery,
                   )
-                : (Appearance.instance.onboarded
-                      ? HomeScreen(store: store)
-                      : FirstRun(onDone: _found))),
+                // Un fundido y no un corte. Las preguntas terminan con la
+                // cámara en la misma toma en la que arranca el pueblo, sobre el
+                // mismo valle pintado por el mismo pintor, así que lo único que
+                // cambia es lo de encima: la tarjeta ya se fue, y entra la
+                // cabecera del pueblo.
+                : AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 650),
+                    switchInCurve: Curves.easeOut,
+                    switchOutCurve: Curves.easeIn,
+                    child: Appearance.instance.onboarded
+                        ? HomeScreen(key: const ValueKey('pueblo'), store: store)
+                        : FirstRun(
+                            key: const ValueKey('preguntas'),
+                            onDone: _found,
+                          ),
+                  )),
     );
   }
 }

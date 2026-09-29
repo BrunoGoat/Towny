@@ -250,6 +250,10 @@ class _TownViewState extends State<TownView>
     if (camX != -999) _cam.travelTarget = camX / 10;
     if (camZ != -999) _cam.focusZTarget = camZ / 10;
     _cam.snap();
+    // Recién fundado, el pueblo no arranca en su encuadre: arranca en la toma
+    // en la que lo dejaron las preguntas, que pintaban este mismo valle, y
+    // baja desde ahí. Así no hay corte entre una pantalla y la otra.
+    if (widget.store.justFounded) HandoffShot.apply(_cam);
     _ticker = createTicker(_tick)..start();
     widget.store.addListener(_onStoreChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -305,6 +309,9 @@ class _TownViewState extends State<TownView>
   /// fundarse, sube en segundo y medio y se queda en uno para siempre. No se
   /// guarda: es un instante.
   double _founding = 1.0;
+
+  /// Segundos que le quedan a la cámara de planeo, después de fundar.
+  double _glide = 0;
 
   /// Para no pedir el vuelo dos veces mientras se sigue apartando.
   bool _asked = false;
@@ -464,6 +471,7 @@ class _TownViewState extends State<TownView>
       _frameTown();
       _cam.distanceTarget = 11.0;
       _cam.pitchTarget = 0.30;
+      _glide = 3.6;
     }
     if (_founding < 1.0) {
       _founding = math.min(1.0, _founding + dt / 1.7);
@@ -479,7 +487,10 @@ class _TownViewState extends State<TownView>
       }
     }
 
-    _cam.step(dt);
+    // Planea mientras baja al pueblo recién fundado, y sigue al dedo el resto
+    // del tiempo. Un toque corta el planeo: quien mueve la cámara la quiere ya.
+    if (_glide > 0) _glide -= dt;
+    _cam.step(dt, rate: _glide > 0 ? 1.5 : 7.5);
     _watchTheHorizon();
     _fx.update(dt);
     if (_finished != null) {
@@ -578,7 +589,10 @@ class _TownViewState extends State<TownView>
   }
 
   double _idleFor = 0;
-  void _touched() => _idleFor = 0;
+  void _touched() {
+    _idleFor = 0;
+    _glide = 0;
+  }
 
   int _ambientCounter = 0;
 

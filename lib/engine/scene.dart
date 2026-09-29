@@ -156,7 +156,13 @@ class TownScene {
     this.founding = 1.0,
     this.folk = true,
     this.soloFolk,
+    this.ghost = true,
   });
+
+  /// Si se dibuja el contorno de la pieza que viene. No en el valle de la
+  /// primera vez: ahí todavía no hay pueblo, y un rectángulo de alambre en el
+  /// prado se lee como un fallo y no como una promesa.
+  final bool ghost;
 
   /// How many achievements have been laid.
   final int placed;

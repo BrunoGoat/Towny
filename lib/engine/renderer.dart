@@ -409,6 +409,7 @@ class TownPainter extends CustomPainter {
   /// the button is held. It is the difference between pressing a button and
   /// finishing something you can already see.
   void _drawTownGhost(Canvas canvas, Projector p, Size size, TownLayout town) {
+    if (!scene.ghost) return;
     if (scene.fx != null) return; // one is already in flight
     final piece = town.pieceFor(scene.placed);
     if (piece == null) return;
