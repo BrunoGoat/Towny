@@ -159,10 +159,127 @@ void main() {
       expect(identitySaid(_habit(identity: '   ')), isNull);
     });
 
-    test('los votos son los días con pieza', () {
-      expect(identityVotes(_habit(days: 40)), 40);
-      expect(identityVotes(_habit(days: 40, every: 2)), 40);
-      expect(identityVotes(_habit(days: 0)), 0);
+  });
+
+  /// **El título se gana.** Ésta es la parte que importa de la identidad: que
+  /// escribir «alguien sabio» el día que se funda el pueblo no te convierte en
+  /// nada, y que el pueblo no lo diga hasta que lo sea de verdad — cada cuánto
+  /// lo hacés lo averigua él, y el listón es ese ritmo tuyo sostenido trece
+  /// semanas.
+  group('el título, que no se escribe sino que se gana', () {
+    final hoy = DateTime(2026, 9, 28);
+
+    /// Un pueblo con una semana por cada número de [semanas], de la más vieja a
+    /// la más nueva, poniendo esas piezas en los primeros días de cada una. La
+    /// última acaba hoy.
+    Habit porSemanas(
+      List<int> semanas, {
+      String? identity = 'alguien sabio',
+      List<String> rests = const [],
+    }) {
+      final desde = hoy.subtract(Duration(days: 7 * semanas.length - 1));
+      final h = Habit(
+        id: 'h1758000000000003',
+        name: 'Leer',
+        symbol: 'rueda',
+        slot: 0,
+        createdAt: desde,
+        character: TownCharacter.all.first.order,
+        identity: identity,
+        rests: [...rests],
+      );
+      var i = 0;
+      for (var w = 0; w < semanas.length; w++) {
+        for (var d = 0; d < semanas[w]; d++) {
+          h.pieces.add(
+            Piece(
+              index: i++,
+              placedAt: desde.add(Duration(days: 7 * w + d, hours: 21)),
+            ),
+          );
+        }
+      }
+      return h;
+    }
+
+    test('el día que se funda el pueblo no hay título', () {
+      // El fallo que esto cierra: escribías «alguien sabio» al fundar y esa
+      // misma tarde el tablón anunciaba que este pueblo era de alguien sabio.
+      // Todavía no hiciste nada.
+      final voy = identityStanding(porSemanas([1]), at: hoy)!;
+      expect(voy.earned, isFalse);
+      expect(voy.done, 1);
+      expect(voy.missing, identityWeeks - 1);
+    });
+
+    test('trece semanas cumpliendo todos los días: el título es tuyo', () {
+      final voy = identityStanding(porSemanas(List.filled(13, 7)), at: hoy)!;
+      expect(voy.rhythm, 7);
+      expect(voy.kept, 1.0);
+      expect(voy.missing, 0);
+      expect(voy.earned, isTrue);
+    });
+
+    test('el ritmo es el tuyo y no siete', () {
+      // Tres días por semana durante trece semanas es una manera de vivir tan
+      // sostenida como la de todos los días, y el pueblo la mide contra lo que
+      // vos hacés — no contra un calendario lleno.
+      final voy = identityStanding(porSemanas(List.filled(13, 3)), at: hoy)!;
+      expect(voy.rhythm, 3);
+      expect(voy.kept, 1.0);
+      expect(voy.earned, isTrue);
+    });
+
+    test('pero cumplirlo a medias no alcanza, aunque hayan pasado los meses', () {
+      // Siete semanas enteras y seis de dos días: el ritmo sigue siendo diario
+      // —la mediana no la mueven seis semanas malas— y el cumplimiento se
+      // queda en dos tercios.
+      final voy = identityStanding(
+        porSemanas([2, 2, 2, 2, 2, 2, 7, 7, 7, 7, 7, 7, 7]),
+        at: hoy,
+      )!;
+      expect(voy.rhythm, 7);
+      expect(voy.missing, 0);
+      expect(voy.kept, lessThan(identityBar));
+      expect(voy.earned, isFalse);
+    });
+
+    test('una semana heroica no tapa una semana en blanco', () {
+      // Doce semanas de cinco y una de cero, con catorce piezas en la última:
+      // si las piezas se sumaran a secas daría de sobra. Cada semana aporta
+      // como mucho lo suyo, así que la semana en blanco se nota.
+      final voy = identityStanding(
+        porSemanas([5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 0, 7]),
+        at: hoy,
+      )!;
+      expect(voy.rhythm, 5);
+      expect(voy.kept, lessThan(1.0));
+      expect(voy.weeks[11], 0);
+    });
+
+    test('una pausa retrasa el título pero no lo pierde', () {
+      // Las semanas dormidas no cuentan ni a favor ni en contra: no bajan el
+      // cumplimiento —lo que llevás hecho sigue entero— y el título espera.
+      final dormida = hoy.subtract(const Duration(days: 34));
+      final h = porSemanas([
+        for (var w = 0; w < 13; w++)
+          if (w == 8 || w == 9) 0 else 7,
+      ], rests: [Rest(dormida, dormida.add(const Duration(days: 14))).encode()]);
+      final voy = identityStanding(h, at: hoy)!;
+      expect(voy.kept, 1.0, reason: 'dormir no es fallar');
+      expect(voy.done, 11);
+      expect(voy.missing, 2);
+      expect(voy.earned, isFalse);
+    });
+
+    test('sin frase escrita no hay título que ganar', () {
+      expect(identityStanding(porSemanas([7], identity: null), at: hoy), isNull);
+    });
+
+    test('y se dice el ritmo como se dice en voz alta', () {
+      expect(rhythmSaid(7), 'todos los días');
+      expect(rhythmSaid(1), 'un día por semana');
+      expect(rhythmSaid(4), '4 días de cada siete');
     });
   });
 
@@ -260,13 +377,51 @@ void main() {
       expect(nota.more, contains('no es rendirse'));
     });
 
-    test('la identidad se devuelve con los días detrás', () {
+    test('la identidad todavía sin ganar se dice como lo que es', () {
+      // Cuarenta días no son trece semanas: el papel existe, pero dice que el
+      // pueblo todavía no te llama así y cuánto falta.
       final h = _habit(identity: 'alguien que lee todos los días');
       final nota = noticesFor(h, at: DateTime(2026, 4, 10)).firstWhere(
         (n) => n.kind == NoticeKind.who,
       );
+      expect(nota.said, startsWith('El pueblo todavía no te llama'));
+      expect(nota.said, contains('alguien que lee todos los días'));
+      expect(nota.because, contains('semanas'));
+    });
+
+    test('y ganada, el pueblo lo dice entero', () {
+      final hoy = DateTime(2026, 9, 28);
+      final h = _habit(
+        from: hoy.subtract(const Duration(days: 90)),
+        days: 91,
+        identity: 'alguien que lee todos los días',
+      );
+      final nota = noticesFor(h, at: hoy).firstWhere(
+        (n) => n.kind == NoticeKind.who,
+      );
       expect(nota.said, 'Este pueblo es de alguien que lee todos los días.');
-      expect(nota.because, contains('40 días'));
+      expect(nota.because, contains('Trece semanas'));
+    });
+
+    test('y el papel del título cambia de sitio según esté ganado', () {
+      // Dado, es la noticia más grande del pueblo y va arriba. Sin ganar, es
+      // algo a lo que vas: tres meses de «todavía no» en el primer papel sería
+      // una app dando la lata.
+      final hoy = DateTime(2026, 9, 28);
+      final joven = noticesFor(
+        _habit(identity: 'alguien sabio'),
+        at: DateTime(2026, 4, 10),
+      );
+      expect(joven.last.kind, NoticeKind.who);
+      final viejo = noticesFor(
+        _habit(
+          from: hoy.subtract(const Duration(days: 90)),
+          days: 91,
+          identity: 'alguien sabio',
+        ),
+        at: hoy,
+      );
+      expect(viejo.first.kind, NoticeKind.who);
     });
 
     test('la regla firmada tapa la observación de la que salió', () {

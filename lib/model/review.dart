@@ -99,8 +99,13 @@ class Review {
   /// caída inventada.
   final Review? before;
 
-  /// La frase de identidad, tal y como la dice el pueblo, si hay una escrita.
-  final String? identity;
+  /// Cómo iba el título al acabar el tramo, si hay una identidad escrita.
+  ///
+  /// **Al acabar el tramo y no hoy.** La cuenta de abril del año pasado tiene
+  /// que decir lo que el pueblo decía en abril del año pasado: si el título se
+  /// ganó en junio, en la hoja de abril todavía no estaba, y escribirlo ahí
+  /// sería reescribir el pasado para que quede mejor.
+  final IdentityStanding? identity;
 
   /// El plan, y qué parte de las piezas del tramo cayó a su hora.
   final String? plan;
@@ -280,7 +285,7 @@ class Review {
       works: obras,
       underway: enObra,
       before: anterior,
-      identity: identitySaid(h),
+      identity: identityStanding(h, at: hasta),
       plan: vowOf(h),
       planKept: h.vowHour == null || piezas < 5 ? null : aLaHora / piezas,
     );

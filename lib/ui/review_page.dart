@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../model/pledge.dart';
 import '../model/review.dart';
 import 'papyrus.dart';
 
@@ -81,17 +82,37 @@ List<ReviewLine> reviewLines(Review r) {
     );
   }
 
+  // El título, que es lo único de la hoja que puede no estar todavía. Ganado,
+  // se dice entero; sin ganar, se dice lo que es —lo que querés ser— y lo que
+  // falta, que en una cuenta de un mes cerrado es lo que faltaba entonces.
   final quien = r.identity;
   if (quien != null) {
     out.add(
-      ReviewLine(
-        'QUIÉN SOS',
-        '$quien Lo fuiste ${r.days} ${dias(r.days)} de éstos.',
-      ),
+      quien.earned
+          ? ReviewLine(
+              'QUIÉN SOS',
+              '${quien.said} Lo fuiste ${r.days} ${dias(r.days)} de éstos.',
+            )
+          : ReviewLine(
+              'EL TÍTULO',
+              'Escribiste que esto te convierte en ${quien.wanted}. El pueblo '
+                  'todavía no lo decía: ${_pending(quien)}',
+            ),
     );
   }
 
   return out;
+}
+
+/// Lo que le faltaba al título en ese momento.
+String _pending(IdentityStanding voy) {
+  final ritmo = rhythmSaid(voy.rhythm);
+  if (voy.missing > 0) {
+    return 'llevaba ${voy.done} de las $identityWeeks semanas cumpliendo '
+        '$ritmo.';
+  }
+  return 'cumplía el ${(voy.kept * 100).round()}% de $ritmo, y el título pide '
+      'el ${(identityBar * 100).round()}%.';
 }
 
 /// Los huecos, que es la línea que más fácil se escribe mal.

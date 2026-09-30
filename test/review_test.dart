@@ -337,8 +337,32 @@ void main() {
       final por = {for (final l in reviewLines(r)) l.label: l.said};
       expect(por['EL PLAN'], contains('Voy a leer a las 22'));
       expect(por['EL PLAN'], contains('100%'));
+      // Seis días no son trece semanas: en abril el título todavía no estaba
+      // dado, y la hoja de abril tiene que decir lo que el pueblo decía en
+      // abril.
+      expect(por['QUIÉN SOS'], isNull);
+      expect(por['EL TÍTULO'], contains('alguien que lee todos los días'));
+      expect(por['EL TÍTULO'], contains('todavía no lo decía'));
+    });
+
+    test('y el título, cuando estaba ganado, se dice entero', () {
+      // Un pueblo de un año entero puesto todos los días: al acabar abril el
+      // título hacía meses que era suyo.
+      final when = <DateTime>[];
+      for (var i = 0; i < 400; i++) {
+        when.add(DateTime(2025, 6, 1, 21).add(Duration(days: i)));
+      }
+      final r = Review.forMonth(
+        _town(when, born: DateTime(2025, 6, 1),
+            identity: 'alguien que lee todos los días'),
+        2026,
+        4,
+        now: _hoy,
+      );
+      final por = {for (final l in reviewLines(r)) l.label: l.said};
+      expect(por['EL TÍTULO'], isNull);
       expect(por['QUIÉN SOS'], contains('Este pueblo es de alguien que lee'));
-      expect(por['QUIÉN SOS'], contains('6 días'));
+      expect(por['QUIÉN SOS'], contains('30 días'));
     });
 
     test('sin ellas, la página no las inventa', () {

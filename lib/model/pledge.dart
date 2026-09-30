@@ -181,24 +181,168 @@ double? planKept(Habit h, {int least = 12}) {
   return dentro / h.pieces.length;
 }
 
-/// La identidad, dicha como la dice el pueblo.
-///
-/// «Este pueblo es de alguien que lee todos los días.» El sujeto lo pone el
-/// pueblo y no vos: lo que se escribe es la mitad que habla de vos, y el pueblo
-/// se encarga de ser la prueba. Se le quita el punto final si venía con uno,
-/// que si no la frase acaba con dos.
-String? identitySaid(Habit h) {
+/// Lo que escribiste que querés ser, limpio y en minúscula: «alguien sabio».
+String? identityWanted(Habit h) {
   final quien = _clean(h.identity);
   if (quien == null) return null;
   final sin = quien.endsWith('.')
       ? quien.substring(0, quien.length - 1).trimRight()
       : quien;
-  if (sin.isEmpty) return null;
-  return 'Este pueblo es de ${lowerName(sin)}.';
+  return sin.isEmpty ? null : lowerName(sin);
 }
 
-/// Cuántos días llevás siéndolo: los días con pieza, que son los votos.
-int identityVotes(Habit h) => daysOf(h).length;
+/// La identidad, dicha como la dice el pueblo.
+///
+/// «Este pueblo es de alguien que lee todos los días.» El sujeto lo pone el
+/// pueblo y no vos: lo que se escribe es la mitad que habla de vos, y el pueblo
+/// se encarga de ser la prueba.
+String? identitySaid(Habit h) {
+  final quien = identityWanted(h);
+  return quien == null ? null : 'Este pueblo es de $quien.';
+}
+
+// ------------------------------------------------------- el título, ganado
+
+/// Cuánto hay que aguantar para que el pueblo te llame así: trece semanas.
+///
+/// Tres meses, que es el tramo más corto en el que una manera de vivir se
+/// distingue de una racha de buena suerte. Y en semanas enteras y no en días
+/// sueltos, porque el ritmo de un hábito se mide por semanas: quien corre tres
+/// veces por semana no falla el martes, corre el miércoles.
+const int identityWeeks = 13;
+
+/// Y con cuánto: el noventa por ciento **de tu propio ritmo**, no de los siete
+/// días. El pueblo primero averigua cada cuánto lo hacés de verdad, y el título
+/// se gana cumpliendo eso, que es lo único que se puede prometer.
+const double identityBar = 0.9;
+
+/// Cómo va el título: cada cuánto hacés esto, cuánto lo estás cumpliendo, y si
+/// el pueblo ya puede llamarte así.
+///
+/// **El título no se escribe, se gana.** Escribir «alguien sabio» el día que se
+/// funda el pueblo y que el tablón lo anuncie esa misma tarde es exactamente lo
+/// que esta app no hace: todavía no hiciste nada. Lo que se escribe es lo que
+/// querés ser; lo que el pueblo dice de vos tiene que venir de lo que hiciste,
+/// como todo lo demás del tablón.
+class IdentityStanding {
+  const IdentityStanding({
+    required this.wanted,
+    required this.said,
+    required this.rhythm,
+    required this.kept,
+    required this.weeks,
+    required this.done,
+  });
+
+  /// «alguien sabio», y la frase entera del pueblo.
+  final String wanted;
+  final String said;
+
+  /// Cada cuánto se hace esto de verdad: días por semana, de 1 a 7. Sale de lo
+  /// que hacés y no de lo que dijiste — nadie declara su ritmo, se le ve.
+  final int rhythm;
+
+  /// Qué parte de ese ritmo estás cumpliendo, de 0 a 1, contando cada semana
+  /// por separado: una semana heroica no compensa una semana en blanco.
+  final double kept;
+
+  /// Semana a semana, lo mismo, de la más vieja a la más nueva. Es la prueba
+  /// dibujada: dónde se cayó y dónde se aguantó.
+  final List<double> weeks;
+
+  /// Cuántas de las trece semanas llevás contadas. Las semanas dormidas no
+  /// cuentan: una pausa retrasa el título, no lo rompe.
+  final int done;
+
+  /// Las que faltan para poder mirar el título siquiera.
+  int get missing => math.max(0, identityWeeks - done);
+
+  /// Si el pueblo ya te llama así.
+  bool get earned => missing == 0 && kept >= identityBar;
+
+  /// Cuántos días de los noventa y uno llevás. Para decirlo en días, que es
+  /// como se cuenta la espera en voz alta.
+  int get days => done * 7;
+}
+
+/// El título de [h] a fecha de [at], o nulo si no escribiste ninguno.
+///
+/// Se calcula sobre las últimas [identityWeeks] semanas cerradas hacia atrás
+/// desde hoy. Cada semana pide lo que pide tu ritmo —descontando los días en que
+/// el pueblo dormía— y aporta como mucho eso: así, cinco piezas en un domingo no
+/// tapan una semana entera sin aparecer.
+///
+/// El ritmo sale de esas mismas semanas, por la mediana: dos semanas malas no
+/// bajan el listón, que sería premiar el bajón, y dos semanas heroicas tampoco
+/// lo suben hasta hacerlo imposible.
+IdentityStanding? identityStanding(Habit h, {DateTime? at}) {
+  final wanted = identityWanted(h);
+  final said = identitySaid(h);
+  if (wanted == null || said == null) return null;
+
+  final hoy = dayStart(at ?? DateTime.now());
+  final conPieza = <int>{for (final d in daysOf(h)) dayKey(d)};
+  var nace = dayStart(h.createdAt);
+  final dias = daysOf(h);
+  if (dias.isNotEmpty && dias.first.isBefore(nace)) nace = dias.first;
+
+  // Cada semana: cuántos días contaban —despiertos y dentro de la vida del
+  // pueblo— y en cuántos hubo pieza.
+  final hechos = <int>[], contaban = <int>[];
+  for (var w = identityWeeks - 1; w >= 0; w--) {
+    final desde = hoy.subtract(Duration(days: 7 * w + 6));
+    var pieza = 0, cuentan = 0;
+    for (var i = 0; i < 7; i++) {
+      final d = desde.add(Duration(days: i));
+      if (d.isBefore(nace) || d.isAfter(hoy)) continue;
+      final hubo = conPieza.contains(dayKey(d));
+      if (!hubo && h.restedOn(d)) continue;
+      cuentan++;
+      if (hubo) pieza++;
+    }
+    hechos.add(pieza);
+    contaban.add(cuentan);
+  }
+
+  // El ritmo, por la mediana de las semanas enteras que hubo. Una semana a
+  // medias —la primera de un pueblo recién fundado, o una con pausa dentro— no
+  // dice cada cuánto lo hacés, así que no vota.
+  final llenas = <int>[
+    for (var i = 0; i < hechos.length; i++)
+      if (contaban[i] >= 7) hechos[i],
+  ];
+  if (llenas.isEmpty) return null;
+  llenas.sort();
+  final rhythm = math.max(1, llenas[llenas.length ~/ 2]);
+
+  // Y el cumplimiento, semana a semana y con tope.
+  final semanas = <double>[];
+  var pide = 0.0, cumple = 0.0;
+  for (var i = 0; i < hechos.length; i++) {
+    if (contaban[i] == 0) continue; // semana dormida entera: no cuenta
+    final espera = math.max(1.0, rhythm * contaban[i] / 7);
+    final hizo = math.min(hechos[i].toDouble(), espera);
+    semanas.add(hizo / espera);
+    pide += espera;
+    cumple += hizo;
+  }
+  if (semanas.isEmpty) return null;
+  return IdentityStanding(
+    wanted: wanted,
+    said: said,
+    rhythm: rhythm,
+    kept: pide <= 0 ? 0 : cumple / pide,
+    weeks: semanas,
+    done: semanas.length,
+  );
+}
+
+/// El ritmo dicho en voz alta: «cinco días de cada siete», «todos los días».
+String rhythmSaid(int perWeek) => switch (perWeek) {
+  >= 7 => 'todos los días',
+  1 => 'un día por semana',
+  _ => '$perWeek días de cada siete',
+};
 
 /// Detrás de qué hábito va éste, si la regla sigue en pie.
 ///

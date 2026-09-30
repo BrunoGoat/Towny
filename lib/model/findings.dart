@@ -30,7 +30,13 @@ List<Notice> noticesFor(
   // read on its own is worth much less than read next to "y volvés a los dos
   // días".
   add(ahead(h, underway, left, now));
-  add(whoYouAre(h));
+  // El título, y **dónde va según si está ganado**: dado, es la noticia más
+  // grande que este pueblo puede dar y va arriba del todo; sin ganar, es algo a
+  // lo que vas y va al final. Tres meses con «el pueblo todavía no te llama
+  // así» en el primer papel del tablón es una app dando la lata.
+  final quien = whoYouAre(h, now);
+  final titulo = identityStanding(h, at: now)?.earned ?? false;
+  if (titulo) add(quien);
   // El plan habla de la hora, así que cuando sale, la nota del horario sobra:
   // dirían lo mismo con dos papeles, y uno de los dos sin la mitad que importa.
   final elPlan = planned(h);
@@ -44,6 +50,7 @@ List<Notice> noticesFor(
   add(crownOf(h, others));
   add(chore(h));
   add(lifetime(h, now));
+  if (!titulo) add(quien);
   return out;
 }
 
@@ -211,28 +218,58 @@ Notice? planned(Habit h) {
   );
 }
 
-/// En quién te convierte esto.
+/// En quién te convierte esto — cuando el pueblo ya puede decirlo.
 ///
-/// La nota más corta del tablón y la que menos cuentas lleva, porque lo que
-/// dice no es una medición: es la frase que escribiste, devuelta por el pueblo
-/// con los días que llevás siéndolo debajo. Una meta se cumple y se acaba el
-/// hábito; esto no se acaba nunca, y cada pieza es un voto.
-Notice? whoYouAre(Habit h) {
-  final dicho = identitySaid(h);
-  if (dicho == null) return null;
-  final votos = identityVotes(h);
+/// **El título no se escribe, se gana.** Escribir «alguien sabio» el día que se
+/// funda el pueblo y que el tablón lo anuncie esa misma tarde sería la única
+/// mentira de todo el tablón: las otras nueve notas salen de lo que hiciste, y
+/// ésta saldría de lo que te gustaría. Todavía no hiciste nada.
+///
+/// Así que el pueblo primero mira **cada cuánto lo hacés de verdad** —nadie
+/// declara su ritmo, se le ve— y después si lo cumplís: trece semanas al noventa
+/// por ciento de ese ritmo. Hasta entonces la nota existe igual, pero dice lo
+/// que es: lo que querés ser, y cuánto falta. Y ese día cambia sola, que es lo
+/// más parecido a una ceremonia que tiene esta app.
+Notice? whoYouAre(Habit h, DateTime now) {
+  final voy = identityStanding(h, at: now);
+  if (voy == null) return null;
+  final ritmo = rhythmSaid(voy.rhythm);
+
+  if (voy.earned) {
+    return Notice(
+      NoticeKind.who,
+      voy.said,
+      'Trece semanas cumpliendo $ritmo, el ${_pct(voy.kept)} de lo que te '
+      'pediste. El título es tuyo.',
+      bars: voy.weeks,
+      more:
+          'No es una meta. Una meta se cumple y entonces el hábito deja de '
+          'tener para qué; esto no se cumple nunca, se es o no se es, y lo que '
+          'decide cuál de las dos cosas es lo que hiciste ayer. Las barras son '
+          'las últimas trece semanas: lo que cumpliste de tu ritmo en cada '
+          'una. Bajar una semana no te lo quita — bajar tres meses, sí.',
+    );
+  }
+
+  // Todavía no. Se dice qué falta, y se dice sin reproche: lo que falta es
+  // tiempo, y el tiempo no es culpa de nadie.
+  final falta = voy.missing;
   return Notice(
     NoticeKind.who,
-    dicho,
-    votos == 0
-        ? 'Todavía sin un solo día detrás. La primera pieza es el primer voto.'
-        : 'Lo llevás siendo $votos ${votos == 1 ? 'día' : 'días'}, y cada uno '
-              'es un voto a favor de esa frase.',
+    'El pueblo todavía no te llama ${voy.wanted}.',
+    falta > 0
+        ? 'Un título se gana: trece semanas cumpliendo $ritmo, que es tu '
+              'ritmo. Llevás ${voy.done} y el ${_pct(voy.kept)}.'
+        : 'Van trece semanas, pero cumpliendo el ${_pct(voy.kept)} de tu '
+              'ritmo — $ritmo. Hace falta el ${_pct(identityBar)}.',
+    bars: voy.weeks,
     more:
-        'No es una meta. Una meta se cumple y entonces el hábito deja de tener '
-        'para qué; esto no se cumple nunca, se es o no se es, y lo que decide '
-        'cuál de las dos cosas es lo que hiciste ayer. Por eso el pueblo sigue '
-        'en pie un día que falles: un voto perdido no cambia un recuento.',
+        'Lo escribiste vos y el pueblo se lo toma en serio, que es justo por '
+        'lo que no lo dice todavía: si lo dijera el primer día sería la única '
+        'frase del tablón que no sale de lo que hiciste. El ritmo no lo elegís '
+        'acá, se mira: el pueblo cuenta cuántos días por semana aparecés y te '
+        'pide eso mismo, ni más ni menos. Las barras son las últimas trece '
+        'semanas, y las semanas que el pueblo durmió no cuentan.',
   );
 }
 
