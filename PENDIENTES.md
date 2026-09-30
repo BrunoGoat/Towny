@@ -120,6 +120,15 @@ encabezaba esta lista, ya está hecho: el calendario del libro del atril.)*
    lee todos los días»— es la que más pesa de las tres en ese momento exacto, y
    hay que probar si pesa demasiado: en la hoja del abandono puede leerse como un
    reproche, que es justo lo que esa hoja no puede ser.
+9. **Siete obras tienen una pieza en el aire.** `tool/dump_test.dart` vuelca el
+   catálogo entero a un JSON, caja por caja, y mirándolo fuera aparecen siete
+   obras donde algún cuerpo no pisa el suelo ni roza ningún otro: el travesaño
+   del **abrevadero** (pieza 3) y el del **aljibe** (19), el soportal de la
+   **tahona** (7), los dos escalones de la **cantera** (2 y 3) y el palo de los
+   estandartes de **tahona**, **alhóndiga**, **canteros** y **posada del
+   camino**. Los estandartes puede que estén bien —un asta clavada en un tejado
+   que la receta no llega a tocar—, pero los otros cuatro son el mismo fallo que
+   tenían el atril y el molino, y desde el frente no se ven.
 
 ---
 
