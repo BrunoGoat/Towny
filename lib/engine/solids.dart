@@ -218,19 +218,34 @@ List<Solid> solidsOf(
       ];
 
     case PieceKind.sail:
+      // El eje: un madero que va **desde dentro de la torre hasta las aspas**.
+      //
+      // Era un dado de veintidós centímetros de fondo puesto en el plano de
+      // las aspas, y por eso lo que giraba parecía colgado del aire: entre el
+      // dado y la pared no había nada. Ahora es un madero que llega desde el
+      // disco hasta la pared de la torre.
+      //
+      // **Hasta la pared y ni un milímetro dentro.** Acá no hay z-buffer: el
+      // orden sale de cortar el pueblo por planos, y dos cuerpos que se
+      // interpenetran no tienen plano que los separe — el eje metido en la
+      // fábrica hacía que las aspas se pintaran por encima de la torre y se
+      // vieran a través de ella desde el otro lado, que es justo lo que vigila
+      // `sail_test.dart`. Así que se queda a cinco milímetros de la cara del
+      // último piso del fuste, que a esta escala no se ve y a la vez deja el
+      // plano libre.
       final r = (y1 - y0) / 2;
       final cy = y0 + r;
-      final cz = piece.cz - 0.16 + 0.06;
+      final disco = piece.cz - 0.16;
       return [
         Solid(
           i,
           boxFaces(
             piece.cx - r * 0.14,
             cy - r * 0.14,
-            cz - 0.11,
+            disco + 0.10,
             piece.cx + r * 0.14,
             cy + r * 0.14,
-            cz + 0.11,
+            disco + 0.52,
             Surface.own,
             ao: 0.88,
             tint: 0xFF5A4835,
@@ -1809,15 +1824,36 @@ class Lectern {
             tint: _stone,
           ),
         ),
+        // La columna, **cortada en el mismo ángulo que el tablero**.
+        //
+        // Acababa en una cara horizontal a `_front - 0.10k`, que queda tres
+        // centímetros por debajo del punto más bajo del tablero: de frente el
+        // propio tablero tapaba el hueco y de costado el libro salía volando
+        // sobre la columna. Y no basta con subirla: el tablero está inclinado,
+        // así que una tapa horizontal o deja hueco por detrás o asoma por
+        // delante. La de arriba sigue la pendiente del tablero y se mete un
+        // centímetro dentro, que es como se apoya una tabla en un pie.
         Solid(
           -1,
-          boxFaces(
-            x - 0.055 * _k,
-            0.035 + 0.065 * _k,
-            z - 0.055 * _k,
-            x + 0.055 * _k,
-            _front - 0.10 * _k,
-            z + 0.055 * _k,
+          hexFaces(
+            () {
+              const pw = 0.055 * _k, pd = 0.055 * _k;
+              const base = 0.035 + 0.065 * _k;
+              // La cara de abajo del tablero: en el medio, y su pendiente.
+              const mid = (_back + _front) / 2 - _thick + 0.01;
+              final slope = (_front - _back) / (2 * (_deep + 0.03 * _k));
+              final atras = mid - slope * pd, delante = mid + slope * pd;
+              return [
+                V3(x - pw, base, z - pd),
+                V3(x + pw, base, z - pd),
+                V3(x + pw, base, z + pd),
+                V3(x - pw, base, z + pd),
+                V3(x - pw, atras, z - pd),
+                V3(x + pw, atras, z - pd),
+                V3(x + pw, delante, z + pd),
+                V3(x - pw, delante, z + pd),
+              ];
+            }(),
             Surface.own,
             ao: 0.90,
             tint: _wood,

@@ -357,10 +357,24 @@ final List<Landmark> landmarks = [
       final coronilla = m.y;
       m.parapet(2.0, 2.0, 0.32);
       m.spire(1.8, 1.8, 1.1);
-      // Las aspas, contra la cara de la torre y a la altura de la cara: el
+      // Las aspas, **contra la cara de la torre** y a la altura de la cara: el
       // eje va donde acaba el fuste, no a una altura escrita a mano que deja
       // de ser la buena en cuanto el fuste cambia de pisos.
-      m.sails(4.0, dz: -1.35, at: coronilla - 0.5);
+      //
+      // Y lo cerca que van no se elige a ojo: lo manda el orden. Las aspas se
+      // dibujan aparte de la fábrica —giran— y para saber si van delante o
+      // detrás de la torre hace falta un plano que las separe de ella. El
+      // bulto del molino llega hasta 1,2 de fondo, que es lo que mide el
+      // zócalo, así que el disco tiene que quedar por fuera de eso o no hay
+      // plano: se le mete dentro y las aspas acaban pintadas encima de la
+      // torre, que es lo que vigila `sail_test.dart`.
+      //
+      // El disco cae a 0,16 del centro de la pieza, así que a 1,15 queda en
+      // 1,31 y sobran cinco centímetros. Lo que cierra el hueco hasta la
+      // pared es el eje, que sale de la torre a buscarlo. Estaba a 1,35 y sin
+      // eje: el rotor entero volando medio metro por delante del molino, que
+      // de frente no se nota y de costado es lo único que se ve.
+      m.sails(4.0, dz: -1.15, at: coronilla - 0.5);
       m.stair(0.95, 0.42, 0.85, dz: 1.6);
       m.outbuilding(1.35, 1.15, 0.9, 0.5, dx: 2.4, dz: 1.5);
     },

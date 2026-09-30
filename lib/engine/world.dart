@@ -554,9 +554,16 @@ BuiltTown _build(TownLayout layout, int placed, BuiltTown? before) {
         //
         // Lo que se dibuja es un disco en un plano, a dieciséis centímetros
         // por delante del centro de la pieza. Ésa es su caja: ancha y alta
-        // como el disco, y del grosor de un tablón. Con eso sí hay plano que
-        // las separe de la torre, y desde atrás la torre las tapa.
-        const grosor = 0.22;
+        // como el disco, y **plana**, porque las cuatro aspas se dibujan con
+        // los cuatro vértices en la misma zeta y no hay nada fuera de ese
+        // plano. Con eso sí hay plano que las separe de la torre, y desde
+        // atrás la torre las tapa.
+        //
+        // Delgada además por una razón de dibujo: cuanto más fina la caja, más
+        // cerca de la pared se pueden poner las aspas sin que se pierda el
+        // plano que las separa — y unas aspas que giran a medio metro de la
+        // torre son unas aspas volando.
+        const grosor = 0.06;
         final cz = (piece.z0 + piece.z1) / 2 - 0.16;
         weatherBox.add(
           Aabb(
