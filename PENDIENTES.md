@@ -120,15 +120,21 @@ encabezaba esta lista, ya está hecho: el calendario del libro del atril.)*
    lee todos los días»— es la que más pesa de las tres en ese momento exacto, y
    hay que probar si pesa demasiado: en la hoja del abandono puede leerse como un
    reproche, que es justo lo que esa hoja no puede ser.
-9. **Siete obras tienen una pieza en el aire.** `tool/dump_test.dart` vuelca el
-   catálogo entero a un JSON, caja por caja, y mirándolo fuera aparecen siete
-   obras donde algún cuerpo no pisa el suelo ni roza ningún otro: el travesaño
-   del **abrevadero** (pieza 3) y el del **aljibe** (19), el soportal de la
-   **tahona** (7), los dos escalones de la **cantera** (2 y 3) y el palo de los
-   estandartes de **tahona**, **alhóndiga**, **canteros** y **posada del
-   camino**. Los estandartes puede que estén bien —un asta clavada en un tejado
-   que la receta no llega a tocar—, pero los otros cuatro son el mismo fallo que
-   tenían el atril y el molino, y desde el frente no se ven.
+9. **Siete obras retiradas tienen una pieza en el aire.** `tool/dump_test.dart`
+   vuelca el catálogo entero a un JSON, caja por caja, y mirándolo fuera
+   aparecen siete obras donde algún cuerpo no pisa el suelo ni roza ningún
+   otro: el travesaño del **abrevadero** (pieza 3) y el del **aljibe** (19), el
+   soportal de la **tahona** (7), los dos escalones de la **cantera** (2 y 3) y
+   el asta de los estandartes de **tahona**, **alhóndiga**, **canteros** y
+   **posada del camino**.
+
+   Las siete están entre las 53 retiradas, así que **en las 60 que se ofrecen
+   hoy no hay nada flotando**. Pero las retiradas siguen en pie en los pueblos
+   que ya las levantaron (ver «Decisiones abiertas»), y ahí el fallo se ve
+   igual: es el mismo del atril y el molino, invisible de frente. Si algún día
+   se decide que esos pueblos se rehacen sin ellas, esto se cae solo; si no,
+   son cuatro arreglos de una línea cada uno —los estandartes puede que estén
+   bien, un asta clavada en un tejado que la receta no llega a tocar.
 
 ---
 
