@@ -156,7 +156,10 @@ class TownView extends StatefulWidget {
   /// Y el atril de la plaza, que es donde se leen las leyendas de ese pueblo.
   final void Function(int index) onLecternTapped;
 
-  final void Function(String message) onWhisper;
+  /// Un susurro sobre la escena. Con [duration] para lo que no se lee en tres
+  /// segundos: el título que acaba de ganarse es una frase entera y es la
+  /// única vez que va a salir.
+  final void Function(String message, {Duration duration}) onWhisper;
   final void Function(Palette palette) onPaletteChanged;
 
   @override
@@ -776,6 +779,19 @@ class _TownViewState extends State<TownView>
       widget.onWhisper(
         'El valle abre un segundo solar. Ya podés fundar otro pueblo.',
       );
+    }
+    // Y si ésta fue la pieza que ganó el título, el pueblo lo dice en voz alta
+    // y por sorpresa. Es lo único de toda la app que llega sin avisar: no hay
+    // cuenta atrás en ninguna pantalla, ni papel diciendo lo que falta, así que
+    // esto y el papel que aparece en el tablón son todo lo que hay. Y por eso
+    // se celebra como un hito, que es lo que es.
+    final titulo = result?.crowned;
+    if (titulo != null) {
+      _fx.celebrate(V3(town.cx, 0, town.cz), 2.4, count: 54);
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) Sensory.instance.milestone();
+      });
+      widget.onWhisper(titulo, duration: const Duration(seconds: 7));
     }
   }
 

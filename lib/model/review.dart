@@ -99,13 +99,15 @@ class Review {
   /// caída inventada.
   final Review? before;
 
-  /// Cómo iba el título al acabar el tramo, si hay una identidad escrita.
+  /// La frase del título, **si ya estaba ganado al acabar el tramo**.
   ///
-  /// **Al acabar el tramo y no hoy.** La cuenta de abril del año pasado tiene
-  /// que decir lo que el pueblo decía en abril del año pasado: si el título se
-  /// ganó en junio, en la hoja de abril todavía no estaba, y escribirlo ahí
-  /// sería reescribir el pasado para que quede mejor.
-  final IdentityStanding? identity;
+  /// Nulo mientras no lo esté, y sin decir lo que falta: el título no se
+  /// anuncia ni se cuenta hacia él en ninguna pantalla. Y al acabar el tramo y
+  /// no hoy — la cuenta de abril del año pasado dice lo que el pueblo decía en
+  /// abril del año pasado; si el título se ganó en junio, en la hoja de abril
+  /// no está, porque reescribir el pasado para que quede mejor es la otra
+  /// manera de mentir.
+  final String? identity;
 
   /// El plan, y qué parte de las piezas del tramo cayó a su hora.
   final String? plan;
@@ -285,7 +287,12 @@ class Review {
       works: obras,
       underway: enObra,
       before: anterior,
-      identity: identityStanding(h, at: hasta),
+      identity: () {
+        final gano = h.identityWonAt;
+        return gano == null || dayStart(gano).isAfter(hasta)
+            ? null
+            : identitySaid(h);
+      }(),
       plan: vowOf(h),
       planKept: h.vowHour == null || piezas < 5 ? null : aLaHora / piezas,
     );

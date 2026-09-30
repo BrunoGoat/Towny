@@ -25,6 +25,7 @@ class Habit {
     this.vowHour,
     this.vowPlace,
     this.identity,
+    this.identityWonAt,
     this.afterId,
     this.askedAt,
     this.nudgedAt,
@@ -114,6 +115,18 @@ class Habit {
   /// de esa frase, y el pueblo entero es el recuento. Por eso el tablón la
   /// devuelve con los días que lleva siéndolo debajo, que es la prueba.
   String? identity;
+
+  /// El día que el pueblo empezó a llamarte así, o nulo si todavía no.
+  ///
+  /// **El título se gana una vez y no se pierde.** Se apunta el día en que una
+  /// pieza completa las trece semanas cumpliendo tu ritmo, y desde entonces la
+  /// frase está en el tablón para siempre: un mal mes no te quita lo que fuiste
+  /// tres meses, igual que una racha rota no borra cuarenta días.
+  ///
+  /// Guardarlo —en vez de calcularlo cada vez que se abre el tablón— es lo que
+  /// evita lo peor que podía pasarle a esto: que la frase apareciera y
+  /// desapareciera sola según cómo hubiera ido la última semana.
+  DateTime? identityWonAt;
 
   /// Detrás de qué otro hábito va éste, si va detrás de alguno.
   ///
@@ -309,6 +322,7 @@ class Habit {
     if (vowHour != null) 'vh': vowHour,
     if (vowPlace != null && vowPlace!.isNotEmpty) 'vp': vowPlace,
     if (identity != null && identity!.isNotEmpty) 'qn': identity,
+    if (identityWonAt != null) 'iw': identityWonAt!.millisecondsSinceEpoch,
     if (afterId != null && afterId!.isNotEmpty) 'af': afterId,
     if (rests.isNotEmpty) 'r': rests,
     if (askedAt != null) 'k': askedAt!.millisecondsSinceEpoch,
@@ -363,6 +377,9 @@ class Habit {
       },
       vowPlace: (j['vp'] as String?)?.trim(),
       identity: (j['qn'] as String?)?.trim(),
+      identityWonAt: (j['iw'] as num?) == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch((j['iw'] as num).toInt()),
       afterId: (j['af'] as String?)?.trim(),
       rests: [for (final e in (j['r'] as List?) ?? []) e.toString()],
       askedAt: (j['k'] as num?) == null

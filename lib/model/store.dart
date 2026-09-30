@@ -14,6 +14,7 @@ import 'census.dart';
 import 'habit.dart';
 import 'nudge.dart';
 import 'piece.dart';
+import 'pledge.dart';
 import 'rhythm.dart';
 
 /// What happened when a piece was laid. Drives the celebration.
@@ -25,6 +26,7 @@ class PlaceResult {
     this.startedNewDay = false,
     this.woke = false,
     this.unlocked = false,
+    this.crowned,
   });
 
   final Piece piece;
@@ -42,6 +44,14 @@ class PlaceResult {
   /// True cuando esta pieza fue la que abrió el valle: a partir de acá se
   /// puede fundar un segundo pueblo. Pasa una sola vez en la vida de un valle.
   final bool unlocked;
+
+  /// La frase entera cuando **esta** pieza fue la que ganó el título: «Este
+  /// pueblo es de alguien que lee todos los días.» Nulo el resto de las veces,
+  /// que son casi todas.
+  ///
+  /// Pasa una sola vez por pueblo y no se ve venir: no hay cuenta atrás en
+  /// ninguna pantalla, así que lo único que hay es el día en que aparece.
+  final String? crowned;
 }
 
 /// Everything the app remembers: the habits, and the towns they have built.
@@ -860,6 +870,7 @@ class Store extends ChangeNotifier {
     // Y si esta pieza empieza un edificio nuevo, queda escrito qué edificio es.
     _writeUpWorks(h);
     final abrio = _checkUnlock();
+    final titulo = _crownIdentity(h, when);
 
     _save();
     notifyListeners();
@@ -871,7 +882,23 @@ class Store extends ChangeNotifier {
       startedNewDay: !hadToday,
       woke: wasResting,
       unlocked: abrio,
+      crowned: titulo,
     );
+  }
+
+  /// Si con esta pieza el pueblo ya puede llamarte lo que escribiste, se apunta
+  /// el día y se devuelve la frase.
+  ///
+  /// **Acá y no al pintar el tablón.** El título se gana poniendo una pieza —la
+  /// que completa las trece semanas— y apuntar el día es lo que hace que sea un
+  /// momento y no un estado que va y viene: a partir de ahí la frase está en el
+  /// tablón para siempre, haya ido bien o mal el mes que viene.
+  String? _crownIdentity(Habit h, DateTime when) {
+    if (h.identityWonAt != null) return null;
+    final voy = identityStanding(h, at: when);
+    if (voy == null || !voy.earned) return null;
+    h.identityWonAt = when;
+    return voy.said;
   }
 
   /// Pone las piezas que llegaron del widget, y dice cuáles puso de verdad.

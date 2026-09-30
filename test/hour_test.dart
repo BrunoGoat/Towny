@@ -44,7 +44,7 @@ void main() {
             onTownTapped: (_) {},
             onBoardTapped: (_) {},
             onLecternTapped: (_) {},
-            onWhisper: (_) {},
+            onWhisper: (_, {duration = Duration.zero}) {},
             onPaletteChanged: vistas.add,
           ),
         ),

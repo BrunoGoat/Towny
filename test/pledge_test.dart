@@ -5,6 +5,8 @@ import 'package:la_muralla/model/habit.dart';
 import 'package:la_muralla/model/notice.dart';
 import 'package:la_muralla/model/piece.dart';
 import 'package:la_muralla/model/pledge.dart';
+import 'package:la_muralla/model/store.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// **Las tres cosas que no se deducen.**
 ///
@@ -55,6 +57,8 @@ Habit _habit({
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('el plan, dicho como se habla', () {
     test('la hora y el sitio, en una frase', () {
       expect(
@@ -276,6 +280,46 @@ void main() {
       expect(identityStanding(porSemanas([7], identity: null), at: hoy), isNull);
     });
 
+    test('lo gana una pieza, y el pueblo apunta el día', () async {
+      // Es la parte que hace que esto sea un momento y no un estado: la pieza
+      // que completa las trece semanas es la que gana el título, el pueblo
+      // escribe la fecha, y a partir de ahí la frase ya no depende de cómo
+      // vaya la semana que viene.
+      SharedPreferences.setMockInitialValues({});
+      final store = Store();
+      await store.load();
+      // Trece semanas menos el día de hoy, todos los días.
+      store.habits[0] = porSemanas([
+        for (var w = 0; w < 13; w++) w == 12 ? 6 : 7,
+      ]);
+      final h = store.habits[0];
+      expect(h.identityWonAt, isNull);
+
+      // La víspera: se pone una pieza y no pasa nada de nada.
+      final antes = store.lay(h, hoy.subtract(const Duration(days: 1, hours: 2)));
+      expect(antes.crowned, isNull);
+      expect(h.identityWonAt, isNull);
+
+      // Y la que cierra la decimotercera semana.
+      final ahora = store.lay(h, hoy.add(const Duration(hours: 21)));
+      expect(ahora.crowned, 'Este pueblo es de alguien sabio.');
+      expect(h.identityWonAt, isNotNull);
+
+      // Una sola vez: la siguiente pieza no vuelve a ganarlo.
+      final gano = h.identityWonAt;
+      final otra = store.lay(h, hoy.add(const Duration(hours: 22)));
+      expect(otra.crowned, isNull);
+      expect(h.identityWonAt, gano);
+    });
+
+    test('y el día apuntado va y vuelve del disco', () {
+      final h = porSemanas([7])..identityWonAt = DateTime(2026, 5, 12, 21, 30);
+      expect(
+        Habit.fromJson(h.toJson()).identityWonAt,
+        DateTime(2026, 5, 12, 21, 30),
+      );
+    });
+
     test('y se dice el ritmo como se dice en voz alta', () {
       expect(rhythmSaid(7), 'todos los días');
       expect(rhythmSaid(1), 'un día por semana');
@@ -377,51 +421,62 @@ void main() {
       expect(nota.more, contains('no es rendirse'));
     });
 
-    test('la identidad todavía sin ganar se dice como lo que es', () {
-      // Cuarenta días no son trece semanas: el papel existe, pero dice que el
-      // pueblo todavía no te llama así y cuánto falta.
+    test('mientras el título no está ganado no hay papel ninguno', () {
+      // Ni al fundar, ni a los dos meses, ni uno diciendo lo que falta: una
+      // barra de progreso hacia ser alguien es la app de siempre persiguiéndote
+      // con lo que te falta. Hasta que se gana, silencio.
       final h = _habit(identity: 'alguien que lee todos los días');
-      final nota = noticesFor(h, at: DateTime(2026, 4, 10)).firstWhere(
-        (n) => n.kind == NoticeKind.who,
+      expect(
+        [for (final n in noticesFor(h, at: DateTime(2026, 4, 10))) n.kind],
+        isNot(contains(NoticeKind.who)),
       );
-      expect(nota.said, startsWith('El pueblo todavía no te llama'));
-      expect(nota.said, contains('alguien que lee todos los días'));
-      expect(nota.because, contains('semanas'));
+      expect(whoYouAre(h, DateTime(2026, 4, 10)), isNull);
     });
 
-    test('y ganada, el pueblo lo dice entero', () {
+    test('y una vez ganado aparece de golpe, arriba del todo', () {
       final hoy = DateTime(2026, 9, 28);
       final h = _habit(
         from: hoy.subtract(const Duration(days: 90)),
         days: 91,
         identity: 'alguien que lee todos los días',
       );
-      final nota = noticesFor(h, at: hoy).firstWhere(
-        (n) => n.kind == NoticeKind.who,
-      );
+      h.identityWonAt = hoy;
+      final said = noticesFor(h, at: hoy);
+      final nota = said.firstWhere((n) => n.kind == NoticeKind.who);
       expect(nota.said, 'Este pueblo es de alguien que lee todos los días.');
-      expect(nota.because, contains('Trece semanas'));
+      expect(nota.because, contains('28 de septiembre'));
+      expect(
+        said.first.kind,
+        NoticeKind.who,
+        reason: 'es la noticia más grande que un pueblo puede dar de vos',
+      );
     });
 
-    test('y el papel del título cambia de sitio según esté ganado', () {
-      // Dado, es la noticia más grande del pueblo y va arriba. Sin ganar, es
-      // algo a lo que vas: tres meses de «todavía no» en el primer papel sería
-      // una app dando la lata.
+    test('y no se pierde nunca más, vaya como vaya el mes que viene', () {
+      // Un pueblo que ganó el título y después se cayó entero: la frase sigue.
+      // Un mal mes no te quita lo que fuiste tres meses, igual que una racha
+      // rota no borraba cuarenta días.
       final hoy = DateTime(2026, 9, 28);
-      final joven = noticesFor(
-        _habit(identity: 'alguien sabio'),
-        at: DateTime(2026, 4, 10),
+      final h = _habit(
+        from: hoy.subtract(const Duration(days: 200)),
+        days: 60,
+        identity: 'alguien que lee todos los días',
       );
-      expect(joven.last.kind, NoticeKind.who);
-      final viejo = noticesFor(
-        _habit(
-          from: hoy.subtract(const Duration(days: 90)),
-          days: 91,
-          identity: 'alguien sabio',
-        ),
-        at: hoy,
+      h.identityWonAt = hoy.subtract(const Duration(days: 120));
+      expect(identityStanding(h, at: hoy)?.earned, isNot(isTrue));
+      expect(whoYouAre(h, hoy), isNotNull);
+    });
+
+    test('y un día antes de ganarlo todavía no hay nada', () {
+      // El listón de verdad: la víspera del título, el tablón no lo menciona.
+      final hoy = DateTime(2026, 9, 28);
+      final h = _habit(
+        from: hoy.subtract(const Duration(days: 83)),
+        days: 84,
+        identity: 'alguien que lee todos los días',
       );
-      expect(viejo.first.kind, NoticeKind.who);
+      expect(identityStanding(h, at: hoy)!.missing, 1);
+      expect(whoYouAre(h, hoy), isNull);
     });
 
     test('la regla firmada tapa la observación de la que salió', () {

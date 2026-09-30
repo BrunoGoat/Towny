@@ -30,13 +30,9 @@ List<Notice> noticesFor(
   // read on its own is worth much less than read next to "y volvés a los dos
   // días".
   add(ahead(h, underway, left, now));
-  // El título, y **dónde va según si está ganado**: dado, es la noticia más
-  // grande que este pueblo puede dar y va arriba del todo; sin ganar, es algo a
-  // lo que vas y va al final. Tres meses con «el pueblo todavía no te llama
-  // así» en el primer papel del tablón es una app dando la lata.
-  final quien = whoYouAre(h, now);
-  final titulo = identityStanding(h, at: now)?.earned ?? false;
-  if (titulo) add(quien);
+  // El título, que o está ganado o no existe. Cuando aparece va arriba del
+  // todo, porque es la noticia más grande que un pueblo puede dar de vos.
+  add(whoYouAre(h, now));
   // El plan habla de la hora, así que cuando sale, la nota del horario sobra:
   // dirían lo mismo con dos papeles, y uno de los dos sin la mitad que importa.
   final elPlan = planned(h);
@@ -50,7 +46,6 @@ List<Notice> noticesFor(
   add(crownOf(h, others));
   add(chore(h));
   add(lifetime(h, now));
-  if (!titulo) add(quien);
   return out;
 }
 
@@ -218,58 +213,37 @@ Notice? planned(Habit h) {
   );
 }
 
-/// En quién te convierte esto — cuando el pueblo ya puede decirlo.
+/// En quién te convierte esto. **Sólo el día que el pueblo ya puede decirlo.**
 ///
-/// **El título no se escribe, se gana.** Escribir «alguien sabio» el día que se
-/// funda el pueblo y que el tablón lo anuncie esa misma tarde sería la única
-/// mentira de todo el tablón: las otras nueve notas salen de lo que hiciste, y
-/// ésta saldría de lo que te gustaría. Todavía no hiciste nada.
+/// El título no se escribe, se gana, y hasta que se gana **no hay nada**: ni el
+/// día que fundás el pueblo, ni a los dos meses, ni un papel diciendo cuánto
+/// falta. Escribirlo el primer día y que el tablón lo anunciara esa misma tarde
+/// sería la única mentira de todo el tablón —las otras nueve notas salen de lo
+/// que hiciste y ésta saldría de lo que te gustaría—, y una barra de progreso
+/// hacia el título sería la misma app de siempre: una cosa que te persigue con
+/// lo que te falta.
 ///
-/// Así que el pueblo primero mira **cada cuánto lo hacés de verdad** —nadie
-/// declara su ritmo, se le ve— y después si lo cumplís: trece semanas al noventa
-/// por ciento de ese ritmo. Hasta entonces la nota existe igual, pero dice lo
-/// que es: lo que querés ser, y cuánto falta. Y ese día cambia sola, que es lo
-/// más parecido a una ceremonia que tiene esta app.
+/// Así que el pueblo mira en silencio **cada cuánto lo hacés de verdad** —nadie
+/// declara su ritmo, se le ve— y si lo cumplís trece semanas al noventa por
+/// ciento, un día aparece este papel y no lo estabas esperando. Es la única
+/// cosa de esta app que llega sin avisar, y por eso vale.
 Notice? whoYouAre(Habit h, DateTime now) {
-  final voy = identityStanding(h, at: now);
-  if (voy == null) return null;
-  final ritmo = rhythmSaid(voy.rhythm);
-
-  if (voy.earned) {
-    return Notice(
-      NoticeKind.who,
-      voy.said,
-      'Trece semanas cumpliendo $ritmo, el ${_pct(voy.kept)} de lo que te '
-      'pediste. El título es tuyo.',
-      bars: voy.weeks,
-      more:
-          'No es una meta. Una meta se cumple y entonces el hábito deja de '
-          'tener para qué; esto no se cumple nunca, se es o no se es, y lo que '
-          'decide cuál de las dos cosas es lo que hiciste ayer. Las barras son '
-          'las últimas trece semanas: lo que cumpliste de tu ritmo en cada '
-          'una. Bajar una semana no te lo quita — bajar tres meses, sí.',
-    );
-  }
-
-  // Todavía no. Se dice qué falta, y se dice sin reproche: lo que falta es
-  // tiempo, y el tiempo no es culpa de nadie.
-  final falta = voy.missing;
+  final dicho = identitySaid(h);
+  final gano = h.identityWonAt;
+  if (dicho == null || gano == null) return null;
   return Notice(
     NoticeKind.who,
-    'El pueblo todavía no te llama ${voy.wanted}.',
-    falta > 0
-        ? 'Un título se gana: trece semanas cumpliendo $ritmo, que es tu '
-              'ritmo. Llevás ${voy.done} y el ${_pct(voy.kept)}.'
-        : 'Van trece semanas, pero cumpliendo el ${_pct(voy.kept)} de tu '
-              'ritmo — $ritmo. Hace falta el ${_pct(identityBar)}.',
-    bars: voy.weeks,
+    dicho,
+    'El pueblo te llama así desde el ${_date(gano)}, cuando llevabas trece '
+    'semanas sin bajar de tu ritmo.',
+    bars: identityStanding(h, at: now)?.weeks ?? const [],
     more:
-        'Lo escribiste vos y el pueblo se lo toma en serio, que es justo por '
-        'lo que no lo dice todavía: si lo dijera el primer día sería la única '
-        'frase del tablón que no sale de lo que hiciste. El ritmo no lo elegís '
-        'acá, se mira: el pueblo cuenta cuántos días por semana aparecés y te '
-        'pide eso mismo, ni más ni menos. Las barras son las últimas trece '
-        'semanas, y las semanas que el pueblo durmió no cuentan.',
+        'Lo escribiste el día que fundaste esto y el pueblo se lo tomó en '
+        'serio: no lo dijo hasta que fue verdad. No es una meta —una meta se '
+        'cumple y entonces el hábito deja de tener para qué—; esto no se '
+        'cumple nunca, se es o no se es. Y ya no se pierde: un mal mes no te '
+        'quita lo que fuiste tres meses. Las barras son las últimas trece '
+        'semanas, por si querés ver cómo vas.',
   );
 }
 

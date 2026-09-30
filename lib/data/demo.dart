@@ -46,8 +46,13 @@ const double _bajon = 0.6;
 
 /// Los dos huecos: una semana y media de gripe y dos de vacaciones.
 ///
-/// A cuántos días del final empieza cada uno, y cuánto dura.
-const List<(int, int)> _huecos = [(214, 10), (96, 14)];
+/// A cuántos días del final empieza cada uno, y cuánto dura. Los dos quedan
+/// **fuera de las últimas trece semanas** a propósito: ahí es donde se mira si
+/// el título está ganado, y dos semanas seguidas sin aparecer —sin pausar el
+/// pueblo— lo tumban. Con las vacaciones dentro de esa ventana, el tablón de
+/// mentira no tenía manera de enseñar la nota del título, que es justo una de
+/// las que ese tablón existe para poder mirar.
+const List<(int, int)> _huecos = [(214, 10), (150, 14)];
 
 bool _enHueco(int back) {
   for (final (desde, dura) in _huecos) {
@@ -138,6 +143,11 @@ Habit _entrenar(DateTime today) {
     vowHour: 7,
     vowPlace: 'el gimnasio',
     identity: 'alguien que entrena antes de que empiece el día',
+    // Y el título ya ganado, con su fecha. En un pueblo de verdad lo apunta la
+    // pieza que completa las trece semanas; acá se pone a mano porque este
+    // valle no se juega, se mira — y el papel del título es justamente uno de
+    // los que hay que poder mirar.
+    identityWonAt: today.subtract(const Duration(days: 47)),
     // Un par clavadas por quien usa la app, que es una clase de nota más y
     // hace falta verla al lado de las otras dos para saber si se distinguen.
     notes: [

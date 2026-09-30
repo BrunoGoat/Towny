@@ -23,6 +23,7 @@ Habit _town(
   List<String> rests = const [],
   int? vowHour,
   String? identity,
+  DateTime? won,
 }) {
   final h = Habit(
     id: 'h1758000000000009',
@@ -33,6 +34,7 @@ Habit _town(
     character: TownCharacter.all.first.order,
     vowHour: vowHour,
     identity: identity,
+    identityWonAt: won,
     rests: [...rests],
   );
   final orden = [...when]..sort();
@@ -337,12 +339,34 @@ void main() {
       final por = {for (final l in reviewLines(r)) l.label: l.said};
       expect(por['EL PLAN'], contains('Voy a leer a las 22'));
       expect(por['EL PLAN'], contains('100%'));
-      // Seis días no son trece semanas: en abril el título todavía no estaba
-      // dado, y la hoja de abril tiene que decir lo que el pueblo decía en
-      // abril.
+      // Seis días no son trece semanas: en abril el título no estaba dado, y
+      // una hoja que dijera lo que falta sería una barra de progreso hacia ser
+      // alguien. No hay renglón y ya está.
       expect(por['QUIÉN SOS'], isNull);
-      expect(por['EL TÍTULO'], contains('alguien que lee todos los días'));
-      expect(por['EL TÍTULO'], contains('todavía no lo decía'));
+      expect(por['EL TÍTULO'], isNull);
+    });
+
+    test('y una hoja vieja no se reescribe con el título de después', () {
+      // El título se ganó en junio; la cuenta de abril tiene que decir lo que
+      // el pueblo decía en abril, que era nada.
+      final when = <DateTime>[];
+      for (var i = 0; i < 400; i++) {
+        when.add(DateTime(2025, 6, 1, 21).add(Duration(days: i)));
+      }
+      final h = _town(when,
+          born: DateTime(2025, 6, 1),
+          identity: 'alguien que lee todos los días',
+          won: DateTime(2026, 6, 15));
+      final abril = {
+        for (final l in reviewLines(Review.forMonth(h, 2026, 4, now: _hoy)))
+          l.label: l.said,
+      };
+      final julio = {
+        for (final l in reviewLines(Review.forMonth(h, 2026, 7, now: _hoy)))
+          l.label: l.said,
+      };
+      expect(abril['QUIÉN SOS'], isNull);
+      expect(julio['QUIÉN SOS'], contains('Este pueblo es de'));
     });
 
     test('y el título, cuando estaba ganado, se dice entero', () {
@@ -353,8 +377,12 @@ void main() {
         when.add(DateTime(2025, 6, 1, 21).add(Duration(days: i)));
       }
       final r = Review.forMonth(
-        _town(when, born: DateTime(2025, 6, 1),
-            identity: 'alguien que lee todos los días'),
+        _town(when,
+            born: DateTime(2025, 6, 1),
+            identity: 'alguien que lee todos los días',
+            // El título se ganó en septiembre del 25, así que en abril del 26
+            // ya estaba dado.
+            won: DateTime(2025, 9, 1)),
         2026,
         4,
         now: _hoy,

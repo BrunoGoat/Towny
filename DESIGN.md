@@ -184,26 +184,34 @@ se queda sin motivo. Una identidad no se cumple nunca: se es o no se es. Se
 escribe sin el sujeto —*alguien que lee todos los días*— y el pueblo pone el
 resto: **este pueblo es de alguien que lee todos los días**.
 
-**Pero eso el pueblo no lo dice hasta que sea verdad.** Es un título y los
-títulos se ganan: escribirlo el día que se funda el pueblo y que el tablón lo
-anunciara esa misma tarde sería la única frase del tablón que no sale de lo que
-hiciste — todavía no hiciste nada. Así que el pueblo primero averigua **cada
-cuánto lo hacés de verdad** —nadie declara su ritmo, se le ve: tres días por
-semana, cinco, todos— y después mira si lo cumplís. **Trece semanas al noventa
-por ciento de ese ritmo tuyo**, y entonces sí.
+**Pero eso el pueblo no lo dice hasta que sea verdad, y hasta entonces no dice
+nada.** Es un título y los títulos se ganan: escribirlo el día que se funda el
+pueblo y que el tablón lo anunciara esa misma tarde sería la única frase del
+tablón que no sale de lo que hiciste — todavía no hiciste nada.
 
-El listón es el ritmo propio y no un calendario lleno, porque tres días por
-semana sostenidos trece semanas son una manera de vivir igual que siete. Cada
-semana cuenta por separado y aporta como mucho lo suyo: una semana heroica no
-tapa una semana en blanco. Las semanas que el pueblo durmió no cuentan ni a
-favor ni en contra — una pausa retrasa el título, no lo pierde.
+Así que el pueblo primero averigua **cada cuánto lo hacés de verdad** —nadie
+declara su ritmo, se le ve: tres días por semana, cinco, todos— y después mira
+si lo cumplís. **Trece semanas al noventa por ciento de ese ritmo tuyo**, y
+entonces sí. El listón es el ritmo propio y no un calendario lleno, porque tres
+días por semana sostenidos trece semanas son una manera de vivir igual que
+siete. Cada semana cuenta por separado y aporta como mucho lo suyo: una semana
+heroica no tapa una semana en blanco. Las semanas que el pueblo durmió no
+cuentan ni a favor ni en contra — una pausa retrasa el título, no lo pierde.
 
-Mientras tanto el papel existe igual y dice lo que es: *el pueblo todavía no te
-llama alguien que lee todos los días*, con el ritmo que te vio y lo que llevás
-cumplido. Y el día que se gana, el papel cambia solo — que es lo más parecido a
-una ceremonia que tiene esta app. Sin ganar va al final del tablón, porque es
-algo a lo que vas; ganado va arriba del todo, porque es la noticia más grande
-que un pueblo puede dar de vos.
+**Y no hay nada en el camino.** Ni papel al fundar, ni papel a los dos meses, ni
+una cuenta atrás, ni una barra que se llene: una barra de progreso hacia ser
+alguien es la app de siempre persiguiéndote con lo que te falta. El pueblo mira
+en silencio, y un día —el día que ponés la pieza que cierra la decimotercera
+semana— el pueblo lo dice, lo celebra como un hito y el papel aparece arriba del
+todo en el tablón. Es la única cosa de toda la app que llega sin que la estuvieras
+esperando, y por eso vale.
+
+**El día queda apuntado y el título no se pierde.** Lo gana una pieza, con su
+fecha, y desde entonces la frase está en el tablón para siempre: un mal mes no
+te quita lo que fuiste tres meses, igual que una racha rota no borraba cuarenta
+días. Guardar el día —en vez de recalcularlo cada vez que se abre el tablón— es
+además lo que evita lo peor que podía pasarle a esto: que la frase apareciera y
+desapareciera sola según cómo hubiera ido la última semana.
 
 **La regla: detrás de qué va.** El tablón ya sabía cuáles de tus hábitos van
 juntos —*Correr arrastra a Estirar*— y eso era una observación. Firmarla la
@@ -503,9 +511,9 @@ existían.
 Cada página dice seis cosas y ninguna es una felicitación: lo que pusiste (en
 cuántos de los días que contaban), **contra el tramo anterior** en puntos, los
 huecos y el más largo —y que volviste de todos—, lo que se levantó y lo que quedó
-en obra, si el plan se cumplió, y el título: quién sos, si ya lo habías ganado, y
-si no, lo que le faltaba **entonces** — la cuenta de abril dice lo que el pueblo
-decía en abril, no lo que dice hoy.
+en obra, si el plan se cumplió, y el título — **si ya estaba ganado entonces**:
+la cuenta de abril dice lo que el pueblo decía en abril, no lo que dice hoy, y
+si el título llegó en junio, en la hoja de abril no está.
 
 Y acaba en una pregunta que la app no contesta: **¿qué es lo único que haría que
 el mes que viene fuera mejor?** Es lo único que una revisión tiene que hacer y lo
