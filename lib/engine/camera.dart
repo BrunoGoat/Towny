@@ -134,8 +134,11 @@ class OrbitCamera {
   double _nearest(double current, double want) =>
       current + angleDelta(current, want);
 
-  void step(double dt) {
-    final k = 1 - math.exp(-dt * 7.5);
+  /// Acerca la cámara a sus objetivos. [rate] es lo rápido que llega: el de
+  /// siempre sigue al dedo casi al instante, y uno bajo es un planeo — el que
+  /// hace la cámara al bajar al pueblo recién fundado.
+  void step(double dt, {double rate = 7.5}) {
+    final k = 1 - math.exp(-dt * rate);
     travel += (travelTarget - travel) * k;
     focusY += (focusYTarget - focusY) * k;
     focusZ += (focusZTarget - focusZ) * k;
@@ -247,4 +250,36 @@ class OrbitCamera {
 
   /// How far the stones carry on as plain blocks past the detailed band.
   double coarseRadius = 60;
+}
+
+/// La toma en la que la primera vez le pasa el valle al pueblo.
+///
+/// La pantalla de las preguntas y el pueblo pintan el mismo valle con el mismo
+/// pintor, así que para que el paso de una a otra no se note basta con que la
+/// última toma de la primera sea la primera del segundo: las preguntas bajan
+/// hasta acá, y el pueblo arranca acá y sigue bajando mientras sube la plaza.
+class HandoffShot {
+  const HandoffShot._();
+
+  static const double yaw = 0.62;
+  static const double pitch = 0.24;
+  static const double distance = 27.0;
+  static const double focusY = 1.8;
+
+  /// Pone una cámara exactamente en la toma, sin planeo.
+  static void apply(OrbitCamera c) {
+    c
+      ..travel = 0
+      ..travelTarget = 0
+      ..focusZ = 0
+      ..focusZTarget = 0
+      ..yaw = yaw
+      ..yawTarget = yaw
+      ..pitch = pitch
+      ..pitchTarget = pitch
+      ..distance = distance
+      ..distanceTarget = distance
+      ..focusY = focusY
+      ..focusYTarget = focusY;
+  }
 }

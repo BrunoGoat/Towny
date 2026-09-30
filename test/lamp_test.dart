@@ -30,28 +30,18 @@ Future<ui.Image> _frame() async {
     ..wallLength = l.radius * 2;
   final pal = Palette.forMoment(
     19.8,
-    1.0,
     season: Season.on(DateTime(2026, 5, 20), Hemisphere.north),
   );
   final scene = TownScene(
     placed: 38,
     palette: pal,
     camera: cam,
-    integrity: 1,
     time: 7.3,
     hourOfDay: 19.8,
     effects: EffectSystem(),
     labelledBricks: const {},
     budget: 60000,
-    towns: [
-      TownEntry(
-        layout: l,
-        name: 'Leer',
-        symbol: 'libro',
-        integrity: 1,
-        placed: 38,
-      ),
-    ],
+    towns: [TownEntry(layout: l, name: 'Leer', symbol: 'libro', placed: 38)],
     active: 0,
     labels: false,
   );

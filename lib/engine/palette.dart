@@ -27,9 +27,8 @@ class Palette {
     required this.contrast,
     required this.hour,
     required this.starAlpha,
-    Color? skyClean,
     this.season = Season.none,
-  }) : skyClean = skyClean ?? skyTop;
+  });
 
   final Color skyTop, skyHorizon, haze, ground, groundFar;
   final Color stone, stoneWarm, stoneCool, mortar;
@@ -47,21 +46,6 @@ class Palette {
   /// Quien necesite la hora de verdad —la fugaz, el tablón, la música— la
   /// tiene aparte y no la saca de acá.
   final double hour;
-
-  /// El techo del cielo **como estaría si el pueblo estuviera cuidado**.
-  ///
-  /// Igual que [skyTop] salvo en un pueblo dejado: el abandono tira del cielo
-  /// hacia un gris de ceniza, y ese gris es *claro*. Para lo que se pinta
-  /// dentro de la escena eso está bien —un pueblo dejado tiene el cielo
-  /// apagado—, pero la interfaz no puede salir de ahí: elige entre tinta
-  /// parda y tinta crema mirando cuánta luz hay arriba, y un cielo de noche
-  /// aclarado por la ceniza le decía que era de día. El resultado era que en
-  /// un pueblo abandonado los rótulos volvían al pardo de mediodía sobre un
-  /// cielo casi negro.
-  ///
-  /// Así que la interfaz mira este, que depende sólo de la hora. El descuido
-  /// apaga el valle; no tiene por qué apagar también las letras.
-  final Color skyClean;
 
   /// En qué punto del año está el valle.
   final Season season;
@@ -253,8 +237,7 @@ class Palette {
     (24.0, _night),
   ];
 
-  /// Blends the cycle at [hourOfDay] and then weathers it by [integrity]
-  /// (1 = pristine, 0.12 = long abandoned).
+  /// Blends the cycle at [hourOfDay].
   ///
   /// La estación no le cambia los colores al ciclo: le cambia **a qué hora
   /// pasa cada cosa**. El ciclo de arriba está escrito para un día que
@@ -270,11 +253,7 @@ class Palette {
   /// la luz del amanecer, que es lo que se ve por la ventana— y la tarde se
   /// encoge. El sol sale de esta misma hora, así que la luz y el color no se
   /// pueden desacoplar aunque uno quiera.
-  factory Palette.forMoment(
-    double hourOfDay,
-    double integrity, {
-    Season season = Season.none,
-  }) {
+  factory Palette.forMoment(double hourOfDay, {Season season = Season.none}) {
     final h = _cycleHour(hourOfDay % 24.0, season);
     var lo = _cycle.first, hi = _cycle.last;
     for (var i = 0; i < _cycle.length - 1; i++) {
@@ -288,7 +267,7 @@ class Palette {
     final raw = span <= 0 ? 0.0 : (h - lo.$1) / span;
     // Ease the crossfade so dawn and dusk linger instead of snapping.
     final t = raw * raw * (3 - 2 * raw);
-    return _PaletteSpec.lerp(lo.$2, hi.$2, t).weathered(integrity, h, season);
+    return _PaletteSpec.lerp(lo.$2, hi.$2, t).at(h, season);
   }
 
   /// La hora del reloj, llevada al horario que supone el ciclo.
@@ -352,32 +331,23 @@ class _PaletteSpec {
         starAlpha: lerpD(a.starAlpha, b.starAlpha, t),
       );
 
-  /// Neglect drains the warmth out of everything and thickens the air.
-  Palette weathered(double integrity, double hour, Season season) {
-    final decay = 1.0 - integrity.clamp(0.0, 1.0);
-    const grim = Color(0xFF6D7367);
-    const grimSky = Color(0xFF8A8F92);
-    Color w(Color c, double amount) => Color.lerp(c, grim, decay * amount)!;
-    Color s(Color c, double amount) => Color.lerp(c, grimSky, decay * amount)!;
-    return Palette(
-      skyTop: s(skyTop, 0.45),
-      skyClean: skyTop,
-      skyHorizon: s(skyHorizon, 0.52),
-      haze: s(haze, 0.58),
-      ground: w(ground, 0.40),
-      groundFar: w(groundFar, 0.48),
-      stone: w(stone, 0.45),
-      stoneWarm: w(stoneWarm, 0.50),
-      stoneCool: w(stoneCool, 0.35),
-      mortar: w(mortar, 0.30),
-      sun: s(sun, 0.5),
-      skyLight: s(skyLight, 0.40),
-      accent: accent,
-      ink: ink,
-      contrast: lerpD(contrast, 0.84, decay),
-      hour: hour,
-      season: season,
-      starAlpha: starAlpha * (1 - decay * 0.7),
-    );
-  }
+  Palette at(double hour, Season season) => Palette(
+    skyTop: skyTop,
+    skyHorizon: skyHorizon,
+    haze: haze,
+    ground: ground,
+    groundFar: groundFar,
+    stone: stone,
+    stoneWarm: stoneWarm,
+    stoneCool: stoneCool,
+    mortar: mortar,
+    sun: sun,
+    skyLight: skyLight,
+    accent: accent,
+    ink: ink,
+    contrast: contrast,
+    hour: hour,
+    season: season,
+    starAlpha: starAlpha,
+  );
 }

@@ -93,22 +93,15 @@ void _retrato(Canvas canvas, Landmark l, TownCharacter ch, double giro) {
     ..wallLength = layout.radius * 2;
   final scene = TownScene(
     placed: l.cost,
-    palette: Palette.forMoment(11, 1.0),
+    palette: Palette.forMoment(11),
     camera: cam,
-    integrity: 1,
     time: 3.0,
     hourOfDay: 11,
     effects: EffectSystem(),
     labelledBricks: const {},
     budget: 22000,
     towns: [
-      TownEntry(
-        layout: layout,
-        name: l.name,
-        symbol: 'torre',
-        integrity: 1,
-        placed: l.cost,
-      ),
+      TownEntry(layout: layout, name: l.name, symbol: 'torre', placed: l.cost),
     ],
     active: 0,
     labels: false,

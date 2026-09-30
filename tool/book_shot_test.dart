@@ -27,9 +27,9 @@ void main() {
     // cuadrado y no sirve para mirar una página.
     await tester.runAsync(() async {
       final bytes = await File('assets/fonts/RobotoSlab.ttf').readAsBytes();
-      await (FontLoader('Chronicle')
-            ..addFont(Future.value(bytes.buffer.asByteData())))
-          .load();
+      await (FontLoader(
+        'Chronicle',
+      )..addFont(Future.value(bytes.buffer.asByteData()))).load();
     });
     SharedPreferences.setMockInitialValues({});
     await Appearance.instance.load();
@@ -61,7 +61,7 @@ void main() {
                 color: const Color(0xFF3E4A2C),
                 child: LegendsBook(
                   habit: store.habit,
-                  theme: UiTheme(Palette.forMoment(11, 1.0)),
+                  theme: UiTheme(Palette.forMoment(11)),
                 ),
               ),
             ),

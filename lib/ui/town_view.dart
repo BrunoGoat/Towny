@@ -8,7 +8,6 @@ import '../core/math3.dart';
 import '../core/rng.dart';
 import '../data/constellations.dart';
 import '../data/landmarks.dart';
-import '../data/pacing.dart';
 import '../engine/camera.dart';
 import '../engine/palette.dart';
 import '../engine/renderer.dart';
@@ -204,11 +203,6 @@ class _TownViewState extends State<TownView>
   int? _showcase;
   double _showcaseAge = 0;
 
-  double _displayIntegrity = 1;
-
-  /// Segundos que le quedan a las luces para volver despacio. Ver
-  /// [_welcomeBack].
-  double _relightSlow = 0;
   int? _selectedPiece;
   double _charge = 0;
 
@@ -245,7 +239,6 @@ class _TownViewState extends State<TownView>
     widget.controller._state = this;
     _palette = _buildPalette();
     _rebuildLayout();
-    _displayIntegrity = widget.store.integrity;
     _frameTown();
     // Fixed framing for development screenshots.
     const camYaw = int.fromEnvironment('CAM_YAW', defaultValue: -999);
@@ -260,6 +253,10 @@ class _TownViewState extends State<TownView>
     if (camX != -999) _cam.travelTarget = camX / 10;
     if (camZ != -999) _cam.focusZTarget = camZ / 10;
     _cam.snap();
+    // Recién fundado, el pueblo no arranca en su encuadre: arranca en la toma
+    // en la que lo dejaron las preguntas, que pintaban este mismo valle, y
+    // baja desde ahí. Así no hay corte entre una pantalla y la otra.
+    if (widget.store.justFounded) HandoffShot.apply(_cam);
     _ticker = createTicker(_tick)..start();
     widget.store.addListener(_onStoreChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -315,6 +312,9 @@ class _TownViewState extends State<TownView>
   /// fundarse, sube en segundo y medio y se queda en uno para siempre. No se
   /// guarda: es un instante.
   double _founding = 1.0;
+
+  /// Segundos que le quedan a la cámara de planeo, después de fundar.
+  double _glide = 0;
 
   /// Para no pedir el vuelo dos veces mientras se sigue apartando.
   bool _asked = false;
@@ -437,7 +437,6 @@ class _TownViewState extends State<TownView>
       layout: _layoutOf(h, mine ? store.shownTotal : null),
       name: h.name,
       symbol: h.symbol,
-      integrity: Store.integrityOf(h),
       placed: mine ? store.shownTotal : h.total,
       crowned: crowned,
     );
@@ -457,11 +456,8 @@ class _TownViewState extends State<TownView>
     return Appearance.instance.hourNow;
   }
 
-  Palette _buildPalette() => Palette.forMoment(
-    _hour,
-    _displayIntegrity,
-    season: Appearance.instance.season,
-  );
+  Palette _buildPalette() =>
+      Palette.forMoment(_hour, season: Appearance.instance.season);
 
   // ------------------------------------------------------------------ tick
 
@@ -478,6 +474,7 @@ class _TownViewState extends State<TownView>
       _frameTown();
       _cam.distanceTarget = 11.0;
       _cam.pitchTarget = 0.30;
+      _glide = 3.6;
     }
     if (_founding < 1.0) {
       _founding = math.min(1.0, _founding + dt / 1.7);
@@ -493,7 +490,10 @@ class _TownViewState extends State<TownView>
       }
     }
 
-    _cam.step(dt);
+    // Planea mientras baja al pueblo recién fundado, y sigue al dedo el resto
+    // del tiempo. Un toque corta el planeo: quien mueve la cámara la quiere ya.
+    if (_glide > 0) _glide -= dt;
+    _cam.step(dt, rate: _glide > 0 ? 1.5 : 7.5);
     _watchTheHorizon();
     _fx.update(dt);
     if (_finished != null) {
@@ -510,22 +510,9 @@ class _TownViewState extends State<TownView>
       if (p.done) _placement = null;
     }
 
-    final target = widget.store.integrity;
-    // Normalmente esto alcanza al objetivo en menos de un segundo, que es lo
-    // que hace falta para que apagarse y encenderse no se vean como un salto.
-    // Volver de un pueblo a oscuras es la excepción: ahí se frena a propósito,
-    // para que las luces tarden en volver lo que tarda en mirarse.
-    final ritmo = _relightSlow > 0 ? 0.55 : 1.4;
-    _displayIntegrity +=
-        (target - _displayIntegrity) * (1 - math.exp(-dt * ritmo));
-    if (_relightSlow > 0) {
-      _relightSlow -= dt;
-      if (_relightSlow <= 0) _relightSlow = 0;
-    }
-
     _spawnAmbient(dt);
 
-    Sensory.instance.music(_hour, dt, _displayIntegrity);
+    Sensory.instance.music(_hour, dt);
     // Una sola vez por fugaz: esto corre en cada fotograma y la fugaz dura
     // cinco segundos. Por su nombre y no por el reloj, porque las que se piden
     // a mano desde los ajustes no caen en ninguna ventana del reloj.
@@ -571,13 +558,7 @@ class _TownViewState extends State<TownView>
     // Se mira si cambió algo que importe y no cada fotograma a ciegas: el color
     // del cielo va en ocho bits, así que entre minuto y minuto es el mismo
     // número y esto no dispara nada.
-    //
-    // Y se mira el cielo **sin el abandono** (ver [Palette.skyClean]), que es
-    // del que sale la interfaz. El de verdad se aclara un poco en cada
-    // fotograma mientras un pueblo se apaga o se vuelve a encender, y eso no
-    // le cambia a la interfaz ni un color: avisar ahí era despertar a media
-    // app durante los segundos que dura el desvanecido.
-    if (pal.skyClean != antes.skyClean || pal.accent != antes.accent) {
+    if (pal.skyTop != antes.skyTop || pal.accent != antes.accent) {
       widget.onPaletteChanged(pal);
     }
 
@@ -611,7 +592,10 @@ class _TownViewState extends State<TownView>
   }
 
   double _idleFor = 0;
-  void _touched() => _idleFor = 0;
+  void _touched() {
+    _idleFor = 0;
+    _glide = 0;
+  }
 
   int _ambientCounter = 0;
 
@@ -639,17 +623,9 @@ class _TownViewState extends State<TownView>
       if (piece.kind != PieceKind.chimney) continue;
       final dx = piece.cx - _cam.travel, dz = piece.cz - _cam.focusZ;
       if (dx * dx + dz * dz > 26 * 26) continue;
-      // Todas las chimeneas de un pueblo sano echan humo, y se van apagando
-      // según pasan los días sin que nadie ponga una pieza. Un pueblo sin humo
-      // encima es la manera más legible de decir que aquí no ha venido nadie.
-      //
-      // Antes se apagaba además un tercio largo de ellas a suertes —«no todos
-      // los hogares están encendidos», que en un pueblo grande es verdad y se
-      // ve bien—, pero un pueblo empieza con dos casas: una chimenea humeando
-      // al lado de otra que no no se lee como que ahí no han encendido, se lee
-      // como que ésa está rota.
-      final lit = _displayIntegrity * _displayIntegrity;
-      if (hash01(piece.seed, 91) > lit) continue;
+      // Todas las chimeneas echan humo. Se apagaban a suertes —«no todos los
+      // hogares están encendidos»—, pero un pueblo empieza con dos casas: una
+      // chimenea humeando al lado de otra que no se lee como que ésa está rota.
       found++;
       if (_ambientCounter % 4 != 0) continue;
       _fx.smoke(
@@ -699,13 +675,10 @@ class _TownViewState extends State<TownView>
     _touched();
     _showcase = null;
     final store = widget.store;
-    final wasDecaying = store.integrity < 0.995;
-    final before = store.integrity;
     store.setPreview(null);
     final result = store.placePiece();
     _selectedPiece = null;
     _followPlacement(result.piece.index);
-    if (wasDecaying) _displayIntegrity = before;
     _pendingResult = result;
     // In the town a piece is set down, not dropped from a crane: from high up
     // it reads as a bug, and the anticipation is in the shadow closing under
@@ -767,7 +740,7 @@ class _TownViewState extends State<TownView>
         widget.onWhisper('${building.name} en pie');
       }
     }
-    if (result != null && result.relit) _welcomeBack(result, town, done);
+    if (result != null && result.returned) _welcomeBack(result, town, done);
     // Y si ésta fue la pieza que abrió el valle, se dice. Pasa una sola vez en
     // la vida de un valle, y si no se dijera nadie se enteraría: el anillo del
     // más se cierra y ya está, que es muy poco para lo que acaba de pasar.
@@ -803,23 +776,19 @@ class _TownViewState extends State<TownView>
   /// vez más difícil, y eso se juega entero acá — en si volver se siente como
   /// una fiesta o como pasar lista.
   ///
-  /// Así que la celebración crece con lo apagado que estaba: volver desde el
-  /// doce por ciento tiene que sentirse como rematar un hito, porque
-  /// psicológicamente es más que eso. Alguien que vuelve después de veinte
-  /// días está demostrando que el abandono no era definitivo, y eso vale más
-  /// que cualquier racha que pudiera haber conservado.
+  /// Así que la celebración crece con lo largo que fue el hueco, medido desde
+  /// donde empieza a ser un hueco para vos: volver después de veinte días
+  /// tiene que sentirse como rematar un hito, porque psicológicamente es más
+  /// que eso. Alguien que vuelve está demostrando que el abandono no era
+  /// definitivo, y eso vale más que cualquier racha que pudiera haber
+  /// conservado.
+  ///
+  /// Antes esto se medía por lo apagado que estaba el pueblo, y las luces
+  /// volvían despacio. El pueblo ya no se apaga; la fiesta es la misma.
   void _welcomeBack(PlaceResult result, TownLayout town, bool finished) {
-    // Cero cuando apenas se había apagado, uno cuando estaba en el suelo.
-    final hondo = clampD(
-      (1.0 - result.relitFrom) / (1.0 - Pacing.minIntegrity),
-      0.0,
-      1.0,
-    );
-    // Las luces vuelven despacio y no de un fundido. La integridad ya sube
-    // sola hacia su objetivo; lo que se hace acá es frenar esa subida para que
-    // dé tiempo a verla, y sólo cuando había algo que ver — estirar un dos por
-    // ciento durante dos segundos se lee como un tirón, no como una vuelta.
-    _relightSlow = hondo > 0.25 ? 2.6 : 0.0;
+    // Cero en el umbral de lo tuyo, uno dos semanas más allá.
+    final desde = Store.awayAfter(widget.store.habit);
+    final hondo = clampD((result.awayDays - desde) / 14.0, 0.0, 1.0);
 
     // Una vuelta de verdad se oye. Es el sonido de reparar, que ya existía
     // para esto exactamente y no se usaba en el único sitio donde significa
@@ -830,9 +799,9 @@ class _TownViewState extends State<TownView>
       });
     }
 
-    // Y se ve. Chispas desde la plaza, tantas como oscuro estaba, y la cámara
-    // se aparta para que se vea encenderse el pueblo entero en vez de la
-    // piedra que acabás de poner.
+    // Y se ve. Chispas desde la plaza, tantas como largo fue el hueco, y la
+    // cámara se aparta para que se vea el pueblo entero en vez de la piedra
+    // que acabás de poner.
     if (hondo > 0.45) {
       _fx.celebrate(
         V3(town.cx, 0, town.cz),
@@ -856,8 +825,8 @@ class _TownViewState extends State<TownView>
           // Volvió antes de lo que había dicho. Eso no se corrige, se celebra.
           ? 'El pueblo despierta antes de tiempo.'
           : hondo > 0.6
-          ? 'Volviste. El pueblo entero vuelve a encenderse.'
-          : 'El pueblo vuelve a encenderse',
+          ? 'Volviste. Está todo donde lo dejaste.'
+          : 'El pueblo te estaba esperando',
     );
   }
 
@@ -1191,7 +1160,6 @@ class _TownViewState extends State<TownView>
       placed: store.shownTotal,
       palette: _palette,
       camera: _cam,
-      integrity: _displayIntegrity,
       time: _time,
       hourOfDay: _hour,
       effects: _fx,

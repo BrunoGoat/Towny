@@ -24,8 +24,8 @@ List<Notice> noticesFor(
     if (n != null) out.add(n);
   }
 
-  // What is coming first, then the three things you decided —quién sos, el
-  // plan, la regla—, then who you are on a normal week, then the two hard ones
+  // What is coming first, then the two things you decided —quién sos y el
+  // plan—, then who you are on a normal week, then the two hard ones
   // — and those two in that order, because "un fallo se lleva al siguiente"
   // read on its own is worth much less than read next to "y volvés a los dos
   // días".
@@ -37,7 +37,6 @@ List<Notice> noticesFor(
   // dirían lo mismo con dos papeles, y uno de los dos sin la mitad que importa.
   final elPlan = planned(h);
   add(elPlan);
-  add(stacked(h, others, now));
   if (elPlan == null || elPlan.bars.isEmpty) add(peakHour(h));
   add(standoutDay(h, now));
   add(pairing(h, others, now));
@@ -130,7 +129,7 @@ Notice? ahead(Habit h, String? what, int left, DateTime now) {
   );
 }
 
-// ------------------------------------------------ las tres que decidiste vos
+// --------------------------------------------------- las que dijiste vos
 
 /// El plan: a qué hora y en qué sitio dijiste que lo ibas a hacer.
 ///
@@ -141,9 +140,11 @@ Notice? ahead(Habit h, String? what, int left, DateTime now) {
 ///
 /// Tres papeles distintos según lo que haya:
 ///
-///  * **Sin plan y con costumbre.** El pueblo ya sabe a qué hora aparecés, así
-///    que lo que falta es darlo por decidido. No se propone ninguna hora
-///    inventada: se propone la tuya.
+///  * **Sin plan y con costumbre.** El pueblo ya sabe a qué hora aparecés, y
+///    lo cuenta como lo que es: algo que ya hacés. No se propone ninguna hora
+///    inventada, se propone la tuya, y decir dónde es un «si querés» — el plan
+///    ya no se pide al fundar, así que ésta es la única vez que sale, y no
+///    puede sonar a tarea pendiente.
 ///  * **Con plan que ya no es el tuyo.** Dijiste a las diez y aparecés a las
 ///    siete. El papel lo dice sin regañar, porque no hay nada que regañar: el
 ///    plan viejo es el que está mal.
@@ -156,18 +157,17 @@ Notice? planned(Habit h) {
     if (uso == null) return null;
     return Notice(
       NoticeKind.plan,
-      'Siempre ${hourSaid(uso.$1)}, y sin plan escrito.',
-      'Ahí caen el ${_pct(uso.$2)} de tus piezas. Falta decir en qué sitio y '
-          'darlo por decidido.',
+      'Casi siempre ${hourSaid(uso.$1)}.',
+      'Ahí caen el ${_pct(uso.$2)} de tus piezas. Si querés, contale al '
+          'pueblo dónde, y queda dicho.',
       bars: _clockBars(h),
       ticks: _clockTicks,
       mark: uso.$1,
       more:
-          'Un plan con hora y sitio —«voy a leer a las 22, en la cama»— no es '
-          'un recordatorio: es una decisión que se toma una vez y no se vuelve '
-          'a tomar. Escribirlo hace que pase mucho más a menudo que quererlo '
-          'mucho. Las barras son las veinticuatro horas del día, y la marcada '
-          'es la tuya.',
+          'No es una tarea: ya lo hacés. Decirlo con hora y sitio —«leer a las '
+          '22, en la cama»— lo deja decidido, y lo decidido no hay que volver '
+          'a pensarlo cada día. Las barras son las veinticuatro horas del día, '
+          'y la marcada es la tuya.',
     );
   }
 
@@ -176,7 +176,10 @@ Notice? planned(Habit h) {
   final desvio = planDrift(h);
   // Tres horas de diferencia no es despistarse: es otro momento del día. Por
   // debajo de eso el plan sigue siendo el tuyo y no hay nada que avisar.
-  if (hora != null && uso != null && cumple != null && desvio != null &&
+  if (hora != null &&
+      uso != null &&
+      cumple != null &&
+      desvio != null &&
       desvio >= 3) {
     return Notice(
       NoticeKind.plan,
@@ -244,48 +247,6 @@ Notice? whoYouAre(Habit h, DateTime now) {
         'cumple nunca, se es o no se es. Y ya no se pierde: un mal mes no te '
         'quita lo que fuiste tres meses. Las barras son las últimas trece '
         'semanas, por si querés ver cómo vas.',
-  );
-}
-
-/// La regla: detrás de qué otro hábito va éste.
-///
-/// Lo que el tablón ya decía —que dos hábitos van juntos— firmado. La
-/// diferencia entre las dos cosas es que la observación describe y la regla
-/// decide: si estirar va detrás de correr, estirar no necesita recordatorio
-/// ninguno, porque el recordatorio es correr.
-///
-/// Se enseña con las dos cifras, igual que la nota que empareja dos hábitos,
-/// porque una sola no dice nada: cumplirla el ochenta por ciento sólo significa
-/// algo si los demás días no es lo mismo.
-Notice? stacked(Habit h, List<Habit> others, DateTime now) {
-  final antes = afterOf(h, others);
-  final dicho = ruleSaid(h, others);
-  if (antes == null || dicho == null) return null;
-  final score = ruleKept(h, others, at: now);
-  if (score == null) {
-    return Notice(
-      NoticeKind.rule,
-      dicho,
-      'Regla nueva. Todavía no hay días bastantes para saber si se cumple.',
-      more:
-          'Un hábito enganchado a otro que ya existe no necesita recordatorio: '
-          'el recordatorio es el otro. Cuando haya unos cuantos días, acá va a '
-          'estar la cuenta de cuántas veces se cumplió de verdad.',
-    );
-  }
-  return Notice(
-    NoticeKind.rule,
-    dicho,
-    'Los días de ${antes.name}, ${h.name} cae el ${_pct(score.kept)} de las '
-    'veces. El resto de los días, el ${_pct(score.without)}.',
-    bars: [score.kept, score.without],
-    ticks: ['con ${antes.name}', 'sin ${antes.name}'],
-    mark: 0,
-    more:
-        'Contado sobre los ${score.of + score.ofWithout} días en que los dos '
-        'pueblos ya existían y ninguno dormía: ${score.of} con '
-        '${antes.name} y ${score.ofWithout} sin. Si las dos barras se parecen, '
-        'la regla está escrita pero no está haciendo nada.',
   );
 }
 
@@ -612,23 +573,15 @@ Notice? pairing(Habit h, List<Habit> others, DateTime now) {
   var bestGap = 0.20;
   for (final o in others) {
     if (o.id == h.id) continue;
-    // Si los dos ya están unidos por una regla firmada, la observación sobra:
-    // la nota de la regla dice lo mismo y además dice que lo decidiste vos.
-    if (h.afterId == o.id || o.afterId == h.id) continue;
     // El otro primero: «Correr arrastra a Leer» en el tablón de Leer habla de
     // Leer, que es de quien es el tablón. Y con dos hábitos que caen siempre el
-    // mismo día las dos direcciones empatan, así que el orden decide — y la que
-    // tiene que ganar es ésta, que es la única que se puede firmar como regla.
+    // mismo día las dos direcciones empatan, así que el orden decide.
+    //
+    // Es una observación y nada más. Se podía firmar como regla —«después de
+    // correr, leer»— y ya no: que dos hábitos van juntos lo ve el pueblo, no
+    // hace falta declararlo.
     for (final pair in [(o, h), (h, o)]) {
-      // El que va primero, para poder firmar la regla desde el tablón — y sólo
-      // cuando el que va detrás es este hábito, porque una regla se firma en la
-      // hoja de quien la va a cumplir y éste es su tablón.
-      final n = _pairing(
-        pair.$1,
-        pair.$2,
-        now,
-        about: pair.$2.id == h.id ? pair.$1.id : null,
-      );
+      final n = _pairing(pair.$1, pair.$2, now);
       if (n == null) continue;
       if (n.$2 > bestGap) {
         bestGap = n.$2;
@@ -639,12 +592,7 @@ Notice? pairing(Habit h, List<Habit> others, DateTime now) {
   return best;
 }
 
-(Notice, double)? _pairing(
-  Habit a,
-  Habit b,
-  DateTime now, {
-  String? about,
-}) {
+(Notice, double)? _pairing(Habit a, Habit b, DateTime now) {
   final da = daysOf(a), db = daysOf(b);
   if (da.isEmpty || db.isEmpty) return null;
   final from = da.first.isAfter(db.first) ? da.first : db.first;
@@ -688,9 +636,6 @@ Notice? pairing(Habit h, List<Habit> others, DateTime now) {
       bars: [near, far],
       ticks: ['con ${a.name}', 'sin ${a.name}'],
       mark: 0,
-      // Sólo se puede firmar lo que va junto. «Casi nunca el mismo día» es una
-      // observación verdadera y una regla imposible.
-      about: near > far ? about : null,
       more:
           'Contado sobre los ${withA + withoutA} días desde que existen los '
           'dos y ninguno dormía: '

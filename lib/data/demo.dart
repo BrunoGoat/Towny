@@ -219,14 +219,8 @@ Habit _leer(DateTime today, Habit entrenar) {
     slot: 1,
     createdAt: today.subtract(const Duration(days: _span - 62)),
     pieces: pieces,
-    // Y la regla firmada, que va en este pueblo y no en el otro: la regla la
-    // lleva quien la cumple. Leer va detrás de entrenar, que es exactamente la
-    // forma que tienen estos datos — el día que se entrena se lee bastante más.
-    //
-    // Firmarla hace que el tablón de leer enseñe la regla **en lugar de** la
-    // observación de la que salió, que es lo que tiene que pasar: dirían lo
-    // mismo, y una de las dos además dice que lo decidiste vos.
-    afterId: 'demo-entrenar',
+    // Leer va detrás de entrenar —el día que se entrena se lee bastante más—
+    // y el tablón de leer lo dice como lo que es: una observación.
     vowHour: 22,
     vowPlace: 'la cama',
   );

@@ -184,7 +184,7 @@ void main() {
             home: NoticeBoardScreen(
               valley: store.habits,
               habit: h,
-              theme: UiTheme(Palette.forMoment(13, 1.0)),
+              theme: UiTheme(Palette.forMoment(13)),
               store: store,
             ),
           ),
@@ -259,7 +259,7 @@ void main() {
             home: NoticeBoardScreen(
               valley: store.habits,
               habit: store.habit,
-              theme: UiTheme(Palette.forMoment(13, 1.0)),
+              theme: UiTheme(Palette.forMoment(13)),
               store: store,
             ),
           ),

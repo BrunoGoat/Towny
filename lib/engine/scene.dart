@@ -32,7 +32,6 @@ class TownEntry {
     required this.layout,
     required this.name,
     required this.symbol,
-    required this.integrity,
     required this.placed,
     this.crowned = false,
     this.founded = true,
@@ -42,9 +41,6 @@ class TownEntry {
   final String name;
   final String symbol;
 
-  /// How lit this town is. A habit left alone goes dark, and from across the
-  /// valley that is the whole comparison: this one is alive, that one is not.
-  final double integrity;
   final int placed;
 
   /// True for the town with the most pieces in the valley.
@@ -142,7 +138,6 @@ class TownScene {
     required this.placed,
     required this.palette,
     required this.camera,
-    required this.integrity,
     required this.time,
     required this.hourOfDay,
     required this.effects,
@@ -161,13 +156,18 @@ class TownScene {
     this.founding = 1.0,
     this.folk = true,
     this.soloFolk,
+    this.ghost = true,
   });
+
+  /// Si se dibuja el contorno de la pieza que viene. No en el valle de la
+  /// primera vez: ahí todavía no hay pueblo, y un rectángulo de alambre en el
+  /// prado se lee como un fallo y no como una promesa.
+  final bool ghost;
 
   /// How many achievements have been laid.
   final int placed;
   final Palette palette;
   final OrbitCamera camera;
-  final double integrity;
   final double time;
 
   /// La hora que se está pintando, de 0 a 24. La paleta ya sale de ella, pero

@@ -176,7 +176,7 @@ void main() {
           home: TownLandmarkOverlay(
             mark: TownPlan.landmarkOf(obra.id)!,
             ordinal: 1,
-            theme: UiTheme(Palette.forMoment(13, 1.0)),
+            theme: UiTheme(Palette.forMoment(13)),
             onDismiss: () {},
             span: obra,
           ),
@@ -197,7 +197,7 @@ void main() {
           home: TownLandmarkOverlay(
             mark: TownPlan.landmarkOf('pozo')!,
             ordinal: 1,
-            theme: UiTheme(Palette.forMoment(13, 1.0)),
+            theme: UiTheme(Palette.forMoment(13)),
             onDismiss: () {},
           ),
         ),

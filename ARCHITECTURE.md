@@ -64,8 +64,8 @@ lo siguen decidiendo los planos, que es lo que costó arreglar en su día—:
 Lo garantiza `test/clip_test.dart`, y lo garantiza de la única manera que vale
 para esto: **pinta la misma escena con el recorte y sin él y exige cero píxeles
 de diferencia** — ocho ángulos, tres distancias, de noche con las ventanas
-encendidas, a ras del suelo y a plomo, un valle de seis pueblos, un pueblo a la
-deriva y las sesenta obras del catálogo de cerca. No es «no se nota»: es que es
+encendidas, a ras del suelo y a plomo, un valle de seis pueblos y las sesenta
+obras del catálogo de cerca. No es «no se nota»: es que es
 el mismo fotograma.
 
 Y hay una tercera, ésta al construir y no al pintar: **la cara enterrada no se
@@ -212,7 +212,7 @@ pueblos. Android 7.0 (API 24) o superior.
 | define | para qué |
 |---|---|
 | `SEED=365` | arranca con esa cantidad de piezas |
-| `IDLE_DAYS=13` | las coloca hace N días, para ver el deterioro |
+| `IDLE_DAYS=13` | las coloca hace N días, para ver la vuelta |
 | `REGION=2` | funda el pueblo en esa región |
 | `VALLEY=300,120:9,40` | un valle entero: piezas y días parado por pueblo |
 | `HOUR=19` | fija la hora del día (entero — `1.5` se ignora en silencio) |

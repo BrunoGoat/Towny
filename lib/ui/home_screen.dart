@@ -8,12 +8,14 @@ import '../fx/sensory.dart';
 import '../model/appearance.dart';
 import '../model/board.dart';
 import '../model/board_seen.dart';
+import '../model/cadence.dart';
 import '../model/habit.dart';
 import '../model/piece.dart';
 import '../model/store.dart';
 import '../model/works_log.dart';
 import 'adrift_sheet.dart';
 import 'board_glyph.dart';
+import 'cadence_sheet.dart';
 import 'choice_sheet.dart';
 import 'cloud_flight.dart';
 import 'habits_sheet.dart';
@@ -52,7 +54,6 @@ class _HomeScreenState extends State<HomeScreen>
   late UiTheme _theme = UiTheme(
     Palette.forMoment(
       Appearance.instance.hourNow,
-      1,
       season: Appearance.instance.season,
     ),
   );
@@ -111,6 +112,7 @@ class _HomeScreenState extends State<HomeScreen>
       _greet();
       _lookForNews();
       _askIfAdrift();
+      _askCadence();
     });
   }
 
@@ -153,8 +155,12 @@ class _HomeScreenState extends State<HomeScreen>
   /// Decía «17 días sin piezas. El pueblo se está quedando a oscuras.», que es
   /// recibir a alguien con la cuenta de su ausencia. El dato era cierto y no
   /// servía para nada: quien vuelve ya sabe que estuvo fuera. Lo único que
-  /// hacía falta decirle es que no tiene nada que justificar y que una sola
-  /// pieza lo arregla entero — que en esta app, además, es literalmente verdad.
+  /// hacía falta decirle es que no tiene nada que justificar, y que no perdió
+  /// nada — que en esta app, además, es literalmente verdad.
+  ///
+  /// Sale cuando el hueco pasó de lo tuyo ([Store.awayAfter]) y no a un número
+  /// de días fijo: a quien pone piezas los domingos no hay que darle la
+  /// bienvenida cada domingo.
   void _greet() {
     final s = widget.store;
     final h = s.habit;
@@ -172,14 +178,14 @@ class _HomeScreenState extends State<HomeScreen>
       );
       return;
     }
-    if (s.integrityAtLaunch >= 0.92) return;
+    if (!s.isAway) return;
     // Cuanto más tiempo estuvo fuera, más claro hay que decirle que no hay
     // nada que recuperar. El caso largo es el que se pierde si se calla.
     final largo = s.daysIdle >= 10;
     var vuelta = largo
-        ? 'El pueblo te estaba esperando. No perdiste nada: una pieza y '
-              'vuelven las luces.'
-        : 'Acá seguís. Una pieza y el pueblo vuelve a encenderse.';
+        ? 'El pueblo te estaba esperando. No perdiste nada: está todo donde '
+              'lo dejaste.'
+        : 'Acá seguís. El pueblo también.';
     // Y en el hueco largo, lo que vos mismo escribiste el día que fundaste
     // esto — el motivo primero, y si no hay, lo mínimo que cuenta. Éste es
     // justo el momento para el que se guardaron: no hacen falta cuando hay
@@ -315,7 +321,7 @@ class _HomeScreenState extends State<HomeScreen>
                 final next = UiTheme(p);
                 if (next.dark != _theme.dark ||
                     next.accent != _theme.accent ||
-                    next.palette.skyClean != _theme.palette.skyClean) {
+                    next.palette.skyTop != _theme.palette.skyTop) {
                   setState(() => _theme = next);
                 }
               },
@@ -673,6 +679,42 @@ class _HomeScreenState extends State<HomeScreen>
           onShrink: _openHabits,
           onRest: () => _openRest(h),
           onDrop: _openHabits,
+        ),
+      ).whenComplete(() => _asking = false);
+    });
+  }
+
+  /// La pregunta de la primera semana: cada cuánto va este hábito.
+  ///
+  /// Una vez en la vida de cada hábito, y nunca el mismo día que la pregunta de
+  /// si seguimos: si las dos tocan a la vez, gana ésa, y ésta espera a la
+  /// próxima vez que se abra la app. Dos hojas seguidas al abrir son un
+  /// formulario.
+  void _askCadence() {
+    if (_asking) return;
+    final store = widget.store;
+    final h = store.habit;
+    if (!cadenceDue(h)) return;
+    _asking = true;
+    // Detrás del saludo, igual que la otra pregunta.
+    Future.delayed(const Duration(milliseconds: 3200), () {
+      if (!mounted || store.habit != h) {
+        _asking = false;
+        return;
+      }
+      store.cadenceAsked(h);
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        barrierColor: sheetScrim(_theme.dark),
+        builder: (_) => CadenceSheet(
+          habit: h,
+          theme: _theme,
+          onPick: (n) {
+            store.setCadence(h, n);
+            _showWhisper('Anotado: ${cadenceSaid(n)}.');
+          },
         ),
       ).whenComplete(() => _asking = false);
     });

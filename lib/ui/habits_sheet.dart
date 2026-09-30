@@ -6,9 +6,11 @@ import 'package:flutter/material.dart';
 import '../data/character.dart';
 import '../data/symbols.dart';
 import '../fx/sensory.dart';
+import '../model/cadence.dart';
 import '../model/habit.dart';
 import '../model/pledge.dart';
 import '../model/store.dart';
+import 'cadence_sheet.dart';
 import 'habit_sigil.dart';
 import 'plan_picker.dart';
 import 'rest_sheet.dart';
@@ -81,7 +83,9 @@ class _HabitsSheetState extends State<HabitsSheet> {
     _name = TextEditingController(text: _creating ? '' : h.name);
     _why = TextEditingController(text: _creating ? '' : (h.why ?? ''));
     _floor = TextEditingController(text: _creating ? '' : (h.floor ?? ''));
-    _identity = TextEditingController(text: _creating ? '' : (h.identity ?? ''));
+    _identity = TextEditingController(
+      text: _creating ? '' : (h.identity ?? ''),
+    );
     _spot = TextEditingController(text: _creating ? '' : (h.vowPlace ?? ''));
     _hour = _creating ? null : h.vowHour;
     _symbol = _creating ? habitSymbols.first : h.symbol;
@@ -220,9 +224,6 @@ class _HabitsSheetState extends State<HabitsSheet> {
       _symbol,
       character: _place,
       why: _why.text,
-      floor: _floor.text,
-      vowHour: _hour,
-      vowPlace: _spot.text,
       identity: _identity.text,
     );
     Navigator.of(context).pop();
@@ -457,27 +458,20 @@ class _HabitsSheetState extends State<HabitsSheet> {
     );
   }
 
-  /// La regla: detrás de qué otro hábito va éste.
+  /// Cada cuánto va: una línea, y tocarla abre la misma hoja con la que lo
+  /// preguntó el pueblo la primera semana.
   ///
-  /// Sólo cuando hay otro pueblo en el valle, porque sin otro hábito no hay
-  /// detrás de qué ponerse. Y sólo editando y no al fundar: la regla se guarda
-  /// contra el identificador del otro hábito, y el de éste todavía no existe.
-  ///
-  /// «Nada» es una opción y va primera, que es lo que hace que deshacer la
-  /// regla sea un toque y no haya que adivinar cómo se quita.
-  Widget _theRule(UiTheme t, SheetInk velo) {
+  /// Sin decir, enseña lo que se ve en letra floja, que no es un campo vacío
+  /// esperando a que lo llenes sino lo que el pueblo cree hasta que le digas
+  /// otra cosa.
+  Widget _theCadence(UiTheme t, SheetInk velo) {
     final store = widget.store;
     final h = store.habit;
-    final otros = [
-      for (final o in store.habits)
-        if (o.id != h.id) o,
-    ];
-    if (otros.isEmpty) return const SizedBox.shrink();
-    final antes = afterOf(h, store.habits);
+    final dicho = h.perWeek;
     return Column(
       children: [
         Text(
-          'DESPUÉS DE',
+          'CADA CUÁNTO',
           style: t.label.copyWith(
             fontSize: 9,
             letterSpacing: 1.8,
@@ -485,88 +479,58 @@ class _HabitsSheetState extends State<HabitsSheet> {
             shadows: velo.aliento,
           ),
         ),
-        const SizedBox(height: 8),
-        Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 7,
-          runSpacing: 7,
-          children: [
-            _ruleChip(t, velo, 'nada', antes == null, () {
-              store.stackHabit(h, null);
-              setState(() {});
-            }),
-            for (final o in otros)
-              _ruleChip(t, velo, o.name, antes?.id == o.id, () {
-                store.stackHabit(h, o);
-                setState(() {});
-              }),
-          ],
-        ),
-        if (antes != null) ...[
-          const SizedBox(height: 10),
-          Text(
-            ruleSaid(h, store.habits)!,
-            textAlign: TextAlign.center,
-            style: t.bodySoft.copyWith(
-              fontSize: 13.5,
-              height: 1.35,
-              color: t.accent,
-              shadows: velo.aliento,
+        const SizedBox(height: 3),
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            Sensory.instance.tick();
+            showModalBottomSheet<void>(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (_) => CadenceSheet(
+                habit: h,
+                theme: t,
+                first: false,
+                onPick: (n) {
+                  store.setCadence(h, n);
+                  if (mounted) setState(() {});
+                },
+              ),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Text(
+              dicho == null
+                  ? 'sin decir · ${cadenceSaid(perWeekOf(h))}, por lo que se ve'
+                  : cadenceSaid(dicho),
+              textAlign: TextAlign.center,
+              style: t.bodySoft.copyWith(
+                fontSize: 13,
+                height: 1.35,
+                color: dicho == null ? velo.suave : t.accent,
+                shadows: velo.aliento,
+              ),
             ),
           ),
-        ],
+        ),
       ],
     );
   }
 
-  Widget _ruleChip(
-    UiTheme t,
-    SheetInk velo,
-    String text,
-    bool chosen,
-    VoidCallback onTap,
-  ) => GestureDetector(
-    behavior: HitTestBehavior.opaque,
-    onTap: () {
-      Sensory.instance.tick();
-      onTap();
-    },
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: chosen
-            ? t.accent.withValues(alpha: 0.20)
-            : velo.tinte.withValues(alpha: 0.42),
-        border: Border.all(
-          color: chosen ? t.accent : velo.cuerpo.withValues(alpha: 0.20),
-        ),
-      ),
-      child: Text(
-        text,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: t.bodySoft.copyWith(
-          fontSize: 12.5,
-          color: chosen ? t.accent : velo.cuerpo.withValues(alpha: 0.82),
-          shadows: velo.aliento,
-        ),
-      ),
-    ),
-  );
-
-  /// Las dos líneas que sólo se leen el día malo.
+  /// Las líneas escritas a mano: para qué, en quién te convierte, y —sólo
+  /// editando— lo mínimo que cuenta.
   ///
-  /// Van juntas y debajo del nombre porque son la misma pregunta hecha por los
-  /// dos lados: para qué querés esto, y qué es lo más chico que sigue
-  /// contando. La primera es lo que se olvida cuando se acaba el entusiasmo;
-  /// la segunda es lo que decide si un día flojo termina en cero o en algo.
+  /// Al fundar son dos, las mismas dos que pregunta la primera vez que se abre
+  /// la app: las que hablan de lo que querés y no de cómo vas a hacerlo. Lo
+  /// mínimo que cuenta es una herramienta para el día malo, y el día que se
+  /// funda un pueblo no es uno; queda acá para quien lo busque, y la hoja que
+  /// pregunta si seguimos manda aquí cuando hace falta.
   ///
-  /// Las dos opcionales y las dos en letra floja: quien viene a fundar un
-  /// pueblo y ponerse a ello no tiene que rellenar un formulario, y un campo
-  /// vacío acá no le quita nada a nadie. No se enseñan en ningún día bueno —
-  /// salen en el susurro de vuelta y en la hoja que pregunta si seguimos.
-  Widget _theTwoLines(UiTheme t, SheetInk velo) => Column(
+  /// Todas opcionales y en letra floja: quien viene a fundar un pueblo no tiene
+  /// que rellenar un formulario, y un campo vacío no le quita nada a nadie.
+  Widget _theLines(UiTheme t, SheetInk velo) => Column(
     children: [
       _softLine(
         t,
@@ -579,24 +543,40 @@ class _HabitsSheetState extends State<HabitsSheet> {
       _softLine(
         t,
         velo,
-        _floor,
-        'LO MÍNIMO QUE CUENTA',
-        'abrir el libro y leer una página',
-      ),
-      const SizedBox(height: 8),
-      // Y la tercera, que no habla de la acción sino de vos. Va con las otras
-      // dos porque es de la misma clase de cosa —una línea escrita a mano que
-      // no se mide ni se comprueba— y la última porque es la que más tarda en
-      // contestarse bien: sale mejor a los tres meses que el primer día.
-      _softLine(
-        t,
-        velo,
         _identity,
         'EN QUIÉN TE CONVIERTE',
         'alguien que lee todos los días',
       ),
+      if (!_creating) ...[
+        const SizedBox(height: 8),
+        _softLine(
+          t,
+          velo,
+          _floor,
+          'LO MÍNIMO QUE CUENTA',
+          'abrir el libro y leer una página',
+        ),
+      ],
     ],
   );
+
+  /// Si el plan tiene algo que enseñar: sólo lo que ya se escribió, desde el
+  /// tablón o antes de que dejara de preguntarse al fundar.
+  ///
+  /// Un reloj vacío esperando una hora es una tarea, y se sacó de la fundación
+  /// justamente por eso. Lo propone el tablón cuando ya sabe a qué hora
+  /// aparecés; acá sólo se cambia lo que ya existe. Se decide al abrir la
+  /// hoja, no con cada letra: borrar el sitio no tiene que hacer desaparecer
+  /// el campo en el que se está escribiendo.
+  late final bool _hasPlan =
+      !_creating &&
+      (widget.store.habit.vowHour != null ||
+          widget.store.habit.vowPlace != null);
+
+  /// La frecuencia sí sale siempre que se edita, aunque todavía no se haya
+  /// dicho: es una línea, se ve lo que el pueblo cree, y es la puerta para
+  /// quien va dos veces por semana y no quiere esperar a que se lo pregunten.
+  bool get _hasCadence => !_creating;
 
   Widget _softLine(
     UiTheme t,
@@ -901,15 +881,15 @@ class _HabitsSheetState extends State<HabitsSheet> {
                     _hair(velo),
                     _reelSlot(t, velo),
                     const SizedBox(height: 14),
-                    _theTwoLines(t, velo),
-                    const SizedBox(height: 12),
-                    _hair(velo),
-                    const SizedBox(height: 10),
-                    _thePlan(t, velo),
-                    if (!_creating) ...[
+                    _theLines(t, velo),
+                    if (_hasCadence || _hasPlan) ...[
                       const SizedBox(height: 12),
-                      _theRule(t, velo),
+                      _hair(velo),
+                      const SizedBox(height: 10),
                     ],
+                    if (_hasCadence) _theCadence(t, velo),
+                    if (_hasCadence && _hasPlan) const SizedBox(height: 12),
+                    if (_hasPlan) _thePlan(t, velo),
                     const SizedBox(height: 12),
                     if (_creating) ...[
                       Text(

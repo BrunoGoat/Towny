@@ -80,9 +80,8 @@ class _RestSheetState extends State<RestSheet> {
             Text('¿Hasta cuándo?', style: t.title),
             const SizedBox(height: 6),
             Text(
-              'Mientras duerme no se apaga, no pierde nada y no cuenta ningún '
-              'día en contra. Podés volver antes cuando quieras: poner una '
-              'pieza lo despierta.',
+              'Mientras duerme no cuenta ningún día en contra. Podés volver '
+              'antes cuando quieras: poner una pieza lo despierta.',
               style: t.bodySoft.copyWith(fontSize: 12.5, height: 1.4),
             ),
             const SizedBox(height: 16),

@@ -12,6 +12,7 @@ import '../model/board.dart';
 import '../model/board_slots.dart';
 import '../model/habit.dart';
 import '../model/notice.dart';
+import '../model/pledge.dart';
 import '../model/store.dart';
 import 'board_scene.dart';
 import 'plan_picker.dart';
@@ -156,28 +157,9 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
       // no hay nada escrito, y también cuando lo escrito ya no es lo que hacés:
       // las dos veces lo que hace falta es la misma hoja.
       case NoticeKind.plan:
-        return ('Escribirlo', () => _writePlan(h));
-      // Y la observación de que dos hábitos van juntos, para firmarla. Sólo
-      // cuando la nota dice de cuál habla y ése sigue en el valle.
-      case NoticeKind.pair:
-        final otro = said.about;
-        if (otro == null || otro == h.id || h.afterId == otro) return null;
-        Habit? antes;
-        for (final o in store.habits) {
-          if (o.id == otro) antes = o;
-        }
-        if (antes == null) return null;
-        final firme = antes;
         return (
-          'Hacerlo regla',
-          () {
-            Sensory.instance.tick();
-            store.stackHabit(h, firme);
-            setState(() {
-              _plan = _real();
-              _roll++;
-            });
-          },
+          h.vowPlace == null ? 'Decir dónde' : 'Cambiarlo',
+          () => _writePlan(h),
         );
       default:
         return null;
@@ -194,7 +176,9 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
       builder: (_) => PlanSheet(
         theme: widget.theme,
         name: h.name,
-        hour: h.vowHour,
+        // La hora que ya se ve, si no hay otra escrita: lo que se propone es lo
+        // que ya hacés, no una hora nueva.
+        hour: h.vowHour ?? habitualHour(h)?.$1,
         place: h.vowPlace,
       ),
     );

@@ -83,7 +83,7 @@ void main() {
         addTearDown(tester.view.reset);
         for (final t in [0.42, 0.46, 0.5, 0.54, 0.58]) {
           expect(
-            await _leaks(tester, k, t, Palette.forMoment(13, 1.0)),
+            await _leaks(tester, k, t, Palette.forMoment(13)),
             0,
             reason: 'se ve el mundo a t=$t en $size',
           );
@@ -101,7 +101,7 @@ void main() {
       final todo = 360 * 780;
       for (final t in [0.0, 1.0]) {
         expect(
-          await _leaks(tester, k, t, Palette.forMoment(13, 1.0)),
+          await _leaks(tester, k, t, Palette.forMoment(13)),
           todo,
           reason: 'queda niebla a t=$t',
         );

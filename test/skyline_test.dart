@@ -22,7 +22,7 @@ void main() {
       // la cordillera del fondo salía la más clara y se ponía por delante de
       // las otras dos a ojo.
       for (final hour in everyHour) {
-        final pal = Palette.forMoment(hour, 1.0);
+        final pal = Palette.forMoment(hour);
         var last = double.infinity;
         for (var li = 0; li < howMany; li++) {
           final (body, _) = rangeTone(pal, li, howMany);
@@ -50,7 +50,7 @@ void main() {
       // tiene algo de luz. Las dos cosas son ciertas a su hora, y lo que hay
       // que exigir es que no sean el mismo color.
       for (final hour in everyHour) {
-        final pal = Palette.forMoment(hour, 1.0);
+        final pal = Palette.forMoment(hour);
         final (near, _) = rangeTone(pal, 0, howMany);
         final (far, _) = rangeTone(pal, howMany - 1, howMany);
         final a = near.computeLuminance(), b = far.computeLuminance();
@@ -71,7 +71,7 @@ void main() {
       // neblina más clara o más oscura que la ladera a esta hora — cuál de las
       // dos lo es cambia con la hora, y ésa fue la trampa la primera vez.
       for (final hour in everyHour) {
-        final pal = Palette.forMoment(hour, 1.0);
+        final pal = Palette.forMoment(hour);
         for (var li = 0; li < howMany; li++) {
           final (body, foot) = rangeTone(pal, li, howMany);
           expect(
@@ -89,7 +89,7 @@ void main() {
       // Una cordillera del color exacto del cielo que tiene detrás no es una
       // cordillera.
       for (final hour in everyHour) {
-        final pal = Palette.forMoment(hour, 1.0);
+        final pal = Palette.forMoment(hour);
         for (var li = 0; li < howMany; li++) {
           final (body, _) = rangeTone(pal, li, howMany);
           final d = _apart(body, pal.skyHorizon);
@@ -110,7 +110,7 @@ void main() {
       // suelo — el mismo azul negruzco del que están hechas las colinas — y el
       // prado y el horizonte se volvían una sola mancha con una raya en medio.
       for (final hour in everyHour) {
-        final pal = Palette.forMoment(hour, 1.0);
+        final pal = Palette.forMoment(hour);
         final grass = meadowTone(pal);
         final (hill, _) = rangeTone(pal, 0, howMany);
         expect(
@@ -129,7 +129,7 @@ void main() {
       // a ras del suelo. Lo que no puede pasar es que de noche deje de ser
       // pasto, que es lo que pasaba.
       for (final hour in everyHour) {
-        final pal = Palette.forMoment(hour, 1.0);
+        final pal = Palette.forMoment(hour);
         if (pal.daylight > 0.2) continue;
         final grass = meadowTone(pal);
         expect(
@@ -141,8 +141,8 @@ void main() {
     });
 
     test('y de noche es oscuro, no un prado de mediodía a oscuras', () {
-      final noche = meadowTone(Palette.forMoment(2, 1.0));
-      final medio = meadowTone(Palette.forMoment(13, 1.0));
+      final noche = meadowTone(Palette.forMoment(2));
+      final medio = meadowTone(Palette.forMoment(13));
       expect(
         noche.computeLuminance(),
         lessThan(medio.computeLuminance() * 0.30),
@@ -153,7 +153,7 @@ void main() {
     });
 
     test('una sola cordillera no divide por cero', () {
-      final pal = Palette.forMoment(12, 1.0);
+      final pal = Palette.forMoment(12);
       final (body, foot) = rangeTone(pal, 0, 1);
       expect(body.a, 1.0);
       expect(foot.a, 1.0);

@@ -74,20 +74,15 @@ decidido no se vuelve a sortear.
 Las cifras están elegidas para el uso real, no para una demo con miles de
 piezas. Un mes corriente son unas 30–60 piezas; un año, entre 350 y 1100.
 
-Y el deterioro tiene su propio ritmo, que es el único que la app se reserva
-fuera del plan del pueblo:
-
-| | |
-|---|---|
-| Días de gracia antes de que algo se note | **1,6** |
-| De ahí a lo más apagado que llega | **14 días** |
-| Suelo | **12 %** — nunca llega a cero |
-
-Un día y medio de gracia porque la vida pasa, y un hábito que castiga una sola
-noche perdida es un hábito que nadie sostiene. Quince días de bajada porque tiene
-que ser lo bastante lenta como para notarla y lo bastante marcada como para que
-importe. Y no se pierde nunca nada de lo construido: sólo se apagan las luces,
-se apaga el color y se enturbia el cielo. **Una sola pieza lo repara entero.**
+**El pueblo no se apaga.** Se apagaba: al día y medio sin piezas empezaba a
+perder las luces, el color y la gente, y a las dos semanas estaba casi a
+oscuras. Se quitó por dos motivos. El primero, que el ritmo era el mismo para
+todos, y un hábito de una vez por semana pasaba seis días de cada siete
+apagándose sin haber faltado a nada. El segundo pesa más: un pueblo apagado le
+dice a quien lo mira que está fallando, y lo bueno de esta app es que es
+difícil saber si estás fallando — así que no se siente como un fallo; cuando
+cumplís, venís. Lo construido se queda como está, con las luces puestas, el
+tiempo que haga falta.
 
 ## Diseñado para el día malo
 
@@ -118,13 +113,15 @@ lo dice con esas palabras — *cada vez tardás menos en volver*.
 que ya viene con entusiasmo gratis. Quien abre esto después de tres semanas está
 en una bifurcación: «volví pero perdí todo» o «volví, sigamos». Así que al
 volver no se cuentan los días que faltaste — eso ya lo sabe quien vuelve — y la
-celebración crece con lo apagado que estaba el pueblo: desde el suelo, volver
-suena, se ve y mueve la cámara igual que rematar un hito.
+celebración crece con lo largo que fue el hueco: después de semanas fuera,
+volver suena, se ve y mueve la cámara igual que rematar un hito. Y el hueco se
+mide contra tu ritmo, no contra un número fijo: quien viene a diario vuelve de
+algún sitio al tercer día; quien viene los domingos, a las dos semanas.
 
 **Se puede pausar.** Un hábito que iba perfecto en enero puede no tener ningún
 sentido durante un viaje o una mudanza, y una app cuyas dos únicas opciones son
-seguir o fallar convierte eso en un fracaso. Mientras duerme, el pueblo no se
-apaga, no cuenta ningún día en contra y **sale de todos los denominadores del
+seguir o fallar convierte eso en un fracaso. Mientras duerme, el pueblo no
+cuenta ningún día en contra y **sale de todos los denominadores del
 tablón** — sin eso, tres semanas de pausa se leen como veintiún fallos y el
 pueblo acaba anunciando muy serio que los martes son tu día flojo porque
 pausaste tres martes. Siempre con fecha de vuelta: una pausa sin final es
@@ -140,9 +137,10 @@ Son cuatro salidas y las cuatro son respuestas correctas: seguimos, hacerlo más
 chico, pausarlo, o ya no lo quiero. La tercera existe porque a veces el problema
 no es la persona sino que el hábito está mal planteado.
 
-**Dos frases que sólo se leen el día malo.** Al fundar un hábito se pueden
-escribir, las dos opcionales: **para qué** lo querés, y **lo mínimo que cuenta**
-como una pieza. No se enseñan ningún día bueno. Salen al volver de un hueco
+**Dos frases que sólo se leen el día malo.** **Para qué** lo querés, que se
+pregunta al fundar, y **lo mínimo que cuenta** como una pieza, que está en la
+hoja del hábito para quien lo busque — y a la que manda la pregunta de si
+seguimos cuando hace falta. Las dos opcionales. No se enseñan ningún día bueno. Salen al volver de un hueco
 largo y en la hoja que pregunta si seguimos, que son los dos momentos para los
 que se guardaron: no hacen falta cuando hay ganas, hacen falta cuando ya no las
 hay.
@@ -152,42 +150,49 @@ tamaño**. Leer treinta minutos y leer cinco ponen exactamente la misma piedra.
 Lo único que faltaba era que eso estuviera dicho con tus palabras antes de
 necesitarlo.
 
-## Las tres que decidiste vos
+## Lo que dijiste vos, y cuándo se dice
 
 Todo lo que el tablón dice de vos sale de tus piezas y no hay que escribirlo:
 a qué hora aparecés, qué día de la semana es el flojo, cuánto tardás en volver.
-Hay tres cosas que no se pueden deducir de nada porque no son observaciones,
-son decisiones — y son las tres que más cambian lo que pasa después.
+Hay unas pocas cosas que no se deducen de nada, y la pregunta no es sólo cuáles
+son sino **cuándo se preguntan**.
 
-**El plan: a qué hora y en qué sitio.** «Voy a leer» es una intención, y una
-intención se vuelve a decidir todos los días hasta el día en que no. «Voy a leer
-a las 22, en la cama» está decidido, y lo único que queda es cumplirlo. El sitio
-no es un adorno: es de donde el hábito nuevo saca el recordatorio, porque la
-cama ya está ahí todas las noches sin que haya que acordarse de ella.
+Se preguntaban todas al fundar: para qué, en quién te convierte, lo mínimo,
+a qué hora y en qué sitio, y detrás de qué otro hábito va. Es lo que recomienda
+cualquier libro de hábitos, y convertía el primer minuto en una declaración de
+intenciones — lo contrario de lo que esta app hacía bien, que es que **sea
+difícil saber si estás fallando**: no se siente como un fallo, y cuando cumplís,
+venís. Cada cosa declarada es una vara nueva contra la que medirse. Así que
+ahora se pregunta poco, y tarde, y siempre con algo que enseñar primero.
 
-La hora se toca en un reloj de veinticuatro casillas y el sitio se escribe. La
-hora se guarda como número y no dentro de la frase, y eso es lo que permite lo
-único que la app puede hacer con un plan: **compararlo con lo que hacés**. El
-pueblo ve a qué hora caen tus piezas, así que cuando lo escrito hace meses ya no
-es lo tuyo, el tablón lo dice — *el plan dice a las 22 y aparecés a las 7* — y
-ahí mismo se cambia. Cambiar un plan que ya no es tuyo no es rendirse: un plan
-viejo no te ahorra ninguna decisión.
+**Al fundar, sólo lo emocional.** Para qué lo querés, y en quién te convierte.
+Las dos opcionales. La identidad no es lo mismo que el para qué, y la
+diferencia es la que hace que un hábito dure: un para qué se cumple —se duerme
+mejor, se corre la carrera— y el día que se cumple, el hábito se queda sin
+motivo. Una identidad no se cumple nunca: se es o no se es. Se escribe sin el
+sujeto —*alguien que lee todos los días*— y el pueblo pone el resto: **este
+pueblo es de alguien que lee todos los días**. Pero eso no lo dice ese día ni
+de cerca: es un título y se gana, y cómo se gana está más abajo.
 
-Y si no hay ninguno escrito pero el pueblo ya sabe a qué hora aparecés, el
-tablón no propone una hora inventada: propone **la tuya**, y la nota se puede
-firmar desde ahí.
+**A la semana, cada cuánto va.** Al cumplir siete días, con al menos dos con
+pieza, el pueblo cuenta lo que vio —*esta semana pusiste 9 piezas en 5 días*— y
+pregunta si es de todos los días o de algunos por semana. Viene marcado lo que
+se ve, así que contestar es un toque, y cerrar la hoja también es contestar:
+no se vuelve a preguntar. Se cambia cuando quieras en la hoja del hábito.
 
-**La identidad: en quién te convierte.** No es lo mismo que «para qué lo
-querés», y la diferencia es la que hace que un hábito dure. Un para qué se
-cumple —se duerme mejor, se corre la carrera— y el día que se cumple, el hábito
-se queda sin motivo. Una identidad no se cumple nunca: se es o no se es. Se
-escribe sin el sujeto —*alguien que lee todos los días*— y el pueblo pone el
-resto: **este pueblo es de alguien que lee todos los días**.
+No es una meta y no se enseña como una: no hay «te faltan dos esta semana» en
+ninguna parte. Sirve para que el pueblo no confunda un hábito de los domingos
+con uno diario que se está dejando — para el candado del segundo pueblo, para
+saber cuándo un hueco es un hueco, y para que los avisos no lleguen antes de
+tiempo. Lo dicho y lo visto se mezclan así: para preocuparse se usa el más
+holgado de los dos, porque preocuparse de más es lo que hace que una app se
+desinstale; para el candado sólo cuenta lo dicho, porque medirte contra tu
+propio promedio lo cumple cualquiera.
 
-**Pero eso el pueblo no lo dice hasta que sea verdad, y hasta entonces no dice
-nada.** Es un título y los títulos se ganan: escribirlo el día que se funda el
-pueblo y que el tablón lo anunciara esa misma tarde sería la única frase del
-tablón que no sale de lo que hiciste — todavía no hiciste nada.
+**El título de identidad se gana, y hasta que se gana el pueblo no dice
+nada.** Escribir *alguien sabio* el día que se funda el pueblo y que el tablón
+lo anunciara esa misma tarde sería la única frase del tablón que no sale de lo
+que hiciste — todavía no hiciste nada.
 
 Así que el pueblo primero averigua **cada cuánto lo hacés de verdad** —nadie
 declara su ritmo, se le ve: tres días por semana, cinco, todos— y después mira
@@ -213,19 +218,21 @@ días. Guardar el día —en vez de recalcularlo cada vez que se abre el tablón
 además lo que evita lo peor que podía pasarle a esto: que la frase apareciera y
 desapareciera sola según cómo hubiera ido la última semana.
 
-**La regla: detrás de qué va.** El tablón ya sabía cuáles de tus hábitos van
-juntos —*Correr arrastra a Estirar*— y eso era una observación. Firmarla la
-convierte en una decisión: **después de correr, estirar**. La diferencia es que
-un hábito enganchado a otro que ya existe no necesita recordatorio ninguno,
-porque el recordatorio es el otro. Se firma desde el propio papel que hizo la
-observación, y desde ese momento el tablón enseña la regla en su lugar, con las
-dos cifras que dicen si está haciendo algo: los días del primero contra los
-demás días. Si las dos barras se parecen, la regla está escrita y no sirve.
+**Cuando el pueblo lo ve, la hora.** En cuanto sabe a qué hora aparecés, el
+tablón lo cuenta como lo que es, algo que ya hacés —*casi siempre a eso de las
+22*— y ofrece decir dónde para darlo por dicho. No es una tarea: si ya lo hacés
+a las diez, decirlo no cambia nada salvo que queda decidido, y lo decidido no
+hay que volver a pensarlo cada día. La hora viene puesta; el sitio es tuyo.
 
-Las tres se preguntan al fundar y las tres se pueden saltar, como las otras dos
-líneas. Ninguna se pierde por saltarla: están en la hoja del hábito para
-siempre, y el pueblo pide el plan por su cuenta en cuanto sabe a qué hora
-aparecés.
+Una vez escrito, el plan se compara con lo que hacés. Cuando lo escrito hace
+meses ya no es lo tuyo, el tablón lo dice — *el plan dice a las 22 y aparecés a
+las 7* — y ahí mismo se cambia. Cambiar un plan que ya no es tuyo no es
+rendirse: un plan viejo no te ahorra ninguna decisión.
+
+**Y que dos hábitos van juntos, lo dice el pueblo.** *Correr arrastra a
+Estirar* es una observación del tablón y se queda en eso. Se podía firmar como
+regla —*después de correr, estirar*— y ya no: es verdad o no lo es según lo que
+hagas, y no hace falta declararlo para que siga siéndolo.
 
 ## La primera vez
 
@@ -234,20 +241,31 @@ botón grande y un hábito de mentira llamado «Mi hábito». Todo lo que hace a
 app distinta estaba ahí desde el primer minuto y no lo contaba nadie: se
 descubría a los tres meses, o no se descubría.
 
-Ahora son seis pantallas, una pregunta en cada una, sobre el valle vacío de
-verdad con el cielo de esa hora. Qué es esto · qué querés hacer · cuándo y dónde
-· para qué lo querés · en quién te convierte · qué es lo mínimo que cuenta.
+Ahora son cuatro pantallas, una pregunta en cada una, sobre el valle vacío de
+verdad con el cielo de esa hora. Qué es esto · qué querés hacer · para qué lo
+querés · en quién te convierte.
 
-**Seis pantallas y no una hoja con seis campos.** Un formulario se contesta
-mirando los huecos que faltan por rellenar, y las cuatro últimas preguntas no se
-contestan bien así: son lo único de toda la app que se escribe para leerlo mucho
-después, y merecen que no haya nada más en pantalla cuando se escriben. Las
-cuatro se pueden saltar — se guardaron para el día malo, y obligar a escribirlas
-el día uno es la manera de que salgan mal.
+**Pantallas y no una hoja con campos.** Un formulario se contesta mirando los
+huecos que faltan por rellenar, y las dos últimas preguntas no se contestan
+bien así: son lo único de toda la app que se escribe para leerlo mucho después,
+y merecen que no haya nada más en pantalla cuando se escriben. Las dos se pueden
+saltar. Lo demás —cada cuánto, a qué hora, dónde— no se pregunta acá: lo propone
+el pueblo cuando ya tiene algo que enseñarte (ver arriba).
 
-La del plan es la única que se enseña armándose: la frase entera se va
-escribiendo debajo mientras se elige la hora y se escribe el sitio, porque lo que
-se está contestando ahí no son dos campos, es una promesa.
+**El valle está vivo y la tarjeta no depende de la hora.** El fondo lo pinta
+el mismo pintor que el pueblo —nubes que pasan, estrellas, pájaros de día,
+polen o luciérnagas en el aire— y la cámara se mece despacio y baja un poco con
+cada respuesta, hacia el claro donde va a estar el pueblo. Las preguntas van en
+una tarjeta de vidrio oscuro con el título en serif, letra crema y un dorado
+cálido para lo que se puede tocar: escritas directamente sobre el prado se leían
+a mediodía y desaparecían al atardecer.
+
+**Y fundar no es un corte.** Al contestar la última, la tarjeta baja, el nombre
+del pueblo aparece un momento sobre el valle, y la cámara se zambulle hasta la
+toma en la que arranca el pueblo. El pueblo empieza exactamente ahí —mismo
+valle, mismo pintor, misma cámara— y sigue bajando despacio mientras sube la
+plaza, así que lo único que se funde entre una pantalla y la otra es lo de
+encima.
 
 Y en cuanto se funda, **la plaza sube del suelo**: primero el enlosado, que dice
 dónde está el centro; después el tablón, que es lo que el pueblo va a decir de
@@ -403,11 +421,26 @@ respiraba — se alejaba en cada ráfaga y volvía a acercarse en cada pausa.
 
 ## El segundo pueblo se gana
 
-El valle empieza con un solo solar. El segundo se abre con **10 días con pieza
-de los últimos 14**.
+El valle empieza con un solo solar. El segundo se abre cuando el primero se
+sostiene, medido contra **lo que dijiste que ibas a hacer**: un 70 % de lo
+esperable, en dos semanas — o en cuatro si es una o dos veces por semana, porque
+dos piezas en dos semanas no demuestran nada.
 
-No hacen falta seguidos: se puede fallar cuatro veces por el camino y la puerta
-se abre igual, porque un candado que además midiera rachas sería justo lo que se
+| Cada cuánto | Ventana | Hace falta |
+|---|---|---|
+| Todos los días | 14 días | 10 días con pieza |
+| 5 por semana | 14 días | 7 |
+| 3 por semana | 14 días | 5 |
+| 2 por semana | 28 días | 6 |
+| 1 por semana | 28 días | 3 (tres semanas de cuatro) |
+
+Lo que pasa de tu ritmo en una semana no cuenta para la siguiente: quien va una
+vez por semana y pone tres piezas un domingo lleva una semana, no tres. Y sin
+frecuencia dicha se mide como de todos los días, que es la regla de siempre; la
+hoja del candado dice dónde cambiarla.
+
+No hacen falta seguidos: se puede fallar por el camino —cuatro veces quien va a
+diario— y la puerta se abre igual, porque un candado que además midiera rachas sería justo lo que se
 quitó de todo lo demás. Y **una vez abierta no se cierra nunca**, pase lo que
 pase después — cerrarla castigaría exactamente a quien vuelve, que es la persona
 para la que está hecha la app.
@@ -568,10 +601,7 @@ alguien mira la app al salir del trabajo. El salto ocurre en el único punto en
 el que las dos tintas se leen igual de bien (3,47 a 1 las dos), dura un
 fotograma, y pasa una vez al atardecer y otra al amanecer.
 
-La segunda: **es de la hora, no del estado del pueblo.** Un pueblo dejado se
-apaga y el cielo se le llena de ceniza, que es gris claro; la interfaz leía esa
-ceniza como luz de día y escribía en pardo de mediodía a las diez de la noche.
-El descuido apaga el valle. No tiene por qué apagar también las letras.
+La segunda: **es de la hora y de nada más.**
 
 Y lo de abajo —el botón de poner, la fila de hábitos— no tiene cielo detrás
 sino prado, que es verde medio a cualquier hora, así que ahí no hay dos casos:
@@ -615,11 +645,10 @@ siguiente de un día en blanco, cuánto tardás en volver después de un hueco, 
 dos hábitos van juntos y cuáles nunca, cuánto hace que esto dura y quién va
 delante en el valle.
 
-Tres de los papeles no son observaciones sino lo que decidiste vos —el plan, la
-identidad y la regla—, y con dos de ellos **se puede hacer algo sin salir del
-tablón**: el del plan que falta lo escribe ahí mismo, y el que dice que dos
-hábitos van juntos se firma como regla. Es una palabra encima del papel
-descolgado, la misma que quita una nota tuya. Mandar a alguien a buscar la hoja
+Dos de los papeles no son observaciones sino lo que dijiste vos —el plan y la
+identidad—, y con el del plan **se puede hacer algo sin salir del tablón**:
+cuando el pueblo ya sabe a qué hora aparecés, decir dónde se hace ahí mismo, con
+la hora ya puesta. Es una palabra encima del papel descolgado, la misma que quita una nota tuya. Mandar a alguien a buscar la hoja
 del hábito para contestar una cosa que el tablón acaba de preguntar es perder la
 única vez que iba a contestarla.
 

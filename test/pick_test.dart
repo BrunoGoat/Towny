@@ -32,9 +32,8 @@ const Size _screen = Size(420, 860);
     ..distanceTarget = 26;
   final scene = TownScene(
     placed: placed,
-    palette: Palette.forMoment(11, 1.0),
+    palette: Palette.forMoment(11),
     camera: cam,
-    integrity: 1,
     time: 0,
     hourOfDay: 12,
     effects: EffectSystem(),
@@ -45,7 +44,6 @@ const Size _screen = Size(420, 860);
         layout: layout,
         name: 'Prueba',
         symbol: 'torre',
-        integrity: 1,
         placed: placed,
       ),
     ],

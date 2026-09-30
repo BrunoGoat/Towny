@@ -586,7 +586,7 @@ class ReelScreenState extends State<ReelScreen>
     final hour = m.when.hour + m.when.minute / 60.0;
     // Entero, siempre. Lo que se está mirando es lo que construiste, y un
     // pueblo a media luz porque esta semana no viniste contaría otra cosa.
-    final palette = Palette.forMoment(hour, 1.0, season: season);
+    final palette = Palette.forMoment(hour, season: season);
     final theme = UiTheme(palette);
     final night = nightOf(m.when);
 
@@ -597,7 +597,6 @@ class ReelScreenState extends State<ReelScreen>
           layout: _plans[i],
           name: store.habits[i].name,
           symbol: store.habits[i].symbol,
-          integrity: 1.0,
           placed: m.counts[i],
         ),
     ];
@@ -606,7 +605,6 @@ class ReelScreenState extends State<ReelScreen>
       placed: m.counts.isEmpty ? 0 : m.counts[0],
       palette: palette,
       camera: _cam,
-      integrity: 1.0,
       time: _t,
       hourOfDay: hour,
       effects: _fx,

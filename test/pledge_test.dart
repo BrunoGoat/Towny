@@ -49,7 +49,10 @@ Habit _habit({
   for (var d = 0; n < days; d++) {
     if (every != null && d % every != 0) continue;
     h.pieces.add(
-      Piece(index: n, placedAt: start.add(Duration(days: d, hours: hour))),
+      Piece(
+        index: n,
+        placedAt: start.add(Duration(days: d, hours: hour)),
+      ),
     );
     n++;
   }
@@ -66,12 +69,18 @@ void main() {
         'Voy a leer a las 22 de la noche, en la cama.',
       );
       expect(vowLine('Leer', 7, null), 'Voy a leer a las 7 de la mañana.');
-      expect(vowLine('Leer', 12, 'la cocina'), 'Voy a leer al mediodía, en la cocina.');
+      expect(
+        vowLine('Leer', 12, 'la cocina'),
+        'Voy a leer al mediodía, en la cocina.',
+      );
       expect(vowLine('Leer', 0, null), 'Voy a leer a medianoche.');
     });
 
     test('media promesa sigue siendo una promesa', () {
-      expect(vowLine('Correr', null, 'el parque'), 'Voy a correr, en el parque.');
+      expect(
+        vowLine('Correr', null, 'el parque'),
+        'Voy a correr, en el parque.',
+      );
       expect(vowLine('Correr', null, null), isNull);
     });
 
@@ -122,7 +131,10 @@ void main() {
       // se lleva la mitad, así que no hay costumbre de la que hablar.
       for (var i = 0; i < 24; i++) {
         h.pieces.add(
-          Piece(index: i, placedAt: start.add(Duration(days: i, hours: i))),
+          Piece(
+            index: i,
+            placedAt: start.add(Duration(days: i, hours: i)),
+          ),
         );
       }
       expect(habitualHour(h), isNull);
@@ -180,6 +192,7 @@ void main() {
       List<int> semanas, {
       String? identity = 'alguien sabio',
       List<String> rests = const [],
+      int? perWeek,
     }) {
       final desde = hoy.subtract(Duration(days: 7 * semanas.length - 1));
       final h = Habit(
@@ -190,6 +203,7 @@ void main() {
         createdAt: desde,
         character: TownCharacter.all.first.order,
         identity: identity,
+        perWeek: perWeek,
         rests: [...rests],
       );
       var i = 0;
@@ -229,6 +243,38 @@ void main() {
       // sostenida como la de todos los días, y el pueblo la mide contra lo que
       // vos hacés — no contra un calendario lleno.
       final voy = identityStanding(porSemanas(List.filled(13, 3)), at: hoy)!;
+      expect(voy.rhythm, 3);
+      expect(voy.kept, 1.0);
+      expect(voy.earned, isTrue);
+    });
+
+    test('si dijiste cada cuánto vas, el título se mide contra eso', () {
+      // Cuatro días por semana durante trece semanas, habiendo dicho que ibas
+      // todos los días. Contra lo que se te ve —la mediana, cuatro— esto sería
+      // un pleno y el título estaría ganado; contra lo que te pediste, no.
+      //
+      // Y ésta es la razón de que mande lo dicho: quien va cayendo de siete
+      // días a cuatro y de cuatro a dos sigue al cien por cien de su propio
+      // promedio todo el camino, porque el promedio baja con él. Un título que
+      // se gana bajando el listón no es un título.
+      final voy = identityStanding(
+        porSemanas(List.filled(13, 4), perWeek: 7),
+        at: hoy,
+      )!;
+      expect(voy.rhythm, 7);
+      expect(voy.kept, closeTo(4 / 7, 0.01));
+      expect(voy.missing, 0);
+      expect(voy.earned, isFalse);
+    });
+
+    test('y si lo que dijiste son tres días, tres días bastan', () {
+      // La otra mitad, que es la que hace que lo anterior no sea un castigo:
+      // el listón lo pusiste vos, y ponerlo bajo no es trampa. Tres días por
+      // semana sostenidos trece semanas son una manera de vivir.
+      final voy = identityStanding(
+        porSemanas(List.filled(13, 3), perWeek: 3),
+        at: hoy,
+      )!;
       expect(voy.rhythm, 3);
       expect(voy.kept, 1.0);
       expect(voy.earned, isTrue);
@@ -327,64 +373,7 @@ void main() {
     });
   });
 
-  group('la regla', () {
-    /// Dos pueblos: correr, y estirar detrás de correr. Los dos los días pares.
-    (Habit, Habit) dos({int? estiraCada}) {
-      final correr = _habit(id: 'hA', name: 'Correr', days: 20, every: 2);
-      final estirar = _habit(
-        id: 'hB',
-        name: 'Estirar',
-        days: 20,
-        every: estiraCada ?? 2,
-        after: 'hA',
-      );
-      return (correr, estirar);
-    }
-
-    test('se dice con los dos nombres y en orden', () {
-      final (correr, estirar) = dos();
-      expect(
-        ruleSaid(estirar, [correr, estirar]),
-        'Después de correr, estirar.',
-      );
-      // Y al revés no existe: la regla la lleva quien la cumple.
-      expect(ruleSaid(correr, [correr, estirar]), isNull);
-    });
-
-    test('una regla contra un hábito borrado deja de existir sola', () {
-      final (_, estirar) = dos();
-      expect(afterOf(estirar, [estirar]), isNull);
-      expect(ruleSaid(estirar, [estirar]), isNull);
-    });
-
-    test('nadie va detrás de sí mismo', () {
-      final h = _habit(after: 'h1758000000000001');
-      expect(afterOf(h, [h]), isNull);
-    });
-
-    test('lo que se mide es la diferencia, no el porcentaje solo', () {
-      final (correr, estirar) = dos();
-      final hoy = DateTime(2026, 3, 1).add(const Duration(days: 39));
-      final score = ruleKept(estirar, [correr, estirar], at: hoy)!;
-      // Los dos caen los días pares: los días de correr se cumple siempre, y
-      // los demás días nunca. Es la regla haciendo todo el trabajo.
-      expect(score.kept, 1.0);
-      expect(score.without, 0.0);
-      expect(score.of, 20);
-      expect(score.ofWithout, greaterThan(0));
-    });
-
-    test('con pocos días todavía no se dice nada', () {
-      final correr = _habit(id: 'hA', name: 'Correr', days: 3);
-      final estirar = _habit(id: 'hB', name: 'Estirar', days: 3, after: 'hA');
-      expect(
-        ruleKept(estirar, [correr, estirar], at: DateTime(2026, 3, 4)),
-        isNull,
-      );
-    });
-  });
-
-  group('lo que el tablón clava con las tres', () {
+  group('lo que el tablón clava con lo que dijiste', () {
     List<NoticeKind> kinds(Habit h, {List<Habit> valley = const []}) => [
       for (final n in noticesFor(h, others: valley, at: DateTime(2026, 4, 10)))
         n.kind,
@@ -399,13 +388,16 @@ void main() {
       expect(clavado, isNot(contains(NoticeKind.hour)));
     });
 
-    test('sin plan escrito, el papel pide escribirlo', () {
+    test('sin plan escrito, el papel cuenta la hora que ya es la tuya', () {
       final h = _habit(hour: 22);
-      final nota = noticesFor(h, at: DateTime(2026, 4, 10)).firstWhere(
-        (n) => n.kind == NoticeKind.plan,
-      );
+      final nota = noticesFor(
+        h,
+        at: DateTime(2026, 4, 10),
+      ).firstWhere((n) => n.kind == NoticeKind.plan);
       expect(nota.said, contains('22'));
-      expect(nota.said, contains('sin plan escrito'));
+      // Sin tono de tarea pendiente: lo que dice es lo que ya hacés.
+      expect(nota.said, isNot(contains('sin plan')));
+      expect(nota.because, contains('Si querés'));
       // Y lleva el reloj entero detrás, que es de donde salió.
       expect(nota.bars.length, 24);
       expect(nota.mark, 22);
@@ -413,9 +405,10 @@ void main() {
 
     test('un plan que ya no es el tuyo se dice, sin regañar', () {
       final h = _habit(hour: 22, vowHour: 7, place: 'la cama');
-      final nota = noticesFor(h, at: DateTime(2026, 4, 10)).firstWhere(
-        (n) => n.kind == NoticeKind.plan,
-      );
+      final nota = noticesFor(
+        h,
+        at: DateTime(2026, 4, 10),
+      ).firstWhere((n) => n.kind == NoticeKind.plan);
       expect(nota.said, contains('7'));
       expect(nota.said, contains('22'));
       expect(nota.more, contains('no es rendirse'));
@@ -479,7 +472,9 @@ void main() {
       expect(whoYouAre(h, hoy), isNull);
     });
 
-    test('la regla firmada tapa la observación de la que salió', () {
+    test('dos hábitos que van juntos son una observación y nada más', () {
+      // Aunque una copia vieja traiga la regla firmada: ya no se enseña ni
+      // tapa nada, así que lo que queda es lo que el pueblo ve.
       final correr = _habit(id: 'hA', name: 'Correr', days: 30, every: 2);
       final estirar = _habit(
         id: 'hB',
@@ -490,26 +485,7 @@ void main() {
       );
       final valle = [correr, estirar];
       final clavado = kinds(estirar, valley: valle);
-      expect(clavado, contains(NoticeKind.rule));
-      expect(
-        clavado,
-        isNot(contains(NoticeKind.pair)),
-        reason: 'la observación y la regla dirían lo mismo',
-      );
-    });
-
-    test('la observación dice de quién habla, para poder firmarla', () {
-      // Sin esto no se puede convertir en regla desde el tablón: el papel no
-      // sabría de cuál de los seis pueblos estaba hablando.
-      final correr = _habit(id: 'hA', name: 'Correr', days: 30, every: 2);
-      final estirar = _habit(id: 'hB', name: 'Estirar', days: 30, every: 2);
-      final valle = [correr, estirar];
-      final nota = noticesFor(
-        estirar,
-        others: valle,
-        at: DateTime(2026, 5, 10),
-      ).firstWhere((n) => n.kind == NoticeKind.pair);
-      expect(nota.about, 'hA', reason: 'el que va primero');
+      expect(clavado, contains(NoticeKind.pair));
     });
   });
 

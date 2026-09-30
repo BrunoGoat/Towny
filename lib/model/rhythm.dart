@@ -11,6 +11,8 @@
 /// va toda la app, y es lo que sustituyó a la racha.
 library;
 
+import 'dart:math' as math;
+
 import 'habit.dart';
 import 'piece.dart';
 
@@ -120,7 +122,7 @@ int? typicalReturn(Habit h) {
 /// hoy no. Esto dice lo que pasó de verdad, y admite imperfección, que es
 /// justamente lo que hace falta para medir algo sostenible.
 class Consistency {
-  const Consistency(this.done, this.of);
+  const Consistency(this.done, this.of, [int? span]) : span = span ?? of;
 
   /// Días con pieza.
   final int done;
@@ -129,13 +131,18 @@ class Consistency {
   /// anteriores al hábito, menos hoy si todavía está sin empezar.
   final int of;
 
+  /// Los días de calendario que contaban, sin llevarlos a ningún ritmo. Es lo
+  /// mismo que [of] para un hábito de todos los días.
+  final int span;
+
   double get rate => of <= 0 ? 0 : done / of;
 
   /// Con menos de dos semanas de las que hablar, no se habla.
   ///
   /// Una consistencia de «1 de 1» el primer día no es una medida de nada, y
-  /// esta app prefiere callarse a inventar.
-  bool get enough => of >= 14;
+  /// esta app prefiere callarse a inventar. Dos semanas de calendario y no
+  /// catorce días esperados: un hábito de los domingos no llegaría nunca.
+  bool get enough => span >= 14;
 
   static const int window = 30;
 }
@@ -145,7 +152,12 @@ class Consistency {
 /// Hoy no cuenta en contra mientras esté en blanco. El día no terminó, y
 /// descontar por él a las nueve de la mañana es exactamente el castigo que
 /// esto vino a quitar; en cuanto cae una pieza, cuenta.
-Consistency consistencyOf(Habit h, {DateTime? at}) {
+///
+/// Con [perWeek] se mide contra ese ritmo y no contra todos los días: lo
+/// esperado es la parte de los días que contaban que le toca a ese ritmo, y lo
+/// hecho no pasa de ahí. Tres días de cuatro para quien va tres veces por
+/// semana es todo, no la mitad de una semana.
+Consistency consistencyOf(Habit h, {DateTime? at, int perWeek = 7}) {
   final now = at ?? DateTime.now();
   final today = dayStart(now);
   final days = daysOf(h);
@@ -172,7 +184,9 @@ Consistency consistencyOf(Habit h, {DateTime? at}) {
     if (d == today) continue;
     counted++;
   }
-  return Consistency(done, counted);
+  if (perWeek >= 7) return Consistency(done, counted);
+  final of = math.max(1, (counted * perWeek / 7).round());
+  return Consistency(math.min(done, of), of, counted);
 }
 
 /// Un día por barra, de [from] a [today], contra el día más cargado.

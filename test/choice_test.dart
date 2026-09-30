@@ -450,7 +450,7 @@ void main() {
                   isScrollControlled: true,
                   builder: (_) => SettingsSheet(
                     store: store,
-                    theme: UiTheme(Palette.forMoment(11, 1.0)),
+                    theme: UiTheme(Palette.forMoment(11)),
                   ),
                 ),
                 child: const Text('ajustes'),
@@ -537,7 +537,7 @@ void main() {
                       landmarks.firstWhere((l) => l.id == 'coso'),
                     ],
                     place: TownCharacter.all.first,
-                    theme: UiTheme(Palette.forMoment(11, 1.0)),
+                    theme: UiTheme(Palette.forMoment(11)),
                     onPick: (m) => picked.add(m.id),
                   ),
                 ),

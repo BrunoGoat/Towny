@@ -21,28 +21,12 @@ Future<void> _asentar(WidgetTester tester) async {
   }
 }
 
-/// Toca una hora en el reloj del plan.
-///
-/// El reloj abre centrado en la hora que sea ahora mismo —que en una prueba es
-/// la de verdad— así que primero se lleva al principio del día y desde ahí se
-/// busca hacia adelante. Sin eso, la prueba pasaría o no según la hora a la que
-/// alguien la ejecute.
-Future<void> _tocarHora(WidgetTester tester, String hora) async {
-  final reel = find.byType(ListView);
-  await tester.drag(reel, const Offset(2400, 0));
-  await tester.pump();
-  await tester.scrollUntilVisible(
-    find.text(hora),
-    60,
-    scrollable: find.descendant(of: reel, matching: find.byType(Scrollable)),
-  );
-  // Y visible de verdad: una lista construye un poco más de lo que enseña, así
-  // que `scrollUntilVisible` la encuentra estando todavía fuera de cuadro y el
-  // toque no llega a ella.
-  await tester.ensureVisible(find.text(hora));
-  await tester.pump();
-  await tester.tap(find.text(hora));
-  await _asentar(tester);
+/// Lo que tarda en fundarse de verdad: la tarjeta se va y la cámara baja al
+/// pueblo antes de avisar, que es cuando el pueblo toma el relevo.
+Future<void> _bajar(WidgetTester tester) async {
+  for (var i = 0; i < 20; i++) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
 }
 
 void main() {
@@ -55,23 +39,19 @@ void main() {
   });
 
   group('la primera vez', () {
-    testWidgets('las seis pantallas, y lo que se contestó llega entero', (
+    testWidgets('cuatro pantallas, y lo que se contestó llega entero', (
       tester,
     ) async {
       // Los nombres de fuera no pueden llamarse igual que los parámetros con
       // nombre de la llamada, que si no los tapan.
-      String? elNombre, laMarca, elMotivo, elMinimo, elSitio, laIdentidad;
-      int? laHora;
+      String? elNombre, laMarca, elMotivo, laIdentidad;
       await tester.pumpWidget(
         _marco(
           FirstRun(
-            onDone: (n, s, {why, floor, vowHour, vowPlace, identity}) {
+            onDone: (n, s, {why, identity}) {
               elNombre = n;
               laMarca = s;
               elMotivo = why;
-              elMinimo = floor;
-              laHora = vowHour;
-              elSitio = vowPlace;
               laIdentidad = identity;
             },
           ),
@@ -86,18 +66,9 @@ void main() {
       await tester.tap(find.text('SEGUIR'));
       await _asentar(tester);
 
-      // El plan: la hora se toca en el reloj y el sitio se escribe.
-      expect(find.text('¿Cuándo y dónde?'), findsOneWidget);
-      await _tocarHora(tester, '22');
-      await tester.enterText(find.byType(TextField).first, 'la cama');
-      await tester.pump();
-      // Y la promesa se ve armada antes de seguir, que es lo que la hace una
-      // promesa y no dos campos.
-      expect(find.text('Voy a leer a las 22 de la noche, en la cama.'),
-          findsOneWidget);
-      await tester.tap(find.text('SEGUIR'));
-      await _asentar(tester);
-
+      // Ni cuándo ni dónde: eso lo propone el pueblo cuando ya lo sabe.
+      expect(find.text('¿Cuándo y dónde?'), findsNothing);
+      expect(find.text('¿Para qué lo querés?'), findsOneWidget);
       await tester.enterText(find.byType(TextField).first, 'para dormir mejor');
       await tester.pump();
       await tester.tap(find.text('SEGUIR'));
@@ -109,78 +80,34 @@ void main() {
         'alguien que lee todos los días',
       );
       await tester.pump();
-      await tester.tap(find.text('SEGUIR'));
-      await _asentar(tester);
-
-      await tester.enterText(find.byType(TextField).first, 'una página');
-      await tester.pump();
+      // Y ésta es la última: no hay «lo mínimo que cuenta» detrás.
       await tester.tap(find.text('FUNDAR LEER'));
       await _asentar(tester);
+      // Mientras baja la cámara todavía no se fundó nada: el pueblo toma el
+      // relevo al llegar, no antes.
+      expect(elNombre, isNull);
+      expect(find.text('Leer'), findsWidgets, reason: 'el nombre, bajando');
+      await _bajar(tester);
 
       expect(elNombre, 'Leer');
       expect(laMarca, isNotEmpty);
       expect(elMotivo, 'para dormir mejor');
-      expect(elMinimo, 'una página');
-      expect(laHora, 22);
-      expect(elSitio, 'la cama');
       expect(laIdentidad, 'alguien que lee todos los días');
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets(
-      'las cuatro se pueden saltar, que para eso son opcionales',
-      (tester) async {
-        // Se guardaron para el día malo, y obligar a escribirlas el día uno es
-        // la manera de que salgan mal.
-        String? elMotivo = 'sin tocar', elMinimo = 'sin tocar';
-        String? elSitio = 'sin tocar', laIdentidad = 'sin tocar';
-        int? laHora = 99;
-        await tester.pumpWidget(
-          _marco(
-            FirstRun(
-              onDone: (n, s, {why, floor, vowHour, vowPlace, identity}) {
-                elMotivo = why;
-                elMinimo = floor;
-                laHora = vowHour;
-                elSitio = vowPlace;
-                laIdentidad = identity;
-              },
-            ),
-          ),
-        );
-        await _asentar(tester);
-        await tester.tap(find.text('FUNDAR MI PUEBLO'));
-        await _asentar(tester);
-        await tester.enterText(find.byType(TextField).first, 'Correr');
-        await tester.pump();
-        await tester.tap(find.text('SEGUIR'));
-        await _asentar(tester);
-        for (var i = 0; i < 4; i++) {
-          await tester.tap(find.text('Ahora no'));
-          await _asentar(tester);
-        }
-        expect(elMotivo, isNull);
-        expect(elMinimo, isNull);
-        expect(laHora, isNull);
-        expect(elSitio, isNull);
-        expect(laIdentidad, isNull);
-      },
-    );
-
-    testWidgets('saltarse el plan no guarda la hora que se había tocado', (
+    testWidgets('las dos se pueden saltar, que para eso son opcionales', (
       tester,
     ) async {
-      // La hora se toca antes de decidir que no, y «ahora no» quiere decir que
-      // no hay plan: un plan a medias guardado por descuido saldría mañana en
-      // el tablón como si lo hubieras prometido.
-      int? laHora = 99;
-      String? elSitio = 'sin tocar';
+      String? elMotivo = 'sin tocar', laIdentidad = 'sin tocar';
+      var fundado = false;
       await tester.pumpWidget(
         _marco(
           FirstRun(
-            onDone: (n, s, {why, floor, vowHour, vowPlace, identity}) {
-              laHora = vowHour;
-              elSitio = vowPlace;
+            onDone: (n, s, {why, identity}) {
+              elMotivo = why;
+              laIdentidad = identity;
+              fundado = true;
             },
           ),
         ),
@@ -192,15 +119,14 @@ void main() {
       await tester.pump();
       await tester.tap(find.text('SEGUIR'));
       await _asentar(tester);
-      await _tocarHora(tester, '07');
-      await tester.enterText(find.byType(TextField).first, 'el parque');
-      await tester.pump();
-      for (var i = 0; i < 4; i++) {
+      for (var i = 0; i < 2; i++) {
         await tester.tap(find.text('Ahora no'));
         await _asentar(tester);
       }
-      expect(laHora, isNull);
-      expect(elSitio, isNull);
+      await _bajar(tester);
+      expect(fundado, isTrue);
+      expect(elMotivo, isNull);
+      expect(laIdentidad, isNull);
     });
 
     testWidgets('no se puede seguir sin decir qué querés hacer', (
@@ -208,12 +134,7 @@ void main() {
     ) async {
       var fundado = false;
       await tester.pumpWidget(
-        _marco(
-          FirstRun(
-            onDone: (_, _, {why, floor, vowHour, vowPlace, identity}) =>
-                fundado = true,
-          ),
-        ),
+        _marco(FirstRun(onDone: (_, _, {why, identity}) => fundado = true)),
       );
       await _asentar(tester);
       await tester.tap(find.text('FUNDAR MI PUEBLO'));
@@ -223,19 +144,55 @@ void main() {
       expect(find.text('SEGUIR'), findsOneWidget);
       await tester.tap(find.text('SEGUIR'));
       await _asentar(tester);
-      expect(find.text('¿Cuándo y dónde?'), findsNothing);
+      expect(find.text('¿Para qué lo querés?'), findsNothing);
       expect(fundado, isFalse);
     });
 
-    testWidgets('y tampoco se puede seguir con el plan en blanco', (
+    testWidgets('cabe en un teléfono chico, con el teclado abierto', (
       tester,
     ) async {
-      await tester.pumpWidget(
-        _marco(
-          FirstRun(
-            onDone: (_, _, {why, floor, vowHour, vowPlace, identity}) {},
+      for (final teclado in [0.0, 260.0]) {
+        tester.view.physicalSize = const Size(320, 568);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+        await tester.pumpWidget(
+          MediaQuery(
+            data: MediaQueryData(
+              size: const Size(320, 568),
+              padding: const EdgeInsets.only(top: 20),
+              viewInsets: EdgeInsets.only(bottom: teclado),
+            ),
+            child: MaterialApp(
+              debugShowCheckedModeBanner: false,
+              home: FirstRun(onDone: (_, _, {why, identity}) {}),
+            ),
           ),
-        ),
+        );
+        await _asentar(tester);
+        expect(tester.takeException(), isNull, reason: 'bienvenida, $teclado');
+        // Con el teclado abierto la tarjeta rueda: el botón está, pero hay que
+        // llegar a él.
+        await tester.ensureVisible(find.text('FUNDAR MI PUEBLO'));
+        await tester.pump();
+        await tester.tap(find.text('FUNDAR MI PUEBLO'));
+        await _asentar(tester);
+        expect(tester.takeException(), isNull, reason: 'nombre, $teclado');
+        await tester.enterText(find.byType(TextField).first, 'Leer');
+        await tester.pump();
+        await tester.ensureVisible(find.text('SEGUIR'));
+        await tester.pump();
+        await tester.tap(find.text('SEGUIR'));
+        await _asentar(tester);
+        expect(tester.takeException(), isNull, reason: 'para qué, $teclado');
+        await tester.pumpWidget(const SizedBox());
+      }
+    });
+
+    testWidgets('fundar dos veces seguidas funda una sola', (tester) async {
+      // Un dedo impaciente toca otra vez mientras baja la cámara.
+      var veces = 0;
+      await tester.pumpWidget(
+        _marco(FirstRun(onDone: (_, _, {why, identity}) => veces++)),
       );
       await _asentar(tester);
       await tester.tap(find.text('FUNDAR MI PUEBLO'));
@@ -244,10 +201,13 @@ void main() {
       await tester.pump();
       await tester.tap(find.text('SEGUIR'));
       await _asentar(tester);
-      // Ni hora ni sitio: el botón está apagado y hay que usar «ahora no».
-      await tester.tap(find.text('SEGUIR'));
+      await tester.tap(find.text('Ahora no'));
       await _asentar(tester);
-      expect(find.text('¿Cuándo y dónde?'), findsOneWidget);
+      await tester.tap(find.text('Ahora no'));
+      await tester.pump(const Duration(milliseconds: 60));
+      await tester.tap(find.text('Ahora no'), warnIfMissed: false);
+      await _bajar(tester);
+      expect(veces, 1);
     });
   });
 

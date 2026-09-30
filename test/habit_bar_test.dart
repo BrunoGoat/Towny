@@ -27,7 +27,7 @@ void main() {
     home: Scaffold(
       body: HabitBar(
         store: store,
-        theme: UiTheme(Palette.forMoment(13, 1.0)),
+        theme: UiTheme(Palette.forMoment(13)),
         onSelect: (_) {},
         onManage: () {},
         onAdd: () {},
@@ -46,7 +46,7 @@ void main() {
     // el segundo solar abierto.
     expect(store.habits.length, 1);
     expect(store.canAddHabit, isFalse);
-    expect(store.unlockProgress, 0);
+    expect(store.unlockGoal.have, 0);
 
     await tester.pumpWidget(await barOf(store));
     expect(
@@ -83,7 +83,7 @@ void main() {
         home: Scaffold(
           body: HabitBar(
             store: store,
-            theme: UiTheme(Palette.forMoment(13, 1.0)),
+            theme: UiTheme(Palette.forMoment(13)),
             onSelect: (_) {},
             onManage: () {},
             onAdd: () => tocado++,

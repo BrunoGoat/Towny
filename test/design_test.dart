@@ -98,7 +98,7 @@ void main() {
           TownSignOverlay(
             name: _largo,
             symbol: 'sol',
-            theme: UiTheme(Palette.forMoment(13, 1.0)),
+            theme: UiTheme(Palette.forMoment(13)),
             life: vida,
           ),
         ),
@@ -133,7 +133,7 @@ void main() {
           size,
           Center(
             child: StoneCard(
-              theme: UiTheme(Palette.forMoment(13, 1.0)),
+              theme: UiTheme(Palette.forMoment(13)),
               when: DateTime(2026, 9, 10, 8, 50),
               number: 1284,
               label: leyenda,
@@ -163,7 +163,7 @@ void main() {
     // puede es cantar: tiene que leerse como un texto apagado y no como el
     // color con que la app avisa de algo.
     for (final hora in [13.0, 2.0]) {
-      final t = UiTheme(Palette.forMoment(hora, 1.0));
+      final t = UiTheme(Palette.forMoment(hora));
       tester.view.physicalSize = _pantallas.last;
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
@@ -218,7 +218,7 @@ void main() {
     // oscuro—. Leer una leyenda y escribirla son la misma cosa vista dos
     // veces, así que tienen que verse igual.
     for (final hora in [13.0, 2.0]) {
-      final t = UiTheme(Palette.forMoment(hora, 1.0));
+      final t = UiTheme(Palette.forMoment(hora));
       final size = _pantallas.last;
       tester.view.physicalSize = size;
       tester.view.devicePixelRatio = 1;
@@ -278,7 +278,7 @@ void main() {
         size,
         Center(
           child: StoneCard(
-            theme: UiTheme(Palette.forMoment(13, 1.0)),
+            theme: UiTheme(Palette.forMoment(13)),
             when: DateTime(2026, 9, 10),
             number: 7,
             label: null,
@@ -365,12 +365,10 @@ void _pieles() {
       final store = Store();
       await store.load();
       store.renameHabit(store.active, name: _largo, symbol: store.habit.symbol);
-      // Con todo escrito y con un segundo pueblo en el valle, que es la hoja
-      // más alta que puede haber: sin el segundo no sale la fila de la regla
-      // —no hay detrás de qué ponerse— y el alto que se comprueba no es el
-      // peor. La hoja creció tres bloques de golpe al escribirse el plan, la
-      // identidad y la regla, y en un teléfono de 320 se salía por tres
-      // píxeles.
+      // Con todo escrito, que es la hoja más alta que puede haber: las líneas,
+      // la frecuencia dicha y el plan. La hoja creció varios bloques de golpe
+      // al escribirse el plan y la identidad, y en un teléfono de 320 se
+      // salía por tres píxeles.
       store.pledgeHabit(
         store.active,
         hour: 22,
@@ -382,15 +380,15 @@ void _pieles() {
         why: 'para tener más energía durante el día',
         floor: 'abrir el libro y leer una página',
       );
+      store.setCadence(store.habit, 3);
       store.addHabit('Correr', 'carrera');
       store.active = 0;
-      store.stackHabit(store.habits[0], store.habits[1]);
       for (final size in _pantallas) {
         tester.view.physicalSize = size;
         tester.view.devicePixelRatio = 1;
         addTearDown(tester.view.reset);
         for (final hora in [13.0, 23.0]) {
-          final t = UiTheme(Palette.forMoment(hora, 1.0));
+          final t = UiTheme(Palette.forMoment(hora));
           await tester.pumpWidget(
             _marco(
               size,
@@ -409,7 +407,7 @@ void _pieles() {
           expect(find.text(_largo), findsOneWidget);
           expect(find.text('Eliminar este hábito'), findsOneWidget);
           // Con todo escrito, en un teléfono de 320 la hoja ya no cabe entera:
-          // son seis renglones tuyos, el reloj del plan y la fila de la regla.
+          // son los renglones tuyos, la frecuencia y el reloj del plan.
           // Por eso rueda, y lo que hay que exigirle entonces no es que quepa
           // sino que se pueda llegar a todo — se arrastra hasta el final y la
           // última fila tiene que quedar dentro de la pantalla.
@@ -454,7 +452,7 @@ void _pieles() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
       for (final hora in [7.0, 13.0, 18.6, 23.0]) {
-        final t = UiTheme(Palette.forMoment(hora, 1.0));
+        final t = UiTheme(Palette.forMoment(hora));
         await tester.pumpWidget(
           _marco(
             size,
@@ -526,7 +524,7 @@ void _abajo() {
 
     test('va en tinta clara, no en la del cielo', () {
       for (final hora in horas) {
-        final t = UiTheme(Palette.forMoment(hora, 1.0));
+        final t = UiTheme(Palette.forMoment(hora));
         expect(
           t.grassInk.computeLuminance(),
           greaterThan(0.45),
@@ -540,7 +538,7 @@ void _abajo() {
       // detrás. Tres a uno es el suelo por debajo del cual un texto chico deja
       // de leerse de un vistazo.
       for (final hora in horas) {
-        final t = UiTheme(Palette.forMoment(hora, 1.0));
+        final t = UiTheme(Palette.forMoment(hora));
         final prado = meadowTone(t.palette);
         expect(
           _contraste(t.grassInk, prado),
@@ -564,7 +562,7 @@ void _abajo() {
       store.debugFill(40);
 
       for (final hora in [11.0, 17.6, 21.0]) {
-        final t = UiTheme(Palette.forMoment(hora, 1.0));
+        final t = UiTheme(Palette.forMoment(hora));
         await tester.pumpWidget(
           _marco(
             const Size(390, 844),
@@ -641,7 +639,7 @@ void _arriba() {
       var peor = 99.0;
       var cuando = -1.0;
       for (final hora in todasLasHoras()) {
-        final t = UiTheme(Palette.forMoment(hora, 1.0));
+        final t = UiTheme(Palette.forMoment(hora));
         final r = _contraste(t.fg, t.palette.skyTop);
         if (r < peor) {
           peor = r;
@@ -655,41 +653,6 @@ void _arriba() {
             'a las ${cuando.toStringAsFixed(2)} la tinta de arriba y el '
             'cielo van a ${peor.toStringAsFixed(2)} a uno',
       );
-    });
-
-    test('y un pueblo dejado se escribe igual que uno cuidado', () {
-      // El fallo, contado por quien lo vio: «en los pueblos abandonados
-      // vuelve el color pardo en vez de blanco».
-      //
-      // El abandono tira del cielo hacia un gris de ceniza, y ese gris es
-      // claro: a las diez de la noche un pueblo dejado tiene el cielo casi
-      // negro con una capa de ceniza encima, y la interfaz —que elegía tinta
-      // mirando cuánta luz hay arriba— leía esa ceniza como luz de día y
-      // escribía en pardo de mediodía. Medido antes del arreglo: con una
-      // integridad de 0,2 la tinta no cruzaba a crema hasta más de hora y
-      // media después que en el pueblo de al lado.
-      //
-      // La hora manda; el descuido apaga el valle y no las letras.
-      for (final hora in todasLasHoras()) {
-        final cuidado = UiTheme(Palette.forMoment(hora, 1.0));
-        for (final integridad in [0.75, 0.5, 0.25, 0.0]) {
-          final dejado = UiTheme(Palette.forMoment(hora, integridad));
-          expect(
-            dejado.fg,
-            cuidado.fg,
-            reason:
-                'a las ${hora.toStringAsFixed(2)}, con integridad '
-                '$integridad, la tinta cambia de color',
-          );
-          expect(
-            dejado.dark,
-            cuidado.dark,
-            reason:
-                'a las ${hora.toStringAsFixed(2)}, con integridad '
-                '$integridad, los paneles cambian de lado',
-          );
-        }
-      }
     });
   });
 }

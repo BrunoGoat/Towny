@@ -20,16 +20,6 @@ import '../data/doings.dart';
 import 'folk.dart';
 import 'solid.dart';
 
-/// Cuánta gente sale hoy a la calle, de cero a uno.
-///
-/// Un pueblo desatendido no es sólo un pueblo más gris: es un pueblo del que
-/// la gente se va. Es la única manera que tiene el sitio de decir «llevás doce
-/// días sin venir» sin escribirlo en ninguna parte, y dice mucho más que el
-/// color.
-///
-/// Nunca llega a cero, igual que la integridad: siempre queda alguien.
-double folkOut(double integrity) => clampD(0.22 + integrity * 0.86, 0.0, 1.0);
-
 /// Lo dentro de casa que está la gente ahora mismo, de cero a uno.
 ///
 /// Cero de día, uno de noche. Sale de la luz que hay y no de la hora, así que

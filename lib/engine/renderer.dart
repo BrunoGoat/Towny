@@ -373,7 +373,7 @@ class TownPainter extends CustomPainter {
         r,
         Paint()
           ..shader = ui.Gradient.radial(Offset(at.x, at.y), r, [
-            pal.ink.withValues(alpha: 0.20 * scene.integrity.clamp(0.5, 1.0)),
+            pal.ink.withValues(alpha: 0.20),
             pal.ink.withValues(alpha: 0),
           ]),
       );
@@ -409,6 +409,7 @@ class TownPainter extends CustomPainter {
   /// the button is held. It is the difference between pressing a button and
   /// finishing something you can already see.
   void _drawTownGhost(Canvas canvas, Projector p, Size size, TownLayout town) {
+    if (!scene.ghost) return;
     if (scene.fx != null) return; // one is already in flight
     final piece = town.pieceFor(scene.placed);
     if (piece == null) return;
@@ -1025,7 +1026,6 @@ class TownPainter extends CustomPainter {
       if (take <= 0 && !e.founded) continue;
       final root = builtTown(e.layout, take).root;
       if (root == null) continue;
-      final decay = 1.0 - e.integrity;
 
       // El día que se funda, la plaza sube del suelo en vez de estar ya puesta.
       // Con cero piezas lo único que hay en el pueblo es ella, así que se pinta
@@ -1077,14 +1077,7 @@ class TownPainter extends CustomPainter {
           }
           final c = leaf.cluster;
           if (c == null) {
-            _emitWeather(
-              p,
-              e,
-              e.layout.pieces[leaf.weather],
-              pal,
-              night,
-              decay,
-            );
+            _emitWeather(p, e, e.layout.pieces[leaf.weather], pal, night);
             _paintFolk(p, e, aqui, pal, light, size);
             return;
           }
@@ -1141,7 +1134,7 @@ class TownPainter extends CustomPainter {
                   f.piece == _fallingPiece) {
                 return;
               }
-              _paint(p, e, f, pal, light, night, decay, size);
+              _paint(p, e, f, pal, light, night, size);
             },
             (gente) => _paintFolk(p, e, gente, pal, light, size),
           );
@@ -1189,14 +1182,9 @@ class TownPainter extends CustomPainter {
     if (!scene.folk) return const [];
     final dentro = folkHome(pal.daylight);
     if (dentro > 0.985) return const [];
-    final cuantos = folkOut(e.integrity);
     final talla = folkHeight(e.layout.character);
     final out = <_Walker>[];
     for (final who in folkOf(e.layout, take)) {
-      // Los que hoy no salen. Por la semilla y no al azar, para que no haya
-      // uno parpadeando entre existir y no existir cada fotograma.
-      if (hash01(who.seed, 11) > cuantos) continue;
-
       // Descartar **antes** de calcular dónde anda.
       //
       // Saber dónde está uno cuesta recorrerle la ronda, y las dos pruebas de
@@ -1379,7 +1367,7 @@ class TownPainter extends CustomPainter {
               0) {
             continue;
           }
-          _plain(p, f, pal, light, 0);
+          _plain(p, f, pal, light);
         }
       }
     }
@@ -1427,7 +1415,7 @@ class TownPainter extends CustomPainter {
     if (caras.isEmpty) return;
     BspTree.build(
       caras,
-    ).paint(p.eye, (f) => _paint(p, e, f, pal, light, night, 0, size));
+    ).paint(p.eye, (f) => _paint(p, e, f, pal, light, night, size));
   }
 
   static double _suave(double t) => t * t * (3 - 2 * t);
@@ -1443,10 +1431,7 @@ class TownPainter extends CustomPainter {
     final falling = _falling;
     if (falling == null || _fallingPainted) return;
     _fallingPainted = true;
-    falling.paint(
-      p.eye,
-      (f) => _paint(p, e, f, pal, light, night, 1.0 - e.integrity, size),
-    );
+    falling.paint(p.eye, (f) => _paint(p, e, f, pal, light, night, size));
   }
 
   /// How far a box is from the eye, squared, which is all a sort needs.
@@ -1517,11 +1502,10 @@ class TownPainter extends CustomPainter {
     TownPiece piece,
     Palette pal,
     bool night,
-    double decay,
   ) {
     switch (piece.kind) {
       case PieceKind.field:
-        _emitField(p, piece, piece.y0, pal, decay);
+        _emitField(p, piece, piece.y0, pal);
       case PieceKind.water:
         _emitWater(p, piece, piece.y0, pal, night);
       case PieceKind.sail:
@@ -1548,7 +1532,6 @@ class TownPainter extends CustomPainter {
     Palette pal,
     V3 light,
     bool night,
-    double decay,
     Size size,
   ) {
     final v = f.v;
@@ -1559,36 +1542,30 @@ class TownPainter extends CustomPainter {
       return;
     }
     // The notice board belongs to the town rather than to any achievement, so
-    // it has no piece to take its colour or its weathering from. It takes them
-    // from the town instead: a place nobody has been to in a month has a
-    // weathered board like everything else in it.
+    // it has no piece to take its colour from. It takes it from the town.
     if (f.piece < 0) {
-      _plain(p, f, pal, light, decay);
+      _plain(p, f, pal, light);
       return;
     }
     if (f.piece >= e.layout.pieces.length) return;
     final piece = e.layout.pieces[f.piece];
-    final tone = _toneOf(e, piece, pal, decay);
-    final colour = _colourOf(p, f, piece, tone, pal, light, decay, night);
+    final tone = _toneOf(e, piece, pal);
+    final colour = _colourOf(p, f, piece, tone, pal, light, night);
     if (colour == null) return;
     _push(p, v, colour, piece, size);
     final decals = f.decals;
     if (decals == null) return;
     for (final g in decals) {
-      final c = _colourOf(p, g, piece, tone, pal, light, decay, night);
+      final c = _colourOf(p, g, piece, tone, pal, light, night);
       if (c != null) _push(p, g.v, c, piece, size);
     }
   }
 
   /// A face with no achievement behind it: the town's own furniture.
-  void _plain(Projector p, Facet f, Palette pal, V3 light, double decay) {
+  void _plain(Projector p, Facet f, Palette pal, V3 light) {
     final at = f.v.first;
-    // La ropa no se desgasta: quien la lleva no es del pueblo, vive en él. Y
-    // en un pueblo apagado hace falta que a los pocos que quedan se los vea.
-    final tono = _plainTone(f, at, pal);
-    final albedo = f.surface == Surface.cloth ? tono : _weather(tono, decay, 0);
     final colour = hazeAt(
-      _shade(f.n, albedo, light, pal, f.ao, 0, 0, f.surface),
+      _shade(f.n, _plainTone(f, at, pal), light, pal, f.ao, 0, 0, f.surface),
       p,
       at.x,
       at.z,
@@ -1599,18 +1576,7 @@ class TownPainter extends CustomPainter {
     if (decals == null) return;
     for (final g in decals) {
       final c = hazeAt(
-        _shade(
-          g.n,
-          g.surface == Surface.cloth
-              ? _plainTone(g, at, pal)
-              : _weather(_plainTone(g, at, pal), decay, 0),
-          light,
-          pal,
-          g.ao,
-          0,
-          0,
-          g.surface,
-        ),
+        _shade(g.n, _plainTone(g, at, pal), light, pal, g.ao, 0, 0, g.surface),
         p,
         at.x,
         at.z,
@@ -1663,7 +1629,7 @@ class TownPainter extends CustomPainter {
   /// piece: a wall that changes tone halfway up, or a dormer that does not
   /// match its own roof, is the fastest way to make a town look like a pile of
   /// blocks.
-  _Tone _toneOf(TownEntry e, TownPiece piece, Palette pal, double decay) {
+  _Tone _toneOf(TownEntry e, TownPiece piece, Palette pal) {
     final key = piece.building;
     final had = _tone[key];
     if (had != null) return had;
@@ -1719,7 +1685,6 @@ class TownPainter extends CustomPainter {
     _Tone tone,
     Palette pal,
     V3 light,
-    double decay,
     bool night,
   ) {
     final s = piece.seed;
@@ -1734,27 +1699,25 @@ class TownPainter extends CustomPainter {
     Color albedo;
     switch (f.surface) {
       case Surface.wall:
-        albedo = _weather(tone.wall, decay, s);
+        albedo = tone.wall;
       case Surface.stone:
-        albedo = _weather(tone.stone, decay, s);
+        albedo = tone.stone;
       case Surface.tile:
-        albedo = _weather(tone.tile, decay, s);
+        albedo = tone.tile;
       case Surface.thatch:
         // Straw is not a painted surface, it is a heaped one: every plane of
         // a thatched roof takes a step of its own so the thing reads as
         // bundles laid by hand and not as a wedge the colour of straw.
-        albedo = _weather(
-          Color.lerp(tone.tile, pal.stone, hash01(s, 17 + f.data) * 0.16)!,
-          decay,
-          s,
-        );
+        albedo = Color.lerp(
+          tone.tile,
+          pal.stone,
+          hash01(s, 17 + f.data) * 0.16,
+        )!;
       case Surface.brick:
-        albedo = _weather(const Color(0xFF8C6A52), decay, s);
+        albedo = const Color(0xFF8C6A52);
       case Surface.own:
-        albedo = _weather(Color(f.tint ?? 0xFF808080), decay, s);
+        albedo = Color(f.tint ?? 0xFF808080);
       case Surface.cloth:
-        // La ropa no se desgasta con el abandono del pueblo, porque quien la
-        // lleva no es del pueblo: es quien vive en él.
         albedo = Color(f.tint ?? 0xFF808080);
       case Surface.leaf:
         final leaf = leafOfYear(
@@ -1768,11 +1731,7 @@ class TownPainter extends CustomPainter {
         );
         // Pulled towards the ground's own tone so a tree reads as part of the
         // landscape rather than as a green block dropped onto it.
-        albedo = Color.lerp(
-          Color.lerp(leaf, pal.ground, 0.28)!,
-          const Color(0xFF8A6E42),
-          decay * 0.6,
-        )!;
+        albedo = Color.lerp(leaf, pal.ground, 0.28)!;
       case Surface.hollow:
         // The dark inside an arch is a shadow, not a surface: it is not lit,
         // and lighting it is what turns an opening into a grey sticker.
@@ -1784,16 +1743,11 @@ class TownPainter extends CustomPainter {
           pal,
         ).toARGB32();
       case Surface.window:
-        return _window(p, f, piece, pal, decay, night);
+        return _window(p, f, piece, pal, night);
       case Surface.plank:
-        if (!_shut(f, piece, decay, night)) return null;
-        return hazeAt(
-          _weather(const Color(0xFF7A6549), decay, s),
-          p,
-          piece.cx,
-          piece.cz,
-          pal,
-        ).toARGB32();
+        // Las tablas de una ventana clausurada. Salían cuando un pueblo se
+        // quedaba sin nadie, y un pueblo ya no se queda sin nadie.
+        return null;
     }
     return hazeAt(
       _shade(f.n, albedo, light, pal, f.ao, flash, 0, f.surface),
@@ -1804,59 +1758,16 @@ class TownPainter extends CustomPainter {
     ).toARGB32();
   }
 
-  /// Whether this window has a light on behind it.
-  ///
-  /// One place, because two places is what it was: the same expression written
-  /// out twice, in the code that paints a window and in the code that decides
-  /// whether to board one up, and two copies of a rule are two rules waiting
-  /// to disagree.
-  ///
-  /// At full health every window is lit, which is what the app has been saying
-  /// all along — «todas las ventanas encendidas» — while this quietly lit
-  /// seventy-two per cent of them and left the rest dark on a town that had
-  /// nothing wrong with it. They go out as the days without a piece add up,
-  /// and always in the same order, so a town empties in a way you can
-  /// recognise instead of flickering at random.
-  bool _litWindow(Facet f, TownPiece piece, double decay, bool night) {
-    if (!night) return false;
-    final life = clampD(1 - decay, 0, 1);
-    final lifeCurve = life * life * (3 - 2 * life);
-    return hash01(piece.seed, 70, f.data) < lifeCurve;
-  }
-
-  /// Whether a window has been boarded up. The same ones go first every time,
-  /// so a town empties in an order you can recognise rather than flickering at
-  /// random.
-  bool _shut(Facet f, TownPiece piece, double decay, bool night) {
-    final s = piece.seed;
-    if (_litWindow(f, piece, decay, night)) return false;
-    final boarded = decay > 0.30 && hash01(s, 72) < (decay - 0.30) * 1.5;
-    return boarded || hash01(s, 73, f.data) < decay * 0.8;
-  }
-
   /// A window, which is where the town says how you are doing. A lit window is
   /// one achievement showing from the outside; a whole town of them read in a
-  /// single glance is the thing the wall could never do. And when the days
-  /// start going by without a piece, they go out one by one.
-  int _window(
-    Projector p,
-    Facet f,
-    TownPiece piece,
-    Palette pal,
-    double decay,
-    bool night,
-  ) {
-    final life = clampD(1 - decay, 0, 1);
-    final lifeCurve = life * life * (3 - 2 * life);
-    final lit = _litWindow(f, piece, decay, night);
-    final colour = lit
-        ? Color.lerp(
-            const Color(0xFF7A5C2E),
-            const Color(0xFFFFD79A),
-            0.35 + 0.65 * lifeCurve,
-          )!
-        : Color.lerp(pal.ink, pal.stoneCool, night ? 0.12 : 0.30)!;
-    if (!lit) return hazeAt(colour, p, piece.cx, piece.cz, pal).toARGB32();
+  /// single glance is the thing the wall could never do. At night every one of
+  /// them is lit.
+  int _window(Projector p, Facet f, TownPiece piece, Palette pal, bool night) {
+    if (!night) {
+      final dark = Color.lerp(pal.ink, pal.stoneCool, 0.30)!;
+      return hazeAt(dark, p, piece.cx, piece.cz, pal).toARGB32();
+    }
+    const colour = Color(0xFFFFD79A);
     // A lit window is a light, not a yellow rectangle. Remember where it fell
     // so a glow can be laid over the town once the walls are down.
     if (_lamps.length < _lampStride * 220) {
@@ -1868,7 +1779,7 @@ class TownPainter extends CustomPainter {
             ..add(at.x)
             ..add(at.y)
             ..add(math.min(r, 34))
-            ..add(clampD(1 - decay * 0.7, 0.2, 1.0))
+            ..add(1.0)
             // A qué cara pertenece: la que está a punto de emitirse con este
             // color, que es la ventana misma. De ahí sale su sitio en el
             // orden de pintado.
@@ -1901,13 +1812,7 @@ class TownPainter extends CustomPainter {
       0.42 + 0.58 * (0.5 + 0.5 * math.sin(scene.time * 0.31));
 
   /// Ploughed rows, and the crop standing in them rippling with the wind.
-  void _emitField(
-    Projector p,
-    TownPiece piece,
-    double y0,
-    Palette pal,
-    double decay,
-  ) {
+  void _emitField(Projector p, TownPiece piece, double y0, Palette pal) {
     final s = piece.seed;
     // Real crop colours rather than a wash of the ground tone: young green,
     // ripe barley, the deep green of a kitchen garden.
@@ -1945,13 +1850,7 @@ class TownPainter extends CustomPainter {
         const Color(0xFFE0C86A),
         0.18 * (0.5 + 0.5 * _gust(piece.cx, piece.cz, i * 0.9)),
       )!;
-      final c = hazeAt(
-        Color.lerp(i.isEven ? ripe : soil, pal.ground, decay * 0.45)!,
-        p,
-        piece.cx,
-        piece.cz,
-        pal,
-      );
+      final c = hazeAt(i.isEven ? ripe : soil, p, piece.cx, piece.cz, pal);
       // The crop stands a little proud of the soil, and leans.
       final h = i.isEven ? y + 0.10 : y;
       final push = i.isEven ? lean : 0.0;
@@ -2198,13 +2097,6 @@ class TownPainter extends CustomPainter {
       blade(a, r * 0.30, r * 0.98, r * 0.20, i.isEven ? cloth : shade, 1.06);
       blade(a, r * 0.06, r * 1.0, r * 0.055, wood, 0.95);
     }
-  }
-
-  Color _weather(Color c, double decay, int seed) {
-    if (decay < 0.02) return c;
-    final moss = hash01(seed, 61) < decay * 0.55;
-    final t = decay * (moss ? 0.42 : 0.22);
-    return Color.lerp(c, const Color(0xFF5C6B4A), t)!;
   }
 
   /// The name of each landmark the town has finished.

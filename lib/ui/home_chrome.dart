@@ -41,7 +41,6 @@ class TopBar extends StatelessWidget {
     final t = theme;
     final habit = store.habit;
     final asleep = habit.resting;
-    final decaying = store.isDecaying && !asleep;
     // Lo que sustituyó a la racha: de los días que contaban, en cuántos hubo
     // pieza. Un número que una mala semana baja un poco y no tira al suelo, y
     // que por lo tanto se puede mirar un día malo sin que duela mirarlo.
@@ -120,19 +119,11 @@ class TopBar extends StatelessWidget {
               Text(
                 asleep
                     ? 'El pueblo duerme · ${sleepUntil(habit.wakesAt!)}'
-                    : decaying
-                    // Lo mismo que decía antes, dicho sin contar los días que
-                    // faltaste. La información útil es idéntica —está a
-                    // oscuras, una pieza lo arregla— y la contabilidad de la
-                    // culpa no hacía falta para darla.
-                    ? 'Una pieza y vuelven las luces'
                     : store.nextEventLabel,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: decaying
-                      ? const Color(0xFFE0A055)
-                      : t.fg.withValues(alpha: asleep ? 0.40 : 0.50),
+                  color: t.fg.withValues(alpha: asleep ? 0.40 : 0.50),
                   fontSize: 12,
                   letterSpacing: 0.1,
                   shadows: t.halo,

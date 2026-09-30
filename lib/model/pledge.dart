@@ -1,26 +1,28 @@
-/// Las tres cosas que un pueblo no deduce: el plan, la identidad y la regla.
+/// Las dos cosas que un pueblo no deduce: el plan y la identidad.
 ///
 /// Todo lo demás que el tablón dice de vos sale de las piezas —a qué hora caen,
 /// qué días faltan, cuánto tardás en volver— y no hace falta escribirlo. Estas
-/// tres no se pueden deducir de nada, porque no son observaciones: son
-/// decisiones. A qué hora y en qué sitio vas a hacerlo; en quién te convierte;
-/// y detrás de qué otra cosa va.
+/// dos no se pueden deducir de nada, porque no son observaciones: son
+/// decisiones. A qué hora y en qué sitio vas a hacerlo, y en quién te convierte.
 ///
-/// **Por qué existen.** Las tres son lo que separa un hábito que aguanta de una
-/// buena intención, y ninguna de las tres cuesta nada de guardar:
+/// **Por qué existen.** Las dos son lo que separa un hábito que aguanta de una
+/// buena intención, y ninguna de las dos cuesta nada de guardar:
 ///
 ///  * **El plan** («voy a leer a las 22, en la cama») convierte una intención en
 ///    una decisión ya tomada. Es lo más barato que se puede hacer para que algo
 ///    pase de verdad, y lo único que hay que hacer es escribirlo una vez.
 ///  * **La identidad** («alguien que lee todos los días») es lo que hace que el
 ///    hábito no se acabe al cumplir la meta. Cada pieza es un voto a favor de
-///    esa frase, y este pueblo es el recuento.
-///  * **La regla** («después de correr, estirar») le da al hábito nuevo el
-///    recordatorio que no tiene: otro hábito que ya existe. El pueblo ya sabe
-///    cuáles van juntos —está en el tablón— y esto es firmarlo.
+///    esa frase, y este pueblo es el recuento — pero el pueblo no lo dice hasta
+///    que sea verdad: es un título y se gana. Ver [identityStanding].
+///
+/// Hubo una tercera, la regla («después de correr, estirar»), y ya no se firma:
+/// que dos hábitos van juntos es algo que el tablón ve y dice, no algo que haya
+/// que declarar. Lo que queda de ella es [Habit.afterId], que se lee de las
+/// copias viejas y nada más.
 ///
 /// Este fichero no escribe ninguna pantalla ni ninguna nota: sólo dice cómo se
-/// leen las tres en voz alta y qué tan bien se están cumpliendo. Lo demás lo
+/// leen las dos en voz alta y qué tan bien se están cumpliendo. Lo demás lo
 /// hacen el tablón, la hoja del hábito y la primera vez.
 library;
 
@@ -103,7 +105,9 @@ String placeSaid(String place) {
 String lowerName(String name) {
   final t = name.trim();
   if (t.isEmpty) return t;
-  if (t.length > 1 && t[1] == t[1].toUpperCase() && t[1] != t[1].toLowerCase()) {
+  if (t.length > 1 &&
+      t[1] == t[1].toUpperCase() &&
+      t[1] != t[1].toLowerCase()) {
     return t;
   }
   return t[0].toLowerCase() + t.substring(1);
@@ -309,16 +313,29 @@ IdentityStanding? identityStanding(Habit h, {DateTime? at}) {
     contaban.add(cuentan);
   }
 
-  // El ritmo, por la mediana de las semanas enteras que hubo. Una semana a
-  // medias —la primera de un pueblo recién fundado, o una con pausa dentro— no
-  // dice cada cuánto lo hacés, así que no vota.
-  final llenas = <int>[
-    for (var i = 0; i < hechos.length; i++)
-      if (contaban[i] >= 7) hechos[i],
-  ];
-  if (llenas.isEmpty) return null;
-  llenas.sort();
-  final rhythm = math.max(1, llenas[llenas.length ~/ 2]);
+  // El ritmo contra el que se mide: **el que dijiste**, si lo dijiste.
+  //
+  // Desde que el pueblo pregunta cada cuánto vas a la semana de fundarlo
+  // —ver `model/cadence.dart`— hay una respuesta tuya, y un título se gana
+  // contra lo que te pediste. Medirse contra el propio promedio lo cumple
+  // cualquiera: quien va cayendo de cinco días a dos sigue al cien por cien
+  // de su ritmo todo el camino, y eso no puede ser un título.
+  //
+  // Quien no contestó —o traía el hábito de antes de que se preguntara— se
+  // mide contra lo que se le ve, por la mediana de las semanas enteras que
+  // hubo. Una semana a medias —la primera de un pueblo recién fundado, o una
+  // con pausa dentro— no dice cada cuánto lo hacés, así que no vota.
+  var rhythm = h.perWeek ?? 0;
+  if (rhythm <= 0) {
+    final llenas = <int>[
+      for (var i = 0; i < hechos.length; i++)
+        if (contaban[i] >= 7) hechos[i],
+    ];
+    if (llenas.isEmpty) return null;
+    llenas.sort();
+    rhythm = llenas[llenas.length ~/ 2];
+  }
+  rhythm = rhythm.clamp(1, 7);
 
   // Y el cumplimiento, semana a semana y con tope.
   final semanas = <double>[];
@@ -348,83 +365,6 @@ String rhythmSaid(int perWeek) => switch (perWeek) {
   1 => 'un día por semana',
   _ => '$perWeek días de cada siete',
 };
-
-/// Detrás de qué hábito va éste, si la regla sigue en pie.
-///
-/// Se busca en el valle cada vez y no se guarda nada más que el identificador,
-/// así que una regla contra un hábito borrado no existe: no hay que limpiarla,
-/// deja de encontrarse.
-Habit? afterOf(Habit h, List<Habit> valley) {
-  final id = _clean(h.afterId);
-  if (id == null || id == h.id) return null;
-  for (final o in valley) {
-    if (o.id == id) return o;
-  }
-  return null;
-}
-
-/// La regla, dicha entera: «Después de correr, leer.»
-String? ruleSaid(Habit h, List<Habit> valley) {
-  final antes = afterOf(h, valley);
-  if (antes == null) return null;
-  return 'Después de ${lowerName(antes.name)}, ${lowerName(h.name)}.';
-}
-
-/// Cómo va una regla firmada.
-///
-/// Las dos cifras van juntas porque una sola no dice nada: «lo cumplís el 80%»
-/// suena bien hasta que se ve que los demás días también lo hacés el 78%, y
-/// entonces la regla no está haciendo nada. Lo que se lee es la diferencia.
-class RuleScore {
-  const RuleScore(this.kept, this.of, this.without, this.ofWithout);
-
-  /// De los días en que hiciste el hábito de antes, la parte en que también
-  /// hiciste éste — y cuántos días fueron.
-  final double kept;
-  final int of;
-
-  /// Y lo mismo los demás días.
-  final double without;
-  final int ofWithout;
-}
-
-/// Con qué frecuencia se cumple la regla.
-///
-/// Nulo si no hay regla o si los dos hábitos no han convivido lo bastante: «el
-/// 100%» sobre tres días no es un número que se pueda decir en voz alta.
-RuleScore? ruleKept(Habit h, List<Habit> valley, {DateTime? at}) {
-  final antes = afterOf(h, valley);
-  if (antes == null) return null;
-  final now = at ?? DateTime.now();
-  final mios = <int>{for (final d in daysOf(h)) dayKey(d)};
-  final suyos = <int>{for (final d in daysOf(antes)) dayKey(d)};
-  if (suyos.isEmpty) return null;
-  // Desde cuándo existe la regla no se sabe —no se guarda cuándo se firmó, y no
-  // hace falta—, así que se cuentan los días en que los dos pueblos ya
-  // existían. Contar los de antes sería reprocharte no haber cumplido una regla
-  // que todavía no existía.
-  var desde = dayStart(h.createdAt);
-  final nace = dayStart(antes.createdAt);
-  if (nace.isAfter(desde)) desde = nace;
-  final hoy = dayStart(now);
-  var de = 0, con = 0, sin = 0, conSin = 0;
-  for (var d = desde; !d.isAfter(hoy); d = d.add(const Duration(days: 1))) {
-    final k = dayKey(d);
-    // Un día en que cualquiera de los dos dormía no cuenta: uno de los dos no
-    // estaba jugando, igual que en la nota que empareja dos hábitos.
-    if (h.restedOn(d) && !mios.contains(k)) continue;
-    if (antes.restedOn(d) && !suyos.contains(k)) continue;
-    if (suyos.contains(k)) {
-      de++;
-      if (mios.contains(k)) con++;
-    } else {
-      sin++;
-      if (mios.contains(k)) conSin++;
-    }
-  }
-  if (de < 5) return null;
-  return RuleScore(con / de, de, sin == 0 ? 0 : conSin / sin, sin);
-}
 
 /// Un texto que puede venir vacío desde un archivo viejo o desde un campo que
 /// alguien dejó en blanco.

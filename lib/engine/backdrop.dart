@@ -474,20 +474,6 @@ class Backdrop {
 
   void drawAtmosphere(Canvas canvas, Size size, double horizonY) {
     final pal = scene.palette;
-    final decay = 1 - scene.integrity;
-    if (decay > 0.05) {
-      // A town left alone does not fog over, it goes cold and quiet. Grey mist
-      // reads as bad visibility; a cold, dim town reads as nobody home.
-      canvas.drawRect(
-        Offset.zero & size,
-        Paint()
-          ..color = Color.lerp(
-            pal.ink,
-            const Color(0xFF3E4758),
-            0.55,
-          )!.withValues(alpha: 0.06 + decay * 0.20),
-      );
-    }
     // A soft vignette to hold the eye on the town.
     canvas.drawRect(
       Offset.zero & size,
