@@ -61,30 +61,10 @@ import 'solid.dart';
 /// Blended by how much of a day it is rather than by whether the sun is up,
 /// because the second of those changes colour in a single frame.
 Color meadowTone(Palette pal) {
-  final day = pal.daylight;
-  // El verde de siempre, sin año: el año entra una sola vez, más abajo.
-  // Entrando aquí también, se aplicaba dos veces —una con el peso de la
-  // mezcla y otra entera— y el otoño salía rojo ladrillo en vez de ocre.
-  final green = Color.lerp(
-    const Color(0xFF204D53),
-    grassOfYear(Season.none),
-    day,
-  )!;
-  var prado = Color.lerp(pal.ground, green, 0.32 + 0.115 * day)!;
-  // El año otra vez, ahora sobre la mezcla ya hecha.
-  //
-  // Hace falta las dos veces. El verde entra en la mezcla pesando poco menos
-  // de la mitad —el resto es el tono del suelo de esa hora, que no sabe nada
-  // del año—, así que teñir sólo el verde dejaba septiembre y junio casi del
-  // mismo color.
-  //
-  // Pero **multiplicando y no mezclando**. Mezclar con el verde de la
-  // estación es mezclar con un color de mediodía: a las dos de la mañana el
-  // prado se aclaraba un tercio hacia un verde de mediodía y la noche dejaba
-  // de ser noche. Multiplicar por lo que la estación le hizo al verde mueve
-  // el tono y deja la luz en paz — y con el año apagado la razón es uno y
-  // esto no hace absolutamente nada, que es la otra mitad de por qué así.
-  prado = tintedLike(prado, grassOfYear(Season.none), grassOfYear(pal.season));
+  // El verde de siempre, sin año: el año entra una sola vez, dentro.
+  // Entrando dos, se aplicaba doble —una con el peso de la mezcla y otra
+  // entera— y el otoño salía rojo ladrillo en vez de ocre.
+  final prado = meadowUnderSnow(pal);
   // Y encima, la nieve. Va después de todo lo demás porque tapa: un prado
   // nevado no es un prado de otro color, es un prado que no se ve.
   //
@@ -92,14 +72,63 @@ Color meadowTone(Palette pal) {
   // que hay claro en un paisaje oscuro—. El tono ya sigue a la luz de la
   // hora, así que de noche sale azulada sola.
   //
-  // Y no la misma nieve que los tejados, sino algo más apagada: un prado
+  // Y no la misma nieve que los tejados, sino un punto más apagada: un prado
   // nevado se mira de canto y un tejado de frente, así que el prado devuelve
   // menos luz. Con la misma de los dos, el suelo salía exactamente del gris
   // de la bruma y el horizonte desaparecía — el valle entero era una sola
   // mancha pálida sin línea que separase la tierra del cielo.
-  final manto = Color.lerp(snowTone(pal), pal.ground, 0.22)!;
-  return Color.lerp(prado, manto, pal.season.snow * 0.66)!;
+  //
+  // Era un 22% hacia el suelo, y de ahí salía una nieve gris. Lo que separa
+  // la tierra del cielo no hace falta que sea medio tono de gris: con el 10%
+  // el horizonte sigue leyéndose —el cielo de un día de nieve es más oscuro
+  // que la nieve, no más claro— y lo de abajo por fin parece nieve.
+  final manto = Color.lerp(snowTone(pal), pal.ground, 0.10)!;
+  return Color.lerp(prado, manto, pal.season.snow * 0.74)!;
 }
+
+/// El prado de esta hora **sin la nieve encima**: lo que asoma por los claros.
+///
+/// Es [meadowTone] parado un paso antes del manto. Lo usan las matas de hierba
+/// que se ven entre la nieve, que no son otro verde sino el mismo prado de
+/// debajo asomando.
+/// [year] es cuánto del año se le aplica: uno es el prado que toca hoy, cero
+/// el verde de siempre a esta misma hora. Las matas que asoman entre la nieve
+/// piden menos de uno — ver [tuftTone].
+Color meadowUnderSnow(Palette pal, {double year = 1}) {
+  final day = pal.daylight;
+  final green = Color.lerp(
+    const Color(0xFF204D53),
+    grassOfYear(Season.none),
+    day,
+  )!;
+  final prado = Color.lerp(pal.ground, green, 0.32 + 0.115 * day)!;
+  if (year <= 0.001) return prado;
+  // El año, sobre la mezcla ya hecha y no sólo sobre el verde: el verde pesa
+  // poco menos de la mitad —el resto es el tono del suelo de esa hora, que no
+  // sabe nada del año— así que tiñendo sólo el verde, septiembre y junio
+  // salían casi del mismo color.
+  //
+  // Y **multiplicando, no mezclando**. Mezclar con el verde de la estación es
+  // mezclar con un color de mediodía: a las dos de la mañana el prado se
+  // aclaraba un tercio hacia un verde de mediodía y la noche dejaba de ser
+  // noche. Multiplicar por lo que la estación le hizo al verde mueve el tono
+  // y deja la luz en paz — y con el año apagado la razón es uno y esto no
+  // hace absolutamente nada, que es la otra mitad de por qué así.
+  final delAno = tintedLike(
+    prado,
+    grassOfYear(Season.none),
+    grassOfYear(pal.season),
+  );
+  return year >= 0.999 ? delAno : Color.lerp(prado, delAno, year)!;
+}
+
+/// El verde de las matas que asoman por los claros de la nieve.
+///
+/// Es el prado de debajo, pero tirado hacia el verde de siempre. Lo que hay
+/// bajo la nieve es hierba dormida y con el pardo entero del invierno encima
+/// los claros se leían como manchas de barro —o peor, como sombras sueltas en
+/// la nieve— en vez de como hierba. A un tercio del año se lee lo que es.
+Color tuftTone(Palette pal) => meadowUnderSnow(pal, year: 0.3);
 
 /// Mueve [c] lo mismo que [from] se movió hasta [to].
 ///
@@ -308,7 +337,10 @@ bool darkSky(Palette pal) {
   // sierra entera y no sólo su borde —a esta distancia una cordillera es una
   // silueta plana— y con menos fuerza cuanto más lejos está, porque lo que
   // está lejos lo tapa la bruma y no la nieve.
-  final alto = clampD(pal.season.winter * 1.45 - 0.30, 0.0, 1.0);
+  // Por lo frío que está y no por dónde está el sol: las cumbres se cubren
+  // cuando hace frío, que es un mes después del solsticio, igual que la nieve
+  // del valle y por lo mismo.
+  final alto = clampD(pal.season.chill * 1.45 - 0.30, 0.0, 1.0);
   if (alto > 0.004) {
     body = Color.lerp(
       body,

@@ -247,12 +247,21 @@ class _SettingsSheetState extends State<SettingsSheet> {
           onChanged: wants.setSeasons,
         ),
         if (wants.seasons) ...[
+          // Y qué estación cree que es hoy, dicho en voz alta.
+          //
+          // Es la única manera de que quien lo mire sepa si esto está bien
+          // puesto sin esperar tres meses: si está en Montevideo en agosto y
+          // acá pone «otoño», el interruptor de abajo está del revés. Sale de
+          // la fecha de verdad aunque el año esté apagado o fingido, porque lo
+          // que contesta es dónde estás y no qué estás mirando.
           _Switch(
             theme: t,
             title: 'Estoy en el hemisferio sur',
             subtitle:
-                'Para que diciembre sea verano y julio invierno. Sale del '
-                'idioma del teléfono; esto es para corregirlo.',
+                'Para que diciembre sea verano y julio invierno. '
+                '${wants.hemisphereChosen ? 'Lo pusiste vos' : 'Sale del idioma del teléfono'}, '
+                'y con eso hoy es '
+                '${Season.on(DateTime.now(), wants.hemisphere).name.toLowerCase()}.',
             on: wants.hemisphere == Hemisphere.south,
             onChanged: (v) =>
                 wants.setHemisphere(v ? Hemisphere.south : Hemisphere.north),
@@ -274,11 +283,15 @@ class _SettingsSheetState extends State<SettingsSheet> {
             // es cazarlo.
             _Pick(
               theme: t,
+              // En el **pico** de cada una y no en su primer día: el suelo
+              // va un mes por detrás del sol, así que en el solsticio todavía
+              // se ve la estación que se va. Quien toca «Invierno» quiere ver
+              // el invierno, no el 21 de diciembre.
               options: const [
-                ('Invierno', 0.0),
-                ('Primavera', 0.25),
-                ('Verano', 0.5),
-                ('Otoño', 0.75),
+                ('Invierno', 0.09),
+                ('Primavera', 0.34),
+                ('Verano', 0.59),
+                ('Otoño', 0.84),
               ],
               value: wants.fakeSeasonAt,
               onPick: wants.setFakeSeasonAt,

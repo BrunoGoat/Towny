@@ -168,6 +168,7 @@ class TownPainter extends CustomPainter {
 
     fondo.drawSky(canvas, size, p, horizonY);
     fondo.drawGround(canvas, size, horizonY);
+    fondo.drawTufts(canvas, p, size, horizonY);
     fondo.drawRanges(canvas, p, size, horizonY);
     // La fugaz va aquí y no dentro del cielo. Dentro del cielo la pintaban
     // encima las tres cordilleras, que con el encuadre de siempre ocupan todo

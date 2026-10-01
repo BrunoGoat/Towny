@@ -8,6 +8,7 @@ import 'package:la_muralla/engine/camera.dart';
 import 'package:la_muralla/engine/palette.dart';
 import 'package:la_muralla/engine/renderer.dart';
 import 'package:la_muralla/engine/scene.dart';
+import 'package:la_muralla/engine/season.dart';
 import 'package:la_muralla/engine/tones.dart';
 import 'package:la_muralla/engine/town.dart';
 import 'package:la_muralla/fx/effects.dart';
@@ -21,6 +22,7 @@ Future<ByteData> frame({
   double yaw = 0.4,
   double pitch = 0.42,
   double distance = 30,
+  Season season = Season.none,
 }) async {
   final cam = OrbitCamera()
     ..yaw = yaw
@@ -31,7 +33,7 @@ Future<ByteData> frame({
     ..distanceTarget = distance;
   final scene = TownScene(
     placed: 0,
-    palette: Palette.forMoment(hour),
+    palette: Palette.forMoment(hour, season: season),
     camera: cam,
     time: 0,
     hourOfDay: 12,
@@ -175,6 +177,52 @@ void main() {
       expect(tarde.r, greaterThan(medio.r * 0.85));
       for (final c in [noche, medio, tarde]) {
         expect(c.g, greaterThan(c.b * 0.7));
+      }
+    });
+  });
+
+  group('el invierno no es una sábana', () {
+    // Lo que se veía: con nieve, el prado era una pared blanca de lado a lado.
+    // La nieve de verdad no cubre parejo — por los claros asoma la hierba de
+    // debajo— y eso es lo único que separa un campo nevado de un folio.
+    //
+    // Y es lo contrario de lo que pide el grupo de arriba, así que las dos
+    // cosas tienen que convivir: **el prado sigue siendo un color plano las
+    // tres estaciones en que no hay nieve**, porque el escalonado del que
+    // venía todo aquello sigue estando ahí esperando. Las matas sólo existen
+    // donde hay nieve que romper.
+    const invierno = Season(0.09);
+
+    test('con nieve asoma la hierba, y por eso el prado deja de ser uno',
+        () async {
+      final px = await frame(hour: 12, season: invierno);
+      var distintos = 0;
+      for (var y = from; y < to; y++) {
+        for (var x = left; x < right; x++) {
+          if (_at(px, x, y) != _at(px, left, from)) distintos++;
+        }
+      }
+      expect(
+        distintos,
+        greaterThan(300),
+        reason:
+            'sólo $distintos píxeles de los ${(to - from) * (right - left)} de '
+            'la franja se salen del blanco: la nieve sigue siendo una sábana',
+      );
+    });
+
+    test('y en las otras tres sigue siendo un color y nada más', () async {
+      // Primavera, verano y otoño: sin nieve no hay matas que pintar, y el
+      // suelo tiene que seguir siendo el relleno plano que no se puede tramar.
+      for (final s in [const Season(0.34), Season.none, const Season(0.84)]) {
+        final px = await frame(hour: 12, season: s);
+        for (final x in [left, 160, right]) {
+          expect(
+            steps(px, x, from, to),
+            0,
+            reason: 'la columna $x da escalones con el año en ${s.turn}',
+          );
+        }
       }
     });
   });

@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:la_muralla/engine/palette.dart';
 import 'package:la_muralla/engine/season.dart';
 import 'package:la_muralla/engine/tones.dart';
+import 'package:la_muralla/model/appearance.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Un cuarto de vuelta al año, en días.
 const int _quarter = 91;
@@ -49,11 +51,58 @@ void main() {
       }
     });
 
-    test('cada estación tiene su pico en su sitio', () {
-      expect(_n(3, 21).spring, greaterThan(0.98));
-      expect(_n(9, 21).autumn, greaterThan(0.98));
-      expect(_n(3, 21).autumn, lessThan(0.02));
-      expect(_n(9, 21).spring, lessThan(0.02));
+    test('cada estación tiene su pico un mes después de su equinoccio', () {
+      // **El suelo va por detrás del sol.** El equinoccio de septiembre es el
+      // primer día del otoño, no el de más otoño: las hojas tardan cinco
+      // semanas en dorarse, igual que el mes más caluroso es julio y no junio.
+      //
+      // Estaba sin ese retraso y cada estación daba su máximo el día que
+      // empezaba, para ir apagándose durante los tres meses que duraba. Abajo
+      // se veía peor que arriba, porque el error cae en otros meses: en
+      // Montevideo nevaba en mayo y agosto salía sin un copo.
+      expect(_n(11, 1).autumn, greaterThan(0.98));
+      expect(_n(5, 1).spring, greaterThan(0.98));
+      expect(_n(11, 1).spring, lessThan(0.02));
+      expect(_n(5, 1).autumn, lessThan(0.02));
+      // Y en el equinoccio mismo va subiendo, que es lo que hace un otoño que
+      // empieza.
+      expect(_n(9, 21).autumn, inInclusiveRange(0.5, 0.95));
+    });
+
+    test('lo que se ve por la ventana en Montevideo', () {
+      // Las tres fechas que contó quien lo vio: agosto es lo más crudo del
+      // invierno, mayo es el oro del otoño y el 1 de octubre es primavera.
+      // Antes del retraso, agosto salía sin nieve con el prado verdeando,
+      // mayo salía nevado y el oro del otoño caía en marzo.
+      final agosto = _s(8, 10);
+      expect(agosto.snow, greaterThan(0.9), reason: 'agosto sin nieve');
+      expect(agosto.autumn, lessThan(0.05), reason: 'agosto dorado');
+
+      final mayo = _s(5, 1);
+      expect(mayo.autumn, greaterThan(0.9), reason: 'mayo sin oro');
+      expect(mayo.snow, 0, reason: 'nieve en mayo');
+
+      final octubre = _s(10, 1);
+      expect(octubre.snow, 0);
+      expect(octubre.autumn, 0);
+      expect(octubre.spring, greaterThan(0.85));
+    });
+
+    test('el nombre cambia el 21, como el almanaque', () {
+      // Nombraba el cuarto de año centrado en cada solsticio —invierno del 5
+      // de noviembre al 4 de febrero— así que iba media estación por delante
+      // del calendario: en agosto, en Montevideo, decía «primavera».
+      expect(_n(12, 21).name, 'Invierno');
+      expect(_n(3, 21).name, 'Primavera');
+      expect(_n(6, 21).name, 'Verano');
+      expect(_n(9, 21).name, 'Otoño');
+      expect(_s(6, 21).name, 'Invierno');
+      expect(_s(9, 21).name, 'Primavera');
+      expect(_s(12, 21).name, 'Verano');
+      expect(_s(3, 21).name, 'Otoño');
+      // Y en medio de cada una, lo mismo.
+      expect(_s(8, 10).name, 'Invierno');
+      expect(_s(10, 1).name, 'Primavera');
     });
 
     test('el nombre acompaña al número', () {
@@ -260,11 +309,14 @@ void main() {
       // Cuatro estaciones que hay que mirar dos veces para notar no son
       // cuatro estaciones. El umbral está en lo que separa dos colores que
       // cualquiera diría que son distintos.
+      // En el **medio** de cada una, que es donde cada estación se parece a
+      // sí misma: el suelo va un mes por detrás del sol, así que el día del
+      // equinoccio el prado todavía es el de la estación que se va.
       final cuatro = {
-        'invierno': prado(_n(12, 21)),
-        'primavera': prado(_n(3, 21)),
-        'verano': prado(_n(6, 21)),
-        'otoño': prado(_n(9, 21)),
+        'invierno': prado(_n(2, 1)),
+        'primavera': prado(_n(5, 1)),
+        'verano': prado(_n(8, 1)),
+        'otoño': prado(_n(11, 1)),
       };
       final nombres = cuatro.keys.toList();
       for (var i = 0; i < nombres.length; i++) {
@@ -283,20 +335,20 @@ void main() {
     test('el otoño es más cálido que el verano y no es Marte', () {
       // Lo que salió mal al teñir por razón entre colores: el ocre subía el
       // rojo vez y media y el valle quedaba plantado en Marte.
-      final o = prado(_n(9, 21)), v = prado(_n(6, 21));
+      final o = prado(_n(11, 1)), v = prado(_n(8, 1));
       expect(o.r - o.g, greaterThan(v.r - v.g), reason: 'el otoño no calienta');
       expect(o.r, lessThan(0.47), reason: 'demasiado rojo: ${o.r}');
     });
 
     test('la primavera es más clara y más verde que el verano', () {
-      final p = prado(_n(3, 21)), v = prado(_n(6, 21));
+      final p = prado(_n(5, 1)), v = prado(_n(8, 1));
       expect(p.computeLuminance(), greaterThan(v.computeLuminance()));
     });
 
     test('el invierno está nevado y las otras tres no', () {
-      final i = prado(_n(12, 21));
+      final i = prado(_n(2, 1));
       expect(i.computeLuminance(), greaterThan(0.28));
-      for (final (m, d) in [(3, 21), (6, 21), (9, 21)]) {
+      for (final (m, d) in [(5, 1), (8, 1), (11, 1)]) {
         expect(prado(_n(m, d)).computeLuminance(), lessThan(0.22));
       }
     });
@@ -311,6 +363,49 @@ void main() {
         noche.b,
         greaterThan(noche.r),
         reason: 'la nieve de noche es azul',
+      );
+    });
+  });
+
+  group('lo que se elige se queda elegido', () {
+    setUp(() => SharedPreferences.setMockInitialValues({}));
+
+    test('el hemisferio sobrevive a cerrar la app', () async {
+      // Lo que contó quien lo vio: «activé el hemisferio sur y no anda». Si
+      // la fila se guardara mal, el valle volvería al norte en el siguiente
+      // arranque y en agosto, en Montevideo, se vería otoño.
+      final a = Appearance.instance;
+      await a.load();
+      await a.setHemisphere(Hemisphere.south);
+      expect(a.hemisphere, Hemisphere.south);
+      expect(a.hemisphereChosen, isTrue);
+      await a.flush();
+
+      await a.setHemisphere(null);
+      await a.load();
+      expect(a.hemisphere, Hemisphere.south, reason: 'no se guardó');
+      expect(a.hemisphereChosen, isTrue);
+
+      // Y al norte también: «no lo he tocado» y «lo puse en el norte» no son
+      // lo mismo, porque lo primero sigue haciendo caso al teléfono.
+      await a.setHemisphere(Hemisphere.north);
+      await a.flush();
+      await a.setHemisphere(null);
+      await a.load();
+      expect(a.hemisphere, Hemisphere.north);
+      expect(a.hemisphereChosen, isTrue);
+    });
+
+    test('y mientras está puesto, el año se cuenta desde abajo', () async {
+      final a = Appearance.instance;
+      await a.load();
+      await a.setHemisphere(Hemisphere.south);
+      await a.setSeasons(true);
+      await a.setFakeSeason(false);
+      // Agosto en el sur es invierno, se mire como se mire.
+      expect(
+        Season.on(DateTime(2026, 8, 10), a.hemisphere).snow,
+        greaterThan(0.9),
       );
     });
   });

@@ -65,10 +65,39 @@ class Season {
   /// caminos de uno al otro y sólo uno de los dos está encendido a la vez. Así
   /// «hojas doradas» se pide por [autumn] y se apaga sola en cuanto empieza a
   /// caer la hoja, sin ninguna fecha escrita en ningún sitio.
+  ///
+  /// **Éstas dos son el sol**, clavadas en los solsticios, y de ellas sale la
+  /// hora a la que amanece. Lo que se ve por la ventana no va con el sol sino
+  /// con [chill]: ver ahí abajo.
   double get winter => (math.cos(turn * 2 * math.pi) + 1) / 2;
   double get summer => 1 - winter;
-  double get spring => math.max(0.0, math.sin(turn * 2 * math.pi));
-  double get autumn => math.max(0.0, -math.sin(turn * 2 * math.pi));
+
+  /// **El año del suelo va por detrás del año del sol.**
+  ///
+  /// El día más largo es el 21 de junio y el mes más caluroso es julio; el
+  /// otoño empieza en el equinoccio y las hojas se doran cinco semanas
+  /// después. La tierra tarda en calentarse y en enfriarse, y por eso la
+  /// nieve, la hoja dorada y la rama pelada no van con el sol: van un mes por
+  /// detrás de él.
+  ///
+  /// Sin este retraso el valle iba media estación adelantado y se notaba
+  /// —sobre todo abajo, donde el error cae en otros meses—: **en el sur nevaba
+  /// en mayo, que es otoño, y agosto, que es lo más crudo del invierno, salía
+  /// sin un copo y con el prado verdeando**. Y el dorado del otoño llegaba a
+  /// su máximo el mismo día del equinoccio, o sea el primer día de otoño, para
+  /// estar apagándose ya en noviembre.
+  ///
+  /// Un mes y pico: treinta y tres días, que es el retraso térmico que tiene
+  /// el aire sobre el sol en latitudes templadas.
+  static const double _lag = 0.09;
+
+  double get _soil => (turn - _lag) % 1.0;
+
+  /// Lo frío que está el **suelo**, de cero a uno. El invierno de la tierra.
+  double get chill => (math.cos(_soil * 2 * math.pi) + 1) / 2;
+
+  double get spring => math.max(0.0, math.sin(_soil * 2 * math.pi));
+  double get autumn => math.max(0.0, -math.sin(_soil * 2 * math.pi));
 
   /// Cuánta nieve hay puesta.
   ///
@@ -77,7 +106,7 @@ class Season {
   /// después, así que hay algo de nieve unos cien días al año. Con el umbral
   /// donde lo puse la primera vez eran ciento cincuenta y tres, y una
   /// escarcha de cinco meses es peor que no tener estaciones.
-  double get snow => clampD((winter - 0.82) / 0.16, 0.0, 1.0);
+  double get snow => clampD((chill - 0.82) / 0.16, 0.0, 1.0);
 
   /// Lo pelados que están los árboles.
   ///
@@ -85,7 +114,7 @@ class Season {
   /// cambian de color y después se caen. Con el umbral demasiado pronto, un
   /// veinte de octubre el árbol estaba ya medio pelado en mitad de su mejor
   /// semana.
-  double get bare => clampD((winter - 0.62) / 0.34, 0.0, 1.0);
+  double get bare => clampD((chill - 0.62) / 0.34, 0.0, 1.0);
 
   /// El mediodía solar. No es las doce: el ciclo del día de esta app tiene el
   /// sol en lo más alto a la una, y todo lo de aquí se cuelga de eso para que
@@ -113,7 +142,18 @@ class Season {
   double get daylightHours => _half * 2;
 
   /// Cómo se llama esto donde vive quien lo mira.
-  String get name => switch (((turn + 0.125) % 1.0 * 4).floor()) {
+  ///
+  /// **Las cuatro del almanaque, que cambian el 21.** Nombraba el cuarto de
+  /// año centrado en cada solsticio —invierno del 5 de noviembre al 4 de
+  /// febrero—, así que la palabra iba media estación por delante del
+  /// calendario y en agosto, en Montevideo, decía «primavera».
+  ///
+  /// Los tres días de más son porque [turn] cuenta desde el 22 y el almanaque
+  /// cambia el 21; las cuatro estaciones no miden lo mismo —noventa días el
+  /// invierno y noventa y dos la primavera— así que esto acierta el día en los
+  /// cuatro cambios y se adelanta uno en tres de ellos. Es una palabra en una
+  /// fila de ajustes: no vale un calendario entero.
+  String get name => switch (((turn + 0.008) % 1.0 * 4).floor().clamp(0, 3)) {
     0 => 'Invierno',
     1 => 'Primavera',
     2 => 'Verano',

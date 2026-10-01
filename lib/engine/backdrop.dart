@@ -304,6 +304,83 @@ class Backdrop {
     canvas.drawRect(rect, Paint()..color = meadowTone(scene.palette));
   }
 
+  /// Las matas de hierba que asoman entre la nieve.
+  ///
+  /// Un prado nevado no es una sábana: la nieve se posa desigual y por los
+  /// claros asoma lo de debajo. Con el prado de un solo color —que es lo que
+  /// tiene que ser, ver [drawGround]— el invierno salía como una pared blanca
+  /// sin nada dentro.
+  ///
+  /// **Por qué esto no es una textura.** Se probó a tapar el prado con manchas
+  /// de hierba y salió mal de las dos maneras posibles: ancladas al mundo se
+  /// veía la baldosa desde el valle, y creciendo con el ojo se movían al hacer
+  /// zoom. Esto no es un tapiz sino un puñado de claros sueltos. Están
+  /// clavados en el mundo, así que no nadan; se saltan más de la mitad de las
+  /// casillas y cada uno se corre casi media casilla de su sitio, así que no
+  /// hay retícula que ver; y se apagan a los veinte metros, que es lo que
+  /// impide que de lejos lleguen a ser una trama.
+  ///
+  /// Y no son otro verde: son **el prado de debajo**, el mismo que se vería si
+  /// no hubiera nevado, con el pardo que le toque al mes.
+  void drawTufts(Canvas canvas, Projector p, Size size, double horizonY) {
+    final pal = scene.palette;
+    final nieve = pal.season.snow;
+    if (nieve < 0.12) return;
+    // De noche, a medio camino de la propia nieve. El verde de la hierba
+    // nocturna es casi negro, y casi negro sobre un prado nevado no se lee
+    // como un claro sino como un agujero: de día son matas y de noche eran
+    // charcos de alquitrán.
+    final verde = Color.lerp(
+      tuftTone(pal),
+      meadowTone(pal),
+      (1 - pal.daylight) * 0.6,
+    )!;
+    const paso = 2.4, alcance = 22.0;
+    final i0 = ((p.eye.x - alcance) / paso).floor();
+    final i1 = ((p.eye.x + alcance) / paso).ceil();
+    final k0 = ((p.eye.z - alcance) / paso).floor();
+    final k1 = ((p.eye.z + alcance) / paso).ceil();
+    final pincel = Paint();
+    var puestas = 0;
+    for (var i = i0; i <= i1 && puestas < 260; i++) {
+      for (var k = k0; k <= k1 && puestas < 260; k++) {
+        if (hash01(i, k, 7) > 0.42) continue;
+        final x = i * paso + (hash01(i, k, 1) - 0.5) * paso * 0.86;
+        final z = k * paso + (hash01(i, k, 2) - 0.5) * paso * 0.86;
+        final at = p.project(V3(x, 0, z));
+        if (at == null || at.y <= horizonY) continue;
+        if (at.x < -40 || at.y < -40 || at.x > size.width + 40) continue;
+        if (at.y > size.height + 40) continue;
+        // Se apagan con la distancia: de cerca son claros en la nieve, de
+        // lejos serían una trama.
+        final lejos = ((at.depth - 7) / 15).clamp(0.0, 1.0);
+        final fuerza = (1 - lejos) * nieve;
+        if (fuerza < 0.03) continue;
+        final ancho = p.focal / at.depth * 0.55 * (0.7 + hash01(i, k, 3) * 0.7);
+        if (ancho < 1.2) continue;
+        pincel.color = verde.withValues(alpha: fuerza * 0.92);
+        // Tres manchas montadas y no una, cada una un poco corrida y de otro
+        // tamaño: el borde de un claro de nieve no es una elipse, y una
+        // elipse sola se lee como una moneda tirada en el suelo. Vistas de
+        // canto, además, son óvalos tumbados.
+        for (var b = 0; b < 3; b++) {
+          final w = ancho * (b == 0 ? 1.0 : 0.45 + hash01(i, k, 30 + b) * 0.45);
+          final dx = b == 0 ? 0.0 : (hash01(i, k, 40 + b) - 0.5) * ancho * 1.1;
+          final dz = b == 0 ? 0.0 : (hash01(i, k, 50 + b) - 0.5) * ancho * 0.45;
+          canvas.drawOval(
+            Rect.fromCenter(
+              center: Offset(at.x + dx, at.y + dz),
+              width: w,
+              height: w * 0.42,
+            ),
+            pincel,
+          );
+        }
+        puestas++;
+      }
+    }
+  }
+
   void drawRanges(Canvas canvas, Projector p, Size size, double horizonY) {
     final pal = scene.palette;
     final light = pal.lightDir;
