@@ -486,15 +486,7 @@ BuiltTown _build(TownLayout layout, int placed, BuiltTown? before) {
     for (final solid in solids) {
       final box = Aabb.of(solid.faces);
       if (box == null) continue;
-      for (final f in solid.faces) {
-        f.piece = -1;
-        final d = f.decals;
-        if (d != null) {
-          for (final g in d) {
-            g.piece = -1;
-          }
-        }
-      }
+      asFurniture(solid, box);
       file(solid, box, const <int>{});
     }
   }

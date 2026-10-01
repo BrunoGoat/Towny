@@ -1575,6 +1575,42 @@ class Plaza {
   /// quien tenga que rodearla: la gente del pueblo no la atraviesa.
   static double basinOf(double reach) => reach * 0.27 * 1.14;
 
+  /// Lo que levantan del suelo el bordillo y la hierba.
+  ///
+  /// Con nombre porque los lee quien dibuja la plaza y quien anda por encima
+  /// de ella, y dos números iguales escritos en dos sitios son dos números que
+  /// un día dejan de serlo.
+  static const double kerbTop = 0.085, lawnTop = 0.055;
+
+  /// Hasta dónde llega la hierba, en proporción al radio.
+  static const double lawnOut = 0.905;
+
+  /// A qué altura se pisa la plaza en un punto, o cero si ahí no hay plaza.
+  ///
+  /// La usa la gente del pueblo, y parece una obviedad que no lo era: el ejido
+  /// tiene cinco centímetros de canto y los vecinos andaban con los pies a
+  /// cero, o sea **metidos dentro de la losa**. Dos cuerpos que se atraviesan
+  /// no tienen plano que los separe y por tanto no tienen orden; el que salía
+  /// era el de la losa, así que cualquiera que entraba en la plaza se borraba
+  /// entero al pisarla.
+  ///
+  /// Se mide con el círculo y no con el octágono. La diferencia son veinte
+  /// centímetros en los seis vértices, y lo que se juega ahí son los tres
+  /// centímetros que el bordillo le saca a la hierba: nada que nadie pueda
+  /// ver, contra ocho planos por vecino y por fotograma.
+  static double floorAt(
+    double x,
+    double z,
+    double cx,
+    double cz,
+    double reach,
+  ) {
+    final dx = x - cx, dz = z - cz;
+    final d = math.sqrt(dx * dx + dz * dz);
+    if (d > reach) return 0;
+    return d > reach * lawnOut ? kerbTop : lawnTop;
+  }
+
   /// La fuente: taza, brocal y el agua dentro.
   ///
   /// Pequeña a propósito. Hay un hito que es una fuente y cuesta sus piezas;
@@ -1664,7 +1700,7 @@ class Plaza {
       reach * 0.90,
       reach,
       0,
-      0.085,
+      kerbTop,
       Surface.stone,
       ao: 1.0,
       tint: _kerb,
@@ -1677,8 +1713,8 @@ class Plaza {
       cz,
       reach * 0.975,
       reach,
-      0.085,
-      0.105,
+      kerbTop,
+      kerbTop + 0.02,
       Surface.stone,
       ao: 0.94,
       tint: _edge,
@@ -1687,9 +1723,9 @@ class Plaza {
     Solid(
       -1,
       prismFaces(
-        ring(cx, cz, reach * 0.905),
+        ring(cx, cz, reach * lawnOut),
         0,
-        0.055,
+        lawnTop,
         Surface.leaf,
         ao: 1.02,
         tint: _grass,

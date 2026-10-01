@@ -293,11 +293,11 @@ class EffectSystem {
 /// o después que el aterrizaje. Por eso los números viven acá y no en ninguno
 /// de los dos.
 ///
-/// **El enlosado sale de la tierra; el tablón y el atril caen del cielo.** No
-/// es un capricho: el enlosado *es* el suelo, y lo que hace al descubrirse es
-/// aparecer. Los otros dos son dos cosas que alguien pone en una plaza, y todo
-/// lo que se pone en este pueblo —las seiscientas piezas, una por una— cae.
-/// Que estos dos salieran de debajo era la única excepción que había.
+/// **Las tres caen del cielo**, una detrás de otra, con la caída y el rebote
+/// de cualquiera de las seiscientas piezas que vendrán después. Salían de
+/// debajo de la tierra, y era la única cosa de toda la app que no caía: en un
+/// pueblo donde cada logro es una piedra que cae, una plaza que emerge del
+/// suelo se lee como un error del dibujo y no como una plaza que se pone.
 class FoundingShow {
   const FoundingShow._();
 
@@ -308,16 +308,14 @@ class FoundingShow {
   /// rebote del atril se cortaba a medias.
   static const double seconds = 2.1;
 
-  /// Hasta dónde dura el enlosado saliendo de la tierra.
-  static const double plazaUntil = 0.42;
-
-  /// Cuándo se suelta cada uno, en el reloj de 0 a 1.
+  /// Cuándo se suelta cada una, en el reloj de 0 a 1.
   ///
   /// Primero el enlosado, que es lo que dice dónde está el centro; después el
   /// tablón, que es lo que el pueblo va a decir de vos; y por último el atril,
   /// que es donde va a quedar escrito lo que digas vos. Se solapan a propósito:
-  /// el tablón se suelta mientras el enlosado todavía está acabando de salir.
-  static const double boardAt = 0.28, lecternAt = 0.52;
+  /// el tablón se suelta mientras el enlosado está acabando de asentarse, y así
+  /// son tres golpes seguidos y no tres cosas esperando turno.
+  static const double plazaAt = 0.0, boardAt = 0.28, lecternAt = 0.52;
 
   /// Desde qué altura caen. La misma que una pieza cualquiera.
   static const double drop = 2.3;
@@ -326,6 +324,7 @@ class FoundingShow {
   static double landing(double at) =>
       at + PlacementFx.fallDuration / seconds;
 
+  static double get plazaLands => landing(plazaAt);
   static double get boardLands => landing(boardAt);
   static double get lecternLands => landing(lecternAt);
 

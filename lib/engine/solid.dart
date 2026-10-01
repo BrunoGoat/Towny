@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import '../core/math3.dart';
+import '../core/rng.dart';
 
 /// What a facet is made of.
 ///
@@ -138,7 +139,13 @@ class Facet {
   /// question is never asked.
   final List<Facet>? decals;
 
-  /// Which window, which plank. Only the surfaces that need it read it.
+  /// Which window, which plank, which plant. Only the surfaces that need it
+  /// read it.
+  ///
+  /// Para una hoja es **de qué mata es**, y eso decide qué día se dora: las
+  /// caras de un mismo seto tienen que dorarse todas a la vez, y las del seto
+  /// de al lado otro día. Lo pone [asFurniture], que es quien ve el sólido
+  /// entero; una cara suelta no sabe de qué es.
   int data = 0;
 
   /// The achievement that laid the piece this face belongs to. Carried on the
@@ -170,12 +177,43 @@ class Facet {
     ao: ao,
     tint: tint,
     decals: decals == null ? null : [for (final g in decals!) g.lifted(dy)],
-  )..piece = piece;
+  )
+    ..data = data
+    ..piece = piece;
 
   Facet withVerts(List<V3> nv, {List<Facet>? carrying}) =>
       Facet(nv, n, surface, ao: ao, tint: tint, decals: carrying)
         ..data = data
         ..piece = piece;
+}
+
+/// Deja un sólido marcado como mueble del pueblo, y no como pieza de nadie.
+///
+/// Dos cosas, y las dos se olvidan en cuanto alguien arma los sólidos a mano
+/// en vez de pasar por acá:
+///
+///  * **No es pieza de nadie.** [Facet.piece] vale cero mientras nadie diga
+///    otra cosa, y cero es una pieza de verdad: la primera. Un mueble sin
+///    marcar se pinta con el color y el desgaste del primer logro del pueblo.
+///  * **Es una sola mata.** El día en que una hoja se dora sale de su semilla,
+///    y la semilla tiene que ser la del bulto entero y no la de cada cara: con
+///    una por cara, en octubre el césped de la plaza salía con un ocre
+///    distinto por cada lado del octógono y otro por arriba. Sale del centro
+///    de su caja, así que dos setos vecinos siguen dorándose días distintos,
+///    que es de donde venía la idea.
+void asFurniture(Solid solid, [Aabb? box]) {
+  final caja = box ?? Aabb.of(solid.faces);
+  final mata = caja == null
+      ? 0
+      : hash32((caja.cx * 64).round(), (caja.cz * 64).round(), 5);
+  for (final f in solid.faces) {
+    f.piece = -1;
+    if (f.surface == Surface.leaf) f.data = mata;
+    for (final g in f.decals ?? const <Facet>[]) {
+      g.piece = -1;
+      if (g.surface == Surface.leaf) g.data = mata;
+    }
+  }
 }
 
 /// A closed thing that has been built. One piece of a building is one or more

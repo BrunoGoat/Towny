@@ -193,6 +193,9 @@ class TownPainter extends CustomPainter {
             talla,
             p.focal / math.max(screen.depth, 0.01) * talla,
             screen.depth,
+            // Un vecino solo, posando para el retrato de los ajustes: ahí no
+            // hay pueblo ni plaza, así que pisa el prado.
+            0,
           ),
         ];
       }
@@ -1063,8 +1066,9 @@ class TownPainter extends CustomPainter {
         (v, axis) => switch (axis) {
           0 => (v.at.x, v.at.x),
           // De los pies a la coronilla. Una persona no es un punto: contra un
-          // plano horizontal a media altura está en los dos lados.
-          1 => (0.0, v.size),
+          // plano horizontal a media altura está en los dos lados. Y los pies
+          // no siempre están a cero: en la plaza se anda un palmo más arriba.
+          1 => (v.y0, v.y0 + v.size),
           _ => (v.at.z, v.at.z),
         },
         (leaf, aqui) {
@@ -1122,7 +1126,16 @@ class TownPainter extends CustomPainter {
               // otro lado de ese mismo plano— se pintaba antes que él. Por
               // donde pisa no hay empate que resolver, y el pie es además lo
               // único de una persona que está de verdad en un sitio.
-              final base = n.x * v.at.x + n.z * v.at.z - d;
+              //
+              // El pie es un punto de verdad y se mide como tal, con su
+              // altura: para quien anda por el prado —o sea todo el mundo
+              // menos quien está en la plaza— `y0` es cero y esto es
+              // exactamente la misma cuenta de antes, término a término. Lo
+              // que arregla es la plaza, que está levantada: contra la cara de
+              // arriba del enlosado, sin la altura, el vecino salía siempre
+              // por debajo y la losa se le pintaba encima — cruzar la plaza
+              // era desaparecer.
+              final base = n.x * v.at.x + n.y * v.y0 + n.z * v.at.z - d;
               return (base, base);
             },
             (f) {
@@ -1249,7 +1262,26 @@ class TownPainter extends CustomPainter {
       // píxeles. Un vecino mide `talla` de alto: esto es lo que ocupa.
       final alto = p.focal / math.max(screen.depth, 0.01) * talla;
       if (alto < 2.2) continue;
-      out.add(_Walker(who, at, talla * (1 - hunde), alto, screen.depth));
+      out.add(
+        _Walker(
+          who,
+          at,
+          talla * (1 - hunde),
+          alto,
+          screen.depth,
+          // Sobre lo que pise. La plaza es lo único del pueblo que está
+          // levantado del prado y por lo que a la vez se puede andar.
+          e.layout.solo
+              ? 0.0
+              : Plaza.floorAt(
+                  at.x,
+                  at.z,
+                  e.layout.cx,
+                  e.layout.cz,
+                  TownLayout.plazaReach,
+                ),
+        ),
+      );
     }
     // Si no caben todos, se van los de más lejos.
     //
@@ -1323,6 +1355,7 @@ class TownPainter extends CustomPainter {
         v.who,
         v.at,
         v.size,
+        lift: v.y0,
         // Tres escalones y no dos: por debajo de catorce píxeles se van las
         // piernas y las mariposas, y por debajo de ocho se van también los
         // brazos. La cometa no se va nunca — es lo que se ve desde lejos.
@@ -1402,54 +1435,30 @@ class TownPainter extends CustomPainter {
     final l = e.layout;
     final caras = <Facet>[];
 
-    /// Esto es mueble del pueblo y no pieza de nadie, igual que cuando lo
-    /// archiva `world.dart`.
-    ///
-    /// **El fallo que esto cierra.** `Facet.piece` vale cero mientras nadie
-    /// diga otra cosa, y cero es una pieza de verdad: la primera. Como acá se
-    /// arman los sólidos a mano en vez de pasar por `furnish`, la plaza entera
-    /// —el enlosado, la fuente, el tablón y el atril— se pintaba durante la
-    /// fundación con el color y el desgaste del primer logro del pueblo, y en
-    /// el fotograma en que el reloj llegaba a uno pasaba a pintarla el camino
-    /// de siempre, con los suyos. O sea que la plaza cambiaba de color de
-    /// golpe justo al acabar de fundarse, que es la primera cosa que ve quien
-    /// abre la app.
-    void mueble(Facet f) {
-      f.piece = -1;
-      for (final g in f.decals ?? const <Facet>[]) {
-        g.piece = -1;
-      }
-      caras.add(f);
-    }
-
-    void alzar(List<Solid> solidos, double k) {
-      final t = _suave(k.clamp(0.0, 1.0));
-      if (t <= 0.001) return;
-      // Sale de debajo del suelo. Metro y medio basta: lo que tiene que leerse
-      // es que sube, no de dónde.
-      final dy = (t - 1.0) * 1.5;
-      for (final s in solidos) {
-        for (final f in s.faces) {
-          mueble(dy.abs() < 1e-4 ? f : f.lifted(dy));
-        }
-      }
-    }
-
     // Lo que cae: se dibuja desde que se suelta y no antes, igual que una
     // pieza no existe hasta que la ponés.
+    //
+    // Y pasa por `asFurniture`, igual que si lo archivara `world.dart`. Acá se
+    // arman los sólidos a mano, y sin eso dos cosas se quedaban sin decir: que
+    // esto no es pieza de nadie —`Facet.piece` vale cero mientras nadie diga
+    // otra cosa, y cero es una pieza de verdad, así que la plaza se pintaba
+    // con el color y el desgaste del primer logro del pueblo y cambiaba de
+    // golpe en el fotograma en que acababa de fundarse— y de qué mata es cada
+    // hoja, que es lo que hace que el césped sea de un solo color.
     void caer(List<Solid> solidos, double? dy) {
       if (dy == null) return;
       for (final s in solidos) {
+        asFurniture(s);
         for (final f in s.faces) {
-          mueble(dy.abs() < 1e-4 ? f : f.lifted(dy));
+          caras.add(dy.abs() < 1e-4 ? f : f.lifted(dy));
         }
       }
     }
 
     final t = scene.founding;
-    alzar(
+    caer(
       Plaza.solidsAt(l.cx, l.cz, TownLayout.plazaReach),
-      t / FoundingShow.plazaUntil,
+      FoundingShow.liftAt(t, FoundingShow.plazaAt),
     );
     caer(
       NoticeBoard.solidsAt(l.cx, l.cz, sheets: l.notices),
@@ -1464,8 +1473,6 @@ class TownPainter extends CustomPainter {
       caras,
     ).paint(p.eye, (f) => _paint(p, e, f, pal, light, night, size));
   }
-
-  static double _suave(double t) => t * t * (3 - 2 * t);
 
   void _paintFalling(
     Projector p,
@@ -1612,7 +1619,7 @@ class TownPainter extends CustomPainter {
   void _plain(Projector p, Facet f, Palette pal, V3 light) {
     final at = f.v.first;
     final colour = hazeAt(
-      _shade(f.n, _plainTone(f, at, pal), light, pal, f.ao, 0, 0, f.surface),
+      _shade(f.n, _plainTone(f, pal), light, pal, f.ao, 0, 0, f.surface),
       p,
       at.x,
       at.z,
@@ -1623,7 +1630,7 @@ class TownPainter extends CustomPainter {
     if (decals == null) return;
     for (final g in decals) {
       final c = hazeAt(
-        _shade(g.n, _plainTone(g, at, pal), light, pal, g.ao, 0, 0, g.surface),
+        _shade(g.n, _plainTone(g, pal), light, pal, g.ao, 0, 0, g.surface),
         p,
         at.x,
         at.z,
@@ -2231,16 +2238,16 @@ class TownPainter extends CustomPainter {
   /// tiene que quedarse en tierra en enero. Sin esto, en un valle nevado había
   /// setos verde primavera al lado de cada casa.
   ///
-  /// La semilla sale de dónde está, que es lo único propio que tiene una cara
-  /// suelta, y así dos robles vecinos no se doran el mismo día.
-  Color _plainTone(Facet f, V3 at, Palette pal) {
+  /// La semilla es **la de la mata**, que la pone [asFurniture] cuando archiva
+  /// el sólido, y así dos robles vecinos no se doran el mismo día. Salía de la
+  /// posición de la cara, que no es lo mismo: cada cara de un mismo seto se
+  /// doraba por su cuenta, y lo que en un roble se lee como follaje —dos
+  /// metros de hoja con su variedad— en el césped de la plaza se leía como lo
+  /// que era, un octógono de ocho ocres distintos y un noveno por arriba.
+  Color _plainTone(Facet f, Palette pal) {
     final base = Color(f.tint ?? 0xFF808080);
     if (f.surface != Surface.leaf) return base;
-    return leafOfYear(
-      base,
-      hash32((at.x * 64).round(), (at.z * 64).round(), 5),
-      pal.season,
-    );
+    return leafOfYear(base, f.data, pal.season);
   }
 
   // ---------------------------------------------------------------- flush
@@ -2643,10 +2650,16 @@ class TownPainter extends CustomPainter {
 /// Un vecino resuelto para este fotograma: quién es, dónde está, lo que mide
 /// y lo que ocupa en la pantalla.
 class _Walker {
-  _Walker(this.who, this.at, this.size, this.pixels, this.depth);
+  _Walker(this.who, this.at, this.size, this.pixels, this.depth, this.y0);
   final Townsfolk who;
   final FolkAt at;
   final double size, pixels;
+
+  /// A qué altura tiene los pies.
+  ///
+  /// Cero en todo el pueblo menos en la plaza, que está levantada un palmo del
+  /// prado: quien entra en ella anda por encima del enlosado y no dentro.
+  final double y0;
 
   /// Lo lejos que está del ojo, para que el tope se lleve a los de atrás.
   final double depth;

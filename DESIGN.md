@@ -273,13 +273,18 @@ por último el atril, que es donde va a quedar escrito lo que digas vos. Un
 pueblo se funda con su plaza, no con su primera casa — antes aparecía de la
 nada a la vez que la primera pieza.
 
-**El enlosado sale de la tierra; el tablón y el atril caen del cielo**, con la
-misma caída, el mismo golpe de polvo y el mismo rebote corto que las
-seiscientas piezas que van a venir detrás. Los tres subían del suelo, y era la
-única cosa de toda la app que no caía: en un pueblo donde cada logro es una
-piedra que cae, dos muebles saliendo de debajo de la tierra se leen como un
-error del dibujo. El enlosado sí puede salir de abajo, porque el enlosado *es*
-el suelo y lo que hace no es llegar sino descubrirse.
+**Las tres caen del cielo**, una detrás de otra, con la misma caída, el mismo
+golpe de polvo y el mismo rebote corto que las seiscientas piezas que van a
+venir detrás. Subían del suelo, y era la única cosa de toda la app que no
+caía: en un pueblo donde cada logro es una piedra que cae, una plaza que
+emerge de la tierra se lee como un error del dibujo y no como una plaza que
+alguien pone.
+
+Y por la plaza **se anda**: está levantada un palmo del prado y quien entra en
+ella pisa encima. Parece una obviedad y no lo era — los vecinos andaban con los
+pies a cero, o sea metidos dentro de la losa, y dos cuerpos que se atraviesan no
+tienen plano que los separe ni por tanto orden: ganaba la losa, así que cruzar
+la plaza era desaparecer.
 
 ## Los avisos
 

@@ -690,7 +690,8 @@ class _TownViewState extends State<TownView>
     setState(() {});
   }
 
-  /// El tablón y el atril tocando el suelo el día que se funda el pueblo.
+  /// El enlosado, el tablón y el atril tocando el suelo el día que se funda el
+  /// pueblo.
   ///
   /// Caen del cielo como cualquier pieza, así que aterrizan como cualquier
   /// pieza: polvo, un temblor corto y el golpe. Sin esto la caída se para en
@@ -701,12 +702,21 @@ class _TownViewState extends State<TownView>
   /// en este fotograma, y no si ya pasó: a sesenta por segundo, «ya pasó» es
   /// un golpe por fotograma durante el resto de la caída.
   ///
-  /// Más flojos que el de una pieza —0,8 y 0,55 contra 1,1— porque un tablón
-  /// de madera no pesa lo que un sillar, y porque son dos seguidos: dos
-  /// temblores de los grandes en segundo y medio marean.
+  /// El enlosado golpea como un sillar y los dos muebles menos, porque pesan
+  /// menos y porque vienen detrás: tres temblores de los grandes seguidos en
+  /// dos segundos marean. El del enlosado levanta polvo en todo su ancho, que
+  /// es lo que hace que se lea como una plaza entera posándose y no como una
+  /// tapa.
   void _plazaCae(double antes, double ahora) {
     final l = _town;
     for (final (cuando, x, z, radio, fuerza) in [
+      (
+        FoundingShow.plazaLands,
+        l.cx,
+        l.cz,
+        TownLayout.plazaReach * 1.1,
+        1.1,
+      ),
       (
         FoundingShow.boardLands,
         NoticeBoard.xAt(l.cx),
@@ -716,15 +726,15 @@ class _TownViewState extends State<TownView>
       ),
       (
         FoundingShow.lecternLands,
-        l.cx + Lectern.offX,
-        l.cz + Lectern.offZ,
+        Lectern.xAt(l.cx),
+        Lectern.zAt(l.cz),
         0.45,
         0.55,
       ),
     ]) {
       if (antes >= cuando || ahora < cuando) continue;
       _fx.impact(V3(x, 0, z), radio, strength: fuerza);
-      _cam.shake = 0.035;
+      _cam.shake = fuerza > 1 ? 0.055 : 0.035;
       Sensory.instance.impact(strength: fuerza);
     }
   }

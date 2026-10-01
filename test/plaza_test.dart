@@ -1,12 +1,22 @@
 import 'dart:math' as math;
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:la_muralla/core/math3.dart';
 import 'package:la_muralla/core/rng.dart';
 import 'package:la_muralla/data/character.dart';
+import 'package:la_muralla/engine/camera.dart';
+import 'package:la_muralla/engine/folk.dart';
+import 'package:la_muralla/engine/palette.dart';
+import 'package:la_muralla/engine/renderer.dart';
+import 'package:la_muralla/engine/scene.dart';
+import 'package:la_muralla/engine/season.dart';
 import 'package:la_muralla/engine/solid.dart';
 import 'package:la_muralla/engine/solids.dart';
 import 'package:la_muralla/engine/town.dart';
+import 'package:la_muralla/fx/effects.dart';
 
 String _k(V3 p) =>
     '${p.x.toStringAsFixed(6)},${p.y.toStringAsFixed(6)},${p.z.toStringAsFixed(6)}';
@@ -33,7 +43,101 @@ bool _closed(Solid s) {
 double _far(double x, double z, double cx, double cz) =>
     math.sqrt((x - cx) * (x - cx) + (z - cz) * (z - cz));
 
+/// **La plaza**: el ejido, la fuente, el tablón y el atril. No es de nadie y
+/// no se gana; está desde que el pueblo se funda, y por ella se anda.
+const int _w = 460, _h = 460;
+
+/// El pueblo con su plaza, visto desde donde se lo mira casi siempre. [t] es el
+/// reloj del valle, que es lo que mueve a la gente.
+Future<ui.Image> _frame({
+  bool folk = false,
+  Season season = Season.none,
+  double t = 7.5,
+}) async {
+  final layout = TownLayout(40, TownCharacter.all.first, seed: 7);
+  final cam = OrbitCamera()
+    ..yaw = 0.62
+    ..pitch = 0.34
+    ..distance = 9
+    ..focusY = 1.0
+    ..wallLength = layout.radius * 2;
+  final rec = ui.PictureRecorder();
+  TownPainter(
+    TownScene(
+      placed: 40,
+      palette: Palette.forMoment(11, season: season),
+      camera: cam,
+      time: t,
+      hourOfDay: 11,
+      effects: EffectSystem(),
+      labelledBricks: const {},
+      budget: 40000,
+      towns: [
+        TownEntry(layout: layout, name: 'Pueblo', symbol: 'rueda', placed: 40),
+      ],
+      active: 0,
+      labels: false,
+      folk: folk,
+      ghost: false,
+    ),
+    TouchMap(),
+  ).paint(Canvas(rec), const Size(_w * 1.0, _h * 1.0));
+  return rec.endRecording().toImage(_w, _h);
+}
+
+/// La plaza sola y de cerca, que es donde se le ve el color al césped.
+Future<ui.Image> _plaza(Season season) async {
+  final layout = TownLayout(0, TownCharacter.all.first, seed: 7);
+  final cam = OrbitCamera()
+    ..yaw = 0.62
+    ..pitch = 0.9
+    ..distance = 7
+    ..focusY = 0.4
+    ..wallLength = layout.radius * 2;
+  final rec = ui.PictureRecorder();
+  TownPainter(
+    TownScene(
+      placed: 0,
+      palette: Palette.forMoment(11, season: season),
+      camera: cam,
+      time: 2,
+      hourOfDay: 11,
+      effects: EffectSystem(),
+      labelledBricks: const {},
+      budget: 40000,
+      towns: [
+        TownEntry(layout: layout, name: 'Pueblo', symbol: 'rueda', placed: 0),
+      ],
+      active: 0,
+      labels: false,
+      folk: false,
+      ghost: false,
+    ),
+    TouchMap(),
+  ).paint(Canvas(rec), const Size(_w * 1.0, _h * 1.0));
+  return rec.endRecording().toImage(_w, _h);
+}
+
+/// Cuántas manchas de color grandes tiene una imagen.
+///
+/// Una cara lisa es una mancha. Se cuentan las que ocupan cuatrocientos
+/// píxeles o más, para que el contorno dentado de dos caras vecinas no cuente
+/// como una tercera.
+int _manchas(Uint8List px) {
+  final cuenta = <int, int>{};
+  for (var i = 0; i < px.length; i += 4) {
+    final k = ((px[i] >> 3) << 10) | ((px[i + 1] >> 3) << 5) | (px[i + 2] >> 3);
+    cuenta[k] = (cuenta[k] ?? 0) + 1;
+  }
+  return cuenta.values.where((n) => n >= 400).length;
+}
+
+Future<Uint8List> _bytes(ui.Image img) async => (await img.toByteData(
+  format: ui.ImageByteFormat.rawRgba,
+))!.buffer.asUint8List();
+
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   group('la plaza queda despejada', () {
     test('ningún edificio mete la huella dentro, en ninguna región', () {
       // Lo que se veía: el tablón es lo más importante del pueblo y también lo
@@ -337,5 +441,153 @@ void main() {
         reason: 'hay piedra tapando el agua a $techo',
       );
     });
+  });
+
+  group('la plaza se ve y se pisa', () {
+    test('en otoño la plaza es tan lisa como en verano, con otro color', () async {
+      // El fallo, tal cual se vio: en otoño la plaza salía partida en gajos de
+      // ocres distintos —uno por cada triángulo de la tapa del enlosado—
+      // mientras que en las otras tres estaciones se veía lisa.
+      //
+      // **Cómo se mide.** Cuántas manchas grandes de color tiene el cuadro. Una
+      // cara lisa es una mancha, así que si el otoño no parte nada, otoño y
+      // verano tienen que tener las mismas. Medido sobre las dos versiones:
+      // lisa, 20 en verano y 19 en otoño; a gajos, 20 y 31.
+      final verano = await _plaza(Season.none);
+      final otono = await _plaza(const Season(0.75));
+      final a = await _bytes(verano), b = await _bytes(otono);
+      verano.dispose();
+      otono.dispose();
+      final enVerano = _manchas(a), enOtono = _manchas(b);
+      expect(
+        enOtono,
+        lessThanOrEqualTo(enVerano + 2),
+        reason:
+            'el otoño parte la plaza: $enOtono manchas de color contra las '
+            '$enVerano del verano',
+      );
+
+      // Y que sea otoño de verdad, no verano dos veces: el color cambia, lo que
+      // no cambia es que sea uno solo.
+      var movidos = 0;
+      for (var i = 0; i < a.length; i += 4) {
+        if ((a[i] - b[i]).abs() > 8 || (a[i + 2] - b[i + 2]).abs() > 8) {
+          movidos++;
+        }
+      }
+      expect(movidos, greaterThan(5000), reason: 'el otoño no se nota');
+    });
+
+    test('el césped de la plaza se dora entero, y no a cuartos', () {
+      // El fallo, tal cual se vio: en otoño la plaza salía partida en gajos de
+      // ocres distintos, uno por cada cara del enlosado, mientras que en las
+      // otras tres estaciones se veía lisa.
+      //
+      // La causa: el día en que una hoja se dora sale de su semilla, y la
+      // semilla se sacaba de **dónde está la cara**. Para un roble eso es lo que
+      // se quiere —dos robles vecinos no se doran el mismo día— pero las caras
+      // de un mismo bulto están cada una en un sitio, así que cada cara del
+      // césped se doraba por su cuenta. Ahora la semilla es la del bulto.
+      final losas = Plaza.solidsAt(0, 0, TownLayout.plazaReach);
+      final semillas = <int>{};
+      for (final s in losas) {
+        asFurniture(s);
+        final suyas = <int>{};
+        for (final f in s.faces) {
+          expect(f.piece, -1, reason: 'la plaza no es pieza de nadie');
+          if (f.surface == Surface.leaf) suyas.add(f.data);
+        }
+        expect(
+          suyas.length,
+          lessThan(2),
+          reason: 'un mismo bulto tiene ${suyas.length} semillas de hoja',
+        );
+        semillas.addAll(suyas);
+      }
+      expect(semillas, isNotEmpty, reason: 'la plaza no tiene césped');
+
+      // Y la otra mitad: dos matas distintas sí se doran días distintos, que es
+      // de donde venía la idea.
+      final a = Yard.gardenAt(0, 0, 1.0, 3)..forEach(asFurniture);
+      final b = Yard.gardenAt(9, 4, 1.0, 3)..forEach(asFurniture);
+      int? hojaDe(List<Solid> ss) {
+        for (final s in ss) {
+          for (final f in s.faces) {
+            if (f.surface == Surface.leaf) return f.data;
+          }
+        }
+        return null;
+      }
+
+      expect(hojaDe(a), isNotNull);
+      expect(hojaDe(a), isNot(hojaDe(b)));
+    });
+
+    test('quien entra en la plaza se ve, en vez de tragárselo el enlosado', () async {
+      // El fallo: el ejido tiene cinco centímetros de canto y la gente andaba
+      // con los pies a cero, o sea **metida dentro de la losa**. Dos cuerpos que
+      // se atraviesan no tienen plano que los separe y por tanto no tienen
+      // orden; el que salía era el de la losa, y como desde arriba la losa tapa
+      // todo el octógono, cualquiera que cruzaba la plaza se borraba entero.
+      //
+      // **Cómo se mide.** El mismo fotograma con gente y sin ella. En este
+      // —semilla 7, segundo 7,5— hay un vecino parado en la plaza, a un metro y
+      // cuarto de la fuente, y lo que lo dibuja es lo único que cambia entre los
+      // dos. Medido sobre las dos versiones: tragado quedaban 149 píxeles suyos
+      // —poco más que la cabeza, asomando por el canto del enlosado—; de pie
+      // sobre la losa se le ven 418, que es el vecino entero.
+      final sin = await _frame();
+      final con = await _frame(folk: true);
+      final a = await _bytes(sin), b = await _bytes(con);
+      sin.dispose();
+      con.dispose();
+      var vecino = 0;
+      for (var i = 0; i < a.length; i += 4) {
+        if ((a[i] - b[i]).abs() > 8 ||
+            (a[i + 1] - b[i + 1]).abs() > 8 ||
+            (a[i + 2] - b[i + 2]).abs() > 8) {
+          vecino++;
+        }
+      }
+      expect(
+        vecino,
+        greaterThan(200),
+        reason: 'sólo $vecino píxeles de vecino: la plaza se lo está comiendo',
+      );
+    });
+
+    test('y la gente de la plaza anda por encima del enlosado', () {
+      // La misma cosa dicha en metros, que es donde se arregló: a quien está
+      // dentro de la plaza el suelo le queda a la altura del enlosado.
+      const r = TownLayout.plazaReach;
+      expect(Plaza.floorAt(0, 0, 0, 0, r), Plaza.lawnTop);
+      expect(Plaza.floorAt(r * 0.95, 0, 0, 0, r), Plaza.kerbTop);
+      expect(Plaza.floorAt(r * 1.4, 0, 0, 0, r), 0);
+      // Y el pueblo de al lado tiene la suya en su sitio, no en el origen.
+      expect(Plaza.floorAt(40, 12, 40, 12, r), Plaza.lawnTop);
+      expect(Plaza.floorAt(0, 0, 40, 12, r), 0);
+    });
+
+    test(
+      'hay gente que pisa la plaza, que es lo que hace falta probar nada',
+      () {
+        // Si nadie entrara nunca, las dos pruebas de arriba estarían midiendo el
+        // vacío. Hay cuatro vecinos y uno pasa por el medio.
+        final layout = TownLayout(40, TownCharacter.all.first, seed: 7);
+        final gente = folkOf(layout, 40);
+        var dentro = false;
+        for (var t = 0.0; t < 60 && !dentro; t += 0.5) {
+          for (final who in gente) {
+            final at = who.at(t);
+            if (math.sqrt(at.x * at.x + at.z * at.z) <
+                TownLayout.plazaReach * 0.9) {
+              dentro = true;
+              break;
+            }
+          }
+        }
+        expect(dentro, isTrue, reason: 'nadie entra nunca en la plaza');
+      },
+    );
   });
 }
