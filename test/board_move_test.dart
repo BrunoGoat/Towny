@@ -1,8 +1,12 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:la_muralla/data/character.dart';
 import 'package:la_muralla/engine/board_plan.dart';
 import 'package:la_muralla/engine/palette.dart';
+import 'package:la_muralla/engine/solid.dart';
+import 'package:la_muralla/engine/town.dart';
+import 'package:la_muralla/engine/world.dart';
 import 'package:la_muralla/model/appearance.dart';
 import 'package:la_muralla/model/board.dart';
 import 'package:la_muralla/model/board_slots.dart';
@@ -295,6 +299,92 @@ void main() {
         hasLength(1),
       );
       await tester.pump(const Duration(milliseconds: 400));
+    });
+  });
+
+  group('y el tablón del valle es el mismo tablón', () {
+    // Lo que se veía: cambiabas un papel de hueco en el tablón y al salir al
+    // valle seguía donde estaba. El plano del pueblo ya está hecho y guardado,
+    // y nadie le había dicho que mirara otra vez.
+    //
+    // Lo caro era rehacerlo: los papeles entraban en la firma del pueblo, así
+    // que mover uno volvía a cortar y a ordenar las doscientas piezas —ciento
+    // veinte milisegundos con cuarenta, trescientos con trescientas— para
+    // enseñar lo mismo con dos rectángulos en otro sitio. No hace falta: los
+    // papeles son calcomanías sobre la cara de la plancha, no geometría.
+    TownLayout conPapeles(List<int> huecos) =>
+        TownLayout(40, TownCharacter.all.first, seed: 7, notices: huecos);
+
+    setUp(forgetTowns);
+
+    test('mover un papel avisa, que es lo que hace que el pueblo mire', () async {
+      // El eslabón que faltaba: el pueblo no se entera solo de que un papel
+      // cambió de hueco —su plano está hecho— así que la tabla avisa y la
+      // vista del valle vuelve a armar el suyo. Sin esto, todo lo de abajo
+      // está bien y en la pantalla no se mueve nada.
+      final tabla = await _tabla();
+      final said = _said(3);
+      final ids = [for (final n in said) noticeId(n)];
+      tabla.assign('p', said, slots: 10);
+      var avisos = 0;
+      void contar() => avisos++;
+      tabla.addListener(contar);
+      final suyo = tabla.slotOf('p', ids[0])!;
+      tabla.place('p', ids, 0, (suyo + 1) % 10);
+      expect(avisos, 1);
+      // Y soltarlo donde ya estaba no avisa de nada.
+      tabla.place('p', ids, 0, tabla.slotOf('p', ids[0])!);
+      expect(avisos, 1);
+      tabla.removeListener(contar);
+    });
+
+    test('mover un papel no vuelve a levantar el pueblo', () {
+      final antes = builtTown(conPapeles(const [0, 3, 6]), 40);
+      final luego = builtTown(conPapeles(const [1, 3, 6]), 40);
+      expect(
+        identical(antes, luego),
+        isTrue,
+        reason: 'se ha vuelto a levantar el pueblo entero por un papel',
+      );
+    });
+
+    test('pero el papel sí se mueve', () {
+      final town = builtTown(conPapeles(const [0, 3, 6]), 40);
+      expect(town.board, isNotEmpty, reason: 'nadie apuntó la plancha');
+      List<double> dondeEstan() => [
+        for (final f in town.board)
+          for (final d in f.decals ?? const <Facet>[]) d.v.first.y,
+      ];
+      final antes = dondeEstan();
+      expect(antes, isNotEmpty);
+
+      builtTown(conPapeles(const [1, 3, 6]), 40);
+      expect(
+        dondeEstan(),
+        isNot(antes),
+        reason: 'la plancha sigue con los papeles de antes',
+      );
+
+      // Y vuelven si se vuelven a mover.
+      builtTown(conPapeles(const [0, 3, 6]), 40);
+      expect(dondeEstan(), antes);
+    });
+
+    test('y quitar uno lo quita de la plancha', () {
+      final town = builtTown(conPapeles(const [0, 3, 6]), 40);
+      int cuantos() {
+        var n = 0;
+        for (final f in town.board) {
+          n += (f.decals ?? const <Facet>[]).length;
+        }
+        // Las dos caras de la plancha llevan la misma lista, así que esto
+        // cuenta cada papel una vez por cara.
+        return town.board.isEmpty ? 0 : n ~/ town.board.length;
+      }
+
+      expect(cuantos(), 3);
+      builtTown(conPapeles(const [2]), 40);
+      expect(cuantos(), 1);
     });
   });
 }

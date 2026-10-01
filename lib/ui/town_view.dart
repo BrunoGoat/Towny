@@ -259,6 +259,10 @@ class _TownViewState extends State<TownView>
     if (widget.store.justFounded) HandoffShot.apply(_cam);
     _ticker = createTicker(_tick)..start();
     widget.store.addListener(_onStoreChanged);
+    // Y al tablón, que es lo único que cambia cómo se ve el pueblo sin que se
+    // ponga una pieza: mover un papel de hueco tiene que verse también en la
+    // plancha de la plaza, que es la misma plancha.
+    BoardSlots.instance.addListener(_rebuildLayout);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.onPaletteChanged(_palette);
     });
@@ -391,6 +395,7 @@ class _TownViewState extends State<TownView>
   @override
   void dispose() {
     widget.store.removeListener(_onStoreChanged);
+    BoardSlots.instance.removeListener(_rebuildLayout);
     widget.controller._state = null;
     _ticker.dispose();
     super.dispose();

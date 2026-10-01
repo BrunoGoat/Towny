@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/rng.dart';
@@ -18,7 +19,11 @@ import 'notice.dart';
 /// Así que el hueco se sortea **una sola vez**, cuando el papel aparece, y
 /// desde entonces se guarda. Al volver a abrir el tablón —o al reinstalar la
 /// app y recuperar el valle— cada papel sigue donde estaba.
-class BoardSlots {
+/// **Y avisa cuando alguien mueve uno.** El tablón que se toca con el dedo y
+/// el que se ve desde el valle son el mismo tablón: si el papel se cambia de
+/// hueco en uno, en el otro tiene que estar en el nuevo. El pueblo no se
+/// entera solo —su plano está hecho y guardado— así que hay que decírselo.
+class BoardSlots extends ChangeNotifier {
   BoardSlots._();
   static final BoardSlots instance = BoardSlots._();
 
@@ -107,6 +112,11 @@ class BoardSlots {
     }
     _where[key] = slot;
     _keep();
+    // Que el pueblo vuelva a mirar dónde está cada papel. **Sólo aquí**: el
+    // reparto de un papel nuevo pasa dentro de `assign`, que es justo lo que
+    // llama el pueblo mientras arma su plano, y avisar desde ahí sería pedirle
+    // que lo arme otra vez en mitad de armarlo.
+    notifyListeners();
   }
 
   /// En qué hueco está ahora mismo ese papel, si es que está en alguno.

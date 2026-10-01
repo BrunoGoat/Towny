@@ -1459,6 +1459,20 @@ class NoticeBoard {
     return faces;
   }
 
+  /// Sólo los papeles, ya girados con el tablón.
+  ///
+  /// Para poder cambiarlos de hueco sin tocar el pueblo: son calcomanías sobre
+  /// la cara de la plancha, así que mover uno no mueve geometría ninguna.
+  static List<Facet> sheetsAt(double cx, double cz, List<int> sheets) {
+    for (final s in solidsAt(cx, cz, sheets: sheets)) {
+      for (final f in s.faces) {
+        final d = f.decals;
+        if (d != null) return d;
+      }
+    }
+    return const [];
+  }
+
   static List<Solid> solidsAt(
     double cxIn,
     double czIn, {

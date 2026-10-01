@@ -100,7 +100,18 @@ class BuiltTown {
     this.sign, {
     this.knots = const [],
     this.solid = const [],
+    this.board = const [],
+    this.notices = const [],
   });
+
+  /// Las caras de la plancha del tablón, que son las que llevan los papeles.
+  ///
+  /// Se guardan para poder cambiar los papeles de hueco sin volver a levantar
+  /// el pueblo: ver [renotice].
+  final List<Facet> board;
+
+  /// Qué papeles tiene puestos ahora mismo lo que está archivado.
+  List<int> notices;
 
   /// Las cajas macizas archivadas hasta aquí, con la pieza que las puso.
   ///
@@ -258,12 +269,45 @@ final Map<String, BuiltTown> _cache = {};
 /// nadie busca — y no se rompería nada, que es lo peor que puede pasar.
 String _keyOf(double cx, double cz, int character) => '$cx,$cz,$character';
 
+/// Vuelve a clavar los papeles del tablón donde dice [layout], si se movieron.
+///
+/// **Por qué esto no rehace el pueblo.** Los papeles son calcomanías sobre la
+/// cara de la plancha: se pintan justo después de ella y no se ordenan contra
+/// nada, así que no tienen caja, no entran en ningún corte y no mueven un solo
+/// vértice. Mover uno de hueco es cambiar una lista de cuatro rectángulos.
+///
+/// Entraban en la firma del pueblo, y por eso arrastrar un papel volvía a
+/// cortar y ordenar el pueblo entero —ciento veinte milisegundos con cuarenta
+/// piezas, trescientos con trescientas— para enseñar lo mismo con dos
+/// rectángulos en otro sitio.
+void renotice(BuiltTown town, TownLayout layout) {
+  if (town.board.isEmpty) return;
+  final quiere = layout.notices;
+  final tiene = town.notices;
+  if (quiere.length == tiene.length) {
+    var igual = true;
+    for (var i = 0; i < quiere.length; i++) {
+      if (quiere[i] != tiene[i]) {
+        igual = false;
+        break;
+      }
+    }
+    if (igual) return;
+  }
+  final papeles = NoticeBoard.sheetsAt(layout.cx, layout.cz, quiere);
+  for (final f in town.board) {
+    f.decals = papeles;
+  }
+  town.notices = [...quiere];
+}
+
 BuiltTown builtTown(TownLayout layout, int placed) {
   final key = _keyOf(layout.cx, layout.cz, layout.character.order);
   final had = _cache[key];
   if (had != null &&
       had.placed == placed &&
       had.sign == _sign(layout, placed)) {
+    renotice(had, layout);
     return had;
   }
   // Carried forward only when the town really is the same town one piece
@@ -278,6 +322,9 @@ BuiltTown builtTown(TownLayout layout, int placed) {
       ? had
       : null;
   final made = _build(layout, placed, seed);
+  // Un pueblo arrastrado del anterior se trae sus caras de tablón, que son las
+  // de antes: puede que los papeles ya no estén donde dicen.
+  renotice(made, layout);
   if (_cache.length > 24) _cache.clear();
   _cache[key] = made;
   return made;
@@ -302,12 +349,15 @@ int _sign(TownLayout layout, int upto) {
   // Antes daba igual porque con cero piezas los dos estaban vacíos. Lo
   // encontró un test que no iba a esto.
   feed(layout.solo ? 7919 : 104729);
-  // Cuántas hojas hay clavadas es parte de cómo se ve el pueblo: si cambia,
-  // hay que volver a levantar el tablón de la plaza y no reusar el de antes.
-  for (final hueco in layout.notices) {
-    feed(hueco);
-  }
-  feed(layout.notices.length);
+  // Los papeles del tablón **no** entran aquí, aunque se vean.
+  //
+  // Entraban, y por eso mover un papel de hueco volvía a cortar y a ordenar el
+  // pueblo entero: ciento veinte milisegundos con cuarenta piezas y trescientos
+  // con trescientas, cada vez que alguien arrastra un papel. Y no hacía falta
+  // para nada: los papeles son calcomanías sobre la cara de la plancha, así
+  // que mover uno no mueve ni un vértice ni cambia una sola caja. Lo que hay
+  // que rehacer es la lista de calcomanías de esa cara, y eso lo hace
+  // [renotice] en un pestañeo.
   for (var i = 0; i < n; i++) {
     final p = layout.pieces[i];
     feed(p.kind.index);
@@ -505,9 +555,22 @@ BuiltTown _build(TownLayout layout, int placed, BuiltTown? before) {
   // nada a la vez que la primera casa. Un pueblo se funda con su plaza: es el
   // claro alrededor del cual se reparten los solares, y existe antes que
   // cualquier cosa que se levante en ellos.
+  // Las caras que llevan los papeles, apuntadas al pasar: es lo que permite
+  // cambiarlos de hueco después sin tocar nada más. Ver [renotice].
+  var tablon = before?.board ?? const <Facet>[];
   if (from == 0 && !layout.solo) {
     furnish(Plaza.solidsAt(layout.cx, layout.cz, TownLayout.plazaReach));
-    furnish(NoticeBoard.solidsAt(layout.cx, layout.cz, sheets: layout.notices));
+    final board = NoticeBoard.solidsAt(
+      layout.cx,
+      layout.cz,
+      sheets: layout.notices,
+    );
+    tablon = [
+      for (final s in board)
+        for (final f in s.faces)
+          if (f.decals != null) f,
+    ];
+    furnish(board);
     furnish(Lectern.solidsAt(layout.cx, layout.cz));
   }
 
@@ -608,6 +671,8 @@ BuiltTown _build(TownLayout layout, int placed, BuiltTown? before) {
       placed,
       _sign(layout, take),
       solid: macizos,
+      board: tablon,
+      notices: [...layout.notices],
     );
   }
 
@@ -708,6 +773,8 @@ BuiltTown _build(TownLayout layout, int placed, BuiltTown? before) {
     _sign(layout, take),
     knots: knots,
     solid: macizos,
+    board: tablon,
+    notices: [...layout.notices],
   );
 }
 

@@ -137,7 +137,14 @@ class Facet {
   /// Faces lying exactly on this one, painted straight after it and never
   /// sorted against it. A window cannot fight its own wall for depth if the
   /// question is never asked.
-  final List<Facet>? decals;
+  ///
+  /// Se puede cambiar después de archivada la cara, y hay una sola cosa que lo
+  /// hace: los papeles del tablón. Mover un papel de hueco no mueve ni un
+  /// vértice del pueblo —son calcomanías sobre la plancha, no geometría— así
+  /// que volver a cortar y ordenar el pueblo entero por eso costaría entre
+  /// ciento veinte y trescientos milisegundos para cambiar de sitio dos
+  /// rectángulos. Ver `renotice` en `world.dart`.
+  List<Facet>? decals;
 
   /// Which window, which plank, which plant. Only the surfaces that need it
   /// read it.
