@@ -1373,10 +1373,19 @@ class TownPainter extends CustomPainter {
     }
   }
 
-  /// La plaza saliendo de la tierra, en tres tiempos: primero el enlosado,
-  /// que es lo que dice dónde está el centro; después el tablón, que es lo que
-  /// el pueblo va a decir de vos; y por último el atril, que es donde va a
-  /// quedar escrito lo que digas vos.
+  /// La plaza fundándose, en tres tiempos: primero el enlosado, que es lo que
+  /// dice dónde está el centro; después el tablón, que es lo que el pueblo va
+  /// a decir de vos; y por último el atril, que es donde va a quedar escrito
+  /// lo que digas vos.
+  ///
+  /// **El enlosado sale de la tierra y los otros dos caen del cielo**, con la
+  /// misma caída y el mismo rebote que cualquiera de las seiscientas piezas
+  /// que vendrán detrás. Los tres salían de debajo, y era la única cosa de
+  /// toda la app que no caía: el enlosado puede, porque el enlosado *es* el
+  /// suelo y lo que hace es descubrirse; un tablón y un facistol son dos cosas
+  /// que alguien pone en una plaza. El reloj de los tres está en
+  /// [FoundingShow], porque esta pintura y el polvo del aterrizaje se tienen
+  /// que creer lo mismo.
   ///
   /// Se arma un árbol nuevo cada fotograma, como con la pieza que cae y por lo
   /// mismo: lo único que se mueve en todo el valle no puede salir de una caché
@@ -1392,6 +1401,27 @@ class TownPainter extends CustomPainter {
   ) {
     final l = e.layout;
     final caras = <Facet>[];
+
+    /// Esto es mueble del pueblo y no pieza de nadie, igual que cuando lo
+    /// archiva `world.dart`.
+    ///
+    /// **El fallo que esto cierra.** `Facet.piece` vale cero mientras nadie
+    /// diga otra cosa, y cero es una pieza de verdad: la primera. Como acá se
+    /// arman los sólidos a mano en vez de pasar por `furnish`, la plaza entera
+    /// —el enlosado, la fuente, el tablón y el atril— se pintaba durante la
+    /// fundación con el color y el desgaste del primer logro del pueblo, y en
+    /// el fotograma en que el reloj llegaba a uno pasaba a pintarla el camino
+    /// de siempre, con los suyos. O sea que la plaza cambiaba de color de
+    /// golpe justo al acabar de fundarse, que es la primera cosa que ve quien
+    /// abre la app.
+    void mueble(Facet f) {
+      f.piece = -1;
+      for (final g in f.decals ?? const <Facet>[]) {
+        g.piece = -1;
+      }
+      caras.add(f);
+    }
+
     void alzar(List<Solid> solidos, double k) {
       final t = _suave(k.clamp(0.0, 1.0));
       if (t <= 0.001) return;
@@ -1400,18 +1430,35 @@ class TownPainter extends CustomPainter {
       final dy = (t - 1.0) * 1.5;
       for (final s in solidos) {
         for (final f in s.faces) {
-          caras.add(dy.abs() < 1e-4 ? f : f.lifted(dy));
+          mueble(dy.abs() < 1e-4 ? f : f.lifted(dy));
+        }
+      }
+    }
+
+    // Lo que cae: se dibuja desde que se suelta y no antes, igual que una
+    // pieza no existe hasta que la ponés.
+    void caer(List<Solid> solidos, double? dy) {
+      if (dy == null) return;
+      for (final s in solidos) {
+        for (final f in s.faces) {
+          mueble(dy.abs() < 1e-4 ? f : f.lifted(dy));
         }
       }
     }
 
     final t = scene.founding;
-    alzar(Plaza.solidsAt(l.cx, l.cz, TownLayout.plazaReach), t / 0.5);
     alzar(
-      NoticeBoard.solidsAt(l.cx, l.cz, sheets: l.notices),
-      (t - 0.3) / 0.45,
+      Plaza.solidsAt(l.cx, l.cz, TownLayout.plazaReach),
+      t / FoundingShow.plazaUntil,
     );
-    alzar(Lectern.solidsAt(l.cx, l.cz), (t - 0.55) / 0.45);
+    caer(
+      NoticeBoard.solidsAt(l.cx, l.cz, sheets: l.notices),
+      FoundingShow.liftAt(t, FoundingShow.boardAt),
+    );
+    caer(
+      Lectern.solidsAt(l.cx, l.cz),
+      FoundingShow.liftAt(t, FoundingShow.lecternAt),
+    );
     if (caras.isEmpty) return;
     BspTree.build(
       caras,

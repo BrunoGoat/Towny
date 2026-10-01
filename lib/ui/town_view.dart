@@ -477,7 +477,9 @@ class _TownViewState extends State<TownView>
       _glide = 3.6;
     }
     if (_founding < 1.0) {
-      _founding = math.min(1.0, _founding + dt / 1.7);
+      final antes = _founding;
+      _founding = math.min(1.0, _founding + dt / FoundingShow.seconds);
+      _plazaCae(antes, _founding);
       if (_founding >= 1.0) _frameTown();
     }
 
@@ -686,6 +688,45 @@ class _TownViewState extends State<TownView>
     _placement = PlacementFx(result.piece.index, dropHeight: 2.3);
     widget.onPlaced(result.piece);
     setState(() {});
+  }
+
+  /// El tablón y el atril tocando el suelo el día que se funda el pueblo.
+  ///
+  /// Caen del cielo como cualquier pieza, así que aterrizan como cualquier
+  /// pieza: polvo, un temblor corto y el golpe. Sin esto la caída se para en
+  /// seco y no se lee como que algo se posó, sino como que algo dejó de
+  /// moverse.
+  ///
+  /// Se mira si el reloj de la fundación **cruzó** el instante del aterrizaje
+  /// en este fotograma, y no si ya pasó: a sesenta por segundo, «ya pasó» es
+  /// un golpe por fotograma durante el resto de la caída.
+  ///
+  /// Más flojos que el de una pieza —0,8 y 0,55 contra 1,1— porque un tablón
+  /// de madera no pesa lo que un sillar, y porque son dos seguidos: dos
+  /// temblores de los grandes en segundo y medio marean.
+  void _plazaCae(double antes, double ahora) {
+    final l = _town;
+    for (final (cuando, x, z, radio, fuerza) in [
+      (
+        FoundingShow.boardLands,
+        NoticeBoard.xAt(l.cx),
+        NoticeBoard.zAt(l.cz),
+        0.8,
+        0.8,
+      ),
+      (
+        FoundingShow.lecternLands,
+        l.cx + Lectern.offX,
+        l.cz + Lectern.offZ,
+        0.45,
+        0.55,
+      ),
+    ]) {
+      if (antes >= cuando || ahora < cuando) continue;
+      _fx.impact(V3(x, 0, z), radio, strength: fuerza);
+      _cam.shake = 0.035;
+      Sensory.instance.impact(strength: fuerza);
+    }
   }
 
   /// The town's version of the landing: the shake and the sound, and a

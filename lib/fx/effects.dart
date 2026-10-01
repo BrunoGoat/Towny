@@ -284,6 +284,60 @@ class EffectSystem {
   }
 }
 
+
+/// El reloj de la fundación: cuándo sale cada cosa de la plaza.
+///
+/// Lo miran dos sitios que no se hablan —el pintor, que la dibuja, y la
+/// pantalla del pueblo, que tira el polvo y el golpe cuando algo toca el
+/// suelo— y tienen que estar de acuerdo al milisegundo o el polvo sale antes
+/// o después que el aterrizaje. Por eso los números viven acá y no en ninguno
+/// de los dos.
+///
+/// **El enlosado sale de la tierra; el tablón y el atril caen del cielo.** No
+/// es un capricho: el enlosado *es* el suelo, y lo que hace al descubrirse es
+/// aparecer. Los otros dos son dos cosas que alguien pone en una plaza, y todo
+/// lo que se pone en este pueblo —las seiscientas piezas, una por una— cae.
+/// Que estos dos salieran de debajo era la única excepción que había.
+class FoundingShow {
+  const FoundingShow._();
+
+  /// Lo que dura entera, en segundos.
+  ///
+  /// Eran 1,7 cuando las tres cosas subían del suelo. Una caída con su rebote
+  /// dura casi un segundo, y el atril se suelta pasada la mitad: con 1,7 el
+  /// rebote del atril se cortaba a medias.
+  static const double seconds = 2.1;
+
+  /// Hasta dónde dura el enlosado saliendo de la tierra.
+  static const double plazaUntil = 0.42;
+
+  /// Cuándo se suelta cada uno, en el reloj de 0 a 1.
+  ///
+  /// Primero el enlosado, que es lo que dice dónde está el centro; después el
+  /// tablón, que es lo que el pueblo va a decir de vos; y por último el atril,
+  /// que es donde va a quedar escrito lo que digas vos. Se solapan a propósito:
+  /// el tablón se suelta mientras el enlosado todavía está acabando de salir.
+  static const double boardAt = 0.28, lecternAt = 0.52;
+
+  /// Desde qué altura caen. La misma que una pieza cualquiera.
+  static const double drop = 2.3;
+
+  /// Cuándo toca el suelo lo que se soltó en [at].
+  static double landing(double at) =>
+      at + PlacementFx.fallDuration / seconds;
+
+  static double get boardLands => landing(boardAt);
+  static double get lecternLands => landing(lecternAt);
+
+  /// A qué altura sobre su sitio está, en el momento [t] del reloj, lo que se
+  /// soltó en [at]. Nulo mientras todavía no se soltó: entonces no se dibuja,
+  /// igual que una pieza no existe hasta que la ponés.
+  static double? liftAt(double t, double at) {
+    if (t < at) return null;
+    return PlacementFx.fallAt((t - at) * seconds, height: drop);
+  }
+}
+
 /// The state of the stone currently in flight.
 class PlacementFx {
   PlacementFx(this.brickIndex, {this.dropHeight = 5.2});
@@ -304,14 +358,26 @@ class PlacementFx {
   bool get done => landed && sinceImpact > settleDuration + 0.4;
 
   /// Height above the final resting place.
-  double get yOffset {
-    if (landed) {
-      // A short squash-and-rebound instead of a dead stop.
-      final s = (sinceImpact / settleDuration).clamp(0.0, 1.0);
-      return -0.035 * math.exp(-s * 7) * math.cos(s * 26);
+  double get yOffset =>
+      fallAt(landed ? fallDuration + sinceImpact : t * fallDuration,
+          height: dropHeight);
+
+  /// A qué altura sobre su sitio está algo que se soltó hace [seconds]
+  /// segundos: la caída que tiene todo lo que se pone en este pueblo.
+  ///
+  /// Está suelta y no dentro de [yOffset] porque **la plaza que se funda cae
+  /// con esta misma curva sin ser pieza de nadie**: el tablón y el atril no
+  /// tienen índice ni edificio, y antes salían de debajo de la tierra, que es
+  /// lo único de toda la app que no caía del cielo. Dos cuentas separadas para
+  /// la misma caída terminan con una de las dos vieja.
+  static double fallAt(double seconds, {double height = 5.2}) {
+    if (seconds < fallDuration) {
+      final t = (seconds / fallDuration).clamp(0.0, 1.0);
+      return height * (1 - t * t); // cae acelerando
     }
-    final e = t * t; // accelerating fall
-    return dropHeight * (1 - e);
+    // Y al tocar, un rebote corto en vez de una parada en seco.
+    final s = ((seconds - fallDuration) / settleDuration).clamp(0.0, 1.0);
+    return -0.035 * math.exp(-s * 7) * math.cos(s * 26);
   }
 
   double get rotation {

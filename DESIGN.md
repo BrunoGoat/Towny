@@ -267,11 +267,19 @@ valle, mismo pintor, misma cámara— y sigue bajando despacio mientras sube la
 plaza, así que lo único que se funde entre una pantalla y la otra es lo de
 encima.
 
-Y en cuanto se funda, **la plaza sube del suelo**: primero el enlosado, que dice
-dónde está el centro; después el tablón, que es lo que el pueblo va a decir de
-vos; y por último el atril, que es donde va a quedar escrito lo que digas vos.
-Un pueblo se funda con su plaza, no con su primera casa — antes aparecía de la
+Y en cuanto se funda, **aparece la plaza**: primero el enlosado, que dice dónde
+está el centro; después el tablón, que es lo que el pueblo va a decir de vos; y
+por último el atril, que es donde va a quedar escrito lo que digas vos. Un
+pueblo se funda con su plaza, no con su primera casa — antes aparecía de la
 nada a la vez que la primera pieza.
+
+**El enlosado sale de la tierra; el tablón y el atril caen del cielo**, con la
+misma caída, el mismo golpe de polvo y el mismo rebote corto que las
+seiscientas piezas que van a venir detrás. Los tres subían del suelo, y era la
+única cosa de toda la app que no caía: en un pueblo donde cada logro es una
+piedra que cae, dos muebles saliendo de debajo de la tierra se leen como un
+error del dibujo. El enlosado sí puede salir de abajo, porque el enlosado *es*
+el suelo y lo que hace no es llegar sino descubrirse.
 
 ## Los avisos
 
