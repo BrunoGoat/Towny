@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:la_muralla/data/character.dart';
 import 'package:la_muralla/engine/palette.dart';
 import 'package:la_muralla/engine/tones.dart';
 import 'package:la_muralla/model/store.dart';
@@ -10,6 +11,7 @@ import 'package:la_muralla/ui/habits_sheet.dart';
 import 'package:la_muralla/ui/hold_button.dart';
 import 'package:la_muralla/ui/legend_card.dart';
 import 'package:la_muralla/ui/overlays.dart';
+import 'package:la_muralla/ui/plan_picker.dart';
 import 'package:la_muralla/ui/style.dart';
 import 'package:la_muralla/ui/town_sign.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -430,6 +432,174 @@ void _pieles() {
           }
           await tester.pumpWidget(const SizedBox());
         }
+      }
+    });
+
+    /// Lo que el dueño de la app dijo al verla: «quedó bastante llena y con
+    /// muchas cosas».
+    ///
+    /// Tenía razón y se podía medir. Con todo escrito eran 832 píxeles de hoja
+    /// en un teléfono de 320 y 777 en uno de 390: en los dos casos la hoja
+    /// entera o casi, y en el estrecho había que arrastrarla para llegar a
+    /// pausar el pueblo. Siete secciones con siete títulos, de las cuales dos
+    /// —el reloj de veinticuatro horas y el párrafo de la comarca— ocupaban
+    /// trescientos píxeles para decir lo que ya decía la frase de al lado o lo
+    /// que no se puede cambiar.
+    ///
+    /// Así que la regla es que **quepa sin rodar**, que es otra cosa que caber:
+    /// la de antes cabía porque rodaba. Si vuelve a crecer, esto se rompe antes
+    /// de que lo note alguien con un teléfono en la mano.
+    testWidgets('con todo escrito cabe sin rodar', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final store = Store();
+      await store.load();
+      store.renameHabit(store.active, name: _largo, symbol: store.habit.symbol);
+      store.pledgeHabit(
+        store.active,
+        hour: 22,
+        place: 'en la mesa de la cocina',
+        identity: 'alguien que se levanta temprano',
+      );
+      store.describeHabit(
+        store.active,
+        why: 'para tener más energía durante el día',
+        floor: 'abrir el libro y leer una página',
+      );
+      store.setCadence(store.habit, 3);
+      for (final size in _pantallas) {
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+        final t = UiTheme(Palette.forMoment(13));
+        await tester.pumpWidget(
+          _marco(
+            size,
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: HabitsSheet(store: store, theme: t),
+            ),
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 250));
+        // La hoja rueda por dentro; lo que dice si sobra algo es cuánto le
+        // queda por rodar.
+        final hoja = tester
+            .state<ScrollableState>(find.byType(Scrollable).first)
+            .position;
+        expect(
+          hoja.maxScrollExtent,
+          lessThan(1),
+          reason:
+              'en $size la hoja se pasa de pantalla por '
+              '${hoja.maxScrollExtent.round()} píxeles',
+        );
+        expect(
+          tester.getRect(find.text('Eliminar este hábito')).bottom,
+          lessThan(size.height + 1),
+          reason: 'en $size no se llega al final de la hoja',
+        );
+        await tester.pumpWidget(const SizedBox());
+      }
+    });
+
+    /// El reloj de veinticuatro horas, plegado detrás de su propia frase.
+    ///
+    /// Es de donde salen la mitad de los píxeles que sobraban: el reloj más el
+    /// renglón del sitio son doscientos, y dicen lo mismo que la frase en
+    /// ámbar que iba debajo. La frase se queda y el reloj se abre al tocarla,
+    /// que es cuando hace falta.
+    testWidgets('el reloj del plan se abre al tocar la frase', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final store = Store();
+      await store.load();
+      store.renameHabit(store.active, name: 'Leer', symbol: store.habit.symbol);
+      store.pledgeHabit(store.active, hour: 22, place: 'en la cama');
+      const size = Size(390, 844);
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        _marco(
+          size,
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: HabitsSheet(
+              store: store,
+              theme: UiTheme(Palette.forMoment(13)),
+            ),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 250));
+      final frase = find.textContaining('Voy a leer', findRichText: true);
+      expect(frase, findsOneWidget, reason: 'la frase del plan no está');
+      expect(
+        find.byType(HourReel),
+        findsNothing,
+        reason: 'el reloj sale desplegado al abrir la hoja',
+      );
+      await tester.tap(frase);
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(
+        find.byType(HourReel),
+        findsOneWidget,
+        reason: 'tocar la frase no abre el reloj',
+      );
+      expect(find.text('EN QUÉ SITIO'), findsOneWidget);
+      // Y se vuelve a plegar, que es lo que hace un pliegue.
+      await tester.tap(find.textContaining('Voy a leer', findRichText: true));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byType(HourReel), findsNothing);
+    });
+
+    /// El párrafo de la comarca, sólo donde sirve.
+    ///
+    /// Al fundar se está eligiendo entre seis y lo que dice es en qué se
+    /// diferencian. Editando ya está elegida y no se puede cambiar: son ochenta
+    /// píxeles de párrafo que nadie lee dos veces. El sello y el nombre se
+    /// quedan en los dos sitios, porque dicen de qué pueblo es la hoja.
+    testWidgets('la comarca se describe al fundar y no al editar', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({});
+      final store = Store();
+      await store.load();
+      // Dos pueblos: con uno solo el tercer solar está cerrado y la hoja no
+      // entra en modo fundar aunque se le pida.
+      store.addHabit('Correr', 'carrera');
+      store.active = 0;
+      const size = Size(390, 844);
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final t = UiTheme(Palette.forMoment(13));
+      for (final fundando in [false, true]) {
+        await tester.pumpWidget(
+          _marco(
+            size,
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: HabitsSheet(store: store, theme: t, startNew: fundando),
+            ),
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 250));
+        final comarca = fundando
+            ? TownCharacter.forSlot(store.habits.length)
+            : store.habit.place;
+        expect(
+          find.text(comarca.region.toUpperCase()),
+          findsOneWidget,
+          reason: 'sin sello no se sabe de qué pueblo es la hoja',
+        );
+        expect(
+          find.text(comarca.blurb),
+          fundando ? findsOneWidget : findsNothing,
+          reason: fundando
+              ? 'al fundar hay que decir qué clase de pueblo es cada uno'
+              : 'editando, el párrafo de la comarca es relleno',
+        );
+        await tester.pumpWidget(const SizedBox());
       }
     });
     // El fallo que se vio en un teléfono de verdad: a mediodía los símbolos

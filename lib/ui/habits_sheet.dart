@@ -64,6 +64,12 @@ class _HabitsSheetState extends State<HabitsSheet> {
   /// one. Until then this sheet is a name and a mark.
   bool _picking = false;
 
+  /// Si el reloj del plan está abierto. Cerrado, el plan es su frase; abierto,
+  /// se le puede cambiar la hora y el sitio. Empieza cerrado siempre: se abre
+  /// la hoja a cambiar el nombre o a pausar el pueblo muchas más veces que a
+  /// mover la hora.
+  bool _tuning = false;
+
   /// Sixty-six marks is four screenfuls of grid on a phone, and a sheet that
   /// tall pushes its own name field off the top. Three rows that slide
   /// sideways instead: the common ones are already in front of you, and the
@@ -380,12 +386,21 @@ class _HabitsSheetState extends State<HabitsSheet> {
           _hair(velo, 26),
         ],
       ),
-      const SizedBox(height: 8),
-      Text(
-        ch.blurb,
-        textAlign: TextAlign.center,
-        style: t.bodySoft.copyWith(color: velo.suave, shadows: velo.aliento),
-      ),
+      // La descripción de la comarca, sólo al fundar.
+      //
+      // Es donde sirve: ahí se está eligiendo entre seis, y lo que dice es en
+      // qué se diferencian. Editando ya elegiste, no se puede cambiar, y son
+      // ochenta píxeles de párrafo que no se leen dos veces. Lo que queda es el
+      // filete con el sello y el nombre, que sí hace falta: dice de qué pueblo
+      // es la hoja que tenés abierta.
+      if (_creating) ...[
+        const SizedBox(height: 8),
+        Text(
+          ch.blurb,
+          textAlign: TextAlign.center,
+          style: t.bodySoft.copyWith(color: velo.suave, shadows: velo.aliento),
+        ),
+      ],
     ],
   );
 
@@ -397,21 +412,33 @@ class _HabitsSheetState extends State<HabitsSheet> {
     color: velo.cuerpo.withValues(alpha: 0.16),
   );
 
-  /// El plan: a qué hora y en qué sitio.
+  /// El plan entero en un sitio: cada cuánto, a qué hora y en qué sitio.
+  ///
+  /// Eran dos bloques con dos títulos —CADA CUÁNTO y EL PLAN— y son una sola
+  /// cosa: un plan es cada cuánto, cuándo y dónde. Separados costaban dos
+  /// títulos, dos aires y la sensación de estar bajando por un formulario con
+  /// secciones; juntos son dos renglones debajo de un título.
+  ///
+  /// Y van **plegados**. El reloj de veinticuatro horas más el renglón del
+  /// sitio ocupaban doscientos píxeles de hoja para decir lo mismo que ya dice
+  /// la frase de debajo, que es la que está escrita en ámbar porque es lo que
+  /// dijiste vos. Así que la frase se queda a la vista y el reloj se abre al
+  /// tocarla: lo que se lee todas las veces ocupa sitio, y lo que se cambia una
+  /// vez al año se abre cuando se va a cambiar.
   ///
   /// Va debajo de las líneas y no encima porque no es una de ellas: las tres de
   /// arriba se escriben una vez y se leen años después, y ésta se cambia. Un
   /// plan es de cuando se escribió, y el día en que la vida se mueve de sitio
   /// —otro trabajo, otro horario, un hijo— lo que hay que hacer con el viejo es
   /// cambiarlo, no cumplirlo.
-  ///
-  /// La frase armada va debajo del todo, y es la única cosa de esta hoja que
-  /// está escrita en ámbar: es lo que dijiste vos.
   Widget _thePlan(UiTheme t, SheetInk velo) {
+    final store = widget.store;
+    final h = store.habit;
     final nombre = _name.text.trim().isEmpty
-        ? (_creating ? '' : widget.store.habit.name)
+        ? (_creating ? '' : h.name)
         : _name.text;
     final frase = vowLine(nombre, _hour, _spot.text);
+    final dicho = h.perWeek;
     return Column(
       children: [
         Text(
@@ -423,99 +450,129 @@ class _HabitsSheetState extends State<HabitsSheet> {
             shadows: velo.aliento,
           ),
         ),
-        const SizedBox(height: 7),
-        HourReel(
-          hour: _hour,
-          onPick: (h) => setState(() {
-            // Volver a tocar la hora elegida la quita. Es la única manera de
-            // deshacer un plan con hora sin borrar el sitio, y es el gesto que
-            // uno hace solo: se toca lo que está encendido para apagarlo.
-            _hour = _hour == h ? null : h;
-            _keep();
-          }),
-          ink: velo.cuerpo.withValues(alpha: 0.82),
-          accent: t.accent,
-          plate: velo.tinte.withValues(alpha: 0.42),
-          edge: velo.cuerpo.withValues(alpha: 0.20),
-          shadows: velo.aliento,
-        ),
-        const SizedBox(height: 4),
-        _softLine(t, velo, _spot, 'EN QUÉ SITIO', 'en la cama'),
-        if (frase != null) ...[
-          const SizedBox(height: 10),
-          Text(
-            frase,
-            textAlign: TextAlign.center,
-            style: t.bodySoft.copyWith(
-              fontSize: 13.5,
-              height: 1.35,
-              color: t.accent,
-              shadows: velo.aliento,
-            ),
+        const SizedBox(height: 5),
+        // Cada cuánto va: una línea, y tocarla abre la misma hoja con la que lo
+        // preguntó el pueblo la primera semana.
+        //
+        // Sin decir, enseña lo que se ve en letra floja, que no es un campo
+        // vacío esperando a que lo llenes sino lo que el pueblo cree hasta que
+        // le digas otra cosa.
+        if (_hasCadence)
+          _tapLine(
+            t,
+            velo,
+            dicho == null
+                ? 'sin decir · ${cadenceSaid(perWeekOf(h))}, por lo que se ve'
+                : cadenceSaid(dicho),
+            dicho == null ? velo.suave : t.accent,
+            () {
+              Sensory.instance.tick();
+              showModalBottomSheet<void>(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (_) => CadenceSheet(
+                  habit: h,
+                  theme: t,
+                  first: false,
+                  onPick: (n) {
+                    store.setCadence(h, n);
+                    if (mounted) setState(() {});
+                  },
+                ),
+              );
+            },
           ),
-        ],
+        if (_hasPlan && frase != null)
+          // Abierto el reloj, la frase deja de llevar lápiz: el lápiz dice
+          // «esto se puede tocar», y lo que hay debajo ya lo está diciendo.
+          _tapLine(t, velo, frase, t.accent, () {
+            Sensory.instance.tick();
+            setState(() => _tuning = !_tuning);
+          }, pencil: !_tuning),
+        if (_hasPlan)
+          AnimatedSize(
+            duration: const Duration(milliseconds: 190),
+            curve: Curves.easeOutCubic,
+            alignment: Alignment.topCenter,
+            child: _tuning || frase == null
+                ? Column(
+                    children: [
+                      const SizedBox(height: 6),
+                      HourReel(
+                        hour: _hour,
+                        onPick: (h) => setState(() {
+                          // Volver a tocar la hora elegida la quita. Es la
+                          // única manera de deshacer un plan con hora sin
+                          // borrar el sitio, y es el gesto que uno hace solo:
+                          // se toca lo que está encendido para apagarlo.
+                          _hour = _hour == h ? null : h;
+                          _keep();
+                        }),
+                        ink: velo.cuerpo.withValues(alpha: 0.82),
+                        accent: t.accent,
+                        plate: velo.tinte.withValues(alpha: 0.42),
+                        edge: velo.cuerpo.withValues(alpha: 0.20),
+                        shadows: velo.aliento,
+                      ),
+                      const SizedBox(height: 4),
+                      _softLine(t, velo, _spot, 'EN QUÉ SITIO', 'en la cama'),
+                    ],
+                  )
+                : const SizedBox(width: double.infinity),
+          ),
       ],
     );
   }
 
-  /// Cada cuánto va: una línea, y tocarla abre la misma hoja con la que lo
-  /// preguntó el pueblo la primera semana.
+  /// Un renglón que se toca: el texto centrado y, detrás de la última palabra,
+  /// el mismo lápiz flojo que lleva la marca de la cabecera.
   ///
-  /// Sin decir, enseña lo que se ve en letra floja, que no es un campo vacío
-  /// esperando a que lo llenes sino lo que el pueblo cree hasta que le digas
-  /// otra cosa.
-  Widget _theCadence(UiTheme t, SheetInk velo) {
-    final store = widget.store;
-    final h = store.habit;
-    final dicho = h.perWeek;
-    return Column(
-      children: [
-        Text(
-          'CADA CUÁNTO',
-          style: t.label.copyWith(
-            fontSize: 9,
-            letterSpacing: 1.8,
-            color: velo.suave,
-            shadows: velo.aliento,
+  /// Hace falta por lo mismo que hacía falta allí. Un renglón de texto centrado
+  /// en medio de una hoja de lectura no parece un botón, y éstos lo son: uno
+  /// abre la hoja de la frecuencia y el otro despliega el reloj. Dentro del
+  /// mismo texto y no al lado, para que al partirse en dos líneas el lápiz
+  /// quede donde acaba la frase y no flotando a la derecha de un hueco.
+  Widget _tapLine(
+    UiTheme t,
+    SheetInk velo,
+    String texto,
+    Color color,
+    VoidCallback onTap, {
+    bool pencil = true,
+  }) {
+    final estilo = t.bodySoft.copyWith(
+      fontSize: 13,
+      height: 1.35,
+      color: color,
+      shadows: velo.aliento,
+    );
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Text.rich(
+          TextSpan(
+            text: texto,
+            style: estilo,
+            children: pencil
+                ? [
+                    const TextSpan(text: ' '),
+                    WidgetSpan(
+                      alignment: PlaceholderAlignment.middle,
+                      child: Icon(
+                        Icons.edit,
+                        size: 11,
+                        color: color.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ]
+                : null,
           ),
+          textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 3),
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () {
-            Sensory.instance.tick();
-            showModalBottomSheet<void>(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (_) => CadenceSheet(
-                habit: h,
-                theme: t,
-                first: false,
-                onPick: (n) {
-                  store.setCadence(h, n);
-                  if (mounted) setState(() {});
-                },
-              ),
-            );
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Text(
-              dicho == null
-                  ? 'sin decir · ${cadenceSaid(perWeekOf(h))}, por lo que se ve'
-                  : cadenceSaid(dicho),
-              textAlign: TextAlign.center,
-              style: t.bodySoft.copyWith(
-                fontSize: 13,
-                height: 1.35,
-                color: dicho == null ? velo.suave : t.accent,
-                shadows: velo.aliento,
-              ),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -886,10 +943,8 @@ class _HabitsSheetState extends State<HabitsSheet> {
                       const SizedBox(height: 12),
                       _hair(velo),
                       const SizedBox(height: 10),
+                      _thePlan(t, velo),
                     ],
-                    if (_hasCadence) _theCadence(t, velo),
-                    if (_hasCadence && _hasPlan) const SizedBox(height: 12),
-                    if (_hasPlan) _thePlan(t, velo),
                     const SizedBox(height: 12),
                     if (_creating) ...[
                       Text(
