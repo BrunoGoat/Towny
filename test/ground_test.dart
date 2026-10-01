@@ -23,6 +23,7 @@ Future<ByteData> frame({
   double pitch = 0.42,
   double distance = 30,
   Season season = Season.none,
+  int day = 0,
 }) async {
   final cam = OrbitCamera()
     ..yaw = yaw
@@ -40,6 +41,7 @@ Future<ByteData> frame({
     effects: EffectSystem(),
     labelledBricks: const {},
     budget: 22000,
+    day: day,
     towns: [
       TownEntry(
         // Y el pueblo, lejos. Lo que se mide aquí es el suelo desnudo, así
@@ -223,6 +225,62 @@ void main() {
             reason: 'la columna $x da escalones con el año en ${s.turn}',
           );
         }
+      }
+    });
+  });
+
+  group('las matas de la nieve', () {
+    const invierno = Season(0.09);
+
+    test('cambian de sitio y de forma cada día', () async {
+      // La nieve no se posa dos noches igual. La semilla lleva la fecha
+      // dentro, así que el reparto de mañana no es el de hoy — y eso es, de
+      // paso, lo que hace que un valle nevado no sea un fondo de pantalla.
+      final hoy = await frame(hour: 12, season: invierno, day: 20261001);
+      final manana = await frame(hour: 12, season: invierno, day: 20261002);
+      var dif = 0;
+      for (var y = from; y < to; y++) {
+        for (var x = left; x < right; x++) {
+          if (_at(hoy, x, y) != _at(manana, x, y)) dif++;
+        }
+      }
+      final total = (to - from) * (right - left);
+      expect(
+        dif,
+        greaterThan(total ~/ 8),
+        reason: 'de un día para otro sólo cambian $dif de $total píxeles',
+      );
+    });
+
+    test('y están por todo el valle, no sólo junto al pueblo', () async {
+      // Lo que se veía: las matas se apagaban a los veinte metros, así que de
+      // lejos el valle era una sábana blanca con un pegote de hierba alrededor
+      // del pueblo.
+      //
+      // Ahora la rejilla se hace el doble de gruesa cada vez que la cámara se
+      // aleja —y cada mata tapa lo que tapaban las cuatro que sustituye— así
+      // que el prado se ve igual de moteado se mire desde donde se mire. Lo
+      // que se mide es eso: desde lejos, hay hierba en el primer plano, en el
+      // medio y contra el horizonte.
+      final px = await frame(
+        hour: 12,
+        season: invierno,
+        day: 20261001,
+        distance: 60,
+        pitch: 0.3,
+      );
+      for (final banda in [260, 420, 700]) {
+        var mata = 0;
+        for (var y = banda; y < banda + 40; y++) {
+          for (var x = left; x < right; x++) {
+            if (_at(px, x, y) != _at(px, left, banda)) mata++;
+          }
+        }
+        expect(
+          mata,
+          greaterThan(300),
+          reason: 'a la altura de $banda el prado es una sábana: $mata',
+        );
       }
     });
   });

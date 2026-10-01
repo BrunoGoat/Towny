@@ -1229,6 +1229,7 @@ class _TownViewState extends State<TownView>
       skyNight: night,
       tonight: tonightIs,
       founding: _founding,
+      day: dayKey(DateTime.now()),
     );
 
     return Listener(

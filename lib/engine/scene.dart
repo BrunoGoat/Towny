@@ -154,6 +154,7 @@ class TownScene {
     this.tonight,
     this.skyNight = 0,
     this.founding = 1.0,
+    this.day = 0,
     this.folk = true,
     this.soloFolk,
     this.ghost = true,
@@ -237,6 +238,15 @@ class TownScene {
   /// falta para que además **se vean llegar**, en vez de estar ya ahí la
   /// primera vez que se mira.
   final double founding;
+
+  /// Qué día es hoy, como número —`20261001`— o cero si a nadie le importa.
+  ///
+  /// Lo mira una sola cosa: las matas de hierba que asoman entre la nieve, que
+  /// se reparten distinto cada día. Entra por aquí y no se lee del reloj
+  /// porque el pintor tiene que ser una función de lo que recibe: un
+  /// `DateTime.now()` dentro del dibujo convierte cualquier prueba de píxeles
+  /// en una lotería que un día falla sola.
+  final int day;
 
   /// La figura que hay en el cielo esta noche, si hay alguna. Muchas noches no
   /// hay ninguna, que es lo que hace que valga la pena mirar las que sí.

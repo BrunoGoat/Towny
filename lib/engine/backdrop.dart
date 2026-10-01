@@ -314,18 +314,25 @@ class Backdrop {
   /// **Por qué esto no es una textura.** Se probó a tapar el prado con manchas
   /// de hierba y salió mal de las dos maneras posibles: ancladas al mundo se
   /// veía la baldosa desde el valle, y creciendo con el ojo se movían al hacer
-  /// zoom. Esto no es un tapiz sino un puñado de claros sueltos. Están
-  /// clavados en el mundo, así que no nadan; se saltan más de la mitad de las
-  /// casillas y cada uno se corre casi media casilla de su sitio, así que no
-  /// hay retícula que ver; y se apagan a los veinte metros, que es lo que
-  /// impide que de lejos lleguen a ser una trama.
+  /// zoom. Aquí los claros están clavados en el mundo —así que no nadan— y lo
+  /// que cambia con la distancia no es dónde están sino **cuántos se
+  /// dibujan**: cada vez que la cámara se aleja lo suficiente, la rejilla se
+  /// hace el doble de gruesa, y las casillas de un nivel son exactamente un
+  /// subconjunto de las del anterior. Al cambiar de nivel ninguna mata se
+  /// mueve ni cambia de forma: unas cuantas dejan de dibujarse y ya. Eso es lo
+  /// que permite llegar hasta el fondo del valle sin que haya retícula que ver
+  /// ni mil ovalos por fotograma de cerca.
   ///
-  /// Y no son otro verde: son **el prado de debajo**, el mismo que se vería si
+  /// **Y cambian cada día.** La semilla lleva la fecha dentro, así que el
+  /// reparto de mañana no es el de hoy: la nieve no se posa dos noches igual.
+  ///
+  /// No son otro verde: son **el prado de debajo**, el mismo que se vería si
   /// no hubiera nevado, con el pardo que le toque al mes.
   void drawTufts(Canvas canvas, Projector p, Size size, double horizonY) {
     final pal = scene.palette;
     final nieve = pal.season.snow;
     if (nieve < 0.12) return;
+
     // De noche, a medio camino de la propia nieve. El verde de la hierba
     // nocturna es casi negro, y casi negro sobre un prado nevado no se lee
     // como un claro sino como un agujero: de día son matas y de noche eran
@@ -335,50 +342,100 @@ class Backdrop {
       meadowTone(pal),
       (1 - pal.daylight) * 0.6,
     )!;
-    const paso = 2.4, alcance = 22.0;
-    final i0 = ((p.eye.x - alcance) / paso).floor();
-    final i1 = ((p.eye.x + alcance) / paso).ceil();
-    final k0 = ((p.eye.z - alcance) / paso).floor();
-    final k1 = ((p.eye.z + alcance) / paso).ceil();
-    final pincel = Paint();
+    // Dos tonos y no uno. Un claro de hierba y otro de hierba más seca al
+    // lado es lo que hace que un campo pelado no parezca estampado.
+    final pardo = Color.lerp(verde, meadowTone(pal), 0.34)!;
+
+    // La rejilla fina, en metros, y cuántas casillas de ella mide la que se
+    // recorre a esta distancia.
+    const paso = 1.15;
+    // A qué profundidad cae el suelo que se está mirando, más o menos: la
+    // altura del ojo abierta por el ángulo con el que se mira el prado. No
+    // hace falta que sea exacto —decide un nivel de detalle, no un píxel— y
+    // tiene que salir de la cámara y no del encuadre, que cambia cada vez que
+    // alguien gira.
+    final hondo = math.max(6.0, p.eye.y.abs() * 2.6);
+    final alcance = (hondo * 2.6).clamp(26.0, 320.0);
+    // El nivel sale de **cuántas casillas se quieren recorrer**, y no de lo que
+    // mide una en pantalla.
+    //
+    // Es lo mismo visto del derecho —si cada mata tapa lo que mide su casilla,
+    // tantas casillas de lado a lado son tanto moteado— pero con una
+    // diferencia que importa: así el reparto no depende de la resolución. Con
+    // la cuenta en píxeles, el mismo valle salía con una rejilla cuatro veces
+    // más fina en un teléfono de mil puntos de ancho que en las láminas de
+    // cuatrocientos, y eran cincuenta mil casillas por fotograma —quince
+    // milisegundos de nada— para dibujar lo mismo.
+    const lado = 58.0;
+    final nivel = (math.log(math.max(2 * alcance / lado / paso, 1.0)) / math.ln2)
+        .round()
+        .clamp(0, 6);
+    final salto = 1 << nivel;
+
+    final i0 = ((p.eye.x - alcance) / (paso * salto)).floor();
+    final i1 = ((p.eye.x + alcance) / (paso * salto)).ceil();
+    final k0 = ((p.eye.z - alcance) / (paso * salto)).floor();
+    final k1 = ((p.eye.z + alcance) / (paso * salto)).ceil();
+
+    // Todo en dos caminos y no en mil llamadas de dibujo: son miles de ovalos
+    // y pintarlos de uno en uno cuesta más que todo el pueblo junto.
+    final mata = Path(), seca = Path();
+    final dia = scene.day;
     var puestas = 0;
-    for (var i = i0; i <= i1 && puestas < 260; i++) {
-      for (var k = k0; k <= k1 && puestas < 260; k++) {
-        if (hash01(i, k, 7) > 0.42) continue;
-        final x = i * paso + (hash01(i, k, 1) - 0.5) * paso * 0.86;
-        final z = k * paso + (hash01(i, k, 2) - 0.5) * paso * 0.86;
+    for (var i = i0; i <= i1 && puestas < 4000; i++) {
+      for (var k = k0; k <= k1 && puestas < 4000; k++) {
+        // En índices de la rejilla fina, que es lo que hace que al cambiar de
+        // nivel las que sobreviven sigan donde estaban.
+        final gi = i * salto, gk = k * salto;
+        if (hash01(gi, gk, 7, dia) > 0.52) continue;
+        final x = gi * paso + (hash01(gi, gk, 1, dia) - 0.5) * paso * 0.92;
+        final z = gk * paso + (hash01(gi, gk, 2, dia) - 0.5) * paso * 0.92;
         final at = p.project(V3(x, 0, z));
         if (at == null || at.y <= horizonY) continue;
-        if (at.x < -40 || at.y < -40 || at.x > size.width + 40) continue;
-        if (at.y > size.height + 40) continue;
-        // Se apagan con la distancia: de cerca son claros en la nieve, de
-        // lejos serían una trama.
-        final lejos = ((at.depth - 7) / 15).clamp(0.0, 1.0);
-        final fuerza = (1 - lejos) * nieve;
-        if (fuerza < 0.03) continue;
-        final ancho = p.focal / at.depth * 0.55 * (0.7 + hash01(i, k, 3) * 0.7);
-        if (ancho < 1.2) continue;
-        pincel.color = verde.withValues(alpha: fuerza * 0.92);
-        // Tres manchas montadas y no una, cada una un poco corrida y de otro
-        // tamaño: el borde de un claro de nieve no es una elipse, y una
-        // elipse sola se lee como una moneda tirada en el suelo. Vistas de
-        // canto, además, son óvalos tumbados.
-        for (var b = 0; b < 3; b++) {
-          final w = ancho * (b == 0 ? 1.0 : 0.45 + hash01(i, k, 30 + b) * 0.45);
-          final dx = b == 0 ? 0.0 : (hash01(i, k, 40 + b) - 0.5) * ancho * 1.1;
-          final dz = b == 0 ? 0.0 : (hash01(i, k, 50 + b) - 0.5) * ancho * 0.45;
-          canvas.drawOval(
+        if (at.x < -60 || at.y < -60 || at.x > size.width + 60) continue;
+        if (at.y > size.height + 60) continue;
+        // Y de lo que mide su casilla: una mata de un nivel grueso está en
+        // lugar de las cuatro que habría en el nivel de debajo, así que tiene
+        // que tapar lo que tapaban las cuatro. Sin esto el valle de lejos
+        // salía despoblado —la misma mata de un metro vista a cien, o sea tres
+        // píxeles cada treinta— y lo que se busca es que el prado se vea
+        // igual de moteado se mire desde donde se mire.
+        final ancho = p.focal /
+            at.depth *
+            0.62 *
+            salto *
+            (0.55 + hash01(gi, gk, 3, dia) * 1.1);
+        // Lo que no llega a dos píxeles no es una mata: es suciedad.
+        if (ancho < 2) continue;
+        final donde = hash01(gi, gk, 4, dia) < 0.42 ? seca : mata;
+        // Entre dos y cinco manchas montadas, cada una de otro tamaño y
+        // corrida de su sitio. Una sola elipse se lee como una moneda tirada
+        // en el suelo, y tres siempre iguales se leen como un sello.
+        final cuantas = 2 + (hash01(gi, gk, 5, dia) * 3.99).floor();
+        for (var b = 0; b < cuantas; b++) {
+          final w = ancho *
+              (b == 0 ? 1.0 : 0.35 + hash01(gi, gk, 30 + b, dia) * 0.6);
+          final dx =
+              b == 0 ? 0.0 : (hash01(gi, gk, 40 + b, dia) - 0.5) * ancho * 1.2;
+          final dz =
+              b == 0 ? 0.0 : (hash01(gi, gk, 50 + b, dia) - 0.5) * ancho * 0.5;
+          // Vista de canto, una mancha en el suelo es un óvalo tumbado, y no
+          // todas igual de tumbadas.
+          final k2 = 0.30 + hash01(gi, gk, 60 + b, dia) * 0.26;
+          donde.addOval(
             Rect.fromCenter(
               center: Offset(at.x + dx, at.y + dz),
               width: w,
-              height: w * 0.42,
+              height: w * k2,
             ),
-            pincel,
           );
         }
         puestas++;
       }
     }
+    if (puestas == 0) return;
+    canvas.drawPath(mata, Paint()..color = verde.withValues(alpha: nieve));
+    canvas.drawPath(seca, Paint()..color = pardo.withValues(alpha: nieve));
   }
 
   void drawRanges(Canvas canvas, Projector p, Size size, double horizonY) {
