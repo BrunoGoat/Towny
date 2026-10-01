@@ -26,6 +26,7 @@ from PIL import Image
 ORIGEN = 'tool/icon/towny.png'
 RES = 'android/app/src/main/res'
 WEB = 'web'
+IOS = 'ios/Runner/Assets.xcassets/AppIcon.appiconset'
 
 # Cuánto del lado ocupa la casa en cada sitio. En la capa adaptativa tiene que
 # caber en los 72dp centrales de 108 —el 66%— y se le deja algo de aire; el
@@ -147,3 +148,25 @@ if __name__ == '__main__':
     coloca(con_sombra, 64, DENTRO_LEGADO, campo).convert('RGB').save(
         f'{WEB}/favicon.png')
     print('iconos de la web escritos')
+
+    # Y el iPhone. Los nombres y las medidas son los que pide el catálogo que
+    # genera Flutter; se leen de ahí para no tener dos listas que se
+    # desincronicen.
+    #
+    # Sin canal alfa y con el campo detrás, que es lo que iOS exige: un icono
+    # con transparencia sale rechazado, y además la máscara la pone el sistema
+    # —el redondeo del cuadrado es suyo— así que el dibujo va centrado y con
+    # aire, igual que en el icono de siempre de Android.
+    import json
+    catalogo = f'{IOS}/Contents.json'
+    with open(catalogo) as f:
+        pedidos = json.load(f)['images']
+    for img in pedidos:
+        nombre = img.get('filename')
+        if not nombre:
+            continue
+        lado, _, _ = img['size'].partition('x')
+        px = round(float(lado) * float(img['scale'].rstrip('x')))
+        coloca(con_sombra, px, DENTRO_LEGADO, campo).convert('RGB').save(
+            f'{IOS}/{nombre}')
+    print(f'{len(pedidos)} iconos del iPhone escritos')
