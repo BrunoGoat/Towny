@@ -593,7 +593,7 @@ void main() {
 
   group('tocarlos con el dedo', () {
     /// El encuadre que deja la app sola al abrir un pueblo. Ver `_frameTown`.
-    TouchMap _blancos(TownLayout layout, {double yaw = 0.62}) {
+    TouchMap blancos(TownLayout layout, {double yaw = 0.62}) {
       final cam = OrbitCamera()
         ..yaw = yaw
         ..pitch = 0.46
@@ -651,7 +651,7 @@ void main() {
       var mirados = 0;
       for (final c in TownCharacter.all) {
         final layout = TownLayout(40, c, seed: 7);
-        final hits = _blancos(layout);
+        final hits = blancos(layout);
         for (final (quien, r) in [
           for (final b in hits.boards) ('el tablón', b.rect),
           for (final a in hits.lecterns) ('el atril', a.rect),
@@ -679,7 +679,7 @@ void main() {
     test('desde cualquier ángulo, y sin comerse uno al otro', () {
       final layout = TownLayout(40, TownCharacter.all.first, seed: 7);
       for (var yaw = 0.0; yaw < 6.28; yaw += 0.3) {
-        final hits = _blancos(layout, yaw: yaw);
+        final hits = blancos(layout, yaw: yaw);
         // Fuera de cuadro no hay blanco, y eso está bien: lo que no se ve no
         // se toca. Lo que se exige es de los que sí están.
         for (final b in hits.boards) {
