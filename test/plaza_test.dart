@@ -590,4 +590,159 @@ void main() {
       },
     );
   });
+
+  group('tocarlos con el dedo', () {
+    /// El encuadre que deja la app sola al abrir un pueblo. Ver `_frameTown`.
+    TouchMap _blancos(TownLayout layout, {double yaw = 0.62}) {
+      final cam = OrbitCamera()
+        ..yaw = yaw
+        ..pitch = 0.46
+        ..distance = (layout.radius * 1.9).clamp(9.0, 60.0)
+        ..travel = layout.cx
+        ..focusZ = layout.cz
+        ..focusY = 1.4
+        ..wallLength = layout.radius * 2;
+      final hits = TouchMap();
+      final rec = ui.PictureRecorder();
+      TownPainter(
+        TownScene(
+          placed: 40,
+          palette: Palette.forMoment(11),
+          camera: cam,
+          time: 3,
+          hourOfDay: 11,
+          effects: EffectSystem(),
+          labelledBricks: const {},
+          budget: 40000,
+          towns: [
+            TownEntry(
+              layout: layout,
+              name: 'Pueblo',
+              symbol: 'rueda',
+              placed: 40,
+            ),
+          ],
+          active: 0,
+          labels: false,
+          folk: false,
+          ghost: false,
+        ),
+        hits,
+      ).paint(Canvas(rec), const Size(390, 844));
+      rec.endRecording().dispose();
+      return hits;
+    }
+
+    /// Lo que no se había pensado, y se notaba usando la app: con el encuadre
+    /// de siempre **el tablón se ve de canto**.
+    ///
+    /// La plancha mira a la fuente, o sea al sudeste; la cámara se planta en
+    /// `yaw = 0.62`, que es por donde se entra a un pueblo. Entre las dos cosas
+    /// hay cien grados. Medido en un pueblo de cuarenta piezas: la plancha
+    /// ocupa **tres píxeles de ancho** por veintiuno de alto, y el atril, que
+    /// está echado, doce por dos. El blanco salía de ahí, así que era un pelo
+    /// vertical en medio de una plaza y lo que le llegaba al dedo era la casa
+    /// de detrás.
+    ///
+    /// De canto una tabla mide lo que mide, así que esto no se arregla
+    /// midiendo mejor: el blanco de un dedo y la silueta de una cosa no son la
+    /// misma cosa.
+    test('aunque se vean de canto, se pueden tocar', () {
+      var mirados = 0;
+      for (final c in TownCharacter.all) {
+        final layout = TownLayout(40, c, seed: 7);
+        final hits = _blancos(layout);
+        for (final (quien, r) in [
+          for (final b in hits.boards) ('el tablón', b.rect),
+          for (final a in hits.lecterns) ('el atril', a.rect),
+        ]) {
+          mirados++;
+          expect(
+            r.width,
+            greaterThan(43.9),
+            reason: '${c.region}: $quien mide ${r.width.round()} de ancho',
+          );
+          expect(
+            r.height,
+            greaterThan(43.9),
+            reason: '${c.region}: $quien mide ${r.height.round()} de alto',
+          );
+        }
+      }
+      // Que no se esté midiendo el vacío: con seis comarcas y dos muebles son
+      // doce, y de cuadro se sale alguno.
+      expect(mirados, greaterThan(8), reason: 'sólo se miraron $mirados');
+    });
+
+    /// Y desde cualquier lado, que es lo que uno hace: dar la vuelta al pueblo
+    /// mirando cosas y tocar la que le interesa desde donde esté.
+    test('desde cualquier ángulo, y sin comerse uno al otro', () {
+      final layout = TownLayout(40, TownCharacter.all.first, seed: 7);
+      for (var yaw = 0.0; yaw < 6.28; yaw += 0.3) {
+        final hits = _blancos(layout, yaw: yaw);
+        // Fuera de cuadro no hay blanco, y eso está bien: lo que no se ve no
+        // se toca. Lo que se exige es de los que sí están.
+        for (final b in hits.boards) {
+          expect(b.rect.width, greaterThan(43.9), reason: 'yaw $yaw');
+          expect(b.rect.height, greaterThan(43.9), reason: 'yaw $yaw');
+        }
+        for (final a in hits.lecterns) {
+          expect(a.rect.width, greaterThan(43.9), reason: 'yaw $yaw');
+          expect(a.rect.height, greaterThan(43.9), reason: 'yaw $yaw');
+        }
+        // El tablón se mira antes que el atril, así que si uno tapara al otro
+        // el atril no se podría abrir nunca desde ese lado.
+        if (hits.boards.isNotEmpty && hits.lecterns.isNotEmpty) {
+          final b = hits.boards.single.rect, a = hits.lecterns.single.rect;
+          expect(
+            b.contains(a.center),
+            isFalse,
+            reason: 'desde yaw $yaw el tablón se come al atril',
+          );
+        }
+      }
+    });
+
+    /// Y un pueblo visto desde el otro lado del valle no reparte blancos de
+    /// cuarenta y cuatro píxeles: ahí el pueblo entero mide eso.
+    test('de lejos no hay nada que tocar', () {
+      final layout = TownLayout(40, TownCharacter.all.first, seed: 7);
+      final cam = OrbitCamera()
+        ..yaw = 0.62
+        ..pitch = 0.9
+        ..distance = 320
+        ..focusY = 1.4
+        ..wallLength = layout.radius * 2;
+      final hits = TouchMap();
+      final rec = ui.PictureRecorder();
+      TownPainter(
+        TownScene(
+          placed: 40,
+          palette: Palette.forMoment(11),
+          camera: cam,
+          time: 3,
+          hourOfDay: 11,
+          effects: EffectSystem(),
+          labelledBricks: const {},
+          budget: 40000,
+          towns: [
+            TownEntry(
+              layout: layout,
+              name: 'Pueblo',
+              symbol: 'rueda',
+              placed: 40,
+            ),
+          ],
+          active: 0,
+          labels: false,
+          folk: false,
+          ghost: false,
+        ),
+        hits,
+      ).paint(Canvas(rec), const Size(390, 844));
+      rec.endRecording().dispose();
+      expect(hits.boards, isEmpty);
+      expect(hits.lecterns, isEmpty);
+    });
+  });
 }

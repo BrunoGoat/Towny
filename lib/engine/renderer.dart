@@ -676,6 +676,26 @@ class TownPainter extends CustomPainter {
   /// encuadre no hay blanco, y más pequeño que la yema de un dedo tampoco:
   /// nadie apuntaba a algo de ocho píxeles, y de canto un tablero no tiene
   /// ancho ninguno.
+  ///
+  /// **Y nunca más chico que un dedo**, que es lo que no se había pensado.
+  ///
+  /// La plancha del tablón mira a la fuente, o sea al sudeste; la cámara se
+  /// planta en `yaw = 0.62`, que es por donde se entra a un pueblo. Entre las
+  /// dos cosas hay cien grados: con el encuadre de siempre —el que te deja la
+  /// app sola, sin que toques nada— **el tablón se ve de canto**. Medido en un
+  /// pueblo de cuarenta piezas: la plancha ocupa tres píxeles de ancho por
+  /// veintiuno de alto. El atril, que está echado, doce por dos.
+  ///
+  /// Así que el blanco era un pelo vertical en medio de una plaza, y apuntarle
+  /// con un pulgar no es que fuera difícil: no era posible. Lo que llegaba al
+  /// dedo era la casa de detrás, o el suelo.
+  ///
+  /// No se arregla midiendo mejor —de canto una tabla mide lo que mide— sino
+  /// admitiendo que el blanco de un dedo y la silueta de una cosa no son la
+  /// misma cosa. Cuarenta y cuatro píxeles de lado como mínimo, centrados en
+  /// lo que se ve. Alrededor del tablón hay plaza vacía, y tocar la plaza no
+  /// hace nada, así que lo que se come el blanco es sitio que no valía nada —
+  /// y cerca del tablón, lo que uno quería era el tablón.
   Rect? _screenBox(Projector p, Size size, List<V3> face) {
     var x0 = double.infinity, y0 = double.infinity;
     var x1 = -double.infinity, y1 = -double.infinity;
@@ -687,9 +707,31 @@ class TownPainter extends CustomPainter {
       if (at.y < y0) y0 = at.y;
       if (at.y > y1) y1 = at.y;
     }
+    // El mínimo se mide sobre lo que de verdad ocupa, antes de agrandarlo:
+    // así un tablón que desde el otro lado del valle es una mota sigue sin
+    // tener blanco, en vez de ganar uno de cuarenta y cuatro píxeles en medio
+    // de un pueblo que se ve entero del tamaño de un pulgar.
     if (x1 - x0 < 12 && y1 - y0 < 12) return null;
     if (x1 < 0 || x0 > size.width || y1 < 0 || y0 > size.height) return null;
-    return Rect.fromLTRB(x0, y0, x1, y1).inflate(9);
+    return _forFinger(Rect.fromLTRB(x0, y0, x1, y1).inflate(9));
+  }
+
+  /// Lo que mide de lado, como poco, algo a lo que se apunta con el dedo.
+  ///
+  /// Cuarenta y cuatro, que es el mínimo que pide Apple y está cerca del de
+  /// Material. No es un número de diseño gráfico: es el ancho de la yema de un
+  /// pulgar, y por debajo de eso lo que se toca no lo decide quien toca.
+  static const double _finger = 44;
+
+  /// El mismo rectángulo, crecido hasta donde lo pueda encontrar un pulgar.
+  ///
+  /// Centrado, porque lo que se vio sigue estando en el medio: lo que crece es
+  /// el margen de error, no la mentira sobre dónde está la cosa.
+  static Rect _forFinger(Rect r) {
+    final dx = math.max(0.0, (_finger - r.width) / 2);
+    final dy = math.max(0.0, (_finger - r.height) / 2);
+    if (dx == 0 && dy == 0) return r;
+    return Rect.fromLTRB(r.left - dx, r.top - dy, r.right + dx, r.bottom + dy);
   }
 
   void _drawTownSigns(Canvas canvas, Projector p, Size size) {
