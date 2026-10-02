@@ -14,6 +14,7 @@ import 'package:la_muralla/model/notice.dart';
 import 'package:la_muralla/model/store.dart';
 import 'package:la_muralla/ui/notice_board.dart';
 import 'package:la_muralla/ui/style.dart';
+import 'package:la_muralla/ui/town_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Unas cuantas notas del pueblo, que son las que se llaman por lo que dicen.
@@ -317,25 +318,136 @@ void main() {
 
     setUp(forgetTowns);
 
-    test('mover un papel avisa, que es lo que hace que el pueblo mire', () async {
-      // El eslabón que faltaba: el pueblo no se entera solo de que un papel
-      // cambió de hueco —su plano está hecho— así que la tabla avisa y la
-      // vista del valle vuelve a armar el suyo. Sin esto, todo lo de abajo
-      // está bien y en la pantalla no se mueve nada.
-      final tabla = await _tabla();
-      final said = _said(3);
+    test(
+      'mover un papel avisa, que es lo que hace que el pueblo mire',
+      () async {
+        // El eslabón que faltaba: el pueblo no se entera solo de que un papel
+        // cambió de hueco —su plano está hecho— así que la tabla avisa y la
+        // vista del valle vuelve a armar el suyo. Sin esto, todo lo de abajo
+        // está bien y en la pantalla no se mueve nada.
+        final tabla = await _tabla();
+        final said = _said(3);
+        final ids = [for (final n in said) noticeId(n)];
+        tabla.assign('p', said, slots: 10);
+        var avisos = 0;
+        void contar() => avisos++;
+        tabla.addListener(contar);
+        final suyo = tabla.slotOf('p', ids[0])!;
+        tabla.place('p', ids, 0, (suyo + 1) % 10);
+        expect(avisos, 1);
+        // Y soltarlo donde ya estaba no avisa de nada.
+        tabla.place('p', ids, 0, tabla.slotOf('p', ids[0])!);
+        expect(avisos, 1);
+        tabla.removeListener(contar);
+      },
+    );
+
+    /// El fallo de verdad, que las pruebas de arriba no cazaban.
+    ///
+    /// Todas ellas hacían un plano nuevo por cada reparto de papeles, y así
+    /// `renotice` ve dos listas distintas y hace su trabajo. La app no hace
+    /// eso: guarda **un** plano por hábito y por cuenta de piezas, y mover un
+    /// papel no cambia ninguna de las dos cosas, así que lo que volvía era el
+    /// mismo plano con los huecos de antes y no había nada que comparar. Se
+    /// veía al cerrar y abrir la app —ahí el plano se hace de cero— y no
+    /// antes.
+    /// Y lo mismo, pero por donde pasa de verdad: desde la vista del valle.
+    ///
+    /// Esto es lo que faltaba. Todo lo demás estaba probado y en verde —la
+    /// tabla avisa, las calcomanías se vuelven a estampar, el pueblo no se
+    /// rehace— y en el teléfono el papel seguía donde estaba hasta cerrar y
+    /// abrir la app. El eslabón roto estaba en medio y no se veía desde
+    /// ninguno de los dos lados: el aviso llegaba, la vista pedía su plano, y
+    /// el plano que volvía era el de antes porque está guardado por hábito y
+    /// por piezas, que es lo que mover un papel no cambia.
+    testWidgets('mover un papel llega hasta el plano del pueblo', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({});
+      await Appearance.instance.setSoundOff(true);
+      await Appearance.instance.setMusicOff(true);
+      BoardSlots.instance.forget();
+      await BoardSlots.instance.load();
+      final store = Store();
+      await store.load();
+
+      final mando = TownViewController();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TownView(
+              store: store,
+              controller: mando,
+              onTownLandmark: (_, _) {},
+              onPlaced: (_) {},
+              onStoneTapped: (_) {},
+              onNothingTapped: () {},
+              onCameraMoved: () {},
+              onFlewOut: () {},
+              onSkyTapped: (_) {},
+              onTownTapped: (_) {},
+              onBoardTapped: (_) {},
+              onLecternTapped: (_) {},
+              onWhisper: (_, {duration = Duration.zero}) {},
+              onPaletteChanged: (_) {},
+            ),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 40));
+
+      final h = store.habit;
+      final said = boardNotices(h, valley: store.habits);
+      expect(said, isNotEmpty, reason: 'este pueblo no tiene nada que decir');
       final ids = [for (final n in said) noticeId(n)];
-      tabla.assign('p', said, slots: 10);
-      var avisos = 0;
-      void contar() => avisos++;
-      tabla.addListener(contar);
-      final suyo = tabla.slotOf('p', ids[0])!;
-      tabla.place('p', ids, 0, (suyo + 1) % 10);
-      expect(avisos, 1);
-      // Y soltarlo donde ya estaba no avisa de nada.
-      tabla.place('p', ids, 0, tabla.slotOf('p', ids[0])!);
-      expect(avisos, 1);
-      tabla.removeListener(contar);
+      final antes = [...mando.notices];
+      expect(antes, isNotEmpty, reason: 'la vista no tiene plano');
+
+      // Un hueco que no ocupa nadie, y el primer papel se va a él.
+      final libre = [
+        for (var k = 0; k < BoardPlan.capacity; k++)
+          if (!antes.contains(k)) k,
+      ].first;
+      BoardSlots.instance.place(h.id, ids, 0, libre);
+      // La tabla se guarda sola trescientos milisegundos después; aquí se
+      // escribe ya, que es lo que apaga ese reloj antes de que acabe el test.
+      await BoardSlots.instance.flush();
+      await tester.pump(const Duration(milliseconds: 40));
+
+      expect(
+        mando.notices,
+        isNot(antes),
+        reason: 'el papel se movió en la tabla y el plano no se enteró',
+      );
+      expect(
+        mando.notices.first,
+        libre,
+        reason: 'el plano no lo puso en el hueco al que fue',
+      );
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 1));
+    });
+
+    test('el mismo plano con otros huecos mueve los papeles', () {
+      final plano = conPapeles(const [0, 3, 6]);
+      final town = builtTown(plano, 40);
+      List<double> dondeEstan() => [
+        for (final f in town.board)
+          for (final d in f.decals ?? const <Facet>[]) d.v.first.y,
+      ];
+      final antes = dondeEstan();
+      expect(antes, isNotEmpty);
+
+      // Lo que hace la vista cuando la tabla avisa: cambiarle los huecos al
+      // plano que ya tiene, sin volver a hacerlo.
+      plano.notices = const [1, 3, 6];
+      final luego = builtTown(plano, 40);
+      expect(identical(luego, town), isTrue, reason: 'se rehízo el pueblo');
+      expect(
+        dondeEstan(),
+        isNot(antes),
+        reason: 'el plano guardado se quedó con los papeles de antes',
+      );
     });
 
     test('mover un papel no vuelve a levantar el pueblo', () {

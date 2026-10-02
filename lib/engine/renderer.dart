@@ -205,7 +205,14 @@ class TownPainter extends CustomPainter {
         final e = scene.towns[i];
         final take = math.min(e.placed, e.layout.pieces.length);
         if (take > 0) {
-          _folkNow[i] = _folkOut(p, e, scene.palette, take, size);
+          _folkNow[i] = _folkOut(
+            p,
+            e,
+            scene.palette,
+            take,
+            size,
+            mine: i == scene.active,
+          );
         }
       }
     }
@@ -1191,14 +1198,30 @@ class TownPainter extends CustomPainter {
     TownEntry e,
     Palette pal,
     int take,
-    Size size,
-  ) {
+    Size size, {
+    bool mine = false,
+  }) {
     if (!scene.folk) return const [];
     final dentro = folkHome(pal.daylight);
     if (dentro > 0.985) return const [];
     final talla = folkHeight(e.layout.character);
     final out = <_Walker>[];
     for (final who in folkOf(e.layout, take)) {
+      // Quien acaba de nacer todavía no ha salido de casa.
+      //
+      // La casa cuenta como terminada en cuanto su última pieza entra en la
+      // cuenta, y la cuenta sube al soltar la pieza, no al posarla: sin esto,
+      // el vecino aparecía en medio del pueblo mientras el tejado seguía en el
+      // aire. Se le apunta la hora a la que le toca salir —tres segundos
+      // después de que la pieza se pose, que es justo después del confeti— y
+      // desde entonces su ronda cuenta desde ahí, así que el segundo en que
+      // aparece está en su propia puerta. Ver [Townsfolk.debut].
+      if (mine && who.home == scene.newborn && who.debut == null) {
+        who.debut =
+            scene.time + math.max(0.0, Townsfolk.settleIn - scene.newbornAge);
+      }
+      final nace = who.debut;
+      if (nace != null && scene.time < nace) continue;
       // Descartar **antes** de calcular dónde anda.
       //
       // Saber dónde está uno cuesta recorrerle la ronda, y las dos pruebas de

@@ -89,6 +89,29 @@ class Townsfolk {
   /// expositor y en los tests, que no tienen un hábito detrás.
   final DateTime? born;
 
+  /// Lo que tarda en salir por su puerta un vecino que acaba de nacer.
+  ///
+  /// La casa se remata, la última pieza cae, y hasta ahora el vecino estaba en
+  /// la calle **antes de que la pieza tocara el suelo**: la casa cuenta como
+  /// terminada en cuanto la pieza entra en la cuenta, y la cuenta sube al
+  /// soltarla, no al posarla. Lo que se veía era una persona apareciendo de la
+  /// nada en medio del pueblo mientras el tejado todavía estaba en el aire.
+  ///
+  /// Tres segundos desde que la pieza se posa, que es justo después del
+  /// confeti: primero se ve terminarse la casa, y entonces sale quien vive en
+  /// ella.
+  static const double settleIn = 3.0;
+
+  /// En qué segundo del reloj de la escena salió por su puerta por primera
+  /// vez. Nulo para quien ya vivía aquí cuando se abrió la app.
+  ///
+  /// Hace dos cosas, y la segunda es la que importa. Mientras no llega, no se
+  /// le dibuja. Y a partir de ahí **su ronda cuenta desde aquí**, así que el
+  /// segundo en que aparece está en su propia puerta y lo primero que hace es
+  /// salir de ella — en vez de materializarse a medio camino de la plaza, que
+  /// es donde le pillaba el reloj común.
+  double? debut;
+
   /// Lo que hace en cada parada de su ronda. Nulo en los quiebros del camino,
   /// que no son sitios a los que se va.
   final List<Doing?> _act;
@@ -198,7 +221,13 @@ class Townsfolk {
   /// ronda da la vuelta sola, así que esto vale para cualquier [t] por grande
   /// que sea.
   FolkAt at(double t) {
-    final u = (t + hash01(seed, 7) * period) % period;
+    // Quien ya vivía aquí arranca en un punto cualquiera de su ronda —es lo
+    // que hace que no salgan todos a la vez— y quien acaba de nacer arranca en
+    // su puerta, que es por donde se sale de casa la primera vez. Ver [debut].
+    final nace = debut;
+    final u = nace == null
+        ? (t + hash01(seed, 7) * period) % period
+        : (t - nace) % period;
     var acc = 0.0;
     var walked = hash01(seed, 8) * 40; // para que no pisen todos a la vez
     final n = _stops.length;

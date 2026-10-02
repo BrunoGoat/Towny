@@ -9,6 +9,7 @@ import '../core/rng.dart';
 import '../data/constellations.dart';
 import '../data/landmarks.dart';
 import '../engine/camera.dart';
+import '../engine/folk.dart';
 import '../engine/palette.dart';
 import '../engine/renderer.dart';
 import '../engine/scene.dart';
@@ -63,6 +64,17 @@ class TownViewController {
   /// How wide the town in front of you reaches, for framing.
   double get townRadius => _state?._town.radius ?? 8;
   Palette? get palette => _state?._palette;
+
+  /// En qué huecos del tablón de la plaza hay papel, según el plano que la
+  /// vista tiene ahora mismo en la mano.
+  ///
+  /// Está para poder exigir en un test lo que no se ve desde fuera: que mover
+  /// un papel llegue de verdad hasta el plano del pueblo. Todo lo de debajo
+  /// —el aviso de la tabla, las calcomanías de la plancha— estaba bien y
+  /// probado, y en la pantalla no se movía nada, porque el plano se guarda por
+  /// hábito y por piezas y lo que volvía era el de antes.
+  @visibleForTesting
+  List<int> get notices => _state?._town.notices ?? const [];
 }
 
 /// El encargo de un pueblo: lo que hace falta para levantarlo, y nada más.
@@ -199,6 +211,14 @@ class _TownViewState extends State<TownView>
   int? _finished;
   double _finishedAge = 99;
 
+  /// La casa que acaba de rematarse y el vecino que todavía no ha salido de
+  /// ella, con los segundos que lleva en pie.
+  ///
+  /// Aparte de [_finished] porque no duran lo mismo: la fiesta se apaga a los
+  /// dos segundos y medio y el vecino sale a los tres. Ver [Townsfolk.debut].
+  int? _newborn;
+  double _newbornAge = 99;
+
   /// A landmark being shown off: the camera turns slowly around it.
   int? _showcase;
   double _showcaseAge = 0;
@@ -262,7 +282,7 @@ class _TownViewState extends State<TownView>
     // Y al tablón, que es lo único que cambia cómo se ve el pueblo sin que se
     // ponga una pieza: mover un papel de hueco tiene que verse también en la
     // plancha de la plaza, que es la misma plancha.
-    BoardSlots.instance.addListener(_rebuildLayout);
+    BoardSlots.instance.addListener(_renotice);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.onPaletteChanged(_palette);
     });
@@ -395,7 +415,7 @@ class _TownViewState extends State<TownView>
   @override
   void dispose() {
     widget.store.removeListener(_onStoreChanged);
-    BoardSlots.instance.removeListener(_rebuildLayout);
+    BoardSlots.instance.removeListener(_renotice);
     widget.controller._state = null;
     _ticker.dispose();
     super.dispose();
@@ -405,6 +425,34 @@ class _TownViewState extends State<TownView>
     final store = widget.store;
     if (store.shownTotal != _layoutFor || store.habit.slot != _slotFor) {
       _rebuildLayout();
+    }
+  }
+
+  /// Alguien movió un papel del tablón: vuelve a mirar en qué hueco quedó.
+  ///
+  /// **Sólo eso.** No se rehace el plano ni se vuelve a levantar el pueblo:
+  /// mover un papel no mueve un vértice. Lo que cambia es la lista de huecos
+  /// del plano, y con ella las calcomanías que `renotice` estampa sobre la
+  /// plancha de la plaza en el fotograma siguiente.
+  ///
+  /// Esto antes llamaba a [_rebuildLayout], y por eso no funcionaba: el plano
+  /// se guarda por hábito y por cuenta de piezas, mover un papel no cambia
+  /// ninguna de las dos, y lo que volvía era el mismo plano con los huecos de
+  /// antes. El pueblo se enteraba al cerrar y abrir la app y no antes.
+  void _renotice() {
+    final store = widget.store;
+    for (final h in store.habits) {
+      final huecos = BoardSlots.instance.assign(
+        h.id,
+        boardNotices(h, valley: store.habits),
+        slots: NoticeBoard.capacity,
+      );
+      // El plano de este hábito, sea cual sea la cuenta de piezas con la que
+      // esté guardado — que durante una caída no es la misma que la del
+      // almacén. [_layoutOf] deja uno solo por hábito, así que esto toca uno.
+      for (final e in _valley.entries) {
+        if (e.key.startsWith('${h.id}:')) e.value.notices = huecos;
+      }
     }
   }
 
@@ -432,6 +480,7 @@ class _TownViewState extends State<TownView>
       _fx.clear();
       _placement = null;
       _finished = null;
+      _newborn = null;
       _showcase = null;
     }
   }
@@ -506,6 +555,12 @@ class _TownViewState extends State<TownView>
     if (_finished != null) {
       _finishedAge += dt;
       if (_finishedAge > 2.6) _finished = null;
+    }
+    if (_newborn != null) {
+      _newbornAge += dt;
+      // Un poco más de lo que tarda en salir: para cuando se apaga, el vecino
+      // ya tiene apuntada su hora y no hace falta seguir diciéndolo.
+      if (_newbornAge > Townsfolk.settleIn + 1.0) _newborn = null;
     }
     _turnAround(dt);
 
@@ -762,6 +817,13 @@ class _TownViewState extends State<TownView>
     if (done) {
       _finished = building.index;
       _finishedAge = 0;
+      // Y en una casa —no en un hito, que no es de nadie— acaba de nacer
+      // alguien. Se cuenta desde aquí, que es cuando la pieza se posa y no
+      // cuando se soltó.
+      if (!building.isLandmark) {
+        _newborn = building.index;
+        _newbornAge = 0;
+      }
       _fx.celebrate(
         V3(building.cx, 0, building.cz),
         (building.isLandmark ? 1.9 : 1.15),
@@ -1229,6 +1291,8 @@ class _TownViewState extends State<TownView>
       active: widget.store.active.clamp(0, _entries.length - 1),
       finished: _finished,
       finishedAge: _finishedAge,
+      newborn: _newborn,
+      newbornAge: _newbornAge,
       selectedBrick: _selectedPiece,
       charge: _charge,
       skyNight: night,

@@ -1,15 +1,21 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
+
+import 'package:flutter/material.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:la_muralla/data/character.dart';
 import 'package:la_muralla/data/doings.dart';
+import 'package:la_muralla/engine/camera.dart';
 import 'package:la_muralla/engine/folk.dart';
 import 'package:la_muralla/engine/folk_body.dart';
 import 'package:la_muralla/engine/palette.dart';
 import 'package:la_muralla/engine/renderer.dart';
+import 'package:la_muralla/engine/scene.dart';
 import 'package:la_muralla/engine/season.dart';
 import 'package:la_muralla/engine/solid.dart';
 import 'package:la_muralla/engine/town.dart';
+import 'package:la_muralla/fx/effects.dart';
 
 TownLayout _town(int pieces, [String region = 'Ribera']) =>
     TownLayout(pieces, TownCharacter.all.firstWhere((c) => c.region == region));
@@ -21,6 +27,7 @@ int _finished(TownLayout t, int placed) => t.buildings
 
 void main() {
   _nacimientos();
+  _salirDeCasa();
   group('quién vive en el pueblo', () {
     test('una casa terminada, un vecino; ni uno más ni uno menos', () {
       for (final n in [1, 5, 20, 80, 300]) {
@@ -829,4 +836,143 @@ void _nacimientos() {
       }
     });
   });
+}
+
+/// Quien acaba de nacer tarda en salir, y sale por su puerta.
+///
+/// Lo que se veía: rematabas una casa y el vecino ya estaba en la calle **con
+/// el tejado todavía en el aire**, apareciendo de la nada a medio camino de la
+/// plaza. Son dos fallos pegados. La casa cuenta como terminada en cuanto su
+/// última pieza entra en la cuenta, y la cuenta sube al soltar la pieza y no al
+/// posarla; y el reloj de una ronda es común a todo el pueblo, así que el
+/// segundo en que alguien aparece lo pilla donde lo pille.
+void _salirDeCasa() {
+  group('el vecino que acaba de nacer', () {
+    test('sin apuntar, aparece a medio camino de donde sea', () {
+      // Lo de antes, que es contra lo que se compara: el reloj común lo deja
+      // en un punto cualquiera de su ronda.
+      final t = _town(40);
+      final who = folkOf(t, 40).first;
+      expect(who.debut, isNull);
+      final at = who.at(0);
+      final d = who.door;
+      final lejos = math.sqrt(
+        (at.x - d.$1) * (at.x - d.$1) + (at.z - d.$2) * (at.z - d.$2),
+      );
+      expect(
+        lejos,
+        greaterThan(0.5),
+        reason: 'esta semilla empieza en la puerta y no sirve de contraste',
+      );
+    });
+
+    test('apuntado, el segundo en que aparece está en su puerta', () {
+      final t = _town(40);
+      final who = folkOf(t, 40).first;
+      who.debut = 12.0;
+      final at = who.at(12.0);
+      final d = who.door;
+      expect(at.x, closeTo(d.$1, 0.0001));
+      expect(at.z, closeTo(d.$2, 0.0001));
+      // Y un momento después ya se está yendo: sale de casa, no se queda
+      // plantado en el umbral porque el reloj no corra.
+      final luego = who.at(12.0 + 4.0);
+      final anduvo = math.sqrt(
+        (luego.x - d.$1) * (luego.x - d.$1) +
+            (luego.z - d.$2) * (luego.z - d.$2),
+      );
+      expect(anduvo, greaterThan(0.2), reason: 'no se mueve de la puerta');
+      who.debut = null;
+    });
+
+    test('y el que ya vivía aquí no se entera de nada', () {
+      // Apuntar a uno no puede mover a los demás: lo que se arregla es el
+      // nacimiento, no la ronda de un pueblo entero.
+      final t = _town(40);
+      final gente = folkOf(t, 40);
+      expect(gente.length, greaterThan(1), reason: 'hace falta más de uno');
+      final otro = gente[1];
+      final antes = otro.at(3.0);
+      gente.first.debut = 12.0;
+      final luego = otro.at(3.0);
+      expect(luego.x, antes.x);
+      expect(luego.z, antes.z);
+      gente.first.debut = null;
+    });
+
+    test('el pueblo le apunta la hora al pintarlo, y no antes', () async {
+      // Aquí es donde se cierra el círculo: la vista dice qué casa se acaba de
+      // rematar y cuánto hace, y el pueblo le apunta al vecino a qué segundo
+      // le toca salir. Tres segundos desde que la pieza se posa, que es justo
+      // después del confeti.
+      final t = _town(40);
+      for (final w in folkOf(t, 40)) {
+        w.debut = null;
+      }
+      final quien = folkOf(t, 40).first;
+      await _pinta(t, newborn: quien.home, newbornAge: 0, time: 5.0);
+      expect(
+        quien.debut,
+        isNotNull,
+        reason: 'nadie le dijo al vecino cuándo sale',
+      );
+      expect(quien.debut, closeTo(5.0 + Townsfolk.settleIn, 0.0001));
+      // Y en ese segundo está en su puerta, que es lo que se quería.
+      final at = quien.at(quien.debut!);
+      expect(at.x, closeTo(quien.door.$1, 0.0001));
+
+      // La hora se apunta una vez: pintar otro fotograma no se la mueve.
+      await _pinta(t, newborn: quien.home, newbornAge: 1.2, time: 6.2);
+      expect(quien.debut, closeTo(5.0 + Townsfolk.settleIn, 0.0001));
+
+      // Y a los que ya vivían aquí no se les apunta nada.
+      for (final w in folkOf(t, 40)) {
+        if (w.home != quien.home) {
+          expect(w.debut, isNull, reason: 'se le apuntó a quien no nacía');
+        }
+      }
+      for (final w in folkOf(t, 40)) {
+        w.debut = null;
+      }
+    });
+  });
+}
+
+/// Un fotograma del pueblo con gente, para poder preguntarle cosas al pintor.
+Future<void> _pinta(
+  TownLayout layout, {
+  required int newborn,
+  required double newbornAge,
+  required double time,
+}) async {
+  final cam = OrbitCamera()
+    ..yaw = 0.62
+    ..pitch = 0.34
+    ..distance = 9
+    ..focusY = 1.0
+    ..wallLength = layout.radius * 2;
+  final rec = ui.PictureRecorder();
+  TownPainter(
+    TownScene(
+      placed: 40,
+      palette: Palette.forMoment(11),
+      camera: cam,
+      time: time,
+      hourOfDay: 11,
+      effects: EffectSystem(),
+      labelledBricks: const {},
+      budget: 40000,
+      towns: [
+        TownEntry(layout: layout, name: 'Pueblo', symbol: 'rueda', placed: 40),
+      ],
+      active: 0,
+      labels: false,
+      folk: true,
+      ghost: false,
+      newborn: newborn,
+      newbornAge: newbornAge,
+    ),
+    TouchMap(),
+  ).paint(Canvas(rec), const Size(460, 460));
+  rec.endRecording().dispose();
 }

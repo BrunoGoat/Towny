@@ -148,6 +148,8 @@ class TownScene {
     required this.active,
     this.finished,
     this.finishedAge = 99,
+    this.newborn,
+    this.newbornAge = 99,
     this.selectedBrick,
     this.charge = 0,
     this.labels = true,
@@ -217,6 +219,18 @@ class TownScene {
   /// A house takes days to build and a second to celebrate.
   final int? finished;
   final double finishedAge;
+
+  /// La casa que acaba de rematarse y en la que todavía no vive nadie, y
+  /// cuántos segundos hace que se posó su última pieza.
+  ///
+  /// Es el aviso con el que el vecino que nace de ella aprende cuándo le toca
+  /// salir: ver [Townsfolk.debut]. Aparte de [finished] porque no es lo mismo
+  /// ni dura lo mismo — aquello es la fiesta, que se apaga a los dos segundos
+  /// y medio, y esto es el nacimiento, que es de la casa y de nadie más. Sólo
+  /// lo lleva el pueblo que se está construyendo, y nunca un hito: en un
+  /// puente no vive nadie.
+  final int? newborn;
+  final double newbornAge;
 
   /// The stone the person just tapped, ringed so it is obvious which one the
   /// note belongs to.

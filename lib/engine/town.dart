@@ -709,7 +709,17 @@ class TownLayout {
   /// diga la verdad desde el otro lado del valle. Los tres de por defecto son
   /// los de adorno que tenía, y son los que usa el expositor, que no tiene un
   /// hábito detrás del que sacar notas.
-  final List<int> notices;
+  ///
+  /// **Se puede cambiar sin volver a hacer el plano**, y tiene que poder.
+  /// Era `final`, y ahí estaba el fallo: el plano se guarda por hábito y por
+  /// cuenta de piezas, así que mover un papel —que no cambia ninguna de las
+  /// dos— devolvía el plano de antes con los huecos de antes, y el pueblo no
+  /// tenía manera de enterarse. Se veía al cerrar y abrir la app, que es
+  /// cuando el plano se hace de cero, y no antes.
+  ///
+  /// Mover un papel no mueve un vértice: lo único que cambia es esta lista y
+  /// las calcomanías que [renotice] vuelve a estampar sobre la plancha.
+  List<int> notices;
 
   /// Qué fue cada edificio, escrito el día que se empezó.
   ///
