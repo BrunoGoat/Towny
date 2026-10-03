@@ -75,6 +75,21 @@ class TownViewController {
   /// hábito y por piezas y lo que volvía era el de antes.
   @visibleForTesting
   List<int> get notices => _state?._town.notices ?? const [];
+
+  /// Dónde hay que tocar para abrir el tablón y el atril de cada pueblo.
+  ///
+  /// Para poder exigir en un test lo único que de verdad importa de todo
+  /// esto: que tocando el mueble se abra **su** hoja. Lo de dentro —cuánto
+  /// miden los blancos, si se pisan— son medios; esto es el fin.
+  @visibleForTesting
+  List<Rect> get boardTargets => [
+    for (final b in _state?._hits.boards ?? const []) b.rect,
+  ];
+
+  @visibleForTesting
+  List<Rect> get lecternTargets => [
+    for (final a in _state?._hits.lecterns ?? const []) a.rect,
+  ];
 }
 
 /// El encargo de un pueblo: lo que hace falta para levantarlo, y nada más.
@@ -405,7 +420,11 @@ class _TownViewState extends State<TownView>
     _cam.travelTarget = _town.cx;
     _cam.focusZTarget = _town.cz;
     _cam.focusYTarget = 1.4;
-    _cam.distanceTarget = clampD(_town.radius * 1.9, 9.0, 60.0);
+    _cam.distanceTarget = clampD(
+      _town.radius * 1.9,
+      9.0,
+      OrbitCamera.townFraming,
+    );
     _cam.yawTarget = 0.62;
     _cam.pitchTarget = 0.46;
     _cam.wallLength = _townReach;
@@ -1188,20 +1207,43 @@ class _TownViewState extends State<TownView>
       return;
     }
 
-    // The board comes first: it is a small thing standing in the middle of a
-    // town full of houses, and anybody aiming at it meant it.
-    for (final b in _hits.boards) {
-      if (!b.rect.contains(pos)) continue;
-      Sensory.instance.tick();
-      widget.onBoardTapped(b.town);
-      return;
+    // El tablón y el atril, antes que las casas: son dos cosas chicas en medio
+    // de un pueblo lleno de tejados, y quien les apunta les apuntó.
+    //
+    // **Y entre ellos dos, el más cercano al dedo.** Iban en orden —primero el
+    // tablón, después el atril— y eso valía mientras cada blanco fuera la
+    // silueta de su mueble, que no se tocan nunca. Desde que el blanco crece
+    // hasta la yema de un pulgar, sí: hay ángulos desde los que el del tablón
+    // tapa al atril entero, y en orden el atril no se podía abrir desde ahí.
+    // Lo caza una prueba, con el ángulo escrito.
+    //
+    // Por el centro y no por el área: un toque dentro de los dos es un toque
+    // que cayó en el margen de los dos, y el que se quiso es aquel cuyo mueble
+    // está más cerca de donde aterrizó el dedo.
+    ({bool board, int town, double away})? mueble;
+    void mirar(Rect r, int town, {required bool board}) {
+      if (!r.contains(pos)) return;
+      final dx = r.center.dx - pos.dx, dy = r.center.dy - pos.dy;
+      final away = dx * dx + dy * dy;
+      if (mueble == null || away < mueble!.away) {
+        mueble = (board: board, town: town, away: away);
+      }
     }
 
-    // Y el atril, que está al lado y es igual de pequeño.
+    for (final b in _hits.boards) {
+      mirar(b.rect, b.town, board: true);
+    }
     for (final a in _hits.lecterns) {
-      if (!a.rect.contains(pos)) continue;
+      mirar(a.rect, a.town, board: false);
+    }
+    final cual = mueble;
+    if (cual != null) {
       Sensory.instance.tick();
-      widget.onLecternTapped(a.town);
+      if (cual.board) {
+        widget.onBoardTapped(cual.town);
+      } else {
+        widget.onLecternTapped(cual.town);
+      }
       return;
     }
 

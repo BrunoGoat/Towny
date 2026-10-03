@@ -690,16 +690,10 @@ void main() {
           expect(a.rect.width, greaterThan(43.9), reason: 'yaw $yaw');
           expect(a.rect.height, greaterThan(43.9), reason: 'yaw $yaw');
         }
-        // El tablón se mira antes que el atril, así que si uno tapara al otro
-        // el atril no se podría abrir nunca desde ese lado.
-        if (hits.boards.isNotEmpty && hits.lecterns.isNotEmpty) {
-          final b = hits.boards.single.rect, a = hits.lecterns.single.rect;
-          expect(
-            b.contains(a.center),
-            isFalse,
-            reason: 'desde yaw $yaw el tablón se come al atril',
-          );
-        }
+        // Que los blancos se pisen desde algún ángulo es inevitable en cuanto
+        // crecen hasta la yema de un pulgar, y está bien: lo que no puede
+        // pasar es que uno se quede sin abrir. Eso ya no lo arregla la medida
+        // sino quien reparte el toque, y se exige en `tap_test`.
       }
     });
 

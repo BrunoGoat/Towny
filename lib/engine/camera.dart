@@ -15,6 +15,17 @@ class OrbitCamera {
   static const double maxPitch = 1.50; // ~86 degrees: top-down, never below
   static const double minDistance = 2.2;
 
+  /// Lo más lejos que se pone la cámara para mirar **un pueblo**.
+  ///
+  /// Es el tope con el que se encuadra uno al entrar (`radio × 1.9`, de nueve a
+  /// esto), así que es también la frontera entre las dos maneras de mirar que
+  /// tiene la app: más cerca estás en un pueblo, más lejos estás en el valle
+  /// mirando varios. Lo usan los dos lados —quien encuadra y quien decide si
+  /// los muebles de la plaza se pueden tocar— y por eso vive aquí: con el
+  /// número escrito dos veces, el día que uno cambie el otro se queda viejo y
+  /// nadie se entera.
+  static const double townFraming = 60.0;
+
   /// Far enough back to hold the whole valley in one frame: seis pueblos en un
   /// anillo de ciento veinticuatro, cada uno con su radio.
   ///

@@ -1341,6 +1341,18 @@ void _hangWindows(
 /// the middle of the town and this stands in it, from the first achievement
 /// on. A town that made you pay an achievement for the place where it tells
 /// you things would be charging you to read your own handwriting.
+/// Las ocho esquinas de una caja medida en el origen, llevadas a su sitio.
+///
+/// Lo comparten el tablón y el atril: los dos se levantan ya girados, así que
+/// una caja medida sobre el mueble puesto en el origen vale para el mismo
+/// mueble en cualquier plaza con sólo sumarle dónde está esa plaza.
+List<V3> _cornersOf(Aabb b, double cx, double cz) => [
+  for (final x in [b.x0 + cx, b.x1 + cx])
+    for (final y in [b.y0, b.y1])
+      for (final z in [b.z0 + cz, b.z1 + cz])
+        V3(x, y, z),
+];
+
 class NoticeBoard {
   /// Half the width of the plank people read.
   /// Two thirds of a metre across and shoulder high, near enough — smaller
@@ -1388,6 +1400,26 @@ class NoticeBoard {
         turnedAt(v, x, z, sinA, cosA),
     ];
   }
+
+  /// Las ocho esquinas de la caja que ocupa el mueble **entero**: los postes
+  /// desde el suelo, la plancha y el tejadillo.
+  ///
+  /// La plancha sola no sirve para encontrarlo con el dedo. Mira a la fuente y
+  /// la cámara se planta en otro ángulo, así que de lo que se ve es el canto; y
+  /// además mide medio metro de alto, cuando el mueble mide uno. Entre las dos
+  /// cosas, en un pueblo crecido —la cámara se aleja con el radio— el blanco
+  /// bajaba de doce píxeles por los dos lados y se descartaba entero: desde las
+  /// ochenta piezas el atril no se podía tocar, y el tablón desde las
+  /// seiscientas. La caja del mueble es el doble de alta y no depende de hacia
+  /// dónde mire.
+  ///
+  /// Se mide una sola vez, de un mueble levantado en el origen, y se mueve con
+  /// sumas: lo que ocupa no cambia nunca, sólo dónde está.
+  static final Aabb _extent = Aabb.of([
+    for (final s in solidsAt(0, 0)) ...s.faces,
+  ])!;
+
+  static List<V3> boxAt(double cx, double cz) => _cornersOf(_extent, cx, cz);
 
   /// Cuántas hojas caben en la plancha: dos filas de cinco, las mismas que
   /// tiene el tablón de cerca, para que la silueta se corresponda con lo que
@@ -1802,6 +1834,14 @@ class Lectern {
   /// lado cuesta abajo del tablero es el lado desde el que se lee, y ése tiene
   /// que dar a la plaza.
   static double get turn => math.atan2(-offX, -offZ);
+
+  /// Las ocho esquinas de la caja que ocupa el atril entero: la peana, el pie,
+  /// el tablero y el libro. Ver [NoticeBoard.boxAt], que existe por lo mismo.
+  static final Aabb _extent = Aabb.of([
+    for (final s in solidsAt(0, 0)) ...s.faces,
+  ])!;
+
+  static List<V3> boxAt(double cx, double cz) => _cornersOf(_extent, cx, cz);
 
   /// Las cuatro esquinas de la cara de arriba del libro, que es lo que se ve y
   /// por lo tanto lo que se toca. Empezando por la de atrás a la izquierda.

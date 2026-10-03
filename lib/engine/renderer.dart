@@ -10,6 +10,7 @@ import '../data/character.dart';
 import '../fx/effects.dart';
 import 'backdrop.dart';
 import 'bsp.dart';
+import 'camera.dart';
 import 'folk.dart';
 import 'folk_body.dart';
 import 'palette.dart';
@@ -661,9 +662,29 @@ class TownPainter extends CustomPainter {
       final e = scene.towns[i];
       if (e.placed <= 0) continue;
       final l = e.layout;
-      final board = _screenBox(p, size, NoticeBoard.faceAt(l.cx, l.cz));
+      // Desde el valle no se tocan los muebles de una plaza.
+      //
+      // Y esto **no se puede decidir por el tamaño**, que es lo que se intentó
+      // primero: en el pueblo más grande que encuadra la app el atril ocupa
+      // catorce píxeles de alto, y desde el valle el tablón ocupa trece. Se
+      // solapan, así que cualquier umbral de píxeles o deja sin blanco a un
+      // pueblo crecido o reparte blancos de dedo sobre un valle entero.
+      //
+      // Lo que sí los separa es de qué se está mirando: a qué distancia tenés
+      // el ojo de **esa** plaza. Dentro de un pueblo, de nueve a sesenta;
+      // mirando el valle, más de cien. Sesenta es el tope con el que la app
+      // encuadra un pueblo, así que la frontera es la misma línea y no un
+      // número nuevo: mientras la cámara esté donde estaría mirando este
+      // pueblo, sus muebles se tocan.
+      // Un cuarto de holgura sobre ese tope: el encuadre deja la cámara justo
+      // ahí, así que sin margen el pueblo más grande se queda sin blanco por
+      // dos centésimas, y apartarse un dedo de más lo quitaría de golpe.
+      const alcance = OrbitCamera.townFraming * 1.25;
+      final dx = l.cx - p.eye.x, dz = l.cz - p.eye.z, dy = p.eye.y;
+      if (dx * dx + dy * dy + dz * dz > alcance * alcance) continue;
+      final board = _screenBox(p, size, NoticeBoard.boxAt(l.cx, l.cz));
       if (board != null) boards.add(BoardHit(i, board));
-      final desk = _screenBox(p, size, Lectern.faceAt(l.cx, l.cz));
+      final desk = _screenBox(p, size, Lectern.boxAt(l.cx, l.cz));
       if (desk != null) lecterns.add(LecternHit(i, desk));
     }
   }
