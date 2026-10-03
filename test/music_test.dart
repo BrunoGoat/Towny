@@ -4,11 +4,11 @@ import 'dart:typed_data';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/data/tunes.dart';
-import 'package:la_muralla/fx/sensory.dart';
-import 'package:la_muralla/model/habit.dart';
-import 'package:la_muralla/model/piece.dart';
-import 'package:la_muralla/model/reel.dart';
+import 'package:towny/data/tunes.dart';
+import 'package:towny/fx/sensory.dart';
+import 'package:towny/model/habit.dart';
+import 'package:towny/model/piece.dart';
+import 'package:towny/model/reel.dart';
 
 /// Los quince archivos se generan en `tool/make_music.py`, y todo el diseño se
 /// apoya en dos propiedades que ningún otro test miraría:

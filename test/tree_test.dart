@@ -29,13 +29,12 @@ Map<String, List<String>> _arbol() {
       if (m == null) continue;
       final to = m.group(1)!;
       if (to.startsWith('dart:') ||
-          (to.startsWith('package:') &&
-              !to.startsWith('package:la_muralla/'))) {
+          (to.startsWith('package:') && !to.startsWith('package:towny/'))) {
         continue;
       }
       dentro.add(
-        to.startsWith('package:la_muralla/')
-            ? 'lib/${to.substring('package:la_muralla/'.length)}'
+        to.startsWith('package:towny/')
+            ? 'lib/${to.substring('package:towny/'.length)}'
             : _normalize('${File(f.path).parent.path}/$to'),
       );
     }

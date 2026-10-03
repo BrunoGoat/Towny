@@ -25,7 +25,7 @@ enum WidgetBox {
     /// El grupo. Tiene que estar escrito igual en las dos capacidades —la de
     /// la app y la del widget— o cada uno escribirá en su propia caja y el
     /// cuadrito saldrá siempre vacío.
-    static let group = "group.com.lamuralla.towny"
+    static let group = "group.com.towny.app"
 
     private static let kHabits = "habits"
     private static let kInbox = "inbox"

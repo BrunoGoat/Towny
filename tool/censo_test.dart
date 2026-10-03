@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/data/character.dart';
-import 'package:la_muralla/engine/folk.dart';
-import 'package:la_muralla/engine/town.dart';
+import 'package:towny/data/character.dart';
+import 'package:towny/engine/folk.dart';
+import 'package:towny/engine/town.dart';
 
 /// Lo que cuesta poner una pieza, que es lo único que esta app hace.
 ///

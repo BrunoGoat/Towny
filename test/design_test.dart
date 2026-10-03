@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/data/character.dart';
-import 'package:la_muralla/engine/palette.dart';
-import 'package:la_muralla/engine/tones.dart';
-import 'package:la_muralla/model/store.dart';
-import 'package:la_muralla/ui/habit_bar.dart';
-import 'package:la_muralla/ui/habit_sigil.dart';
-import 'package:la_muralla/ui/habits_sheet.dart';
-import 'package:la_muralla/ui/hold_button.dart';
-import 'package:la_muralla/ui/legend_card.dart';
-import 'package:la_muralla/ui/overlays.dart';
-import 'package:la_muralla/ui/plan_picker.dart';
-import 'package:la_muralla/ui/style.dart';
-import 'package:la_muralla/ui/town_sign.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:towny/data/character.dart';
+import 'package:towny/engine/palette.dart';
+import 'package:towny/engine/tones.dart';
+import 'package:towny/model/store.dart';
+import 'package:towny/ui/habit_bar.dart';
+import 'package:towny/ui/habit_sigil.dart';
+import 'package:towny/ui/habits_sheet.dart';
+import 'package:towny/ui/hold_button.dart';
+import 'package:towny/ui/legend_card.dart';
+import 'package:towny/ui/overlays.dart';
+import 'package:towny/ui/plan_picker.dart';
+import 'package:towny/ui/style.dart';
+import 'package:towny/ui/town_sign.dart';
 
 /// Un teléfono estrecho y uno ancho: lo que se rompe en algo puesto sobre la
 /// escena es que se salga por un costado, y eso depende del ancho.

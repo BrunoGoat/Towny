@@ -3,13 +3,13 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/data/character.dart';
-import 'package:la_muralla/engine/camera.dart';
-import 'package:la_muralla/engine/palette.dart';
-import 'package:la_muralla/engine/renderer.dart';
-import 'package:la_muralla/engine/scene.dart';
-import 'package:la_muralla/engine/town.dart';
-import 'package:la_muralla/fx/effects.dart';
+import 'package:towny/data/character.dart';
+import 'package:towny/engine/camera.dart';
+import 'package:towny/engine/palette.dart';
+import 'package:towny/engine/renderer.dart';
+import 'package:towny/engine/scene.dart';
+import 'package:towny/engine/town.dart';
+import 'package:towny/fx/effects.dart';
 
 /// **El día que se funda el pueblo.**
 ///
@@ -42,12 +42,7 @@ Future<ui.Image> _frame(double t) async {
       labelledBricks: const {},
       budget: 40000,
       towns: [
-        TownEntry(
-          layout: layout,
-          name: 'Pueblo',
-          symbol: 'rueda',
-          placed: 0,
-        ),
+        TownEntry(layout: layout, name: 'Pueblo', symbol: 'rueda', placed: 0),
       ],
       active: 0,
       labels: false,
@@ -58,10 +53,9 @@ Future<ui.Image> _frame(double t) async {
   return rec.endRecording().toImage(_w, _h);
 }
 
-Future<Uint8List> _bytes(ui.Image img) async =>
-    (await img.toByteData(format: ui.ImageByteFormat.rawRgba))!
-        .buffer
-        .asUint8List();
+Future<Uint8List> _bytes(ui.Image img) async => (await img.toByteData(
+  format: ui.ImageByteFormat.rawRgba,
+))!.buffer.asUint8List();
 
 /// El primer renglón de prado: donde acaba el horizonte y empieza el valle.
 ///
@@ -117,7 +111,9 @@ void main() {
     expect(yFinal, greaterThan(0), reason: 'no se ve madera con todo puesto');
 
     // A mitad de caída del tablón.
-    final medio = FoundingShow.boardAt + (FoundingShow.boardLands - FoundingShow.boardAt) * 0.5;
+    final medio =
+        FoundingShow.boardAt +
+        (FoundingShow.boardLands - FoundingShow.boardAt) * 0.5;
     final volando = await _frame(medio);
     final yVuelo = _maderaMasAlta(await _bytes(volando));
     volando.dispose();

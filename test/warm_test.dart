@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/data/character.dart';
-import 'package:la_muralla/engine/world.dart';
+import 'package:towny/data/character.dart';
+import 'package:towny/engine/world.dart';
 
 /// **El pueblo levantado en otro hilo.**
 ///

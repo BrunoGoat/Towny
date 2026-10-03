@@ -3,15 +3,15 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/data/character.dart';
-import 'package:la_muralla/engine/camera.dart';
-import 'package:la_muralla/engine/palette.dart';
-import 'package:la_muralla/engine/renderer.dart';
-import 'package:la_muralla/engine/scene.dart';
-import 'package:la_muralla/engine/season.dart';
-import 'package:la_muralla/engine/tones.dart';
-import 'package:la_muralla/engine/town.dart';
-import 'package:la_muralla/fx/effects.dart';
+import 'package:towny/data/character.dart';
+import 'package:towny/engine/camera.dart';
+import 'package:towny/engine/palette.dart';
+import 'package:towny/engine/renderer.dart';
+import 'package:towny/engine/scene.dart';
+import 'package:towny/engine/season.dart';
+import 'package:towny/engine/tones.dart';
+import 'package:towny/engine/town.dart';
+import 'package:towny/fx/effects.dart';
 
 const int _w = 320;
 const int _h = 900;
@@ -195,23 +195,25 @@ void main() {
     // donde hay nieve que romper.
     const invierno = Season(0.09);
 
-    test('con nieve asoma la hierba, y por eso el prado deja de ser uno',
-        () async {
-      final px = await frame(hour: 12, season: invierno);
-      var distintos = 0;
-      for (var y = from; y < to; y++) {
-        for (var x = left; x < right; x++) {
-          if (_at(px, x, y) != _at(px, left, from)) distintos++;
+    test(
+      'con nieve asoma la hierba, y por eso el prado deja de ser uno',
+      () async {
+        final px = await frame(hour: 12, season: invierno);
+        var distintos = 0;
+        for (var y = from; y < to; y++) {
+          for (var x = left; x < right; x++) {
+            if (_at(px, x, y) != _at(px, left, from)) distintos++;
+          }
         }
-      }
-      expect(
-        distintos,
-        greaterThan(300),
-        reason:
-            'sólo $distintos píxeles de los ${(to - from) * (right - left)} de '
-            'la franja se salen del blanco: la nieve sigue siendo una sábana',
-      );
-    });
+        expect(
+          distintos,
+          greaterThan(300),
+          reason:
+              'sólo $distintos píxeles de los ${(to - from) * (right - left)} de '
+              'la franja se salen del blanco: la nieve sigue siendo una sábana',
+        );
+      },
+    );
 
     test('y en las otras tres sigue siendo un color y nada más', () async {
       // Primavera, verano y otoño: sin nieve no hay matas que pintar, y el

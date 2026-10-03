@@ -3,16 +3,16 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/data/character.dart';
-import 'package:la_muralla/data/landmarks.dart';
-import 'package:la_muralla/engine/camera.dart';
-import 'package:la_muralla/engine/palette.dart';
-import 'package:la_muralla/engine/renderer.dart';
-import 'package:la_muralla/engine/scene.dart';
-import 'package:la_muralla/engine/solid.dart';
-import 'package:la_muralla/engine/town.dart';
-import 'package:la_muralla/engine/world.dart';
-import 'package:la_muralla/fx/effects.dart';
+import 'package:towny/data/character.dart';
+import 'package:towny/data/landmarks.dart';
+import 'package:towny/engine/camera.dart';
+import 'package:towny/engine/palette.dart';
+import 'package:towny/engine/renderer.dart';
+import 'package:towny/engine/scene.dart';
+import 'package:towny/engine/solid.dart';
+import 'package:towny/engine/town.dart';
+import 'package:towny/engine/world.dart';
+import 'package:towny/fx/effects.dart';
 
 /// **La prueba de que tirar lo que no se ve no se nota.**
 ///

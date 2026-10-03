@@ -1,9 +1,9 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/data/character.dart';
-import 'package:la_muralla/fx/widget_bridge.dart';
-import 'package:la_muralla/model/habit.dart';
-import 'package:la_muralla/model/piece.dart';
+import 'package:towny/data/character.dart';
+import 'package:towny/fx/widget_bridge.dart';
+import 'package:towny/model/habit.dart';
+import 'package:towny/model/piece.dart';
 
 /// Un hábito con piezas puestas a las horas que se le digan.
 Habit _habit({

@@ -1,12 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/data/bandos.dart';
-import 'package:la_muralla/data/character.dart';
-import 'package:la_muralla/data/constellations.dart';
-import 'package:la_muralla/data/landmarks.dart';
-import 'package:la_muralla/data/landmarks_retired.dart';
-import 'package:la_muralla/engine/town.dart';
+import 'package:towny/data/bandos.dart';
+import 'package:towny/data/character.dart';
+import 'package:towny/data/constellations.dart';
+import 'package:towny/data/landmarks.dart';
+import 'package:towny/data/landmarks_retired.dart';
+import 'package:towny/engine/town.dart';
 
 /// La mitad del inventario de textos que no se puede sacar leyendo el código.
 ///

@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/data/character.dart';
-import 'package:la_muralla/engine/board_plan.dart';
-import 'package:la_muralla/model/board.dart';
-import 'package:la_muralla/model/habit.dart';
-import 'package:la_muralla/model/notice.dart';
-import 'package:la_muralla/model/piece.dart';
-import 'package:la_muralla/ui/paper_ink.dart';
+import 'package:towny/data/character.dart';
+import 'package:towny/engine/board_plan.dart';
+import 'package:towny/model/board.dart';
+import 'package:towny/model/habit.dart';
+import 'package:towny/model/notice.dart';
+import 'package:towny/model/piece.dart';
+import 'package:towny/ui/paper_ink.dart';
 
 Habit _habit({List<String>? notes, int pieces = 40}) => Habit(
   id: 'h',

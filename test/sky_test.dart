@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/core/math3.dart';
-import 'package:la_muralla/engine/backdrop.dart';
+import 'package:towny/core/math3.dart';
+import 'package:towny/engine/backdrop.dart';
 
 /// Una cámara mirando en `yaw`, inclinada `pitch`, desde donde se le diga.
 Projector camera({

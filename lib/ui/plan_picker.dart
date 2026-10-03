@@ -100,7 +100,9 @@ class _HourReelState extends State<HourReel> {
                 color: elegida
                     ? widget.accent.withValues(alpha: 0.22)
                     : widget.plate,
-                border: Border.all(color: elegida ? widget.accent : widget.edge),
+                border: Border.all(
+                  color: elegida ? widget.accent : widget.edge,
+                ),
               ),
               child: Text(
                 // Dos cifras siempre. Con «7» y «17» en la misma fila, la fila

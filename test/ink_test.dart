@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/engine/palette.dart';
-import 'package:la_muralla/ui/style.dart';
+import 'package:towny/engine/palette.dart';
+import 'package:towny/ui/style.dart';
 
 /// Lo clara que es una cosa, de cero a uno. La misma cuenta que usa el tema.
 double _luz(Color c) => c.r * 0.3 + c.g * 0.55 + c.b * 0.15;

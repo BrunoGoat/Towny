@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/data/character.dart';
-import 'package:la_muralla/engine/folk.dart';
-import 'package:la_muralla/engine/town.dart';
-import 'package:la_muralla/model/census.dart';
-import 'package:la_muralla/model/habit.dart';
-import 'package:la_muralla/model/piece.dart';
+import 'package:towny/data/character.dart';
+import 'package:towny/engine/folk.dart';
+import 'package:towny/engine/town.dart';
+import 'package:towny/model/census.dart';
+import 'package:towny/model/habit.dart';
+import 'package:towny/model/piece.dart';
 
 /// Un hábito con [n] piezas, una por día, empezando el 1 de marzo.
 Habit _habit(int n) => Habit(

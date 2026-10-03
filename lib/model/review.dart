@@ -134,19 +134,22 @@ class Review {
   }
 
   /// La cuenta de un mes.
-  static Review forMonth(Habit h, int year, int month, {DateTime? now}) =>
-      _of(
-        h,
-        DateTime(year, month, 1),
-        DateTime(year, month + 1, 1),
-        now: now,
-        monthly: true,
-      );
+  static Review forMonth(Habit h, int year, int month, {DateTime? now}) => _of(
+    h,
+    DateTime(year, month, 1),
+    DateTime(year, month + 1, 1),
+    now: now,
+    monthly: true,
+  );
 
   /// La cuenta de un año.
-  static Review forYear(Habit h, int year, {DateTime? now}) =>
-      _of(h, DateTime(year, 1, 1), DateTime(year + 1, 1, 1), now: now,
-          monthly: false);
+  static Review forYear(Habit h, int year, {DateTime? now}) => _of(
+    h,
+    DateTime(year, 1, 1),
+    DateTime(year + 1, 1, 1),
+    now: now,
+    monthly: false,
+  );
 
   /// Las cuentas que valen la pena de este pueblo, en el orden en que se leen.
   ///
@@ -199,11 +202,7 @@ class Review {
     final conPieza = <int>{for (final d in todos) dayKey(d)};
     var dias = 0, contados = 0, huecos = 0, mayor = 0, corriendo = 0;
     var visto = false;
-    for (
-      var d = desde;
-      !d.isAfter(hasta);
-      d = d.add(const Duration(days: 1))
-    ) {
+    for (var d = desde; !d.isAfter(hasta); d = d.add(const Duration(days: 1))) {
       final hubo = conPieza.contains(dayKey(d));
       if (hubo) {
         dias++;

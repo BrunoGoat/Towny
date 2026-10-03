@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/data/landmarks.dart';
-import 'package:la_muralla/data/landmarks_retired.dart';
-import 'package:la_muralla/engine/mason.dart';
+import 'package:towny/data/landmarks.dart';
+import 'package:towny/data/landmarks_retired.dart';
+import 'package:towny/engine/mason.dart';
 
 double alcance(Landmark l) {
   final m = Mason(0, 0, 7, true);

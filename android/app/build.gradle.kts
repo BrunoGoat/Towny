@@ -57,6 +57,12 @@ android {
     }
 
     defaultConfig {
+        // Dice «lamuralla» porque así se llamaba la app, y **tiene que
+        // seguir diciéndolo**: el applicationId es la identidad de lo
+        // instalado. Cambiarlo no renombra nada — crea otra app, que se
+        // instala al lado y arranca con el valle vacío mientras la de antes
+        // se queda con los pueblos. Lo mismo vale para la clave de firma de
+        // abajo y para el paquete de Kotlin, que va con éste.
         applicationId = "com.lamuralla.la_muralla"
         // Flutter's default (API 24) already clears every plugin here, and
         // leaving the reference in place keeps `flutter build` from rewriting

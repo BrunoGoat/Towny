@@ -2,14 +2,14 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/data/character.dart';
-import 'package:la_muralla/model/appearance.dart';
-import 'package:la_muralla/model/habit.dart';
-import 'package:la_muralla/model/piece.dart';
-import 'package:la_muralla/model/reel.dart';
-import 'package:la_muralla/model/store.dart';
-import 'package:la_muralla/ui/reel_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:towny/data/character.dart';
+import 'package:towny/model/appearance.dart';
+import 'package:towny/model/habit.dart';
+import 'package:towny/model/piece.dart';
+import 'package:towny/model/reel.dart';
+import 'package:towny/model/store.dart';
+import 'package:towny/ui/reel_screen.dart';
 
 /// Un hábito con [n] piezas, una al día desde el 1 de marzo, en el pueblo
 /// [slot] y empezando [desde] días después del principio del valle.

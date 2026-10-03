@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/data/character.dart';
-import 'package:la_muralla/data/landmarks.dart';
-import 'package:la_muralla/engine/town.dart';
+import 'package:towny/data/character.dart';
+import 'package:towny/data/landmarks.dart';
+import 'package:towny/engine/town.dart';
 
 /// Un hito de mentira, para meterlo en el catálogo en mitad de un test y ver
 /// qué se rompe. Es la única forma de comprobar de verdad lo que se promete:

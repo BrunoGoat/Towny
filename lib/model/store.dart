@@ -65,7 +65,13 @@ class Store extends ChangeNotifier {
 
   static const _key = 'pueblo_state_v1';
 
-  /// What the app was called when it was a wall. Read once, then left alone.
+  /// Cómo se llamaba el cajón cuando la app era una muralla.
+  ///
+  /// **Esto no es un resto de la marca vieja: es la puerta por la que entran
+  /// los que todavía no abrieron la app desde el cambio de nombre.** Lo de
+  /// ahora se guarda en [_key]; esto se lee una vez, se copia allí y no se
+  /// vuelve a tocar. Borrarlo no limpia nada —son dos cadenas— y a quien
+  /// siguiera en la versión de antes le vaciaría el valle.
   static const _wallKey = 'la_muralla_state_v2';
   static const _wallLegacyKey = 'la_muralla_state_v1';
 
@@ -774,10 +780,10 @@ class Store extends ChangeNotifier {
     try {
       parsed = jsonDecode(raw);
     } catch (_) {
-      return 'Eso no es una copia de La Muralla.';
+      return 'Eso no es una copia de Towny.';
     }
     if (parsed is! Map<String, dynamic>) {
-      return 'Eso no es una copia de La Muralla.';
+      return 'Eso no es una copia de Towny.';
     }
     final list = parsed['h'];
     if (list is! List) return 'A esa copia le falta la lista de pueblos.';

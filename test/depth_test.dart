@@ -1,17 +1,17 @@
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/core/math3.dart';
-import 'package:la_muralla/data/character.dart';
-import 'package:la_muralla/data/doings.dart';
-import 'package:la_muralla/data/landmarks.dart';
-import 'package:la_muralla/engine/bsp.dart';
-import 'package:la_muralla/engine/folk.dart';
-import 'package:la_muralla/engine/folk_body.dart';
-import 'package:la_muralla/engine/solid.dart';
-import 'package:la_muralla/engine/solids.dart';
-import 'package:la_muralla/engine/town.dart';
-import 'package:la_muralla/engine/world.dart';
+import 'package:towny/core/math3.dart';
+import 'package:towny/data/character.dart';
+import 'package:towny/data/doings.dart';
+import 'package:towny/data/landmarks.dart';
+import 'package:towny/engine/bsp.dart';
+import 'package:towny/engine/folk.dart';
+import 'package:towny/engine/folk_body.dart';
+import 'package:towny/engine/solid.dart';
+import 'package:towny/engine/solids.dart';
+import 'package:towny/engine/town.dart';
+import 'package:towny/engine/world.dart';
 
 /// Every structure the town can build: the seven houses and the hundred and
 /// twelve landmarks, the same list the exhibition hall shows.

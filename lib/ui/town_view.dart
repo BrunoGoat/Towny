@@ -789,13 +789,7 @@ class _TownViewState extends State<TownView>
   void _plazaCae(double antes, double ahora) {
     final l = _town;
     for (final (cuando, x, z, radio, fuerza) in [
-      (
-        FoundingShow.plazaLands,
-        l.cx,
-        l.cz,
-        TownLayout.plazaReach * 1.1,
-        1.1,
-      ),
+      (FoundingShow.plazaLands, l.cx, l.cz, TownLayout.plazaReach * 1.1, 1.1),
       (
         FoundingShow.boardLands,
         NoticeBoard.xAt(l.cx),

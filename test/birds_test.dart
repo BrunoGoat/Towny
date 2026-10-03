@@ -1,10 +1,10 @@
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/data/character.dart';
-import 'package:la_muralla/engine/renderer.dart';
-import 'package:la_muralla/engine/town.dart';
-import 'package:la_muralla/model/habit.dart';
+import 'package:towny/data/character.dart';
+import 'package:towny/engine/renderer.dart';
+import 'package:towny/engine/town.dart';
+import 'package:towny/model/habit.dart';
 
 void main() {
   group('los pájaros vuelan sobre su pueblo', () {

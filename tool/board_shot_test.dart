@@ -4,15 +4,15 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/engine/board_plan.dart';
-import 'package:la_muralla/engine/palette.dart';
-import 'package:la_muralla/model/appearance.dart';
-import 'package:la_muralla/model/board.dart';
-import 'package:la_muralla/model/board_slots.dart';
-import 'package:la_muralla/model/store.dart';
-import 'package:la_muralla/ui/notice_board.dart';
-import 'package:la_muralla/ui/style.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:towny/engine/board_plan.dart';
+import 'package:towny/engine/palette.dart';
+import 'package:towny/model/appearance.dart';
+import 'package:towny/model/board.dart';
+import 'package:towny/model/board_slots.dart';
+import 'package:towny/model/store.dart';
+import 'package:towny/ui/notice_board.dart';
+import 'package:towny/ui/style.dart';
 
 /// El tablón a disco: como se llega, con un papel en la mano y escribiendo.
 ///

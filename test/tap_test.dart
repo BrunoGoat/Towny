@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/model/appearance.dart';
-import 'package:la_muralla/model/store.dart';
-import 'package:la_muralla/ui/town_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:towny/model/appearance.dart';
+import 'package:towny/model/store.dart';
+import 'package:towny/ui/town_view.dart';
 
 /// Tocar el tablón y el atril desde el pueblo, que es lo único que importa de
 /// todo esto: lo demás —cuánto miden los blancos, si se pisan— son medios.

@@ -62,7 +62,7 @@ En Xcode, en el panel de la izquierda, elegí el proyecto **Runner**, pestaña
 
 - **Automatically manage signing**, marcado.
 - **Team**: tu Apple ID. Si no está, `Xcode → Settings → Accounts → +`.
-- **Bundle Identifier**: `com.lamuralla.laMuralla`. Si Xcode se queja de que ya
+- **Bundle Identifier**: `com.towny.app`. Si Xcode se queja de que ya
   existe, cambialo por algo tuyo —`uy.brunogoat.towny`, por ejemplo— que es
   gratis y no se lo pisa a nadie.
 
@@ -146,7 +146,7 @@ dónde leer. No hay vuelta: es de Apple, no del código.
 En **Signing & Capabilities**, para `Runner` y otra vez para `TownyWidget`:
 
 - **+ Capability → App Groups**
-- **+** y escribí `group.com.lamuralla.towny`
+- **+** y escribí `group.com.towny.app`
 
 Tiene que estar escrito igual en los dos, y tiene que coincidir con la
 constante `group` de `WidgetBox.swift`. Si cambiás el identificador, cambialo

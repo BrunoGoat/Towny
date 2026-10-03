@@ -1,10 +1,10 @@
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/core/rng.dart';
-import 'package:la_muralla/data/character.dart';
-import 'package:la_muralla/engine/palette.dart';
-import 'package:la_muralla/engine/town.dart';
+import 'package:towny/core/rng.dart';
+import 'package:towny/data/character.dart';
+import 'package:towny/engine/palette.dart';
+import 'package:towny/engine/town.dart';
 
 /// What one region's town actually comes out as, measured off the pieces.
 ///

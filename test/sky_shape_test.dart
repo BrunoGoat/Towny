@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/data/constellations.dart';
+import 'package:towny/data/constellations.dart';
 
 /// El ángulo real entre dos estrellas, desde su ascensión recta y su
 /// declinación. Es la respuesta contra la que se mide todo lo demás.

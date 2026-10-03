@@ -361,9 +361,7 @@ class Backdrop {
     // Hacia dónde mira, sobre el suelo. Lo que queda claramente detrás no se
     // proyecta siquiera: es la mitad de las casillas de cada anillo, y
     // descartarlas cuesta dos multiplicaciones en vez de una proyección.
-    final fl = math.sqrt(
-      p.forward.x * p.forward.x + p.forward.z * p.forward.z,
-    );
+    final fl = math.sqrt(p.forward.x * p.forward.x + p.forward.z * p.forward.z);
     final fx = fl > 0.001 ? p.forward.x / fl : 0.0;
     final fz = fl > 0.001 ? p.forward.z / fl : 1.0;
 
@@ -376,7 +374,8 @@ class Backdrop {
     for (var nivel = 0; nivel < anillos && puestas < 5000; nivel++) {
       final salto = 1 << nivel;
       final step = paso * salto;
-      final fuera = anillo * salto, dentro = nivel == 0 ? 0.0 : anillo * salto / 2;
+      final fuera = anillo * salto,
+          dentro = nivel == 0 ? 0.0 : anillo * salto / 2;
       final f2 = fuera * fuera, d2min = dentro * dentro;
       final i0 = ((ex - fuera) / step).floor();
       final i1 = ((ex + fuera) / step).ceil();
@@ -398,7 +397,8 @@ class Backdrop {
           if (at == null || at.y <= horizonY) continue;
           if (at.x < -60 || at.y < -60 || at.x > size.width + 60) continue;
           if (at.y > size.height + 60) continue;
-          final ancho = p.focal /
+          final ancho =
+              p.focal /
               at.depth *
               0.42 *
               step *
@@ -438,9 +438,14 @@ class Backdrop {
   ) {
     final cuantas = 2 + (hash01(gi, gk, 5, dia) * 2.99).floor();
     for (var b = 0; b < cuantas; b++) {
-      final w = ancho * (b == 0 ? 1.0 : 0.4 + hash01(gi, gk, 30 + b, dia) * 0.55);
-      final x = cx + (b == 0 ? 0.0 : (hash01(gi, gk, 40 + b, dia) - 0.5) * ancho * 1.2);
-      final y = cy + (b == 0 ? 0.0 : (hash01(gi, gk, 50 + b, dia) - 0.5) * ancho * 0.5);
+      final w =
+          ancho * (b == 0 ? 1.0 : 0.4 + hash01(gi, gk, 30 + b, dia) * 0.55);
+      final x =
+          cx +
+          (b == 0 ? 0.0 : (hash01(gi, gk, 40 + b, dia) - 0.5) * ancho * 1.2);
+      final y =
+          cy +
+          (b == 0 ? 0.0 : (hash01(gi, gk, 50 + b, dia) - 0.5) * ancho * 0.5);
       final tumbe = 0.28 + hash01(gi, gk, 60 + b, dia) * 0.26;
       if (hash01(gi, gk, 70 + b, dia) < 0.5) {
         path.addOval(
@@ -451,7 +456,8 @@ class Backdrop {
       const lados = 6;
       for (var j = 0; j <= lados; j++) {
         final a = j * 2 * math.pi / lados;
-        final r = w / 2 * (0.62 + hash01(gi, gk, 80 + b * 8 + j % lados, dia) * 0.62);
+        final r =
+            w / 2 * (0.62 + hash01(gi, gk, 80 + b * 8 + j % lados, dia) * 0.62);
         final px = x + math.cos(a) * r;
         final py = y + math.sin(a) * r * tumbe;
         if (j == 0) {

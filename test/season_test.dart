@@ -1,11 +1,11 @@
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/engine/palette.dart';
-import 'package:la_muralla/engine/season.dart';
-import 'package:la_muralla/engine/tones.dart';
-import 'package:la_muralla/model/appearance.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:towny/engine/palette.dart';
+import 'package:towny/engine/season.dart';
+import 'package:towny/engine/tones.dart';
+import 'package:towny/model/appearance.dart';
 
 /// Un cuarto de vuelta al año, en días.
 const int _quarter = 91;

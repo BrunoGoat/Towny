@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/data/character.dart';
-import 'package:la_muralla/engine/town.dart';
-import 'package:la_muralla/model/habit.dart';
-import 'package:la_muralla/model/piece.dart';
-import 'package:la_muralla/model/review.dart';
-import 'package:la_muralla/ui/review_page.dart';
+import 'package:towny/data/character.dart';
+import 'package:towny/engine/town.dart';
+import 'package:towny/model/habit.dart';
+import 'package:towny/model/piece.dart';
+import 'package:towny/model/review.dart';
+import 'package:towny/ui/review_page.dart';
 
 /// **La cuenta del mes y la del año.**
 ///
@@ -116,9 +116,7 @@ void main() {
           [
             ..._days(2026, 4, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20]),
           ],
-          rests: [
-            Rest(DateTime(2026, 4, 12), DateTime(2026, 4, 19)).encode(),
-          ],
+          rests: [Rest(DateTime(2026, 4, 12), DateTime(2026, 4, 19)).encode()],
         ),
         2026,
         4,
@@ -233,8 +231,10 @@ void main() {
       for (var i = 0; i < 400; i++) {
         when.add(DateTime(2025, 5, 1, 21).add(Duration(days: i)));
       }
-      final cuentas = Review.latest(_town(when, born: DateTime(2025, 5, 1)),
-          now: _hoy);
+      final cuentas = Review.latest(
+        _town(when, born: DateTime(2025, 5, 1)),
+        now: _hoy,
+      );
       expect(cuentas.length, inInclusiveRange(1, 4));
       for (final r in cuentas) {
         expect(r.enough, isTrue);
@@ -245,10 +245,7 @@ void main() {
     });
 
     test('un pueblo recién fundado todavía no tiene ninguna', () {
-      final h = _town(
-        _days(2026, 6, [14]),
-        born: DateTime(2026, 6, 14),
-      );
+      final h = _town(_days(2026, 6, [14]), born: DateTime(2026, 6, 14));
       expect(Review.latest(h, now: _hoy), isEmpty);
     });
 
@@ -353,10 +350,12 @@ void main() {
       for (var i = 0; i < 400; i++) {
         when.add(DateTime(2025, 6, 1, 21).add(Duration(days: i)));
       }
-      final h = _town(when,
-          born: DateTime(2025, 6, 1),
-          identity: 'alguien que lee todos los días',
-          won: DateTime(2026, 6, 15));
+      final h = _town(
+        when,
+        born: DateTime(2025, 6, 1),
+        identity: 'alguien que lee todos los días',
+        won: DateTime(2026, 6, 15),
+      );
       final abril = {
         for (final l in reviewLines(Review.forMonth(h, 2026, 4, now: _hoy)))
           l.label: l.said,
@@ -377,12 +376,14 @@ void main() {
         when.add(DateTime(2025, 6, 1, 21).add(Duration(days: i)));
       }
       final r = Review.forMonth(
-        _town(when,
-            born: DateTime(2025, 6, 1),
-            identity: 'alguien que lee todos los días',
-            // El título se ganó en septiembre del 25, así que en abril del 26
-            // ya estaba dado.
-            won: DateTime(2025, 9, 1)),
+        _town(
+          when,
+          born: DateTime(2025, 6, 1),
+          identity: 'alguien que lee todos los días',
+          // El título se ganó en septiembre del 25, así que en abril del 26
+          // ya estaba dado.
+          won: DateTime(2025, 9, 1),
+        ),
         2026,
         4,
         now: _hoy,

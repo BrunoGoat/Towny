@@ -3,14 +3,14 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/data/character.dart';
-import 'package:la_muralla/engine/camera.dart';
-import 'package:la_muralla/engine/palette.dart';
-import 'package:la_muralla/engine/renderer.dart';
-import 'package:la_muralla/engine/scene.dart';
-import 'package:la_muralla/engine/season.dart';
-import 'package:la_muralla/engine/town.dart';
-import 'package:la_muralla/fx/effects.dart';
+import 'package:towny/data/character.dart';
+import 'package:towny/engine/camera.dart';
+import 'package:towny/engine/palette.dart';
+import 'package:towny/engine/renderer.dart';
+import 'package:towny/engine/scene.dart';
+import 'package:towny/engine/season.dart';
+import 'package:towny/engine/town.dart';
+import 'package:towny/fx/effects.dart';
 
 /// Un pueblo pequeño al anochecer, que es cuando se vio el fallo: el
 /// resplandor de las ventanas de atrás atravesando las casas de delante.

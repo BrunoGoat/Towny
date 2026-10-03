@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/data/character.dart';
-import 'package:la_muralla/model/habit.dart';
-import 'package:la_muralla/model/store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:towny/data/character.dart';
+import 'package:towny/model/habit.dart';
+import 'package:towny/model/store.dart';
 
 Future<Store> freshStore() async {
   SharedPreferences.setMockInitialValues({});

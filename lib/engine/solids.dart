@@ -1349,8 +1349,7 @@ void _hangWindows(
 List<V3> _cornersOf(Aabb b, double cx, double cz) => [
   for (final x in [b.x0 + cx, b.x1 + cx])
     for (final y in [b.y0, b.y1])
-      for (final z in [b.z0 + cz, b.z1 + cz])
-        V3(x, y, z),
+      for (final z in [b.z0 + cz, b.z1 + cz]) V3(x, y, z),
 ];
 
 class NoticeBoard {

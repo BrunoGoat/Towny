@@ -1,11 +1,11 @@
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/core/math3.dart';
-import 'package:la_muralla/data/character.dart';
-import 'package:la_muralla/engine/camera.dart';
-import 'package:la_muralla/engine/town.dart';
-import 'package:la_muralla/model/habit.dart';
+import 'package:towny/core/math3.dart';
+import 'package:towny/data/character.dart';
+import 'package:towny/engine/camera.dart';
+import 'package:towny/engine/town.dart';
+import 'package:towny/model/habit.dart';
 
 /// Lo que `town_view` le dice a la cámara sobre el mundo, calculado igual.
 void reachAllTowns(OrbitCamera cam, List<TownLayout> towns) {

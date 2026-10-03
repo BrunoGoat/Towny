@@ -3,8 +3,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/engine/palette.dart';
-import 'package:la_muralla/ui/cloud_flight.dart';
+import 'package:towny/engine/palette.dart';
+import 'package:towny/ui/cloud_flight.dart';
 
 /// Un fondo que no puede confundirse con una nube ni con un cielo.
 class _Loud extends CustomPainter {

@@ -350,7 +350,10 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
                     switchInCurve: Curves.easeOut,
                     switchOutCurve: Curves.easeIn,
                     child: Appearance.instance.onboarded
-                        ? HomeScreen(key: const ValueKey('pueblo'), store: store)
+                        ? HomeScreen(
+                            key: const ValueKey('pueblo'),
+                            store: store,
+                          )
                         : FirstRun(
                             key: const ValueKey('preguntas'),
                             onDone: _found,

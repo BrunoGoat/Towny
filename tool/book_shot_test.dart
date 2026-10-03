@@ -5,12 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/engine/palette.dart';
-import 'package:la_muralla/model/appearance.dart';
-import 'package:la_muralla/model/store.dart';
-import 'package:la_muralla/ui/legends_book.dart';
-import 'package:la_muralla/ui/style.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:towny/engine/palette.dart';
+import 'package:towny/model/appearance.dart';
+import 'package:towny/model/store.dart';
+import 'package:towny/ui/legends_book.dart';
+import 'package:towny/ui/style.dart';
 
 /// El libro del atril, para mirarlo.
 ///

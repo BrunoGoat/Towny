@@ -4,15 +4,15 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/data/character.dart';
-import 'package:la_muralla/data/landmarks.dart';
-import 'package:la_muralla/engine/palette.dart';
-import 'package:la_muralla/model/appearance.dart';
-import 'package:la_muralla/model/store.dart';
-import 'package:la_muralla/ui/choice_sheet.dart';
-import 'package:la_muralla/ui/home_screen.dart';
-import 'package:la_muralla/ui/style.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:towny/data/character.dart';
+import 'package:towny/data/landmarks.dart';
+import 'package:towny/engine/palette.dart';
+import 'package:towny/model/appearance.dart';
+import 'package:towny/model/store.dart';
+import 'package:towny/ui/choice_sheet.dart';
+import 'package:towny/ui/home_screen.dart';
+import 'package:towny/ui/style.dart';
 
 /// La pantalla de siempre a varias horas, y la tarjeta de elegir.
 ///

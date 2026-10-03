@@ -31,7 +31,7 @@ List<ReviewLine> reviewLines(Review r) {
     ReviewLine(
       r.open ? 'LO QUE LLEVÁS' : 'LO QUE PUSISTE',
       '${r.pieces} ${r.pieces == 1 ? 'pieza' : 'piezas'}, en '
-          '${r.days} de los ${r.of} ${dias(r.of)} que contaban.',
+      '${r.days} de los ${r.of} ${dias(r.of)} que contaban.',
     ),
   );
 

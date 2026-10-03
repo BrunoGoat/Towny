@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/core/rng.dart';
-import 'package:la_muralla/data/character.dart';
-import 'package:la_muralla/engine/town.dart';
-import 'package:la_muralla/model/habit.dart';
-import 'package:la_muralla/model/piece.dart';
+import 'package:towny/core/rng.dart';
+import 'package:towny/data/character.dart';
+import 'package:towny/engine/town.dart';
+import 'package:towny/model/habit.dart';
+import 'package:towny/model/piece.dart';
 
 /// Las cuatro estructuras con las que abre un pueblo de esta semilla.
 List<BuildingKind> _abre(TownCharacter c, int seed) {

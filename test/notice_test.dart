@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/model/findings.dart';
-import 'package:la_muralla/model/habit.dart';
-import 'package:la_muralla/model/piece.dart';
+import 'package:towny/model/findings.dart';
+import 'package:towny/model/habit.dart';
+import 'package:towny/model/piece.dart';
 
 final _now = DateTime(2026, 3, 1, 20, 0);
 

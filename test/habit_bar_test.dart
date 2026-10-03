@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/engine/palette.dart';
-import 'package:la_muralla/model/store.dart';
-import 'package:la_muralla/ui/habit_bar.dart';
-import 'package:la_muralla/ui/habit_sigil.dart';
-import 'package:la_muralla/ui/style.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:towny/engine/palette.dart';
+import 'package:towny/model/store.dart';
+import 'package:towny/ui/habit_bar.dart';
+import 'package:towny/ui/habit_sigil.dart';
+import 'package:towny/ui/style.dart';
 
 /// La fila de marcas es la única puerta que hay a la hoja del hábito.
 ///

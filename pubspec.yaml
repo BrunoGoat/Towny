@@ -1,4 +1,4 @@
-name: la_muralla
+name: towny
 description: "Towny — un hábito, una pieza, un pueblo que crece."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.

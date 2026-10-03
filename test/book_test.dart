@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/data/character.dart';
-import 'package:la_muralla/engine/palette.dart';
-import 'package:la_muralla/engine/town.dart';
-import 'package:la_muralla/model/habit.dart';
-import 'package:la_muralla/model/piece.dart';
-import 'package:la_muralla/ui/legends_book.dart';
-import 'package:la_muralla/ui/style.dart';
-import 'package:la_muralla/ui/works_calendar.dart';
+import 'package:towny/data/character.dart';
+import 'package:towny/engine/palette.dart';
+import 'package:towny/engine/town.dart';
+import 'package:towny/model/habit.dart';
+import 'package:towny/model/piece.dart';
+import 'package:towny/ui/legends_book.dart';
+import 'package:towny/ui/style.dart';
+import 'package:towny/ui/works_calendar.dart';
 
 /// Un pueblo con una leyenda por día, acabando hoy.
 ///

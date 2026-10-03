@@ -1,11 +1,11 @@
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/data/character.dart';
-import 'package:la_muralla/data/landmarks.dart';
-import 'package:la_muralla/engine/solid.dart';
-import 'package:la_muralla/engine/solids.dart';
-import 'package:la_muralla/engine/town.dart';
+import 'package:towny/data/character.dart';
+import 'package:towny/data/landmarks.dart';
+import 'package:towny/engine/solid.dart';
+import 'package:towny/engine/solids.dart';
+import 'package:towny/engine/town.dart';
 
 /// Todo lo que el pueblo sabe construir: las siete casas corrientes y los
 /// ciento y pico hitos, que es la misma lista que enseña el expositor.

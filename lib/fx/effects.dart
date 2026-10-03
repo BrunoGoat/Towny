@@ -284,7 +284,6 @@ class EffectSystem {
   }
 }
 
-
 /// El reloj de la fundación: cuándo sale cada cosa de la plaza.
 ///
 /// Lo miran dos sitios que no se hablan —el pintor, que la dibuja, y la
@@ -321,8 +320,7 @@ class FoundingShow {
   static const double drop = 2.3;
 
   /// Cuándo toca el suelo lo que se soltó en [at].
-  static double landing(double at) =>
-      at + PlacementFx.fallDuration / seconds;
+  static double landing(double at) => at + PlacementFx.fallDuration / seconds;
 
   static double get plazaLands => landing(plazaAt);
   static double get boardLands => landing(boardAt);
@@ -357,9 +355,10 @@ class PlacementFx {
   bool get done => landed && sinceImpact > settleDuration + 0.4;
 
   /// Height above the final resting place.
-  double get yOffset =>
-      fallAt(landed ? fallDuration + sinceImpact : t * fallDuration,
-          height: dropHeight);
+  double get yOffset => fallAt(
+    landed ? fallDuration + sinceImpact : t * fallDuration,
+    height: dropHeight,
+  );
 
   /// A qué altura sobre su sitio está algo que se soltó hace [seconds]
   /// segundos: la caída que tiene todo lo que se pone en este pueblo.

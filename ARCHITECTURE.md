@@ -200,10 +200,20 @@ con la misma clave**, y el propio flujo lo verifica antes de publicar: es lo
 único que permite instalar una build encima de la anterior sin perder los
 pueblos. Android 7.0 (API 24) o superior.
 
-> El certificado sigue diciendo `CN=La Muralla`, que es como se llamaba esto
-> antes, y tiene que seguir diciéndolo. Renombrarlo sería cambiar de clave. Por
-> lo mismo el `applicationId` sigue siendo `com.lamuralla.la_muralla` y el
-> paquete de Dart, `la_muralla`.
+> **Lo que todavía dice «La Muralla», y por qué no se toca.** Así se llamaba
+> esto antes de ser Towny. Lo que quedó del nombre viejo se limpió —el paquete
+> de Dart es `towny`, y los identificadores de iOS, `com.towny.app`— menos tres
+> cosas, que no son marca sino identidad de lo que ya está instalado:
+>
+> | qué | dónde | qué pasa si se cambia |
+> |---|---|---|
+> | `CN=La Muralla` | el certificado de firma, `android/muralla.jks` | es otra clave: la build nueva no se instala encima y hay que desinstalar, lo que borra los pueblos |
+> | `com.lamuralla.la_muralla` | `applicationId` en `build.gradle.kts` | es **otra app**: se instala al lado, la de antes se queda con los datos y la nueva arranca vacía |
+> | `la_muralla_state_v2` | las claves viejas en `store.dart` | es la puerta por la que entra quien no abrió la app desde el cambio de nombre; sin ella, valle vacío |
+>
+> Las tres son cadenas de texto: borrarlas no limpia nada y cuesta los pueblos
+> de alguien. El paquete de Kotlin (`com/lamuralla/la_muralla/`) va con el
+> `applicationId` y se queda con él.
 
 ### Herramientas de desarrollo
 

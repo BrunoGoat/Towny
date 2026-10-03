@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/data/landmarks.dart';
-import 'package:la_muralla/data/landmarks_retired.dart';
-import 'package:la_muralla/engine/mason.dart';
+import 'package:towny/data/landmarks.dart';
+import 'package:towny/data/landmarks_retired.dart';
+import 'package:towny/engine/mason.dart';
 
 /// Vuelca todas las obras del catálogo a un JSON, pieza por pieza.
 ///
@@ -59,8 +59,10 @@ void main() {
     const path = '/tmp/estructuras.json';
     File(path).writeAsStringSync(jsonEncode({'landmarks': out}));
     // ignore: avoid_print
-    print('${out.length} obras y '
-        '${out.fold<int>(0, (a, l) => a + (l['pieces'] as List).length)} '
-        'piezas en $path');
+    print(
+      '${out.length} obras y '
+      '${out.fold<int>(0, (a, l) => a + (l['pieces'] as List).length)} '
+      'piezas en $path',
+    );
   });
 }

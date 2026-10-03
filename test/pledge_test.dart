@@ -1,12 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/data/character.dart';
-import 'package:la_muralla/model/findings.dart';
-import 'package:la_muralla/model/habit.dart';
-import 'package:la_muralla/model/notice.dart';
-import 'package:la_muralla/model/piece.dart';
-import 'package:la_muralla/model/pledge.dart';
-import 'package:la_muralla/model/store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:towny/data/character.dart';
+import 'package:towny/model/findings.dart';
+import 'package:towny/model/habit.dart';
+import 'package:towny/model/notice.dart';
+import 'package:towny/model/piece.dart';
+import 'package:towny/model/pledge.dart';
+import 'package:towny/model/store.dart';
 
 /// **Las tres cosas que no se deducen.**
 ///
@@ -174,7 +174,6 @@ void main() {
       expect(identitySaid(_habit()), isNull);
       expect(identitySaid(_habit(identity: '   ')), isNull);
     });
-
   });
 
   /// **El título se gana.** Ésta es la parte que importa de la identidad: que
@@ -280,19 +279,22 @@ void main() {
       expect(voy.earned, isTrue);
     });
 
-    test('pero cumplirlo a medias no alcanza, aunque hayan pasado los meses', () {
-      // Siete semanas enteras y seis de dos días: el ritmo sigue siendo diario
-      // —la mediana no la mueven seis semanas malas— y el cumplimiento se
-      // queda en dos tercios.
-      final voy = identityStanding(
-        porSemanas([2, 2, 2, 2, 2, 2, 7, 7, 7, 7, 7, 7, 7]),
-        at: hoy,
-      )!;
-      expect(voy.rhythm, 7);
-      expect(voy.missing, 0);
-      expect(voy.kept, lessThan(identityBar));
-      expect(voy.earned, isFalse);
-    });
+    test(
+      'pero cumplirlo a medias no alcanza, aunque hayan pasado los meses',
+      () {
+        // Siete semanas enteras y seis de dos días: el ritmo sigue siendo diario
+        // —la mediana no la mueven seis semanas malas— y el cumplimiento se
+        // queda en dos tercios.
+        final voy = identityStanding(
+          porSemanas([2, 2, 2, 2, 2, 2, 7, 7, 7, 7, 7, 7, 7]),
+          at: hoy,
+        )!;
+        expect(voy.rhythm, 7);
+        expect(voy.missing, 0);
+        expect(voy.kept, lessThan(identityBar));
+        expect(voy.earned, isFalse);
+      },
+    );
 
     test('una semana heroica no tapa una semana en blanco', () {
       // Doce semanas de cinco y una de cero, con catorce piezas en la última:
@@ -311,10 +313,13 @@ void main() {
       // Las semanas dormidas no cuentan ni a favor ni en contra: no bajan el
       // cumplimiento —lo que llevás hecho sigue entero— y el título espera.
       final dormida = hoy.subtract(const Duration(days: 34));
-      final h = porSemanas([
-        for (var w = 0; w < 13; w++)
-          if (w == 8 || w == 9) 0 else 7,
-      ], rests: [Rest(dormida, dormida.add(const Duration(days: 14))).encode()]);
+      final h = porSemanas(
+        [
+          for (var w = 0; w < 13; w++)
+            if (w == 8 || w == 9) 0 else 7,
+        ],
+        rests: [Rest(dormida, dormida.add(const Duration(days: 14))).encode()],
+      );
       final voy = identityStanding(h, at: hoy)!;
       expect(voy.kept, 1.0, reason: 'dormir no es fallar');
       expect(voy.done, 11);
@@ -323,7 +328,10 @@ void main() {
     });
 
     test('sin frase escrita no hay título que ganar', () {
-      expect(identityStanding(porSemanas([7], identity: null), at: hoy), isNull);
+      expect(
+        identityStanding(porSemanas([7], identity: null), at: hoy),
+        isNull,
+      );
     });
 
     test('lo gana una pieza, y el pueblo apunta el día', () async {
@@ -342,7 +350,10 @@ void main() {
       expect(h.identityWonAt, isNull);
 
       // La víspera: se pone una pieza y no pasa nada de nada.
-      final antes = store.lay(h, hoy.subtract(const Duration(days: 1, hours: 2)));
+      final antes = store.lay(
+        h,
+        hoy.subtract(const Duration(days: 1, hours: 2)),
+      );
       expect(antes.crowned, isNull);
       expect(h.identityWonAt, isNull);
 
@@ -419,10 +430,9 @@ void main() {
       // barra de progreso hacia ser alguien es la app de siempre persiguiéndote
       // con lo que te falta. Hasta que se gana, silencio.
       final h = _habit(identity: 'alguien que lee todos los días');
-      expect(
-        [for (final n in noticesFor(h, at: DateTime(2026, 4, 10))) n.kind],
-        isNot(contains(NoticeKind.who)),
-      );
+      expect([
+        for (final n in noticesFor(h, at: DateTime(2026, 4, 10))) n.kind,
+      ], isNot(contains(NoticeKind.who)));
       expect(whoYouAre(h, DateTime(2026, 4, 10)), isNull);
     });
 

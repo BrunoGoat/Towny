@@ -4,7 +4,7 @@ import 'dart:ui';
 import '../core/math3.dart';
 import 'season.dart';
 
-/// The look of La Muralla: stylised flat-shaded limestone under a big sky.
+/// The look of Towny: stylised flat-shaded limestone under a big sky.
 ///
 /// Colours are computed rather than sampled, so the whole scene moves with the
 /// real clock: the sun climbs and sets, the moon takes over, shadows swing

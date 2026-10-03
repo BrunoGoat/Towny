@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/model/arrival.dart';
-import 'package:la_muralla/model/store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:towny/model/arrival.dart';
+import 'package:towny/model/store.dart';
 
 Future<Store> _store() async {
   SharedPreferences.setMockInitialValues({});

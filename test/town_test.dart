@@ -1,13 +1,13 @@
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:la_muralla/core/rng.dart';
-import 'package:la_muralla/data/character.dart';
-import 'package:la_muralla/data/landmarks.dart';
-import 'package:la_muralla/data/landmarks_retired.dart';
-import 'package:la_muralla/engine/mason.dart';
-import 'package:la_muralla/engine/town.dart';
-import 'package:la_muralla/model/habit.dart';
+import 'package:towny/core/rng.dart';
+import 'package:towny/data/character.dart';
+import 'package:towny/data/landmarks.dart';
+import 'package:towny/data/landmarks_retired.dart';
+import 'package:towny/engine/mason.dart';
+import 'package:towny/engine/town.dart';
+import 'package:towny/model/habit.dart';
 
 /// Los hitos que un pueblo levanta, en orden, sin crónica escrita: o sea, lo
 /// que decidiría hoy un pueblo recién fundado.
