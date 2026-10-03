@@ -65,6 +65,23 @@ flutter:
   # a logbook that reads in Roboto on half the devices is not a logbook.
   # Roboto Slab, Apache 2.0, shipped with the Flutter engine.
   fonts:
+    # La letra de toda la interfaz, y está aquí a propósito.
+    #
+    # Sin declararla, el texto que no pide una familia concreta cae en la que
+    # traiga el aparato. En Android es ésta misma y no se nota; **en web no hay
+    # ninguna**, así que el motor se la baja de `fonts.gstatic.com` en cada
+    # arranque — y si esa descarga no llega, el texto no cae en otra fuente:
+    # desaparece. Se vio: la pantalla de la primera vez salía con el título
+    # puesto (ése sí pide Chronicle) y el cuerpo y el botón en blanco.
+    #
+    # Son trescientos cuarenta kilos en una app de sesenta y tres megas, y a
+    # cambio la web se lee en un tren sin cobertura.
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto.ttf
+        - asset: assets/fonts/Roboto-Medium.ttf
+          weight: 500
+
     - family: Chronicle
       fonts:
         - asset: assets/fonts/RobotoSlab.ttf

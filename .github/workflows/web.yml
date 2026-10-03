@@ -39,8 +39,13 @@ jobs:
         # sus archivos en el lugar equivocado.
         # BUILD es el mismo número que la APK, para que en *Ajustes* se pueda
         # ver qué versión tiene abierta el iPhone.
+        # Y con todo dentro: sin `--no-web-resources-cdn`, el motor gráfico
+        # —CanvasKit, varios megas— se baja de `gstatic.com` en cada visita en
+        # vez de salir de aquí al lado. Ya viene en el propio build, así que
+        # servirlo de Pages es una dependencia menos y una carga más rápida.
         run: |
           flutter build web --release \
+            --no-web-resources-cdn \
             --base-href /Towny/ \
             --dart-define=BUILD=${{ github.run_number }}
 

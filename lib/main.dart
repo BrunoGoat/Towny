@@ -317,6 +317,14 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
+        // La letra de la casa, dicha y no supuesta.
+        //
+        // Sin esto, cada texto que no pide familia usa la que traiga el
+        // aparato: en Android es Roboto y da igual, pero en web no hay
+        // ninguna y el motor se la baja de Google en cada arranque. Si la
+        // descarga no llega, el texto no cambia de fuente — se queda en
+        // blanco. Nombrándola, sale del propio paquete y no de internet.
+        fontFamily: 'Roboto',
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFFD6C9A8),
           brightness: Brightness.light,
