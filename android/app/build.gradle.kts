@@ -17,7 +17,7 @@ plugins {
 // every run and threw it away. Two consecutive builds had two different
 // certificates and neither could update the other.
 //
-// The keystore is `android/muralla.jks`, and it is committed — which is not
+// The keystore is `android/towny.jks`, and it is committed — which is not
 // where a signing key normally lives. It is here on purpose: the app is not
 // published anywhere, so there is no installed copy of anybody's that somebody
 // holding this key could replace, and in exchange a clone of this repository
@@ -38,7 +38,7 @@ if (keyFile.exists()) {
 val signedForReal = keyProps.getProperty("storeFile") != null
 
 android {
-    namespace = "com.lamuralla.la_muralla"
+    namespace = "com.towny.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -57,13 +57,17 @@ android {
     }
 
     defaultConfig {
-        // Dice «lamuralla» porque así se llamaba la app, y **tiene que
-        // seguir diciéndolo**: el applicationId es la identidad de lo
-        // instalado. Cambiarlo no renombra nada — crea otra app, que se
-        // instala al lado y arranca con el valle vacío mientras la de antes
-        // se queda con los pueblos. Lo mismo vale para la clave de firma de
-        // abajo y para el paquete de Kotlin, que va con éste.
-        applicationId = "com.lamuralla.la_muralla"
+        // Esto es la identidad de la app para Android, y cambiarla no renombra
+        // nada: crea otra. Decía `com.lamuralla.la_muralla`, de cuando esto se
+        // llamaba La Muralla, y se cambió a sabiendas de que la build siguiente
+        // se instala **al lado** de la anterior en vez de encima — con el valle
+        // vacío, mientras la vieja se queda con los pueblos. Se pudo hacer
+        // porque la app no está publicada y la única copia instalada es la de
+        // quien la escribe, que sacó su copia antes.
+        //
+        // A partir de aquí vuelve a ser intocable, y por el mismo motivo de
+        // siempre. El paquete de Kotlin y la clave de firma van con ésta.
+        applicationId = "com.towny.app"
         // Flutter's default (API 24) already clears every plugin here, and
         // leaving the reference in place keeps `flutter build` from rewriting
         // this line into Groovy syntax inside a Kotlin script.
@@ -75,7 +79,7 @@ android {
 
     signingConfigs {
         if (signedForReal) {
-            create("muralla") {
+            create("towny") {
                 storeFile = rootProject.file(keyProps.getProperty("storeFile"))
                 storePassword = keyProps.getProperty("storePassword")
                 keyAlias = keyProps.getProperty("keyAlias")
@@ -87,7 +91,7 @@ android {
     buildTypes {
         release {
             signingConfig = if (signedForReal) {
-                signingConfigs.getByName("muralla")
+                signingConfigs.getByName("towny")
             } else {
                 signingConfigs.getByName("debug")
             }

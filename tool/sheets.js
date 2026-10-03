@@ -35,7 +35,7 @@ const server = http.createServer((q,r)=>{let p=decodeURIComponent(q.url.split('?
   await page.waitForTimeout(900);
   await shot('3-legends');
 
-  // back to LA MURALLA, scroll to the bottom, open the debug sheet
+  // back to TOWNY, scroll to the bottom, open the debug sheet
   await page.mouse.click(120, 208);
   await page.waitForTimeout(700);
   await page.mouse.move(220, 600);

@@ -29,7 +29,7 @@ List<TownLayout> valleyOf(int howMany, int pieces) => [
 void main() {
   group('la cámara alcanza a todos los pueblos', () {
     // El defecto: `travelTo` recortaba a [-2, wallLength + 2], que era lo
-    // correcto cuando esto era una muralla recta que empezaba en el origen.
+    // correcto cuando lo que se construía era una pared recta desde el origen.
     // El valle se abre a los dos lados hasta setenta y ocho, así que a cuatro
     // de los seis pueblos la cámara no podía ni mirarlos: al poner una pieza
     // se quedaba apuntando al campo vacío del medio. Y no fallaba nada —

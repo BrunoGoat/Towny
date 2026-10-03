@@ -20,5 +20,5 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
-!muralla.jks
+!towny.jks
 !key.properties

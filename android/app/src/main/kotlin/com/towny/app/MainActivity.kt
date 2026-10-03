@@ -1,4 +1,4 @@
-package com.lamuralla.la_muralla
+package com.towny.app
 
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine

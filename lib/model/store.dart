@@ -65,16 +65,6 @@ class Store extends ChangeNotifier {
 
   static const _key = 'pueblo_state_v1';
 
-  /// Cómo se llamaba el cajón cuando la app era una muralla.
-  ///
-  /// **Esto no es un resto de la marca vieja: es la puerta por la que entran
-  /// los que todavía no abrieron la app desde el cambio de nombre.** Lo de
-  /// ahora se guarda en [_key]; esto se lee una vez, se copia allí y no se
-  /// vuelve a tocar. Borrarlo no limpia nada —son dos cadenas— y a quien
-  /// siguiera en la versión de antes le vaciaría el valle.
-  static const _wallKey = 'la_muralla_state_v2';
-  static const _wallLegacyKey = 'la_muralla_state_v1';
-
   final List<Habit> habits = [];
   int active = 0;
 
@@ -669,8 +659,6 @@ class Store extends ChangeNotifier {
       } catch (_) {
         habits.clear();
       }
-    } else {
-      _adoptTheWall();
     }
     if (habits.isEmpty) habits.add(_blankHabit());
     active = active.clamp(0, habits.length - 1);
@@ -684,42 +672,6 @@ class Store extends ChangeNotifier {
     if (moved) _save();
     loaded = true;
     notifyListeners();
-  }
-
-  /// Everything laid back when this was one wall becomes the first habit's
-  /// town. Nobody loses a year of work to a change of mind about the app.
-  void _adoptTheWall() {
-    final raw =
-        _prefs?.getString(_wallKey) ?? _prefs?.getString(_wallLegacyKey);
-    if (raw == null || raw.isEmpty) return;
-    try {
-      final j = jsonDecode(raw) as Map<String, dynamic>;
-      final list =
-          ((j['bricks'] as List?) ?? [])
-              .map((e) => Piece.fromJson(e as Map<String, dynamic>))
-              .toList()
-            ..sort((a, b) => a.index.compareTo(b.index));
-      for (var i = 0; i < list.length; i++) {
-        list[i] = Piece(
-          index: i,
-          placedAt: list[i].placedAt,
-          label: list[i].label,
-        );
-      }
-      if (list.isEmpty) return;
-      habits.add(
-        Habit(
-          id: 'h0',
-          name: 'Mi hábito',
-          symbol: kDefaultHabitSymbol,
-          slot: 0,
-          createdAt: list.first.placedAt,
-          pieces: list,
-        ),
-      );
-    } catch (_) {
-      // A save from a version that no longer exists is not worth crashing for.
-    }
   }
 
   void _decode(Map<String, dynamic> j) {

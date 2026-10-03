@@ -65,12 +65,12 @@ jobs:
           fi
           "$APKSIGNER" verify --print-certs \
             build/app/outputs/flutter-apk/app-release.apk | tee certs.txt
-          # El CN del certificado sigue diciendo «La Muralla» y tiene que
-          # seguir diciéndolo: la app se llama Towny ahora, pero la clave es
-          # la misma de siempre a propósito, que es lo único que permite
-          # instalar encima sin perder los pueblos. Cambiar el nombre del
-          # certificado sería cambiar de clave.
-          grep -qi "CN=La Muralla" certs.txt || {
+          # El certificado dice «Towny» desde que se cambió la clave, y lo que
+          # se comprueba es que siga siendo **la misma**: dos builds firmadas
+          # con claves distintas no se actualizan entre sí, hay que desinstalar,
+          # y desinstalar borra los pueblos. Ya pasó una vez sin que nada
+          # avisara, y por eso esto está aquí.
+          grep -qi "CN=Towny" certs.txt || {
             echo "::error::La APK no está firmada con la clave de siempre."
             exit 1
           }

@@ -1,4 +1,4 @@
-package com.lamuralla.la_muralla
+package com.towny.app
 
 import android.app.AlarmManager
 import android.app.PendingIntent
@@ -187,8 +187,8 @@ class TownyWidget : AppWidgetProvider() {
         /** Los solares del valle. Ver `Habit.maxSlots` del otro lado. */
         const val SLOTS = 6
 
-        private const val ACTION_TAP = "com.lamuralla.la_muralla.WIDGET_TAP"
-        private const val ACTION_FORGET = "com.lamuralla.la_muralla.WIDGET_FORGET"
+        private const val ACTION_TAP = "com.towny.app.WIDGET_TAP"
+        private const val ACTION_FORGET = "com.towny.app.WIDGET_FORGET"
         private const val EXTRA_HABIT = "habit"
 
         private val ROW = intArrayOf(

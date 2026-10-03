@@ -425,8 +425,12 @@ void main() {
     });
 
     test('a corrupt save starts clean instead of failing', () async {
+      // Sobre la clave de ahora, que es donde está lo que se guarda. Apuntaba
+      // a la del nombre viejo, y al irse el lector de aquello esta prueba
+      // habría pasado por no haber ningún guardado que leer — que es pasar
+      // sin probar nada.
       SharedPreferences.setMockInitialValues({
-        'flutter.la_muralla_state_v2': 'not json at all',
+        'flutter.pueblo_state_v1': 'not json at all',
       });
       final s = Store();
       await s.load();

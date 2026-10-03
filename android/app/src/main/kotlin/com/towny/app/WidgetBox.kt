@@ -1,4 +1,4 @@
-package com.lamuralla.la_muralla
+package com.towny.app
 
 import android.content.Context
 import android.content.SharedPreferences

@@ -200,20 +200,21 @@ con la misma clave**, y el propio flujo lo verifica antes de publicar: es lo
 único que permite instalar una build encima de la anterior sin perder los
 pueblos. Android 7.0 (API 24) o superior.
 
-> **Lo que todavía dice «La Muralla», y por qué no se toca.** Así se llamaba
-> esto antes de ser Towny. Lo que quedó del nombre viejo se limpió —el paquete
-> de Dart es `towny`, y los identificadores de iOS, `com.towny.app`— menos tres
-> cosas, que no son marca sino identidad de lo que ya está instalado:
+> **Del nombre viejo no queda nada.** Esto se llamó La Muralla antes de ser
+> Towny, y el rastro que quedaba —el paquete de Dart, el `applicationId`, el
+> paquete de Kotlin, la clave de firma, los identificadores de iOS y las claves
+> viejas del cajón— se fue entero. Hoy es `com.towny.app` en los dos sistemas,
+> el paquete de Dart es `towny` y el certificado dice `CN=Towny`.
 >
-> | qué | dónde | qué pasa si se cambia |
-> |---|---|---|
-> | `CN=La Muralla` | el certificado de firma, `android/muralla.jks` | es otra clave: la build nueva no se instala encima y hay que desinstalar, lo que borra los pueblos |
-> | `com.lamuralla.la_muralla` | `applicationId` en `build.gradle.kts` | es **otra app**: se instala al lado, la de antes se queda con los datos y la nueva arranca vacía |
-> | `la_muralla_state_v2` | las claves viejas en `store.dart` | es la puerta por la que entra quien no abrió la app desde el cambio de nombre; sin ella, valle vacío |
+> Se pudo hacer porque la app no está publicada y la única copia instalada era
+> la de quien la escribe. **Cambiar el `applicationId` o la clave de firma no
+> renombra una app: la build siguiente se instala al lado de la anterior, con
+> el valle vacío, y la vieja se queda con los pueblos.** Fue una decisión
+> tomada sabiendo eso, con una copia sacada antes desde *el viaje → Tus datos*.
 >
-> Las tres son cadenas de texto: borrarlas no limpia nada y cuesta los pueblos
-> de alguien. El paquete de Kotlin (`com/lamuralla/la_muralla/`) va con el
-> `applicationId` y se queda con él.
+> A partir de aquí las tres vuelven a ser intocables, y por lo mismo. El día
+> que esto se publique, además, la clave sale del repositorio o pasa a ser la
+> de Play.
 
 ### Herramientas de desarrollo
 
