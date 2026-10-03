@@ -1,0 +1,60 @@
+name: Web
+
+on:
+  push:
+    branches:
+      - claude/sustainable-habits-design-snpxyb
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Si llegan dos pushes seguidos, gana el último: no tiene sentido publicar
+# una web que ya quedó vieja antes de terminar de subir.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Towny web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.1'
+          channel: stable
+          cache: true
+
+      - name: Dependencies
+        run: flutter pub get
+
+      - name: Build release web
+        # La web vive en https://brunogoat.github.io/Towny/, no en la raíz del
+        # dominio, y sin el base-href la página carga en blanco porque busca
+        # sus archivos en el lugar equivocado.
+        # BUILD es el mismo número que la APK, para que en *Ajustes* se pueda
+        # ver qué versión tiene abierta el iPhone.
+        run: |
+          flutter build web --release \
+            --base-href /Towny/ \
+            --dart-define=BUILD=${{ github.run_number }}
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  deploy:
+    name: Publish to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
