@@ -38,60 +38,24 @@ void main() {
       s.placePiece();
       expect(s.pieces.map((x) => x.index), [0, 1, 2]);
     });
-
-    test('a brick starts with no note at all', () async {
-      final s = await freshStore();
-      final r = s.placePiece();
-      expect(r.piece.hasLabel, isFalse);
-      expect(r.piece.label, isNull);
-    });
   });
 
-  group('notes on a stone', () {
-    test('a note is optional and can be written later', () async {
+  group('las leyendas ya no existen', () {
+    // Quien venga de una versión con leyendas trae en cada pieza una clave
+    // `l`. Se lee el valle entero, y en el teléfono queda escrito sin ellas.
+    test('un guardado con leyendas se abre y se reescribe sin ellas', () async {
       final s = await freshStore();
       s.placePiece();
       s.placePiece();
-      expect(s.labelled, isEmpty);
+      final viejo = s.exportSave().replaceFirst('"i":1,', '"i":1,"l":"Leí",');
+      expect(viejo, contains('"l":"Leí"'));
 
-      s.setLabel(0, 'Leí');
-      expect(s.pieceAt(0)!.label, 'Leí');
-      expect(s.pieceAt(1)!.hasLabel, isFalse);
-      expect(s.labelled.map((b) => b.index), [0]);
-    });
-
-    test('a note can be rewritten and cleared', () async {
-      final s = await freshStore();
-      s.placePiece();
-      s.setLabel(0, 'Corrí');
-      s.setLabel(0, 'Corrí 10k');
-      expect(s.pieceAt(0)!.label, 'Corrí 10k');
-      s.setLabel(0, '   ');
-      expect(
-        s.pieceAt(0)!.hasLabel,
-        isFalse,
-        reason: 'blank should clear the note, not store whitespace',
-      );
-    });
-
-    test('writing a note never changes what the wall is', () async {
-      final s = await freshStore();
-      for (var i = 0; i < 5; i++) {
-        s.placePiece();
-      }
-      final before = s.total;
-      s.setLabel(2, 'Algo');
-      expect(s.total, before);
-    });
-
-    test('the newest note comes first in the log', () async {
-      final s = await freshStore();
-      for (var i = 0; i < 4; i++) {
-        s.placePiece();
-      }
-      s.setLabel(0, 'uno');
-      s.setLabel(3, 'cuatro');
-      expect(s.labelled.map((b) => b.index), [3, 0]);
+      SharedPreferences.setMockInitialValues({'pueblo_state_v1': viejo});
+      final again = Store();
+      await again.load();
+      expect(again.total, 2);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('pueblo_state_v1'), isNot(contains('"l":')));
     });
   });
 
@@ -233,10 +197,9 @@ void main() {
   });
 
   group('la hora de una pieza se corrige', () {
-    test('y se queda corregida, con su leyenda intacta', () async {
+    test('y se queda corregida', () async {
       final s = await freshStore();
       s.placePiece();
-      s.setLabel(0, 'Salí a correr');
       // Un rato antes y no una hora fija: el test corre a cualquier hora del
       // día y una hora fija sería el futuro la mitad de las veces — y el
       // futuro se recorta, que es justo la prueba siguiente.
@@ -244,7 +207,6 @@ void main() {
       final temprano = antes.subtract(const Duration(hours: 9, minutes: 7));
       s.setPlacedAt(0, temprano);
       expect(s.pieceAt(0)!.placedAt, temprano);
-      expect(s.pieceAt(0)!.label, 'Salí a correr');
     });
 
     test('nunca hacia el futuro', () async {
@@ -368,20 +330,6 @@ void main() {
       expect(s.total, 0);
     });
 
-    test('se lleva su leyenda', () async {
-      final s = await freshStore();
-      s.placePiece();
-      s.setLabel(0, 'lo que fuera');
-      expect(s.pieceAt(0)!.label, 'lo que fuera');
-      s.removeLastPiece();
-      s.placePiece();
-      expect(
-        s.pieceAt(0)!.hasLabel,
-        isFalse,
-        reason: 'volvió la leyenda vieja',
-      );
-    });
-
     test('y queda quitada al volver a abrir', () async {
       final s = await freshStore();
       s.placePiece();
@@ -414,14 +362,16 @@ void main() {
       for (var i = 0; i < 14; i++) {
         a.placePiece();
       }
-      a.setLabel(3, 'Leí');
       await Future<void>.delayed(const Duration(milliseconds: 20));
 
       final b = Store();
       await b.load();
       expect(b.total, a.total);
-      expect(b.pieceAt(3)!.label, 'Leí');
-      expect(b.labelled.length, 1);
+      // Al milisegundo, que es la resolución con la que se guarda.
+      expect(
+        b.pieceAt(3)!.placedAt.millisecondsSinceEpoch,
+        a.pieceAt(3)!.placedAt.millisecondsSinceEpoch,
+      );
     });
 
     test('a corrupt save starts clean instead of failing', () async {

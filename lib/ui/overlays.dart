@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import '../data/landmarks.dart';
 import '../fx/sensory.dart';
 import '../model/works_log.dart';
-import 'legend_card.dart';
-import 'papyrus.dart';
 import 'style.dart';
 
 /// The card for a landmark the town has just finished.
@@ -38,8 +36,8 @@ class TownLandmarkOverlay extends StatelessWidget {
   String? get _cuando {
     final s = span;
     if (s == null || !s.done) return null;
-    final a = '${s.began.day} de ${Papyrus.months[s.began.month - 1]}';
-    final b = '${s.ended!.day} de ${Papyrus.months[s.ended!.month - 1]}';
+    final a = '${s.began.day} de ${_meses[s.began.month - 1]}';
+    final b = '${s.ended!.day} de ${_meses[s.ended!.month - 1]}';
     final d = s.days!;
     return 'del $a al $b · $d ${d == 1 ? 'día' : 'días'}';
   }
@@ -106,7 +104,7 @@ class TownLandmarkOverlay extends StatelessWidget {
                       style: TextStyle(
                         color: t.fg,
                         fontSize: 24,
-                        fontFamily: Papyrus.serif,
+                        fontFamily: 'Chronicle',
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -185,41 +183,29 @@ class Whisper extends StatelessWidget {
   }
 }
 
-/// Para qué fue una pieza, al tocarla.
+/// Una pieza, al tocarla: cuál es y cuándo se puso.
 ///
-/// La leyenda se escribe aquí mismo. Antes esto abría una hoja por debajo con
-/// su título, su explicación y sus botones de guardar y cancelar: una pantalla
-/// entera para una frase de sesenta letras que ya estaba en pantalla. Ahora el
-/// texto se convierte en el campo y se escribe donde se lee.
-///
-/// Y no hay botón de guardar. Tocar fuera guarda, que es lo que iba a pasar de
-/// todas formas.
-class StoneCard extends StatefulWidget {
+/// Tocar la fecha corrige la hora. Sólo la hora: el día es el día en que se
+/// puso y eso no se discute — una pieza es el día que la ganaste.
+class StoneCard extends StatelessWidget {
   const StoneCard({
     super.key,
     required this.theme,
     required this.when,
     required this.number,
-    required this.label,
-    required this.onWrite,
     required this.onWhen,
   });
 
   final UiTheme theme;
   final DateTime when;
   final int number;
-  final String? label;
-
-  /// La leyenda nueva. Vacía quiere decir que se borró.
-  final void Function(String text) onWrite;
 
   /// La hora corregida.
   ///
   /// La app apunta la hora en que tocaste el botón, y ésa no siempre es la
   /// hora en que hiciste la cosa: se corre a las once de la noche lo que se
   /// hizo al levantarse, y el pueblo lo anota como una costumbre nocturna —el
-  /// tablón se fija justo en eso. Se toca la fecha de la cabecera y se
-  /// arregla.
+  /// tablón se fija justo en eso. Se toca la fecha y se arregla.
   final void Function(DateTime when) onWhen;
 
   static const _months = [
@@ -261,40 +247,12 @@ class StoneCard extends StatefulWidget {
       '${w.day} ${_months[w.month - 1]} ${w.year} · '
       '${w.hour.toString().padLeft(2, '0')}:${w.minute.toString().padLeft(2, '0')}';
 
-  @override
-  State<StoneCard> createState() => _StoneCardState();
-}
-
-class _StoneCardState extends State<StoneCard> {
-  late final TextEditingController _text = TextEditingController(
-    text: widget.label ?? '',
-  );
-  final FocusNode _focus = FocusNode();
-  bool _writing = false;
-
-  @override
-  void dispose() {
-    _text.dispose();
-    _focus.dispose();
-    super.dispose();
-  }
-
-  void _open() {
-    if (_writing) return;
+  Future<void> _when(BuildContext context) async {
     Sensory.instance.tick();
-    setState(() => _writing = true);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _focus.requestFocus());
-  }
-
-  /// Corregir la hora. Sólo la hora: el día es el día en que se puso y eso no
-  /// se discute — una pieza es el día que la ganaste.
-  Future<void> _when() async {
-    if (_writing) _close();
-    Sensory.instance.tick();
-    final t = widget.theme;
+    final t = theme;
     final puesto = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay.fromDateTime(widget.when),
+      initialTime: TimeOfDay.fromDateTime(when),
       helpText: 'A QUÉ HORA FUE',
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
@@ -304,82 +262,78 @@ class _StoneCardState extends State<StoneCard> {
         child: child!,
       ),
     );
-    if (puesto == null || !mounted) return;
-    final w = widget.when;
-    if (puesto.hour == w.hour && puesto.minute == w.minute) return;
+    if (puesto == null) return;
+    if (puesto.hour == when.hour && puesto.minute == when.minute) return;
     Sensory.instance.tick();
-    widget.onWhen(DateTime(w.year, w.month, w.day, puesto.hour, puesto.minute));
-  }
-
-  void _close() {
-    if (!_writing) return;
-    final t = _text.text.trim();
-    if (t != (widget.label ?? '')) {
-      Sensory.instance.tick();
-      widget.onWrite(t);
-    }
-    setState(() => _writing = false);
+    onWhen(
+      DateTime(when.year, when.month, when.day, puesto.hour, puesto.minute),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final t = widget.theme;
-    final has = widget.label != null && widget.label!.trim().isNotEmpty;
-    return LegendCard(
-      theme: t,
-      onTap: _writing ? null : _open,
-      header: 'PIEZA ${widget.number} · ${StoneCard.formatDate(widget.when)}',
-      onTapHeader: _when,
-      child: _writing
-          ? TextField(
-              controller: _text,
-              focusNode: _focus,
-              maxLength: 60,
-              textInputAction: TextInputAction.done,
-              onSubmitted: (_) => _close(),
-              onTapOutside: (_) => _close(),
-              textCapitalization: TextCapitalization.sentences,
-              cursorColor: t.accent,
-              // El color va escrito aquí y no heredado. La tarjeta se lo pone
-              // a su cuerpo con un DefaultTextStyle, que es lo que hace que la
-              // leyenda ya escrita salga clara sobre el bloque oscuro de
-              // noche; pero un campo de texto no lee eso: se mezcla contra el
-              // tema de Material, que lo pintaba en negro. Así, escribiendo de
-              // noche se escribía en negro y al guardar el mismo texto se
-              // volvía blanco.
-              style: TextStyle(
-                fontSize: 13.5,
-                height: 1.25,
-                fontWeight: FontWeight.w500,
-                color: t.fg,
-              ),
-              decoration: InputDecoration(
-                isDense: true,
-                counterText: '',
-                contentPadding: EdgeInsets.zero,
-                hintText: 'qué fue',
-                // Y el hueco, de la misma tinta floja que «escribir una
-                // leyenda»: es lo mismo que falta, visto un segundo después.
-                hintStyle: TextStyle(
-                  fontSize: 13.5,
-                  height: 1.25,
-                  fontWeight: FontWeight.w400,
-                  color: LegendCard.pending(t),
+    final t = theme;
+    final rotulo = t.label.copyWith(fontSize: 8.5, letterSpacing: 1.2);
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 300),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(4),
+        child: Container(
+          color: Color.lerp(t.panelStrong, t.accent, t.dark ? 0.16 : 0.13),
+          padding: const EdgeInsets.fromLTRB(14, 11, 14, 13),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('PIEZA $number', style: rotulo),
+              const SizedBox(height: 5),
+              // La fecha lleva un relojito detrás: se puede corregir, y una
+              // fecha que se toca tiene que verse distinta de una que no.
+              GestureDetector(
+                onTap: () => _when(context),
+                behavior: HitTestBehavior.opaque,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        formatDate(when),
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          height: 1.25,
+                          fontWeight: FontWeight.w500,
+                          color: t.fg,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Icon(
+                      Icons.schedule,
+                      size: 12,
+                      color: t.fg.withValues(alpha: 0.6),
+                    ),
+                  ],
                 ),
-                border: InputBorder.none,
               ),
-            )
-          : Text(
-              has ? widget.label! : 'escribir una leyenda',
-              // Sin color cuando hay leyenda: lo pone la tarjeta. Cuando no la
-              // hay, pardo flojo — es una frase que falta, no un aviso.
-              style: TextStyle(
-                fontSize: 13.5,
-                height: 1.25,
-                fontWeight: has ? FontWeight.w500 : FontWeight.w400,
-                color: has ? null : LegendCard.pending(t),
-              ),
-            ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
+
+const List<String> _meses = [
+  'enero',
+  'febrero',
+  'marzo',
+  'abril',
+  'mayo',
+  'junio',
+  'julio',
+  'agosto',
+  'septiembre',
+  'octubre',
+  'noviembre',
+  'diciembre',
+];

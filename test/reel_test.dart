@@ -264,7 +264,7 @@ void main() {
     /// Los últimos [k] pasos de un hábito, que es lo que llega del buzón.
     List<ReelStep> ultimas(Habit h, int k, {int slot = 0}) => [
       for (final p in h.pieces.skip(h.pieces.length - k))
-        ReelStep(p.placedAt, slot, null),
+        ReelStep(p.placedAt, slot),
     ];
 
     test('el pueblo está hecho desde el primer fotograma menos lo que cae', () {
@@ -325,7 +325,7 @@ void main() {
         [h],
         [
           for (var i = 0; i < 5; i++)
-            ReelStep(_inicio.add(Duration(hours: i)), 0, null),
+            ReelStep(_inicio.add(Duration(hours: i)), 0),
         ],
       )!;
       expect(r.base.first, greaterThanOrEqualTo(0));
@@ -338,8 +338,8 @@ void main() {
       final r = Reel.arrivals(
         [leer, correr],
         [
-          ReelStep(leer.pieces.last.placedAt, 0, null),
-          ReelStep(correr.pieces.last.placedAt, 1, null),
+          ReelStep(leer.pieces.last.placedAt, 0),
+          ReelStep(correr.pieces.last.placedAt, 1),
         ],
       )!;
       expect(r.base, [19, 8]);

@@ -52,7 +52,6 @@ TownScene _escena(
     time: 3.0,
     hourOfDay: 14,
     effects: EffectSystem(),
-    labelledBricks: const {},
     towns: towns,
     active: 0,
   );

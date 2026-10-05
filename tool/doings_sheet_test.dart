@@ -103,7 +103,6 @@ void _retrato(Canvas canvas, Doing d, double t, double giro, Size size) {
       time: t,
       hourOfDay: 11,
       effects: EffectSystem(),
-      labelledBricks: const {},
       budget: 4000,
       towns: [
         TownEntry(

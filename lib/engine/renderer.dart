@@ -62,14 +62,11 @@ class TownPainter extends CustomPainter {
   List<PickTarget> get picks => hits.pieces;
   List<SignHit> get signs => hits.signs;
   List<BoardHit> get boards => hits.boards;
-  List<LecternHit> get lecterns => hits.lecterns;
   List<SkyHit> get skies => hits.skies;
 
   /// Filled every frame: where each town's sign is, for the gesture layer.
 
   /// And where each town's notice board is.
-
-  /// Y dónde quedó su atril.
 
   /// Se rellena al pintar: dónde cayó la constelación de esta noche.
 
@@ -333,17 +330,7 @@ class TownPainter extends CustomPainter {
       return;
     }
     _pickAt[brickIndex] = picks.length;
-    picks.add(
-      PickTarget(
-        brickIndex,
-        minX,
-        minY,
-        maxX,
-        maxY,
-        near,
-        scene.labelledBricks.contains(brickIndex),
-      ),
-    );
+    picks.add(PickTarget(brickIndex, minX, minY, maxX, maxY, near));
   }
 
   /// The lanes between the blocks, and the shadow each building sits in.
@@ -665,8 +652,9 @@ class TownPainter extends CustomPainter {
       // Desde el valle no se tocan los muebles de una plaza.
       //
       // Y esto **no se puede decidir por el tamaño**, que es lo que se intentó
-      // primero: en el pueblo más grande que encuadra la app el atril ocupa
-      // catorce píxeles de alto, y desde el valle el tablón ocupa trece. Se
+      // primero: en el pueblo más grande que encuadra la app un mueble chico
+      // de la plaza ocupa catorce píxeles de alto, y desde el valle el tablón
+      // ocupa trece. Se
       // solapan, así que cualquier umbral de píxeles o deja sin blanco a un
       // pueblo crecido o reparte blancos de dedo sobre un valle entero.
       //
@@ -684,16 +672,14 @@ class TownPainter extends CustomPainter {
       if (dx * dx + dy * dy + dz * dz > alcance * alcance) continue;
       final board = _screenBox(p, size, NoticeBoard.boxAt(l.cx, l.cz));
       if (board != null) boards.add(BoardHit(i, board));
-      final desk = _screenBox(p, size, Lectern.boxAt(l.cx, l.cz));
-      if (desk != null) lecterns.add(LecternHit(i, desk));
     }
   }
 
   /// El rectángulo que ocupa en pantalla una cara del mundo, o nulo si no hay
   /// nada ahí a lo que apuntar.
   ///
-  /// Lo comparten el tablón y el atril, que son la misma clase de cosa: un
-  /// mueble pequeño en la plaza cuyas cuatro esquinas se conocen. Fuera del
+  /// Es para el tablón: un mueble pequeño en la plaza cuyas cuatro esquinas se
+  /// conocen. Fuera del
   /// encuadre no hay blanco, y más pequeño que la yema de un dedo tampoco:
   /// nadie apuntaba a algo de ocho píxeles, y de canto un tablero no tiene
   /// ancho ninguno.
@@ -705,7 +691,7 @@ class TownPainter extends CustomPainter {
   /// dos cosas hay cien grados: con el encuadre de siempre —el que te deja la
   /// app sola, sin que toques nada— **el tablón se ve de canto**. Medido en un
   /// pueblo de cuarenta piezas: la plancha ocupa tres píxeles de ancho por
-  /// veintiuno de alto. El atril, que está echado, doce por dos.
+  /// veintiuno de alto.
   ///
   /// Así que el blanco era un pelo vertical en medio de una plaza, y apuntarle
   /// con un pulgar no es que fuera difícil: no era posible. Lo que llegaba al
@@ -1493,24 +1479,20 @@ class TownPainter extends CustomPainter {
     }
   }
 
-  /// La plaza fundándose, en tres tiempos: primero el enlosado, que es lo que
+  /// La plaza fundándose, en dos tiempos: primero el enlosado, que es lo que
   /// dice dónde está el centro; después el tablón, que es lo que el pueblo va
-  /// a decir de vos; y por último el atril, que es donde va a quedar escrito
-  /// lo que digas vos.
+  /// a decir de vos.
   ///
-  /// **El enlosado sale de la tierra y los otros dos caen del cielo**, con la
-  /// misma caída y el mismo rebote que cualquiera de las seiscientas piezas
-  /// que vendrán detrás. Los tres salían de debajo, y era la única cosa de
-  /// toda la app que no caía: el enlosado puede, porque el enlosado *es* el
-  /// suelo y lo que hace es descubrirse; un tablón y un facistol son dos cosas
-  /// que alguien pone en una plaza. El reloj de los tres está en
-  /// [FoundingShow], porque esta pintura y el polvo del aterrizaje se tienen
+  /// **Los dos caen del cielo**, con la misma caída y el mismo rebote que
+  /// cualquiera de las seiscientas piezas que vendrán detrás. Antes salían de
+  /// debajo, y era la única cosa de toda la app que no caía. El reloj de los
+  /// dos está en [FoundingShow], porque esta pintura y el polvo del aterrizaje se tienen
   /// que creer lo mismo.
   ///
   /// Se arma un árbol nuevo cada fotograma, como con la pieza que cae y por lo
   /// mismo: lo único que se mueve en todo el valle no puede salir de una caché
-  /// que existe precisamente porque nada se mueve. Son tres docenas de caras
-  /// durante segundo y medio.
+  /// que existe precisamente porque nada se mueve. Son un par de docenas de
+  /// caras durante segundo y medio.
   void _paintFounding(
     Projector p,
     TownEntry e,
@@ -1550,10 +1532,6 @@ class TownPainter extends CustomPainter {
     caer(
       NoticeBoard.solidsAt(l.cx, l.cz, sheets: l.notices),
       FoundingShow.liftAt(t, FoundingShow.boardAt),
-    );
-    caer(
-      Lectern.solidsAt(l.cx, l.cz),
-      FoundingShow.liftAt(t, FoundingShow.lecternAt),
     );
     if (caras.isEmpty) return;
     BspTree.build(

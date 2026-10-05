@@ -155,7 +155,7 @@ void main() {
     final s = await _store([h]);
     // Las tres últimas son las que se tocaron en el widget.
     final llegaron = [
-      for (final p in h.pieces.skip(37)) ReelStep(p.placedAt, 0, null),
+      for (final p in h.pieces.skip(37)) ReelStep(p.placedAt, 0),
     ];
     await tester.pumpWidget(
       _marco(ReelScreen.arrivals(store: s, pieces: llegaron)),
@@ -178,7 +178,7 @@ void main() {
       _marco(
         ReelScreen.arrivals(
           store: s,
-          pieces: [ReelStep(h.pieces.last.placedAt, 0, null)],
+          pieces: [ReelStep(h.pieces.last.placedAt, 0)],
         ),
       ),
     );

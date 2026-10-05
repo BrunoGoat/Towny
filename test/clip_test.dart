@@ -56,7 +56,6 @@ TownScene _valle(
     time: 3.0,
     hourOfDay: hora,
     effects: EffectSystem(),
-    labelledBricks: const {},
     towns: towns,
     active: 0,
   );
@@ -79,7 +78,6 @@ TownScene _obra(Landmark mark, {double yaw = 0.7, double dist = 14}) {
     time: 2.0,
     hourOfDay: 11,
     effects: EffectSystem(),
-    labelledBricks: const {},
     towns: [
       TownEntry(
         layout: layout,
@@ -128,7 +126,6 @@ TownScene _cayendo(Landmark mark, double t) {
     time: 2.0,
     hourOfDay: 11,
     effects: EffectSystem(),
-    labelledBricks: const {},
     towns: [
       TownEntry(
         layout: layout,
@@ -369,7 +366,6 @@ void main() {
             time: s.time,
             hourOfDay: 14,
             effects: EffectSystem(),
-            labelledBricks: const {},
             towns: s.towns,
             active: 0,
             budget: 9000,
@@ -397,7 +393,6 @@ void main() {
         time: s.time,
         hourOfDay: 14,
         effects: EffectSystem(),
-        labelledBricks: const {},
         towns: s.towns,
         active: 0,
         budget: 2500,

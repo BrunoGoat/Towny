@@ -150,7 +150,6 @@ class _FolkGalleryScreenState extends State<FolkGalleryScreen>
       time: _time,
       hourOfDay: _hour,
       effects: _fx,
-      labelledBricks: const {},
       budget: 2000,
       towns: [
         TownEntry(

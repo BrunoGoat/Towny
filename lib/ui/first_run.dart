@@ -522,7 +522,6 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
       time: _time,
       hourOfDay: hora,
       effects: _fx,
-      labelledBricks: const {},
       towns: [_empty],
       active: 0,
       labels: false,

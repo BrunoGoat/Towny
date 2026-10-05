@@ -43,7 +43,6 @@ void main() {
             onSkyTapped: (_) {},
             onTownTapped: (_) {},
             onBoardTapped: (_) {},
-            onLecternTapped: (_) {},
             onWhisper: (_, {duration = Duration.zero}) {},
             onPaletteChanged: vistas.add,
           ),

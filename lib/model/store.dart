@@ -669,6 +669,10 @@ class Store extends ChangeNotifier {
     // una más para cobrar algo que ya se había ganado.
     var moved = _checkUnlock();
     if (_writeUpWorks(habit) || _writeUpAll()) moved = true;
+    // Las leyendas ya no existen: una copia que todavía las trae (la clave
+    // `l` de cada pieza) se vuelve a escribir sin ellas, para que no queden
+    // guardadas en el teléfono sin que nada las lea.
+    if (raw != null && raw.contains('"l":')) moved = true;
     if (moved) _save();
     loaded = true;
     notifyListeners();
@@ -907,15 +911,6 @@ class Store extends ChangeNotifier {
     return null;
   }
 
-  /// Writes (or clears) the note on a piece. Always optional.
-  void setLabel(int index, String? text) {
-    final list = habit.pieces;
-    if (index < 0 || index >= list.length) return;
-    list[index] = list[index].withLabel(text);
-    _save();
-    notifyListeners();
-  }
-
   /// Corrige la hora a la que se puso una pieza.
   ///
   /// Nunca hacia el futuro: una pieza puesta dentro de tres horas rompe todo
@@ -939,9 +934,6 @@ class Store extends ChangeNotifier {
   }
 
   List<Piece> get pieces => habit.pieces;
-
-  List<Piece> get labelled =>
-      habit.pieces.where((p) => p.hasLabel).toList().reversed.toList();
 
   /// Undo for the fat-finger case: only the most recent piece, only for a
   /// couple of minutes.
@@ -1084,21 +1076,6 @@ class Store extends ChangeNotifier {
   }
 
   /// Fast-forwards a town for development, so a year of use can be looked at
-  /// without waiting a year. Driven by a compile-time define, off by default.
-  static const List<String> _debugLabels = [
-    'Leí',
-    'Corrí',
-    'Estudié',
-    'Escribí',
-    'No fumé',
-    'Salí a caminar',
-    'Llamé a mamá',
-    'Ordené el taller',
-    'Toqué la guitarra',
-    'Nadé',
-  ];
-
-  /// Fast-forwards a town for development, so a year of use can be looked at
   /// without waiting a year.
   ///
   /// It lays them the way a person would: one on most days at an hour this
@@ -1135,15 +1112,7 @@ class Store extends ChangeNotifier {
     }
     when.sort();
     for (var i = 0; i < when.length; i++) {
-      h.pieces.add(
-        Piece(
-          index: h.total,
-          placedAt: when[i],
-          label: i % 9 == 3
-              ? _debugLabels[(i ~/ 9) % _debugLabels.length]
-              : null,
-        ),
-      );
+      h.pieces.add(Piece(index: h.total, placedAt: when[i]));
     }
     _writeUpWorks(h);
     notifyListeners();

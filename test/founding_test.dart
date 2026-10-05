@@ -13,9 +13,8 @@ import 'package:towny/fx/effects.dart';
 
 /// **El día que se funda el pueblo.**
 ///
-/// Sale una plaza de la nada: el enlosado, el tablón y el atril. El enlosado
-/// sale de la tierra —es el suelo, y lo que hace es descubrirse—; los otros dos
-/// caen del cielo, como cae todo lo que se pone en este pueblo.
+/// Sale una plaza de la nada: el enlosado y el tablón, que caen del cielo como
+/// cae todo lo que se pone en este pueblo.
 const int _w = 420, _h = 420;
 
 /// La plaza fundándose, parada en el momento [t] del reloj de la fundación.
@@ -39,7 +38,6 @@ Future<ui.Image> _frame(double t) async {
       time: 2.0,
       hourOfDay: 11,
       effects: EffectSystem(),
-      labelledBricks: const {},
       budget: 40000,
       towns: [
         TownEntry(layout: layout, name: 'Pueblo', symbol: 'rueda', placed: 0),
@@ -78,10 +76,9 @@ int _horizonte(Uint8List px) {
 /// El renglón más alto en el que hay madera, del horizonte para abajo, o -1 si
 /// no hay ninguna.
 ///
-/// El tablón y el atril son lo único de madera oscura que tiene una plaza: el
-/// enlosado es piedra clara, la fuente es piedra y el prado es verde. Así que
-/// «dónde está la madera» es «dónde están esos dos» sin tener que proyectar
-/// nada a mano.
+/// El tablón es lo único de madera oscura que tiene una plaza: el enlosado es
+/// piedra clara, la fuente es piedra y el prado es verde. Así que «dónde está
+/// la madera» es «dónde está el tablón» sin tener que proyectar nada a mano.
 int _maderaMasAlta(Uint8List px) {
   for (var y = _horizonte(px); y < _h; y++) {
     for (var x = 0; x < _w; x++) {
@@ -96,10 +93,10 @@ int _maderaMasAlta(Uint8List px) {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('el tablón y el atril caen del cielo, no salen de la tierra', () async {
-    // El fallo que esto cierra: los tres subían del suelo. En una app donde
-    // cada logro es una piedra que cae, las dos cosas de la plaza salían de
-    // debajo de la tierra como si las empujara un topo.
+  test('el tablón cae del cielo, no sale de la tierra', () async {
+    // El fallo que esto cierra: el tablón subía del suelo. En una app donde
+    // cada logro es una piedra que cae, salía de debajo de la tierra como si
+    // lo empujara un topo.
     //
     // **Cómo se mide.** Dónde está lo más alto que hay de madera. Quieto, es
     // el tejadillo del tablón. En vuelo tiene que estar **más arriba** que

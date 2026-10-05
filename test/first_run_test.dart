@@ -74,7 +74,10 @@ void main() {
       await tester.tap(find.text('SIGUIENTE'));
       await _asentar(tester);
 
-      expect(find.text('¿En quién te convierte tener ese hábito?'), findsOneWidget);
+      expect(
+        find.text('¿En quién te convierte tener ese hábito?'),
+        findsOneWidget,
+      );
       await tester.enterText(
         find.byType(TextField).first,
         'alguien que lee todos los días',
@@ -238,7 +241,7 @@ void main() {
       );
       int caras(TownLayout l) =>
           builtTown(l, 0).clusters.fold<int>(0, (a, c) => a + c.faces);
-      // Por caras y no por grupos: el enlosado, el tablón y el atril se tocan,
+      // Por caras y no por grupos: el enlosado y el tablón se tocan,
       // así que el árbol los funde en uno solo y contar grupos da uno en los
       // dos casos. Lo que hay debajo de ese uno es muy distinto.
       expect(caras(solo) * 4, lessThan(caras(TownLayout(0, ch, seed: 3))));

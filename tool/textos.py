@@ -266,13 +266,6 @@ PANTALLAS = [
   'Lo que sale al tocar el tablón de la plaza: escribir una nota, borrarla.'),
  ('lib/ui/board_scene.dart', 'El tablón: mover una nota',
   'Lo que aparece al dejar una nota apretada para cambiarla de sitio.'),
- ('lib/ui/legends_book.dart', 'La bitácora',
-  'El cuaderno con una entrada por pieza puesta, fechada.'),
- ('lib/ui/legend_card.dart', 'La ficha de una pieza',
-  'Lo que sale al tocar una pieza concreta del pueblo.'),
- ('lib/ui/papyrus.dart', 'Las fechas en pergamino',
-  'Cómo se escriben los días y los meses en la bitácora: números romanos y '
-  'meses con nombre.'),
  ('lib/ui/reel_screen.dart', 'La cinemática',
   'La película de cómo se construyó el pueblo, y la que sale al entrar cuando '
   'pusiste piezas desde el widget.'),

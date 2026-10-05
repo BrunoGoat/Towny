@@ -799,7 +799,6 @@ List<(double x0, double z0, double x1, double z1)> _blockers(
       NoticeBoard.reach * 0.78,
       NoticeBoard.reach * 0.78,
     );
-    estorbo(Lectern.xAt(cx), Lectern.zAt(cz), 0.22, 0.22);
   }
   return out;
 }

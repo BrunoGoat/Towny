@@ -116,10 +116,9 @@ class BoardSeen {
 /// lo que importa es si lo que dice es algo que ya sabías, y que cambie de las
 /// siete a las ocho sí es algo que no sabías.
 ///
-/// Con tres excepciones, que son las que se mueven solas. La fecha de «queda
-/// en pie el trece» se corre con cada pieza que ponés; los días de tu vida
-/// suben cada mañana; y la cuenta de lo que repetís cambia en cuanto escribís
-/// una leyenda más. Si ésas contaran por su texto, el punto estaría encendido
+/// Con dos excepciones, que son las que se mueven solas. La fecha de «queda
+/// en pie el trece» se corre con cada pieza que ponés, y los días de tu vida
+/// suben cada mañana. Si ésas contaran por su texto, el punto estaría encendido
 /// siempre y dejaría de querer decir nada: de ésas se avisa cuando aparecen, y
 /// una sola vez.
 ///
@@ -127,6 +126,6 @@ class BoardSeen {
 /// vos, y son cuatrocientos treinta y seis rotando todos los días.
 String seenKey(Notice n) => switch (n.kind) {
   NoticeKind.pueblo => '',
-  NoticeKind.ahead || NoticeKind.life || NoticeKind.chore => n.kind.name,
+  NoticeKind.ahead || NoticeKind.life => n.kind.name,
   _ => '${n.kind.name}|${n.said}',
 };

@@ -20,8 +20,6 @@ import 'choice_sheet.dart';
 import 'cloud_flight.dart';
 import 'habits_sheet.dart';
 import 'home_chrome.dart';
-import 'lectern_glyph.dart';
-import 'legends_book.dart';
 import 'notice_board.dart';
 import 'overlays.dart';
 import 'rest_sheet.dart';
@@ -100,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen>
   /// Una pieza se identifica por su número dentro de su pueblo, así que al
   /// cambiar de pueblo la número uno de allá pasaba a ser la elegida sin que
   /// nadie la tocara: uno se iba al pueblo de al lado y se encontraba abierta
-  /// la leyenda de su primera pieza.
+  /// la tarjeta de su primera pieza.
   String? _selectedTown;
 
   @override
@@ -138,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen>
       }
     }
     setState(() {});
-    // Una pieza más, una leyenda escrita o un cambio de pueblo pueden haberle
+    // Una pieza más, una hora corregida o un cambio de pueblo pueden haberle
     // dado al tablón algo nuevo que decir.
     _lookForNews();
   }
@@ -261,7 +259,7 @@ class _HomeScreenState extends State<HomeScreen>
   /// del pueblo —eso es lo que hace el tablón— y esto se pinta en cada
   /// fotograma mientras la cámara se mueve. Se vuelve a mirar cuando puede
   /// haber cambiado: al arrancar, cuando el almacén se mueve —una pieza, una
-  /// leyenda, cambiar de pueblo— y al salir del tablón.
+  /// hora corregida, cambiar de pueblo— y al salir del tablón.
   bool _news = false;
 
   void _lookForNews() {
@@ -315,7 +313,6 @@ class _HomeScreenState extends State<HomeScreen>
                 _announceTown();
               },
               onBoardTapped: _readBoard,
-              onLecternTapped: _openBook,
               onWhisper: _showWhisper,
               onPaletteChanged: (p) {
                 final next = UiTheme(p);
@@ -406,15 +403,6 @@ class _HomeScreenState extends State<HomeScreen>
                   dot: _news ? t.accent : null,
                   onTap: _readOwnBoard,
                 ),
-                // Y debajo el atril, que está al lado en la plaza y tiene que
-                // estar al lado aquí. El mueble mismo y no un libro genérico,
-                // por lo mismo que el tablón no es una chincheta.
-                GhostButton(
-                  glyph: (c) => LecternGlyph(color: c, shadows: t.halo),
-                  theme: t,
-                  tooltip: 'El libro de las leyendas',
-                  onTap: _openOwnBook,
-                ),
               ],
             ),
           ),
@@ -430,14 +418,11 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
 
-          // --- the tapped stone, and its optional note
+          // --- the tapped stone: which one, and when
           if (_selected != null)
             Positioned(
               left: 14,
               right: 14,
-              // Se queda donde está aunque salga el teclado. Se probó a
-              // subirla por encima y quedaba flotando en mitad de la pantalla;
-              // desde su sitio de siempre se lee bien igual.
               bottom: media.padding.bottom + 214,
               child: Center(
                 child: StoneCard(
@@ -445,11 +430,6 @@ class _HomeScreenState extends State<HomeScreen>
                   theme: t,
                   when: _selected!.placedAt,
                   number: _selected!.index + 1,
-                  label: _selected!.label,
-                  onWrite: (text) => setState(() {
-                    store.setLabel(_selected!.index, text);
-                    _selected = store.pieceAt(_selected!.index);
-                  }),
                   onWhen: (when) => setState(() {
                     store.setPlacedAt(_selected!.index, when);
                     _selected = store.pieceAt(_selected!.index);
@@ -752,18 +732,6 @@ class _HomeScreenState extends State<HomeScreen>
         store: store,
       ),
     );
-  }
-
-  /// El atril de este pueblo, desde el botón.
-  void _openOwnBook() => _openBook(widget.store.active);
-
-  /// El atril de un pueblo: su libro de leyendas.
-  void _openBook(int town) {
-    final store = widget.store;
-    if (town < 0 || town >= store.habits.length) return;
-    Navigator.of(
-      context,
-    ).push(LegendsBook.route(habit: store.habits[town], theme: _theme));
   }
 
   // ------------------------------------------------------------- el vuelo

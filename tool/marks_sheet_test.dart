@@ -98,7 +98,6 @@ void _retrato(Canvas canvas, Landmark l, TownCharacter ch, double giro) {
     time: 3.0,
     hourOfDay: 11,
     effects: EffectSystem(),
-    labelledBricks: const {},
     budget: 22000,
     towns: [
       TownEntry(layout: layout, name: l.name, symbol: 'torre', placed: l.cost),

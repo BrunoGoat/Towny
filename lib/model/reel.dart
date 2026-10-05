@@ -239,7 +239,7 @@ class Reel {
     final out = <ReelStep>[];
     for (var h = 0; h < habits.length; h++) {
       for (final p in habits[h].pieces) {
-        if (pick(h, p)) out.add(ReelStep(p.placedAt, h, p.label));
+        if (pick(h, p)) out.add(ReelStep(p.placedAt, h));
       }
     }
     out.sort((a, b) => a.when.compareTo(b.when));
@@ -259,7 +259,7 @@ class Reel {
     for (var h = 0; h < habits.length; h++) {
       if (only >= 0 && h != only) continue;
       for (final p in habits[h].pieces) {
-        all.add(ReelStep(p.placedAt, h, p.label));
+        all.add(ReelStep(p.placedAt, h));
       }
     }
     all.sort((a, b) => a.when.compareTo(b.when));
@@ -328,15 +328,11 @@ class Reel {
 
 /// Una pieza en la cola: cuándo se puso y de qué pueblo es.
 class ReelStep {
-  const ReelStep(this.when, this.habit, this.label);
+  const ReelStep(this.when, this.habit);
   final DateTime when;
 
   /// El hueco del hábito dentro del valle, que es también qué pueblo crece.
   final int habit;
-
-  /// Su leyenda, si la tiene. La reproducción saca unas cuantas al pasar.
-  final String? label;
-  bool get hasLabel => label != null && label!.trim().isNotEmpty;
 }
 
 /// El valle en un instante de la reproducción.

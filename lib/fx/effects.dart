@@ -292,7 +292,7 @@ class EffectSystem {
 /// o después que el aterrizaje. Por eso los números viven acá y no en ninguno
 /// de los dos.
 ///
-/// **Las tres caen del cielo**, una detrás de otra, con la caída y el rebote
+/// **Las dos caen del cielo**, una detrás de otra, con la caída y el rebote
 /// de cualquiera de las seiscientas piezas que vendrán después. Salían de
 /// debajo de la tierra, y era la única cosa de toda la app que no caía: en un
 /// pueblo donde cada logro es una piedra que cae, una plaza que emerge del
@@ -302,19 +302,18 @@ class FoundingShow {
 
   /// Lo que dura entera, en segundos.
   ///
-  /// Eran 1,7 cuando las tres cosas subían del suelo. Una caída con su rebote
-  /// dura casi un segundo, y el atril se suelta pasada la mitad: con 1,7 el
-  /// rebote del atril se cortaba a medias.
+  /// Una caída con su rebote dura casi un segundo, y el tablón se suelta
+  /// pasado el primer cuarto: lo que sobra al final es aire para que el golpe
+  /// se asiente antes de que el pueblo arranque.
   static const double seconds = 2.1;
 
   /// Cuándo se suelta cada una, en el reloj de 0 a 1.
   ///
   /// Primero el enlosado, que es lo que dice dónde está el centro; después el
-  /// tablón, que es lo que el pueblo va a decir de vos; y por último el atril,
-  /// que es donde va a quedar escrito lo que digas vos. Se solapan a propósito:
+  /// tablón, que es lo que el pueblo va a decir de vos. Se solapan a propósito:
   /// el tablón se suelta mientras el enlosado está acabando de asentarse, y así
-  /// son tres golpes seguidos y no tres cosas esperando turno.
-  static const double plazaAt = 0.0, boardAt = 0.28, lecternAt = 0.52;
+  /// son dos golpes seguidos y no dos cosas esperando turno.
+  static const double plazaAt = 0.0, boardAt = 0.28;
 
   /// Desde qué altura caen. La misma que una pieza cualquiera.
   static const double drop = 2.3;
@@ -324,7 +323,6 @@ class FoundingShow {
 
   static double get plazaLands => landing(plazaAt);
   static double get boardLands => landing(boardAt);
-  static double get lecternLands => landing(lecternAt);
 
   /// A qué altura sobre su sitio está, en el momento [t] del reloj, lo que se
   /// soltó en [at]. Nulo mientras todavía no se soltó: entonces no se dibuja,
@@ -364,8 +362,8 @@ class PlacementFx {
   /// segundos: la caída que tiene todo lo que se pone en este pueblo.
   ///
   /// Está suelta y no dentro de [yOffset] porque **la plaza que se funda cae
-  /// con esta misma curva sin ser pieza de nadie**: el tablón y el atril no
-  /// tienen índice ni edificio, y antes salían de debajo de la tierra, que es
+  /// con esta misma curva sin ser pieza de nadie**: el enlosado y el tablón
+  /// no tienen índice ni edificio, y antes salían de debajo de la tierra, que es
   /// lo único de toda la app que no caía del cielo. Dos cuentas separadas para
   /// la misma caída terminan con una de las dos vieja.
   static double fallAt(double seconds, {double height = 5.2}) {

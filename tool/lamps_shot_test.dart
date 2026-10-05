@@ -50,7 +50,6 @@ void main() {
         time: 7.3,
         hourOfDay: hora,
         effects: EffectSystem(),
-        labelledBricks: const {},
         budget: 60000,
         towns: [
           TownEntry(layout: l, name: 'Leer', symbol: 'libro', placed: 38),

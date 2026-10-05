@@ -41,7 +41,6 @@ Future<ui.Image> _frame(double giro) async {
       time: 2.0,
       hourOfDay: 11,
       effects: EffectSystem(),
-      labelledBricks: const {},
       budget: 40000,
       towns: [
         TownEntry(

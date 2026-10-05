@@ -39,7 +39,6 @@ Future<ByteData> frame({
     time: 0,
     hourOfDay: 12,
     effects: EffectSystem(),
-    labelledBricks: const {},
     budget: 22000,
     day: day,
     towns: [

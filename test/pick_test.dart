@@ -37,7 +37,6 @@ const Size _screen = Size(420, 860);
     time: 0,
     hourOfDay: 12,
     effects: EffectSystem(),
-    labelledBricks: const {},
     budget: 22000,
     towns: [
       TownEntry(

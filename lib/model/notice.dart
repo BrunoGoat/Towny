@@ -39,9 +39,6 @@ enum NoticeKind {
   /// How long this has been going on.
   life,
 
-  /// Lo que escribís una y otra vez en las leyendas.
-  chore,
-
   /// Who is ahead in the valley.
   crown,
 

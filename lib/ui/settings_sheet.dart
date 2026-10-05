@@ -527,9 +527,7 @@ class _Undo extends StatelessWidget {
         elevation: 0,
         title: Text('¿Quitar la pieza ${store.habit.total}?', style: t.body),
         content: Text(
-          last.hasLabel
-              ? 'Dice «${last.label}». Se va con ella.'
-              : 'Vuelve a quedar en ${store.habit.total - 1}.',
+          'Vuelve a quedar en ${store.habit.total - 1}.',
           style: t.bodySoft,
         ),
         actions: [

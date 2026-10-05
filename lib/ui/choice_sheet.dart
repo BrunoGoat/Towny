@@ -347,7 +347,6 @@ class WorkPortrait extends CustomPainter {
         time: 0,
         hourOfDay: palette.hour,
         effects: EffectSystem(),
-        labelledBricks: const {},
         budget: 4000,
         towns: [
           TownEntry(

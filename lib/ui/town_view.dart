@@ -76,7 +76,7 @@ class TownViewController {
   @visibleForTesting
   List<int> get notices => _state?._town.notices ?? const [];
 
-  /// Dónde hay que tocar para abrir el tablón y el atril de cada pueblo.
+  /// Dónde hay que tocar para abrir el tablón de cada pueblo.
   ///
   /// Para poder exigir en un test lo único que de verdad importa de todo
   /// esto: que tocando el mueble se abra **su** hoja. Lo de dentro —cuánto
@@ -84,11 +84,6 @@ class TownViewController {
   @visibleForTesting
   List<Rect> get boardTargets => [
     for (final b in _state?._hits.boards ?? const []) b.rect,
-  ];
-
-  @visibleForTesting
-  List<Rect> get lecternTargets => [
-    for (final a in _state?._hits.lecterns ?? const []) a.rect,
   ];
 }
 
@@ -138,7 +133,6 @@ class TownView extends StatefulWidget {
     required this.onSkyTapped,
     required this.onTownTapped,
     required this.onBoardTapped,
-    required this.onLecternTapped,
     required this.onWhisper,
     required this.onPaletteChanged,
   });
@@ -158,7 +152,7 @@ class TownView extends StatefulWidget {
 
   /// Alguien tocó la cúpula de un observatorio.
 
-  /// Un toque en el aire. Cerrar la leyenda que estuviera abierta es lo mismo
+  /// Un toque en el aire. Cerrar la tarjeta de pieza que estuviera abierta es lo mismo
   /// que dejar de mirar la pieza, así que lo hace el mismo gesto y no un aspa.
   final VoidCallback onNothingTapped;
 
@@ -178,9 +172,6 @@ class TownView extends StatefulWidget {
 
   /// The notice board in a town's plaza was tapped: read it.
   final void Function(int index) onBoardTapped;
-
-  /// Y el atril de la plaza, que es donde se leen las leyendas de ese pueblo.
-  final void Function(int index) onLecternTapped;
 
   /// Un susurro sobre la escena. Con [duration] para lo que no se lee en tres
   /// segundos: el título que acaba de ganarse es una frase entera y es la
@@ -769,7 +760,7 @@ class _TownViewState extends State<TownView>
     setState(() {});
   }
 
-  /// El enlosado, el tablón y el atril tocando el suelo el día que se funda el
+  /// El enlosado y el tablón tocando el suelo el día que se funda el
   /// pueblo.
   ///
   /// Caen del cielo como cualquier pieza, así que aterrizan como cualquier
@@ -781,9 +772,8 @@ class _TownViewState extends State<TownView>
   /// en este fotograma, y no si ya pasó: a sesenta por segundo, «ya pasó» es
   /// un golpe por fotograma durante el resto de la caída.
   ///
-  /// El enlosado golpea como un sillar y los dos muebles menos, porque pesan
-  /// menos y porque vienen detrás: tres temblores de los grandes seguidos en
-  /// dos segundos marean. El del enlosado levanta polvo en todo su ancho, que
+  /// El enlosado golpea como un sillar y el tablón menos, porque pesa menos y
+  /// porque viene detrás: dos temblores de los grandes seguidos marean. El del enlosado levanta polvo en todo su ancho, que
   /// es lo que hace que se lea como una plaza entera posándose y no como una
   /// tapa.
   void _plazaCae(double antes, double ahora) {
@@ -796,13 +786,6 @@ class _TownViewState extends State<TownView>
         NoticeBoard.zAt(l.cz),
         0.8,
         0.8,
-      ),
-      (
-        FoundingShow.lecternLands,
-        Lectern.xAt(l.cx),
-        Lectern.zAt(l.cz),
-        0.45,
-        0.55,
       ),
     ]) {
       if (antes >= cuando || ahora < cuando) continue;
@@ -1201,43 +1184,21 @@ class _TownViewState extends State<TownView>
       return;
     }
 
-    // El tablón y el atril, antes que las casas: son dos cosas chicas en medio
-    // de un pueblo lleno de tejados, y quien les apunta les apuntó.
-    //
-    // **Y entre ellos dos, el más cercano al dedo.** Iban en orden —primero el
-    // tablón, después el atril— y eso valía mientras cada blanco fuera la
-    // silueta de su mueble, que no se tocan nunca. Desde que el blanco crece
-    // hasta la yema de un pulgar, sí: hay ángulos desde los que el del tablón
-    // tapa al atril entero, y en orden el atril no se podía abrir desde ahí.
-    // Lo caza una prueba, con el ángulo escrito.
-    //
-    // Por el centro y no por el área: un toque dentro de los dos es un toque
-    // que cayó en el margen de los dos, y el que se quiso es aquel cuyo mueble
-    // está más cerca de donde aterrizó el dedo.
-    ({bool board, int town, double away})? mueble;
-    void mirar(Rect r, int town, {required bool board}) {
-      if (!r.contains(pos)) return;
-      final dx = r.center.dx - pos.dx, dy = r.center.dy - pos.dy;
-      final away = dx * dx + dy * dy;
-      if (mueble == null || away < mueble!.away) {
-        mueble = (board: board, town: town, away: away);
-      }
-    }
-
+    // El tablón, antes que las casas: es una cosa chica en medio de un pueblo
+    // lleno de tejados, y quien le apunta le apuntó. Si dos tablones caen bajo
+    // el dedo, el más cercano a donde aterrizó.
+    ({int town, double away})? tablon;
     for (final b in _hits.boards) {
-      mirar(b.rect, b.town, board: true);
-    }
-    for (final a in _hits.lecterns) {
-      mirar(a.rect, a.town, board: false);
-    }
-    final cual = mueble;
-    if (cual != null) {
-      Sensory.instance.tick();
-      if (cual.board) {
-        widget.onBoardTapped(cual.town);
-      } else {
-        widget.onLecternTapped(cual.town);
+      if (!b.rect.contains(pos)) continue;
+      final dx = b.rect.center.dx - pos.dx, dy = b.rect.center.dy - pos.dy;
+      final away = dx * dx + dy * dy;
+      if (tablon == null || away < tablon.away) {
+        tablon = (town: b.town, away: away);
       }
+    }
+    if (tablon != null) {
+      Sensory.instance.tick();
+      widget.onBoardTapped(tablon.town);
       return;
     }
 
@@ -1267,9 +1228,8 @@ class _TownViewState extends State<TownView>
     // no se toca a través de otra.
     PickTarget? best;
     for (final t in _hits.pieces) {
-      // Un pelo de holgura, y algo más si lleva leyenda: lo que ya tiene algo
-      // escrito es lo que alguien vuelve a buscar.
-      if (!t.holds(pos.dx, pos.dy, t.labelled ? 6 : 2)) continue;
+      // Un pelo de holgura.
+      if (!t.holds(pos.dx, pos.dy, 2)) continue;
       if (best == null || t.near < best.near) best = t;
     }
     if (best == null) {
@@ -1317,10 +1277,6 @@ class _TownViewState extends State<TownView>
       time: _time,
       hourOfDay: _hour,
       effects: _fx,
-      labelledBricks: {
-        for (final p in store.pieces)
-          if (p.hasLabel) p.index,
-      },
       fx: _placement,
       budget: _budget,
       towns: _entries,

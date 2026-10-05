@@ -26,8 +26,7 @@ import 'style.dart';
 /// sentada y con la cámara dando la vuelta.
 ///
 /// **Por qué existe.** La app promete que lo que hacés deja un sitio
-/// construido, y hasta ahora esa promesa sólo se podía *leer* — en el libro del
-/// atril, una línea por pieza. Leerla no es lo mismo que verla. Aquí el prado
+/// construido, y esa promesa hay que poder *verla*. Aquí el prado
 /// está vacío, cae la primera, y sesenta segundos después está el pueblo que
 /// tenés, con las estaciones pasando por encima.
 ///
@@ -608,7 +607,6 @@ class ReelScreenState extends State<ReelScreen>
       time: _t,
       hourOfDay: hour,
       effects: _fx,
-      labelledBricks: const {},
       towns: entries,
       active: 0,
       // Sin rótulos de hito ni nombres de pueblo. Sesenta segundos de cámara en

@@ -39,7 +39,6 @@ Future<ui.Image> _frame() async {
     time: 7.3,
     hourOfDay: 19.8,
     effects: EffectSystem(),
-    labelledBricks: const {},
     budget: 60000,
     towns: [TownEntry(layout: l, name: 'Leer', symbol: 'libro', placed: 38)],
     active: 0,

@@ -159,7 +159,6 @@ void _retrato(Canvas canvas, Landmark l) {
       time: 3.0,
       hourOfDay: 11,
       effects: EffectSystem(),
-      labelledBricks: const {},
       budget: 22000,
       towns: [
         TownEntry(

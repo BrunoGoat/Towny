@@ -43,7 +43,7 @@ bool _closed(Solid s) {
 double _far(double x, double z, double cx, double cz) =>
     math.sqrt((x - cx) * (x - cx) + (z - cz) * (z - cz));
 
-/// **La plaza**: el ejido, la fuente, el tablón y el atril. No es de nadie y
+/// **La plaza**: el ejido, la fuente y el tablón. No es de nadie y
 /// no se gana; está desde que el pueblo se funda, y por ella se anda.
 const int _w = 460, _h = 460;
 
@@ -70,7 +70,6 @@ Future<ui.Image> _frame({
       time: t,
       hourOfDay: 11,
       effects: EffectSystem(),
-      labelledBricks: const {},
       budget: 40000,
       towns: [
         TownEntry(layout: layout, name: 'Pueblo', symbol: 'rueda', placed: 40),
@@ -103,7 +102,6 @@ Future<ui.Image> _plaza(Season season) async {
       time: 2,
       hourOfDay: 11,
       effects: EffectSystem(),
-      labelledBricks: const {},
       budget: 40000,
       towns: [
         TownEntry(layout: layout, name: 'Pueblo', symbol: 'rueda', placed: 0),
@@ -209,43 +207,27 @@ void main() {
       }
     });
 
-    test('el tablón y el atril caben en ella y quedan lejos uno de otro', () {
+    test('el tablón cabe en ella, fuera del pilón', () {
       final t = TownLayout(10, TownCharacter.all.first);
-      // Los dos, enteros dentro del enlosado.
-      for (final v in [
-        ...NoticeBoard.faceAt(t.cx, t.cz),
-        ...Lectern.faceAt(t.cx, t.cz),
-      ]) {
+      // Entero dentro del enlosado.
+      for (final v in NoticeBoard.faceAt(t.cx, t.cz)) {
         expect(_far(v.x, v.z, t.cx, t.cz), lessThan(TownLayout.plazaReach));
       }
-      // Y a lados opuestos de la fuente, no pegados: juntos se leían como un
-      // solo mueble de dos partes.
-      final entre = _far(
-        Lectern.xAt(t.cx),
-        Lectern.zAt(t.cz),
-        NoticeBoard.xAt(t.cx),
-        NoticeBoard.zAt(t.cz),
-      );
-      expect(entre, greaterThan(TownLayout.plazaReach * 0.9));
-      // Cada uno fuera del pilón, que está en medio.
+      // Y fuera del pilón, que está en medio.
       final pilon = Plaza.basinOf(TownLayout.plazaReach);
       expect(
         _far(NoticeBoard.xAt(t.cx), NoticeBoard.zAt(t.cz), t.cx, t.cz),
         greaterThan(pilon + NoticeBoard.reach),
       );
-      expect(
-        _far(Lectern.xAt(t.cx), Lectern.zAt(t.cz), t.cx, t.cz),
-        greaterThan(pilon + 0.3),
-      );
     });
   });
 
-  group('el tablón y el atril miran a la fuente', () {
+  group('el tablón mira a la fuente', () {
     /// Hacia dónde mira la cara que se lee, sacada de sus propias esquinas.
     V3 mira(List<V3> cara, double x, double z) =>
         Facet.normalOf(cara, away: V3(x, 0.6, z));
 
-    test('los dos, y no cada uno para su lado', () {
+    test('y no para otro lado', () {
       final t = TownLayout(10, TownCharacter.all.first);
       for (final (nombre, cara, x, z) in [
         (
@@ -253,12 +235,6 @@ void main() {
           NoticeBoard.faceAt(t.cx, t.cz),
           NoticeBoard.xAt(t.cx),
           NoticeBoard.zAt(t.cz),
-        ),
-        (
-          'el atril',
-          Lectern.faceAt(t.cx, t.cz),
-          Lectern.xAt(t.cx),
-          Lectern.zAt(t.cz),
         ),
       ]) {
         final n = mira(cara, x, z);
@@ -279,10 +255,7 @@ void main() {
       // quieta: la normal deja de ser perpendicular a su propia cara y deja de
       // mirar hacia afuera. De eso cuelgan el descarte de caras traseras y el
       // orden de pintado entero, así que no es un detalle de sombreado.
-      for (final partes in [
-        NoticeBoard.solidsAt(4, -3),
-        Lectern.solidsAt(4, -3),
-      ]) {
+      for (final partes in [NoticeBoard.solidsAt(4, -3)]) {
         for (final s in partes) {
           var mx = 0.0, my = 0.0, mz = 0.0, n = 0;
           for (final f in s.faces) {
@@ -329,42 +302,6 @@ void main() {
       for (final s in Plaza.solidsAt(3, -2, TownLayout.plazaReach)) {
         expect(_closed(s), isTrue, reason: 'el enlosado es una cáscara');
       }
-    });
-
-    test('el atril, pieza por pieza', () {
-      final partes = Lectern.solidsAt(3, -2);
-      expect(partes.length, greaterThan(4), reason: 'un atril no es un palo');
-      for (var i = 0; i < partes.length; i++) {
-        expect(_closed(partes[i]), isTrue, reason: 'la parte $i está abierta');
-      }
-    });
-
-    test('y el libro se apoya en el tablero, no flota', () {
-      // La cara que se toca es la de arriba del libro, y tiene que estar justo
-      // encima del atril: si se despega, el dedo apunta al aire.
-      final cara = Lectern.faceAt(0, 0);
-      var bajo = double.infinity, alto = -double.infinity;
-      for (final s in Lectern.solidsAt(0, 0)) {
-        for (final f in s.faces) {
-          for (final v in f.v) {
-            if (v.y < bajo) bajo = v.y;
-            if (v.y > alto) alto = v.y;
-          }
-        }
-      }
-      expect(bajo, lessThan(0.06), reason: 'el atril no llega al suelo');
-      for (final v in cara) {
-        expect(v.y, lessThanOrEqualTo(alto + 1e-9));
-      }
-      // Y es un facistol de plaza: **más chico que el tablón, y a la vista**.
-      // Son las dos condiciones y no una — a estatura de persona era un mueble
-      // enorme, y a la mitad de eso se quedaba corto.
-      expect(alto, greaterThan(0.55), reason: 'no se ve');
-      expect(
-        alto,
-        lessThan(NoticeBoard.high * 0.75),
-        reason: 'le hace sombra al tablón',
-      );
     });
 
     test('la plaza es un ejido de hierba con el bordillo de piedra', () {
@@ -612,7 +549,6 @@ void main() {
           time: 3,
           hourOfDay: 11,
           effects: EffectSystem(),
-          labelledBricks: const {},
           budget: 40000,
           towns: [
             TownEntry(
@@ -639,8 +575,7 @@ void main() {
     /// La plancha mira a la fuente, o sea al sudeste; la cámara se planta en
     /// `yaw = 0.62`, que es por donde se entra a un pueblo. Entre las dos cosas
     /// hay cien grados. Medido en un pueblo de cuarenta piezas: la plancha
-    /// ocupa **tres píxeles de ancho** por veintiuno de alto, y el atril, que
-    /// está echado, doce por dos. El blanco salía de ahí, así que era un pelo
+    /// ocupa **tres píxeles de ancho** por veintiuno de alto. El blanco salía de ahí, así que era un pelo
     /// vertical en medio de una plaza y lo que le llegaba al dedo era la casa
     /// de detrás.
     ///
@@ -654,7 +589,6 @@ void main() {
         final hits = blancos(layout);
         for (final (quien, r) in [
           for (final b in hits.boards) ('el tablón', b.rect),
-          for (final a in hits.lecterns) ('el atril', a.rect),
         ]) {
           mirados++;
           expect(
@@ -669,14 +603,14 @@ void main() {
           );
         }
       }
-      // Que no se esté midiendo el vacío: con seis comarcas y dos muebles son
-      // doce, y de cuadro se sale alguno.
-      expect(mirados, greaterThan(8), reason: 'sólo se miraron $mirados');
+      // Que no se esté midiendo el vacío: con seis comarcas son seis, y de
+      // cuadro se sale alguno.
+      expect(mirados, greaterThan(3), reason: 'sólo se miraron $mirados');
     });
 
     /// Y desde cualquier lado, que es lo que uno hace: dar la vuelta al pueblo
     /// mirando cosas y tocar la que le interesa desde donde esté.
-    test('desde cualquier ángulo, y sin comerse uno al otro', () {
+    test('desde cualquier ángulo', () {
       final layout = TownLayout(40, TownCharacter.all.first, seed: 7);
       for (var yaw = 0.0; yaw < 6.28; yaw += 0.3) {
         final hits = blancos(layout, yaw: yaw);
@@ -686,14 +620,6 @@ void main() {
           expect(b.rect.width, greaterThan(43.9), reason: 'yaw $yaw');
           expect(b.rect.height, greaterThan(43.9), reason: 'yaw $yaw');
         }
-        for (final a in hits.lecterns) {
-          expect(a.rect.width, greaterThan(43.9), reason: 'yaw $yaw');
-          expect(a.rect.height, greaterThan(43.9), reason: 'yaw $yaw');
-        }
-        // Que los blancos se pisen desde algún ángulo es inevitable en cuanto
-        // crecen hasta la yema de un pulgar, y está bien: lo que no puede
-        // pasar es que uno se quede sin abrir. Eso ya no lo arregla la medida
-        // sino quien reparte el toque, y se exige en `tap_test`.
       }
     });
 
@@ -717,7 +643,6 @@ void main() {
           time: 3,
           hourOfDay: 11,
           effects: EffectSystem(),
-          labelledBricks: const {},
           budget: 40000,
           towns: [
             TownEntry(
@@ -736,7 +661,6 @@ void main() {
       ).paint(Canvas(rec), const Size(390, 844));
       rec.endRecording().dispose();
       expect(hits.boards, isEmpty);
-      expect(hits.lecterns, isEmpty);
     });
   });
 }

@@ -464,8 +464,7 @@ List<Facet> boxFaces(
 /// Un prisma recto de base cualquiera, cerrado.
 ///
 /// La base va en sentido antihorario vista desde arriba. Sirve para lo que no
-/// es una caja y tampoco un tejado: el enlosado octogonal de la plaza, el pie
-/// de un atril. Se cierra con su tapa y su suelo como todo lo demás, que es lo
+/// es una caja y tampoco un tejado: el enlosado octogonal de la plaza. Se cierra con su tapa y su suelo como todo lo demás, que es lo
 /// que permite descartar las caras traseras sin mirar nada más.
 List<Facet> prismFaces(
   List<(double, double)> base,
@@ -615,8 +614,7 @@ List<Solid> ringSolids(
 ///
 /// Los cuatro primeros son la cara de abajo en sentido antihorario vista desde
 /// arriba, y los cuatro siguientes la de arriba, cada uno sobre el suyo. Es lo
-/// que hace falta para una tabla inclinada —el tablero de un atril, la hoja de
-/// un libro abierto—, que no es una caja y no vale fingir que lo es: una
+/// que hace falta para una tabla inclinada, que no es una caja y no vale fingir que lo es: una
 /// normal que no sea perpendicular a su propia cara es una mentira sobre dónde
 /// está el plano de la cara, y de eso cuelga todo el orden de pintado.
 List<Facet> hexFaces(
@@ -1343,7 +1341,7 @@ void _hangWindows(
 /// you things would be charging you to read your own handwriting.
 /// Las ocho esquinas de una caja medida en el origen, llevadas a su sitio.
 ///
-/// Lo comparten el tablón y el atril: los dos se levantan ya girados, así que
+/// Para el tablón: se levanta ya girado, así que
 /// una caja medida sobre el mueble puesto en el origen vale para el mismo
 /// mueble en cualquier plaza con sólo sumarle dónde está esa plaza.
 List<V3> _cornersOf(Aabb b, double cx, double cz) => [
@@ -1362,8 +1360,7 @@ class NoticeBoard {
 
   /// Dónde queda dentro de la plaza, medido desde su centro.
   ///
-  /// A un lado y no en medio: en medio está la fuente, y el atril está al otro
-  /// lado. El desplazamiento lo aplica esta clase y no quien la llama, así que
+  /// A un lado y no en medio: en medio está la fuente. El desplazamiento lo aplica esta clase y no quien la llama, así que
   /// todo el que pregunte por el tablón pasa el centro del pueblo y no tiene
   /// que saber nada de esto.
   /// A la izquierda de la fuente, mirando hacia afuera. Sale del radio de la
@@ -1408,8 +1405,7 @@ class NoticeBoard {
   /// además mide medio metro de alto, cuando el mueble mide uno. Entre las dos
   /// cosas, en un pueblo crecido —la cámara se aleja con el radio— el blanco
   /// bajaba de doce píxeles por los dos lados y se descartaba entero: desde las
-  /// ochenta piezas el atril no se podía tocar, y el tablón desde las
-  /// seiscientas. La caja del mueble es el doble de alta y no depende de hacia
+  /// seiscientas piezas el tablón no se podía tocar. La caja del mueble es el doble de alta y no depende de hacia
   /// dónde mire.
   ///
   /// Se mide una sola vez, de un mueble levantado en el origen, y se mueve con
@@ -1567,8 +1563,8 @@ class NoticeBoard {
 ///
 /// Así que el pueblo se funda con una plaza y ningún solar puede meter la
 /// huella dentro. Y una plaza no es un claro: es un ejido de hierba con un
-/// bordillo de piedra alrededor, la fuente en medio, el tablón a un lado y el
-/// atril al otro. Desde cualquier punto del pueblo se sabe dónde está el
+/// bordillo de piedra alrededor, la fuente en medio y el tablón a un lado.
+/// Desde cualquier punto del pueblo se sabe dónde está el
 /// centro, y de cerca hay algo que mirar.
 ///
 /// Hierba y no enlosado, que es al revés de como empezó. Un disco de piedra
@@ -1614,7 +1610,7 @@ class Plaza {
   /// En proporción y no en metros: si mañana la plaza crece o mengua, la
   /// fuente y los muebles se mueven con ella en vez de quedarse amontonados en
   /// el medio.
-  static const double boardOut = 0.52, lecternOut = 0.52;
+  static const double boardOut = 0.52;
 
   /// Lo que ocupa la fuente, en proporción al radio de la plaza. Lo pregunta
   /// quien tenga que rodearla: la gente del pueblo no la atraviesa.
@@ -1778,243 +1774,4 @@ class Plaza {
     ),
     ..._fountain(cx, cz, reach),
   ];
-}
-
-/// El atril de la plaza: donde se leen las leyendas de este pueblo.
-///
-/// Un libro abierto sobre un tablero inclinado. No es una pieza y no se gana:
-/// está desde el primer logro, igual que el tablón, porque cobrar un logro por
-/// el sitio donde se lee lo que uno mismo escribió sería cobrar por la propia
-/// letra.
-///
-/// Se distingue del tablón a la primera ojeada y eso es a propósito: el tablón
-/// es lo que el pueblo dice de vos, y el atril es lo que vos dijiste. Uno es
-/// vertical y de papeles clavados; el otro está inclinado y tiene dos páginas.
-class Lectern {
-  const Lectern._();
-
-  /// Enfrente del tablón, al otro lado de la fuente.
-  ///
-  /// Estaban los dos juntos y se leían como un solo mueble de dos partes. Una
-  /// plaza tiene el tablón en una esquina y el facistol en otra, y la fuente
-  /// en medio: así cada cosa es una cosa, y se llega a una sin pasar por la
-  /// otra.
-  static double get offX => TownLayout.plazaReach * Plaza.lecternOut;
-  static double get offZ => TownLayout.plazaReach * Plaza.lecternOut;
-
-  /// Lo que mide, de lo que llegó a medir.
-  ///
-  /// Empezó a tamaño de persona y era un mueble enorme para una cosa que se
-  /// lee de pie y de cerca; bajó a la mitad y se quedó corto. Esto es un
-  /// facistol de plaza: **más chico que el tablón, y a la vista**, que son las
-  /// dos condiciones y no una.
-  static const double _k = 0.62;
-
-  /// Medidas del tablero: lo que ocupa y a qué altura se lee.
-  static const double _wide = 0.30 * _k, _deep = 0.23 * _k;
-  static const double _back = 1.04 * _k, _front = 0.86 * _k;
-  static const double _thick = 0.045 * _k;
-
-  /// Cuánto sobresale el libro por encima del tablero. Lo comparten la
-  /// geometría y el blanco del dedo, para que lo que se toca sea exactamente
-  /// la tapa que se ve y no un rectángulo flotando encima de ella.
-  static const double _leafLift = 0.028 * _k;
-
-  static const int _wood = 0xFF6B573F;
-  static const int _dark = 0xFF54432F;
-  static const int _stone = 0xFFA89C85;
-  static const int _page = 0xFFEDE3C8;
-  static const int _bind = 0xFF7A4034;
-
-  static double xAt(double cx) => cx + offX;
-  static double zAt(double cz) => cz + offZ;
-
-  /// Hacia dónde mira: a la fuente, igual que el tablón y por lo mismo. El
-  /// lado cuesta abajo del tablero es el lado desde el que se lee, y ése tiene
-  /// que dar a la plaza.
-  static double get turn => math.atan2(-offX, -offZ);
-
-  /// Las ocho esquinas de la caja que ocupa el atril entero: la peana, el pie,
-  /// el tablero y el libro. Ver [NoticeBoard.boxAt], que existe por lo mismo.
-  static final Aabb _extent = Aabb.of([
-    for (final s in solidsAt(0, 0)) ...s.faces,
-  ])!;
-
-  static List<V3> boxAt(double cx, double cz) => _cornersOf(_extent, cx, cz);
-
-  /// Las cuatro esquinas de la cara de arriba del libro, que es lo que se ve y
-  /// por lo tanto lo que se toca. Empezando por la de atrás a la izquierda.
-  ///
-  /// Sale de la propia geometría y no de un punto colgado encima: lo que el
-  /// dedo busca es exactamente lo que el ojo encuentra, y desde lejos, cuando
-  /// el atril es una mota, no hay nada que tocar — que es lo correcto.
-  static List<V3> faceAt(double cx, double cz) {
-    final x = xAt(cx), z = zAt(cz);
-    const lift = _leafLift;
-    final a = turn, sinA = math.sin(a), cosA = math.cos(a);
-    return [
-      for (final v in [
-        V3(x - _wide, _back + lift, z - _deep),
-        V3(x + _wide, _back + lift, z - _deep),
-        V3(x + _wide, _front + lift, z + _deep),
-        V3(x - _wide, _front + lift, z + _deep),
-      ])
-        turnedAt(v, x, z, sinA, cosA),
-    ];
-  }
-
-  /// Una tabla inclinada: el mismo rectángulo de siempre, con la arista de
-  /// atrás más alta que la de delante.
-  static List<V3> _board(
-    double x,
-    double z,
-    double w,
-    double d,
-    double back,
-    double front,
-    double thick,
-  ) => [
-    V3(x - w, back - thick, z - d),
-    V3(x + w, back - thick, z - d),
-    V3(x + w, front - thick, z + d),
-    V3(x - w, front - thick, z + d),
-    V3(x - w, back, z - d),
-    V3(x + w, back, z - d),
-    V3(x + w, front, z + d),
-    V3(x - w, front, z + d),
-  ];
-
-  static List<Solid> solidsAt(double cx, double cz) {
-    final x = xAt(cx), z = zAt(cz);
-    // Media página: del lomo hacia fuera, e inclinada como el tablero.
-    List<V3> leaf(double from, double to, double lift) => [
-      V3(x + from, _back - 0.012 * _k + lift, z - _deep * 0.94),
-      V3(x + to, _back - 0.012 * _k + lift, z - _deep * 0.94),
-      V3(x + to, _front - 0.012 * _k + lift, z + _deep * 0.94),
-      V3(x + from, _front - 0.012 * _k + lift, z + _deep * 0.94),
-      V3(x + from, _back + lift, z - _deep * 0.94),
-      V3(x + to, _back + lift, z - _deep * 0.94),
-      V3(x + to, _front + lift, z + _deep * 0.94),
-      V3(x + from, _front + lift, z + _deep * 0.94),
-    ];
-
-    return turnedSolids(
-      [
-        // El pie, de piedra, con su zócalo: un atril de una sola pata sobre la
-        // hierba se lee como un cartel clavado, no como un mueble.
-        Solid(
-          -1,
-          prismFaces(
-            Plaza.ring(x, z, 0.21 * _k),
-            0.035,
-            0.035 + 0.065 * _k,
-            Surface.stone,
-            ao: 0.96,
-            tint: _stone,
-          ),
-        ),
-        // La columna, **cortada en el mismo ángulo que el tablero**.
-        //
-        // Acababa en una cara horizontal a `_front - 0.10k`, que queda tres
-        // centímetros por debajo del punto más bajo del tablero: de frente el
-        // propio tablero tapaba el hueco y de costado el libro salía volando
-        // sobre la columna. Y no basta con subirla: el tablero está inclinado,
-        // así que una tapa horizontal o deja hueco por detrás o asoma por
-        // delante. La de arriba sigue la pendiente del tablero y se mete un
-        // centímetro dentro, que es como se apoya una tabla en un pie.
-        Solid(
-          -1,
-          hexFaces(
-            () {
-              const pw = 0.055 * _k, pd = 0.055 * _k;
-              const base = 0.035 + 0.065 * _k;
-              // La cara de abajo del tablero: en el medio, y su pendiente.
-              const mid = (_back + _front) / 2 - _thick + 0.01;
-              final slope = (_front - _back) / (2 * (_deep + 0.03 * _k));
-              final atras = mid - slope * pd, delante = mid + slope * pd;
-              return [
-                V3(x - pw, base, z - pd),
-                V3(x + pw, base, z - pd),
-                V3(x + pw, base, z + pd),
-                V3(x - pw, base, z + pd),
-                V3(x - pw, atras, z - pd),
-                V3(x + pw, atras, z - pd),
-                V3(x + pw, delante, z + pd),
-                V3(x - pw, delante, z + pd),
-              ];
-            }(),
-            Surface.own,
-            ao: 0.90,
-            tint: _wood,
-          ),
-        ),
-        // El tablero, y su listón de abajo para que el libro no resbale.
-        Solid(
-          -1,
-          hexFaces(
-            _board(
-              x,
-              z,
-              _wide + 0.035 * _k,
-              _deep + 0.03 * _k,
-              _back,
-              _front,
-              _thick,
-            ),
-            Surface.own,
-            ao: 0.98,
-            tint: _wood,
-          ),
-        ),
-        Solid(
-          -1,
-          hexFaces(
-            _board(
-              x,
-              z + _deep + 0.015 * _k,
-              _wide + 0.035 * _k,
-              0.022 * _k,
-              _front + 0.045 * _k,
-              _front + 0.03 * _k,
-              0.05 * _k,
-            ),
-            Surface.own,
-            ao: 0.92,
-            tint: _dark,
-          ),
-        ),
-        // Y el libro: dos páginas y el lomo entre ellas.
-        Solid(
-          -1,
-          hexFaces(
-            leaf(-_wide, -0.018 * _k, _leafLift),
-            Surface.own,
-            ao: 1.06,
-            tint: _page,
-          ),
-        ),
-        Solid(
-          -1,
-          hexFaces(
-            leaf(0.018 * _k, _wide, _leafLift),
-            Surface.own,
-            ao: 1.06,
-            tint: _page,
-          ),
-        ),
-        Solid(
-          -1,
-          hexFaces(
-            leaf(-0.026 * _k, 0.026 * _k, _leafLift - 0.008 * _k),
-            Surface.own,
-            ao: 0.88,
-            tint: _bind,
-          ),
-        ),
-      ],
-      x,
-      z,
-      turn,
-    );
-  }
 }

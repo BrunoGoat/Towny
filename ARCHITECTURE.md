@@ -234,8 +234,7 @@ pueblos. Android 7.0 (API 24) o superior.
 Y dentro de la app, en *Ajustes*: **el expositor**, con todo lo que el pueblo
 sabe construir; **ver el pueblo a futuro**, con atajos a 100, 500 y 5000 piezas,
 que es sólo una vista y no escribe nada; **tus datos**, para copiar el valle
-entero y volver a meterlo; y **quitar la última pieza**, que dice qué leyenda se
-va con ella antes de hacerlo.
+entero y volver a meterlo; y **quitar la última pieza**.
 
 ```bash
 python3 tool/make_sfx.py          # regenera los sonidos
@@ -252,7 +251,6 @@ flutter test tool/reel_frames_test.dart   # fotogramas de la cinemática a disco
 flutter test tool/marks_sheet_test.dart   # el catálogo entero, de doce en doce
 flutter test tool/doings_sheet_test.dart  # lo que hace la gente, cuatro instantes cada una
 flutter test tool/vocab_sheet_test.dart   # las palabras del albañil, una por casilla
-flutter test tool/book_shot_test.dart     # el libro del atril: portada, calendario y una hoja a media vuelta
 flutter test tool/chrome_shot_test.dart   # la pantalla a varias horas y la tarjeta de elegir
 flutter test tool/bench_test.dart         # cuánto cuesta un fotograma, por etapas
 flutter test tool/censo_test.dart         # cuánto cuesta poner cien piezas
@@ -290,7 +288,7 @@ se ve comparándolos con los de antes.
 lib/
   core/      hash determinista y matemática 3D
   data/      hitos, regiones, marcas, constelaciones y temas de música
-  model/     hábitos, piezas, leyendas, ritmo, hallazgos, persistencia
+  model/     hábitos, piezas, ritmo, hallazgos, persistencia
   engine/    el pueblo y cómo se dibuja
   fx/        partículas, sonido y vibración
   ui/        la pantalla, el botón, las hojas
@@ -311,25 +309,11 @@ Dentro de `engine/`, que es el más poblado:
 | `folk.dart`, `folk_body.dart`, `streets.dart` | quién vive ahí, de qué está hecho y por dónde anda |
 | `sigils.dart` | las marcas de los hábitos, trazadas a mano |
 
-De `model/`, los tres que hacen falta conocer para entender el libro del atril:
+De `model/`, los dos que hacen falta conocer:
 
 `works_log.dart` fecha las obras. No guarda nada: cruza la crónica con el plan
 para saber en qué pieza empieza y acaba cada hito, y de ahí saca las fechas de
-las piezas de sus extremos. Lo dibuja `ui/works_calendar.dart`, que reparte las
-obras en páginas de calendario —una por año mientras quepan— y las pinta como
-barras contra una regla de meses; lo que va pintado va también en palabras, en
-una etiqueta de accesibilidad, que es de donde lo leen el lector de pantalla y
-las pruebas.
-
-`review.dart` es la cuenta de un mes o de un año, y tampoco guarda nada: recorre
-los días del tramo contra las fechas de las piezas y las pausas, y de ahí salen
-los días que contaban, los huecos, las obras que remataron dentro y la
-comparación con el tramo anterior —que es el mismo cálculo sobre la ventana de
-antes, hecho una sola vez y sin volver a encadenarse—. `Review.latest` dice
-cuáles valen la pena: este mes, el pasado, este año y el pasado, y ninguna que
-no tenga nada dentro. Las escribe `ui/review_page.dart`, que saca las frases a
-una función aparte (`reviewLines`) para poder comprobar lo que dicen sin dibujar
-una página.
+las piezas de sus extremos. Lo usa la tarjeta del día en que se remata una obra.
 
 `pledge.dart` son las tres cosas que no se deducen de las piezas —el plan, la
 identidad y la regla— y todo lo que se puede decir de ellas: cómo se lee cada una
@@ -355,6 +339,6 @@ existe**, que es lo que deja probar el motor sin levantar Flutter.
 
 Nada de la **forma** del pueblo se guarda en disco: se deriva del identificador
 de cada pieza. Una casa levantada hace un año se vuelve a dibujar idéntica en
-cada arranque. Lo que sí se guarda son las piezas con su fecha y su leyenda, los
+cada arranque. Lo que sí se guarda son las piezas con su fecha, los
 hábitos —con las cuatro líneas que escribiste y el plan—, la crónica de obra de
 cada pueblo —lo que ya se decidió construir— y las constelaciones vistas.

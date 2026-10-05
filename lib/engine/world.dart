@@ -548,7 +548,7 @@ BuiltTown _build(TownLayout layout, int placed, BuiltTown? before) {
   //
   // El enlosado primero, que es lo que dice dónde está el centro desde
   // cualquier punto del pueblo; después el tablón, que es lo que el pueblo
-  // dice de vos; y el atril, que es lo que dijiste vos.
+  // dice de vos.
   //
   // **Desde que se funda, no desde la primera pieza.** Antes hacía falta que
   // hubiera al menos una pieza puesta, y eso era una plaza que aparecía de la
@@ -571,7 +571,6 @@ BuiltTown _build(TownLayout layout, int placed, BuiltTown? before) {
           if (f.decals != null) f,
     ];
     furnish(board);
-    furnish(Lectern.solidsAt(layout.cx, layout.cz));
   }
 
   for (var i = from; i < take; i++) {

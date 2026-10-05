@@ -409,8 +409,7 @@ class _PinButton extends StatelessWidget {
 /// Dónde se escribe.
 ///
 /// Una línea y poco más. Lo que se clava en un tablón es un recordatorio o una
-/// promesa, no una entrada de diario: para lo largo ya está la bitácora, donde
-/// va la leyenda de cada pieza.
+/// promesa, no una entrada de diario.
 ///
 /// **Minimalista quiere decir que no hay nada que leer antes de escribir.**
 /// Había un rótulo, un párrafo explicando de qué iba el papel, una caja con su

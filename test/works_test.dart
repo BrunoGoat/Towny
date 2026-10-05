@@ -8,7 +8,6 @@ import 'package:towny/model/piece.dart';
 import 'package:towny/model/works_log.dart';
 import 'package:towny/ui/overlays.dart';
 import 'package:towny/ui/style.dart';
-import 'package:towny/ui/works_calendar.dart';
 
 /// Un pueblo de [n] piezas, una por día desde el 1 de marzo, con la crónica
 /// que le tocaría.
@@ -204,64 +203,6 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.textContaining(' días'), findsNothing);
-    });
-  });
-
-  group('cómo se reparte el calendario en páginas', () {
-    final hoy = DateTime(2029, 1, 1);
-
-    test('un año por página mientras quepan', () {
-      final h = _habit(700);
-      final obras = worksOf(h);
-      final lustro = obras.map((o) => o.began.year).toSet();
-      final hojas = calendarPages(obras, fits: 40, today: hoy);
-      expect(hojas.length, lustro.length, reason: '${lustro.length} años');
-      for (final hoja in hojas) {
-        expect(hoja.spans, isNotEmpty);
-        expect(
-          hoja.spans.map((o) => o.began.year).toSet().length,
-          1,
-          reason: 'una página con obras de dos años',
-        );
-      }
-    });
-
-    test('y cuando no caben, en tandas de meses seguidos', () {
-      final obras = worksOf(_habit(700));
-      final hojas = calendarPages(obras, fits: 2, today: hoy);
-      expect(hojas.length, greaterThan(3));
-      for (final hoja in hojas) {
-        expect(hoja.spans.length, lessThanOrEqualTo(2));
-        // La ventana empieza el día uno del mes de la primera y acaba después
-        // de la última: una página de calendario enseña meses enteros.
-        expect(hoja.from.day, 1);
-        expect(hoja.to.isAfter(hoja.from), isTrue);
-        for (final s in hoja.spans) {
-          expect(s.began.isBefore(hoja.from), isFalse, reason: s.name);
-          expect(
-            (s.ended ?? s.began).isAfter(hoja.to),
-            isFalse,
-            reason: s.name,
-          );
-        }
-      }
-      // Y no se pierde ninguna por el camino.
-      expect(
-        hojas.expand((h) => h.spans).map((o) => o.from).toList(),
-        obras.map((o) => o.from).toList(),
-      );
-    });
-
-    test('la que está en obra se cuenta hasta hoy, no hasta nunca', () {
-      final obras = worksOf(_habit(200));
-      final hojas = calendarPages(obras, fits: 40, today: hoy);
-      final ultima = hojas.last.spans.last;
-      if (ultima.done) return;
-      expect(hojas.last.to.isAfter(hoy), isTrue);
-    });
-
-    test('sin obras no hay páginas', () {
-      expect(calendarPages(const [], fits: 10, today: hoy), isEmpty);
     });
   });
 }

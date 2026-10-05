@@ -54,7 +54,7 @@ class TopBar extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // La cuenta no lleva a ninguna parte. Llevaba a una hoja con el pueblo,
-        // los hitos y las leyendas, y lo del pueblo lo cuenta ya su tablón —que
+        // y los hitos, y lo del pueblo lo cuenta ya su tablón —que
         // es donde tiene que estar, escrito en un papel y no en una lista.
         Expanded(
           child: Column(

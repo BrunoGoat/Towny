@@ -61,38 +61,6 @@ bool _enHueco(int back) {
   return false;
 }
 
-/// Lo que uno escribe en una pieza de entrenar, y a qué hora suele caer.
-///
-/// Las de fuerza son de tarde y las de calle de mañana, que es la manera en
-/// que la gente entrena de verdad: la bici y la carrera antes de trabajar, el
-/// gimnasio al salir.
-/// Y se repiten: nadie escribe diez cosas distintas. Lo que hay son dos o tres
-/// que vuelven —correr, el gimnasio— cada una hecha de varias maneras, que es
-/// lo que el tablón junta cuando busca lo que repetís. Con diez leyendas
-/// sueltas y equitativas esa nota no salía nunca, y el tablón de mentira está
-/// para poder verlas todas.
-const List<(String, bool)> _entrenos = [
-  ('Correr 5k', true),
-  ('Correr 10k', true),
-  ('Correr suave', true),
-  ('Andar en bici', true),
-  ('Caminata larga', true),
-  ('Gimnasio de piernas', false),
-  ('Gimnasio de espalda', false),
-  ('Gimnasio de pecho', false),
-  ('Pesas', false),
-  ('Estiramientos', false),
-];
-
-const List<String> _lecturas = [
-  'Veinte páginas',
-  'Un capítulo',
-  'Antes de dormir',
-  'Media hora',
-  'Terminé el libro',
-  'Ensayo corto',
-];
-
 Habit _entrenar(DateTime today) {
   final pieces = <Piece>[];
   var enBlanco = false;
@@ -113,20 +81,8 @@ Habit _entrenar(DateTime today) {
       // La primera del día es de mañana cuatro de cada cinco veces; la
       // segunda, si la hay, es siempre de tarde.
       final manana = k == 0 && hash01(key, 3) < 0.86;
-      final quiere = <int>[
-        for (var i = 0; i < _entrenos.length; i++)
-          if (_entrenos[i].$2 == manana) i,
-      ];
-      final cual = quiere[hashInt(quiere.length, key, 4, k)];
       pieces.add(
-        Piece(
-          index: pieces.length,
-          placedAt: _hora(day, manana, key, k),
-          // Poco más de la mitad de las piezas llevan leyenda, que es lo que
-          // pasa de verdad: escribir es opcional y se escribe cuando hay algo
-          // que decir.
-          label: hash01(key, 5, k) < 0.55 ? _entrenos[cual].$1 : null,
-        ),
+        Piece(index: pieces.length, placedAt: _hora(day, manana, key, k)),
       );
     }
   }
@@ -206,9 +162,6 @@ Habit _leer(DateTime today, Habit entrenar) {
           t.floor(),
           ((t % 1) * 60).round(),
         ),
-        label: hash01(key, 13) < 0.4
-            ? _lecturas[hashInt(_lecturas.length, key, 14)]
-            : null,
       ),
     );
   }

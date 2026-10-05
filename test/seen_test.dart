@@ -56,11 +56,11 @@ void main() {
       expect(BoardSeen.instance.isUnread('p1', ahora), isTrue);
     });
 
-    test('pero las tres que se mueven solas avisan una vez y se callan', () {
-      // La fecha de «queda en pie el trece» se corre con cada pieza, los días
-      // de tu vida suben cada mañana y la cuenta de lo que repetís cambia con
-      // cada leyenda. Si contaran por su texto, el punto no se apagaría nunca.
-      for (final k in [NoticeKind.ahead, NoticeKind.life, NoticeKind.chore]) {
+    test('pero las dos que se mueven solas avisan una vez y se callan', () {
+      // La fecha de «queda en pie el trece» se corre con cada pieza y los días
+      // de tu vida suben cada mañana. Si contaran por su texto, el punto no se
+      // apagaría nunca.
+      for (final k in [NoticeKind.ahead, NoticeKind.life]) {
         BoardSeen.instance.forget();
         final hoy = _n(k, 'algo de hoy');
         final manana = _n(k, 'algo de mañana');

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:towny/data/character.dart';
@@ -10,7 +9,6 @@ import 'package:towny/ui/habit_bar.dart';
 import 'package:towny/ui/habit_sigil.dart';
 import 'package:towny/ui/habits_sheet.dart';
 import 'package:towny/ui/hold_button.dart';
-import 'package:towny/ui/legend_card.dart';
 import 'package:towny/ui/overlays.dart';
 import 'package:towny/ui/plan_picker.dart';
 import 'package:towny/ui/style.dart';
@@ -124,8 +122,9 @@ void main() {
     }
   });
 
-  testWidgets('la tarjeta de la leyenda cabe y se lee', (tester) async {
-    const leyenda = 'Corrí ocho kilómetros por el parque, con lluvia';
+  testWidgets('la tarjeta de una pieza cabe y dice cuál y cuándo', (
+    tester,
+  ) async {
     for (final size in _pantallas) {
       tester.view.physicalSize = size;
       tester.view.devicePixelRatio = 1;
@@ -138,8 +137,6 @@ void main() {
               theme: UiTheme(Palette.forMoment(13)),
               when: DateTime(2026, 9, 10, 8, 50),
               number: 1284,
-              label: leyenda,
-              onWrite: (_) {},
               onWhen: (_) {},
             ),
           ),
@@ -147,167 +144,13 @@ void main() {
       );
       await tester.pump(const Duration(milliseconds: 200));
       expect(tester.takeException(), isNull);
-      expect(find.text(leyenda), findsOneWidget);
+      expect(find.text('PIEZA 1284'), findsOneWidget);
+      expect(find.text('10 sep 2026 · 08:50'), findsOneWidget);
+      // Y nada que escribir.
+      expect(find.byType(TextField), findsNothing);
       _dentro(tester, size, 'la tarjeta');
       await tester.pumpWidget(const SizedBox());
     }
-  });
-
-  testWidgets('lo que falta por escribir no es un aviso, y es de esta hora', (
-    tester,
-  ) async {
-    // Una leyenda que no está escrita no es una alerta. En el naranja de la
-    // hora lo parecía, y de ahí viene esto.
-    //
-    // Lo que se exige cambió: era «que tire a pardo», y un pardo de mediodía a
-    // las tres de la mañana es una mancha que no es de esa hora. Ahora sale de
-    // la paleta como todo lo demás, así que de noche puede ser fría. Lo que no
-    // puede es cantar: tiene que leerse como un texto apagado y no como el
-    // color con que la app avisa de algo.
-    for (final hora in [13.0, 2.0]) {
-      final t = UiTheme(Palette.forMoment(hora));
-      tester.view.physicalSize = _pantallas.last;
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.reset);
-      await tester.pumpWidget(
-        _marco(
-          _pantallas.last,
-          Center(
-            child: StoneCard(
-              theme: t,
-              when: DateTime(2026, 9, 10),
-              number: 7,
-              label: null,
-              onWrite: (_) {},
-              onWhen: (_) {},
-            ),
-          ),
-        ),
-      );
-      await tester.pump(const Duration(milliseconds: 200));
-      final texto = tester.widget<Text>(find.text('escribir una leyenda'));
-      final color = texto.style!.color!;
-      expect(
-        color,
-        isNot(t.accent),
-        reason: 'sigue siendo el color de la hora',
-      );
-      double lejos(Color a, Color b) =>
-          (a.r - b.r).abs() + (a.g - b.g).abs() + (a.b - b.b).abs();
-      expect(
-        lejos(color, t.fgSoft),
-        lessThan(lejos(color, t.accent)),
-        reason:
-            'a las $hora se parece más al color de aviso que al del texto: '
-            'una leyenda sin escribir es un hueco esperando, no una alerta',
-      );
-      expect(
-        lejos(color, t.fgSoft),
-        greaterThan(0.02),
-        reason: 'a las $hora es exactamente el texto normal y no se distingue',
-      );
-      await tester.pumpWidget(const SizedBox());
-    }
-  });
-
-  testWidgets('y se escribe de la misma tinta con la que se lee', (
-    tester,
-  ) async {
-    // De noche pasaba esto: escribías la leyenda en negro y, al guardarla, el
-    // mismo texto salía blanco. La tarjeta le pone el color a su cuerpo con un
-    // DefaultTextStyle, que un Text lee y un campo de texto no —ése se mezcla
-    // contra el tema de Material, que lo pintaba oscuro sobre el bloque
-    // oscuro—. Leer una leyenda y escribirla son la misma cosa vista dos
-    // veces, así que tienen que verse igual.
-    for (final hora in [13.0, 2.0]) {
-      final t = UiTheme(Palette.forMoment(hora));
-      final size = _pantallas.last;
-      tester.view.physicalSize = size;
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.reset);
-      await tester.pumpWidget(
-        _marco(
-          size,
-          Center(
-            child: StoneCard(
-              theme: t,
-              when: DateTime(2026, 9, 10),
-              number: 7,
-              label: 'Corrí',
-              onWrite: (_) {},
-              onWhen: (_) {},
-            ),
-          ),
-        ),
-      );
-      await tester.pump(const Duration(milliseconds: 200));
-      // Lo que se ve al leerla: el Text sale sin color y se lo pone la
-      // tarjeta, así que hay que preguntarle al párrafo ya resuelto.
-      final leida = (tester.renderObject(find.text('Corrí')) as RenderParagraph)
-          .text
-          .style!
-          .color!;
-
-      await tester.tap(find.text('Corrí'));
-      await tester.pump(const Duration(milliseconds: 200));
-      final escribiendo = tester
-          .widget<EditableText>(find.byType(EditableText))
-          .style
-          .color!;
-
-      expect(
-        escribiendo,
-        leida,
-        reason:
-            'a las $hora se escribe en $escribiendo y se lee en $leida: '
-            'el texto cambia de color al guardarlo',
-      );
-      await tester.pumpWidget(const SizedBox());
-    }
-  });
-
-  testWidgets('la leyenda se escribe en la propia tarjeta', (tester) async {
-    // Antes esto abría una hoja por debajo, con su título, su explicación y
-    // sus botones. Una pantalla entera para una frase de sesenta letras que ya
-    // estaba en pantalla.
-    final size = _pantallas.last;
-    tester.view.physicalSize = size;
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.reset);
-    String? escrito;
-    await tester.pumpWidget(
-      _marco(
-        size,
-        Center(
-          child: StoneCard(
-            theme: UiTheme(Palette.forMoment(13)),
-            when: DateTime(2026, 9, 10),
-            number: 7,
-            label: null,
-            onWrite: (t) => escrito = t,
-            onWhen: (_) {},
-          ),
-        ),
-      ),
-    );
-    await tester.pump(const Duration(milliseconds: 200));
-
-    // Se lee, se toca, y se escribe ahí mismo: una sola tarjeta de principio a
-    // fin, sin ninguna pantalla nueva.
-    expect(find.byType(TextField), findsNothing);
-    await tester.tap(find.text('escribir una leyenda'));
-    await tester.pump(const Duration(milliseconds: 200));
-    expect(find.byType(LegendCard), findsOneWidget);
-    expect(find.byType(TextField), findsOneWidget);
-
-    await tester.enterText(find.byType(TextField), 'Leí un rato');
-    // Y sin botón de guardar: tocar fuera guarda, que es lo que iba a pasar
-    // igual.
-    expect(find.text('Guardar'), findsNothing);
-    await tester.testTextInput.receiveAction(TextInputAction.done);
-    await tester.pump(const Duration(milliseconds: 200));
-    expect(escrito, 'Leí un rato');
-    expect(find.byType(TextField), findsNothing);
   });
 }
 

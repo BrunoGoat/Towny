@@ -960,7 +960,6 @@ Future<void> _pinta(
       time: time,
       hourOfDay: 11,
       effects: EffectSystem(),
-      labelledBricks: const {},
       budget: 40000,
       towns: [
         TownEntry(layout: layout, name: 'Pueblo', symbol: 'rueda', placed: 40),

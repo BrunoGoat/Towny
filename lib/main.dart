@@ -191,7 +191,7 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
     for (final a in puestas) {
       final at = store.habits.indexWhere((h) => h.id == a.habitId);
       if (at < 0) continue;
-      pasos.add(ReelStep(a.when, at, null));
+      pasos.add(ReelStep(a.when, at));
     }
     if (pasos.isEmpty) return;
     pasos.sort((a, b) => a.when.compareTo(b.when));

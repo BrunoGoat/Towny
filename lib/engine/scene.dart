@@ -21,9 +21,9 @@ import 'town.dart';
 /// expositor, la cinemática, la hoja de elegir— no quiere el rasterizador
 /// entero, quiere saber qué campos rellenar.
 ///
-/// Aquí van también los seis sitios que el pintor deja marcados al pasar
-/// —dónde cayó cada pieza, cada cartel, cada tablón, cada atril, cada cúpula y
-/// la constelación de esta noche—, porque son la otra mitad del mismo
+/// Aquí van también los sitios que el pintor deja marcados al pasar —dónde
+/// cayó cada pieza, cada cartel, cada tablón, cada cúpula y la constelación de
+/// esta noche—, porque son la otra mitad del mismo
 /// contrato: lo que entra a pintarse y lo que sale para poder tocarlo.
 
 /// One town in the valley, and what the habit behind it is called.
@@ -62,15 +62,7 @@ class TownEntry {
 /// distancia de la más cercana, que es lo que decide quién gana cuando dos se
 /// pisan: la de adelante. Una pieza no se toca a través de otra.
 class PickTarget {
-  PickTarget(
-    this.brickIndex,
-    this.x0,
-    this.y0,
-    this.x1,
-    this.y1,
-    this.near,
-    this.labelled,
-  );
+  PickTarget(this.brickIndex, this.x0, this.y0, this.x1, this.y1, this.near);
 
   final int brickIndex;
 
@@ -79,9 +71,6 @@ class PickTarget {
 
   /// A qué distancia del ojo está lo más cercano suyo.
   double near;
-
-  /// True when this stone carries a note, so it can be marked on the wall.
-  final bool labelled;
 
   bool holds(double x, double y, double slack) =>
       x >= x0 - slack && x <= x1 + slack && y >= y0 - slack && y <= y1 + slack;
@@ -123,16 +112,6 @@ class BoardHit {
   final Rect rect;
 }
 
-/// Dónde quedó el atril de un pueblo, para que un dedo lo encuentre.
-///
-/// Igual que el tablón y por el mismo motivo: sale de las cuatro esquinas del
-/// propio libro, así que lo que se toca es exactamente lo que se ve.
-class LecternHit {
-  const LecternHit(this.town, this.rect);
-  final int town;
-  final Rect rect;
-}
-
 class TownScene {
   TownScene({
     required this.placed,
@@ -141,7 +120,6 @@ class TownScene {
     required this.time,
     required this.hourOfDay,
     required this.effects,
-    required this.labelledBricks,
     this.fx,
     this.budget = 16000,
     required this.towns,
@@ -202,9 +180,6 @@ class TownScene {
   /// achievement, and what the frame actually pays for is the face count.
   final int budget;
 
-  /// Bricks the person wrote a note on.
-  final Set<int> labelledBricks;
-
   final PlacementFx? fx;
 
   /// Every town in the valley, one per habit, and which of them is the one
@@ -246,8 +221,8 @@ class TownScene {
   /// Cuánto lleva levantada la plaza del pueblo que se acaba de fundar, de
   /// cero a uno. Uno —lo normal— quiere decir que está en su sitio.
   ///
-  /// Un pueblo se funda con su plaza, no con su primera casa: el enlosado, el
-  /// tablón y el atril existen desde el minuto cero, porque son el claro
+  /// Un pueblo se funda con su plaza, no con su primera casa: el enlosado y el
+  /// tablón existen desde el minuto cero, porque son el claro
   /// alrededor del cual se reparten los solares. Esto es lo único que hace
   /// falta para que además **se vean llegar**, en vez de estar ya ahí la
   /// primera vez que se mira.
@@ -294,9 +269,6 @@ class TouchMap {
   /// Su tablón.
   final List<BoardHit> boards = [];
 
-  /// Y su atril.
-  final List<LecternHit> lecterns = [];
-
   /// La constelación de esta noche, si salió.
   final List<SkyHit> skies = [];
 
@@ -308,7 +280,6 @@ class TouchMap {
     pieces.clear();
     signs.clear();
     boards.clear();
-    lecterns.clear();
     skies.clear();
   }
 }

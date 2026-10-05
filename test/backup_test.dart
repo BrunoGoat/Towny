@@ -26,8 +26,7 @@ String shapeOf(Habit h) => [
   // Al milisegundo, que es la resolución que el guardado tiene desde siempre:
   // una copia conserva exactamente lo mismo que conserva cerrar la app y
   // volver a abrirla, ni más ni menos.
-  for (final p in h.pieces)
-    '${p.index}@${p.placedAt.millisecondsSinceEpoch}:${p.label ?? ''}',
+  for (final p in h.pieces) '${p.index}@${p.placedAt.millisecondsSinceEpoch}',
 ].join('|');
 
 /// Un valle con algo dentro, para tener qué perder.
@@ -37,7 +36,6 @@ Future<Store> lived() async {
   for (var i = 0; i < 5; i++) {
     s.placePiece();
   }
-  s.setLabel(2, 'el día que llovía');
   s.addHabit('Correr', 'carrera', character: TownCharacter.all[3].order);
   for (var i = 0; i < 3; i++) {
     s.placePiece();

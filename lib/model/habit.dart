@@ -351,11 +351,7 @@ class Habit {
     // save with gaps in it is renumbered rather than refused.
     for (var i = 0; i < list.length; i++) {
       if (list[i].index != i) {
-        list[i] = Piece(
-          index: i,
-          placedAt: list[i].placedAt,
-          label: list[i].label,
-        );
+        list[i] = Piece(index: i, placedAt: list[i].placedAt);
       }
     }
     return Habit(

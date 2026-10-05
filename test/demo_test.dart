@@ -85,20 +85,12 @@ void main() {
           reason: 'una pieza de entrenar a las $h',
         );
       }
-      // Y algo más de la mitad llevan leyenda, que es lo que se quería ver.
-      final conLeyenda = valle.first.pieces.where((p) => p.hasLabel).length;
-      expect(conLeyenda / valle.first.total, inInclusiveRange(0.4, 0.7));
-      expect({
-        for (final p in valle.first.pieces)
-          if (p.hasLabel) p.label,
-      }, contains('Andar en bici'));
     });
 
     test('el mismo día enseña siempre el mismo pueblo', () {
       final otra = demoValley(hoy);
       expect(otra.first.total, valle.first.total);
       expect(otra.first.pieces.last.placedAt, valle.first.pieces.last.placedAt);
-      expect(otra.first.pieces.last.label, valle.first.pieces.last.label);
     });
 
     // Lo que de verdad importa: que el tablón tenga qué decir. Cada una de

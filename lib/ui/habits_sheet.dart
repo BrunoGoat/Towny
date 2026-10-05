@@ -454,29 +454,23 @@ class _HabitsSheetState extends State<HabitsSheet> {
         // Cada cuánto va: una línea, y tocarla abre la misma hoja con la que lo
         // preguntó el pueblo la primera semana.
         if (_hasCadence && dicho != null)
-          _tapLine(
-            t,
-            velo,
-            cadenceSaid(dicho),
-            t.accent,
-            () {
-              Sensory.instance.tick();
-              showModalBottomSheet<void>(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (_) => CadenceSheet(
-                  habit: h,
-                  theme: t,
-                  first: false,
-                  onPick: (n) {
-                    store.setCadence(h, n);
-                    if (mounted) setState(() {});
-                  },
-                ),
-              );
-            },
-          ),
+          _tapLine(t, velo, cadenceSaid(dicho), t.accent, () {
+            Sensory.instance.tick();
+            showModalBottomSheet<void>(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (_) => CadenceSheet(
+                habit: h,
+                theme: t,
+                first: false,
+                onPick: (n) {
+                  store.setCadence(h, n);
+                  if (mounted) setState(() {});
+                },
+              ),
+            );
+          }),
         if (_hasPlan && frase != null)
           // Abierto el reloj, la frase deja de llevar lápiz: el lápiz dice
           // «esto se puede tocar», y lo que hay debajo ya lo está diciendo.

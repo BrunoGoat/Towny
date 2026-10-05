@@ -220,7 +220,6 @@ class _GalleryScreenState extends State<GalleryScreen>
       time: _time,
       hourOfDay: 11,
       effects: _fx,
-      labelledBricks: const {},
       fx: null,
       budget: 22000,
       towns: [
