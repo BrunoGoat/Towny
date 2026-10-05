@@ -611,6 +611,42 @@ void _pieles() {
     // cielo, de noche porque el panel ya es oscuro. Así que la regla es una
     // sola y no depende de la hora: lo que se dibuja encima va en tinta
     // clara.
+    // Editando, lo mínimo que cuenta y el plan salen sólo si ya se dijeron:
+    // un renglón vacío más es un formulario más largo para nada.
+    testWidgets('editando, lo que no se dijo no aparece', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final store = Store();
+      await store.load();
+      const size = Size(440, 950);
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final t = UiTheme(Palette.forMoment(13));
+      Future<void> abrir() async {
+        await tester.pumpWidget(const SizedBox());
+        await tester.pumpWidget(
+          _marco(
+            size,
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: HabitsSheet(store: store, theme: t),
+            ),
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 250));
+      }
+
+      await abrir();
+      expect(find.text('LO MÍNIMO QUE CUENTA'), findsNothing);
+      expect(find.text('EL PLAN'), findsNothing);
+
+      store.describeHabit(0, floor: 'leer una página');
+      store.setCadence(store.habit, 3);
+      await abrir();
+      expect(find.text('LO MÍNIMO QUE CUENTA'), findsOneWidget);
+      expect(find.text('EL PLAN'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+    });
     testWidgets('las marcas sin elegir se leen a cualquier hora', (
       tester,
     ) async {

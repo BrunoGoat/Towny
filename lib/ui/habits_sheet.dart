@@ -453,18 +453,12 @@ class _HabitsSheetState extends State<HabitsSheet> {
         const SizedBox(height: 5),
         // Cada cuánto va: una línea, y tocarla abre la misma hoja con la que lo
         // preguntó el pueblo la primera semana.
-        //
-        // Sin decir, enseña lo que se ve en letra floja, que no es un campo
-        // vacío esperando a que lo llenes sino lo que el pueblo cree hasta que
-        // le digas otra cosa.
-        if (_hasCadence)
+        if (_hasCadence && dicho != null)
           _tapLine(
             t,
             velo,
-            dicho == null
-                ? 'sin decir · ${cadenceSaid(perWeekOf(h))}, por lo que se ve'
-                : cadenceSaid(dicho),
-            dicho == null ? velo.suave : t.accent,
+            cadenceSaid(dicho),
+            t.accent,
             () {
               Sensory.instance.tick();
               showModalBottomSheet<void>(
@@ -604,7 +598,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
         'EN QUIÉN TE CONVIERTE',
         'alguien que lee todos los días',
       ),
-      if (!_creating) ...[
+      if (_hasFloor) ...[
         const SizedBox(height: 8),
         _softLine(
           t,
@@ -630,10 +624,17 @@ class _HabitsSheetState extends State<HabitsSheet> {
       (widget.store.habit.vowHour != null ||
           widget.store.habit.vowPlace != null);
 
-  /// La frecuencia sí sale siempre que se edita, aunque todavía no se haya
-  /// dicho: es una línea, se ve lo que el pueblo cree, y es la puerta para
-  /// quien va dos veces por semana y no quiere esperar a que se lo pregunten.
-  bool get _hasCadence => !_creating;
+  /// Lo mínimo que cuenta, igual que el plan: sólo si ya se escribió. Un
+  /// renglón vacío más en la hoja es un formulario más largo, y esto lo
+  /// propone la hoja que pregunta si seguimos el día que hace falta.
+  late final bool _hasFloor =
+      !_creating && (widget.store.habit.floor?.isNotEmpty ?? false);
+
+  /// La frecuencia, sólo si ya se dijo. Sin decir, la pregunta el pueblo la
+  /// primera semana con su propia hoja; enseñar acá lo que cree mientras tanto
+  /// era otra línea para algo que nadie estableció.
+  late final bool _hasCadence =
+      !_creating && widget.store.habit.perWeek != null;
 
   Widget _softLine(
     UiTheme t,
