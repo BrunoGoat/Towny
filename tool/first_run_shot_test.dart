@@ -106,11 +106,11 @@ void main() {
       await foto('2-nombre');
       await tester.enterText(find.byType(TextField).last, 'Leer');
       await tester.pump();
-      await tester.tap(find.text('SEGUIR').last);
+      await tester.tap(find.text('SIGUIENTE').last);
       await foto('3-para-que');
       await tester.enterText(find.byType(TextField).last, 'para dormir mejor');
       await tester.pump();
-      await tester.tap(find.text('SEGUIR').last);
+      await tester.tap(find.text('SIGUIENTE').last);
       await foto('4-quien');
       await tester.enterText(find.byType(TextField).last, 'alguien que lee');
       await tester.pump();

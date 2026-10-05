@@ -63,18 +63,18 @@ void main() {
       await _asentar(tester);
       await tester.enterText(find.byType(TextField).first, 'Leer');
       await tester.pump();
-      await tester.tap(find.text('SEGUIR'));
+      await tester.tap(find.text('SIGUIENTE'));
       await _asentar(tester);
 
       // Ni cuándo ni dónde: eso lo propone el pueblo cuando ya lo sabe.
       expect(find.text('¿Cuándo y dónde?'), findsNothing);
-      expect(find.text('¿Para qué lo querés?'), findsOneWidget);
+      expect(find.text('¿Para qué querés ese hábito?'), findsOneWidget);
       await tester.enterText(find.byType(TextField).first, 'para dormir mejor');
       await tester.pump();
-      await tester.tap(find.text('SEGUIR'));
+      await tester.tap(find.text('SIGUIENTE'));
       await _asentar(tester);
 
-      expect(find.text('¿En quién te convierte?'), findsOneWidget);
+      expect(find.text('¿En quién te convierte tener ese hábito?'), findsOneWidget);
       await tester.enterText(
         find.byType(TextField).first,
         'alguien que lee todos los días',
@@ -117,7 +117,7 @@ void main() {
       await _asentar(tester);
       await tester.enterText(find.byType(TextField).first, 'Correr');
       await tester.pump();
-      await tester.tap(find.text('SEGUIR'));
+      await tester.tap(find.text('SIGUIENTE'));
       await _asentar(tester);
       for (var i = 0; i < 2; i++) {
         await tester.tap(find.text('Ahora no'));
@@ -141,10 +141,10 @@ void main() {
       await _asentar(tester);
       // El botón está a la vista pero apagado: que se vea dónde está la salida
       // antes de poder usarla es la mitad de saber cuánto falta.
-      expect(find.text('SEGUIR'), findsOneWidget);
-      await tester.tap(find.text('SEGUIR'));
+      expect(find.text('SIGUIENTE'), findsOneWidget);
+      await tester.tap(find.text('SIGUIENTE'));
       await _asentar(tester);
-      expect(find.text('¿Para qué lo querés?'), findsNothing);
+      expect(find.text('¿Para qué querés ese hábito?'), findsNothing);
       expect(fundado, isFalse);
     });
 
@@ -179,9 +179,9 @@ void main() {
         expect(tester.takeException(), isNull, reason: 'nombre, $teclado');
         await tester.enterText(find.byType(TextField).first, 'Leer');
         await tester.pump();
-        await tester.ensureVisible(find.text('SEGUIR'));
+        await tester.ensureVisible(find.text('SIGUIENTE'));
         await tester.pump();
-        await tester.tap(find.text('SEGUIR'));
+        await tester.tap(find.text('SIGUIENTE'));
         await _asentar(tester);
         expect(tester.takeException(), isNull, reason: 'para qué, $teclado');
         await tester.pumpWidget(const SizedBox());
@@ -199,7 +199,7 @@ void main() {
       await _asentar(tester);
       await tester.enterText(find.byType(TextField).first, 'Leer');
       await tester.pump();
-      await tester.tap(find.text('SEGUIR'));
+      await tester.tap(find.text('SIGUIENTE'));
       await _asentar(tester);
       await tester.tap(find.text('Ahora no'));
       await _asentar(tester);

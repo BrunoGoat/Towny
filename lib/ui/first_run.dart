@@ -305,9 +305,9 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
 
   Widget _askName() => _Step(
     over: 'Tu hábito',
-    title: '¿Qué querés hacer?',
-    lines: const ['Una cosa. La segunda se gana más adelante.'],
-    next: 'Seguir',
+    title: '¿Qué hábito querés desarrollar?',
+    lines: const [],
+    next: 'Siguiente',
     onNext: _name.text.trim().isEmpty ? null : () => _go(2),
     child: Column(
       mainAxisSize: MainAxisSize.min,
@@ -333,12 +333,9 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
 
   Widget _askWhy() => _Step(
     over: 'El motivo',
-    title: '¿Para qué lo querés?',
-    lines: const [
-      'Esto no se lee ningún día bueno. Sale el día que vuelvas después de un '
-          'hueco largo, que es cuando hace falta y cuando ya no te acordás.',
-    ],
-    next: 'Seguir',
+    title: '¿Para qué querés ese hábito?',
+    lines: const ['Para que tengas claro por qué lo mantenés.'],
+    next: 'Siguiente',
     skip: 'Ahora no',
     onSkip: () => _go(3),
     onNext: _why.text.trim().isEmpty ? null : () => _go(3),
@@ -364,11 +361,10 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
   /// dice de quién es.
   Widget _askWho() => _Step(
     over: 'Quién sos',
-    title: '¿En quién te convierte?',
+    title: '¿En quién te convierte tener ese hábito?',
     lines: const [
-      'No es lo mismo que para qué lo querés: eso se cumple algún día y esto no '
-          'se cumple nunca. El pueblo lo va a decir así: «este pueblo es de '
-          'alguien que lee todos los días».',
+      'Qué buscás ser una vez que consigas el hábito: ¿alguien sabio? '
+          '¿Alguien sano? ¿Alguien más inteligente?',
     ],
     next:
         'Fundar ${_name.text.trim().isEmpty ? 'el pueblo' : _name.text.trim()}',
