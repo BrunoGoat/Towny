@@ -10,6 +10,8 @@ import '../engine/town.dart';
 import '../fx/notifier.dart';
 import '../fx/sensory.dart';
 import '../model/appearance.dart';
+import '../model/board_seen.dart';
+import '../model/board_slots.dart';
 import '../model/piece.dart';
 import '../model/reel.dart';
 import '../model/store.dart';
@@ -427,9 +429,68 @@ class _SettingsSheetState extends State<SettingsSheet> {
               'están andando, una a una y de cerca.',
           page: () => FolkGalleryScreen(theme: t),
         ),
+        // Lo último de la hoja, lejos de todo lo demás: es lo único de acá
+        // que no se deshace.
+        _Row(
+          theme: t,
+          icon: Icons.delete_forever,
+          title: 'Empezar de cero',
+          subtitle:
+              'Borra todos los pueblos y vuelve a la pantalla de la primera '
+              'vez.',
+          act: (nav) => _empezarDeCero(nav, t, store),
+        ),
       ],
     );
   }
+}
+
+/// Borrar el valle entero y volver a la primera vez.
+///
+/// Pregunta antes, y dice dónde está la copia: es lo único de la app que no
+/// tiene vuelta atrás. Los ajustes —el sonido, la vibración— se quedan como
+/// estaban, porque son de quien usa el teléfono y no del valle.
+void _empezarDeCero(NavigatorState nav, UiTheme t, Store store) {
+  Sensory.instance.tick();
+  showDialog<void>(
+    context: nav.context,
+    builder: (dialog) => AlertDialog(
+      backgroundColor: t.panelStrong,
+      elevation: 0,
+      title: Text('¿Borrar todo y empezar de cero?', style: t.body),
+      content: Text(
+        'Se borran todos tus pueblos, sus piezas y lo que clavaste en el '
+        'tablón. No se puede deshacer.\n\n'
+        'Si querés guardar una copia, sacala antes desde «Tus datos».',
+        style: t.bodySoft,
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialog).pop(),
+          child: const Text('No'),
+        ),
+        TextButton(
+          onPressed: () async {
+            Navigator.of(dialog).pop();
+            await store.wipe();
+            BoardSeen.instance.forget();
+            await BoardSeen.instance.flush();
+            BoardSlots.instance.forget();
+            await BoardSlots.instance.flush();
+            await Appearance.instance.forgetOnboarded();
+            if (nav.mounted) nav.pop();
+          },
+          child: Text(
+            'Borrar todo',
+            style: TextStyle(
+              color: t.dark ? const Color(0xFFCC5B48) : const Color(0xFF9E3124),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 /// La tarjeta de elegir, enseñada por enseñarla.

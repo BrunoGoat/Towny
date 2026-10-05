@@ -121,6 +121,13 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
 
   void _prefsChanged() {
     if (mounted) setState(() {});
+    // De vuelta en la primera vez —también después de borrar todo desde
+    // ajustes—: los avisos y el cuadrito de la pantalla de inicio no pueden
+    // seguir hablando de pueblos que ya no están.
+    if (!Appearance.instance.onboarded) {
+      _replan();
+      WidgetBridge.instance.publish(store.habits);
+    }
   }
 
   /// Fundar el primer pueblo con lo que se contestó en la primera pantalla.
