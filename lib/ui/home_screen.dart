@@ -18,6 +18,7 @@ import 'board_glyph.dart';
 import 'cadence_sheet.dart';
 import 'choice_sheet.dart';
 import 'cloud_flight.dart';
+import 'first_run.dart';
 import 'habits_sheet.dart';
 import 'home_chrome.dart';
 import 'notice_board.dart';
@@ -533,7 +534,7 @@ class _HomeScreenState extends State<HomeScreen>
   /// fundar, y la de enterarse de cuánto falta para poder.
   void _addHabit() {
     if (widget.store.canAddHabit) {
-      _openHabits(startNew: true);
+      _foundNext();
       return;
     }
     if (widget.store.unlocked) return; // el valle está lleno, y eso no se abre
@@ -547,15 +548,61 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  void _openHabits({bool startNew = false}) {
+  /// Fundar el pueblo siguiente, en su propia pantalla.
+  ///
+  /// La misma que la primera vez —el valle, las preguntas, la cámara bajando—
+  /// con una bienvenida que dice qué se ganó. Al terminar, el pueblo nuevo
+  /// queda elegido y marcado como recién fundado, y la vista vuela hasta él y
+  /// le hace caer la plaza: el relevo es el mismo que el de la primera vez.
+  void _foundNext() {
+    final store = widget.store;
+    Sensory.instance.tick();
+    final next = NextTown(
+      towns: [
+        for (final h in store.habits)
+          (
+            name: h.name,
+            symbol: h.symbol,
+            pieces: h.total,
+            character: h.character,
+          ),
+      ],
+    );
+    Navigator.of(context).push(
+      PageRouteBuilder<void>(
+        transitionDuration: const Duration(milliseconds: 700),
+        reverseTransitionDuration: const Duration(milliseconds: 600),
+        pageBuilder: (ctx, _, _) => FirstRun(
+          next: next,
+          onCancel: () => Navigator.of(ctx).pop(),
+          onDone: (name, symbol, {required character, why, identity}) {
+            store.addHabit(
+              name,
+              symbol,
+              character: character,
+              why: why,
+              identity: identity,
+            );
+            store.justFounded = true;
+            Navigator.of(ctx).pop();
+          },
+        ),
+        transitionsBuilder: (_, a, _, child) => FadeTransition(
+          opacity: CurvedAnimation(parent: a, curve: Curves.easeInOut),
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  void _openHabits() {
     Sensory.instance.tick();
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       barrierColor: sheetScrim(_theme.dark),
-      builder: (_) =>
-          HabitsSheet(store: widget.store, theme: _theme, startNew: startNew),
+      builder: (_) => HabitsSheet(store: widget.store, theme: _theme),
     );
   }
 

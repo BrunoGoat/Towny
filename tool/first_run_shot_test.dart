@@ -75,6 +75,20 @@ void main() {
             home: RepaintBoundary(
               key: key,
               child: FirstRun(
+                // NEXT=1 dibuja la del pueblo siguiente, con uno ya fundado.
+                next: const bool.fromEnvironment('NEXT')
+                    ? const NextTown(
+                        towns: [
+                          (
+                            name: 'Leer',
+                            symbol: 'libro',
+                            pieces: 34,
+                            character: 0x1A7C,
+                          ),
+                        ],
+                      )
+                    : null,
+                onCancel: () {},
                 onDone: (_, _, {required character, why, identity}) {},
               ),
             ),
@@ -104,7 +118,9 @@ void main() {
       }
 
       await foto('1-bienvenida');
-      await tester.tap(find.text('FUNDAR MI PUEBLO', skipOffstage: false).last);
+      await tester.tap(
+        find.textContaining('FUNDAR MI', skipOffstage: false).last,
+      );
       await foto('2-nombre');
       await tester.enterText(find.byType(TextField).last, 'Leer');
       await tester.pump();

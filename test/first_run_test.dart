@@ -266,6 +266,74 @@ void main() {
     });
   });
 
+  group('el pueblo siguiente', () {
+    final next = NextTown(
+      towns: [
+        (
+          name: 'Leer',
+          symbol: 'libro',
+          pieces: 34,
+          character: TownCharacter.all.first.order,
+        ),
+      ],
+    );
+
+    testWidgets('dice qué se ganó, y con qué', (tester) async {
+      var cancelado = false;
+      await tester.pumpWidget(
+        _marco(
+          FirstRun(
+            next: next,
+            onCancel: () => cancelado = true,
+            onDone: (_, _, {required character, why, identity}) {},
+          ),
+        ),
+      );
+      await _asentar(tester);
+      expect(find.text('Te ganaste tu segundo pueblo.'), findsOneWidget);
+      expect(find.textContaining('«Leer» lleva 34 piezas'), findsOneWidget);
+      expect(find.text('PUEBLO II'), findsOneWidget);
+      expect(find.text('FUNDAR MI SEGUNDO PUEBLO'), findsOneWidget);
+      // Y la salida a la vista: un pueblo se funda cuando hay ganas.
+      await tester.tap(find.text('Ahora no'));
+      expect(cancelado, isTrue);
+    });
+
+    testWidgets('se funda entero, en una comarca que el valle no tiene', (
+      tester,
+    ) async {
+      String? elNombre;
+      int? laComarca;
+      await tester.pumpWidget(
+        _marco(
+          FirstRun(
+            next: next,
+            onCancel: () {},
+            onDone: (n, _, {required character, why, identity}) {
+              elNombre = n;
+              laComarca = character;
+            },
+          ),
+        ),
+      );
+      await _asentar(tester);
+      await tester.tap(find.text('FUNDAR MI SEGUNDO PUEBLO'));
+      await _asentar(tester);
+      await tester.enterText(find.byType(TextField).first, 'Correr');
+      await tester.pump();
+      await _siguiente(tester);
+      await _asentar(tester);
+      await _siguiente(tester);
+      await _asentar(tester);
+      await tester.tap(find.text('Ahora no'));
+      await _asentar(tester);
+      await tester.tap(find.text('Ahora no'));
+      await _bajar(tester);
+      expect(elNombre, 'Correr');
+      expect(laComarca, isNot(TownCharacter.all.first.order));
+    });
+  });
+
   group('la plaza', () {
     test('existe desde que se funda, no desde la primera pieza', () {
       // Antes hacía falta una pieza puesta, y eso era una plaza apareciendo de

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:towny/data/character.dart';
 import 'package:towny/engine/palette.dart';
 import 'package:towny/engine/tones.dart';
 import 'package:towny/model/store.dart';
@@ -395,55 +394,34 @@ void _pieles() {
       expect(find.byType(HourReel), findsNothing);
     });
 
-    /// El párrafo de la comarca, sólo donde sirve.
-    ///
-    /// Al fundar se está eligiendo entre seis y lo que dice es en qué se
-    /// diferencian. Editando ya está elegida y no se puede cambiar: son ochenta
-    /// píxeles de párrafo que nadie lee dos veces. El sello y el nombre se
-    /// quedan en los dos sitios, porque dicen de qué pueblo es la hoja.
-    testWidgets('la comarca se describe al fundar y no al editar', (
+    /// Editando, la comarca se nombra y no se describe: ya está elegida, y
+    /// son ochenta píxeles de párrafo que nadie lee dos veces. El sello y el
+    /// nombre se quedan, porque dicen de qué pueblo es la hoja.
+    testWidgets('editando, la comarca se nombra y no se describe', (
       tester,
     ) async {
       SharedPreferences.setMockInitialValues({});
       final store = Store();
       await store.load();
-      // Dos pueblos: con uno solo el tercer solar está cerrado y la hoja no
-      // entra en modo fundar aunque se le pida.
-      store.addHabit('Correr', 'carrera');
-      store.active = 0;
       const size = Size(390, 844);
       tester.view.physicalSize = size;
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
       final t = UiTheme(Palette.forMoment(13));
-      for (final fundando in [false, true]) {
-        await tester.pumpWidget(
-          _marco(
-            size,
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: HabitsSheet(store: store, theme: t, startNew: fundando),
-            ),
+      await tester.pumpWidget(
+        _marco(
+          size,
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: HabitsSheet(store: store, theme: t),
           ),
-        );
-        await tester.pump(const Duration(milliseconds: 250));
-        final comarca = fundando
-            ? TownCharacter.forSlot(store.habits.length)
-            : store.habit.place;
-        expect(
-          find.text(comarca.region.toUpperCase()),
-          findsOneWidget,
-          reason: 'sin sello no se sabe de qué pueblo es la hoja',
-        );
-        expect(
-          find.text(comarca.blurb),
-          fundando ? findsOneWidget : findsNothing,
-          reason: fundando
-              ? 'al fundar hay que decir qué clase de pueblo es cada uno'
-              : 'editando, el párrafo de la comarca es relleno',
-        );
-        await tester.pumpWidget(const SizedBox());
-      }
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 250));
+      final comarca = store.habit.place;
+      expect(find.text(comarca.region.toUpperCase()), findsOneWidget);
+      expect(find.text(comarca.blurb), findsNothing);
+      await tester.pumpWidget(const SizedBox());
     });
     // El fallo que se vio en un teléfono de verdad: a mediodía los símbolos
     // sin elegir salían en negro sobre el vidrio ahumado de la hoja y no se

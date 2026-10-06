@@ -58,7 +58,15 @@ import 'town_portrait.dart';
 /// de vidrio oscuro con letra crema y dorado: al mediodía y a medianoche se
 /// leen igual, que no pasaba escribiendo directamente sobre el prado.
 class FirstRun extends StatefulWidget {
-  const FirstRun({super.key, required this.onDone});
+  const FirstRun({super.key, required this.onDone, this.next, this.onCancel});
+
+  /// Si esto no es la primera vez sino el pueblo siguiente: lo que ya hay en
+  /// el valle. Nulo la primera vez. Ver [NextTown].
+  final NextTown? next;
+
+  /// Volver sin fundar. Sólo existe para el pueblo siguiente: la primera vez
+  /// no hay adónde volver.
+  final VoidCallback? onCancel;
 
   /// Lo que se contestó, para que quien lo pidió funde el pueblo.
   ///
@@ -112,6 +120,36 @@ Future<bool> foundFirstTown(
   return true;
 }
 
+/// Lo que ya hay en el valle cuando se funda el pueblo siguiente.
+///
+/// **Fundar el segundo pueblo es un antes y un después**, y se tiene que
+/// sentir así. Era tocar el «+» y rellenar la misma hoja con la que se cambia
+/// el nombre de un hábito: un formulario, para la única cosa de la app que se
+/// gana sosteniendo otra durante semanas. Ahora es esta misma pantalla —el
+/// valle, las preguntas, la cámara bajando— con una bienvenida propia que dice
+/// qué se ganó y por qué.
+class NextTown {
+  const NextTown({required this.towns});
+
+  /// Los pueblos que ya hay: su nombre, su marca, sus piezas y su comarca.
+  final List<({String name, String symbol, int pieces, int character})> towns;
+
+  /// El número del pueblo que se va a fundar: dos para el segundo.
+  int get ordinal => towns.length + 1;
+
+  /// «segundo», «tercer»… para decirlo con palabras y no con un número.
+  String get ordinalWord => switch (ordinal) {
+    2 => 'segundo',
+    3 => 'tercer',
+    4 => 'cuarto',
+    5 => 'quinto',
+    6 => 'sexto',
+    _ => 'nuevo',
+  };
+
+  int get pieces => towns.fold(0, (a, t) => a + t.pieces);
+}
+
 /// Los colores de la primera vez. Fijos y no de la hora, ver [FirstRun].
 class _Ink {
   const _Ink._();
@@ -132,7 +170,16 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
   String _symbol = habitSymbols.first;
 
   /// La comarca del pueblo. Sólo cambia cómo se ve.
-  int _place = TownCharacter.forSlot(0).order;
+  ///
+  /// Para el pueblo siguiente arranca en una que el valle todavía no tenga:
+  /// dos pueblos iguales uno al lado del otro se leen como uno solo.
+  late int _place = () {
+    final ya = {for (final t in widget.next?.towns ?? const []) t.character};
+    for (final c in TownCharacter.all) {
+      if (!ya.contains(c.order)) return c.order;
+    }
+    return TownCharacter.forSlot(0).order;
+  }();
   final _name = TextEditingController();
   final _why = TextEditingController();
 
@@ -234,7 +281,9 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
               child: AnimatedOpacity(
                 duration: const Duration(milliseconds: 600),
                 opacity: _step == 0 && !_leaving ? 1 : 0,
-                child: const _Wordmark(),
+                child: widget.next == null
+                    ? const _Wordmark()
+                    : _Milestone(next: widget.next!),
               ),
             ),
           ),
@@ -333,7 +382,41 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
 
   // ------------------------------------------------------------ las pantallas
 
-  Widget _welcome() => _Step(
+  Widget _welcome() {
+    final next = widget.next;
+    return next == null ? _welcomeFirst() : _welcomeNext(next);
+  }
+
+  /// La bienvenida del pueblo siguiente: lo que se ganó, y con qué.
+  ///
+  /// Dice el número que importa —las piezas que lo abrieron— y el nombre de lo
+  /// que las puso, porque lo que se celebra no es la puerta sino lo que la
+  /// abrió. Y la salida está a la vista: un pueblo nuevo se funda cuando hay
+  /// ganas, no porque la app lo ofreció.
+  Widget _welcomeNext(NextTown next) {
+    final uno = next.towns.length == 1;
+    final primero = next.towns.first;
+    return _Step(
+      over: 'El valle se abre',
+      title: 'Te ganaste tu ${next.ordinalWord} pueblo.',
+      lines: [
+        uno
+            ? '«${primero.name}» lleva ${primero.pieces} '
+                  '${primero.pieces == 1 ? 'pieza' : 'piezas'} y ya se '
+                  'sostiene solo. Eso es lo que abrió esta puerta.'
+            : 'Llevás ${next.pieces} piezas entre tus ${next.towns.length} '
+                  'pueblos, y se sostienen. Eso es lo que abrió esta puerta.',
+        'Un pueblo nuevo es un hábito nuevo, y empieza igual que el primero: '
+            'de a una pieza.',
+      ],
+      next: 'Fundar mi ${next.ordinalWord} pueblo',
+      onNext: () => _go(1),
+      skip: 'Ahora no',
+      onSkip: widget.onCancel,
+    );
+  }
+
+  Widget _welcomeFirst() => _Step(
     title: 'Esto es un valle vacío.',
     lines: const [
       'Cada vez que cumplas, vas a poner una pieza. Las piezas levantan un '
@@ -750,6 +833,151 @@ class _Motes extends CustomPainter {
 // ------------------------------------------------------------------ la marca
 
 /// El nombre de la app sobre el cielo de la bienvenida.
+/// Lo de arriba en la bienvenida del pueblo siguiente: los pueblos que ya
+/// hay, uno al lado del otro, y el hueco del que viene, encendiéndose.
+///
+/// Entran de a uno, y el hueco nuevo al final, con un pulso que no se apaga:
+/// es lo que se ganó, y tiene que verse esperando.
+class _Milestone extends StatefulWidget {
+  const _Milestone({required this.next});
+
+  final NextTown next;
+
+  @override
+  State<_Milestone> createState() => _MilestoneState();
+}
+
+class _MilestoneState extends State<_Milestone>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _t = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 2400),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _t.forward().whenComplete(() {
+      if (mounted) _t.repeat(min: 0.75, max: 1.0, reverse: true);
+    });
+    // El sonido de los hitos: esto es uno.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) Sensory.instance.milestone();
+    });
+  }
+
+  @override
+  void dispose() {
+    _t.dispose();
+    super.dispose();
+  }
+
+  static const _sombra = [Shadow(color: Color(0x73000000), blurRadius: 22)];
+
+  @override
+  Widget build(BuildContext context) {
+    final towns = widget.next.towns;
+    final n = towns.length + 1;
+    return AnimatedBuilder(
+      animation: _t,
+      builder: (_, _) {
+        final v = _t.value;
+        // Cada pueblo entra en su tramo de los primeros dos tercios.
+        double entra(int i) =>
+            Curves.easeOutBack.transform(clampD((v * 1.5 - i * 0.18), 0, 1));
+        final nuevo = Curves.easeOutCubic.transform(
+          clampD((v - 0.55) / 0.3, 0, 1),
+        );
+        final pulso = v > 0.75 ? (v - 0.75) / 0.25 : 0.0;
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (var i = 0; i < towns.length; i++) ...[
+                  if (i > 0) const SizedBox(width: 12),
+                  Transform.scale(
+                    scale: entra(i),
+                    child: _ring(
+                      HabitSigil(
+                        symbol: towns[i].symbol,
+                        color: _Ink.cream,
+                        size: 24,
+                      ),
+                      borde: _Ink.cream.withValues(alpha: 0.45),
+                    ),
+                  ),
+                ],
+                const SizedBox(width: 12),
+                Opacity(
+                  opacity: nuevo,
+                  child: Transform.scale(
+                    scale: 0.8 + 0.2 * nuevo + 0.06 * pulso,
+                    child: _ring(
+                      const Icon(Icons.add, color: _Ink.gold, size: 26),
+                      borde: _Ink.gold,
+                      halo: 0.35 + 0.4 * pulso,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            Opacity(
+              opacity: nuevo,
+              child: Text(
+                'PUEBLO ${_roman(n)}',
+                style: const TextStyle(
+                  fontFamily: _Ink.serif,
+                  fontSize: 40,
+                  height: 1.0,
+                  letterSpacing: 2,
+                  color: _Ink.cream,
+                  shadows: _sombra,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _ring(Widget child, {required Color borde, double halo = 0}) =>
+      Container(
+        width: 54,
+        height: 54,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: _Ink.glass.withValues(alpha: 0.55),
+          border: Border.all(color: borde, width: 1.5),
+          boxShadow: halo > 0
+              ? [
+                  BoxShadow(
+                    color: _Ink.gold.withValues(alpha: halo),
+                    blurRadius: 22,
+                    spreadRadius: 2,
+                  ),
+                ]
+              : null,
+        ),
+        child: child,
+      );
+
+  static String _roman(int n) => const [
+    'I',
+    'II',
+    'III',
+    'IV',
+    'V',
+    'VI',
+    'VII',
+    'VIII',
+  ][(n - 1).clamp(0, 7)];
+}
+
 class _Wordmark extends StatelessWidget {
   const _Wordmark();
 

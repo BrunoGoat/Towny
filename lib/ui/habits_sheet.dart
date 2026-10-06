@@ -16,18 +16,16 @@ import 'plan_picker.dart';
 import 'rest_sheet.dart';
 import 'style.dart';
 
-/// Making a habit, and everything you can change about one afterwards.
+/// Todo lo que se puede cambiar de un hábito.
+///
+/// Fundar uno nuevo no pasa por acá: tiene su propia pantalla, la de la
+/// primera vez con su bienvenida ([FirstRun] con [NextTown]), porque fundar
+/// un pueblo no es rellenar un formulario.
 class HabitsSheet extends StatefulWidget {
-  const HabitsSheet({
-    super.key,
-    required this.store,
-    required this.theme,
-    this.startNew = false,
-  });
+  const HabitsSheet({super.key, required this.store, required this.theme});
 
   final Store store;
   final UiTheme theme;
-  final bool startNew;
 
   @override
   State<HabitsSheet> createState() => _HabitsSheetState();
@@ -57,8 +55,6 @@ class _HabitsSheetState extends State<HabitsSheet> {
   late final TextEditingController _spot;
   int? _hour;
   late String _symbol;
-  late int _place;
-  bool _creating = false;
 
   /// The marks are only worth the room when somebody is actually choosing
   /// one. Until then this sheet is a name and a mark.
@@ -84,21 +80,15 @@ class _HabitsSheetState extends State<HabitsSheet> {
   @override
   void initState() {
     super.initState();
-    _creating = widget.startNew && widget.store.canAddHabit;
     final h = widget.store.habit;
-    _name = TextEditingController(text: _creating ? '' : h.name);
-    _why = TextEditingController(text: _creating ? '' : (h.why ?? ''));
-    _floor = TextEditingController(text: _creating ? '' : (h.floor ?? ''));
+    _name = TextEditingController(text: h.name);
+    _why = TextEditingController(text: h.why ?? '');
+    _floor = TextEditingController(text: h.floor ?? '');
     // Sin el «alguien» del principio, que va fijo delante del campo.
-    _identity = TextEditingController(
-      text: _creating ? '' : identityTail(h.identity),
-    );
-    _spot = TextEditingController(text: _creating ? '' : (h.vowPlace ?? ''));
-    _hour = _creating ? null : h.vowHour;
-    _symbol = _creating ? habitSymbols.first : h.symbol;
-    _place = _creating
-        ? TownCharacter.forSlot(widget.store.habits.length).order
-        : h.character;
+    _identity = TextEditingController(text: identityTail(h.identity));
+    _spot = TextEditingController(text: h.vowPlace ?? '');
+    _hour = h.vowHour;
+    _symbol = h.symbol;
     _picking = false;
   }
 
@@ -205,11 +195,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
   /// Editing writes as you go, so there is no button to press and nothing to
   /// lose by closing the sheet. A save button on a screen with two fields is a
   /// button asking you to confirm that you meant the thing you just did.
-  ///
-  /// Founding is the other case and keeps its button: a town is a decision,
-  /// and the region it is founded with can never be changed afterwards.
   void _keep() {
-    if (_creating) return;
     final store = widget.store;
     store.renameHabit(store.active, name: _name.text, symbol: _symbol);
     store.describeHabit(store.active, why: _why.text, floor: _floor.text);
@@ -223,18 +209,6 @@ class _HabitsSheetState extends State<HabitsSheet> {
       // Vacío borra; nulo sería «no la toques».
       identity: identityWhole(_identity.text) ?? '',
     );
-  }
-
-  void _found() {
-    Sensory.instance.tick();
-    widget.store.addHabit(
-      _name.text,
-      _symbol,
-      character: _place,
-      why: _why.text,
-      identity: identityWhole(_identity.text),
-    );
-    Navigator.of(context).pop();
   }
 
   // ---------------------------------------------------------------- piezas
@@ -388,21 +362,6 @@ class _HabitsSheetState extends State<HabitsSheet> {
           _hair(velo, 26),
         ],
       ),
-      // La descripción de la comarca, sólo al fundar.
-      //
-      // Es donde sirve: ahí se está eligiendo entre seis, y lo que dice es en
-      // qué se diferencian. Editando ya elegiste, no se puede cambiar, y son
-      // ochenta píxeles de párrafo que no se leen dos veces. Lo que queda es el
-      // filete con el sello y el nombre, que sí hace falta: dice de qué pueblo
-      // es la hoja que tenés abierta.
-      if (_creating) ...[
-        const SizedBox(height: 8),
-        Text(
-          ch.blurb,
-          textAlign: TextAlign.center,
-          style: t.bodySoft.copyWith(color: velo.suave, shadows: velo.aliento),
-        ),
-      ],
     ],
   );
 
@@ -436,9 +395,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
   Widget _thePlan(UiTheme t, SheetInk velo) {
     final store = widget.store;
     final h = store.habit;
-    final nombre = _name.text.trim().isEmpty
-        ? (_creating ? '' : h.name)
-        : _name.text;
+    final nombre = _name.text.trim().isEmpty ? h.name : _name.text;
     final frase = vowLine(nombre, _hour, _spot.text);
     final dicho = h.perWeek;
     return Column(
@@ -617,21 +574,17 @@ class _HabitsSheetState extends State<HabitsSheet> {
   /// hoja, no con cada letra: borrar el sitio no tiene que hacer desaparecer
   /// el campo en el que se está escribiendo.
   late final bool _hasPlan =
-      !_creating &&
-      (widget.store.habit.vowHour != null ||
-          widget.store.habit.vowPlace != null);
+      widget.store.habit.vowHour != null || widget.store.habit.vowPlace != null;
 
   /// Lo mínimo que cuenta, igual que el plan: sólo si ya se escribió. Un
   /// renglón vacío más en la hoja es un formulario más largo, y esto lo
   /// propone la hoja que pregunta si seguimos el día que hace falta.
-  late final bool _hasFloor =
-      !_creating && (widget.store.habit.floor?.isNotEmpty ?? false);
+  late final bool _hasFloor = widget.store.habit.floor?.isNotEmpty ?? false;
 
   /// La frecuencia, sólo si ya se dijo. Sin decir, la pregunta el pueblo la
   /// primera semana con su propia hoja; enseñar acá lo que cree mientras tanto
   /// era otra línea para algo que nadie estableció.
-  late final bool _hasCadence =
-      !_creating && widget.store.habit.perWeek != null;
+  late final bool _hasCadence = widget.store.habit.perWeek != null;
 
   Widget _softLine(
     UiTheme t,
@@ -808,47 +761,6 @@ class _HabitsSheetState extends State<HabitsSheet> {
     });
   }
 
-  /// Las seis comarcas, para elegir una al fundar.
-  Widget _regionPicker(UiTheme t, SheetInk velo) => Row(
-    children: [
-      for (final c in TownCharacter.all)
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.only(right: 6),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () {
-                Sensory.instance.tick();
-                setState(() => _place = c.order);
-              },
-              child: Container(
-                height: 46,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: c.order == _place
-                      ? t.accent.withValues(alpha: 0.18)
-                      : velo.tinte.withValues(alpha: 0.42),
-                  border: Border.all(
-                    color: c.order == _place
-                        ? t.accent
-                        : velo.cuerpo.withValues(alpha: 0.20),
-                  ),
-                ),
-                child: HabitSigil(
-                  symbol: c.symbol,
-                  color: c.order == _place
-                      ? t.accent
-                      : velo.cuerpo.withValues(alpha: 0.82),
-                  size: 22,
-                ),
-              ),
-            ),
-          ),
-        ),
-    ],
-  );
-
   /// El carrete de marcas, que se abre debajo del nombre.
   Widget _reelSlot(UiTheme t, SheetInk velo) => AnimatedSize(
     duration: const Duration(milliseconds: 190),
@@ -860,20 +772,6 @@ class _HabitsSheetState extends State<HabitsSheet> {
             child: _reelOfMarks(t, velo),
           )
         : const SizedBox(width: double.infinity),
-  );
-
-  Widget _foundButton(UiTheme t) => SizedBox(
-    width: double.infinity,
-    child: FilledButton(
-      onPressed: _found,
-      style: FilledButton.styleFrom(
-        backgroundColor: t.accent.withValues(alpha: 0.85),
-        foregroundColor: t.dark ? Colors.black : Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 15),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      ),
-      child: const Text('Fundar el pueblo'),
-    ),
   );
 
   /// El velo de esta hoja. La receta vive en [SheetInk] desde que la tarjeta
@@ -915,7 +813,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
   Widget build(BuildContext context) {
     final t = widget.theme;
     final store = widget.store;
-    final ch = _creating ? TownCharacter.byOrder(_place) : store.habit.place;
+    final ch = store.habit.place;
     final bottom = MediaQuery.of(context).viewInsets.bottom;
     final velo = _veil(t);
 
@@ -961,16 +859,6 @@ class _HabitsSheetState extends State<HabitsSheet> {
                     // pegado a su canto: se le deja el aire en el que el velo
                     // acaba de cuajar.
                     const SizedBox(height: _mark * 0.20),
-                    if (_creating) ...[
-                      Text(
-                        'UN HÁBITO NUEVO',
-                        style: t.label.copyWith(
-                          color: velo.suave,
-                          shadows: velo.aliento,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
                     _field(t, velo, 21),
                     const SizedBox(height: 10),
                     _hair(velo),
@@ -984,47 +872,17 @@ class _HabitsSheetState extends State<HabitsSheet> {
                       _thePlan(t, velo),
                     ],
                     const SizedBox(height: 12),
-                    if (_creating) ...[
-                      Text(
-                        'QUÉ CLASE DE PUEBLO',
-                        style: t.label.copyWith(
-                          color: velo.suave,
-                          shadows: velo.aliento,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      _regionPicker(t, velo),
-                      const SizedBox(height: 16),
-                    ],
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 180),
                       child: _region(t, velo, ch),
                     ),
-                    if (_creating) ...[
-                      const SizedBox(height: 10),
-                      Text(
-                        'Se elige una sola vez. Después no se puede cambiar sin '
-                        'mover piezas ya puestas, y eso no se hace.',
-                        textAlign: TextAlign.center,
-                        style: t.bodySoft.copyWith(
-                          fontSize: 11.5,
-                          height: 1.4,
-                          color: velo.suave,
-                          shadows: velo.aliento,
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      _foundButton(t),
-                    ],
-                    // Sólo al fundar hay botón. Editando se escribe según se
-                    // teclea, así que no hay nada que confirmar ni nada que
-                    // perder al cerrar.
-                    if (!_creating) ...[
-                      const SizedBox(height: 10),
-                      _hair(velo),
-                      const SizedBox(height: 2),
-                      _exits(t, velo),
-                    ],
+                    // Sin botón de guardar: se escribe según se teclea, así
+                    // que no hay nada que confirmar ni nada que perder al
+                    // cerrar.
+                    const SizedBox(height: 10),
+                    _hair(velo),
+                    const SizedBox(height: 2),
+                    _exits(t, velo),
                   ],
                 ),
               ),
