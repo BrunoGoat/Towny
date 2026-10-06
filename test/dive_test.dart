@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -114,6 +116,60 @@ void main() {
     expect(v.mando.distanceTarget, lessThanOrEqualTo(antes * 1.3 + 0.001));
     expect(v.mando.distanceTarget, greaterThan(antes));
     expect(v.mando.aloft, isTrue);
+  });
+
+  testWidgets('en el valle, arrastrar lleva la vista, no la gira', (
+    tester,
+  ) async {
+    final v = await valle(tester, activo: 1);
+    final antes = v.mando.aim;
+    final g = await tester.startGesture(const Offset(195, 500));
+    for (var i = 0; i < 10; i++) {
+      await g.moveBy(const Offset(-12, -8));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await g.up();
+    await tester.pump(const Duration(milliseconds: 400));
+    final ahora = v.mando.aim;
+    expect(ahora.yaw, closeTo(antes.yaw, 1e-9));
+    final corrido = math.sqrt(
+      math.pow(ahora.x - antes.x, 2) + math.pow(ahora.z - antes.z, 2),
+    );
+    expect(corrido, greaterThan(3));
+    expect(v.mando.aloft, isTrue);
+  });
+
+  testWidgets('y no se sale del valle', (tester) async {
+    final v = await valle(tester, activo: 1);
+    final g = await tester.startGesture(const Offset(195, 300));
+    for (var i = 0; i < 200; i++) {
+      await g.moveBy(const Offset(0, 40));
+      await g.moveBy(const Offset(0, -40));
+      await g.moveBy(const Offset(0, 40));
+    }
+    await g.up();
+    await tester.pump(const Duration(milliseconds: 100));
+    final a = v.mando.aim;
+    // Dos pueblos: el valle no pasa de unas decenas de metros del centro.
+    expect(math.sqrt(a.x * a.x + a.z * a.z), lessThan(200));
+  });
+
+  testWidgets('con el botón derecho del ratón gira', (tester) async {
+    final v = await valle(tester, activo: 1);
+    final antes = v.mando.aim;
+    final g = await tester.startGesture(
+      const Offset(195, 422),
+      kind: PointerDeviceKind.mouse,
+      buttons: kSecondaryMouseButton,
+    );
+    for (var i = 0; i < 10; i++) {
+      await g.moveBy(const Offset(15, 0));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await g.up();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect((v.mando.aim.yaw - antes.yaw).abs(), greaterThan(0.3));
+    expect(v.mando.aim.x, closeTo(antes.x, 1e-9));
   });
 
   testWidgets('el botón encendido va del color de la hora', (tester) async {

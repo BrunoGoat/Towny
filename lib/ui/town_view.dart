@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 
 import '../core/math3.dart';
 import '../core/rng.dart';
@@ -47,6 +48,14 @@ class TownViewController {
   /// A qué distancia va la cámara.
   @visibleForTesting
   double get distanceTarget => _state?._cam.distanceTarget ?? 0.0;
+
+  /// Hacia dónde mira la cámara y sobre qué punto del suelo.
+  @visibleForTesting
+  ({double yaw, double x, double z}) get aim => (
+    yaw: _state?._cam.yawTarget ?? 0.0,
+    x: _state?._cam.travelTarget ?? 0.0,
+    z: _state?._cam.focusZTarget ?? 0.0,
+  );
 
   void place() => _state?.placePiece();
 
@@ -1052,6 +1061,7 @@ class _TownViewState extends State<TownView>
     _setAloft(true);
     _asked = true;
     _valleyAt = _cam.distanceTarget;
+    _valleyFar = far;
     Sensory.instance.tick();
   }
 
@@ -1088,6 +1098,10 @@ class _TownViewState extends State<TownView>
       if (_cam.distanceTarget > tope) _cam.distanceTarget = tope;
     }
   }
+
+  /// Hasta dónde llegan los pueblos desde el centro del valle. Ver
+  /// [_panByDrag].
+  double _valleyFar = 0;
 
   /// Cuánto más que el encuadre del valle se deja alejar.
   static const double _valleyRoom = 1.3;
@@ -1257,8 +1271,11 @@ class _TownViewState extends State<TownView>
 
   double _lastScale = 1;
 
+  double _lastRotation = 0;
+
   void _onScaleStart(ScaleStartDetails d) {
     _lastScale = 1;
+    _lastRotation = 0;
     _touched();
   }
 
@@ -1269,6 +1286,10 @@ class _TownViewState extends State<TownView>
     // momento y no cuando se le acabe el tiempo.
     if (d.focalPointDelta.distanceSquared > 1 || d.scale != 1) {
       widget.onCameraMoved();
+    }
+    if (_aloft) {
+      _freeCamera(d);
+      return;
     }
     if (d.pointerCount >= 2) {
       final f = d.scale / (_lastScale == 0 ? 1 : _lastScale);
@@ -1282,6 +1303,89 @@ class _TownViewState extends State<TownView>
       _cam.orbitBy(-dx * 0.0062, dy * 0.0048);
       _cam.follow = false;
     }
+  }
+
+  /// En el valle la cámara es libre: se la lleva a cualquier parte.
+  ///
+  /// Antes era la misma que en el pueblo —un dedo giraba alrededor del
+  /// centro, que es donde está el primer pueblo, y dos la corrían en una sola
+  /// dirección—, así que el valle se miraba siempre desde su medio. Ahora es
+  /// como un mapa:
+  ///
+  ///  * **Un dedo, o arrastrar con el ratón**, lleva el suelo con el dedo: lo
+  ///    que estaba debajo sigue debajo. Hacia cualquier lado.
+  ///  * **Dos dedos**: pellizcar acerca y aleja, girarlos gira la vista, y
+  ///    subirlos o bajarlos juntos inclina.
+  ///  * **Con el ratón**, el botón derecho —o arrastrar con Mayúsculas o
+  ///    Control apretados— gira e inclina, que es lo que hacía un dedo antes.
+  void _freeCamera(ScaleUpdateDetails d) {
+    // El botón derecho ya lo gira [_mouseOrbit]; si además corriera la vista,
+    // el valle se iría de lado mientras gira.
+    if (_rightDrag) return;
+    final teclado = HardwareKeyboard.instance;
+    if (d.pointerCount >= 2) {
+      final f = d.scale / (_lastScale == 0 ? 1 : _lastScale);
+      _lastScale = d.scale;
+      if (f.isFinite && f > 0) _zoomBy(1 / f);
+      final giro = d.rotation - _lastRotation;
+      _lastRotation = d.rotation;
+      _cam.orbitBy(-giro, d.focalPointDelta.dy * 0.0048);
+      _cam.follow = false;
+      if (f > 1) _diveIn(d.localFocalPoint);
+    } else if (teclado.isShiftPressed || teclado.isControlPressed) {
+      _cam.orbitBy(
+        -d.focalPointDelta.dx * 0.0062,
+        d.focalPointDelta.dy * 0.0048,
+      );
+      _cam.follow = false;
+    } else {
+      _panByDrag(d.focalPointDelta);
+    }
+  }
+
+  /// Arrastrar el suelo del valle: el foco se corre al revés que el dedo,
+  /// sobre el suelo y no sobre la pantalla, así que lo que estaba debajo del
+  /// dedo sigue debajo. Sin salirse del valle: más allá de los pueblos no hay
+  /// nada que buscar, y perderse en la nieve es fácil.
+  void _panByDrag(Offset delta) {
+    final size = context.size;
+    if (size == null) return;
+    final p = _cam.projector(size.width, size.height, _time);
+    // Derecha de la pantalla y hacia el fondo, sobre el suelo.
+    var rx = p.right.x, rz = p.right.z;
+    var fx = p.forward.x, fz = p.forward.z;
+    final rl = math.sqrt(rx * rx + rz * rz), fl = math.sqrt(fx * fx + fz * fz);
+    if (rl < 0.01 || fl < 0.01) return;
+    rx /= rl;
+    rz /= rl;
+    fx /= fl;
+    fz /= fl;
+    // Cuánto suelo hay en un píxel, en el foco. Hacia el fondo se estira
+    // con la inclinación: mirado de canto, un píxel es más suelo.
+    final metro = _cam.distance / p.focal;
+    final hondo = metro / math.max(0.25, math.sin(_cam.pitch));
+    var x = _cam.travelTarget - delta.dx * metro * rx + delta.dy * hondo * fx;
+    var z = _cam.focusZTarget - delta.dx * metro * rz + delta.dy * hondo * fz;
+    final lejos = math.sqrt(x * x + z * z), tope = _valleyFar + 20;
+    if (lejos > tope) {
+      x *= tope / lejos;
+      z *= tope / lejos;
+    }
+    _cam.travelTarget = x;
+    _cam.focusZTarget = z;
+    _cam.follow = false;
+  }
+
+  /// El botón derecho del ratón, arrastrando: girar e inclinar el valle. Va
+  /// por aquí y no por el gesto porque el gesto sólo escucha el izquierdo.
+  bool _rightDrag = false;
+
+  void _mouseOrbit(PointerMoveEvent e) {
+    if (!_aloft || e.kind != PointerDeviceKind.mouse) return;
+    if (e.buttons & kSecondaryMouseButton == 0) return;
+    _touched();
+    _cam.orbitBy(-e.delta.dx * 0.0062, e.delta.dy * 0.0048);
+    _cam.follow = false;
   }
 
   /// Two-finger drag walks the camera along the wall, in whatever screen
@@ -1421,6 +1525,10 @@ class _TownViewState extends State<TownView>
     );
 
     return Listener(
+      onPointerDown: (e) => _rightDrag =
+          e.kind == PointerDeviceKind.mouse &&
+          e.buttons & kSecondaryMouseButton != 0,
+      onPointerMove: _mouseOrbit,
       onPointerSignal: (e) {
         if (e is PointerScrollEvent) {
           _zoomBy(1 + e.scrollDelta.dy * 0.0012);

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -34,6 +35,9 @@ void main() {
       systemNavigationBarColor: Colors.transparent,
     ),
   );
+  // En la web, el botón derecho es del valle —gira la vista, ver
+  // `TownView._mouseOrbit`— y no del menú del navegador, que salía encima.
+  if (kIsWeb) BrowserContextMenu.disableContextMenu();
   // The first frame goes up straight away; loading happens behind it, so a
   // slow disk can never turn into a blank screen.
   runApp(const PuebloApp());
