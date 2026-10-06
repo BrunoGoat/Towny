@@ -347,6 +347,15 @@ class _SettingsSheetState extends State<SettingsSheet> {
           on: wants.rapid,
           onChanged: wants.setRapid,
         ),
+        _Switch(
+          theme: t,
+          title: 'Sin límite de hábitos',
+          subtitle:
+              'Fundar pueblos nuevos sin tener que desbloquearlos. Para probar: '
+              'el segundo pueblo se gana.',
+          on: wants.freeHabits,
+          onChanged: wants.setFreeHabits,
+        ),
         _Undo(theme: t, store: store),
         _Row(
           theme: t,

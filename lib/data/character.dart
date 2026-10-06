@@ -222,11 +222,63 @@ class TownCharacter {
       gardens: 0.40,
       trees: 0.88,
     ),
+    // Las dos de abajo llegaron después, y van al final a propósito: la
+    // comarca por defecto de cada solar del valle sale de esta lista por su
+    // posición ([forSlot]), así que meterlas en medio le cambiaría la cara a
+    // pueblos que ya existen.
+    TownCharacter(
+      region: 'Encrucijada',
+      suits:
+          'Para los vínculos: llamar a la familia, escribirle a un amigo, '
+          'salir más, tener paciencia con los demás.',
+      symbol: 'brujula',
+      blurb:
+          'Pueblo de camino: posadas, plazas anchas y casas de colores '
+          'distintos.',
+      storey: 1.02,
+      spread: 1.15,
+      pitch: 0.85,
+      roofMix: (0.50, 0.26, 0.24),
+      // Pocas casas con el mismo encalado: en un cruce de caminos cada una es
+      // de quien vino de otro sitio.
+      wash: Color(0xFFE2B49C),
+      washShare: 0.46,
+      plotPitch: 2.6,
+      order: 0xD4A3,
+      wallThick: 0.20,
+      windowGap: 0.90,
+      gardens: 0.18,
+      trees: 0.16,
+    ),
+    TownCharacter(
+      region: 'Alfar',
+      suits:
+          'Para lo creativo: dibujar, tocar música, escribir, fotografiar, lo '
+          'que se hace con las manos.',
+      symbol: 'olla',
+      blurb: 'De artesanos: talleres y hornos, barro cocido y tejados rojos.',
+      storey: 0.94,
+      spread: 1.05,
+      pitch: 0.70,
+      roofMix: (0.86, 0.04, 0.10),
+      wash: Color(0xFFD27A4E),
+      washShare: 0.90,
+      plotPitch: 2.5,
+      order: 0xE817,
+      wallThick: 0.35,
+      windowGap: 1.00,
+      gardens: 0.14,
+      trees: 0.12,
+    ),
   ];
 
   /// The one a plot would have been given before anybody was asked. Kept for
   /// towns founded when the valley chose for you.
-  static TownCharacter forSlot(int slot) => all[slot.abs() % all.length];
+  ///
+  /// Sobre las seis primeras y no sobre la lista entera: las que se agregaron
+  /// después no pueden cambiarle la comarca de fábrica a ningún solar.
+  static TownCharacter forSlot(int slot) => all[slot.abs() % _deFabrica];
+  static const int _deFabrica = 6;
 
   /// By its stable id. Anything unknown falls back to the first, so a save
   /// from a version that had a region this one does not still opens.

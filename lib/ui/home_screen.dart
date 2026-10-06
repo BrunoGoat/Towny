@@ -104,6 +104,10 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
+    // Se crea al empezar y no la primera vez que se usa. Perezoso, una pantalla
+    // que se cerraba sin haber volado lo creaba dentro de su propio `dispose`,
+    // que es justo cuando ya no puede pedir su reloj.
+    _flight = AnimationController(vsync: this, duration: CloudFlight.span);
     widget.store.addListener(_onStore);
     Appearance.instance.addListener(_onStore);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -733,10 +737,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ------------------------------------------------------------- el vuelo
 
-  late final AnimationController _flight = AnimationController(
-    vsync: this,
-    duration: CloudFlight.span,
-  );
+  late final AnimationController _flight;
   bool _flying = false;
 
   /// Subir al valle: despegar, taparse con nubes, y aparecer arriba.

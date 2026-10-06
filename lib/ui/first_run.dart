@@ -18,6 +18,7 @@ import '../model/appearance.dart';
 import '../model/pledge.dart';
 import '../model/store.dart';
 import 'habit_sigil.dart';
+import 'town_portrait.dart';
 
 /// Lo que se ve la primera vez que se abre la app.
 ///
@@ -401,7 +402,23 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
               setState(() => _place = o);
             },
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 16),
+          // El mismo pueblo de cien piezas, levantado en la comarca elegida:
+          // se elige mirando cómo queda, no imaginándolo por la descripción.
+          ClipRRect(
+            borderRadius: BorderRadius.circular(18),
+            child: SizedBox(
+              height: 150,
+              width: double.infinity,
+              child: CustomPaint(
+                painter: TownPortrait(
+                  place: ch,
+                  palette: Palette.forMoment(11),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
           // El nombre se revela acá, grande, con lo que es y para qué pega:
           // los botones son sólo el sello, y lo que dice cada uno se lee al
           // tocarlo.
@@ -1295,41 +1312,52 @@ class _Marks extends StatelessWidget {
   }
 }
 
-/// Las comarcas, cada una con su sello y nada más, en filas de tres.
+/// Las comarcas, cada una con su sello y nada más, en dos filas parejas.
 ///
 /// Filas parejas y no un `Wrap` centrado: con los nombres dentro, seis botones
 /// de anchos distintos caían en tres, dos y uno, que se leía como un embudo.
+/// Dos filas de la mitad cada una —tres y tres con seis, cuatro y cuatro con
+/// ocho—, y los sellos se achican si no entran, en vez de partir otra fila.
 class _Places extends StatelessWidget {
   const _Places({required this.chosen, required this.onPick});
 
   final int chosen;
   final void Function(int order) onPick;
 
-  static const int _porFila = 3;
+  static const double _gap = 14, _max = 64;
 
   @override
   Widget build(BuildContext context) {
     final todas = TownCharacter.all;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        for (var i = 0; i < todas.length; i += _porFila) ...[
-          if (i > 0) const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              for (final c in todas.skip(i).take(_porFila)) ...[
-                if (c != todas[i]) const SizedBox(width: 16),
-                _sello(c),
-              ],
+    final porFila = (todas.length + 1) ~/ 2;
+    return LayoutBuilder(
+      builder: (_, box) {
+        final lado = math.min(
+          _max,
+          (box.maxWidth - _gap * (porFila - 1)) / porFila,
+        );
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var i = 0; i < todas.length; i += porFila) ...[
+              if (i > 0) const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  for (final c in todas.skip(i).take(porFila)) ...[
+                    if (c != todas[i]) const SizedBox(width: _gap),
+                    _sello(c, lado),
+                  ],
+                ],
+              ),
             ],
-          ),
-        ],
-      ],
+          ],
+        );
+      },
     );
   }
 
-  Widget _sello(TownCharacter c) {
+  Widget _sello(TownCharacter c, double lado) {
     final elegida = c.order == chosen;
     return Semantics(
       button: true,
@@ -1339,8 +1367,8 @@ class _Places extends StatelessWidget {
         onTap: () => onPick(c.order),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 220),
-          width: 64,
-          height: 64,
+          width: lado,
+          height: lado,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
@@ -1355,7 +1383,7 @@ class _Places extends StatelessWidget {
           child: HabitSigil(
             symbol: c.symbol,
             color: elegida ? _Ink.gold : _Ink.soft(0.80),
-            size: 28,
+            size: lado * 0.44,
           ),
         ),
       ),

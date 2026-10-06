@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:towny/data/character.dart';
 import 'package:towny/data/landmarks.dart';
 import 'package:towny/engine/town.dart';
+import 'package:towny/model/appearance.dart';
 import 'package:towny/model/habit.dart';
 import 'package:towny/model/piece.dart';
 import 'package:towny/model/pledge.dart';
@@ -57,6 +58,18 @@ void main() {
       expect(again.total, 2);
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getString('pueblo_state_v1'), isNot(contains('"l":')));
+    });
+  });
+
+  group('sin límite de hábitos, para probar', () {
+    test('abre la puerta sin ganarla, y apagarlo la vuelve a cerrar', () async {
+      final s = await freshStore();
+      await Appearance.instance.load();
+      expect(s.canAddHabit, isFalse, reason: 'el segundo pueblo se gana');
+      await Appearance.instance.setFreeHabits(true);
+      expect(s.canAddHabit, isTrue);
+      await Appearance.instance.setFreeHabits(false);
+      expect(s.canAddHabit, isFalse, reason: 'no escribió nada');
     });
   });
 

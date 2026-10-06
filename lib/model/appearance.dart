@@ -19,6 +19,7 @@ class Appearance extends ChangeNotifier {
   static final Appearance instance = Appearance._();
 
   static const String _rapidKey = 'pueblo_rapid_v1';
+  static const String _freeKey = 'pueblo_free_habits_v1';
   static const String _soundKey = 'pueblo_sound_v1';
 
   bool _rapid = false;
@@ -28,6 +29,15 @@ class Appearance extends ChangeNotifier {
   /// default and deliberately awkward to leave on — a piece is an achievement,
   /// and this is the one place in the app where that is not true.
   bool get rapid => _rapid;
+
+  bool _freeHabits = false;
+
+  /// Para probar: fundar pueblos sin haber abierto la puerta del segundo.
+  ///
+  /// El candado es lo que hace que un pueblo nuevo se sienta ganado, y por eso
+  /// esto vive con el modo rápido y no con los ajustes de verdad. El tope del
+  /// valle sigue: son los solares que hay, no un candado.
+  bool get freeHabits => _freeHabits;
 
   // ------------------------------------------------------------- la hora
 
@@ -281,6 +291,7 @@ class Appearance extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       _rapid = prefs.getBool(_rapidKey) ?? false;
+      _freeHabits = prefs.getBool(_freeKey) ?? false;
       final saved = prefs.getStringList(_soundKey);
       if (saved != null) {
         final visto = _readPrefs(saved);
@@ -493,6 +504,16 @@ class Appearance extends ChangeNotifier {
     if (want == _effectsVolume) return;
     _effectsVolume = want;
     await _keep();
+  }
+
+  Future<void> setFreeHabits(bool v) async {
+    if (v == _freeHabits) return;
+    _freeHabits = v;
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_freeKey, v);
+    } catch (_) {}
   }
 
   Future<void> setRapid(bool v) async {

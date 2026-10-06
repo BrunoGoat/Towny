@@ -9,6 +9,7 @@ import '../data/character.dart';
 import '../data/landmarks.dart';
 import '../data/symbols.dart';
 import '../engine/town.dart';
+import 'appearance.dart';
 import 'arrival.dart';
 import 'cadence.dart';
 import 'census.dart';
@@ -280,7 +281,11 @@ class Store extends ChangeNotifier {
   /// justo sobre la persona para la que está hecho todo lo demás.
   bool _unlocked = false;
 
-  bool get unlocked => _unlocked || habits.length > 1;
+  /// También abierta, sin haberse ganado, si se pidió en ajustes para probar
+  /// ([Appearance.freeHabits]). Eso no escribe nada: apagarlo vuelve a cerrar
+  /// la puerta si el valle sigue teniendo un solo pueblo.
+  bool get unlocked =>
+      _unlocked || habits.length > 1 || Appearance.instance.freeHabits;
 
   /// Cuánto falta para abrir el segundo solar, medido en el hábito que mejor
   /// va y contra su propio ritmo. Ver [UnlockGoal].
