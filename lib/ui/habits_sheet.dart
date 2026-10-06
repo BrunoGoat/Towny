@@ -640,74 +640,93 @@ class _HabitsSheetState extends State<HabitsSheet> {
     String label,
     String hint, {
     String? prefix,
-  }) => Column(
-    children: [
-      Text(
-        label,
-        style: t.label.copyWith(
-          fontSize: 9,
-          letterSpacing: 1.8,
-          color: velo.suave,
-          shadows: velo.aliento,
-        ),
+  }) {
+    final letra = t.bodySoft.copyWith(
+      fontSize: 13,
+      height: 1.35,
+      color: velo.suave,
+      shadows: velo.aliento,
+    );
+    TextField campoDe(int renglones) => TextField(
+      controller: c,
+      // Se repinta además de guardarse: la frase del plan se va escribiendo
+      // debajo mientras se escribe el sitio, y sin esto no se movería hasta
+      // el siguiente toque en cualquier otra cosa.
+      onChanged: (_) {
+        setState(() {});
+        _keep();
+      },
+      textAlign: prefix == null ? TextAlign.center : TextAlign.start,
+      textCapitalization: TextCapitalization.none,
+      maxLength: 70,
+      maxLines: renglones,
+      minLines: 1,
+      style: letra,
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: letra.copyWith(color: velo.cuerpo.withValues(alpha: 0.34)),
+        counterText: '',
+        isDense: true,
+        contentPadding: EdgeInsets.zero,
+        border: InputBorder.none,
       ),
-      const SizedBox(height: 3),
-      TextField(
-        controller: c,
-        // Se repinta además de guardarse: la frase del plan se va escribiendo
-        // debajo mientras se escribe el sitio, y sin esto no se movería hasta
-        // el siguiente toque en cualquier otra cosa.
-        onChanged: (_) {
-          setState(() {});
-          _keep();
-        },
-        textAlign: prefix == null ? TextAlign.center : TextAlign.start,
-        textCapitalization: TextCapitalization.none,
-        maxLength: 70,
-        maxLines: 2,
-        minLines: 1,
-        style: t.bodySoft.copyWith(
-          fontSize: 13,
-          height: 1.35,
-          color: velo.suave,
-          shadows: velo.aliento,
-        ),
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: t.bodySoft.copyWith(
-            fontSize: 13,
-            height: 1.35,
-            color: velo.cuerpo.withValues(alpha: 0.34),
+    );
+    return Column(
+      children: [
+        Text(
+          label,
+          style: t.label.copyWith(
+            fontSize: 9,
+            letterSpacing: 1.8,
+            color: velo.suave,
             shadows: velo.aliento,
           ),
-          counterText: '',
-          isDense: true,
-          contentPadding: EdgeInsets.zero,
-          border: InputBorder.none,
-          // Una palabra fija delante, que no se borra: la frase empieza ahí
-          // y lo que se escribe es el resto.
-          prefixIcon: prefix == null
-              ? null
-              : Padding(
-                  padding: const EdgeInsets.only(right: 5),
-                  child: Text(
-                    prefix,
-                    style: t.bodySoft.copyWith(
-                      fontSize: 13,
-                      height: 1.35,
-                      color: t.accent,
-                      shadows: velo.aliento,
-                    ),
-                  ),
-                ),
-          prefixIconConstraints: const BoxConstraints(
-            minWidth: 0,
-            minHeight: 0,
-          ),
         ),
-      ),
-    ],
-  );
+        const SizedBox(height: 3),
+        if (prefix == null)
+          campoDe(2)
+        else
+          // Una palabra fija delante, que no se borra: la frase empieza ahí y
+          // lo que se escribe es el resto. Las dos cosas juntas y centradas,
+          // como cada renglón de esta hoja: el campo mide lo que mide lo
+          // escrito, y no el ancho entero, que dejaba el «alguien» pegado a la
+          // izquierda.
+          LayoutBuilder(
+            builder: (context, box) {
+              final delante = letra.copyWith(color: t.accent);
+              double ancho(String x, TextStyle st) => (TextPainter(
+                text: TextSpan(text: x, style: st),
+                textDirection: TextDirection.ltr,
+                textScaler: MediaQuery.textScalerOf(context),
+              )..layout()).width;
+              final palabra = ancho(prefix, delante) + 4;
+              // Lo que mide lo escrito, o la pista si no hay nada, más el
+              // cursor; y nunca más que lo que queda al lado de la palabra.
+              final escrito = c.text.isEmpty
+                  ? ancho(hint, letra)
+                  : ancho(c.text, letra);
+              final cabe = math.max(40.0, box.maxWidth - palabra - 8);
+              // Un renglón mientras quepa: con dos permitidos el campo
+              // reservaba el segundo aunque estuviera vacío, y quedaba un
+              // hueco debajo que no tenía ningún otro renglón de la hoja.
+              final enUno = escrito + 14 <= cabe;
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(prefix, style: delante),
+                  const SizedBox(width: 4),
+                  SizedBox(
+                    width: math.min(escrito + 14, cabe),
+                    child: campoDe(enUno ? 1 : 2),
+                  ),
+                ],
+              );
+            },
+          ),
+      ],
+    );
+  }
 
   /// Las dos salidas de un hábito que no está yendo, una al lado de la otra.
   ///
