@@ -125,8 +125,8 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _onStore() {
-    // Keep the open card in step with the store, so a note written now shows
-    // up on the card straight away.
+    // Keep the open card in step with the store, so a corrected hour shows up
+    // on the card straight away.
     if (_selected != null) {
       if (_selectedTown != widget.store.habit.id) {
         _selected = null;
@@ -162,13 +162,10 @@ class _HomeScreenState extends State<HomeScreen>
   void _greet() {
     final s = widget.store;
     final h = s.habit;
-    if (s.total == 0) {
-      _showWhisper(
-        'Mantené el botón para poner tu primera piedra',
-        duration: const Duration(seconds: 6),
-      );
-      return;
-    }
+    // Un pueblo recién fundado no dice nada. La primera pieza se pone el día
+    // que se cumple, no en el minuto siguiente a fundar, y un cartel pidiendo
+    // apretar el botón empujaba justo a lo contrario.
+    if (s.total == 0) return;
     if (h.resting) {
       _showWhisper(
         'Este pueblo está durmiendo. Podés poner una pieza igual.',
