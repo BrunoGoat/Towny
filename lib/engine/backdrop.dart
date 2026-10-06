@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -308,19 +309,22 @@ class Backdrop {
   /// tiene que ser, ver [drawGround]— el invierno salía como una pared blanca
   /// sin nada dentro.
   ///
-  /// **Pegadas al suelo, y quietas.** Cada mata es un polígono tumbado en el
-  /// prado, en coordenadas del mundo, y se proyecta vértice a vértice con la
-  /// misma cámara que el pueblo: de lejos se aplasta y de cerca se abre, como
-  /// cualquier cosa que está en el piso. Antes eran óvalos de pantalla con un
-  /// aplastado fijo —miraban a la cámara en vez de estar en el pasto— y
-  /// salían de una rejilla por anillos alrededor del ojo, así que al mover la
-  /// cámara aparecían y desaparecían. Ahora dónde hay una mata no depende de
-  /// la cámara en absoluto ([tuftsAround]); la cámara sólo decide cuáles se
-  /// ven.
+  /// **Pegadas al suelo, quietas, y siempre las mismas.** Cada mata es un
+  /// polígono tumbado en el prado, en coordenadas del mundo, y se proyecta con
+  /// la misma cámara que el pueblo: de lejos se aplasta y se achica, de cerca
+  /// se abre, como cualquier cosa que está en el piso. Dónde hay una no
+  /// depende de la cámara en absoluto, ni cuáles se dibujan: se dibujan
+  /// todas las del valle, a cualquier distancia. Primero salían de una
+  /// rejilla alrededor del ojo y aparecían y desaparecían al mover la cámara;
+  /// después se apagaban pasados unos metros y al sacar zoom el valle
+  /// quedaba blanco. Ahora alejarse es ver las mismas matas más chicas.
   ///
-  /// **Hasta donde llegan.** Se dibujan las de [_alcance] metros alrededor del
-  /// ojo, y las del borde se van apagando como se apaga lo lejano, así que el
-  /// límite no se ve: el prado se va quedando blanco hacia el horizonte.
+  /// **Cómo se hace sin que cueste un mundo.** Las del valle entero son
+  /// decenas de miles, así que se arman una vez —por día— con sus contornos
+  /// ya calculados ([_matasDelValle]) y en cada fotograma sólo se proyectan.
+  /// Y la que de lejos mide pocos píxeles no se proyecta vértice a vértice:
+  /// se proyecta su centro y dos pasos de un metro, y el contorno se lleva a
+  /// pantalla con eso, que a ese tamaño es exactamente lo mismo.
   ///
   /// **Y cambian cada día.** La semilla lleva la fecha dentro, así que el
   /// reparto de mañana no es el de hoy: la nieve no se posa dos noches igual.
@@ -352,153 +356,131 @@ class Backdrop {
     // lo que hace que un campo pelado no parezca estampado.
     final pardo = Color.lerp(verde, manto, 0.34)!;
 
-    // Por capas de lejanía y no una opacidad por mata: son miles, y pintarlas
-    // de una en una cuesta más que el pueblo entero. Seis escalones de
-    // apagado no se notan, y son seis caminos por tono en vez de miles.
-    const capas = 6;
-    final caminos = [
-      for (var k = 0; k < 2; k++) [for (var c = 0; c < capas; c++) Path()],
-    ];
+    var lejos = 0.0;
+    for (final e in scene.towns) {
+      final l = e.layout;
+      lejos = math.max(lejos, math.sqrt(l.cx * l.cx + l.cz * l.cz) + l.radius);
+    }
+    final matas = _matasDelValle(scene.day, claros, lejos + _margen);
+
+    final caminos = [Path(), Path()];
     final ex = p.eye.x, ez = p.eye.z;
     final fl = math.sqrt(p.forward.x * p.forward.x + p.forward.z * p.forward.z);
     final fx = fl > 0.001 ? p.forward.x / fl : 0.0;
     final fz = fl > 0.001 ? p.forward.z / fl : 1.0;
+    final w = size.width, h = size.height;
+    // La proyección escrita a mano, sin crear un vector por mata: son miles
+    // por fotograma, y lo que costaba era eso y no la cuenta.
+    final r = p.right, u = p.up, f = p.forward, foc = p.focal;
+    final ey = -p.eye.y;
+    final ry = r.y * ey, uy0 = u.y * ey, fy = f.y * ey;
     var puestas = 0;
-    final pts = List<double>.filled(2 * 16, 0);
 
-    // Dos tamaños, y uno toma el relevo del otro. De cerca, las matas; de
-    // lejos una mata es menos que un píxel y el valle se quedaba blanco
-    // entero —alejarse era ver desaparecer la hierba—, así que donde ellas se
-    // apagan se encienden los rodales: manchas grandes, quietas en el mundo
-    // igual que las chicas, puestas justo donde las chicas se juntan. Lo que
-    // se ve de lejos es lo mismo que de cerca, visto de lejos.
-    final lejanas = Backdrop.rodalesAround(
-      ex,
-      ez,
-      _alcanceRodales,
-      scene.day,
-      claros,
-      haciaX: fx,
-      haciaZ: fz,
-    );
-    for (final (m, grande) in [
-      for (final m in tuftsAround(ex, ez, _alcance, scene.day, claros))
-        (m, false),
-      for (final m in lejanas) (m, true),
-    ]) {
+    for (final m in matas) {
       final vx = m.x - ex, vz = m.z - ez;
       // Lo que queda claramente detrás ni se proyecta.
       if (vx * fx + vz * fz < -m.reach) continue;
-      final d = math.sqrt(vx * vx + vz * vz);
-      final chicas = 1 - smoothstep(0.55, 1.0, d / _alcance);
-      final luz = grande
-          ? (1 - chicas) *
-                (1 - smoothstep(0.6, 1.0, d / _alcanceRodales)) *
-                _pesoRodal
-          : chicas;
-      if (luz <= 0.02) continue;
-      final centro = p.project(V3(m.x, 0, m.z));
-      if (centro == null) continue;
-      if (centro.y < horizonY - 2 || centro.y > size.height + 200) continue;
-      if (centro.x < -200 || centro.x > size.width + 200) continue;
-      final capa = ((1 - luz) * capas).floor().clamp(0, capas - 1);
-      final camino = caminos[m.kind][capa];
-      var ok = true;
-      for (final blob in m.blobs()) {
-        final n = blob.length ~/ 2;
-        for (var j = 0; j < n && ok; j++) {
-          final at = p.project(V3(blob[j * 2], 0, blob[j * 2 + 1]));
-          if (at == null) {
-            ok = false;
-            break;
+      final kx = vx * r.x + ry + vz * r.z;
+      final ky = vx * u.x + uy0 + vz * u.z;
+      final kz = vx * f.x + fy + vz * f.z;
+      if (kz < p.near) continue;
+      final cxs = p.cx + kx * foc / kz, cys = p.cy - ky * foc / kz;
+      // Lo que mide en pantalla, más o menos: con eso se descarta lo que cae
+      // fuera y se elige cómo proyectarla.
+      final mide = foc * m.reach / kz;
+      // Menos de un cuarto de píxel no pinta nada que se vea.
+      if (mide < 0.25) continue;
+      if (cxs < -mide || cxs > w + mide || cys > h + mide) continue;
+      if (cys < horizonY - mide - 2) continue;
+      final camino = caminos[m.kind];
+      if (mide < 40) {
+        // A esta escala el suelo es plano en pantalla: cuánto se mueve el
+        // punto en pantalla por cada metro hacia cada lado —la derivada de la
+        // proyección en el centro— dice dónde cae cada punto del contorno.
+        final k2 = foc / (kz * kz);
+        final ux = k2 * (r.x * kz - kx * f.x), uy = -k2 * (u.x * kz - ky * f.x);
+        final wx = k2 * (r.z * kz - kx * f.z), wy = -k2 * (u.z * kz - ky * f.z);
+        // Y con menos vértices cuanto más chica: en una mata de cuatro
+        // píxeles, catorce puntos y cinco dibujan lo mismo, y de lejos son
+        // decenas de miles de matas.
+        final paso = mide < 4 ? 6 : (mide < 10 ? 4 : 2);
+        for (final b in m.contornos) {
+          for (var j = 0; j < b.length; j += paso) {
+            final dx = b[j] - m.x, dz = b[j + 1] - m.z;
+            final sx = cxs + ux * dx + wx * dz, sy = cys + uy * dx + wy * dz;
+            if (j == 0) {
+              camino.moveTo(sx, sy);
+            } else {
+              camino.lineTo(sx, sy);
+            }
           }
-          pts[j * 2] = at.x;
-          pts[j * 2 + 1] = at.y;
+          camino.close();
         }
-        if (!ok) break;
-        camino.moveTo(pts[0], pts[1]);
-        for (var j = 1; j < n; j++) {
-          camino.lineTo(pts[j * 2], pts[j * 2 + 1]);
+      } else {
+        // De cerca, vértice a vértice: ahí la perspectiva dentro de la misma
+        // mata ya se nota. Si algún vértice cae detrás del ojo, la mata
+        // entera se deja: es la que está pegada a la cámara.
+        final pts = <double>[];
+        var ok = true;
+        for (final b in m.contornos) {
+          pts.clear();
+          for (var j = 0; j < b.length; j += 2) {
+            final at = p.project(V3(b[j], 0, b[j + 1]));
+            if (at == null) {
+              ok = false;
+              break;
+            }
+            pts
+              ..add(at.x)
+              ..add(at.y);
+          }
+          if (!ok) break;
+          camino.moveTo(pts[0], pts[1]);
+          for (var j = 2; j < pts.length; j += 2) {
+            camino.lineTo(pts[j], pts[j + 1]);
+          }
+          camino.close();
         }
-        camino.close();
       }
       puestas++;
     }
     if (puestas == 0) return;
-    final tonos = [verde, pardo];
-    for (var k = 0; k < 2; k++) {
-      for (var c = 0; c < capas; c++) {
-        final luz = 1 - (c + 0.5) / capas;
-        canvas.drawPath(
-          caminos[k][c],
-          Paint()..color = tonos[k].withValues(alpha: nieve * luz),
-        );
-      }
-    }
+    canvas.drawPath(
+      caminos[0],
+      Paint()..color = verde.withValues(alpha: nieve),
+    );
+    canvas.drawPath(
+      caminos[1],
+      Paint()..color = pardo.withValues(alpha: nieve),
+    );
   }
 
-  /// Hasta cuántos metros del ojo se dibujan matas. Pasado esto el prado es
-  /// blanco liso, y antes de llegar se van apagando.
-  static const double _alcance = 170;
+  /// Cuánto prado con matas hay más allá del pueblo más alejado del centro.
+  /// Más lejos que esto, desde cualquier sitio al que llega la cámara, una
+  /// mata mide menos de un píxel.
+  static const double _margen = 700;
 
-  /// Hasta dónde se dibujan los rodales, que se ven desde mucho más lejos.
-  static const double _alcanceRodales = 1500;
-
-  /// Lo que pesa un rodal visto de lejos. No el promedio de verdad de las
-  /// matas que tiene dentro —eso es casi blanco, y de lejos el valle volvía a
-  /// ser una sábana—, sino lo que hace falta para que se lea como hierba.
-  static const double _pesoRodal = 0.62;
-
-  /// El lado de la casilla de un rodal: nueve casillas de mata, que es la
-  /// escala del ruido que las agrupa ([_rodal]).
-  static const double _casillaRodal = _casilla * 9;
-
-  /// Los rodales a menos de [reach] metros de (`ex`, `ez`): una mancha grande
-  /// por cada sitio donde las matas se juntan, del tamaño de lo juntas que
-  /// están. Como [tuftsAround], sólo dependen del mundo y del día.
-  ///
-  /// Con [haciaX] y [haciaZ] —hacia dónde mira el ojo, sobre el suelo— se
-  /// saltan sin calcular nada las casillas que quedan detrás, que son la
-  /// mitad: el alcance es de kilómetros y son miles por fotograma.
-  static Iterable<GroundTuft> rodalesAround(
-    double ex,
-    double ez,
-    double reach,
-    int dia,
-    double claros, {
-    double haciaX = 0,
-    double haciaZ = 0,
-  }) sync* {
-    const c = _casillaRodal;
-    final i0 = ((ex - reach) / c).floor();
-    final i1 = ((ex + reach) / c).ceil();
-    final k0 = ((ez - reach) / c).floor();
-    final k1 = ((ez + reach) / c).ceil();
-    final r2 = reach * reach;
-    for (var i = i0; i <= i1; i++) {
-      for (var k = k0; k <= k1; k++) {
-        if (((i + 0.5) * c - ex) * haciaX + ((k + 0.5) * c - ez) * haciaZ <
-            -c * 1.5) {
-          continue;
-        }
-        final x = (i + 0.5 + (hash01(i, k, 61, dia) - 0.5) * 0.5) * c;
-        final z = (k + 0.5 + (hash01(i, k, 62, dia) - 0.5) * 0.5) * c;
-        final dx = x - ex, dz = z - ez;
-        if (dx * dx + dz * dz > r2) continue;
-        // Cuánta hierba hay ahí, leído del mismo ruido que reparte las matas.
-        final gi = (x / _casilla).floor(), gk = (z / _casilla).floor();
-        final cuanta = _rodal(gi, gk, dia) * math.min(1.0, 0.55 * claros);
-        if (cuanta < 0.25) continue;
-        yield GroundTuft(
-          x,
-          z,
-          hash01(i, k, 64, dia) < 0.35 ? 1 : 0,
-          c * (0.12 + 0.20 * cuanta) * (0.8 + hash01(i, k, 63, dia) * 0.4),
-          hashInt(1 << 30, i, k, 65, dia),
-        );
-      }
-    }
+  /// Las matas del valle entero de un día, con sus contornos ya hechos. Se
+  /// rehacen sólo si cambia el día, lo nevado o el tamaño del valle.
+  static List<_MataHecha> _matasDelValle(int dia, double claros, double radio) {
+    final clave = '$dia:${(claros * 20).round()}:${(radio / 50).ceil()}';
+    if (clave == _claveMatas) return _matas;
+    _claveMatas = clave;
+    _matas = [
+      for (final m in tuftsAround(
+        0,
+        0,
+        (radio / 50).ceil() * 50.0,
+        dia,
+        claros,
+      ))
+        _MataHecha(m),
+    ];
+    return _matas;
   }
+
+  static String? _claveMatas;
+  static List<_MataHecha> _matas = const [];
 
   /// El lado de la casilla del mundo que puede tener una mata.
   static const double _casilla = 3.0;
@@ -876,4 +858,19 @@ class GroundTuft {
       ];
     }
   }
+}
+
+/// Una mata con sus contornos ya calculados, para no rehacerlos en cada
+/// fotograma.
+class _MataHecha {
+  _MataHecha(GroundTuft m)
+    : x = m.x,
+      z = m.z,
+      kind = m.kind,
+      reach = m.reach,
+      contornos = [for (final b in m.blobs()) Float64List.fromList(b)];
+
+  final double x, z, reach;
+  final int kind;
+  final List<Float64List> contornos;
 }
