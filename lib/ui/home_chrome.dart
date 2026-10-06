@@ -61,59 +61,67 @@ class TopBar extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text(
-                    '${store.total}',
-                    style: t.number.copyWith(shadows: t.halo),
-                  ),
-                  const SizedBox(width: 8),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 2),
-                    child: Text(
-                      'PIEZAS',
-                      style: t.label.copyWith(shadows: t.halo),
+              // Si no entra —un pueblo de cuatro cifras con la consistencia y
+              // lo de hoy al lado, en un teléfono angosto— se achica entero en
+              // vez de cortarse por la derecha. Cuando entra, no cambia nada.
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      '${store.total}',
+                      style: t.number.copyWith(shadows: t.halo),
                     ),
-                  ),
-                  // Acá iba la racha. Ahora va cuántos de los días que
-                  // contaban tienen pieza, que es lo mismo que preguntaba la
-                  // racha contestado de una manera que admite un mal día. No
-                  // se dice hasta que hay dos semanas de las que hablar: «1 de
-                  // 1» el primer día no es una medida de nada.
-                  if (firme.enough) ...[
-                    const SizedBox(width: 14),
+                    const SizedBox(width: 8),
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 1),
+                      padding: const EdgeInsets.only(bottom: 2),
                       child: Text(
-                        '${firme.done}/${firme.of} DÍAS',
-                        style: t.label.copyWith(
-                          shadows: t.halo,
-                          color: t.fg.withValues(alpha: 0.44),
-                        ),
+                        'PIEZAS',
+                        style: t.label.copyWith(shadows: t.halo),
                       ),
                     ),
-                  ],
-                  // Lo de hoy, al lado de la racha y con el mismo peso: son la
-                  // misma clase de cosa —cuánto llevás— vista de cerca y de
-                  // lejos. Cuando todavía no hay ninguna no se dice «0 HOY»:
-                  // eso ya lo cuenta la línea de abajo diciendo que la última
-                  // fue ayer, y mejor callado que con un cero en la cara.
-                  if (hoy > 0) ...[
-                    const SizedBox(width: 14),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 1),
-                      child: Text(
-                        '$hoy HOY',
-                        style: t.label.copyWith(
-                          shadows: t.halo,
-                          color: t.fg.withValues(alpha: 0.44),
+                    // Acá iba la racha. Ahora va cuántos de los días que
+                    // contaban tienen pieza, que es lo mismo que preguntaba la
+                    // racha contestado de una manera que admite un mal día. No
+                    // se dice hasta que hay dos semanas de las que hablar: «1 de
+                    // 1» el primer día no es una medida de nada.
+                    if (firme.enough) ...[
+                      const SizedBox(width: 14),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 1),
+                        child: Text(
+                          '${firme.done}/${firme.of} DÍAS',
+                          style: t.label.copyWith(
+                            shadows: t.halo,
+                            color: t.fg.withValues(alpha: 0.44),
+                          ),
                         ),
                       ),
-                    ),
+                    ],
+                    // Lo de hoy, al lado de la racha y con el mismo peso: son la
+                    // misma clase de cosa —cuánto llevás— vista de cerca y de
+                    // lejos. Cuando todavía no hay ninguna no se dice «0 HOY»:
+                    // eso ya lo cuenta la línea de abajo diciendo que la última
+                    // fue ayer, y mejor callado que con un cero en la cara.
+                    if (hoy > 0) ...[
+                      const SizedBox(width: 14),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 1),
+                        child: Text(
+                          '$hoy HOY',
+                          style: t.label.copyWith(
+                            shadows: t.halo,
+                            color: t.fg.withValues(alpha: 0.44),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
               const SizedBox(height: 5),
               Text(

@@ -90,6 +90,10 @@ void main() {
       await _shot(tester, key, '$out/$nombre.png');
       await tester.pumpWidget(const SizedBox());
     }
+    // Lo que cada pantalla dejó programado —la pregunta de si seguimos, que
+    // espera cuatro segundos detrás del saludo— tiene que vencer antes de
+    // cerrar, o la prueba se queja de un reloj pendiente.
+    await tester.pump(const Duration(seconds: 30));
     // ignore: avoid_print
     print('escritas en $out');
   });
@@ -152,6 +156,11 @@ void main() {
       await _shot(tester, key, '$out/elegir-${hora.toStringAsFixed(0)}.png');
       await tester.pumpWidget(const SizedBox());
     }
+    // Lo que la pantalla dejó programado —un susurro que se borra solo, un
+    // cartel que se va— tiene que vencer antes de cerrar, o la prueba se
+    // queja de un reloj pendiente aunque las fotos ya estén escritas.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 30));
     // ignore: avoid_print
     print('escritas en $out');
   });

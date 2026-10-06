@@ -143,7 +143,7 @@ void main() {
       ..clear()
       ..add(h);
     final llegaron = [
-      for (final p in h.pieces.skip(87)) ReelStep(p.placedAt, 0, null),
+      for (final p in h.pieces.skip(87)) ReelStep(p.placedAt, 0),
     ];
 
     final key = GlobalKey();

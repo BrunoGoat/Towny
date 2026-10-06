@@ -10,9 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:towny/data/symbols.dart';
 import 'package:towny/engine/sigils.dart';
-import 'package:towny/ui/habit_sigil.dart';
-
-import '../engine/sigils.dart';
 
 void main() {
   testWidgets('contact sheet', (tester) async {
@@ -52,10 +49,14 @@ void main() {
       );
     }
 
-    final img = await rec.endRecording().toImage(w.toInt(), h.toInt());
-    final png = await img.toByteData(format: ui.ImageByteFormat.png);
-    File(
-      const String.fromEnvironment('OUT', defaultValue: '/tmp/sigils.png'),
-    ).writeAsBytesSync(png!.buffer.asUint8List());
+    // Dentro de runAsync: en un testWidgets el reloj es de mentira, y pasar a
+    // imagen espera de verdad. Fuera de acá se quedaba colgado para siempre.
+    await tester.runAsync(() async {
+      final img = await rec.endRecording().toImage(w.toInt(), h.toInt());
+      final png = await img.toByteData(format: ui.ImageByteFormat.png);
+      File(
+        const String.fromEnvironment('OUT', defaultValue: '/tmp/sigils.png'),
+      ).writeAsBytesSync(png!.buffer.asUint8List());
+    });
   });
 }
