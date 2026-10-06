@@ -26,9 +26,14 @@ void main() {
 
   /// Lo que es el pueblo, sin lo que es su cara: qué se levantó, en qué
   /// orden, cuánto cuesta cada cosa y cuántas piezas tiene puestas.
+  ///
+  /// Sólo lo empezado. El plano trae además la obra a la que va la pieza
+  /// siguiente, con cero piezas puestas, y ésa sí puede cambiar con la
+  /// comarca: lo que todavía no se decidió sale en el orden de la nueva.
   List<String> queHay(TownLayout l) => [
     for (final b in l.buildings)
-      '${b.landmark?.id ?? b.kind!.name}:${b.cost}:${b.placedPieces}',
+      if (b.placedPieces > 0)
+        '${b.landmark?.id ?? b.kind!.name}:${b.cost}:${b.placedPieces}',
   ];
 
   test('lo que cuesta cada cosa es igual en todas las comarcas', () {
