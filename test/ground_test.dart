@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:towny/data/character.dart';
+import 'package:towny/engine/backdrop.dart';
 import 'package:towny/engine/camera.dart';
 import 'package:towny/engine/palette.dart';
 import 'package:towny/engine/renderer.dart';
@@ -258,16 +259,40 @@ void main() {
       );
     });
 
-    test('y están por todo el valle, no sólo junto al pueblo', () async {
-      // Lo que se veía: las matas se apagaban a los veinte metros, así que de
-      // lejos el valle era una sábana blanca con un pegote de hierba alrededor
-      // del pueblo.
+    test('están en el suelo y quietas: la cámara no las mueve', () {
+      // Lo que se veía: salían de una rejilla por anillos alrededor del ojo,
+      // así que al mover la cámara aparecían y desaparecían en un segundo. Y
+      // eran óvalos de pantalla que miraban a la cámara en vez de estar en el
+      // pasto.
       //
-      // Ahora la rejilla se hace el doble de gruesa cada vez que la cámara se
-      // aleja —y cada mata tapa lo que tapaban las cuatro que sustituye— así
-      // que el prado se ve igual de moteado se mire desde donde se mire. Lo
-      // que se mide es eso: desde lejos, hay hierba en el primer plano, en el
-      // medio y contra el horizonte.
+      // Ahora dónde hay una mata sale sólo del mundo y del día. Mirando desde
+      // dos sitios distintos, lo que cae en el trozo que ven los dos tiene
+      // que ser exactamente lo mismo, mata por mata y vértice por vértice.
+      String clave(GroundTuft m) =>
+          '${m.x},${m.z},${m.kind},${m.size},${m.seed}';
+      bool enComun(GroundTuft m) => m.x.abs() < 20 && m.z.abs() < 20;
+      final desdeAqui = {
+        for (final m in Backdrop.tuftsAround(0, 0, 80, 20261001, 1))
+          if (enComun(m)) clave(m),
+      };
+      final desdeAlla = {
+        for (final m in Backdrop.tuftsAround(37.5, -21.25, 80, 20261001, 1))
+          if (enComun(m)) clave(m),
+      };
+      expect(desdeAqui, isNotEmpty);
+      expect(desdeAlla, desdeAqui);
+      // Y tumbadas: todo el contorno está en el suelo, cerca de su centro.
+      for (final m in Backdrop.tuftsAround(0, 0, 30, 20261001, 1)) {
+        for (final b in m.blobs()) {
+          for (var j = 0; j < b.length; j += 2) {
+            final dx = b[j] - m.x, dz = b[j + 1] - m.z;
+            expect(dx * dx + dz * dz, lessThan(m.reach * m.reach));
+          }
+        }
+      }
+    });
+
+    test('y desde lejos se ven en todo lo cercano del valle', () async {
       final px = await frame(
         hour: 12,
         season: invierno,
@@ -275,28 +300,17 @@ void main() {
         distance: 60,
         pitch: 0.3,
       );
-      //
-      // En dos mitades anchas —la de lejos y la de cerca— y a todo lo ancho:
-      // van por rodales, y entre rodal y rodal la nieve queda limpia a
-      // propósito, así que una banda estrecha puede caer entera en un claro.
-      //
-      // Y contando hierba, no cualquier cosa distinta: lo verde. La nieve y la
-      // sombra de los ventisqueros tiran a azul, la hierba no.
-      for (final (banda, hasta) in [(170, 480), (480, 790)]) {
-        var mata = 0;
-        for (var y = banda; y < hasta; y++) {
-          for (var x = left; x < right; x++) {
-            final c = _at(px, x, y);
-            final g = (c >> 16) & 0xFF, b = (c >> 8) & 0xFF;
-            if (g > b + 6) mata++;
-          }
+      // Contando hierba, no cualquier cosa distinta: lo verde. La nieve tira
+      // a azul, la hierba no. Hacia el horizonte se apagan a propósito.
+      var mata = 0;
+      for (var y = 480; y < 790; y++) {
+        for (var x = left; x < right; x++) {
+          final c = _at(px, x, y);
+          final g = (c >> 16) & 0xFF, b = (c >> 8) & 0xFF;
+          if (g > b + 6) mata++;
         }
-        expect(
-          mata,
-          greaterThan(300),
-          reason: 'a la altura de $banda el prado es una sábana: $mata',
-        );
       }
+      expect(mata, greaterThan(300), reason: 'el prado es una sábana: $mata');
     });
   });
 }

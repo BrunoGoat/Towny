@@ -44,7 +44,7 @@ void main() {
         ..pitch = 0.20
         ..focusY = 3.0
         ..wallLength = l.radius * 2
-        ..distance = 44;
+        ..distance = const int.fromEnvironment('DIST', defaultValue: 44) * 1.0;
       final pal = Palette.forMoment(hora, season: season);
       canvas.save();
       canvas.translate((i % 2) * w * 1.0, (i ~/ 2) * h * 1.0);

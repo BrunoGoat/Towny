@@ -308,27 +308,19 @@ class Backdrop {
   /// tiene que ser, ver [drawGround]— el invierno salía como una pared blanca
   /// sin nada dentro.
   ///
-  /// **Hasta el horizonte, y sin recorrer el infinito.** El prado no se acaba:
-  /// llega hasta donde empiezan los montes. Una rejilla de un solo paso no
-  /// puede cubrirlo —o es fina y son millones de casillas, o es gruesa y de
-  /// cerca se ve la baldosa— así que va por **anillos**: el primero, de
-  /// veintiséis metros, con la rejilla fina; el siguiente llega al doble con
-  /// casillas del doble; y así siete veces, que son más de tres kilómetros.
-  /// Cada anillo recorre las mismas mil y pico casillas, porque al doblar el
-  /// radio se dobla también el paso.
+  /// **Pegadas al suelo, y quietas.** Cada mata es un polígono tumbado en el
+  /// prado, en coordenadas del mundo, y se proyecta vértice a vértice con la
+  /// misma cámara que el pueblo: de lejos se aplasta y de cerca se abre, como
+  /// cualquier cosa que está en el piso. Antes eran óvalos de pantalla con un
+  /// aplastado fijo —miraban a la cámara en vez de estar en el pasto— y
+  /// salían de una rejilla por anillos alrededor del ojo, así que al mover la
+  /// cámara aparecían y desaparecían. Ahora dónde hay una mata no depende de
+  /// la cámara en absoluto ([tuftsAround]); la cámara sólo decide cuáles se
+  /// ven.
   ///
-  /// Lo que hace que esto no se note es que **las casillas de un anillo son un
-  /// subconjunto exacto de las del de dentro**: una mata que cambia de anillo
-  /// no se mueve ni cambia de forma, sólo deja de dibujarse o vuelve. Y como
-  /// cada mata tapa lo que mide su casilla, una del anillo grueso tapa lo que
-  /// tapaban las cuatro que sustituye: el prado se ve igual de moteado a tres
-  /// metros que a trescientos.
-  ///
-  /// **Por qué no es una textura.** Se probó a tapar el prado con manchas de
-  /// hierba y salió mal de las dos maneras posibles: ancladas al mundo se veía
-  /// la baldosa desde el valle, y creciendo con el ojo se movían al hacer
-  /// zoom. Esto está clavado al mundo y no nada; lo único que cambia con la
-  /// cámara es cuántas se dibujan.
+  /// **Hasta donde llegan.** Se dibujan las de [_alcance] metros alrededor del
+  /// ojo, y las del borde se van apagando como se apaga lo lejano, así que el
+  /// límite no se ve: el prado se va quedando blanco hacia el horizonte.
   ///
   /// **Y cambian cada día.** La semilla lleva la fecha dentro, así que el
   /// reparto de mañana no es el de hoy: la nieve no se posa dos noches igual.
@@ -359,106 +351,117 @@ class Backdrop {
     // Dos tonos y no uno. Un claro de hierba y otro de hierba seca al lado es
     // lo que hace que un campo pelado no parezca estampado.
     final pardo = Color.lerp(verde, manto, 0.34)!;
-    // Y la sombra de los ventisqueros: la nieve no queda plana, se amontona,
-    // y el lado que no mira al sol se pone del color del cielo. Es lo que le
-    // da cuerpo al manto sin ensuciarlo de verde.
-    final sombra = Color.lerp(manto, pal.skyTop, 0.16 + 0.10 * pal.daylight)!;
 
-    const paso = 1.5, anillo = 26.0, anillos = 8;
+    // Por capas de lejanía y no una opacidad por mata: son miles, y pintarlas
+    // de una en una cuesta más que el pueblo entero. Seis escalones de
+    // apagado no se notan, y son seis caminos por tono en vez de miles.
+    const capas = 6;
+    final caminos = [
+      for (var k = 0; k < 2; k++) [for (var c = 0; c < capas; c++) Path()],
+    ];
     final ex = p.eye.x, ez = p.eye.z;
-    // Hacia dónde mira, sobre el suelo. Lo que queda claramente detrás no se
-    // proyecta siquiera: es la mitad de las casillas de cada anillo, y
-    // descartarlas cuesta dos multiplicaciones en vez de una proyección.
     final fl = math.sqrt(p.forward.x * p.forward.x + p.forward.z * p.forward.z);
     final fx = fl > 0.001 ? p.forward.x / fl : 0.0;
     final fz = fl > 0.001 ? p.forward.z / fl : 1.0;
-
-    // Todo en dos caminos y no en mil llamadas de dibujo: son miles de manchas
-    // y pintarlas de una en una cuesta más que el pueblo entero.
-    final mata = Path(), seca = Path(), ventisca = Path();
-    final dia = scene.day;
     var puestas = 0;
+    final pts = List<double>.filled(2 * 16, 0);
 
-    for (var nivel = 0; nivel < anillos && puestas < 5000; nivel++) {
-      final salto = 1 << nivel;
-      final step = paso * salto;
-      final fuera = anillo * salto,
-          dentro = nivel == 0 ? 0.0 : anillo * salto / 2;
-      final f2 = fuera * fuera, d2min = dentro * dentro;
-      final i0 = ((ex - fuera) / step).floor();
-      final i1 = ((ex + fuera) / step).ceil();
-      final k0 = ((ez - fuera) / step).floor();
-      final k1 = ((ez + fuera) / step).ceil();
-      for (var i = i0; i <= i1 && puestas < 5000; i++) {
-        for (var k = k0; k <= k1 && puestas < 5000; k++) {
-          // En índices de la rejilla fina: es lo que hace que al cambiar de
-          // anillo las que sobreviven sigan exactamente donde estaban.
-          final gi = i * salto, gk = k * salto;
-          // Por rodales y no salpicadas parejo: la hierba asoma donde el
-          // viento barrió la nieve, que es en manchas grandes, y entre
-          // rodal y rodal el blanco queda limpio. Repartidas iguales por todo
-          // el valle eran un estampado.
-          final rodal = _rodal(gi, gk, dia);
-          // Y menos cuanto más lejos: desde el otro lado del valle una mata
-          // es un punto, y mil puntos juntos contra el horizonte eran una
-          // franja de musgo.
-          final hierba =
-              hash01(gi, gk, 7, dia) <
-              0.34 * claros * rodal * (1 - nivel * 0.10);
-          final duna = !hierba && hash01(gi, gk, 9, dia) < 0.05;
-          if (!hierba && !duna) continue;
-          final x = gi * paso + (hash01(gi, gk, 1, dia) - 0.5) * paso * 0.92;
-          final z = gk * paso + (hash01(gi, gk, 2, dia) - 0.5) * paso * 0.92;
-          final vx = x - ex, vz = z - ez;
-          final r2 = vx * vx + vz * vz;
-          if (r2 > f2 || r2 <= d2min) continue;
-          if (vx * fx + vz * fz < -8) continue;
-          final at = p.project(V3(x, 0, z));
-          if (at == null || at.y <= horizonY) continue;
-          if (at.x < -60 || at.y < -60 || at.x > size.width + 60) continue;
-          if (at.y > size.height + 60) continue;
-          final ancho =
-              p.focal /
-              at.depth *
-              (duna ? 0.95 : 0.32) *
-              step *
-              (0.6 + hash01(gi, gk, 3, dia) * 1.0);
-          // Lo que no llega a dos píxeles y medio no es una mata: es suciedad,
-          // y suciedad que cuesta.
-          if (ancho < 2.5) continue;
-          if (duna) {
-            // Larga y muy tumbada: un ventisquero es una ola, no un charco.
-            ventisca.addOval(
-              Rect.fromCenter(
-                center: Offset(at.x, at.y),
-                width: ancho,
-                height: ancho * (0.06 + hash01(gi, gk, 6, dia) * 0.05),
-              ),
-            );
-          } else {
-            final donde = hash01(gi, gk, 4, dia) < 0.42 ? seca : mata;
-            _manchas(donde, at.x, at.y, ancho, gi, gk, dia);
+    for (final m in tuftsAround(ex, ez, _alcance, scene.day, claros)) {
+      final vx = m.x - ex, vz = m.z - ez;
+      // Lo que queda claramente detrás ni se proyecta.
+      if (vx * fx + vz * fz < -m.reach) continue;
+      final lejos = math.sqrt(vx * vx + vz * vz) / _alcance;
+      final luz = 1 - smoothstep(0.55, 1.0, lejos);
+      if (luz <= 0.02) continue;
+      final centro = p.project(V3(m.x, 0, m.z));
+      if (centro == null) continue;
+      if (centro.y < horizonY - 2 || centro.y > size.height + 200) continue;
+      if (centro.x < -200 || centro.x > size.width + 200) continue;
+      final capa = ((1 - luz) * capas).floor().clamp(0, capas - 1);
+      final camino = caminos[m.kind][capa];
+      var ok = true;
+      for (final blob in m.blobs()) {
+        final n = blob.length ~/ 2;
+        for (var j = 0; j < n && ok; j++) {
+          final at = p.project(V3(blob[j * 2], 0, blob[j * 2 + 1]));
+          if (at == null) {
+            ok = false;
+            break;
           }
-          puestas++;
+          pts[j * 2] = at.x;
+          pts[j * 2 + 1] = at.y;
+        }
+        if (!ok) break;
+        camino.moveTo(pts[0], pts[1]);
+        for (var j = 1; j < n; j++) {
+          camino.lineTo(pts[j * 2], pts[j * 2 + 1]);
+        }
+        camino.close();
+      }
+      puestas++;
+    }
+    if (puestas == 0) return;
+    final tonos = [verde, pardo];
+    for (var k = 0; k < 2; k++) {
+      for (var c = 0; c < capas; c++) {
+        final luz = 1 - (c + 0.5) / capas;
+        canvas.drawPath(
+          caminos[k][c],
+          Paint()..color = tonos[k].withValues(alpha: nieve * luz),
+        );
+      }
+    }
+  }
+
+  /// Hasta cuántos metros del ojo se dibujan matas. Pasado esto el prado es
+  /// blanco liso, y antes de llegar se van apagando.
+  static const double _alcance = 170;
+
+  /// El lado de la casilla del mundo que puede tener una mata.
+  static const double _casilla = 3.0;
+
+  /// Las matas que hay a menos de [reach] metros de (`ex`, `ez`).
+  ///
+  /// Dónde está cada una sale sólo de su casilla del mundo y del día —nunca
+  /// del ojo—, así que mirar desde otro sitio da exactamente las mismas matas
+  /// donde se solapan: el ojo sólo elige qué trozo del prado se recorre.
+  static Iterable<GroundTuft> tuftsAround(
+    double ex,
+    double ez,
+    double reach,
+    int dia,
+    double claros,
+  ) sync* {
+    final i0 = ((ex - reach) / _casilla).floor();
+    final i1 = ((ex + reach) / _casilla).ceil();
+    final k0 = ((ez - reach) / _casilla).floor();
+    final k1 = ((ez + reach) / _casilla).ceil();
+    final r2 = reach * reach;
+    for (var i = i0; i <= i1; i++) {
+      for (var k = k0; k <= k1; k++) {
+        final x = (i + 0.5 + (hash01(i, k, 1, dia) - 0.5) * 0.8) * _casilla;
+        final z = (k + 0.5 + (hash01(i, k, 2, dia) - 0.5) * 0.8) * _casilla;
+        final dx = x - ex, dz = z - ez;
+        if (dx * dx + dz * dz > r2) continue;
+        // Por rodales y no salpicadas parejo: la hierba asoma donde el
+        // viento barrió la nieve, que es en manchas grandes, y entre rodal y
+        // rodal el blanco queda limpio.
+        final hierba = hash01(i, k, 7, dia) < 0.30 * claros * _rodal(i, k, dia);
+        if (hierba) {
+          yield GroundTuft(
+            x,
+            z,
+            hash01(i, k, 4, dia) < 0.42 ? 1 : 0,
+            0.35 + hash01(i, k, 3, dia) * 0.55,
+            hashInt(1 << 30, i, k, 5, dia),
+          );
         }
       }
     }
-    if (puestas == 0) return;
-    canvas.drawPath(
-      ventisca,
-      Paint()
-        ..color = sombra.withValues(alpha: nieve * 0.40)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.2),
-    );
-    canvas.drawPath(mata, Paint()..color = verde.withValues(alpha: nieve));
-    canvas.drawPath(seca, Paint()..color = pardo.withValues(alpha: nieve));
   }
 
   /// Cuánta hierba asoma por aquí, de cero a uno: ruido suave a la escala de
   /// una era, para que las matas vayan por rodales.
-  ///
-  /// En índices de la rejilla fina, como las matas: al cambiar de anillo, un
-  /// sitio sigue siendo rodal o claro.
   static double _rodal(int gi, int gk, int dia) {
     const lado = 9;
     final fx = gi / lado, fz = gk / lado;
@@ -472,59 +475,6 @@ class Backdrop {
       sz,
     );
     return smoothstep(0.30, 0.78, n);
-  }
-
-  /// Un claro de hierba, que no es un círculo.
-  ///
-  /// Entre dos y cuatro manchas montadas, cada una de otro tamaño y corrida de
-  /// su sitio, y la mitad de ellas polígonos de seis lados con los radios
-  /// torcidos en vez de elipses. Una elipse sola se lee como una moneda tirada
-  /// en el suelo, y tres elipses iguales se leen como un sello; lo que hace
-  /// que algo parezca hierba es que no tenga una forma que se pueda nombrar.
-  ///
-  /// Todas tumbadas, y no todas igual: vista de canto, una mancha en el suelo
-  /// es más ancha que alta.
-  static void _manchas(
-    Path path,
-    double cx,
-    double cy,
-    double ancho,
-    int gi,
-    int gk,
-    int dia,
-  ) {
-    final cuantas = 2 + (hash01(gi, gk, 5, dia) * 2.99).floor();
-    for (var b = 0; b < cuantas; b++) {
-      final w =
-          ancho * (b == 0 ? 1.0 : 0.4 + hash01(gi, gk, 30 + b, dia) * 0.55);
-      final x =
-          cx +
-          (b == 0 ? 0.0 : (hash01(gi, gk, 40 + b, dia) - 0.5) * ancho * 1.2);
-      final y =
-          cy +
-          (b == 0 ? 0.0 : (hash01(gi, gk, 50 + b, dia) - 0.5) * ancho * 0.5);
-      final tumbe = 0.28 + hash01(gi, gk, 60 + b, dia) * 0.26;
-      if (hash01(gi, gk, 70 + b, dia) < 0.5) {
-        path.addOval(
-          Rect.fromCenter(center: Offset(x, y), width: w, height: w * tumbe),
-        );
-        continue;
-      }
-      const lados = 6;
-      for (var j = 0; j <= lados; j++) {
-        final a = j * 2 * math.pi / lados;
-        final r =
-            w / 2 * (0.62 + hash01(gi, gk, 80 + b * 8 + j % lados, dia) * 0.62);
-        final px = x + math.cos(a) * r;
-        final py = y + math.sin(a) * r * tumbe;
-        if (j == 0) {
-          path.moveTo(px, py);
-        } else {
-          path.lineTo(px, py);
-        }
-      }
-      path.close();
-    }
   }
 
   void drawRanges(Canvas canvas, Projector p, Size size, double horizonY) {
@@ -790,4 +740,57 @@ double wrap(double a) {
     x += 2 * math.pi;
   }
   return x;
+}
+
+/// Una mata en el prado nevado: dónde está en el mundo y de qué tamaño. Ver
+/// [Backdrop.drawTufts].
+class GroundTuft {
+  const GroundTuft(this.x, this.z, this.kind, this.size, this.seed);
+
+  /// El centro, en el suelo.
+  final double x, z;
+
+  /// Cero hierba, uno hierba seca.
+  final int kind;
+
+  /// El radio de la mata, en metros.
+  final double size;
+
+  final int seed;
+
+  /// Hasta dónde llega desde el centro, para descartarla sin proyectarla.
+  double get reach => size * 2.4;
+
+  /// Los contornos, en el suelo: pares x, z.
+  ///
+  /// Una mata es una o tres manchas montadas, cada una de otro tamaño y
+  /// corrida de su sitio, con los radios torcidos: una forma redonda sola se
+  /// lee como una moneda tirada en el suelo, y lo que hace que algo parezca
+  /// hierba es que no tenga una forma que se pueda nombrar.
+  Iterable<List<double>> blobs() sync* {
+    double h(int salt) => hash01(seed, salt);
+    final cuantas = h(2) < 0.45 ? 1 : 3;
+    for (var b = 0; b < cuantas; b++) {
+      final r = size * (b == 0 ? 1.0 : 0.45 + h(10 + b) * 0.40);
+      final cx = x + (b == 0 ? 0.0 : (h(20 + b) - 0.5) * size * 2.2);
+      final cz = z + (b == 0 ? 0.0 : (h(30 + b) - 0.5) * size * 2.2);
+      final giro = h(40 + b) * math.pi;
+      // Los radios torcidos pero suavizados con los vecinos: torcidos sueltos
+      // salían estrellas de puntas, y una mata no tiene puntas.
+      const lados = 14;
+      double crudo(int j) => 0.70 + h(50 + b * 20 + j % lados) * 0.50;
+      yield [
+        for (var j = 0; j < lados; j++)
+          ...() {
+            final a = giro + j * 2 * math.pi / lados;
+            final rr =
+                r *
+                (crudo(j + lados - 1) * 0.25 +
+                    crudo(j) * 0.5 +
+                    crudo(j + 1) * 0.25);
+            return [cx + math.cos(a) * rr, cz + math.sin(a) * rr];
+          }(),
+      ];
+    }
+  }
 }
