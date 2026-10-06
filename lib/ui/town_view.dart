@@ -44,6 +44,10 @@ class TownViewController {
   @visibleForTesting
   double get farFromTown => _state?._farFromTown ?? 0.0;
 
+  /// A qué distancia va la cámara.
+  @visibleForTesting
+  double get distanceTarget => _state?._cam.distanceTarget ?? 0.0;
+
   void place() => _state?.placePiece();
 
   /// 0..1 while the place button is being held. The wall answers by lighting
@@ -1072,6 +1076,22 @@ class _TownViewState extends State<TownView>
     }
   }
 
+  /// Acercar o alejar con los dedos o la rueda.
+  ///
+  /// En el valle, alejarse tiene tope: un poco más allá de donde se ven todos
+  /// los pueblos. Más lejos no hay nada que mirar —los pueblos son puntos y
+  /// las matas de la nieve, polvo— y era fácil perderse en el blanco.
+  void _zoomBy(double factor) {
+    _cam.zoomBy(factor);
+    if (_aloft && _valleyAt > 0) {
+      final tope = _valleyAt * _valleyRoom;
+      if (_cam.distanceTarget > tope) _cam.distanceTarget = tope;
+    }
+  }
+
+  /// Cuánto más que el encuadre del valle se deja alejar.
+  static const double _valleyRoom = 1.3;
+
   /// Qué parte de esa distancia hay que acercarse para entrar a un pueblo.
   static const double _diveAt = 0.25;
 
@@ -1253,7 +1273,7 @@ class _TownViewState extends State<TownView>
     if (d.pointerCount >= 2) {
       final f = d.scale / (_lastScale == 0 ? 1 : _lastScale);
       _lastScale = d.scale;
-      if (f.isFinite && f > 0) _cam.zoomBy(1 / f);
+      if (f.isFinite && f > 0) _zoomBy(1 / f);
       _travelByDrag(d.focalPointDelta);
       if (f > 1) _diveIn(d.localFocalPoint);
     } else {
@@ -1403,7 +1423,7 @@ class _TownViewState extends State<TownView>
     return Listener(
       onPointerSignal: (e) {
         if (e is PointerScrollEvent) {
-          _cam.zoomBy(1 + e.scrollDelta.dy * 0.0012);
+          _zoomBy(1 + e.scrollDelta.dy * 0.0012);
           if (e.scrollDelta.dy < 0) _diveIn(e.localPosition);
         }
       },

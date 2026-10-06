@@ -99,6 +99,23 @@ void main() {
     expect(v.mando.aloft, isFalse);
   });
 
+  testWidgets('en el valle, alejarse tiene tope', (tester) async {
+    final v = await valle(tester, activo: 1);
+    final antes = v.mando.distanceTarget;
+    for (var i = 0; i < 30; i++) {
+      await tester.sendEventToBinding(
+        const PointerScrollEvent(
+          position: Offset(195, 422),
+          scrollDelta: Offset(0, 100),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    expect(v.mando.distanceTarget, lessThanOrEqualTo(antes * 1.3 + 0.001));
+    expect(v.mando.distanceTarget, greaterThan(antes));
+    expect(v.mando.aloft, isTrue);
+  });
+
   testWidgets('el botón encendido va del color de la hora', (tester) async {
     final t = UiTheme(Palette.forMoment(13));
     Color colorDe(bool on) {
