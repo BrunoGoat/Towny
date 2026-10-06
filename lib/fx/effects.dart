@@ -40,7 +40,6 @@ class EffectSystem {
   final SeqRandom _rnd = SeqRandom(0x5eed);
 
   Iterable<Particle> get live => _pool.where((p) => p.alive);
-  bool get hasLive => _pool.any((p) => p.alive);
 
   Particle _take() {
     for (var i = 0; i < capacity; i++) {
@@ -159,53 +158,6 @@ class EffectSystem {
         ..spin = _rnd.jitter(5.0)
         ..angle = _rnd.range(0, 6.28);
     }
-  }
-
-  /// The burst when an epic is finally uncovered.
-  void reveal(V3 at, {int count = 90}) {
-    for (var i = 0; i < count; i++) {
-      final p = _take();
-      final a = _rnd.range(0, math.pi * 2);
-      final e = _rnd.range(-0.5, 1.2);
-      final speed = _rnd.range(1.6, 5.2);
-      p
-        ..alive = true
-        ..kind = ParticleKind.spark
-        ..x = at.x
-        ..y = at.y
-        ..z = at.z
-        ..vx = math.cos(a) * speed
-        ..vz = math.sin(a) * speed * 0.55
-        ..vy = e * speed * 0.8
-        ..drag = 2.6
-        ..gravity = -1.2
-        ..maxLife = _rnd.range(0.7, 1.8)
-        ..life = p.maxLife
-        ..size = _rnd.range(0.02, 0.07)
-        ..spin = _rnd.jitter(6.0)
-        ..angle = _rnd.range(0, 6.28);
-    }
-  }
-
-  /// Motes rising off the wall as it knits itself back together.
-  void repairMote(double x, double y, double z) {
-    final p = _take();
-    p
-      ..alive = true
-      ..kind = ParticleKind.moteRepair
-      ..x = x
-      ..y = y
-      ..z = z
-      ..vx = _rnd.jitter(0.35)
-      ..vz = _rnd.jitter(0.25)
-      ..vy = _rnd.range(0.5, 1.5)
-      ..drag = 1.0
-      ..gravity = 0.4
-      ..maxLife = _rnd.range(0.7, 1.5)
-      ..life = p.maxLife
-      ..size = _rnd.range(0.02, 0.05)
-      ..spin = 0
-      ..angle = 0;
   }
 
   /// A puff from a chimney.
@@ -374,14 +326,6 @@ class PlacementFx {
     // Y al tocar, un rebote corto en vez de una parada en seco.
     final s = ((seconds - fallDuration) / settleDuration).clamp(0.0, 1.0);
     return -0.035 * math.exp(-s * 7) * math.cos(s * 26);
-  }
-
-  double get rotation {
-    if (landed) {
-      final s = (sinceImpact / settleDuration).clamp(0.0, 1.0);
-      return 0.06 * math.exp(-s * 8) * math.sin(s * 30);
-    }
-    return lerpD(0.22, 0.0, t * t);
   }
 
   /// Squash on landing, in x and y.

@@ -83,17 +83,10 @@ class Sensory {
   /// La entrada. Nada debería empezar a sonar de golpe al abrir la app.
   double _musIn = 0;
 
-  /// La última hora que nos pasaron, para poder saltar a la mezcla correcta al
-  /// cambiar de pieza sin esperar a que llegue el fotograma siguiente.
-  double _lastHour = 12;
-
   /// Lo que hay que pedirle al reproductor. La cuenta que traduce la posición
   /// del deslizador a esto vive con las preferencias, que es donde está
   /// escrito qué significa la posición.
   double get _musLevel => _wants.musicGain;
-
-  /// What each layer is playing at right now, for showing it.
-  List<double> get heard => List.unmodifiable(_musAt);
 
   /// Cuál suena hoy: una al azar, cada vez que se abre la app.
   Tune _pick() => tunes[DateTime.now().microsecondsSinceEpoch % tunes.length];
@@ -128,31 +121,6 @@ class Sensory {
     _musReady = _mus.isNotEmpty;
   }
 
-  /// Pone otra pieza, ya. Para el disquito de los ajustes.
-  ///
-  /// Sin la entrada lenta y sin esperar al fotograma siguiente: alguien que
-  /// acaba de pedir oír un disco quiere oírlo. Y la que se elige aquí es la
-  /// que sigue sonando al cerrar la pantalla — probar una y que al volver
-  /// suene otra sería una broma pesada.
-  Future<void> playTune(Tune want) async {
-    await _loadTune(want);
-    _musIn = 1.0;
-    _jump();
-  }
-
-  /// El volumen que le toca a cada capa ahora mismo, sin transición.
-  void _jump() {
-    final day = dayMix(_tune, _lastHour);
-    final level = _musLevel * (_musIn <= 0 ? 1 : _musIn);
-    for (var i = 0; i < _mus.length && i < 3; i++) {
-      _musAt[i] = day[i] * level;
-      _musSent[i] = _musAt[i];
-      try {
-        _mus[i].setVolume(_musAt[i].clamp(0.0, 1.0));
-      } catch (_) {}
-    }
-  }
-
   /// Interpola entre las cuatro horas de la pieza dando la vuelta al reloj, con
   /// una curva suave: a las ocho y un minuto no puede sonar distinto que a las
   /// ocho menos uno.
@@ -178,7 +146,6 @@ class Sensory {
   /// La mezcla de este instante. `hour` es la misma hora con la que se pinta
   /// el cielo, así que la música y la luz cambian juntas.
   Future<void> music(double hour, double dt) async {
-    _lastHour = hour;
     if (!_musReady) return;
     if (_asleep || !_wants.hearsMusic) return;
     // Mientras suena la crónica las de fondo no se mueven: si el volumen
@@ -477,7 +444,6 @@ class Sensory {
 
   /// Si la cinemática está sonando ahora mismo.
   bool _reelOn = false;
-  bool get reeling => _reelOn;
   AudioPlayer? _reeler;
 
   /// La música de ver cómo se hizo el valle.

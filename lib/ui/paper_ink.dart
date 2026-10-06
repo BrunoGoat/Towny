@@ -174,9 +174,6 @@ class PaperInk {
       ? 0
       : chartGap + (notice.ticks.isEmpty ? chartHeight : chartWithTicks);
 
-  @visibleForTesting
-  double get usedHeight => _alto;
-
   /// El alto que le queda de verdad al gráfico al pintar.
   ///
   /// Cero es que no hay gráfico o que no cabe ninguno. Normalmente es lo que

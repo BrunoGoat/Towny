@@ -163,14 +163,6 @@ class Doing {
     Who.grown => !kid,
   };
 
-  /// Andar. No está en la tabla porque no es un recado: es lo que se hace
-  /// entre recado y recado.
-  static const Doing walking = Doing(
-    'andar',
-    'va de camino',
-    where: Where.door,
-  );
-
   /// Quedarse mirando, que es lo que hace alguien que llega a un sitio donde
   /// todavía no hay nada escrito que hacer.
   ///

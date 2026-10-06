@@ -993,13 +993,6 @@ class Store extends ChangeNotifier {
     return DateTime.now().difference(habit.pieces.last.placedAt).inMinutes < 2;
   }
 
-  void undoLast() {
-    if (!canUndoLast()) return;
-    habit.pieces.removeLast();
-    _save();
-    notifyListeners();
-  }
-
   // ------------------------------------------------------------------ huecos
 
   static double daysIdleOf(Habit h) {
@@ -1083,18 +1076,6 @@ class Store extends ChangeNotifier {
       if (dayKey(p.placedAt) == k) n++;
     }
     return n;
-  }
-
-  List<DayTally> lastDays(int days) {
-    final counts = <int, int>{};
-    for (final p in habit.pieces) {
-      counts.update(dayKey(p.placedAt), (v) => v + 1, ifAbsent: () => 1);
-    }
-    final today = dayStart(DateTime.now());
-    return List.generate(days, (i) {
-      final d = shiftDays(today, -(days - 1 - i));
-      return DayTally(d, counts[dayKey(d)] ?? 0);
-    });
   }
 
   /// What the town is putting up right now.

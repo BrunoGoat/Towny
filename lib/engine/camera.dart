@@ -252,15 +252,6 @@ class OrbitCamera {
       cy: height / 2,
     );
   }
-
-  /// How far along the wall stones are drawn one by one. Set each frame from
-  /// the stone density and the detail budget, so the budget is spent on a
-  /// continuous stretch of wall rather than being scattered thinly over one
-  /// that is far too long for it.
-  double detailRadius = 20;
-
-  /// How far the stones carry on as plain blocks past the detailed band.
-  double coarseRadius = 60;
 }
 
 /// La toma en la que la primera vez le pasa el valle al pueblo.

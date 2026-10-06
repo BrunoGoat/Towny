@@ -56,14 +56,6 @@ class Projector {
   final V3 eye, right, up, forward;
   final double focal, cx, cy, near;
 
-  /// Camera-space coordinates: x right, y up, z into the screen.
-  void toCamera(double px, double py, double pz, Float64List out, int at) {
-    final vx = px - eye.x, vy = py - eye.y, vz = pz - eye.z;
-    out[at] = vx * right.x + vy * right.y + vz * right.z;
-    out[at + 1] = vx * up.x + vy * up.y + vz * up.z;
-    out[at + 2] = vx * forward.x + vy * forward.y + vz * forward.z;
-  }
-
   V3 cameraOf(V3 p) {
     final v = p - eye;
     return V3(v.dot(right), v.dot(up), v.dot(forward));

@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'habit.dart';
-import 'piece.dart';
 
 /// El reloj de la reproducción: cuándo cae cada pieza mientras se mira crecer
 /// el valle entero de una sentada.
@@ -229,21 +228,6 @@ class Reel {
       mark.add(lead + run / sum * span);
     }
     return mark;
-  }
-
-  /// Todas las piezas de un hábito como pasos, para la reproducción corta.
-  static List<ReelStep> stepsFor(
-    List<Habit> habits,
-    bool Function(int habit, Piece piece) pick,
-  ) {
-    final out = <ReelStep>[];
-    for (var h = 0; h < habits.length; h++) {
-      for (final p in habits[h].pieces) {
-        if (pick(h, p)) out.add(ReelStep(p.placedAt, h));
-      }
-    }
-    out.sort((a, b) => a.when.compareTo(b.when));
-    return out;
   }
 
   /// Todas las piezas del valle, en orden.

@@ -61,8 +61,6 @@ class TownViewController {
   void lookAtNext() => _state?.lookAtNext();
   double get travel => _state?._cam.travelTarget ?? 0;
 
-  /// How wide the town in front of you reaches, for framing.
-  double get townRadius => _state?._town.radius ?? 8;
   Palette? get palette => _state?._palette;
 
   /// En qué huecos del tablón de la plaza hay papel, según el plano que la

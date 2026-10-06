@@ -494,9 +494,6 @@ class TownPlan {
   static int costOfId(String id) =>
       landmarkOf(id)?.cost ?? buildingCost[kindOf(id)]!;
 
-  static String nameOfId(String id) =>
-      landmarkOf(id)?.name ?? buildingName[kindOf(id)]!;
-
   /// Lo mismo, pero con la palabra que use esta región. Lo que lee el cartel
   /// de «se está levantando» tiene que decir lo mismo que dirá el edificio
   /// cuando esté en pie.
@@ -627,22 +624,6 @@ class TownPlan {
     return null;
   }
 
-  /// Every landmark the town has built or is about to, with the achievement
-  /// it starts at. Enough to show the road ahead without laying out a town.
-  List<(Landmark, int)> landmarksAround(
-    int placed, {
-    int ahead = 500,
-    List<String> chronicle = const [],
-  }) {
-    final out = <(Landmark, int)>[];
-    for (final w in walk(chronicle)) {
-      final mark = landmarkOf(w.id);
-      if (mark != null) out.add((mark, w.from));
-      if (w.from + w.cost > placed + ahead) break;
-    }
-    return out;
-  }
-
   /// Si el pueblo ya terminó este hito.
   bool built(
     String landmarkId,
@@ -655,16 +636,6 @@ class TownPlan {
       if (w.id == landmarkId) return true;
     }
     return false;
-  }
-
-  /// How many buildings the town has finished.
-  int finishedBuildings(int placed, [List<String> chronicle = const []]) {
-    var n = 0;
-    for (final w in walk(chronicle)) {
-      if (w.from + w.cost > placed) break;
-      n++;
-    }
-    return n;
   }
 }
 
@@ -850,11 +821,6 @@ class TownLayout {
 
   TownPiece? pieceFor(int index) =>
       index >= 0 && index < pieces.length ? pieces[index] : null;
-
-  TownBuilding? buildingOf(int index) {
-    final p = pieceFor(index);
-    return p == null ? null : buildings[p.building];
-  }
 
   /// How close together the plots are laid here.
   final double plotPitch;

@@ -32,13 +32,6 @@ class Piece {
   );
 }
 
-/// A single day in the person's history, used by the small activity strip.
-class DayTally {
-  DayTally(this.day, this.count);
-  final DateTime day;
-  final int count;
-}
-
 int dayKey(DateTime d) => d.year * 10000 + d.month * 100 + d.day;
 
 DateTime dayStart(DateTime d) => DateTime(d.year, d.month, d.day);

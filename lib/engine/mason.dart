@@ -1,5 +1,3 @@
-import '../core/rng.dart';
-
 /// What a piece of a building is doing, which is all the renderer needs to know
 /// to draw it.
 ///
@@ -121,9 +119,6 @@ class Mason {
 
   int get count => out.length;
 
-  double h01(int salt) => hash01(seed, salt);
-  double rand(double a, double b, int salt) => hashRange(a, b, seed, salt);
-
   /// The one door every piece goes through, and so the one place the town's
   /// proportions are applied. The mason works in a single set of units and
   /// this turns them into this town's.
@@ -204,18 +199,6 @@ class Mason {
     at: at,
     along: along,
   );
-
-  /// A roof that also raises the course line, for a mass built on top of one.
-  void roofUnder(
-    double w,
-    double d,
-    double rise, {
-    double dx = 0,
-    double dz = 0,
-    bool? along,
-  }) {
-    box(PieceKind.roof, w, d, rise, dx: dx, dz: dz, along: along);
-  }
 
   void spire(
     double w,

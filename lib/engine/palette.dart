@@ -91,10 +91,6 @@ class Palette {
   /// The body actually lighting the scene right now.
   V3 get lightDir => isDaylight ? sunDir : moonDir;
 
-  /// How strongly the key light reads, 0..1. Low at the horizon.
-  double get lightStrength =>
-      isDaylight ? clampD(0.45 + sunDir.y * 0.9, 0.35, 1.0) : 0.42;
-
   static const _night = _PaletteSpec(
     skyTop: Color(0xFF090E1C),
     skyHorizon: Color(0xFF27314C),
