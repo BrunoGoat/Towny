@@ -6,6 +6,7 @@ import 'package:towny/engine/town.dart';
 import 'package:towny/engine/world.dart';
 import 'package:towny/model/appearance.dart';
 import 'package:towny/ui/first_run.dart';
+import 'package:towny/ui/habit_sigil.dart';
 
 Widget _marco(Widget child) => MediaQuery(
   data: const MediaQueryData(
@@ -27,6 +28,14 @@ Future<void> _bajar(WidgetTester tester) async {
   for (var i = 0; i < 20; i++) {
     await tester.pump(const Duration(milliseconds: 100));
   }
+}
+
+/// Toca «Siguiente», llevándolo antes a la vista: la tarjeta rueda cuando no
+/// cabe, y en la pantalla de los tests a veces queda justo debajo del borde.
+Future<void> _siguiente(WidgetTester tester) async {
+  await tester.ensureVisible(find.text('SIGUIENTE'));
+  await tester.pump();
+  await tester.tap(find.text('SIGUIENTE'));
 }
 
 void main() {
@@ -65,15 +74,21 @@ void main() {
       await _asentar(tester);
       await tester.enterText(find.byType(TextField).first, 'Leer');
       await tester.pump();
-      await tester.tap(find.text('SIGUIENTE'));
+      await _siguiente(tester);
       await _asentar(tester);
 
       // La comarca, que es sólo cómo se ve, y que se dice así.
       expect(find.text('¿Qué clase de pueblo?'), findsOneWidget);
       expect(find.textContaining('Es sólo cómo se ve'), findsOneWidget);
-      await tester.tap(find.text('Sierra'));
+      // Los botones son sólo el sello; el nombre se revela al tocarlo.
+      expect(find.text('Sierra'), findsNothing);
+      await tester.tap(
+        find.byWidgetPredicate((w) => w is HabitSigil && w.symbol == 'montana'),
+      );
       await _asentar(tester);
-      await tester.tap(find.text('SIGUIENTE'));
+      expect(find.text('Sierra'), findsOneWidget);
+      expect(find.textContaining('esfuerzo físico'), findsOneWidget);
+      await _siguiente(tester);
       await _asentar(tester);
 
       // Ni cuándo ni dónde: eso lo propone el pueblo cuando ya lo sabe.
@@ -81,7 +96,7 @@ void main() {
       expect(find.text('¿Para qué querés ese hábito?'), findsOneWidget);
       await tester.enterText(find.byType(TextField).first, 'para dormir mejor');
       await tester.pump();
-      await tester.tap(find.text('SIGUIENTE'));
+      await _siguiente(tester);
       await _asentar(tester);
 
       expect(
@@ -136,10 +151,10 @@ void main() {
       await _asentar(tester);
       await tester.enterText(find.byType(TextField).first, 'Correr');
       await tester.pump();
-      await tester.tap(find.text('SIGUIENTE'));
+      await _siguiente(tester);
       await _asentar(tester);
       // La comarca no se salta: ya viene una elegida.
-      await tester.tap(find.text('SIGUIENTE'));
+      await _siguiente(tester);
       await _asentar(tester);
       for (var i = 0; i < 2; i++) {
         await tester.tap(find.text('Ahora no'));
@@ -169,7 +184,7 @@ void main() {
       // El botón está a la vista pero apagado: que se vea dónde está la salida
       // antes de poder usarla es la mitad de saber cuánto falta.
       expect(find.text('SIGUIENTE'), findsOneWidget);
-      await tester.tap(find.text('SIGUIENTE'));
+      await _siguiente(tester);
       await _asentar(tester);
       expect(find.text('¿Para qué querés ese hábito?'), findsNothing);
       expect(fundado, isFalse);
@@ -210,12 +225,12 @@ void main() {
         await tester.pump();
         await tester.ensureVisible(find.text('SIGUIENTE'));
         await tester.pump();
-        await tester.tap(find.text('SIGUIENTE'));
+        await _siguiente(tester);
         await _asentar(tester);
         expect(tester.takeException(), isNull, reason: 'comarca, $teclado');
         await tester.ensureVisible(find.text('SIGUIENTE'));
         await tester.pump();
-        await tester.tap(find.text('SIGUIENTE'));
+        await _siguiente(tester);
         await _asentar(tester);
         expect(tester.takeException(), isNull, reason: 'para qué, $teclado');
         await tester.pumpWidget(const SizedBox());
@@ -237,9 +252,9 @@ void main() {
       await _asentar(tester);
       await tester.enterText(find.byType(TextField).first, 'Leer');
       await tester.pump();
-      await tester.tap(find.text('SIGUIENTE'));
+      await _siguiente(tester);
       await _asentar(tester);
-      await tester.tap(find.text('SIGUIENTE'));
+      await _siguiente(tester);
       await _asentar(tester);
       await tester.tap(find.text('Ahora no'));
       await _asentar(tester);

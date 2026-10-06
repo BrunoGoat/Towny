@@ -197,6 +197,13 @@ class _TownViewState extends State<TownView>
   int _layoutFor = -1;
   int _slotFor = -1;
 
+  /// Las comarcas del valle con las que se hizo el plano. Si alguna cambia
+  /// (ver [Store.changeRegion]) hay que rehacerlo, aunque no cambie la cuenta
+  /// de piezas.
+  String _regionsFor = '';
+  static String _regionsOf(Store s) =>
+      [for (final h in s.habits) h.character].join(',');
+
   /// Every town in the valley, the neighbours included. A neighbour's layout
   /// only changes when its own habit is built in, so they are kept rather than
   /// rebuilt on every piece.
@@ -297,7 +304,9 @@ class _TownViewState extends State<TownView>
   /// One town's layout, kept between frames unless its own count moved.
   TownLayout _layoutOf(Habit h, int? override) {
     final n = override ?? h.total;
-    final key = '${h.id}:$n';
+    // La comarca va en la clave: el mismo hábito con la misma cuenta de
+    // piezas es otro plano si cambió de comarca.
+    final key = '${h.id}:${h.character}:$n';
     final had = _valley[key];
     if (had != null) return had;
     // Only ever one layout per habit in flight: the old one is dropped the
@@ -433,7 +442,9 @@ class _TownViewState extends State<TownView>
 
   void _onStoreChanged() {
     final store = widget.store;
-    if (store.shownTotal != _layoutFor || store.habit.slot != _slotFor) {
+    if (store.shownTotal != _layoutFor ||
+        store.habit.slot != _slotFor ||
+        _regionsOf(store) != _regionsFor) {
       _rebuildLayout();
     }
   }
@@ -480,6 +491,7 @@ class _TownViewState extends State<TownView>
     _town = _entries[store.active.clamp(0, _entries.length - 1)].layout;
     _layoutFor = store.shownTotal;
     _slotFor = store.habit.slot;
+    _regionsFor = _regionsOf(store);
     _cam.wallLength = _townReach;
     _tellCameraTheWorld();
 

@@ -18,6 +18,7 @@ class TownCharacter {
   const TownCharacter({
     required this.region,
     required this.blurb,
+    required this.suits,
     required this.symbol,
     required this.storey,
     required this.spread,
@@ -37,6 +38,11 @@ class TownCharacter {
   /// What this kind of place is called, and one line about it.
   final String region;
   final String blurb;
+
+  /// Para qué clase de hábito pega, dicho como sugerencia y nada más: la
+  /// comarca es sólo cómo se ve, y cualquier hábito puede vivir en cualquiera.
+  /// Sale de cómo es el sitio, para que la relación se entienda sola.
+  final String suits;
 
   /// The mark it is chosen by when a habit is founded. One of the same
   /// thirty-six the habits themselves wear, because they are the only marks
@@ -104,6 +110,8 @@ class TownCharacter {
   static const List<TownCharacter> all = [
     TownCharacter(
       region: 'Ribera',
+      suits:
+          'Para hábitos de calma y descanso: dormir mejor, meditar, tomar agua.',
       symbol: 'gota',
       blurb: 'Casas anchas y bajas, encaladas de blanco, casi todas de teja.',
       storey: 0.9,
@@ -121,6 +129,8 @@ class TownCharacter {
     ),
     TownCharacter(
       region: 'Sierra',
+      suits:
+          'Para los hábitos que cuestan esfuerzo físico y de verdad son difíciles: entrenar, correr, madrugar.',
       symbol: 'montana',
       blurb: 'Alta y apretada, de piedra gris y pizarra, con tejados agudos.',
       storey: 1.34,
@@ -138,6 +148,8 @@ class TownCharacter {
     ),
     TownCharacter(
       region: 'Marca',
+      suits:
+          'Para dejar algo y aguantar: no fumar, menos pantalla, menos azúcar.',
       symbol: 'escudo',
       blurb: 'De frontera: muros gruesos, ocre, pocas ventanas y todo junto.',
       storey: 1.06,
@@ -155,6 +167,8 @@ class TownCharacter {
     ),
     TownCharacter(
       region: 'Valle',
+      suits:
+          'Para hábitos ligados a la naturaleza y la salud: comer sano, cocinar, caminar al aire libre.',
       symbol: 'espiga',
       blurb: 'Madera y paja, solares grandes y huerta en casi todas.',
       storey: 0.96,
@@ -172,6 +186,8 @@ class TownCharacter {
     ),
     TownCharacter(
       region: 'Costa',
+      suits:
+          'Para el orden y la claridad: ordenar la casa, las cuentas, planificar la semana.',
       symbol: 'ola',
       blurb: 'Cal y añil, tejados casi planos y mucho aire entre las casas.',
       storey: 0.8,
@@ -189,6 +205,8 @@ class TownCharacter {
     ),
     TownCharacter(
       region: 'Robledal',
+      suits:
+          'Para lo que crece despacio, como un roble: leer, estudiar, escribir, aprender un instrumento.',
       symbol: 'arbol',
       blurb: 'Madera oscura bajo los robles, tejados de paja muy inclinados.',
       storey: 1.16,

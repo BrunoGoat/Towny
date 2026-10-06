@@ -401,18 +401,48 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
               setState(() => _place = o);
             },
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 18),
+          // El nombre se revela acá, grande, con lo que es y para qué pega:
+          // los botones son sólo el sello, y lo que dice cada uno se lee al
+          // tocarlo.
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 220),
-            child: Text(
-              ch.blurb,
+            child: Column(
               key: ValueKey(ch.order),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                height: 1.45,
-                color: _Ink.soft(0.78),
-              ),
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  ch.region,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontFamily: _Ink.serif,
+                    fontSize: 28,
+                    height: 1.1,
+                    color: _Ink.gold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  ch.blurb,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.45,
+                    color: _Ink.soft(0.82),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  ch.suits,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    height: 1.45,
+                    fontStyle: FontStyle.italic,
+                    color: _Ink.soft(0.60),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -1265,57 +1295,70 @@ class _Marks extends StatelessWidget {
   }
 }
 
-/// Las seis comarcas, cada una con su sello y su nombre.
+/// Las comarcas, cada una con su sello y nada más, en filas de tres.
+///
+/// Filas parejas y no un `Wrap` centrado: con los nombres dentro, seis botones
+/// de anchos distintos caían en tres, dos y uno, que se leía como un embudo.
 class _Places extends StatelessWidget {
   const _Places({required this.chosen, required this.onPick});
 
   final int chosen;
   final void Function(int order) onPick;
 
+  static const int _porFila = 3;
+
   @override
-  Widget build(BuildContext context) => Wrap(
-    alignment: WrapAlignment.center,
-    spacing: 8,
-    runSpacing: 8,
-    children: [
-      for (final c in TownCharacter.all)
-        GestureDetector(
-          onTap: () => onPick(c.order),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 220),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              color: c.order == chosen
-                  ? _Ink.gold.withValues(alpha: 0.20)
-                  : _Ink.cream.withValues(alpha: 0.06),
-              border: Border.all(
-                color: c.order == chosen
-                    ? _Ink.gold
-                    : _Ink.cream.withValues(alpha: 0.12),
-                width: c.order == chosen ? 1.4 : 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                HabitSigil(
-                  symbol: c.symbol,
-                  color: c.order == chosen ? _Ink.gold : _Ink.soft(0.80),
-                  size: 18,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  c.region,
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: c.order == chosen ? _Ink.gold : _Ink.cream,
-                  ),
-                ),
+  Widget build(BuildContext context) {
+    final todas = TownCharacter.all;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var i = 0; i < todas.length; i += _porFila) ...[
+          if (i > 0) const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              for (final c in todas.skip(i).take(_porFila)) ...[
+                if (c != todas[i]) const SizedBox(width: 16),
+                _sello(c),
               ],
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _sello(TownCharacter c) {
+    final elegida = c.order == chosen;
+    return Semantics(
+      button: true,
+      selected: elegida,
+      label: c.region,
+      child: GestureDetector(
+        onTap: () => onPick(c.order),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          width: 64,
+          height: 64,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: elegida
+                ? _Ink.gold.withValues(alpha: 0.20)
+                : _Ink.cream.withValues(alpha: 0.06),
+            border: Border.all(
+              color: elegida ? _Ink.gold : _Ink.cream.withValues(alpha: 0.12),
+              width: elegida ? 1.6 : 1,
             ),
           ),
+          child: HabitSigil(
+            symbol: c.symbol,
+            color: elegida ? _Ink.gold : _Ink.soft(0.80),
+            size: 28,
+          ),
         ),
-    ],
-  );
+      ),
+    );
+  }
 }

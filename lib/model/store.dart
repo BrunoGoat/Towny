@@ -490,18 +490,47 @@ class Store extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// La comarca de un pueblo que todavía no tiene ninguna pieza.
-  ///
-  /// Con una sola pieza puesta ya no: la comarca decide el ancho de los
-  /// solares y el orden en que llega el catálogo, y cambiarla movería lo que
-  /// ya está construido. Sin piezas no hay nada que mover, y la crónica se
-  /// vuelve a escribir con la comarca nueva.
+  /// La comarca de un pueblo que todavía no tiene ninguna pieza: lo que se
+  /// elige la primera vez. Con piezas puestas no hace nada; para eso está
+  /// [changeRegion].
   void settle(int index, int character) {
     if (index < 0 || index >= habits.length) return;
+    if (habits[index].pieces.isNotEmpty) return;
+    changeRegion(index, character);
+  }
+
+  /// Cambia la comarca de un pueblo, tenga las piezas que tenga.
+  ///
+  /// **No es código muerto.** Hoy ningún botón lo llama con un pueblo ya
+  /// construido —sólo la primera vez, a través de [settle]—, y es a
+  /// propósito: está para que el día que la app quiera dejar cambiar de
+  /// comarca sea un botón y no un problema. Lo cubren las pruebas de
+  /// `region_change_test.dart`, que son las que dicen que se puede.
+  ///
+  /// Por qué se puede sin romper nada:
+  ///
+  ///  - **Lo que cuesta cada cosa no depende de la comarca.** Un pozo son las
+  ///    mismas piezas en la Sierra que en la Costa, y una casa también. Así
+  ///    que el pueblo tiene exactamente los mismos edificios, terminados y a
+  ///    medias, antes y después.
+  ///  - **Lo ya empezado está escrito en la crónica**, y la crónica no se
+  ///    toca. Lo que cambia es el orden de lo que todavía no se decidió: los
+  ///    hitos que vengan saldrán en el orden de la comarca nueva.
+  ///  - **La forma no se guarda: se deriva.** El ancho de los solares, el alto
+  ///    de las casas, los tejados y los colores salen de la comarca cada vez
+  ///    que se dibuja, así que el mismo pueblo se vuelve a levantar con otra
+  ///    cara. Lo único que se mueve es dónde cae cada casa, porque los solares
+  ///    de cada comarca miden distinto. Ninguna pieza se pierde ni se gana.
+  ///
+  /// Sin piezas no hay nada empezado, y la crónica se vuelve a escribir entera
+  /// con el arranque de la comarca nueva.
+  void changeRegion(int index, int character) {
+    if (index < 0 || index >= habits.length) return;
     final h = habits[index];
-    if (h.pieces.isNotEmpty || h.character == character) return;
-    h.character = TownCharacter.byOrder(character).order;
-    h.chronicle.clear();
+    final nueva = TownCharacter.byOrder(character).order;
+    if (h.character == nueva) return;
+    h.character = nueva;
+    if (h.pieces.isEmpty) h.chronicle.clear();
     _writeUpWorks(h);
     _save();
     notifyListeners();

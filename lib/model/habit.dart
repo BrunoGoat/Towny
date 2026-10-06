@@ -158,8 +158,10 @@ class Habit {
   /// so changing it would move pieces that were laid years ago. The one
   /// promise this app makes is that a piece stays where it was put.
   ///
-  /// Mientras no hay ninguna pieza puesta no hay nada que mover, y ahí sí se
-  /// puede elegir: es lo que hace la primera vez. Ver [Store.settle].
+  /// Eso valía cuando la forma dependía de la comarca de una manera que movía
+  /// piezas. Hoy no: lo que cuesta cada cosa es igual en todas, y lo empezado
+  /// está escrito en la crónica. Así que se puede cambiar, también con el
+  /// pueblo hecho. Ver [Store.changeRegion].
   int character;
 
   TownCharacter get place => TownCharacter.byOrder(character);
