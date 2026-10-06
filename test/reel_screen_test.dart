@@ -84,60 +84,53 @@ void main() {
     await Appearance.instance.setMusicOff(true);
   });
 
-  testWidgets('el valle de dos pueblos se pinta entero sin caerse', (
-    tester,
-  ) async {
+  // Cada cinemática entera son sesenta segundos simulados, cuadro por cuadro,
+  // y es lo que más tarda de toda la suite. Así que cada corrida entera
+  // comprueba todo lo que se puede comprobar de ella, en vez de repetir la
+  // misma película para mirar una cosa distinta cada vez.
+
+  testWidgets('el valle de dos pueblos: se pinta entero y la cámara nunca '
+      'se aleja, aunque salte de pueblo en pueblo', (tester) async {
     final s = await _store([
       _habit(90, id: 'a'),
       _habit(60, id: 'b', slot: 1, desde: 30),
     ]);
     await tester.pumpWidget(_marco(ReelScreen(store: s)));
-    await _correr(tester);
+    final estado = tester.state<ReelScreenState>(find.byType(ReelScreen));
+    var antes = double.infinity;
+    for (var t = 0.0; t < 67; t += 0.05) {
+      await tester.pump(const Duration(milliseconds: 50));
+      final d = estado.camera.distance;
+      expect(d, lessThanOrEqualTo(antes + 1e-6), reason: 'se alejó en $t s');
+      antes = d;
+    }
     expect(tester.takeException(), isNull);
+    expect(find.text('150'), findsOneWidget);
   });
 
-  testWidgets('acaba enseñando lo que hay, no una pieza menos', (tester) async {
-    // Ciento veinte piezas en cuatro meses, que es un uso real y no un caso de
-    // laboratorio: hay ráfagas, hay huecos y hay un invierno por el medio.
-    final s = await _store([_habit(120)]);
-    await tester.pumpWidget(_marco(ReelScreen(store: s)));
-    await _correr(tester);
-    expect(tester.takeException(), isNull);
-    // La tarjeta del final dice la cuenta de verdad. Es el único número que
-    // esta pantalla escribe y el único que no se puede equivocar.
-    expect(find.text('120'), findsOneWidget);
-    expect(find.text('piezas'), findsOneWidget);
-    expect(find.text('VOLVER AL VALLE'), findsOneWidget);
-  });
-
-  testWidgets('mientras corre se puede saltar, y al acabar se puede salir', (
-    tester,
-  ) async {
-    final s = await _store([_habit(40)]);
+  testWidgets('se puede saltar mientras corre, la fecha avanza, y acaba '
+      'enseñando lo que hay, no una pieza menos', (tester) async {
+    // Doscientas piezas en algo más de medio año: hay ráfagas, hay huecos y
+    // cambia la estación, que es la mitad de lo que esta pantalla cuenta.
+    final s = await _store([_habit(200)]);
     await tester.pumpWidget(_marco(ReelScreen(store: s)));
     await tester.pump(const Duration(seconds: 3));
     expect(find.text('SALTAR'), findsOneWidget);
     // Y la tarjeta no está antes de tiempo: sería contar el final a los tres
     // segundos de empezar.
     expect(find.text('VOLVER AL VALLE'), findsNothing);
-    await _correr(tester);
-    expect(find.text('SALTAR'), findsNothing);
-    expect(find.text('VOLVER AL VALLE'), findsOneWidget);
-  });
-
-  testWidgets('la fecha que se enseña avanza y llega a la última', (
-    tester,
-  ) async {
-    // Un pueblo que cruza un año entero: si la fecha no corriera, el valle no
-    // cambiaría de estación y la cinemática no contaría el paso del tiempo,
-    // que es la mitad de lo que tiene que contar.
-    final s = await _store([_habit(200)]);
-    await tester.pumpWidget(_marco(ReelScreen(store: s)));
-    await tester.pump(const Duration(seconds: 4));
+    await tester.pump(const Duration(seconds: 1));
     expect(find.text('MARZO DE 2026'), findsOneWidget);
     await _correr(tester);
+    expect(tester.takeException(), isNull);
     // Doscientos días desde el 1 de marzo caen en septiembre.
     expect(find.text('SEPTIEMBRE DE 2026'), findsOneWidget);
+    // La tarjeta del final dice la cuenta de verdad. Es el único número que
+    // esta pantalla escribe y el único que no se puede equivocar.
+    expect(find.text('200'), findsOneWidget);
+    expect(find.text('piezas'), findsOneWidget);
+    expect(find.text('SALTAR'), findsNothing);
+    expect(find.text('VOLVER AL VALLE'), findsOneWidget);
   });
 
   testWidgets('un pueblo sin crónica no abre nada y no revienta', (
@@ -198,18 +191,25 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
     expect(tester.takeException(), isNull);
   });
-  testWidgets('el acercamiento no vuelve atrás nunca', (tester) async {
-    // El fallo que esto vigila se vio mirándolo y no leyéndolo: el encuadre
-    // salía de lo que había construido en ese fotograma, así que crecía con
-    // cada pieza y la cámara se alejaba un poco en cada ráfaga y volvía a
-    // acercarse en cada pausa. Visto seguido es un zoom que respira, y no hay
-    // texto en pantalla que lo delate.
-    final s = await _store([_habit(160)]);
-    await tester.pumpWidget(_marco(ReelScreen.town(store: s, habit: 0)));
+  testWidgets('la crónica de un pueblo: el acercamiento no vuelve atrás '
+      'nunca, y no enseña los otros', (tester) async {
+    // El fallo de la cámara se vio mirándolo y no leyéndolo: el encuadre salía
+    // de lo que había construido en ese fotograma, así que crecía con cada
+    // pieza y la cámara se alejaba un poco en cada ráfaga y volvía a acercarse
+    // en cada pausa. Visto seguido es un zoom que respira.
+    //
+    // Y lo que se pidió es poder mirar **un** pueblo, no el valle encuadrado
+    // sobre uno: si las piezas de los demás siguieran cayendo, la cinemática
+    // contaría otra cosa de la que dice contar.
+    final s = await _store([
+      _habit(40, id: 'a'),
+      _habit(160, id: 'b', slot: 1),
+    ]);
+    await tester.pumpWidget(_marco(ReelScreen.town(store: s, habit: 1)));
     final estado = tester.state<ReelScreenState>(find.byType(ReelScreen));
     var antes = double.infinity;
     var peor = 0.0;
-    for (var t = 0.0; t < 60; t += 0.05) {
+    for (var t = 0.0; t < 67; t += 0.05) {
       await tester.pump(const Duration(milliseconds: 50));
       final d = estado.camera.distance;
       if (d > antes) peor = math.max(peor, d - antes);
@@ -220,35 +220,8 @@ void main() {
       lessThan(1e-6),
       reason: 'la cámara se alejó $peor en mitad de la cinemática',
     );
-  });
-
-  testWidgets('y en el valle tampoco, aunque salte de pueblo en pueblo', (
-    tester,
-  ) async {
-    final s = await _store([
-      _habit(70, id: 'a'),
-      _habit(50, id: 'b', slot: 1, desde: 20),
-    ]);
-    await tester.pumpWidget(_marco(ReelScreen(store: s)));
-    final estado = tester.state<ReelScreenState>(find.byType(ReelScreen));
-    var antes = double.infinity;
-    for (var t = 0.0; t < 60; t += 0.05) {
-      await tester.pump(const Duration(milliseconds: 50));
-      final d = estado.camera.distance;
-      expect(d, lessThanOrEqualTo(antes + 1e-6), reason: 'se alejó en $t s');
-      antes = d;
-    }
-  });
-
-  testWidgets('la crónica de un pueblo no enseña los otros', (tester) async {
-    // Lo que se pidió es poder mirar **un** pueblo, no el valle encuadrado
-    // sobre uno: si las piezas de los demás siguieran cayendo, la cinemática
-    // contaría otra cosa de la que dice contar.
-    final s = await _store([_habit(40, id: 'a'), _habit(40, id: 'b', slot: 1)]);
-    await tester.pumpWidget(_marco(ReelScreen.town(store: s, habit: 1)));
-    await _correr(tester);
     expect(tester.takeException(), isNull);
-    // Cuarenta, las de ese pueblo, y no ochenta.
-    expect(find.text('40'), findsOneWidget);
+    // Ciento sesenta, las de ese pueblo, y no doscientas.
+    expect(find.text('160'), findsOneWidget);
   });
 }
