@@ -1042,7 +1042,48 @@ class _TownViewState extends State<TownView>
     _cam.follow = false;
     _aloft = true;
     _asked = true;
+    _valleyAt = _cam.distanceTarget;
     Sensory.instance.tick();
+  }
+
+  /// A qué distancia quedó la vista del valle. Ver [_diveIn].
+  double _valleyAt = 0;
+
+  /// Acercarse mucho desde el valle es querer entrar a un pueblo: se entra.
+  ///
+  /// Al que está debajo de los dedos —o del puntero, con la rueda—, que es al
+  /// que uno se estaba acercando, y con el mismo vuelo que tocar su cartel.
+  /// Pasada la mitad del camino y no antes: acercarse un poco para mirar
+  /// mejor el valle sigue siendo mirar el valle.
+  void _diveIn(Offset focal) {
+    if (!_aloft || _valleyAt <= 0) return;
+    if (_cam.distanceTarget > _valleyAt * 0.5) return;
+    final size = context.size;
+    if (size == null || size.isEmpty || _entries.isEmpty) return;
+    final p = _cam.projector(size.width, size.height, _time);
+    var mejor = -1;
+    var cerca = double.infinity;
+    for (var i = 0; i < _entries.length; i++) {
+      final l = _entries[i].layout;
+      final at = p.project(V3(l.cx, 0, l.cz));
+      if (at == null) continue;
+      final dx = at.x - focal.dx, dy = at.y - focal.dy;
+      final d = dx * dx + dy * dy;
+      if (d < cerca) {
+        cerca = d;
+        mejor = i;
+      }
+    }
+    if (mejor < 0) return;
+    Sensory.instance.tick();
+    if (mejor == widget.store.active) {
+      _frameTown();
+    } else {
+      // Bajar ya, sin esperar a que el pueblo nuevo encuadre: si no, el
+      // siguiente fotograma del pellizco vuelve a pedir lo mismo.
+      _landed();
+      widget.onTownTapped(mejor);
+    }
   }
 
   /// Desde dónde se ven los seis pueblos enteros. Se prueba sobre una cámara
@@ -1187,6 +1228,7 @@ class _TownViewState extends State<TownView>
       _lastScale = d.scale;
       if (f.isFinite && f > 0) _cam.zoomBy(1 / f);
       _travelByDrag(d.focalPointDelta);
+      if (f > 1) _diveIn(d.localFocalPoint);
     } else {
       final dx = d.focalPointDelta.dx;
       final dy = d.focalPointDelta.dy;
@@ -1335,6 +1377,7 @@ class _TownViewState extends State<TownView>
       onPointerSignal: (e) {
         if (e is PointerScrollEvent) {
           _cam.zoomBy(1 + e.scrollDelta.dy * 0.0012);
+          if (e.scrollDelta.dy < 0) _diveIn(e.localPosition);
         }
       },
       child: GestureDetector(
