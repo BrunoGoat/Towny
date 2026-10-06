@@ -373,7 +373,12 @@ class GhostButton extends StatefulWidget {
     required this.onTap,
     this.tooltip,
     this.dot,
+    this.on = false,
   }) : assert(icon != null || glyph != null, 'un botón sin nada dentro');
+
+  /// Encendido: lo que el botón pide es lo que se está viendo ahora. Va del
+  /// color de la hora, entero, en vez del gris de los demás.
+  final bool on;
 
   /// Un punto arriba a la derecha, de este color. Null es sin punto.
   ///
@@ -451,12 +456,12 @@ class _GhostButtonState extends State<GhostButton> {
         : Tooltip(message: widget.tooltip!, child: b);
   }
 
-  Widget _dentro(UiTheme t) => widget.glyph != null
-      ? widget.glyph!(t.fg.withValues(alpha: _down ? 0.95 : 0.62))
-      : Icon(
-          widget.icon,
-          size: 20,
-          color: t.fg.withValues(alpha: _down ? 0.95 : 0.62),
-          shadows: t.halo,
-        );
+  Widget _dentro(UiTheme t) {
+    final color = widget.on
+        ? t.accent
+        : t.fg.withValues(alpha: _down ? 0.95 : 0.62);
+    return widget.glyph != null
+        ? widget.glyph!(color)
+        : Icon(widget.icon, size: 20, color: color, shadows: t.halo);
+  }
 }

@@ -2,8 +2,10 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:towny/engine/palette.dart';
 import 'package:towny/model/appearance.dart';
 import 'package:towny/model/store.dart';
+import 'package:towny/ui/style.dart';
 import 'package:towny/ui/town_view.dart';
 
 /// Acercarse mucho desde la vista del valle es entrar al pueblo que uno tiene
@@ -53,6 +55,8 @@ void main() {
     mando.frameValley();
     await tester.pump(const Duration(seconds: 3));
     expect(mando.aloft, isTrue);
+    // Y lo avisa, que es lo que enciende el botón del valle.
+    expect(mando.aloftNow.value, isTrue);
     return (mando: mando, tocados: tocados);
   }
 
@@ -75,22 +79,48 @@ void main() {
     // El pueblo uno está en el centro del valle, y estando en el otro, ir
     // hacia el centro es ir hacia él.
     final v = await valle(tester, activo: 1);
-    await rueda(tester, 12);
+    await rueda(tester, 16);
     expect(v.tocados, [0]);
     expect(v.mando.aloft, isFalse);
+    expect(v.mando.aloftNow.value, isFalse);
   });
 
   testWidgets('acercarse un poco sigue siendo mirar el valle', (tester) async {
     final v = await valle(tester, activo: 1);
-    await rueda(tester, 2);
+    await rueda(tester, 7);
     expect(v.tocados, isEmpty);
     expect(v.mando.aloft, isTrue);
   });
 
   testWidgets('y si el de debajo es el tuyo, baja a él', (tester) async {
     final v = await valle(tester, activo: 0);
-    await rueda(tester, 12);
+    await rueda(tester, 16);
     expect(v.tocados, isEmpty);
     expect(v.mando.aloft, isFalse);
+  });
+
+  testWidgets('el botón encendido va del color de la hora', (tester) async {
+    final t = UiTheme(Palette.forMoment(13));
+    Color colorDe(bool on) {
+      return tester.widget<Icon>(find.byIcon(Icons.travel_explore)).color!;
+    }
+
+    for (final on in [false, true]) {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: GhostButton(
+            icon: Icons.travel_explore,
+            theme: t,
+            on: on,
+            onTap: () {},
+          ),
+        ),
+      );
+      if (on) {
+        expect(colorDe(on), t.accent);
+      } else {
+        expect(colorDe(on), isNot(t.accent));
+      }
+    }
   });
 }

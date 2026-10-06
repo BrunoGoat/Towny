@@ -379,12 +379,19 @@ class _HomeScreenState extends State<HomeScreen>
                   tooltip: 'Ir a donde cae la siguiente',
                   onTap: _wall.lookAtNext,
                 ),
+                // Encendido mientras se está en el valle, y desde que se toca:
+                // el vuelo dura un segundo largo y el botón tiene que decir
+                // enseguida que se le hizo caso.
                 if (store.habits.length > 1)
-                  GhostButton(
-                    icon: Icons.travel_explore,
-                    theme: t,
-                    tooltip: 'Ver todo el valle',
-                    onTap: _flyToValley,
+                  ValueListenableBuilder<bool>(
+                    valueListenable: _wall.aloftNow,
+                    builder: (_, arriba, _) => GhostButton(
+                      icon: Icons.travel_explore,
+                      theme: t,
+                      tooltip: 'Ver todo el valle',
+                      on: arriba || _flying,
+                      onTap: _flyToValley,
+                    ),
                   ),
                 Container(
                   width: 18,

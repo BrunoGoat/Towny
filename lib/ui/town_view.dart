@@ -30,6 +30,11 @@ import '../model/store.dart';
 class TownViewController {
   _TownViewState? _state;
 
+  /// Si se está mirando el valle entero, para quien tenga que enterarse en
+  /// el momento: el botón del valle se enciende mientras dura. [aloft] dice
+  /// lo mismo, pero preguntado; esto avisa cuando cambia.
+  final ValueNotifier<bool> aloftNow = ValueNotifier(false);
+
   /// Dónde va la fundación de la plaza: de cero a uno mientras cae, uno
   /// cuando está puesta, y negativo mientras espera a que llegue la cámara.
   @visibleForTesting
@@ -1040,7 +1045,7 @@ class _TownViewState extends State<TownView>
       OrbitCamera.maxDistance,
     );
     _cam.follow = false;
-    _aloft = true;
+    _setAloft(true);
     _asked = true;
     _valleyAt = _cam.distanceTarget;
     Sensory.instance.tick();
@@ -1049,15 +1054,37 @@ class _TownViewState extends State<TownView>
   /// A qué distancia quedó la vista del valle. Ver [_diveIn].
   double _valleyAt = 0;
 
+  /// Estar o no en el valle, y avisarlo. Si cambia en mitad de un
+  /// dibujado —volver al pueblo puede pasar mientras se reconstruye la
+  /// vista—, el aviso espera al final del fotograma: encender un botón ahí
+  /// mismo sería reconstruir otra cosa a medio construir esta.
+  void _setAloft(bool v) {
+    _aloft = v;
+    final n = widget.controller.aloftNow;
+    if (n.value == v) return;
+    if (SchedulerBinding.instance.schedulerPhase ==
+        SchedulerPhase.persistentCallbacks) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (mounted) n.value = _aloft;
+      });
+    } else {
+      n.value = v;
+    }
+  }
+
+  /// Qué parte de esa distancia hay que acercarse para entrar a un pueblo.
+  static const double _diveAt = 0.25;
+
   /// Acercarse mucho desde el valle es querer entrar a un pueblo: se entra.
   ///
   /// Al que está debajo de los dedos —o del puntero, con la rueda—, que es al
   /// que uno se estaba acercando, y con el mismo vuelo que tocar su cartel.
-  /// Pasada la mitad del camino y no antes: acercarse un poco para mirar
-  /// mejor el valle sigue siendo mirar el valle.
+  /// Recién a un cuarto de la distancia del valle: acercarse para mirar
+  /// mejor el valle sigue siendo mirar el valle. Con la mitad bastaban seis
+  /// vueltas de rueda y uno entraba sin haberlo querido.
   void _diveIn(Offset focal) {
     if (!_aloft || _valleyAt <= 0) return;
-    if (_cam.distanceTarget > _valleyAt * 0.5) return;
+    if (_cam.distanceTarget > _valleyAt * _diveAt) return;
     final size = context.size;
     if (size == null || size.isEmpty || _entries.isEmpty) return;
     final p = _cam.projector(size.width, size.height, _time);
@@ -1202,7 +1229,7 @@ class _TownViewState extends State<TownView>
   /// vuelo el aviso se quedaba desarmado para siempre y apartarse en el pueblo
   /// siguiente no hacía nada.
   void _landed() {
-    _aloft = false;
+    _setAloft(false);
     _asked = false;
   }
 
