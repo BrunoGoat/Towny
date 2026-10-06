@@ -9,8 +9,8 @@ hace falta para seguir**.
 ## 1. Que la app hable otros idiomas
 
 **En qué punto está.** El inventario está hecho y es lo que hay que mirar
-antes de escribir una línea de código: **`TEXTOS.md`**, con las 1.256 entradas
-—unas 1.880 frases— que ve quien usa la app, agrupadas por dónde salen y con
+antes de escribir una línea de código: **`TEXTOS.md`**, con las 1.248 entradas
+—unas 1.855 frases— que ve quien usa la app, agrupadas por dónde salen y con
 archivo, renglón y clase de cada una. No está escrito a mano: se regenera con
 
 ```bash
@@ -23,20 +23,19 @@ parecía, y de ahí salió la pausa. Las cuentas, para poder decidir:
 
 | Bloque | Frases | Nota |
 |---|---|---|
-| Bandos del tablón | 872 | **El 46% de todo.** Costumbrismo de pueblo castellano: es lo más caro de traducir y lo que peor viaja |
+| Bandos del tablón | 872 | **El 47% de todo.** Costumbrismo de pueblo castellano: es lo más caro de traducir y lo que peor viaja |
 | Obras del catálogo | 120 | Nombre + la frase que se dice el día que se remata |
 | Obras retiradas | 106 | Sólo las ven los pueblos que ya las levantaron |
 | La interfaz entera | 394 | Las 28 pantallas |
 | Lo que el tablón dice de vos | 104 | Con huecos: números, fechas, nombres |
 | Símbolos de hábito | 72 | Etiquetas del selector de marcas |
 | Nombres de la gente | 87 | **No se traducen**: son nombres propios |
-| Constelaciones | 24 | **Hoy no se leen en ningún sitio** |
 | Comarcas, casas, sonidos, música, avisos, widget | ~100 | |
 
-**Sin los bandos y sin las retiradas, un idioma son unas 900 frases.** Con
-todo, 1.880.
+**Sin los bandos y sin las retiradas, un idioma son unas 880 frases.** Con
+todo, 1.855.
 
-**Tres decisiones que hay que tomar antes de empezar:**
+**Dos decisiones que hay que tomar antes de empezar:**
 
 1. **Los bandos.** Todos, ninguno, o una tanda de 150 que se reparta entre
    ellos — el tablón cambia igual cada día y nadie cuenta cuántos hay.
@@ -44,8 +43,6 @@ todo, 1.880.
    está mal: es un pueblo castellano. Pero si se quiere que el pueblo sea de
    quien lo juega, cada idioma necesita su propia lista de 49 nombres, 24
    oficios y 14 procedencias. Es una decisión de diseño, no de traducción.
-3. **Las 24 palabras de las constelaciones.** O vuelven a usarse, o se borran:
-   traducirlas a cinco idiomas es pagar por algo que no se ve.
 
 **El plan, cuando haya decisión.** Un archivo por idioma con las frases, `es`
 como original, y la interfaz pidiendo cada frase por su código en vez de
@@ -78,8 +75,6 @@ mesa, con lo medido al lado:
   decidir qué decir. Es lo único de la app que hace trabajo pesado fuera de un
   fotograma. Hay que re-medirlo y, si sigue, cortarlo: la notificación no
   necesita el pueblo, necesita saber qué obra está en marcha.
-- **Campos que no lee nadie**: `name`, `latin` y `blurb` en las ocho
-  constelaciones, desde que dejaron de anotarse.
 - **`ndkVersion` en `android/app/build.gradle.kts`**: ningún plugin del
   proyecto trae código nativo, así que no lo usa nada.
 

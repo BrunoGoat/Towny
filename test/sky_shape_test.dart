@@ -36,9 +36,6 @@ void main() {
       expect(constellations.map((c) => c.id).toSet().length, 8);
       for (final c in constellations) {
         expect(c.id, matches(RegExp(r'^[a-z]+$')));
-        expect(c.name, isNotEmpty);
-        expect(c.latin, isNotEmpty);
-        expect(c.blurb, isNotEmpty);
         expect(c.stars.length, greaterThanOrEqualTo(4), reason: c.id);
         // Los trazos van de a pares, y ninguno apunta a una estrella que no
         // está.

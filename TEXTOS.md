@@ -19,7 +19,6 @@ nombres de fuente (`RockSalt.ttf`), la hoja de pruebas y los comentarios.
 | Obras retiradas | 53 | 106 | sí, si se quedan |
 | Casas corrientes | 7 | 7 | sí |
 | Comarcas | 8 | 24 + 42 | sí |
-| Constelaciones | 8 | 24 | **hoy no se ven** |
 | Bandos del tablón | 436 | 872 | sí — el grueso |
 | Lo que el tablón dice de vos | 104 | 104 | sí |
 | Nombres de la gente | 87 | 87 | no: nombres propios |
@@ -29,7 +28,7 @@ nombres de fuente (`RockSalt.ttf`), la hoja de pruebas y los comentarios.
 | Notificaciones | 9 | 9 | sí |
 | Widget de Android | 6 | 6 | sí |
 
-**1256 entradas**, que son unas 1879 frases sueltas. Sin las retiradas y sin los bandos se quedan en unas 901.
+**1248 entradas**, que son unas 1855 frases sueltas. Sin las retiradas y sin los bandos se quedan en unas 877.
 
 
 
@@ -301,27 +300,6 @@ nombres de fuente (`RockSalt.ttf`), la hoja de pruebas y los comentarios.
     Para los vínculos: llamar a la familia, escribirle a un amigo, salir más, tener paciencia con los demás.
 - **M8** · Alfar · De artesanos: talleres y hornos, barro cocido y tejados rojos.
     Para lo creativo: dibujar, tocar música, escribir, fotografiar, lo que se hace con las manos.
-
-## Las constelaciones (8)
-
-> **Cuándo se ve.** **Hoy no se ve ninguna de estas palabras.** Las figuras se dibujan en el cielo y se tocan, pero dejaron de anotarse y con ellas dejó de leerse su nombre. Son 24 frases que o vuelven a usarse o se borran.
-
-- **E1** · Orión / Orion
-    El cazador. Las tres del cinturón son las tres estrellas más fáciles de encontrar del cielo entero.
-- **E2** · Osa Mayor / Ursa Major
-    El Carro. Los dos de la caja, prolongados, dan siempre con la estrella polar: es la brújula de quien no la tiene.
-- **E3** · Casiopea / Cassiopeia
-    La uve doble torcida, al otro lado de la polar que el Carro. Nunca se pone: da vueltas toda la noche sin tocar el horizonte.
-- **E4** · Cruz del Sur / Crux
-    La más chica de las ochenta y ocho, y la que ordena el cielo del sur: su palo largo, estirado cuatro veces, apunta al polo.
-- **E5** · Cisne / Cygnus
-    La Cruz del Norte, volando por el medio de la Vía Láctea. Deneb, en la cola, es de las estrellas más lejanas que se ven a ojo.
-- **E6** · Escorpio / Scorpius
-    De las pocas que se parecen a lo que dicen ser: tiene pinzas, lomo y un aguijón curvado. Antares, en el centro, es roja de verdad.
-- **E7** · Lira / Lyra
-    Un triangulito y un rombo colgando. Vega, la de la punta, fue la primera estrella a la que alguien le sacó una foto.
-- **E8** · Can Mayor / Canis Major
-    El perro de Orión, y en su collar va Sirio: la estrella más brillante de todo el cielo nocturno.
 
 ## Los bandos del tablón (436)
 

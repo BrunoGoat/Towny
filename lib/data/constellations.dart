@@ -40,22 +40,14 @@ class Star {
 
 /// Una figura: sus estrellas y qué se une con qué.
 class Constellation {
-  const Constellation(
-    this.id,
-    this.name,
-    this.latin,
-    this.blurb,
-    this.stars,
-    this.lines,
-  );
+  const Constellation(this.id, this.stars, this.lines);
 
-  /// Nunca cambia: es lo que se guarda cuando alguien la registra.
+  /// Nunca cambia: con él se elige la de cada noche y se guarda su forma.
+  ///
+  /// Tenían además nombre, nombre latino y una línea sobre cada una, de cuando
+  /// se anotaban las que uno había visto. Dejaron de anotarse y con eso dejó
+  /// de leerse todo lo demás; la figura en el cielo no necesita más que esto.
   final String id;
-  final String name;
-  final String latin;
-
-  /// Una línea sobre ella, para cuando se anota.
-  final String blurb;
 
   final List<Star> stars;
 
@@ -160,10 +152,6 @@ class Constellation {
 const List<Constellation> constellations = [
   Constellation(
     'orion',
-    'Orión',
-    'Orion',
-    'El cazador. Las tres del cinturón son las tres estrellas más fáciles de '
-        'encontrar del cielo entero.',
     [
       Star(5.9195, 7.407, 0.5), // Betelgeuse
       Star(5.4188, 6.350, 1.6), // Bellatrix
@@ -177,10 +165,6 @@ const List<Constellation> constellations = [
   ),
   Constellation(
     'osamayor',
-    'Osa Mayor',
-    'Ursa Major',
-    'El Carro. Los dos de la caja, prolongados, dan siempre con la estrella '
-        'polar: es la brújula de quien no la tiene.',
     [
       Star(11.0622, 61.751, 1.8), // Dubhe
       Star(11.0307, 56.383, 2.4), // Merak
@@ -194,10 +178,6 @@ const List<Constellation> constellations = [
   ),
   Constellation(
     'casiopea',
-    'Casiopea',
-    'Cassiopeia',
-    'La uve doble torcida, al otro lado de la polar que el Carro. Nunca se '
-        'pone: da vueltas toda la noche sin tocar el horizonte.',
     [
       Star(0.1529, 59.150, 2.3), // Caph
       Star(0.6751, 56.537, 2.2), // Schedar
@@ -209,10 +189,6 @@ const List<Constellation> constellations = [
   ),
   Constellation(
     'cruz',
-    'Cruz del Sur',
-    'Crux',
-    'La más chica de las ochenta y ocho, y la que ordena el cielo del sur: su '
-        'palo largo, estirado cuatro veces, apunta al polo.',
     [
       Star(12.4433, -63.099, 0.8), // Acrux
       Star(12.5194, -57.113, 1.6), // Gacrux
@@ -223,10 +199,6 @@ const List<Constellation> constellations = [
   ),
   Constellation(
     'cisne',
-    'Cisne',
-    'Cygnus',
-    'La Cruz del Norte, volando por el medio de la Vía Láctea. Deneb, en la '
-        'cola, es de las estrellas más lejanas que se ven a ojo.',
     [
       Star(20.6905, 45.280, 1.3), // Deneb
       Star(20.3705, 40.257, 2.2), // Sadr
@@ -238,10 +210,6 @@ const List<Constellation> constellations = [
   ),
   Constellation(
     'escorpio',
-    'Escorpio',
-    'Scorpius',
-    'De las pocas que se parecen a lo que dicen ser: tiene pinzas, lomo y un '
-        'aguijón curvado. Antares, en el centro, es roja de verdad.',
     [
       Star(16.0906, -19.805, 2.6), // Graffias
       Star(16.0055, -22.622, 2.3), // Dschubba
@@ -265,10 +233,6 @@ const List<Constellation> constellations = [
   ),
   Constellation(
     'lira',
-    'Lira',
-    'Lyra',
-    'Un triangulito y un rombo colgando. Vega, la de la punta, fue la primera '
-        'estrella a la que alguien le sacó una foto.',
     [
       Star(18.6156, 38.784, 0.0), // Vega
       Star(18.7400, 39.670, 3.9), // Epsilon
@@ -281,10 +245,6 @@ const List<Constellation> constellations = [
   ),
   Constellation(
     'canmayor',
-    'Can Mayor',
-    'Canis Major',
-    'El perro de Orión, y en su collar va Sirio: la estrella más brillante de '
-        'todo el cielo nocturno.',
     [
       Star(6.7525, -16.716, -1.5), // Sirio
       Star(6.3783, -17.956, 2.0), // Mirzam

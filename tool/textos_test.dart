@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:towny/data/bandos.dart';
 import 'package:towny/data/character.dart';
-import 'package:towny/data/constellations.dart';
 import 'package:towny/data/landmarks.dart';
 import 'package:towny/data/landmarks_retired.dart';
 import 'package:towny/engine/town.dart';
@@ -40,11 +39,6 @@ void main() {
       b.writeln('- ${c.region} · ${c.blurb}');
       b.writeln('    ${c.suits}');
       c.houseNames?.forEach((k, v) => b.writeln('    [${k.name}] $v'));
-    }
-    b.writeln('\n## CONSTELACIONES (${constellations.length})');
-    for (final c in constellations) {
-      b.writeln('- ${c.name} / ${c.latin}');
-      b.writeln('    ${c.blurb}');
     }
     b.writeln('\n## BANDOS DEL TABLÓN (${bandos.length})');
     for (final x in bandos) {

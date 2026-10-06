@@ -187,10 +187,6 @@ MUNDO = [
   'descripción y, debajo, para qué clase de hábito pega. Después el nombre vuelve a salir en el expositor y '
   'en el de la gente. Las líneas sangradas son cómo llama esa comarca a cada '
   'clase de casa.'),
- ('CONSTELACIONES (8)', 'E', 'Las constelaciones (8)',
-  '**Hoy no se ve ninguna de estas palabras.** Las figuras se dibujan en el '
-  'cielo y se tocan, pero dejaron de anotarse y con ellas dejó de leerse su '
-  'nombre. Son 24 frases que o vuelven a usarse o se borran.'),
  ('BANDOS DEL TABLÓN (436)', 'B', 'Los bandos del tablón (436)',
   'Los papeles clavados en el tablón de la plaza: un titular y un renglón '
   'debajo. Cambian cada día y salen de la fecha, así que cada día hay un par '
@@ -378,7 +374,7 @@ bloque(f'El widget de Android ({len(w) + 1})',
 texto = '\n'.join(out)
 cuenta = lambda p: len(re.findall(rf'^- \*\*{p}\d+\*\*', texto, re.M))
 FRASES = (cuenta("O")*2 + cuenta("R")*2 + cuenta("C") + cuenta("M")*3 + 42
-          + cuenta("E")*3 + cuenta("B")*2 + cuenta("T") + 87 + cuenta("G")
+          + cuenta("B")*2 + cuenta("T") + 87 + cuenta("G")
           + cuenta("S") + cuenta("U") + cuenta("N") + cuenta("W"))
 tabla = ['## Resumen\n',
  '| Bloque | Entradas | Frases | ¿Se traduce? |',
@@ -387,7 +383,6 @@ tabla = ['## Resumen\n',
  f'| Obras retiradas | {cuenta("R")} | {cuenta("R")*2} | sí, si se quedan |',
  f'| Casas corrientes | {cuenta("C")} | {cuenta("C")} | sí |',
  f'| Comarcas | {cuenta("M")} | {cuenta("M")*3} + 42 | sí |',
- f'| Constelaciones | {cuenta("E")} | {cuenta("E")*3} | **hoy no se ven** |',
  f'| Bandos del tablón | {cuenta("B")} | {cuenta("B")*2} | sí — el grueso |',
  f'| Lo que el tablón dice de vos | {cuenta("T")} | {cuenta("T")} | sí |',
  f'| Nombres de la gente | 87 | 87 | no: nombres propios |',
@@ -397,7 +392,7 @@ tabla = ['## Resumen\n',
  f'| Notificaciones | {cuenta("N")} | {cuenta("N")} | sí |',
  f'| Widget de Android | {cuenta("W")} | {cuenta("W")} | sí |',
  '',
- f'**{sum(cuenta(x) for x in "ORCMEBTGSUNW") + 87} entradas**, que son unas '
+ f'**{sum(cuenta(x) for x in "ORCMBTGSUNW") + 87} entradas**, que son unas '
  f'{FRASES} frases sueltas. Sin las retiradas y sin los bandos se quedan en '
  f'unas {FRASES - cuenta("R")*2 - cuenta("B")*2}.',
  '']
