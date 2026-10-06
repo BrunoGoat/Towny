@@ -33,7 +33,28 @@ class TownCharacter {
     this.gardens = 0.0,
     this.trees = 0.0,
     this.houseNames,
+    this.tiles = const [Color(0xFFC05C38)],
+    this.slate = const Color(0xFF5B6B72),
+    this.thatch = const Color(0xFFC2A054),
+    this.portraitPlaza = false,
   });
+
+  /// De qué color son aquí los tejados de cada material.
+  ///
+  /// Eran los mismos en todas partes —la teja, naranja; la pizarra, gris; la
+  /// paja, dorada— y como la mayoría de las comarcas son de teja, de lejos
+  /// todos los pueblos eran naranjas: lo que se cambiaba entre una y otra
+  /// eran las paredes, que desde arriba casi no se ven. El techo es lo
+  /// primero que se ve de un pueblo, así que cada comarca tiene el suyo.
+  ///
+  /// La teja puede ser de varios colores: cada casa toma uno, y así un pueblo
+  /// de colores distintos se ve de colores distintos.
+  final List<Color> tiles;
+  final Color slate, thatch;
+
+  /// Si su retrato mira la plaza y no la obra más grande: en un pueblo que va
+  /// de juntarse, lo que lo cuenta es el sitio donde se junta la gente.
+  final bool portraitPlaza;
 
   /// What this kind of place is called, and one line about it.
   final String region;
@@ -145,6 +166,8 @@ class TownCharacter {
       windowGap: 1.15,
       gardens: 0.10,
       trees: 0.05,
+      tiles: [Color(0xFF7A4A3A)],
+      slate: Color(0xFF4A5862),
     ),
     TownCharacter(
       region: 'Marca',
@@ -164,6 +187,7 @@ class TownCharacter {
       windowGap: 1.55,
       gardens: 0.08,
       trees: 0.04,
+      tiles: [Color(0xFF8E5332)],
     ),
     TownCharacter(
       region: 'Valle',
@@ -183,6 +207,7 @@ class TownCharacter {
       windowGap: 1.00,
       gardens: 1.00,
       trees: 0.34,
+      thatch: Color(0xFFCFAA58),
     ),
     TownCharacter(
       region: 'Costa',
@@ -202,6 +227,8 @@ class TownCharacter {
       windowGap: 0.85,
       gardens: 0.16,
       trees: 0.08,
+      tiles: [Color(0xFF4F7FA6), Color(0xFF5E8FB0)],
+      slate: Color(0xFF6E8796),
     ),
     TownCharacter(
       region: 'Robledal',
@@ -221,6 +248,8 @@ class TownCharacter {
       windowGap: 1.10,
       gardens: 0.40,
       trees: 0.88,
+      thatch: Color(0xFF8E8A50),
+      slate: Color(0xFF4F5A4E),
     ),
     // Las dos de abajo llegaron después, y van al final a propósito: la
     // comarca por defecto de cada solar del valle sale de esta lista por su
@@ -249,6 +278,13 @@ class TownCharacter {
       windowGap: 0.90,
       gardens: 0.18,
       trees: 0.16,
+      tiles: [
+        Color(0xFFB8432E),
+        Color(0xFF3F7A5A),
+        Color(0xFF3D5F8F),
+        Color(0xFFC9952F),
+      ],
+      portraitPlaza: true,
     ),
     TownCharacter(
       region: 'Alfar',
@@ -269,6 +305,7 @@ class TownCharacter {
       windowGap: 1.00,
       gardens: 0.14,
       trees: 0.12,
+      tiles: [Color(0xFFA33A28), Color(0xFF9A3326)],
     ),
   ];
 

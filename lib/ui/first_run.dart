@@ -408,7 +408,7 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
           ClipRRect(
             borderRadius: BorderRadius.circular(18),
             child: SizedBox(
-              height: 150,
+              height: 190,
               width: double.infinity,
               child: CustomPaint(
                 painter: TownPortrait(

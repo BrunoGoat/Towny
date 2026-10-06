@@ -1783,10 +1783,11 @@ class TownPainter extends CustomPainter {
     final b = piece.building;
     final marks = e.layout.buildings;
     final stuff = b >= 0 && b < marks.length ? marks[b].roof : RoofStuff.tile;
+    // Del color de la comarca, no del de todas: ver [TownCharacter.tiles].
     final base = switch (stuff) {
-      RoofStuff.tile => const Color(0xFFC05C38),
-      RoofStuff.slate => const Color(0xFF5B6B72),
-      RoofStuff.thatch => const Color(0xFFC2A054),
+      RoofStuff.tile => ch.tiles[hashInt(ch.tiles.length, h, 23)],
+      RoofStuff.slate => ch.slate,
+      RoofStuff.thatch => ch.thatch,
     };
     return _tone[key] = _Tone(
       wall,
