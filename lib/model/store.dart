@@ -490,6 +490,23 @@ class Store extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// La comarca de un pueblo que todavía no tiene ninguna pieza.
+  ///
+  /// Con una sola pieza puesta ya no: la comarca decide el ancho de los
+  /// solares y el orden en que llega el catálogo, y cambiarla movería lo que
+  /// ya está construido. Sin piezas no hay nada que mover, y la crónica se
+  /// vuelve a escribir con la comarca nueva.
+  void settle(int index, int character) {
+    if (index < 0 || index >= habits.length) return;
+    final h = habits[index];
+    if (h.pieces.isNotEmpty || h.character == character) return;
+    h.character = TownCharacter.byOrder(character).order;
+    h.chronicle.clear();
+    _writeUpWorks(h);
+    _save();
+    notifyListeners();
+  }
+
   /// Para qué es esto, y qué es lo más chico que cuenta.
   ///
   /// Las dos se pueden borrar dejándolas en blanco, al revés que el nombre:

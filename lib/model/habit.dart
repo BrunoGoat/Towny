@@ -157,7 +157,10 @@ class Habit {
   /// how wide the plots are and in what order the catalogue arrives,
   /// so changing it would move pieces that were laid years ago. The one
   /// promise this app makes is that a piece stays where it was put.
-  final int character;
+  ///
+  /// Mientras no hay ninguna pieza puesta no hay nada que mover, y ahí sí se
+  /// puede elegir: es lo que hace la primera vez. Ver [Store.settle].
+  int character;
 
   TownCharacter get place => TownCharacter.byOrder(character);
 

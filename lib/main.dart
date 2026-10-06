@@ -138,9 +138,14 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
   Future<void> _found(
     String name,
     String symbol, {
+    required int character,
     String? why,
     String? identity,
   }) async {
+    // La comarca primero: sólo se puede elegir mientras el pueblo no tiene
+    // ninguna pieza, y si se volvió a la primera vez con un pueblo ya hecho,
+    // ése se queda como está.
+    store.settle(0, character);
     store.renameHabit(
       0,
       name: name.isEmpty ? 'Mi hábito' : name,

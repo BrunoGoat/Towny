@@ -185,6 +185,23 @@ double? planKept(Habit h, {int least = 12}) {
   return dentro / h.pieces.length;
 }
 
+/// Lo que va en el campo después del «alguien» fijo: «sabio», «que lee todos
+/// los días». Lo que se guarda es la frase entera, así que al abrir un hábito
+/// se le quita el «alguien» del principio para no escribirlo dos veces.
+String identityTail(String? whole) {
+  final t = (whole ?? '').trim();
+  final m = RegExp(r'^alguien(\s+|$)', caseSensitive: false).firstMatch(t);
+  return m == null ? t : t.substring(m.end).trim();
+}
+
+/// Y al revés: lo escrito después del «alguien», con el «alguien» pegado
+/// delante. Nulo si no se escribió nada. Si alguien lo escribe igual —«alguien
+/// sabio» en el campo—, no sale «alguien alguien sabio».
+String? identityWhole(String tail) {
+  final resto = identityTail(tail);
+  return resto.isEmpty ? null : 'alguien $resto';
+}
+
 /// Lo que escribiste que querés ser, limpio y en minúscula: «alguien sabio».
 String? identityWanted(Habit h) {
   final quien = _clean(h.identity);

@@ -74,7 +74,9 @@ void main() {
             theme: ThemeData(fontFamily: 'Roboto'),
             home: RepaintBoundary(
               key: key,
-              child: FirstRun(onDone: (_, _, {why, identity}) {}),
+              child: FirstRun(
+                onDone: (_, _, {required character, why, identity}) {},
+              ),
             ),
           ),
         ),
@@ -107,12 +109,14 @@ void main() {
       await tester.enterText(find.byType(TextField).last, 'Leer');
       await tester.pump();
       await tester.tap(find.text('SIGUIENTE').last);
-      await foto('3-para-que');
+      await foto('3-comarca');
+      await tester.tap(find.text('SIGUIENTE').last);
+      await foto('4-para-que');
       await tester.enterText(find.byType(TextField).last, 'para dormir mejor');
       await tester.pump();
       await tester.tap(find.text('SIGUIENTE').last);
-      await foto('4-quien');
-      await tester.enterText(find.byType(TextField).last, 'alguien que lee');
+      await foto('5-quien');
+      await tester.enterText(find.byType(TextField).last, 'que lee');
       await tester.pump();
       await tester.tap(find.text('FUNDAR LEER').last);
       // La bajada, en tres momentos. Sin esperar a que se asiente: lo que hay

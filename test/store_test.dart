@@ -7,6 +7,7 @@ import 'package:towny/data/landmarks.dart';
 import 'package:towny/engine/town.dart';
 import 'package:towny/model/habit.dart';
 import 'package:towny/model/piece.dart';
+import 'package:towny/model/pledge.dart';
 import 'package:towny/model/rhythm.dart';
 import 'package:towny/model/store.dart';
 
@@ -56,6 +57,44 @@ void main() {
       expect(again.total, 2);
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getString('pueblo_state_v1'), isNot(contains('"l":')));
+    });
+  });
+
+  group('la comarca de un pueblo sin piezas', () {
+    test('se puede elegir mientras no hay ninguna pieza', () async {
+      final s = await freshStore();
+      final sierra = TownCharacter.all[1].order;
+      s.settle(0, sierra);
+      expect(s.habit.character, sierra);
+    });
+
+    test('con una pieza puesta ya no se mueve', () async {
+      final s = await freshStore();
+      final antes = s.habit.character;
+      s.placePiece();
+      s.settle(0, TownCharacter.all[2].order);
+      expect(s.habit.character, antes);
+    });
+  });
+
+  group('en quién te convierte, con el «alguien» delante', () {
+    test('se guarda la frase entera y se edita sólo el resto', () {
+      expect(identityWhole('sabio'), 'alguien sabio');
+      expect(
+        identityWhole('  que puede con todo '),
+        'alguien que puede con todo',
+      );
+      expect(identityWhole('Alguien sano'), 'alguien sano');
+      expect(identityWhole('   '), isNull);
+      expect(
+        identityTail('alguien que lee todos los días'),
+        'que lee todos los días',
+      );
+      expect(identityTail('Alguien sabio'), 'sabio');
+      // Lo escrito antes de que existiera el prefijo, sin «alguien», queda igual.
+      expect(identityTail('una persona sana'), 'una persona sana');
+      expect(identityTail(null), '');
+      expect(identityTail('alguiena'), 'alguiena');
     });
   });
 

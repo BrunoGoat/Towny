@@ -39,18 +39,20 @@ void main() {
   });
 
   group('la primera vez', () {
-    testWidgets('cuatro pantallas, y lo que se contestó llega entero', (
+    testWidgets('cinco pantallas, y lo que se contestó llega entero', (
       tester,
     ) async {
       // Los nombres de fuera no pueden llamarse igual que los parámetros con
       // nombre de la llamada, que si no los tapan.
       String? elNombre, laMarca, elMotivo, laIdentidad;
+      int? laComarca;
       await tester.pumpWidget(
         _marco(
           FirstRun(
-            onDone: (n, s, {why, identity}) {
+            onDone: (n, s, {required character, why, identity}) {
               elNombre = n;
               laMarca = s;
+              laComarca = character;
               elMotivo = why;
               laIdentidad = identity;
             },
@@ -66,6 +68,14 @@ void main() {
       await tester.tap(find.text('SIGUIENTE'));
       await _asentar(tester);
 
+      // La comarca, que es sólo cómo se ve, y que se dice así.
+      expect(find.text('¿Qué clase de pueblo?'), findsOneWidget);
+      expect(find.textContaining('Es sólo cómo se ve'), findsOneWidget);
+      await tester.tap(find.text('Sierra'));
+      await _asentar(tester);
+      await tester.tap(find.text('SIGUIENTE'));
+      await _asentar(tester);
+
       // Ni cuándo ni dónde: eso lo propone el pueblo cuando ya lo sabe.
       expect(find.text('¿Cuándo y dónde?'), findsNothing);
       expect(find.text('¿Para qué querés ese hábito?'), findsOneWidget);
@@ -78,9 +88,11 @@ void main() {
         find.text('¿En quién te convierte tener ese hábito?'),
         findsOneWidget,
       );
+      // El «alguien» ya está escrito delante del campo: se escribe el resto.
+      expect(find.text('alguien'), findsOneWidget);
       await tester.enterText(
         find.byType(TextField).first,
-        'alguien que lee todos los días',
+        'que lee todos los días',
       );
       await tester.pump();
       // Y ésta es la última: no hay «lo mínimo que cuenta» detrás.
@@ -96,6 +108,10 @@ void main() {
       expect(laMarca, isNotEmpty);
       expect(elMotivo, 'para dormir mejor');
       expect(laIdentidad, 'alguien que lee todos los días');
+      expect(
+        laComarca,
+        TownCharacter.all.firstWhere((c) => c.region == 'Sierra').order,
+      );
       expect(tester.takeException(), isNull);
     });
 
@@ -107,7 +123,7 @@ void main() {
       await tester.pumpWidget(
         _marco(
           FirstRun(
-            onDone: (n, s, {why, identity}) {
+            onDone: (n, s, {required character, why, identity}) {
               elMotivo = why;
               laIdentidad = identity;
               fundado = true;
@@ -120,6 +136,9 @@ void main() {
       await _asentar(tester);
       await tester.enterText(find.byType(TextField).first, 'Correr');
       await tester.pump();
+      await tester.tap(find.text('SIGUIENTE'));
+      await _asentar(tester);
+      // La comarca no se salta: ya viene una elegida.
       await tester.tap(find.text('SIGUIENTE'));
       await _asentar(tester);
       for (var i = 0; i < 2; i++) {
@@ -137,7 +156,12 @@ void main() {
     ) async {
       var fundado = false;
       await tester.pumpWidget(
-        _marco(FirstRun(onDone: (_, _, {why, identity}) => fundado = true)),
+        _marco(
+          FirstRun(
+            onDone: (_, _, {required character, why, identity}) =>
+                fundado = true,
+          ),
+        ),
       );
       await _asentar(tester);
       await tester.tap(find.text('FUNDAR MI PUEBLO'));
@@ -167,7 +191,9 @@ void main() {
             ),
             child: MaterialApp(
               debugShowCheckedModeBanner: false,
-              home: FirstRun(onDone: (_, _, {why, identity}) {}),
+              home: FirstRun(
+                onDone: (_, _, {required character, why, identity}) {},
+              ),
             ),
           ),
         );
@@ -186,6 +212,11 @@ void main() {
         await tester.pump();
         await tester.tap(find.text('SIGUIENTE'));
         await _asentar(tester);
+        expect(tester.takeException(), isNull, reason: 'comarca, $teclado');
+        await tester.ensureVisible(find.text('SIGUIENTE'));
+        await tester.pump();
+        await tester.tap(find.text('SIGUIENTE'));
+        await _asentar(tester);
         expect(tester.takeException(), isNull, reason: 'para qué, $teclado');
         await tester.pumpWidget(const SizedBox());
       }
@@ -195,13 +226,19 @@ void main() {
       // Un dedo impaciente toca otra vez mientras baja la cámara.
       var veces = 0;
       await tester.pumpWidget(
-        _marco(FirstRun(onDone: (_, _, {why, identity}) => veces++)),
+        _marco(
+          FirstRun(
+            onDone: (_, _, {required character, why, identity}) => veces++,
+          ),
+        ),
       );
       await _asentar(tester);
       await tester.tap(find.text('FUNDAR MI PUEBLO'));
       await _asentar(tester);
       await tester.enterText(find.byType(TextField).first, 'Leer');
       await tester.pump();
+      await tester.tap(find.text('SIGUIENTE'));
+      await _asentar(tester);
       await tester.tap(find.text('SIGUIENTE'));
       await _asentar(tester);
       await tester.tap(find.text('Ahora no'));

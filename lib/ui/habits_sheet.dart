@@ -89,8 +89,9 @@ class _HabitsSheetState extends State<HabitsSheet> {
     _name = TextEditingController(text: _creating ? '' : h.name);
     _why = TextEditingController(text: _creating ? '' : (h.why ?? ''));
     _floor = TextEditingController(text: _creating ? '' : (h.floor ?? ''));
+    // Sin el «alguien» del principio, que va fijo delante del campo.
     _identity = TextEditingController(
-      text: _creating ? '' : (h.identity ?? ''),
+      text: _creating ? '' : identityTail(h.identity),
     );
     _spot = TextEditingController(text: _creating ? '' : (h.vowPlace ?? ''));
     _hour = _creating ? null : h.vowHour;
@@ -219,7 +220,8 @@ class _HabitsSheetState extends State<HabitsSheet> {
       // en nulo, `pledgeHabit` entiende «no la toques».
       clearHour: _hour == null,
       place: _spot.text,
-      identity: _identity.text,
+      // Vacío borra; nulo sería «no la toques».
+      identity: identityWhole(_identity.text) ?? '',
     );
   }
 
@@ -230,7 +232,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
       _symbol,
       character: _place,
       why: _why.text,
-      identity: _identity.text,
+      identity: identityWhole(_identity.text),
     );
     Navigator.of(context).pop();
   }
@@ -590,7 +592,8 @@ class _HabitsSheetState extends State<HabitsSheet> {
         velo,
         _identity,
         'EN QUIÉN TE CONVIERTE',
-        'alguien que lee todos los días',
+        'que lee todos los días',
+        prefix: 'alguien',
       ),
       if (_hasFloor) ...[
         const SizedBox(height: 8),
@@ -635,8 +638,9 @@ class _HabitsSheetState extends State<HabitsSheet> {
     SheetInk velo,
     TextEditingController c,
     String label,
-    String hint,
-  ) => Column(
+    String hint, {
+    String? prefix,
+  }) => Column(
     children: [
       Text(
         label,
@@ -657,7 +661,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
           setState(() {});
           _keep();
         },
-        textAlign: TextAlign.center,
+        textAlign: prefix == null ? TextAlign.center : TextAlign.start,
         textCapitalization: TextCapitalization.none,
         maxLength: 70,
         maxLines: 2,
@@ -680,6 +684,26 @@ class _HabitsSheetState extends State<HabitsSheet> {
           isDense: true,
           contentPadding: EdgeInsets.zero,
           border: InputBorder.none,
+          // Una palabra fija delante, que no se borra: la frase empieza ahí
+          // y lo que se escribe es el resto.
+          prefixIcon: prefix == null
+              ? null
+              : Padding(
+                  padding: const EdgeInsets.only(right: 5),
+                  child: Text(
+                    prefix,
+                    style: t.bodySoft.copyWith(
+                      fontSize: 13,
+                      height: 1.35,
+                      color: t.accent,
+                      shadows: velo.aliento,
+                    ),
+                  ),
+                ),
+          prefixIconConstraints: const BoxConstraints(
+            minWidth: 0,
+            minHeight: 0,
+          ),
         ),
       ),
     ],

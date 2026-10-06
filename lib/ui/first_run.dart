@@ -15,11 +15,12 @@ import '../engine/town.dart';
 import '../fx/effects.dart';
 import '../fx/sensory.dart';
 import '../model/appearance.dart';
+import '../model/pledge.dart';
 import 'habit_sigil.dart';
 
 /// Lo que se ve la primera vez que se abre la app.
 ///
-/// Cuatro pantallas, una pregunta en cada una, y al final un pueblo fundado.
+/// Cinco pantallas, una pregunta en cada una, y al final un pueblo fundado.
 ///
 /// **Por qué existe.** Sin esto, la primera vez que alguien abría Towny se
 /// encontraba un prado vacío, un botón grande y un hábito de mentira llamado
@@ -65,6 +66,7 @@ class FirstRun extends StatefulWidget {
   final void Function(
     String name,
     String symbol, {
+    required int character,
     String? why,
     String? identity,
   })
@@ -95,10 +97,14 @@ class _Ink {
 class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
   int _step = 0;
   String _symbol = habitSymbols.first;
+
+  /// La comarca del pueblo. Sólo cambia cómo se ve.
+  int _place = TownCharacter.forSlot(0).order;
   final _name = TextEditingController();
   final _why = TextEditingController();
 
-  /// En quién te convierte. Sin el «alguien que»: eso lo pone el pueblo.
+  /// En quién te convierte, sin el «alguien» del principio: ése va escrito
+  /// fijo delante del campo, y se le pega al guardar.
   final _identity = TextEditingController();
 
   /// Ya se contestó todo y la cámara está bajando al pueblo.
@@ -141,8 +147,9 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
     widget.onDone(
       _name.text.trim(),
       _symbol,
+      character: _place,
       why: dicho(_why),
-      identity: dicho(_identity),
+      identity: identityWhole(_identity.text),
     );
   }
 
@@ -283,7 +290,8 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
         child: switch (_step) {
           0 => _welcome(),
           1 => _askName(),
-          2 => _askWhy(),
+          2 => _askPlace(),
+          3 => _askWhy(),
           _ => _askWho(),
         },
       ),
@@ -304,6 +312,10 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
   );
 
   Widget _askName() => _Step(
+    // La marca arriba y grande, como en la hoja del hábito: es la cara del
+    // pueblo, y se elige mirándola, no adivinándola en un botón de veinte
+    // píxeles.
+    top: _BigMark(symbol: _symbol),
     over: 'Tu hábito',
     title: '¿Qué hábito querés desarrollar?',
     lines: const [],
@@ -331,14 +343,59 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
     ),
   );
 
+  /// La comarca: qué clase de pueblo se levanta.
+  ///
+  /// Se elegía sola —siempre Ribera, la del primer solar— y es una de las
+  /// cosas que más cambian cómo se ve el valle. Se dice claro que es sólo eso:
+  /// nadie tiene que pensar que una comarca hace el hábito más fácil.
+  Widget _askPlace() {
+    final ch = TownCharacter.byOrder(_place);
+    return _Step(
+      over: 'Tu pueblo',
+      title: '¿Qué clase de pueblo?',
+      lines: const [
+        'Es sólo cómo se ve: cambia las casas y los tejados, no cómo funciona '
+            'nada.',
+      ],
+      next: 'Siguiente',
+      onNext: () => _go(3),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _Places(
+            chosen: _place,
+            onPick: (o) {
+              Sensory.instance.tick();
+              setState(() => _place = o);
+            },
+          ),
+          const SizedBox(height: 14),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 220),
+            child: Text(
+              ch.blurb,
+              key: ValueKey(ch.order),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                height: 1.45,
+                color: _Ink.soft(0.78),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _askWhy() => _Step(
     over: 'El motivo',
     title: '¿Para qué querés ese hábito?',
     lines: const ['Para que tengas claro por qué lo mantenés.'],
     next: 'Siguiente',
     skip: 'Ahora no',
-    onSkip: () => _go(3),
-    onNext: _why.text.trim().isEmpty ? null : () => _go(3),
+    onSkip: () => _go(4),
+    onNext: _why.text.trim().isEmpty ? null : () => _go(4),
     child: _Field(
       controller: _why,
       hint: 'para dormir mejor',
@@ -373,7 +430,11 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
     onNext: _identity.text.trim().isEmpty ? null : _found,
     child: _Field(
       controller: _identity,
-      hint: 'alguien que lee todos los días',
+      // El «alguien» va escrito delante y no se borra: así se ve que lo que
+      // falta es el resto de la frase —sabio, que lee todos los días, que
+      // puede con todo— y no una frase entera.
+      prefix: 'alguien',
+      hint: 'que lee todos los días',
       max: 60,
       onChanged: () => setState(() {}),
     ),
@@ -391,8 +452,9 @@ class _Pose {
 
   static const stages = [
     _Pose(0.22, 0.020, 66, 3.4),
-    _Pose(0.34, 0.035, 56, 3.0),
-    _Pose(0.45, 0.050, 46, 2.6),
+    _Pose(0.32, 0.032, 58, 3.1),
+    _Pose(0.40, 0.043, 50, 2.8),
+    _Pose(0.47, 0.055, 43, 2.5),
     _Pose(0.54, 0.070, 37, 2.2),
   ];
 
@@ -740,7 +802,7 @@ class _Card extends StatelessWidget {
   );
 }
 
-/// Por dónde va: tres tramos que se llenan de dorado. En la bienvenida no se
+/// Por dónde va: cuatro tramos que se llenan de dorado. En la bienvenida no se
 /// ve — ahí todavía no empezó nada — pero ocupa su sitio, para que la
 /// tarjeta no dé un salto al empezar.
 class _Progress extends StatelessWidget {
@@ -756,7 +818,7 @@ class _Progress extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 18),
       child: Row(
         children: [
-          for (var i = 1; i <= 3; i++) ...[
+          for (var i = 1; i <= 4; i++) ...[
             if (i > 1) const SizedBox(width: 6),
             Expanded(
               child: Container(
@@ -795,12 +857,15 @@ class _Step extends StatelessWidget {
     required this.lines,
     required this.next,
     required this.onNext,
+    this.top,
     this.over,
     this.child,
     this.skip,
     this.onSkip,
   });
 
+  /// Lo que va arriba de todo, centrado: la marca, en la pregunta del nombre.
+  final Widget? top;
   final String? over;
   final String title;
   final List<String> lines;
@@ -820,6 +885,10 @@ class _Step extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (top != null) ...[
+          rise(Center(child: top!)),
+          const SizedBox(height: 14),
+        ],
         if (over != null) ...[
           rise(
             Text(
@@ -986,10 +1055,14 @@ class _Field extends StatelessWidget {
     required this.max,
     required this.onChanged,
     this.big = false,
+    this.prefix,
   });
 
   final TextEditingController controller;
   final String hint;
+
+  /// Una palabra fija delante de lo que se escribe, que no se puede borrar.
+  final String? prefix;
   final int max;
   final VoidCallback onChanged;
   final bool big;
@@ -1004,7 +1077,7 @@ class _Field extends StatelessWidget {
       controller: controller,
       onChanged: (_) => onChanged(),
       autofocus: true,
-      textAlign: TextAlign.center,
+      textAlign: prefix == null ? TextAlign.center : TextAlign.start,
       textCapitalization: TextCapitalization.sentences,
       maxLength: max,
       cursorColor: _Ink.gold,
@@ -1022,6 +1095,22 @@ class _Field extends StatelessWidget {
           color: _Ink.soft(0.32),
         ),
         counterText: '',
+        // Como icono y no como `prefixText`: el texto de prefijo sólo se ve con
+        // el campo enfocado o escrito, y esto tiene que leerse antes.
+        prefixIcon: prefix == null
+            ? null
+            : Padding(
+                padding: const EdgeInsets.only(left: 16, right: 6),
+                child: Text(
+                  prefix!,
+                  style: TextStyle(
+                    fontSize: big ? 26 : 17,
+                    height: 1.3,
+                    color: _Ink.gold,
+                  ),
+                ),
+              ),
+        prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
         filled: true,
         fillColor: _Ink.cream.withValues(alpha: 0.06),
         isDense: true,
@@ -1037,58 +1126,164 @@ class _Field extends StatelessWidget {
   }
 }
 
-/// Las marcas, en dos filas y sin desplazamiento: se ven todas de una vez o no
-/// se elige, se acepta la primera.
+/// La marca elegida, grande y arriba: la cara del pueblo.
+class _BigMark extends StatelessWidget {
+  const _BigMark({required this.symbol});
+
+  final String symbol;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 92,
+    height: 92,
+    alignment: Alignment.center,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      color: _Ink.gold.withValues(alpha: 0.12),
+      border: Border.all(color: _Ink.gold.withValues(alpha: 0.55), width: 1.4),
+    ),
+    child: AnimatedSwitcher(
+      duration: const Duration(milliseconds: 220),
+      transitionBuilder: (c, a) => ScaleTransition(
+        scale: Tween(begin: 0.7, end: 1.0).animate(a),
+        child: FadeTransition(opacity: a, child: c),
+      ),
+      child: HabitSigil(
+        key: ValueKey(symbol),
+        symbol: symbol,
+        color: _Ink.gold,
+        size: 50,
+      ),
+    ),
+  );
+}
+
+/// Todas las marcas, en dos filas que se deslizan de lado.
+///
+/// Eran doce fijas, y las otras cincuenta y tantas sólo se podían elegir
+/// después, editando. Dos filas y no una rejilla entera: la tarjeta tiene que
+/// dejar ver el valle, y el teclado ya se come media pantalla.
 class _Marks extends StatelessWidget {
   const _Marks({required this.chosen, required this.onPick});
 
   final String chosen;
   final void Function(String) onPick;
 
+  // Cuarenta y ocho de paso a propósito: en un teléfono de 390 entran seis
+  // columnas y media, y la media que asoma es lo que dice que hay más.
+  static const double _tile = 40, _gap = 8;
+  static const int _rows = 2;
+
   @override
   Widget build(BuildContext context) {
-    // Doce: dos filas justas de seis. Con catorce, la última fila eran dos
-    // marcas sueltas en el medio, y una rejilla que no cierra se lee como que
-    // falta algo.
-    final cuantas = math.min(habitSymbols.length, 12);
-    return Wrap(
-      alignment: WrapAlignment.center,
-      spacing: 10,
-      runSpacing: 10,
-      children: [
-        for (final m in habitSymbols.take(cuantas))
-          GestureDetector(
-            onTap: () => onPick(m),
-            child: AnimatedScale(
-              duration: const Duration(milliseconds: 260),
-              curve: Curves.easeOutBack,
-              scale: m == chosen ? 1.1 : 1,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 220),
-                width: 42,
-                height: 42,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: m == chosen
-                      ? _Ink.gold.withValues(alpha: 0.20)
-                      : _Ink.cream.withValues(alpha: 0.06),
-                  border: Border.all(
-                    color: m == chosen
-                        ? _Ink.gold
-                        : _Ink.cream.withValues(alpha: 0.12),
-                    width: m == chosen ? 1.4 : 1,
-                  ),
+    final columnas = (habitSymbols.length + _rows - 1) ~/ _rows;
+    return SizedBox(
+      height: _rows * _tile + (_rows - 1) * _gap,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.zero,
+        itemCount: columnas,
+        itemBuilder: (_, col) => Padding(
+          padding: EdgeInsets.only(right: col == columnas - 1 ? 0 : _gap),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (var row = 0; row < _rows; row++)
+                Padding(
+                  padding: EdgeInsets.only(top: row == 0 ? 0 : _gap),
+                  child: _tileAt(col * _rows + row),
                 ),
-                child: HabitSigil(
-                  symbol: m,
-                  color: m == chosen ? _Ink.gold : _Ink.soft(0.80),
-                  size: 20,
-                ),
-              ),
-            ),
+            ],
           ),
-      ],
+        ),
+      ),
     );
   }
+
+  Widget _tileAt(int at) {
+    if (at >= habitSymbols.length) {
+      return const SizedBox(width: _tile, height: _tile);
+    }
+    final m = habitSymbols[at];
+    final elegida = m == chosen;
+    return GestureDetector(
+      onTap: () => onPick(m),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        width: _tile,
+        height: _tile,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: elegida
+              ? _Ink.gold.withValues(alpha: 0.20)
+              : _Ink.cream.withValues(alpha: 0.06),
+          border: Border.all(
+            color: elegida ? _Ink.gold : _Ink.cream.withValues(alpha: 0.12),
+            width: elegida ? 1.4 : 1,
+          ),
+        ),
+        child: HabitSigil(
+          symbol: m,
+          color: elegida ? _Ink.gold : _Ink.soft(0.80),
+          size: 20,
+        ),
+      ),
+    );
+  }
+}
+
+/// Las seis comarcas, cada una con su sello y su nombre.
+class _Places extends StatelessWidget {
+  const _Places({required this.chosen, required this.onPick});
+
+  final int chosen;
+  final void Function(int order) onPick;
+
+  @override
+  Widget build(BuildContext context) => Wrap(
+    alignment: WrapAlignment.center,
+    spacing: 8,
+    runSpacing: 8,
+    children: [
+      for (final c in TownCharacter.all)
+        GestureDetector(
+          onTap: () => onPick(c.order),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 220),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              color: c.order == chosen
+                  ? _Ink.gold.withValues(alpha: 0.20)
+                  : _Ink.cream.withValues(alpha: 0.06),
+              border: Border.all(
+                color: c.order == chosen
+                    ? _Ink.gold
+                    : _Ink.cream.withValues(alpha: 0.12),
+                width: c.order == chosen ? 1.4 : 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                HabitSigil(
+                  symbol: c.symbol,
+                  color: c.order == chosen ? _Ink.gold : _Ink.soft(0.80),
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  c.region,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: c.order == chosen ? _Ink.gold : _Ink.cream,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+    ],
+  );
 }
