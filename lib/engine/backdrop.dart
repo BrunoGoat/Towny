@@ -366,12 +366,36 @@ class Backdrop {
     var puestas = 0;
     final pts = List<double>.filled(2 * 16, 0);
 
-    for (final m in tuftsAround(ex, ez, _alcance, scene.day, claros)) {
+    // Dos tamaños, y uno toma el relevo del otro. De cerca, las matas; de
+    // lejos una mata es menos que un píxel y el valle se quedaba blanco
+    // entero —alejarse era ver desaparecer la hierba—, así que donde ellas se
+    // apagan se encienden los rodales: manchas grandes, quietas en el mundo
+    // igual que las chicas, puestas justo donde las chicas se juntan. Lo que
+    // se ve de lejos es lo mismo que de cerca, visto de lejos.
+    final lejanas = Backdrop.rodalesAround(
+      ex,
+      ez,
+      _alcanceRodales,
+      scene.day,
+      claros,
+      haciaX: fx,
+      haciaZ: fz,
+    );
+    for (final (m, grande) in [
+      for (final m in tuftsAround(ex, ez, _alcance, scene.day, claros))
+        (m, false),
+      for (final m in lejanas) (m, true),
+    ]) {
       final vx = m.x - ex, vz = m.z - ez;
       // Lo que queda claramente detrás ni se proyecta.
       if (vx * fx + vz * fz < -m.reach) continue;
-      final lejos = math.sqrt(vx * vx + vz * vz) / _alcance;
-      final luz = 1 - smoothstep(0.55, 1.0, lejos);
+      final d = math.sqrt(vx * vx + vz * vz);
+      final chicas = 1 - smoothstep(0.55, 1.0, d / _alcance);
+      final luz = grande
+          ? (1 - chicas) *
+                (1 - smoothstep(0.6, 1.0, d / _alcanceRodales)) *
+                _pesoRodal
+          : chicas;
       if (luz <= 0.02) continue;
       final centro = p.project(V3(m.x, 0, m.z));
       if (centro == null) continue;
@@ -416,6 +440,65 @@ class Backdrop {
   /// Hasta cuántos metros del ojo se dibujan matas. Pasado esto el prado es
   /// blanco liso, y antes de llegar se van apagando.
   static const double _alcance = 170;
+
+  /// Hasta dónde se dibujan los rodales, que se ven desde mucho más lejos.
+  static const double _alcanceRodales = 1500;
+
+  /// Lo que pesa un rodal visto de lejos. No el promedio de verdad de las
+  /// matas que tiene dentro —eso es casi blanco, y de lejos el valle volvía a
+  /// ser una sábana—, sino lo que hace falta para que se lea como hierba.
+  static const double _pesoRodal = 0.62;
+
+  /// El lado de la casilla de un rodal: nueve casillas de mata, que es la
+  /// escala del ruido que las agrupa ([_rodal]).
+  static const double _casillaRodal = _casilla * 9;
+
+  /// Los rodales a menos de [reach] metros de (`ex`, `ez`): una mancha grande
+  /// por cada sitio donde las matas se juntan, del tamaño de lo juntas que
+  /// están. Como [tuftsAround], sólo dependen del mundo y del día.
+  ///
+  /// Con [haciaX] y [haciaZ] —hacia dónde mira el ojo, sobre el suelo— se
+  /// saltan sin calcular nada las casillas que quedan detrás, que son la
+  /// mitad: el alcance es de kilómetros y son miles por fotograma.
+  static Iterable<GroundTuft> rodalesAround(
+    double ex,
+    double ez,
+    double reach,
+    int dia,
+    double claros, {
+    double haciaX = 0,
+    double haciaZ = 0,
+  }) sync* {
+    const c = _casillaRodal;
+    final i0 = ((ex - reach) / c).floor();
+    final i1 = ((ex + reach) / c).ceil();
+    final k0 = ((ez - reach) / c).floor();
+    final k1 = ((ez + reach) / c).ceil();
+    final r2 = reach * reach;
+    for (var i = i0; i <= i1; i++) {
+      for (var k = k0; k <= k1; k++) {
+        if (((i + 0.5) * c - ex) * haciaX + ((k + 0.5) * c - ez) * haciaZ <
+            -c * 1.5) {
+          continue;
+        }
+        final x = (i + 0.5 + (hash01(i, k, 61, dia) - 0.5) * 0.5) * c;
+        final z = (k + 0.5 + (hash01(i, k, 62, dia) - 0.5) * 0.5) * c;
+        final dx = x - ex, dz = z - ez;
+        if (dx * dx + dz * dz > r2) continue;
+        // Cuánta hierba hay ahí, leído del mismo ruido que reparte las matas.
+        final gi = (x / _casilla).floor(), gk = (z / _casilla).floor();
+        final cuanta = _rodal(gi, gk, dia) * math.min(1.0, 0.55 * claros);
+        if (cuanta < 0.25) continue;
+        yield GroundTuft(
+          x,
+          z,
+          hash01(i, k, 64, dia) < 0.35 ? 1 : 0,
+          c * (0.12 + 0.20 * cuanta) * (0.8 + hash01(i, k, 63, dia) * 0.4),
+          hashInt(1 << 30, i, k, 65, dia),
+        );
+      }
+    }
+  }
 
   /// El lado de la casilla del mundo que puede tener una mata.
   static const double _casilla = 3.0;

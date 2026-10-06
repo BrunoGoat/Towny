@@ -312,5 +312,27 @@ void main() {
       }
       expect(mata, greaterThan(300), reason: 'el prado es una sábana: $mata');
     });
+
+    test('y alejándose mucho siguen estando, no queda todo nieve', () async {
+      // Lo que se veía: las matas se apagaban a unos metros del ojo, así que
+      // al sacar zoom desaparecían todas y el valle era una sábana. De lejos
+      // toman el relevo los rodales, que están donde las matas se juntan.
+      final px = await frame(
+        hour: 12,
+        season: invierno,
+        day: 20261001,
+        distance: 600,
+        pitch: 0.3,
+      );
+      var mata = 0;
+      for (var y = 480; y < 790; y++) {
+        for (var x = left; x < right; x++) {
+          final c = _at(px, x, y);
+          final g = (c >> 16) & 0xFF, b = (c >> 8) & 0xFF;
+          if (g > b + 6) mata++;
+        }
+      }
+      expect(mata, greaterThan(300), reason: 'de lejos es una sábana: $mata');
+    });
   });
 }
