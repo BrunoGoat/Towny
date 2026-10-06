@@ -832,7 +832,18 @@ class _HabitsSheetState extends State<HabitsSheet> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _sigil(t, velo, _mark),
+            // A los lados de la marca no hay hoja: se ve el pueblo, y tocar
+            // ahí es tocar fuera, como más arriba. Sin esto ese aire era de
+            // la hoja —la franja entera a lo ancho— y el toque se perdía. La
+            // marca sigue abriendo su carrete: el toque más hondo gana.
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => Navigator.of(context).maybePop(),
+              child: SizedBox(
+                width: double.infinity,
+                child: Center(child: _sigil(t, velo, _mark)),
+              ),
+            ),
             // El velo, y por detrás el desenfoque de lo que haya debajo.
             _blurred(
               velo.bruma,
