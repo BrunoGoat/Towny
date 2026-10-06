@@ -106,7 +106,7 @@ List<Notice> myNotices(Habit h) {
 /// nota tuya no hay cuentas que enseñar: lo único que el tablón sabe de ella
 /// es el día que la clavaste.
 String _cuando(DateTime at) {
-  final dias = dayStart(DateTime.now()).difference(dayStart(at)).inDays;
+  final dias = daysBetween(at, DateTime.now());
   if (dias <= 0) return 'Clavada hoy.';
   if (dias == 1) return 'Clavada ayer.';
   if (dias < 30) return 'Clavada hace $dias días.';

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../data/landmarks.dart';
 import '../fx/sensory.dart';
+import '../model/piece.dart';
 import '../model/works_log.dart';
 import 'style.dart';
 
@@ -233,7 +234,7 @@ class StoneCard extends StatelessWidget {
     final ahora = from ?? DateTime.now();
     final hoy = DateTime(ahora.year, ahora.month, ahora.day);
     final suyo = DateTime(w.year, w.month, w.day);
-    final dias = hoy.difference(suyo).inDays;
+    final dias = daysBetween(suyo, hoy);
     final hora =
         '${w.hour.toString().padLeft(2, '0')}:'
         '${w.minute.toString().padLeft(2, '0')}';

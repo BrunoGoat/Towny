@@ -311,7 +311,7 @@ IdentityStanding? identityStanding(Habit h, {DateTime? at}) {
   // pueblo— y en cuántos hubo pieza.
   final hechos = <int>[], contaban = <int>[];
   for (var w = identityWeeks - 1; w >= 0; w--) {
-    final desde = hoy.subtract(Duration(days: 7 * w + 6));
+    final desde = shiftDays(hoy, -(7 * w + 6));
     // Una semana en la que el pueblo todavía no existía no es una semana suya:
     // sin esto, un pueblo fundado hace ochenta y cinco días tenía ya sus trece
     // casillas —la más vieja a medias— y el título llegaba casi una semana
@@ -319,7 +319,7 @@ IdentityStanding? identityStanding(Habit h, {DateTime? at}) {
     if (desde.isBefore(nace)) continue;
     var pieza = 0, cuentan = 0;
     for (var i = 0; i < 7; i++) {
-      final d = desde.add(Duration(days: i));
+      final d = shiftDays(desde, i);
       if (d.isBefore(nace) || d.isAfter(hoy)) continue;
       final hubo = conPieza.contains(dayKey(d));
       if (!hubo && h.restedOn(d)) continue;

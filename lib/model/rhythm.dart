@@ -59,15 +59,15 @@ List<Was> gridOf(Habit h, DateTime now) {
   final days = daysOf(h);
   if (days.isEmpty) return const [];
   final today = dayStart(now);
-  final edge = today.subtract(const Duration(days: lookBack));
+  final edge = shiftDays(today, -lookBack);
   final first = days.first.isAfter(edge) ? days.first : edge;
-  final span = today.difference(first).inDays;
+  final span = daysBetween(first, today);
   if (span < 0) return const [];
   final on = <int>{for (final d in days) dayKey(d)};
   return [
     for (var i = 0; i <= span; i++)
       () {
-        final d = first.add(Duration(days: i));
+        final d = shiftDays(first, i);
         // Una pieza puesta durante una pausa cuenta igual. Volver antes de
         // tiempo no es hacer trampa, es volver — y si el día tiene pieza, lo
         // último que la app tiene que hacer es no contarla.
@@ -90,9 +90,9 @@ List<int> gapsOf(Habit h) {
   for (var i = 1; i < days.length; i++) {
     var missed = 0;
     for (
-      var d = days[i - 1].add(const Duration(days: 1));
+      var d = shiftDays(days[i - 1], 1);
       d.isBefore(days[i]);
-      d = d.add(const Duration(days: 1))
+      d = shiftDays(d, 1)
     ) {
       if (!h.restedOn(d)) missed++;
     }
@@ -163,7 +163,7 @@ Consistency consistencyOf(Habit h, {DateTime? at, int perWeek = 7}) {
   final days = daysOf(h);
   if (days.isEmpty) return const Consistency(0, 0);
 
-  var from = today.subtract(const Duration(days: Consistency.window - 1));
+  var from = shiftDays(today, -(Consistency.window - 1));
   // Ni antes de que existiera el hábito ni antes de su primera pieza: repartir
   // tus piezas entre días en los que no había dónde ponerlas es inventarse
   // fallos.
@@ -173,7 +173,7 @@ Consistency consistencyOf(Habit h, {DateTime? at, int perWeek = 7}) {
 
   final on = <int>{for (final d in days) dayKey(d)};
   var done = 0, counted = 0;
-  for (var d = from; !d.isAfter(today); d = d.add(const Duration(days: 1))) {
+  for (var d = from; !d.isAfter(today); d = shiftDays(d, 1)) {
     final hecho = on.contains(dayKey(d));
     if (hecho) {
       done++;
@@ -191,11 +191,11 @@ Consistency consistencyOf(Habit h, {DateTime? at, int perWeek = 7}) {
 
 /// Un día por barra, de [from] a [today], contra el día más cargado.
 List<double> dailyOf(Habit h, DateTime from, DateTime today) {
-  final span = today.difference(from).inDays;
+  final span = daysBetween(from, today);
   if (span < 0) return const [];
   final counts = List<double>.filled(span + 1, 0);
   for (final p in h.pieces) {
-    final at = dayStart(p.placedAt).difference(from).inDays;
+    final at = daysBetween(from, p.placedAt);
     if (at >= 0 && at <= span) counts[at] += 1;
   }
   var top = 1.0;
@@ -210,7 +210,7 @@ List<double> weeksOf(Habit h, DateTime now, int n) {
   final counts = List<double>.filled(n, 0);
   final today = dayStart(now);
   for (final p in h.pieces) {
-    final back = today.difference(dayStart(p.placedAt)).inDays;
+    final back = daysBetween(p.placedAt, today);
     if (back < 0) continue;
     final week = back ~/ 7;
     if (week < n) counts[n - 1 - week] += 1;

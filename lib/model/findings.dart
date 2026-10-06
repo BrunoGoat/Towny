@@ -74,9 +74,9 @@ Notice? ahead(Habit h, String? what, int left, DateTime now) {
     final primera = dayStart(h.pieces.first.placedAt);
     if (primera.isBefore(nace)) nace = primera;
   }
-  final desde = nace.isAfter(today.subtract(const Duration(days: 29)))
+  final desde = nace.isAfter(shiftDays(today, -29))
       ? nace
-      : today.subtract(const Duration(days: 29));
+      : shiftDays(today, -29);
 
   var recent = 0;
   for (final p in h.pieces) {
@@ -87,8 +87,8 @@ Notice? ahead(Habit h, String? what, int left, DateTime now) {
   // Los días dormidos no cuentan para el ritmo. Con ellos dentro, pausar dos
   // semanas te deja el pueblo terminándose un mes más tarde por haber tenido
   // el buen juicio de pausarlo, que es justo al revés de lo que hace falta.
-  var ventana = today.difference(desde).inDays + 1;
-  for (var d = desde; !d.isAfter(today); d = d.add(const Duration(days: 1))) {
+  var ventana = daysBetween(desde, today) + 1;
+  for (var d = desde; !d.isAfter(today); d = shiftDays(d, 1)) {
     if (h.restedOn(d)) ventana--;
   }
   if (ventana < 1) return null;
@@ -101,7 +101,7 @@ Notice? ahead(Habit h, String? what, int left, DateTime now) {
   final perDay = recent / math.max(3, ventana);
   final days = (left / perDay).ceil();
   if (days > 400) return null; // too far off to mean anything
-  final when = today.add(Duration(days: days));
+  final when = shiftDays(today, days);
 
   // Las barras enseñan lo mismo que usó la cuenta. Con doce semanas en un
   // pueblo de cuatro días, once salían vacías y la que sobrevivía se llevaba
@@ -117,7 +117,7 @@ Notice? ahead(Habit h, String? what, int left, DateTime now) {
     'Le faltan $left ${_pieces(left)}, y llevás $recent en '
     '${ventana == 1 ? 'un día' : '$ventana días'}.',
     bars: porDias ? dailyOf(h, desde, today) : weeksOf(h, now, 12),
-    mark: porDias ? today.difference(desde).inDays : 11,
+    mark: porDias ? daysBetween(desde, today) : 11,
     more: porDias
         ? 'La fecha sale del ritmo desde que empezaste y de nada más. Si '
               'apretás se adelanta, y si aflojás se va. Las barras son esos '
@@ -396,14 +396,14 @@ Notice? standoutDay(Habit h, DateTime now) {
   final all = daysOf(h);
   if (all.isEmpty) return null;
   final today = dayStart(now);
-  final edge = today.subtract(const Duration(days: lookBack));
+  final edge = shiftDays(today, -lookBack);
   final first = all.first.isAfter(edge) ? all.first : edge;
   final days = [
     for (final d in all)
       if (!d.isBefore(first)) d,
   ];
   if (days.isEmpty) return null;
-  final span = today.difference(first).inDays;
+  final span = daysBetween(first, today);
   if (span < 27) return null;
   // Cuántos de cada día de la semana pasaron de verdad — y los que el pueblo
   // durmió no pasaron. Contarlos sería reprocharte tres martes que estabas de
@@ -421,7 +421,7 @@ Notice? standoutDay(Habit h, DateTime now) {
   final on = <int>{for (final d in days) dayKey(d)};
   final seen = List<int>.filled(8, 0);
   for (var i = 0; i <= span; i++) {
-    final d = first.add(Duration(days: i));
+    final d = shiftDays(first, i);
     if (h.restedOn(d) && !on.contains(dayKey(d))) continue;
     seen[d.weekday]++;
   }
@@ -596,13 +596,13 @@ Notice? pairing(Habit h, List<Habit> others, DateTime now) {
   if (da.isEmpty || db.isEmpty) return null;
   final from = da.first.isAfter(db.first) ? da.first : db.first;
   final today = dayStart(now);
-  final span = today.difference(from).inDays;
+  final span = daysBetween(from, today);
   if (span < 20) return null;
   final onA = <int>{for (final d in da) dayKey(d)};
   final onB = <int>{for (final d in db) dayKey(d)};
   var withA = 0, bothOn = 0, withoutA = 0, bOnly = 0;
   for (var i = 0; i <= span; i++) {
-    final day = from.add(Duration(days: i));
+    final day = shiftDays(from, i);
     final k = dayKey(day);
     // Un día en que cualquiera de los dos dormía no dice nada de si van
     // juntos: uno de los dos no estaba jugando.

@@ -76,8 +76,7 @@ bool cadenceDue(Habit h, {DateTime? at}) {
   if (h.perWeek != null || h.cadenceAskedAt != null) return false;
   if (h.resting) return false;
   final now = at ?? DateTime.now();
-  if (dayStart(now).difference(dayStart(h.createdAt)).inDays <
-      cadenceAskAfterDays) {
+  if (daysBetween(h.createdAt, now) < cadenceAskAfterDays) {
     return false;
   }
   return daysOf(h).length >= cadenceAskLeast;

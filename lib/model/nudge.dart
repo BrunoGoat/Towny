@@ -170,7 +170,7 @@ double? cadenceOf(Habit h, {DateTime? at}) {
   //
   // Dividir sin mirar daba infinito, y redondear infinito revienta. Lo
   // encontró un test antes que un teléfono.
-  final span = dias.last.difference(dias.first).inDays + 1;
+  final span = daysBetween(dias.first, dias.last) + 1;
   return span / dias.length;
 }
 
@@ -229,7 +229,7 @@ Nudge? _forHabit(Habit h, DateTime now, DateTime? lastAny) {
     return null;
   }
 
-  final idle = dayStart(now).difference(dayStart(last)).inDays;
+  final idle = daysBetween(last, now);
   final tarde = lateAfter(h, at: now);
 
   // Cuál de los dos toca. Ya avisado en este hueco quiere decir que el aviso
@@ -250,7 +250,7 @@ Nudge? _forHabit(Habit h, DateTime now, DateTime? lastAny) {
     // ¿Cuál de los dos fue el que ya salió? No hace falta guardarlo: se lee de
     // cuántos días de hueco había cuando salió. Si salió pasado el umbral del
     // de volver, era ése, y este hueco ya gastó los dos que le tocan.
-    final hueco = dayStart(callado).difference(dayStart(last)).inDays;
+    final hueco = daysBetween(last, callado);
     if (hueco >= NudgeRules.backAt) return null;
     // Y si fue el de retraso, el segundo sólo cuando el hueco se hace largo de
     // verdad. El de retraso salió como mucho al día diez, así que entre los dos
@@ -260,16 +260,16 @@ Nudge? _forHabit(Habit h, DateTime now, DateTime? lastAny) {
     desde = NudgeRules.backAt;
   }
 
-  var at = _atHour(dayStart(last).add(Duration(days: desde)), usualHour(h));
+  var at = _atHour(shiftDays(dayStart(last), desde), usualHour(h));
   // Lo que ya pasó no se programa: si el umbral cayó ayer, suena hoy a su hora.
   while (at.isBefore(now)) {
-    at = _atHour(at.add(const Duration(days: 1)), usualHour(h));
+    at = _atHour(shiftDays(at, 1), usualHour(h));
   }
   // Y no pegado al anterior, sea del hábito que sea.
   if (lastAny != null) {
     final libre = lastAny.add(const Duration(days: NudgeRules.apart));
     while (at.isBefore(libre)) {
-      at = _atHour(at.add(const Duration(days: 1)), usualHour(h));
+      at = _atHour(shiftDays(at, 1), usualHour(h));
     }
   }
 

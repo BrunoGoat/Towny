@@ -1092,7 +1092,7 @@ class Store extends ChangeNotifier {
     }
     final today = dayStart(DateTime.now());
     return List.generate(days, (i) {
-      final d = today.subtract(Duration(days: days - 1 - i));
+      final d = shiftDays(today, -(days - 1 - i));
       return DayTally(d, counts[dayKey(d)] ?? 0);
     });
   }

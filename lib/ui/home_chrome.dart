@@ -169,7 +169,7 @@ class TopBar extends StatelessWidget {
 
 /// Hasta cuándo duerme, dicho como se dice en voz alta.
 String sleepUntil(DateTime until) {
-  final dias = dayStart(until).difference(dayStart(DateTime.now())).inDays;
+  final dias = daysBetween(DateTime.now(), until);
   if (dias <= 0) return 'despierta hoy';
   if (dias == 1) return 'despierta mañana';
   return 'despierta en $dias días';

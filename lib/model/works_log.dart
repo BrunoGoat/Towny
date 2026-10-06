@@ -49,8 +49,7 @@ class WorkSpan {
   /// tres meses, y lo que cuenta aquí es lo segundo. Por la misma razón se
   /// cuenta por días de calendario y no por horas — empezar un lunes por la
   /// noche y rematar el martes por la mañana son dos días, no uno.
-  int daysUntil(DateTime when) =>
-      dayStart(when).difference(dayStart(began)).inDays + 1;
+  int daysUntil(DateTime when) => daysBetween(began, when) + 1;
 
   /// Los días que llevó, si está rematada.
   int? get days => ended == null ? null : daysUntil(ended!);

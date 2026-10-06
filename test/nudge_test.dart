@@ -23,8 +23,16 @@ Habit _habit({
     pieces.add(
       Piece(
         index: i++,
-        placedAt: _inicio.add(
-          Duration(minutes: (d * 1440).round() + hora * 60),
+        // A esa hora del reloj, día de calendario por día de calendario: con
+        // minutos sumados desde el primero, cruzar un cambio de hora dejaba
+        // las piezas una hora antes o después, y el hábito «de las nueve»
+        // pasaba a ser de las ocho.
+        placedAt: DateTime(
+          _inicio.year,
+          _inicio.month,
+          _inicio.day + d.floor(),
+          hora,
+          ((d - d.floor()) * 1440).round(),
         ),
       ),
     );
@@ -47,8 +55,9 @@ Habit _habit({
 DateTime _hoy(Habit h, int hueco) => DateTime(
   h.lastPlacedAt!.year,
   h.lastPlacedAt!.month,
-  h.lastPlacedAt!.day,
-).add(Duration(days: hueco, hours: 23));
+  h.lastPlacedAt!.day + hueco,
+  23,
+);
 
 void main() {
   group('cuándo habla', () {
