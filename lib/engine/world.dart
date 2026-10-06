@@ -559,7 +559,15 @@ BuiltTown _build(TownLayout layout, int placed, BuiltTown? before) {
   // cambiarlos de hueco después sin tocar nada más. Ver [renotice].
   var tablon = before?.board ?? const <Facet>[];
   if (from == 0 && !layout.solo) {
-    furnish(Plaza.solidsAt(layout.cx, layout.cz, TownLayout.plazaReach));
+    furnish(
+      Plaza.solidsAt(
+        layout.cx,
+        layout.cz,
+        TownLayout.plazaReach,
+        grass: layout.character.lawn.toARGB32(),
+        mata: layout.character.order,
+      ),
+    );
     final board = NoticeBoard.solidsAt(
       layout.cx,
       layout.cz,

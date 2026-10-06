@@ -37,7 +37,18 @@ class TownCharacter {
     this.slate = const Color(0xFF5B6B72),
     this.thatch = const Color(0xFFC2A054),
     this.portraitPlaza = false,
+    this.lawn = const Color(0xFF6B7A42),
   });
+
+  /// El césped de la plaza.
+  ///
+  /// Era el mismo verde oliva en todas, y sólo en otoño cambiaba —cada plaza
+  /// se doraba hacia un ocre propio—, que fue lo que hizo ver que la plaza
+  /// podía decir de qué comarca es. Ahora lo dice todo el año: un pasto
+  /// alpino y frío en la Sierra, seco y amarillento en la Marca, musgo bajo
+  /// los robles. Las estaciones lo siguen tocando encima igual que a
+  /// cualquier hoja: el otoño lo dora y la nieve lo tapa.
+  final Color lawn;
 
   /// De qué color son aquí los tejados de cada material.
   ///
@@ -168,6 +179,7 @@ class TownCharacter {
       trees: 0.05,
       tiles: [Color(0xFF7A4A3A)],
       slate: Color(0xFF4A5862),
+      lawn: Color(0xFF57705A),
     ),
     TownCharacter(
       region: 'Marca',
@@ -188,6 +200,7 @@ class TownCharacter {
       gardens: 0.08,
       trees: 0.04,
       tiles: [Color(0xFF8E5332)],
+      lawn: Color(0xFF8A8445),
     ),
     TownCharacter(
       region: 'Valle',
@@ -208,6 +221,7 @@ class TownCharacter {
       gardens: 1.00,
       trees: 0.34,
       thatch: Color(0xFFCFAA58),
+      lawn: Color(0xFF5C7F3C),
     ),
     TownCharacter(
       region: 'Costa',
@@ -229,6 +243,7 @@ class TownCharacter {
       trees: 0.08,
       tiles: [Color(0xFF4F7FA6), Color(0xFF5E8FB0)],
       slate: Color(0xFF6E8796),
+      lawn: Color(0xFF7D8F66),
     ),
     TownCharacter(
       region: 'Robledal',
@@ -250,6 +265,7 @@ class TownCharacter {
       trees: 0.88,
       thatch: Color(0xFF8E8A50),
       slate: Color(0xFF4F5A4E),
+      lawn: Color(0xFF4D6338),
     ),
     // Las dos de abajo llegaron después, y van al final a propósito: la
     // comarca por defecto de cada solar del valle sale de esta lista por su
@@ -285,6 +301,7 @@ class TownCharacter {
         Color(0xFFC9952F),
       ],
       portraitPlaza: true,
+      lawn: Color(0xFF7A8A3A),
     ),
     TownCharacter(
       region: 'Alfar',
@@ -306,6 +323,7 @@ class TownCharacter {
       gardens: 0.14,
       trees: 0.12,
       tiles: [Color(0xFFA33A28), Color(0xFF9A3326)],
+      lawn: Color(0xFF8C7A4A),
     ),
   ];
 

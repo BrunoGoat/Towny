@@ -1732,7 +1732,15 @@ class Plaza {
   /// tiene canto, y ese canto —más el bordillo que lo rodea, que asoma un
   /// dedo por encima— es lo que hace que de perfil se vea que el suelo está
   /// levantado y no que alguien cambió el color de la hierba.
-  static List<Solid> solidsAt(double cx, double cz, double reach) => [
+  /// [grass] es el césped de la comarca ([TownCharacter.lawn]), y [mata] de
+  /// qué mata es, que es lo que decide hacia qué tono se dora en otoño.
+  static List<Solid> solidsAt(
+    double cx,
+    double cz,
+    double reach, {
+    int grass = _grass,
+    int? mata,
+  }) => [
     // El bordillo: un anillo de piedra, no un disco. Un disco debajo de la
     // hierba es un disco que no se ve.
     ...ringSolids(
@@ -1769,8 +1777,9 @@ class Plaza {
         lawnTop,
         Surface.leaf,
         ao: 1.02,
-        tint: _grass,
+        tint: grass,
       ),
+      mata: mata,
     ),
     ..._fountain(cx, cz, reach),
   ];

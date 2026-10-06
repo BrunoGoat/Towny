@@ -213,9 +213,11 @@ class Facet {
 ///    que es de donde venía la idea.
 void asFurniture(Solid solid, [Aabb? box]) {
   final caja = box ?? Aabb.of(solid.faces);
-  final mata = caja == null
-      ? 0
-      : hash32((caja.cx * 64).round(), (caja.cz * 64).round(), 5);
+  final mata =
+      solid.mata ??
+      (caja == null
+          ? 0
+          : hash32((caja.cx * 64).round(), (caja.cz * 64).round(), 5));
   for (final f in solid.faces) {
     f.piece = -1;
     if (f.surface == Surface.leaf) f.data = mata;
@@ -229,11 +231,17 @@ void asFurniture(Solid solid, [Aabb? box]) {
 /// A closed thing that has been built. One piece of a building is one or more
 /// of these.
 class Solid {
-  Solid(this.piece, this.faces);
+  Solid(this.piece, this.faces, {this.mata});
 
   /// The achievement that laid it, so a tap can be resolved back to a day.
   final int piece;
   final List<Facet> faces;
+
+  /// De qué mata es, si lo dice quien lo arma. Nulo, lo decide
+  /// [asFurniture] por dónde está. Lo dice el césped de la plaza: su mata es
+  /// la de su comarca, y así se dora en otoño hacia el tono de la comarca y
+  /// no hacia uno al azar.
+  final int? mata;
 }
 
 /// An axis-aligned bounding box, which is how two things that do not touch are

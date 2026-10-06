@@ -1526,7 +1526,13 @@ class TownPainter extends CustomPainter {
 
     final t = scene.founding;
     caer(
-      Plaza.solidsAt(l.cx, l.cz, TownLayout.plazaReach),
+      Plaza.solidsAt(
+        l.cx,
+        l.cz,
+        TownLayout.plazaReach,
+        grass: l.character.lawn.toARGB32(),
+        mata: l.character.order,
+      ),
       FoundingShow.liftAt(t, FoundingShow.plazaAt),
     );
     caer(

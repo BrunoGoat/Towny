@@ -30,6 +30,15 @@ import '../model/store.dart';
 class TownViewController {
   _TownViewState? _state;
 
+  /// Dónde va la fundación de la plaza: de cero a uno mientras cae, uno
+  /// cuando está puesta, y negativo mientras espera a que llegue la cámara.
+  @visibleForTesting
+  double get founding => _state?._founding ?? 1.0;
+
+  /// Cuánto le falta a la cámara para estar encima del pueblo elegido.
+  @visibleForTesting
+  double get farFromTown => _state?._farFromTown ?? 0.0;
+
   void place() => _state?.placePiece();
 
   /// 0..1 while the place button is being held. The wall answers by lighting
@@ -347,6 +356,20 @@ class _TownViewState extends State<TownView>
   /// guarda: es un instante.
   double _founding = 1.0;
 
+  /// Cuánto lleva esperando la plaza a que la cámara llegue (ver [_tick]).
+  double _arriving = 0;
+
+  /// A qué distancia del centro del pueblo, en el suelo, se da por llegada la
+  /// cámara; y cuánto se espera como mucho, por si no llega nunca —alguien
+  /// que la arrastra hacia otro lado mientras vuela—.
+  static const double _arrived = 1.2, _arrivalLimit = 5.0;
+
+  /// Lo que le falta a la cámara para estar encima del pueblo, en el suelo.
+  double get _farFromTown {
+    final dx = _cam.travel - _town.cx, dz = _cam.focusZ - _town.cz;
+    return math.sqrt(dx * dx + dz * dz);
+  }
+
   /// Segundos que le quedan a la cámara de planeo, después de fundar.
   double _glide = 0;
 
@@ -538,7 +561,6 @@ class _TownViewState extends State<TownView>
     final dt = dtRaw.clamp(0.0005, 0.05);
     _time += dt;
     if (widget.store.justFounded && _founding >= 1.0) {
-      _founding = 0.0;
       widget.store.justFounded = false;
       // La cámara mira el claro desde cerca: lo que va a pasar pasa ahí, y de
       // lejos una plaza subiendo del suelo son tres píxeles moviéndose.
@@ -546,8 +568,23 @@ class _TownViewState extends State<TownView>
       _cam.distanceTarget = 11.0;
       _cam.pitchTarget = 0.30;
       _glide = 3.6;
+      // **Primero llegar, después fundar.** El pueblo siguiente se funda
+      // lejos de donde está mirando la cámara —en el pueblo de antes—, y si la
+      // plaza empezaba a caer en el mismo instante, caía mientras la cámara
+      // todavía volaba hacia ella: se veía el final, o nada. Así que espera,
+      // sin dibujarse, a que la cámara esté encima. La primera vez la cámara
+      // ya llega mirando el claro, y ahí empieza en seguida, como siempre.
+      _founding = _farFromTown > _arrived ? -1.0 : 0.0;
+      _arriving = 0;
     }
-    if (_founding < 1.0) {
+    if (_founding < 0) {
+      _arriving += dt;
+      // Que siga planeando mientras vuela: es el mismo viaje.
+      if (_glide < 1) _glide = 1;
+      if (_farFromTown <= _arrived || _arriving > _arrivalLimit) {
+        _founding = 0.0;
+      }
+    } else if (_founding < 1.0) {
       final antes = _founding;
       _founding = math.min(1.0, _founding + dt / FoundingShow.seconds);
       _plazaCae(antes, _founding);
