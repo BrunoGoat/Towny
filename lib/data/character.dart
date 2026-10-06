@@ -11,9 +11,9 @@ import '../engine/town.dart' show BuildingKind;
 /// white or ochre or grey stone, and its landmarks arrive
 /// in a different order.
 ///
-/// Characters are assigned by plot, not at random, so the six are always as
-/// different from each other as the catalogue allows — and so a town never
-/// changes character underneath somebody.
+/// Each plot of the valley has a default one, not a random one, so the six
+/// plots are always as different from each other as the catalogue allows. The
+/// one a town ends up with is chosen when it is founded.
 class TownCharacter {
   const TownCharacter({
     required this.region,
@@ -65,9 +65,9 @@ class TownCharacter {
   /// Sale de cómo es el sitio, para que la relación se entienda sola.
   final String suits;
 
-  /// The mark it is chosen by when a habit is founded. One of the same
-  /// thirty-six the habits themselves wear, because they are the only marks
-  /// this app knows how to draw.
+  /// The mark it is chosen by when a habit is founded. One of the same marks
+  /// the habits themselves wear, because they are the only marks this app
+  /// knows how to draw.
   final String symbol;
 
   /// How tall a storey is here, and how wide a house sits. Northern towns pile
@@ -120,7 +120,7 @@ class TownCharacter {
   ///
   /// Lo que no cambia es el precio: un `shed` sigue costando dos piezas y
   /// sigue siendo el mismo para el plano, la crónica y lo que ya esté en pie.
-  /// Esto es el rótulo, no el edificio. Hoy no lo usa ninguna de las seis, y
+  /// Esto es el rótulo, no el edificio. Hoy no lo usa ninguna, y
   /// está porque la séptima que se invente lo va a necesitar el primer día.
   final Map<BuildingKind, String>? houseNames;
 

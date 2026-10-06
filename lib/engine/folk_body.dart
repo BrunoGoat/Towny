@@ -160,7 +160,7 @@ List<Solid> folkSolids(
   // malas a la vez: que un crío sale tan ancho como su madre —o sea, un
   // barril— y que en la Sierra, donde las plantas son más altas, la gente sale
   // más alta pero igual de ancha. Con una sola unidad, una persona es la misma
-  // persona en las seis regiones y a cualquier talla.
+  // persona en todas las regiones y a cualquier talla.
   V3 world(double x, double y, double z) => V3(
     at.x + (x * cos + z * sin) * h,
     lift + y * h,

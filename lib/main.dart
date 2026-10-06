@@ -235,18 +235,19 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
     // year of real use. Off unless explicitly compiled in.
     const seed = int.fromEnvironment('SEED');
     const idleDays = int.fromEnvironment('IDLE_DAYS');
-    // Which of the six regions to build it in, for looking at one of them on
-    // its own. The valley below shows all six at once, but from far enough
-    // away that a thatched eave is two pixels.
+    // Which region to build it in, by its place in TownCharacter.all, for
+    // looking at one of them on its own. The valley below shows six at once,
+    // but from far enough away that a thatched eave is two pixels.
     const region = int.fromEnvironment('REGION', defaultValue: -1);
     if (seed > 0 && store.total == 0) {
       if (region >= 0) {
-        // Founded rather than edited: a town's region is chosen once, when it
-        // is founded, and there is no way to change it afterwards on purpose.
+        // Founded rather than edited, the way a town gets its region. By its
+        // place in the list and not by plot: plots rotate over the first six
+        // regions, and the later ones would be out of reach.
         store.addHabit(
           'Leer',
           'libro',
-          character: TownCharacter.forSlot(region).order,
+          character: TownCharacter.all[region % TownCharacter.all.length].order,
         );
         store.removeHabit(0);
       }
@@ -256,8 +257,8 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
     // keeping four of them for a year first. Off unless compiled in.
     const valley = String.fromEnvironment('VALLEY');
     if (valley.isNotEmpty && store.habits.length == 1) {
-      // Seis, que son las seis regiones: un valle de prueba al que le falta
-      // una de ellas no sirve para comparar las seis.
+      // Seis, que son los solares del valle: un valle de prueba al que le
+      // falta alguno no sirve para comparar cómo conviven.
       const names = [
         'Leer',
         'Correr',

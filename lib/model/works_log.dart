@@ -4,7 +4,7 @@ import 'piece.dart';
 
 /// Cuándo se levantó cada obra de un pueblo.
 ///
-/// La bitácora fecha cada pieza desde el primer día; las obras no estaban
+/// Cada pieza tiene su fecha desde el primer día; las obras no estaban
 /// fechadas, y son lo que uno recuerda. «Catedral, empezada el tres de mayo,
 /// rematada el dos de julio, sesenta y un días» convierte el pueblo en un
 /// calendario de la propia vida: se mira la colegiata y se sabe qué dos meses

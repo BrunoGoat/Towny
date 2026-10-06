@@ -153,15 +153,10 @@ class Habit {
 
   /// What kind of place this habit builds, chosen the day it was founded.
   ///
-  /// Never changed afterwards, and there is no way to: the character decides
-  /// how wide the plots are and in what order the catalogue arrives,
-  /// so changing it would move pieces that were laid years ago. The one
-  /// promise this app makes is that a piece stays where it was put.
-  ///
-  /// Eso valía cuando la forma dependía de la comarca de una manera que movía
-  /// piezas. Hoy no: lo que cuesta cada cosa es igual en todas, y lo empezado
-  /// está escrito en la crónica. Así que se puede cambiar, también con el
-  /// pueblo hecho. Ver [Store.changeRegion].
+  /// Se puede cambiar, también con el pueblo hecho, sin mover ni perder una
+  /// pieza: lo que cuesta cada obra es igual en todas las comarcas y lo
+  /// empezado está escrito en la crónica, así que lo único que cambia es la
+  /// cara del pueblo. Ver [Store.changeRegion].
   int character;
 
   TownCharacter get place => TownCharacter.byOrder(character);

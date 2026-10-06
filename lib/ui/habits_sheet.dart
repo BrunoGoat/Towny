@@ -66,7 +66,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
   /// mover la hora.
   bool _tuning = false;
 
-  /// Sixty-six marks is four screenfuls of grid on a phone, and a sheet that
+  /// The whole catalogue of marks is four screenfuls of grid on a phone, and a sheet that
   /// tall pushes its own name field off the top. Three rows that slide
   /// sideways instead: the common ones are already in front of you, and the
   /// rest are a drag away rather than a scroll through everything.
@@ -213,15 +213,15 @@ class _HabitsSheetState extends State<HabitsSheet> {
 
   // ---------------------------------------------------------------- piezas
 
-  /// La marca del hábito, que es además la puerta a las otras sesenta y seis.
+  /// La marca del hábito, que es además la puerta a todas las demás.
   ///
   /// Va desnuda —sin recuadro— y flotando sobre el pueblo, así que lleva detrás
   /// un halo redondo del color de la hoja: sin él, una marca clara sobre un
   /// tejado claro deja de verse, y lo que está sobre el pueblo tiene que leerse
   /// sobre cualquier cosa que haya debajo.
   ///
-  /// Y un lápiz en la esquina, porque una marca que abre sesenta y seis marcas
-  /// no parece una cosa que se pueda apretar si no lo dice.
+  /// Y un lápiz en la esquina, porque una marca que abre todas las demás no
+  /// parece una cosa que se pueda apretar si no lo dice.
   /// Lo que mide la marca. Mediano y fijo: se probaron cinco tamaños, de
   /// cuarenta y seis a ciento ocho, y el que quedó es éste.
   static const double _mark = 74.0;

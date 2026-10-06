@@ -431,7 +431,7 @@ class _WriteSheetState extends State<_WriteSheet> {
 
   /// Lo más largo que puede ser una nota. El papel del tablón no da para más,
   /// y una nota que no cabe en su papel no es una nota corta mal contada: es
-  /// otra cosa, y para esa otra cosa está la bitácora.
+  /// otra cosa.
   static const int _tope = 90;
 
   @override

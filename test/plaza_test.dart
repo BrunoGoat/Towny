@@ -603,8 +603,8 @@ void main() {
           );
         }
       }
-      // Que no se esté midiendo el vacío: con seis comarcas son seis, y de
-      // cuadro se sale alguno.
+      // Que no se esté midiendo el vacío: uno por comarca, y de cuadro se
+      // sale alguno.
       expect(mirados, greaterThan(3), reason: 'sólo se miraron $mirados');
     });
 

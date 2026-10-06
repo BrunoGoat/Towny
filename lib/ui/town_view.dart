@@ -54,9 +54,6 @@ class TownViewController {
   bool get hasValley => (_state?._entries.length ?? 1) > 1;
   void goTo(double x, double z) => _state?.goTo(x, z);
 
-  /// Lleva la cámara hasta una pieza concreta, para abrirla desde la bitácora.
-  void lookAtPiece(int index) => _state?.lookAtPiece(index);
-
   /// Lleva la cámara al hueco donde va a caer la que viene.
   void lookAtNext() => _state?.lookAtNext();
   double get travel => _state?._cam.travelTarget ?? 0;
@@ -1098,12 +1095,6 @@ class _TownViewState extends State<TownView>
       ..yaw = _cam.yawTarget
       ..pitch = 0.52;
     return prueba.distanceToFit(puntos, size.width, size.height);
-  }
-
-  /// Looks at a spot on the valley floor, for the map and the landmark list.
-  void lookAtPiece(int index) {
-    final p = _town.pieceFor(index);
-    if (p != null) goTo(p.cx, p.cz);
   }
 
   /// El hueco donde va a caer la siguiente, que es el que interesa mirar.

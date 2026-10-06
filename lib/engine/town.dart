@@ -837,7 +837,7 @@ class TownLayout {
   /// Así que un pueblo se funda con su plaza, y ningún solar puede meter la
   /// huella dentro. En metros y no en anchos de parcela a propósito: una plaza
   /// es del tamaño de la gente que la cruza y del mueble que hay en medio, no
-  /// de lo apretado que esté el caserío. Las seis regiones tienen la misma.
+  /// de lo apretado que esté el caserío. Todas las regiones tienen la misma.
   static const double plazaReach = 2.55;
 
   void _build() {
