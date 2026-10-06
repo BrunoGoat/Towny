@@ -124,7 +124,7 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
     // De vuelta en la primera vez —también después de borrar todo desde
     // ajustes—: los avisos y el cuadrito de la pantalla de inicio no pueden
     // seguir hablando de pueblos que ya no están.
-    if (!Appearance.instance.onboarded) {
+    if (!Appearance.instance.onboarded && !Appearance.instance.rehearsing) {
       _replan();
       WidgetBridge.instance.publish(store.habits);
     }
@@ -142,20 +142,16 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
     String? why,
     String? identity,
   }) async {
-    // La comarca primero: sólo se puede elegir mientras el pueblo no tiene
-    // ninguna pieza, y si se volvió a la primera vez con un pueblo ya hecho,
-    // ése se queda como está.
-    store.settle(0, character);
-    store.renameHabit(
-      0,
-      name: name.isEmpty ? 'Mi hábito' : name,
-      symbol: symbol,
+    final fundado = await foundFirstTown(
+      store,
+      name,
+      symbol,
+      character: character,
+      why: why,
+      identity: identity,
     );
-    store.describeHabit(0, why: why);
-    store.pledgeHabit(0, identity: identity);
-    store.justFounded = true;
-    await Appearance.instance.setOnboarded();
     if (mounted) setState(() {});
+    if (!fundado) return;
     _replan();
     // Recién fundado ya hay algo que enseñar afuera.
     WidgetBridge.instance.publish(store.habits);

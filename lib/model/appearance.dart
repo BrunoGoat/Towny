@@ -239,6 +239,14 @@ class Appearance extends ChangeNotifier {
   bool get hapticsOff => _hapticsOff;
   bool get nudgesOff => _nudgesOff;
   bool get onboarded => _onboarded;
+
+  /// Si la primera vez que se está mirando es un ensayo pedido desde ajustes.
+  ///
+  /// Mientras dura, contestar no toca el valle: ni el nombre, ni la marca, ni
+  /// la comarca. Y no se guarda en el disco: cerrar la app a mitad devuelve el
+  /// valle como estaba, no una primera vez a medias.
+  bool _rehearsing = false;
+  bool get rehearsing => _rehearsing;
   double get musicVolume => _musicVolume;
   double get effectsVolume => _effectsVolume;
 
@@ -261,6 +269,7 @@ class Appearance extends ChangeNotifier {
     _hapticsOff = false;
     _nudgesOff = true;
     _onboarded = false;
+    _rehearsing = false;
     _musicVolume = _midway;
     _effectsVolume = _midway;
     _fakeHour = false;
@@ -375,7 +384,7 @@ class Appearance extends ChangeNotifier {
     'effects=${_effectsOff ? 0 : 1}',
     'haptics=${_hapticsOff ? 0 : 1}',
     'nudges=${_nudgesOff ? 0 : 1}',
-    'onboarded=${_onboarded ? 1 : 0}',
+    'onboarded=${_onboarded || _rehearsing ? 1 : 0}',
     '$_volMark=$_volNow',
     'musicVol=$_musicVolume',
     'effectsVol=$_effectsVolume',
@@ -442,17 +451,27 @@ class Appearance extends ChangeNotifier {
   Future<void> setOnboarded() async {
     if (_onboarded) return;
     _onboarded = true;
+    _rehearsing = false;
     await _keep();
   }
 
-  /// Volver a la primera vez, para poder mirarla sin desinstalar.
+  /// Volver a la primera vez para mirarla, sin que cuente.
   ///
-  /// Sólo apaga la marca: no borra ni una pieza. Lo que se ve al volver es la
-  /// pantalla de entrada tal cual, y al fundar se renombra el hábito que ya
-  /// estuviera — que para mirar cómo quedó la pantalla es exactamente lo que
-  /// hace falta y no cuesta un valle.
+  /// Al terminar —fundar o saltar— se vuelve al valle tal como estaba. Ver
+  /// [rehearsing].
+  void rehearseOnboarding() {
+    _onboarded = false;
+    _rehearsing = true;
+    notifyListeners();
+  }
+
+  /// Volver a la primera vez de verdad: lo que se conteste funda el pueblo.
+  ///
+  /// Es lo que hace «empezar de cero», con el valle ya vacío. Para mirarla sin
+  /// que cuente está [rehearseOnboarding].
   Future<void> forgetOnboarded() async {
     _onboarded = false;
+    _rehearsing = false;
     await _keep();
   }
 

@@ -16,6 +16,7 @@ import '../fx/effects.dart';
 import '../fx/sensory.dart';
 import '../model/appearance.dart';
 import '../model/pledge.dart';
+import '../model/store.dart';
 import 'habit_sigil.dart';
 
 /// Lo que se ve la primera vez que se abre la app.
@@ -77,6 +78,37 @@ class FirstRun extends StatefulWidget {
 
   @override
   State<FirstRun> createState() => _FirstRunState();
+}
+
+/// Lo que hace la app con lo que se contestó en la primera vez.
+///
+/// Devuelve si fundó algo. **Un ensayo no funda nada**: si la primera vez se
+/// abrió desde ajustes para mirarla ([Appearance.rehearsing]), se vuelve al
+/// valle tal como estaba, con su nombre, su marca y su comarca.
+///
+/// Si no, se le pone todo al hábito en blanco con el que arranca el valle en
+/// vez de crear uno: ese hueco ya existe y ya tiene su solar. La comarca
+/// primero, porque sólo se puede elegir mientras el pueblo no tiene ninguna
+/// pieza.
+Future<bool> foundFirstTown(
+  Store store,
+  String name,
+  String symbol, {
+  required int character,
+  String? why,
+  String? identity,
+}) async {
+  if (Appearance.instance.rehearsing) {
+    await Appearance.instance.setOnboarded();
+    return false;
+  }
+  store.settle(0, character);
+  store.renameHabit(0, name: name.isEmpty ? 'Mi hábito' : name, symbol: symbol);
+  store.describeHabit(0, why: why);
+  store.pledgeHabit(0, identity: identity);
+  store.justFounded = true;
+  await Appearance.instance.setOnboarded();
+  return true;
 }
 
 /// Los colores de la primera vez. Fijos y no de la hora, ver [FirstRun].

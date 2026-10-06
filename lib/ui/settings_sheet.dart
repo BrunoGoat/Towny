@@ -405,9 +405,9 @@ class _SettingsSheetState extends State<SettingsSheet> {
           title: 'Ver la primera vez otra vez',
           subtitle:
               'Abre la pantalla de entrada como si acabaras de instalar la '
-              'app. No borra ninguna pieza.',
-          act: (nav) async {
-            await Appearance.instance.forgetOnboarded();
+              'app. Es sólo para mirar: al terminar vuelve tu valle tal cual.',
+          act: (nav) {
+            Appearance.instance.rehearseOnboarding();
             nav.pop();
           },
         ),
