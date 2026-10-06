@@ -9,8 +9,8 @@ hace falta para seguir**.
 ## 1. Que la app hable otros idiomas
 
 **En qué punto está.** El inventario está hecho y es lo que hay que mirar
-antes de escribir una línea de código: **`TEXTOS.md`**, con las 1.187 entradas
-—unas 1.800 frases— que ve quien usa la app, agrupadas por dónde salen y con
+antes de escribir una línea de código: **`TEXTOS.md`**, con las 1.256 entradas
+—unas 1.880 frases— que ve quien usa la app, agrupadas por dónde salen y con
 archivo, renglón y clase de cada una. No está escrito a mano: se regenera con
 
 ```bash
@@ -23,18 +23,18 @@ parecía, y de ahí salió la pausa. Las cuentas, para poder decidir:
 
 | Bloque | Frases | Nota |
 |---|---|---|
-| Bandos del tablón | 872 | **El 48% de todo.** Costumbrismo de pueblo castellano: es lo más caro de traducir y lo que peor viaja |
+| Bandos del tablón | 872 | **El 46% de todo.** Costumbrismo de pueblo castellano: es lo más caro de traducir y lo que peor viaja |
 | Obras del catálogo | 120 | Nombre + la frase que se dice el día que se remata |
 | Obras retiradas | 106 | Sólo las ven los pueblos que ya las levantaron |
-| La interfaz entera | 347 | Las 35 pantallas |
-| Lo que el tablón dice de vos | 90 | Con huecos: números, fechas, nombres |
+| La interfaz entera | 394 | Las 28 pantallas |
+| Lo que el tablón dice de vos | 104 | Con huecos: números, fechas, nombres |
 | Símbolos de hábito | 72 | Etiquetas del selector de marcas |
 | Nombres de la gente | 87 | **No se traducen**: son nombres propios |
 | Constelaciones | 24 | **Hoy no se leen en ningún sitio** |
-| Comarcas, casas, sonidos, música, avisos, widget | ~90 | |
+| Comarcas, casas, sonidos, música, avisos, widget | ~100 | |
 
-**Sin los bandos y sin las retiradas, un idioma son unas 700 frases.** Con
-todo, 1.800.
+**Sin los bandos y sin las retiradas, un idioma son unas 900 frases.** Con
+todo, 1.880.
 
 **Tres decisiones que hay que tomar antes de empezar:**
 
@@ -78,9 +78,6 @@ mesa, con lo medido al lado:
   decidir qué decir. Es lo único de la app que hace trabajo pesado fuera de un
   fotograma. Hay que re-medirlo y, si sigue, cortarlo: la notificación no
   necesita el pueblo, necesita saber qué obra está en marcha.
-- **Tres scripts muertos en `tool/`**: `tiers.sh`, `city.sh` y `matrix.sh`
-  apuntan a `/home/user/the-wall` y a un Flutter que no existe en esta
-  máquina.
 - **Campos que no lee nadie**: `name`, `latin` y `blurb` en las ocho
   constelaciones, desde que dejaron de anotarse.
 - **`ndkVersion` en `android/app/build.gradle.kts`**: ningún plugin del
@@ -91,7 +88,8 @@ mesa, con lo medido al lado:
 ## 3. Ideas que quedaron sobre la mesa
 
 En orden de lo que más daría por lo que menos cuesta. *(Fechar las obras, que
-encabezaba esta lista, ya está hecho: el calendario del libro del atril.)*
+encabezaba esta lista, ya está hecho: la tarjeta del día que se remata dice
+entre qué dos fechas se levantó.)*
 
 1. **Volver a mirar un día.** En ajustes está «ver el pueblo a futuro». El
    pasado vale más: tu pueblo el día que empezaste, hace un año, el día que

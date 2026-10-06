@@ -38,6 +38,7 @@ void main() {
     b.writeln('\n## COMARCAS (${TownCharacter.all.length})');
     for (final c in TownCharacter.all) {
       b.writeln('- ${c.region} · ${c.blurb}');
+      b.writeln('    ${c.suits}');
       c.houseNames?.forEach((k, v) => b.writeln('    [${k.name}] $v'));
     }
     b.writeln('\n## CONSTELACIONES (${constellations.length})');

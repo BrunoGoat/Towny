@@ -21,7 +21,7 @@ vive escondido en ajustes y viene apagado.
 ## Un hábito, un pueblo
 
 Cada hábito tiene su propio pueblo, con su nombre, su marca y su **región**, que
-se elige el día que se funda y no se cambia nunca. Las seis regiones no son seis
+se elige el día que se funda y no se cambia nunca. Las ocho regiones no son ocho
 paletas del mismo pueblo: cambian la altura de las casas, el ancho de los
 solares, la inclinación de los tejados, el grosor de los muros, cuántas ventanas
 se abren y qué mezcla de teja, pizarra y paja se usa.
@@ -34,6 +34,8 @@ se abren y qué mezcla de teja, pizarra y paja se usa.
 | **Valle** | Madera y paja, solares grandes y huerta en casi todas. |
 | **Costa** | Cal y añil, tejados casi planos y mucho aire entre las casas. |
 | **Robledal** | Madera oscura bajo los robles, tejados de paja muy inclinados. |
+| **Encrucijada** | Pueblo de camino: posadas, plazas anchas y casas de colores distintos. |
+| **Alfar** | De artesanos: talleres y hornos, barro cocido y tejados rojos. |
 
 Los pueblos se ven todos juntos alejando la cámara: el **valle**, con cada uno
 en su sitio y su cartel. Desde ahí se entra a cualquiera.
@@ -241,9 +243,9 @@ botón grande y un hábito de mentira llamado «Mi hábito». Todo lo que hace a
 app distinta estaba ahí desde el primer minuto y no lo contaba nadie: se
 descubría a los tres meses, o no se descubría.
 
-Ahora son cuatro pantallas, una pregunta en cada una, sobre el valle vacío de
-verdad con el cielo de esa hora. Qué es esto · qué querés hacer · para qué lo
-querés · en quién te convierte.
+Ahora son cinco pantallas, una pregunta en cada una, sobre el valle vacío de
+verdad con el cielo de esa hora. Qué es esto · qué hábito querés desarrollar ·
+qué clase de pueblo · para qué querés ese hábito · en quién te convierte.
 
 **Pantallas y no una hoja con campos.** Un formulario se contesta mirando los
 huecos que faltan por rellenar, y las dos últimas preguntas no se contestan
@@ -268,12 +270,11 @@ plaza, así que lo único que se funde entre una pantalla y la otra es lo de
 encima.
 
 Y en cuanto se funda, **aparece la plaza**: primero el enlosado, que dice dónde
-está el centro; después el tablón, que es lo que el pueblo va a decir de vos; y
-por último el atril, que es donde va a quedar escrito lo que digas vos. Un
-pueblo se funda con su plaza, no con su primera casa — antes aparecía de la
+está el centro; y después el tablón, que es lo que el pueblo va a decir de vos.
+Un pueblo se funda con su plaza, no con su primera casa — antes aparecía de la
 nada a la vez que la primera pieza.
 
-**Las tres caen del cielo**, una detrás de otra, con la misma caída, el mismo
+**Los dos caen del cielo**, uno detrás del otro, con la misma caída, el mismo
 golpe de polvo y el mismo rebote corto que las seiscientas piezas que van a
 venir detrás. Subían del suelo, y era la única cosa de toda la app que no
 caía: en un pueblo donde cada logro es una piedra que cae, una plaza que
@@ -472,110 +473,18 @@ que se va cerrando. Un candado invisible no es una promesa, es una ausencia.
 > puerta abierta y los conserva todos. Nadie pierde un pueblo por una regla que
 > se inventó después de que lo fundara.
 
-## Leyendas y bitácora
+## Tocar una pieza
 
-Cualquier pieza se puede tocar para ver cuándo se colocó y dejarle una nota. El
-área que responde es la del sólido entero y no se atraviesa: si hay una pieza
-encima de otra, gana la de encima.
+Cualquier pieza se puede tocar para ver cuál es y cuándo se colocó, y la hora
+se puede corregir desde ahí. El área que responde es la del sólido entero y no
+se atraviesa: si hay una pieza encima de otra, gana la de encima.
 
-**La leyenda se escribe en la misma tarjeta donde se lee**, y sin moverse del
-sitio aunque salga el teclado. Se toca el texto y el texto se convierte en el
-campo; se toca fuera y queda guardado. No hay botón
-de guardar y no hay una segunda pantalla: una hoja aparte con su título, su
-explicación y sus botones es mucha pantalla para una frase de sesenta letras que
-ya estaba delante. Desde la bitácora es lo mismo —tocar una entrada lleva la
-cámara hasta esa pieza y abre su tarjeta—, así que hay una sola manera de
-escribir una leyenda y está en un solo sitio.
-
-Las que llevan leyenda quedan marcadas, y todas juntas forman la bitácora — la
-pestaña *Leyendas* es una hoja de papiro que se lee de la primera pieza a la
-última, por meses, como la crónica de una obra.
-
-Al lado están *El pueblo*, con lo que llevás en pie y tus dos cifras, e *Hitos*,
-con lo terminado, lo que está en obra y lo que viene.
-
-## El libro del atril
-
-En la plaza hay un atril, y lo que se abre al tocarlo es un libro: dos páginas
-de papiro, y la hoja se pasa con el dedo. Que sea un libro no es adorno — una
-lista que se desliza no tiene fondo, y un libro tiene páginas contadas y se
-sabe por dónde se va.
-
-**Es un códice, no un escaneo.** Tablas forradas de cuero, cantoneras de latón
-en las cuatro esquinas, y el canto de las hojas asomando por los dos costados:
-apilado a la izquierda lo leído y a la derecha lo que queda, así que la mano
-sabe por dónde va sin leer el número. El papel se oscurece al meterse en el
-pliegue, que es lo que le da volumen a dos rectángulos de papel. Cada página
-lleva su renglón de sección arriba y su folio abajo, por la parte de fuera.
-
-**Y la hoja pasa por delante.** Girar media vuelta sobre el lomo lleva la hoja
-de un lado al otro con cualquiera de los dos signos de la perspectiva, porque
-el ancho va con el coseno; lo que cambia es la profundidad. Con el signo
-equivocado el canto libre se hundía por detrás del libro y salía por el otro
-lado, que es algo que el papel no hace.
-
-### El calendario de las obras
-
-La bitácora fecha cada pieza desde el primer día. Las obras no estaban
-fechadas, y las obras son lo que uno recuerda: *«catedral, del 3 de mayo al 2
-de julio, sesenta y un días»* convierte el pueblo en un calendario de tu propia
-vida — mirás la colegiata y sabés qué dos meses fueron.
-
-Va delante de las leyendas, porque las obras son los años y las leyendas son
-los días. Una página por año: los meses bajan por la hoja y cada obra es una
-barra que empieza donde se puso la primera piedra y acaba donde se remató. Lo
-que se lee de un vistazo no es cuánto costó cada una sino **cuánto duró**, y
-dónde están los huecos — los meses en que el pueblo creció en casas y no hizo
-época. La que está en obra va en rojo y sin cerrar.
-
-**No se guarda ni un dato nuevo.** Sale de lo que ya estaba escrito: la crónica
-dice en qué orden se construye, el plan en qué pieza empieza cada obra y
-cuántas cuesta, y cada pieza lleva su fecha desde siempre. Por eso funciona
-hacia atrás, en pueblos levantados hace un año por una versión de la app que no
-sabía nada de esto. Y por eso mismo cuentan **días de calendario y no piezas**:
-veinte piezas pueden ser veinte días o tres meses, y eso es toda la idea.
-
-La misma fecha se dice en la tarjeta del día que se remata una obra, que es el
-momento en que vale algo.
-
-### La cuenta del mes y del año
-
-Todo lo demás que esta app enseña es el presente: cuántas piezas llevás, qué está
-en obra, si el pueblo está encendido. Eso sirve para hoy y para nada más, porque
-lo que uno no sabe nunca de un hábito no es cómo va hoy —eso se ve— sino **cómo
-fue el mes**. Y sin eso no hay manera de corregir: se sigue haciendo lo mismo,
-mejor o peor, sin saber qué de lo que se hizo funcionó.
-
-En el libro, entre el calendario y las leyendas, hay hasta cuatro páginas de
-cuenta: **este mes, el mes pasado, este año y el año pasado**. Las dos cadencias
-hacen falta y no son la misma: el mes es lo bastante corto para acordarse de lo
-que pasó dentro y lo bastante largo para que una semana mala no lo decida; el
-año es donde se ven las cosas que un mes no puede enseñar — que los huecos son
-más cortos que en enero, que el pueblo tiene cuatro obras que hace un año no
-existían.
-
-Cada página dice seis cosas y ninguna es una felicitación: lo que pusiste (en
-cuántos de los días que contaban), **contra el tramo anterior** en puntos, los
-huecos y el más largo —y que volviste de todos—, lo que se levantó y lo que quedó
-en obra, si el plan se cumplió, y el título — **si ya estaba ganado entonces**:
-la cuenta de abril dice lo que el pueblo decía en abril, no lo que dice hoy, y
-si el título llegó en junio, en la hoja de abril no está.
-
-Y acaba en una pregunta que la app no contesta: **¿qué es lo único que haría que
-el mes que viene fuera mejor?** Es lo único que una revisión tiene que hacer y lo
-único que ningún número puede hacer por vos; la respuesta se clava en el tablón,
-que es donde van las cosas que uno se dice a sí mismo.
-
-**Está en el libro y no en una pantalla propia** a propósito. Un resumen al que
-hay que ir no se mira nunca; éste se encuentra hojeando, que es lo que uno hace
-con un libro. Y como el calendario, no guarda un solo dato nuevo: sale de las
-fechas de las piezas, de la crónica y de las pausas, así que las revisiones de
-los meses de hace dos años ya están escritas.
-
-Tres reglas que no son obvias y que deciden si la cuenta es honrada: un día
-dormido no es un día en blanco ni parte un hueco por la mitad; los días en blanco
-del final de un mes que sigue abierto **no son un hueco** —todavía no—; y hoy en
-blanco no cuenta en contra, porque el día no ha terminado.
+Las obras también tienen fecha, aunque nadie la haya escrito: *«catedral, del 3
+de mayo al 2 de julio, sesenta y un días»*. Se dice en la tarjeta del día que
+se remata, que es el momento en que vale algo, y no se guarda ni un dato nuevo
+para saberlo: sale de la crónica, del plan y de la fecha de cada pieza, así que
+funciona también hacia atrás. Cuenta **días de calendario y no piezas**: veinte
+piezas pueden ser veinte días o tres meses.
 
 ## El cielo
 

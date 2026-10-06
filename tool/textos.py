@@ -169,21 +169,22 @@ MUNDO = [
  ('OBRAS (60)', 'O', 'Las obras del catálogo (60)',
   'El **nombre** sale en tres sitios: en la tarjeta de elegir cuando el pueblo '
   'va a empezar una obra, en el cartel que flota sobre ella mientras se '
-  'construye, y en la bitácora. La **frase** se dice una sola vez, el día que '
+  'construye, y en la tarjeta del día que se remata. La **frase** se dice una '
+  'sola vez, el día que '
   'la obra se remata, y también se lee en la tarjeta de elegir y en el '
   'expositor. Una obra llega cada dos o tres semanas.'),
  ('OBRAS RETIRADAS (53)', 'R', 'Las obras retiradas (53)',
   'Ya no se ofrecen a nadie, pero siguen en pie en los pueblos que las '
-  'levantaron antes de la poda: ahí su nombre sigue saliendo en el cartel y en '
-  'la bitácora. Si decidís que los pueblos viejos se rehagan sin ellas, estas '
+  'levantaron antes de la poda: ahí su nombre sigue saliendo en el cartel. Si '
+  'decidís que los pueblos viejos se rehagan sin ellas, estas '
   '106 frases se van enteras.'),
  ('CASAS CORRIENTES (7)', 'C', 'Las casas corrientes (7)',
   'El nombre de un edificio que no es un hito. Se ve al tocar una casa y en el '
   'expositor de estructuras. Cada comarca puede llamarlas a su manera —las 42 '
   'variantes están en el bloque siguiente—.'),
  ('COMARCAS (6)', 'M', 'Las comarcas (6)',
-  'Cuando fundás un hábito elegís comarca: ahí se lee el nombre en mayúsculas '
-  'y la descripción debajo. Después el nombre vuelve a salir en el expositor y '
+  'Cuando fundás un hábito elegís comarca: ahí se lee el nombre, la '
+  'descripción y, debajo, para qué clase de hábito pega. Después el nombre vuelve a salir en el expositor y '
   'en el de la gente. Las líneas sangradas son cómo llama esa comarca a cada '
   'clase de casa.'),
  ('CONSTELACIONES (8)', 'E', 'Las constelaciones (8)',
@@ -197,8 +198,21 @@ MUNDO = [
   'bloque «lo que el tablón dice de vos». **Es el bloque más grande de la app '
   'y el más fácil de recortar.**'),
 ]
+def _seccion(clave):
+    # Por el nombre y no por la cuenta entre paréntesis: la cuenta la escribe
+    # el volcado, y cambia en cuanto se agrega una comarca o una obra.
+    raiz = clave.split(' (')[0]
+    for k in sec:
+        if k.split(' (')[0] == raiz:
+            return k
+    raise KeyError(clave)
+
+
 for clave, pref, titulo, cuando in MUNDO:
-    cuerpo, n = numera(pref, sec[clave])
+    real = _seccion(clave)
+    if '(' in real and '(' in titulo:
+        titulo = titulo.split(' (')[0] + ' (' + real.split(' (', 1)[1]
+    cuerpo, n = numera(pref, sec[real])
     bloque(titulo, cuando, cuerpo)
 
 # ------------------------------------------------------------------ la gente
@@ -363,13 +377,16 @@ bloque(f'El widget de Android ({len(w) + 1})',
 # --------------------------------------------------------------- el resumen
 texto = '\n'.join(out)
 cuenta = lambda p: len(re.findall(rf'^- \*\*{p}\d+\*\*', texto, re.M))
+FRASES = (cuenta("O")*2 + cuenta("R")*2 + cuenta("C") + cuenta("M")*3 + 42
+          + cuenta("E")*3 + cuenta("B")*2 + cuenta("T") + 87 + cuenta("G")
+          + cuenta("S") + cuenta("U") + cuenta("N") + cuenta("W"))
 tabla = ['## Resumen\n',
  '| Bloque | Entradas | Frases | ¿Se traduce? |',
  '|---|---|---|---|',
  f'| Obras del catálogo | {cuenta("O")} | {cuenta("O")*2} | sí |',
  f'| Obras retiradas | {cuenta("R")} | {cuenta("R")*2} | sí, si se quedan |',
  f'| Casas corrientes | {cuenta("C")} | {cuenta("C")} | sí |',
- f'| Comarcas | {cuenta("M")} | {cuenta("M")*2} + 42 | sí |',
+ f'| Comarcas | {cuenta("M")} | {cuenta("M")*3} + 42 | sí |',
  f'| Constelaciones | {cuenta("E")} | {cuenta("E")*3} | **hoy no se ven** |',
  f'| Bandos del tablón | {cuenta("B")} | {cuenta("B")*2} | sí — el grueso |',
  f'| Lo que el tablón dice de vos | {cuenta("T")} | {cuenta("T")} | sí |',
@@ -381,8 +398,8 @@ tabla = ['## Resumen\n',
  f'| Widget de Android | {cuenta("W")} | {cuenta("W")} | sí |',
  '',
  f'**{sum(cuenta(x) for x in "ORCMEBTGSUNW") + 87} entradas**, que son unas '
- f'{cuenta("O")*2 + cuenta("R")*2 + cuenta("C") + cuenta("M")*2 + 42 + cuenta("E")*3 + cuenta("B")*2 + cuenta("T") + 87 + cuenta("G") + cuenta("S") + cuenta("U") + cuenta("N") + cuenta("W")} '
- 'frases sueltas. Sin las retiradas y sin los bandos se quedan en unas 700.',
+ f'{FRASES} frases sueltas. Sin las retiradas y sin los bandos se quedan en '
+ f'unas {FRASES - cuenta("R")*2 - cuenta("B")*2}.',
  '']
 out[RESUMEN:RESUMEN] = tabla
 open('TEXTOS.md','w').write('\n'.join(out) + '\n')
