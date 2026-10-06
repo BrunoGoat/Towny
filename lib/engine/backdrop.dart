@@ -67,14 +67,11 @@ class Backdrop {
       canvas.drawRect(
         Rect.fromLTWH(0, hy - h * 0.22, size.width, h * 0.22),
         Paint()
-          ..shader = ui.Gradient.linear(
-            Offset(0, hy - h * 0.22),
-            Offset(0, hy),
-            [
-              pal.skyHorizon.withValues(alpha: 0),
-              pal.haze.withValues(alpha: 0.85),
-            ],
-          ),
+          ..shader =
+              ui.Gradient.linear(Offset(0, hy - h * 0.22), Offset(0, hy), [
+                pal.skyHorizon.withValues(alpha: 0),
+                winterHaze(pal).withValues(alpha: 0.85),
+              ]),
       );
     }
   }
@@ -340,21 +337,32 @@ class Backdrop {
   /// no hubiera nevado, con el pardo que le toque al mes.
   void drawTufts(Canvas canvas, Projector p, Size size, double horizonY) {
     final pal = scene.palette;
-    final nieve = pal.season.snow;
-    if (nieve < 0.12) return;
+    if (pal.season.snow < 0.10) return;
+    // Del mismo peso que el manto: una mata asoma sobre lo blanco que haya.
+    final nieve = snowCover(pal.season);
+    // Y más claros cuanto menos nieve: así se ve llegar y se ve irse.
+    final claros = 1 + 1.2 * (1 - pal.season.snow);
 
     // De noche, a medio camino de la propia nieve. El verde de la hierba
     // nocturna es casi negro, y casi negro sobre un prado nevado no se lee
     // como un claro sino como un agujero: de día son matas y de noche eran
     // charcos de alquitrán.
+    //
+    // Y de día, también algo hundidas en la nieve: a verde lleno sobre blanco
+    // eran un estampado de camuflaje, más fuertes que el pueblo mismo.
+    final manto = meadowTone(pal);
     final verde = Color.lerp(
       tuftTone(pal),
-      meadowTone(pal),
-      (1 - pal.daylight) * 0.6,
+      manto,
+      0.22 + (1 - pal.daylight) * 0.45,
     )!;
     // Dos tonos y no uno. Un claro de hierba y otro de hierba seca al lado es
     // lo que hace que un campo pelado no parezca estampado.
-    final pardo = Color.lerp(verde, meadowTone(pal), 0.34)!;
+    final pardo = Color.lerp(verde, manto, 0.34)!;
+    // Y la sombra de los ventisqueros: la nieve no queda plana, se amontona,
+    // y el lado que no mira al sol se pone del color del cielo. Es lo que le
+    // da cuerpo al manto sin ensuciarlo de verde.
+    final sombra = Color.lerp(manto, pal.skyTop, 0.16 + 0.10 * pal.daylight)!;
 
     const paso = 1.5, anillo = 26.0, anillos = 8;
     final ex = p.eye.x, ez = p.eye.z;
@@ -367,7 +375,7 @@ class Backdrop {
 
     // Todo en dos caminos y no en mil llamadas de dibujo: son miles de manchas
     // y pintarlas de una en una cuesta más que el pueblo entero.
-    final mata = Path(), seca = Path();
+    final mata = Path(), seca = Path(), ventisca = Path();
     final dia = scene.day;
     var puestas = 0;
 
@@ -386,7 +394,19 @@ class Backdrop {
           // En índices de la rejilla fina: es lo que hace que al cambiar de
           // anillo las que sobreviven sigan exactamente donde estaban.
           final gi = i * salto, gk = k * salto;
-          if (hash01(gi, gk, 7, dia) > 0.38) continue;
+          // Por rodales y no salpicadas parejo: la hierba asoma donde el
+          // viento barrió la nieve, que es en manchas grandes, y entre
+          // rodal y rodal el blanco queda limpio. Repartidas iguales por todo
+          // el valle eran un estampado.
+          final rodal = _rodal(gi, gk, dia);
+          // Y menos cuanto más lejos: desde el otro lado del valle una mata
+          // es un punto, y mil puntos juntos contra el horizonte eran una
+          // franja de musgo.
+          final hierba =
+              hash01(gi, gk, 7, dia) <
+              0.34 * claros * rodal * (1 - nivel * 0.10);
+          final duna = !hierba && hash01(gi, gk, 9, dia) < 0.05;
+          if (!hierba && !duna) continue;
           final x = gi * paso + (hash01(gi, gk, 1, dia) - 0.5) * paso * 0.92;
           final z = gk * paso + (hash01(gi, gk, 2, dia) - 0.5) * paso * 0.92;
           final vx = x - ex, vz = z - ez;
@@ -400,21 +420,58 @@ class Backdrop {
           final ancho =
               p.focal /
               at.depth *
-              0.42 *
+              (duna ? 0.95 : 0.32) *
               step *
               (0.6 + hash01(gi, gk, 3, dia) * 1.0);
           // Lo que no llega a dos píxeles y medio no es una mata: es suciedad,
           // y suciedad que cuesta.
           if (ancho < 2.5) continue;
-          final donde = hash01(gi, gk, 4, dia) < 0.42 ? seca : mata;
-          _manchas(donde, at.x, at.y, ancho, gi, gk, dia);
+          if (duna) {
+            // Larga y muy tumbada: un ventisquero es una ola, no un charco.
+            ventisca.addOval(
+              Rect.fromCenter(
+                center: Offset(at.x, at.y),
+                width: ancho,
+                height: ancho * (0.06 + hash01(gi, gk, 6, dia) * 0.05),
+              ),
+            );
+          } else {
+            final donde = hash01(gi, gk, 4, dia) < 0.42 ? seca : mata;
+            _manchas(donde, at.x, at.y, ancho, gi, gk, dia);
+          }
           puestas++;
         }
       }
     }
     if (puestas == 0) return;
+    canvas.drawPath(
+      ventisca,
+      Paint()
+        ..color = sombra.withValues(alpha: nieve * 0.40)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.2),
+    );
     canvas.drawPath(mata, Paint()..color = verde.withValues(alpha: nieve));
     canvas.drawPath(seca, Paint()..color = pardo.withValues(alpha: nieve));
+  }
+
+  /// Cuánta hierba asoma por aquí, de cero a uno: ruido suave a la escala de
+  /// una era, para que las matas vayan por rodales.
+  ///
+  /// En índices de la rejilla fina, como las matas: al cambiar de anillo, un
+  /// sitio sigue siendo rodal o claro.
+  static double _rodal(int gi, int gk, int dia) {
+    const lado = 9;
+    final fx = gi / lado, fz = gk / lado;
+    final x0 = fx.floor(), z0 = fz.floor();
+    final tx = fx - x0, tz = fz - z0;
+    final sx = tx * tx * (3 - 2 * tx), sz = tz * tz * (3 - 2 * tz);
+    double v(int a, int b) => hash01(a, b, 11, dia);
+    final n = lerpD(
+      lerpD(v(x0, z0), v(x0 + 1, z0), sx),
+      lerpD(v(x0, z0 + 1), v(x0 + 1, z0 + 1), sx),
+      sz,
+    );
+    return smoothstep(0.30, 0.78, n);
   }
 
   /// Un claro de hierba, que no es un círculo.
@@ -601,6 +658,31 @@ class Backdrop {
 
       for (final shape in shapes) {
         canvas.drawPath(shape, paint);
+      }
+
+      // La nieve de las cumbres, como una línea de nieve y no como un borde:
+      // un degradado de arriba abajo con el corte a la misma altura en toda
+      // la sierra, así que se blanquean los picos que la pasan y las
+      // vaguadas se quedan en roca. Eso es lo que hace la nieve en un monte.
+      final cap = snowCap(pal, li, Landscape.ridges.length);
+      if (cap != null && crest < cut) {
+        final (nieve, linea) = cap;
+        final top = crest, alto = cut - crest;
+        final paintCap = Paint()
+          ..shader = ui.Gradient.linear(
+            Offset(0, top),
+            Offset(0, top + alto),
+            [
+              nieve,
+              nieve,
+              nieve.withValues(alpha: 0),
+              nieve.withValues(alpha: 0),
+            ],
+            [0.0, linea * 0.75, math.min(1.0, linea + 0.16), 1.0],
+          );
+        for (final shape in shapes) {
+          canvas.drawPath(shape, paintCap);
+        }
       }
 
       // And the sun on the tops, as a wash that comes and goes across the

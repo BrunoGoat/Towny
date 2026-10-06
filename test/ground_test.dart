@@ -237,18 +237,23 @@ void main() {
       // La nieve no se posa dos noches igual. La semilla lleva la fecha
       // dentro, así que el reparto de mañana no es el de hoy — y eso es, de
       // paso, lo que hace que un valle nevado no sea un fondo de pantalla.
+      //
+      // Sobre todo el prado y no sobre la franja: van por rodales, con blanco
+      // limpio entre uno y otro, así que una franja estrecha puede caer
+      // entera en un claro dos días seguidos.
       final hoy = await frame(hour: 12, season: invierno, day: 20261001);
       final manana = await frame(hour: 12, season: invierno, day: 20261002);
       var dif = 0;
-      for (var y = from; y < to; y++) {
-        for (var x = left; x < right; x++) {
+      const arriba = 300;
+      for (var y = arriba; y < _h; y++) {
+        for (var x = 0; x < _w; x++) {
           if (_at(hoy, x, y) != _at(manana, x, y)) dif++;
         }
       }
-      final total = (to - from) * (right - left);
+      const total = (_h - arriba) * _w;
       expect(
         dif,
-        greaterThan(total ~/ 8),
+        greaterThan(total ~/ 30),
         reason: 'de un día para otro sólo cambian $dif de $total píxeles',
       );
     });
@@ -270,11 +275,20 @@ void main() {
         distance: 60,
         pitch: 0.3,
       );
-      for (final banda in [260, 420, 700]) {
+      //
+      // En dos mitades anchas —la de lejos y la de cerca— y a todo lo ancho:
+      // van por rodales, y entre rodal y rodal la nieve queda limpia a
+      // propósito, así que una banda estrecha puede caer entera en un claro.
+      //
+      // Y contando hierba, no cualquier cosa distinta: lo verde. La nieve y la
+      // sombra de los ventisqueros tiran a azul, la hierba no.
+      for (final (banda, hasta) in [(170, 480), (480, 790)]) {
         var mata = 0;
-        for (var y = banda; y < banda + 40; y++) {
+        for (var y = banda; y < hasta; y++) {
           for (var x = left; x < right; x++) {
-            if (_at(px, x, y) != _at(px, left, banda)) mata++;
+            final c = _at(px, x, y);
+            final g = (c >> 16) & 0xFF, b = (c >> 8) & 0xFF;
+            if (g > b + 6) mata++;
           }
         }
         expect(

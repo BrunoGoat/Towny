@@ -420,4 +420,57 @@ void main() {
     ).turn;
     expect((b - a + 1) % 1.0, closeTo(0.25, 0.01));
   });
+
+  group('un valle nevado que parezca nieve', () {
+    final enero = _n(1, 25), julio = _n(7, 15);
+    double luz(Color c) => c.r * 0.3 + c.g * 0.55 + c.b * 0.15;
+
+    test('al mediodía la nieve es clara y fría, no gris ni hueso', () {
+      // Lo que se veía: un campo gris sucio con un velo de prado debajo, y
+      // la nieve tirando a amarillo por el sol de la paleta.
+      final nieve = meadowTone(Palette.forMoment(13, season: enero));
+      expect(luz(nieve), greaterThan(0.80));
+      expect(nieve.b, greaterThanOrEqualTo(nieve.r));
+    });
+
+    test('la nieve cuaja de golpe: no hay semanas de prado gris', () {
+      // El manto va por [snowCover] y no por la nieve a secas, que sube de a
+      // poco: a la par, durante las semanas en que llegaba el valle era de un
+      // gris barroso.
+      expect(snowCover(Season.none), 0);
+      expect(snowCover(julio), 0);
+      var grises = 0;
+      for (var d = 0; d < 365; d++) {
+        final s = Season.on(
+          DateTime(2026, 1, 1).add(Duration(days: d)),
+          Hemisphere.north,
+        );
+        final c = snowCover(s);
+        if (c > 0.15 && c < 0.85) grises++;
+      }
+      expect(grises, lessThanOrEqualTo(4), reason: '$grises días a medias');
+    });
+
+    test('las cumbres se nievan en invierno y en verano no', () {
+      for (var li = 0; li < 3; li++) {
+        expect(snowCap(Palette.forMoment(13, season: julio), li, 3), isNull);
+        final cap = snowCap(Palette.forMoment(13, season: enero), li, 3);
+        expect(cap, isNotNull);
+        final (color, linea) = cap!;
+        expect(color.a, greaterThan(0.6), reason: 'sierra $li');
+        // Una línea de nieve, no la sierra entera: debajo queda roca.
+        expect(linea, inInclusiveRange(0.2, 0.7), reason: 'sierra $li');
+      }
+    });
+
+    test('el aire de un día de nieve es frío, y sin nieve no cambia nada', () {
+      final pal = Palette.forMoment(13, season: enero);
+      final bruma = winterHaze(pal);
+      expect(bruma.b, greaterThan(bruma.r));
+      expect(luz(bruma), greaterThan(luz(pal.haze)));
+      final verano = Palette.forMoment(13, season: julio);
+      expect(winterHaze(verano), verano.haze);
+      expect(winterAir(verano.groundFar, verano), verano.groundFar);
+    });
+  });
 }

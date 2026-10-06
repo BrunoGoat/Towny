@@ -82,9 +82,25 @@ Color meadowTone(Palette pal) {
   // la tierra del cielo no hace falta que sea medio tono de gris: con el 10%
   // el horizonte sigue leyéndose —el cielo de un día de nieve es más oscuro
   // que la nieve, no más claro— y lo de abajo por fin parece nieve.
-  final manto = Color.lerp(snowTone(pal), pal.ground, 0.10)!;
-  return Color.lerp(prado, manto, pal.season.snow * 0.74)!;
+  //
+  // Y tapando casi todo. Con tres cuartos de nieve y un cuarto de prado el
+  // manto salía gris sucio —un prado verde con un velo encima, no un campo
+  // nevado— y lo que hace que el valle parezca invierno es que el blanco sea
+  // blanco. Lo que rompe la sábana son las matas y los ventisqueros
+  // ([Backdrop.drawTufts]), no un gris parejo.
+  final manto = Color.lerp(snowTone(pal), pal.ground, 0.06)!;
+  return Color.lerp(prado, manto, snowCover(pal.season) * 0.92)!;
 }
+
+/// Cuánto del prado tapa la nieve, de cero a uno.
+///
+/// Sube más rápido que [Season.snow]: en cuanto la nieve cuaja, el campo es
+/// blanco, y lo que dice que todavía es poca son los claros
+/// ([Backdrop.drawTufts]), que entonces son más. Con el manto a la par de la
+/// nieve, las semanas en que llega y se va el valle entero era de un gris
+/// barroso —ni prado ni nieve—, que es justo lo que no hace la nieve: se
+/// posa a parches blancos, no en un velo parejo.
+double snowCover(Season s) => smoothstep(0.08, 0.20, s.snow);
 
 /// El prado de esta hora **sin la nieve encima**: lo que asoma por los claros.
 ///
@@ -188,15 +204,51 @@ Color grassOfYear(Season s) {
 /// la hora, la nieve del amanecer sale rosada y la de la noche azul, que es
 /// lo que hace la nieve de verdad y lo que la mete dentro de la escena.
 Color snowTone(Palette pal) {
-  final luz = Color.lerp(pal.sun, pal.skyLight, 0.45)!;
+  final luz = Color.lerp(pal.sun, pal.skyLight, 0.55)!;
   // De noche se hunde más en la luz de la hora que de día. Una nieve casi
   // blanca en un paisaje nocturno es un agujero recortado: lo único que se
   // ve, y encima plano.
+  //
+  // Y de día, fría. Con el sol pesando casi la mitad, al mediodía la nieve
+  // salía color hueso: el sol de la paleta es amarillo, que es lo que tiene
+  // que ser para las paredes, pero la nieve devuelve sobre todo el cielo.
   return Color.lerp(
-    const Color(0xFFEDF1F5),
+    const Color(0xFFF0F4F8),
     luz,
-    0.30 + 0.40 * (1 - pal.daylight),
+    0.22 + 0.48 * (1 - pal.daylight),
   )!;
+}
+
+/// El aire de un día de nieve: lo mismo de [c], tirado hacia el azul.
+///
+/// En invierno la bruma no es del color del polvo de agosto sino fría y
+/// clara, y es la que tiñe todo lo que está lejos. Sin esto las sierras y la
+/// franja del horizonte seguían color arena con el valle blanco delante, y
+/// el paisaje se leía como un verano con la nieve pegada encima.
+///
+/// Por razón y no por mezcla, como [tintedLike]: lo que cambia es el tono y
+/// no la luz, así que de noche sigue siendo de noche.
+Color winterAir(Color c, Palette pal) {
+  final frio = snowCover(pal.season);
+  if (frio < 0.004) return c;
+  return Color.lerp(
+    c,
+    tintedLike(c, const Color(0xFFC9C3AE), const Color(0xFFBCC8D4)),
+    frio * 0.85,
+  )!;
+}
+
+/// La bruma del horizonte en un día de nieve: fría y, de día, clara.
+///
+/// Con sólo [winterAir] la franja donde el valle se junta con las sierras
+/// quedaba más oscura que la nieve de delante y de detrás, y se leía como un
+/// muro o un lago. De día el aire sobre un campo nevado está lleno de la luz
+/// que devuelve la nieve.
+Color winterHaze(Palette pal) {
+  final aire = winterAir(pal.haze, pal);
+  final frio = snowCover(pal.season);
+  if (frio < 0.004) return aire;
+  return Color.lerp(aire, snowTone(pal), frio * 0.55 * pal.daylight)!;
 }
 
 // ------------------------------------------------------------------ town
@@ -340,13 +392,40 @@ bool darkSky(Palette pal) {
   // Por lo frío que está y no por dónde está el sol: las cumbres se cubren
   // cuando hace frío, que es un mes después del solsticio, igual que la nieve
   // del valle y por lo mismo.
+  //
+  // Esto es sólo el velo de la sierra entera; lo blanco de verdad son las
+  // cumbres, que van aparte ([snowCap]): una sierra aclarada pareja salía
+  // color barro claro, y lo que dice «invierno» desde el valle es la línea
+  // de nieve, con la roca oscura debajo.
   final alto = clampD(pal.season.chill * 1.45 - 0.30, 0.0, 1.0);
   if (alto > 0.004) {
     body = Color.lerp(
       body,
       snowTone(pal),
-      alto * (0.22 + 0.26 * near01) * (0.35 + 0.65 * pal.daylight),
+      alto * (0.08 + 0.10 * near01) * (0.35 + 0.65 * pal.daylight),
     )!;
   }
-  return (body, Color.lerp(body, pal.haze, 0.30 + 0.15 * near01)!);
+  body = winterAir(body, pal);
+  return (body, Color.lerp(body, winterHaze(pal), 0.30 + 0.15 * near01)!);
+}
+
+/// La nieve de las cumbres de una sierra: de qué color, cuánta, y hasta
+/// dónde baja.
+///
+/// Devuelve el color con su opacidad y la línea de nieve como fracción del
+/// alto de la sierra —cero la cresta, uno el pie—. Más abajo en las de
+/// delante, que son lomas del mismo valle nevado, y sólo las puntas en las
+/// del fondo. Nada si no hace frío.
+(Color, double)? snowCap(Palette pal, int li, int of) {
+  final alto = clampD(pal.season.chill * 1.45 - 0.30, 0.0, 1.0);
+  if (alto < 0.02) return null;
+  final near01 = of <= 1 ? 1.0 : (of - 1 - li) / (of - 1);
+  // Lo lejano, con algo del aire encima: la nieve del fondo no es tan blanca
+  // como la de delante.
+  final (body, _) = rangeTone(pal, li, of);
+  final nieve = Color.lerp(snowTone(pal), body, 0.30 * (1 - near01))!;
+  final cuanta = alto * (0.80 + 0.15 * near01) * (0.55 + 0.45 * pal.daylight);
+  // La línea baja con lo crudo del invierno: en noviembre sólo las puntas.
+  final linea = (0.34 + 0.22 * near01) * (0.45 + 0.55 * pal.season.snow);
+  return (nieve.withValues(alpha: cuanta), linea);
 }
