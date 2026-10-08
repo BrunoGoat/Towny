@@ -1,6 +1,8 @@
 import 'dart:isolate';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 import '../core/math3.dart';
 import '../data/character.dart';
 import 'bsp.dart';
@@ -238,19 +240,29 @@ Future<void> warmTown(TownOrder order) {
   if (ya != null) return ya;
   final hecho = _cache[key];
   if (hecho != null && hecho.placed == order.placed) return Future.value();
-  final trabajo = Isolate.run(() => _build(order.layout, order.placed, null))
-      .then((built) {
-        if (built.placed == order.placed) _cache[key] = built;
-      })
-      .catchError((Object _) {})
-      // **Con llaves, y no con flecha.** `_warming.remove` devuelve lo que
-      // quitó, que es este mismo futuro; y `whenComplete` espera al futuro
-      // que le devuelvan antes de completarse. Escrito con flecha, la
-      // limpieza se quedaba esperándose a sí misma y el encargo no volvía
-      // nunca. Tardó en aparecer porque no falla: se cuelga.
-      .whenComplete(() {
-        _warming.remove(key);
-      });
+  // En la web no hay otros hilos: `Isolate.run` revienta en el acto, y
+  // reventaba el arranque entero —lo de después no llegaba a hacerse, sonido
+  // incluido—. Allí no se adelanta nada y el primer fotograma levanta el
+  // pueblo como lo levantaba antes.
+  if (kIsWeb) return Future.value();
+  // Y envuelto: si algún día falla al arrancar en vez de después, que caiga en
+  // el `catchError` de abajo y no en la cara de quien lo pidió.
+  final trabajo =
+      Future.sync(
+            () => Isolate.run(() => _build(order.layout, order.placed, null)),
+          )
+          .then((built) {
+            if (built.placed == order.placed) _cache[key] = built;
+          })
+          .catchError((Object _) {})
+          // **Con llaves, y no con flecha.** `_warming.remove` devuelve lo que
+          // quitó, que es este mismo futuro; y `whenComplete` espera al futuro
+          // que le devuelvan antes de completarse. Escrito con flecha, la
+          // limpieza se quedaba esperándose a sí misma y el encargo no volvía
+          // nunca. Tardó en aparecer porque no falla: se cuelga.
+          .whenComplete(() {
+            _warming.remove(key);
+          });
   _warming[key] = trabajo;
   return trabajo;
 }

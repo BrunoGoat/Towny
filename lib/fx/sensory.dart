@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 
 import '../data/tunes.dart';
@@ -107,13 +109,21 @@ class Sensory {
     // One at a time, each on its own: a layer that will not start is one
     // layer missing, not three. It used to be a single try around the loop,
     // so the first failure took the whole piece with it and said nothing.
+    //
+    // Y se carga sin esperar a que suene. En la web el navegador no deja
+    // sonar nada hasta que la persona toca la página, y esperar aquí a que
+    // arrancase era quedarse esperando para siempre en la primera capa: las
+    // otras dos no llegaban a cargarse y la música no sonaba nunca. Se le pide
+    // que arranque y se sigue; lo que no pudo arrancar arranca al primer
+    // toque ([_unlock]).
     for (final name in want.files) {
       try {
         final p = AudioPlayer();
         await p.setReleaseMode(ReleaseMode.loop);
         await p.setVolume(0);
-        await p.play(AssetSource('sfx/$name'));
+        await p.setSource(AssetSource('sfx/$name'));
         _mus.add(p);
+        unawaited(p.resume().catchError((Object _) {}));
       } catch (_) {
         _mus.add(AudioPlayer());
       }
@@ -264,8 +274,29 @@ class Sensory {
     }
   }
 
+  /// En la web, el primer toque abre el sonido.
+  ///
+  /// Los navegadores no dejan sonar nada hasta que la persona hace algo en la
+  /// página: lo que se pidió antes se queda en espera. Así que al primer toque
+  /// —sea donde sea— se vuelve a pedir que suene lo que tiene que sonar, ya
+  /// con permiso. Se escucha desde abajo de todo y no desde un botón porque
+  /// el primer toque puede caer en cualquier parte.
+  void _listenForFirstTouch() {
+    if (!kIsWeb) return;
+    void tocar(PointerEvent e) {
+      if (e is! PointerDownEvent) return;
+      GestureBinding.instance.pointerRouter.removeGlobalRoute(tocar);
+      _unlock();
+    }
+
+    GestureBinding.instance.pointerRouter.addGlobalRoute(tocar);
+  }
+
+  void _unlock() => settle();
+
   Future<void> init() async {
     if (_ready) return;
+    _listenForFirstTouch();
     // First, before a single player exists: a player is born holding a copy of
     // whatever the global context was at the time, so setting this afterwards
     // would leave everything already made still fighting over the speaker.
