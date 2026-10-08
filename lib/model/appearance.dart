@@ -157,6 +157,18 @@ class Appearance extends ChangeNotifier {
   bool _seasonsOff = false;
   bool get seasons => !_seasonsOff;
 
+  /// La calidad máxima: sombras, resplandor, rayos y color de cine. Apagada
+  /// de fábrica, porque cuesta bastante más cada fotograma y no todos los
+  /// teléfonos lo aguantan.
+  bool _cinematic = false;
+  bool get cinematic => _cinematic;
+
+  Future<void> setCinematic(bool v) async {
+    if (v == _cinematic) return;
+    _cinematic = v;
+    await _keep();
+  }
+
   Future<void> setSeasons(bool v) async {
     if (v == !_seasonsOff) return;
     _seasonsOff = !v;
@@ -320,6 +332,7 @@ class Appearance extends ChangeNotifier {
     _fakeHour = false;
     _fakeHourAt = 22.0;
     _lang = null;
+    _cinematic = false;
   }
 
   Future<void> load() async {
@@ -404,6 +417,8 @@ class Appearance extends ChangeNotifier {
           };
         case 'seasons':
           _seasonsOff = value == '0';
+        case 'quality':
+          _cinematic = value == 'max';
         case 'fakeSeason':
           _fakeSeason = value == '1';
         case 'fakeSeasonAt':
@@ -449,6 +464,7 @@ class Appearance extends ChangeNotifier {
       'hemisphere=${_hemisphere == Hemisphere.south ? 's' : 'n'}',
     if (_lang != null) 'lang=${_lang!.code}',
     'seasons=${_seasonsOff ? 0 : 1}',
+    'quality=${_cinematic ? 'max' : 'normal'}',
     'fakeSeason=${_fakeSeason ? 1 : 0}',
     'fakeSeasonAt=$_fakeSeasonAt',
   ];

@@ -186,7 +186,7 @@ cambiar cuánto suena la mitad la recalcula sola.
 
 ```bash
 flutter pub get
-flutter test          # 719 tests
+flutter test          # 728 tests
 flutter analyze
 flutter run
 flutter build apk --release
@@ -316,6 +316,7 @@ Dentro de `engine/`, que es el más poblado:
 | `scene.dart` | lo que hay que pintar, dicho antes de pintarlo |
 | `renderer.dart` | el rasterizador: recortar, sombrear y rellenar caras |
 | `backdrop.dart` | el cielo, el sol, el prado y las cordilleras |
+| `cinema.dart` | la calidad máxima: sombras proyectadas, resplandor, rayos de sol y color |
 | `tones.dart` | de qué color va el prado, la hoja, la nieve y lo que está lejos |
 | `folk.dart`, `folk_body.dart`, `streets.dart` | quién vive ahí, de qué está hecho y por dónde anda |
 | `sigils.dart` | las marcas de los hábitos, trazadas a mano |

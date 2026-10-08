@@ -139,6 +139,23 @@ class _SettingsSheetState extends State<SettingsSheet> {
         ),
 
         const SizedBox(height: 26),
+        _Head(theme: t, text: tr('IMAGEN', 'GRAPHICS')),
+        _Switch(
+          theme: t,
+          title: tr('Calidad máxima', 'Maximum quality'),
+          subtitle: tr(
+            'Sombras de verdad que giran con el sol, ventanas que resplandecen, '
+                'rayos de luz al amanecer y al atardecer, y color de cine. '
+                'Pide bastante más al aparato.',
+            'Real shadows that turn with the sun, glowing windows, light rays '
+                'at sunrise and sunset, and cinematic colour. It asks a lot '
+                'more of your device.',
+          ),
+          on: wants.cinematic,
+          onChanged: wants.setCinematic,
+        ),
+
+        const SizedBox(height: 26),
         _Head(theme: t, text: tr('SONIDO', 'SOUND')),
         _Switch(
           theme: t,

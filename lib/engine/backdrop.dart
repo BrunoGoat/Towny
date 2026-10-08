@@ -79,7 +79,7 @@ class Backdrop {
 
   void drawStars(Canvas canvas, Size size, Projector p, double horizonY) {
     final paint = Paint()..color = Colors.white;
-    for (var i = 0; i < 130; i++) {
+    for (var i = 0; i < (scene.cinematic ? 320 : 130); i++) {
       final az = hash01(i, 3) * math.pi * 2;
       final el = 0.06 + hash01(i, 5) * 1.4;
       final at = skyPoint(p, az, el, minDen: 0.05);

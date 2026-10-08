@@ -138,7 +138,12 @@ class TownScene {
     this.folk = true,
     this.soloFolk,
     this.ghost = true,
+    this.cinematic = false,
   });
+
+  /// La calidad máxima: sombras de verdad, resplandor, rayos de sol y color
+  /// de cine. Ver [Cinema].
+  final bool cinematic;
 
   /// Si se dibuja el contorno de la pieza que viene. No en el valle de la
   /// primera vez: ahí todavía no hay pueblo, y un rectángulo de alambre en el

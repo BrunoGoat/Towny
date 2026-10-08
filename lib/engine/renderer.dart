@@ -11,6 +11,7 @@ import '../fx/effects.dart';
 import 'backdrop.dart';
 import 'bsp.dart';
 import 'camera.dart';
+import 'cinema.dart';
 import 'folk.dart';
 import 'folk_body.dart';
 import 'palette.dart';
@@ -31,6 +32,11 @@ class _Face {
   final Float32List pts = Float32List(56);
   int n = 0;
   int color = 0;
+
+  /// La altura de cada vértice en el mundo, y si la cara es una pared. Sólo
+  /// en calidad máxima: es lo que oscurece el pie de los muros.
+  final Float32List ys = Float32List(28);
+  bool wall = false;
 }
 
 /// The three colours a house is painted in.
@@ -152,6 +158,29 @@ class TownPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (!scene.cinematic || size.isEmpty) {
+      _paintWorld(canvas, size, overlays: true);
+      return;
+    }
+    // En calidad máxima el mundo se graba en vez de pintarse, pasa por la
+    // cámara y después van encima los rótulos, que son interfaz y no tienen
+    // por qué brillar ni cambiar de color con la hora.
+    final rec = ui.PictureRecorder();
+    final p = _paintWorld(
+      Canvas(rec, Offset.zero & size),
+      size,
+      overlays: false,
+    );
+    final world = rec.endRecording();
+    Cinema(scene.palette, p, size).compose(canvas, world);
+    world.dispose();
+    final town = scene.town;
+    _drawTownGhost(canvas, p, size, town);
+    _drawTownLabels(canvas, p, size, town);
+    _drawTownSigns(canvas, p, size);
+  }
+
+  Projector _paintWorld(Canvas canvas, Size size, {required bool overlays}) {
     hits.clear();
     _pickAt.clear();
     _faceCount = 0;
@@ -214,6 +243,12 @@ class TownPainter extends CustomPainter {
         }
       }
     }
+    if (scene.cinematic) {
+      drawCastShadows(canvas, p, scene.palette, [
+        for (final e in scene.towns)
+          if (e.placed > 0) (e.layout, e.placed),
+      ]);
+    }
     for (var i = 0; i < scene.towns.length; i++) {
       _drawTownGround(
         canvas,
@@ -227,13 +262,16 @@ class TownPainter extends CustomPainter {
     _flush(canvas, size);
     _drawBirds(canvas, p, size, town);
     _drawRings(canvas, p, town, overlay: true);
-    _drawTownGhost(canvas, p, size, town);
-    _drawTownLabels(canvas, p, size, town);
-    _drawTownSigns(canvas, p, size);
+    if (overlays) {
+      _drawTownGhost(canvas, p, size, town);
+      _drawTownLabels(canvas, p, size, town);
+      _drawTownSigns(canvas, p, size);
+    }
     _findBoards(p, size);
     _drawParticles(canvas, p);
     fondo.drawAtmosphere(canvas, size, horizonY);
     fondo.drawStarLight(canvas, size, p);
+    return p;
   }
 
   // ------------------------------------------------------------- far wall
@@ -306,6 +344,48 @@ class TownPainter extends CustomPainter {
     }
     f.n = m;
     f.color = color;
+    if (scene.cinematic) _heights(p, f, m);
+  }
+
+  /// Para la oclusión: a qué altura del mundo está cada vértice de la cara y
+  /// si la cara es una pared. Sale de las coordenadas de cámara que acaban de
+  /// recortarse, deshaciendo la cámara, así que no hay que pasar nada más.
+  void _heights(Projector p, _Face f, int m) {
+    final ey = p.eye.y, ry = p.right.y, uy = p.up.y, fy = p.forward.y;
+    var nx = 0.0, ny = 0.0, nz = 0.0;
+    for (var i = 0; i < m; i++) {
+      final x = _clipB[i * 3], y = _clipB[i * 3 + 1], z = _clipB[i * 3 + 2];
+      f.ys[i] = ey + ry * x + uy * y + fy * z;
+      final j = (i + 1) % m;
+      final x2 = _clipB[j * 3], y2 = _clipB[j * 3 + 1], z2 = _clipB[j * 3 + 2];
+      nx += (y - y2) * (z + z2);
+      ny += (z - z2) * (x + x2);
+      nz += (x - x2) * (y + y2);
+    }
+    final l = math.sqrt(nx * nx + ny * ny + nz * nz);
+    if (l < 1e-9) {
+      f.wall = false;
+      return;
+    }
+    // La componente vertical de la normal, llevada de la cámara al mundo.
+    final wy = (ry * nx + uy * ny + fy * nz) / l;
+    f.wall = wy.abs() < 0.35;
+  }
+
+  /// Cuánto se oscurece un vértice de pared a esta altura: el pie del muro
+  /// recoge menos cielo que la cornisa, y eso es lo que lo asienta en el
+  /// suelo.
+  static double _occlusion(double y) {
+    if (y >= 1.4) return 1.0;
+    final t = clampD(y / 1.4, 0, 1);
+    return 0.70 + 0.30 * t * t * (3 - 2 * t);
+  }
+
+  static int _darken(int c, double k) {
+    if (k >= 0.999) return c;
+    final r = ((c >> 16) & 0xFF) * k, g = ((c >> 8) & 0xFF) * k;
+    final b = (c & 0xFF) * k;
+    return (c & 0xFF000000) | (r.round() << 16) | (g.round() << 8) | b.round();
   }
 
   // --------------------------------------------------------------- stones
@@ -607,7 +687,9 @@ class TownPainter extends CustomPainter {
   /// que ir donde le toca — detrás de lo que está delante.
   void _lampAt(Canvas canvas, Size size, Paint paint, int i) {
     final x = _lamps[i], y = _lamps[i + 1];
-    final r = _lamps[i + 2] * 3.0, k = _lamps[i + 3];
+    // En calidad máxima la luz de una ventana llega más lejos.
+    final mas = scene.cinematic ? 1.2 : 1.0;
+    final r = _lamps[i + 2] * 3.0 * mas, k = _lamps[i + 3] * mas;
     if (x < -r || x > size.width + r || y < -r || y > size.height + r) return;
     const warm = Color(0xFFFFC978);
     paint.shader = ui.Gradient.radial(
@@ -2416,6 +2498,7 @@ class TownPainter extends CustomPainter {
   /// del orden, justo detrás de su ventana.
   void _flushBatched(Canvas canvas, Size size) {
     final paint = Paint();
+    final ao = scene.cinematic;
     final lampara = Paint()..blendMode = BlendMode.plus;
     _tris = 0;
     var luz = 0;
@@ -2431,9 +2514,15 @@ class TownPainter extends CustomPainter {
         _verts[at + 4] = f.pts[(i + 1) * 2];
         _verts[at + 5] = f.pts[(i + 1) * 2 + 1];
         final c = _tris * 3;
-        _tints[c] = f.color;
-        _tints[c + 1] = f.color;
-        _tints[c + 2] = f.color;
+        if (ao && f.wall) {
+          _tints[c] = _darken(f.color, _occlusion(f.ys[0]));
+          _tints[c + 1] = _darken(f.color, _occlusion(f.ys[i]));
+          _tints[c + 2] = _darken(f.color, _occlusion(f.ys[i + 1]));
+        } else {
+          _tints[c] = f.color;
+          _tints[c + 1] = f.color;
+          _tints[c + 2] = f.color;
+        }
         _tris++;
       }
       while (luz < _lamps.length && _lamps[luz + 4] <= k) {

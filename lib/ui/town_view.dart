@@ -285,6 +285,7 @@ class _TownViewState extends State<TownView>
   /// más rápido por el mismo motivo: de los dos errores posibles, enseñar de
   /// menos es el que se nota.
   static const int _suelo = 9000;
+  static const int _sueloMax = 18000;
   double _frameAvg = 16;
 
   late Palette _palette;
@@ -612,7 +613,11 @@ class _TownViewState extends State<TownView>
 
     if (_budgetOverride <= 0) {
       _frameAvg = _frameAvg * 0.92 + dtRaw * 1000 * 0.08;
-      if (_frameAvg > 24 && _budget > _suelo) {
+      // En calidad máxima el detalle no se recorta tanto: quien la encendió
+      // eligió ver más a cambio de menos fotogramas.
+      final suelo = Appearance.instance.cinematic ? _sueloMax : _suelo;
+      if (_budget < suelo) _budget = suelo;
+      if (_frameAvg > 24 && _budget > suelo) {
         _budget -= 220;
       } else if (_frameAvg < 15 && _budget < 26000) {
         _budget += 420;
@@ -1534,6 +1539,7 @@ class _TownViewState extends State<TownView>
       tonight: tonightIs,
       founding: _founding,
       day: dayKey(DateTime.now()),
+      cinematic: Appearance.instance.cinematic,
     );
 
     return Listener(
