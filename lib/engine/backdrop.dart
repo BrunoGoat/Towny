@@ -754,7 +754,7 @@ class Backdrop {
     List<double> ys,
   ) {
     double cota(int i) =>
-        linea + layer.height * 0.07 * snowEdge(layer, wxs[i], wzs[i]);
+        linea + layer.height * 0.09 * snowEdge(layer, wxs[i], wzs[i]);
     Offset? pie(int i, double h) => skyPoint(
       p,
       ths[i],

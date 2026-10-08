@@ -68,7 +68,7 @@ class Landscape {
 /// la más ancha, el borde subía y bajaba cien veces más rápido que las
 /// montañas y se leía como una gráfica de seno.
 double snowEdge(RidgeLayer l, double wx, double wz) =>
-    Landscape.edgeNoise(wx * l.scale * 1.8, wz * l.scale * 1.8, l.seed + 503);
+    Landscape.edgeNoise(wx * l.scale * 4.5, wz * l.scale * 4.5, l.seed + 503);
 
 class RidgeLayer {
   const RidgeLayer({
