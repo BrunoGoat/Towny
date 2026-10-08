@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import '../l10n/lang.dart';
 import 'habit.dart';
 import 'piece.dart';
 import 'rhythm.dart';
@@ -289,7 +290,11 @@ DateTime _atHour(DateTime day, int hour) =>
 String _say(Habit h, NudgeKind kind) {
   switch (kind) {
     case NudgeKind.late:
-      return 'Tu pueblo sigue en pie y hace unos días que no cae una pieza.';
+      return tr(
+        'Tu pueblo sigue en pie y hace unos días que no cae una pieza.',
+        "Your town is still standing, and it's been a few days since a piece "
+            'landed.',
+      );
     case NudgeKind.words:
       // Tus palabras, entrecomilladas y sin nada alrededor. El «escribiste» no
       // está de adorno: lo que hace que esto no sea una frase motivacional es
@@ -297,17 +302,30 @@ String _say(Habit h, NudgeKind kind) {
       final why = h.why?.trim();
       final floor = h.floor?.trim();
       if (why != null && why.isNotEmpty && floor != null && floor.isNotEmpty) {
-        return 'Escribiste: «$why».\nY que lo mínimo que cuenta es «$floor».';
+        return tr(
+          'Escribiste: «$why».\nY que lo mínimo que cuenta es «$floor».',
+          'You wrote: "$why".\nAnd that the least that counts is "$floor".',
+        );
       }
       if (why != null && why.isNotEmpty) {
-        return 'Escribiste que lo querías «$why».';
+        return tr(
+          'Escribiste que lo querías «$why».',
+          'You wrote that you wanted it "$why".',
+        );
       }
-      return 'Lo mínimo que cuenta, dijiste, es «$floor».';
+      return tr(
+        'Lo mínimo que cuenta, dijiste, es «$floor».',
+        'The least that counts, you said, is "$floor".',
+      );
     case NudgeKind.back:
       // Ni un número de días, ni una disculpa que pedir. Lo que frena a quien
       // vuelve es creer que hay que empezar de cero.
-      return 'Tu pueblo sigue entero, con todo lo que construiste. '
-          'Una sola pieza lo enciende otra vez.';
+      return tr(
+        'Tu pueblo sigue entero, con todo lo que construiste. '
+            'Una sola pieza lo enciende otra vez.',
+        'Your town is still whole, with everything you built. '
+            'A single piece lights it up again.',
+      );
   }
 }
 

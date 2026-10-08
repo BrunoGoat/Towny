@@ -10,6 +10,7 @@ import 'engine/world.dart';
 import 'fx/notifier.dart';
 import 'fx/sensory.dart';
 import 'fx/widget_bridge.dart';
+import 'l10n/lang.dart';
 import 'model/appearance.dart';
 import 'model/arrival.dart';
 import 'model/board_seen.dart';
@@ -25,6 +26,9 @@ import 'ui/town_view.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  // La app de verdad habla el idioma del teléfono mientras nadie elija otro.
+  // Los tests no pasan por aquí, y por eso hablan castellano.
+  Appearance.followDevice = true;
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -386,7 +390,7 @@ class _Opening extends StatelessWidget {
       backgroundColor: const Color(0xFF9FB6D8),
       body: Center(
         child: Text(
-          'EL PUEBLO',
+          tr('EL PUEBLO', 'THE TOWN'),
           style: TextStyle(
             color: Color(0xCC241F16),
             fontSize: 15,

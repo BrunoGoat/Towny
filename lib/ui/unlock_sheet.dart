@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/lang.dart';
 import '../model/cadence.dart';
 import '../model/store.dart';
 import 'style.dart';
@@ -51,12 +52,18 @@ class UnlockSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Text('EL SEGUNDO PUEBLO', style: t.label),
+            Text(tr('EL SEGUNDO PUEBLO', 'THE SECOND TOWN'), style: t.label),
             const SizedBox(height: 10),
             Text(
               left <= 1
-                  ? 'Te falta un día con pieza.'
-                  : 'Te faltan $left días con pieza.',
+                  ? tr(
+                      'Te falta un día con pieza.',
+                      'You need one more day with a piece.',
+                    )
+                  : tr(
+                      'Te faltan $left días con pieza.',
+                      'You need $left more days with a piece.',
+                    ),
               style: t.title,
             ),
             const SizedBox(height: 6),
@@ -71,9 +78,14 @@ class UnlockSheet extends StatelessWidget {
               // Lo importante de estas dos frases es que la segunda desarma la
               // primera: un candado que además castigue los fallos sería
               // exactamente la racha que esta app quitó de todas partes.
-              'No hace falta que sean seguidos. Podés fallar '
-              '${falla == 1 ? 'una vez' : '$falla veces'} por el camino y la '
-              'puerta se abre igual — acá no se miden rachas.',
+              tr(
+                'No hace falta que sean seguidos. Podés fallar '
+                    '${falla == 1 ? 'una vez' : '$falla veces'} por el camino y '
+                    'la puerta se abre igual — acá no se miden rachas.',
+                "They don't have to be in a row. You can miss "
+                    '${falla == 1 ? 'once' : '$falla times'} along the way and '
+                    "the door still opens — streaks aren't counted here.",
+              ),
               style: t.bodySoft.copyWith(fontSize: 12.5, height: 1.4),
             ),
             // Sin frecuencia dicha se mide como de todos los días, y quien va
@@ -81,14 +93,21 @@ class UnlockSheet extends StatelessWidget {
             if (!goal.declared) ...[
               const SizedBox(height: 10),
               Text(
-                '¿No es de todos los días? Decí cada cuánto va en la hoja del '
-                'hábito, y la cuenta se hace con eso.',
+                tr(
+                  '¿No es de todos los días? Decí cada cuánto va en la hoja del '
+                      'hábito, y la cuenta se hace con eso.',
+                  "Not an everyday habit? Say how often it goes in the habit's "
+                      'sheet, and the count uses that.',
+                ),
                 style: t.bodySoft.copyWith(fontSize: 12.5, height: 1.4),
               ),
             ],
             const SizedBox(height: 10),
             Text(
-              'Y una vez abierta no se cierra nunca, pase lo que pase después.',
+              tr(
+                'Y una vez abierta no se cierra nunca, pase lo que pase después.',
+                'And once open it never closes, whatever happens afterwards.',
+              ),
               style: t.bodySoft.copyWith(
                 fontSize: 12.5,
                 height: 1.4,
@@ -107,16 +126,27 @@ class UnlockSheet extends StatelessWidget {
   /// ritmo primero, porque la cifra sola —«tres días en cuatro semanas»— sin
   /// él parece un error de la app.
   static String _rule(UnlockGoal g) {
-    const intro =
-        'El valle abre su segundo solar cuando el primero se sostiene: ';
+    final intro = tr(
+      'El valle abre su segundo solar cuando el primero se sostiene: ',
+      'The valley opens its second plot when the first one holds: ',
+    );
     if (g.perWeek >= 7) {
-      return '$intro${g.need} días con pieza de los últimos ${g.window}. '
-          'Llevás ${g.have}.';
+      return tr(
+        '$intro${g.need} días con pieza de los últimos ${g.window}. '
+            'Llevás ${g.have}.',
+        '$intro${g.need} days with a piece out of the last ${g.window}. '
+            'You have ${g.have}.',
+      );
     }
     final semanas = g.window ~/ 7;
-    return '$intro${g.need} días con pieza en las últimas $semanas semanas, '
-        'sin contar más de ${g.perWeek} por semana, porque dijiste que va '
-        '${cadenceSaid(g.perWeek)}. Llevás ${g.have}.';
+    return tr(
+      '$intro${g.need} días con pieza en las últimas $semanas semanas, '
+          'sin contar más de ${g.perWeek} por semana, porque dijiste que va '
+          '${cadenceSaid(g.perWeek)}. Llevás ${g.have}.',
+      '$intro${g.need} days with a piece in the last $semanas weeks, '
+          'counting no more than ${g.perWeek} a week, because you said it '
+          'goes ${cadenceSaid(g.perWeek)}. You have ${g.have}.',
+    );
   }
 
   /// Los días que hacen falta, uno por casilla, con los ganados encendidos.

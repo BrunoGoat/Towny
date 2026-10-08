@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import '../core/rng.dart';
 import '../data/character.dart';
 import '../data/symbols.dart';
+import '../l10n/lang.dart';
 import 'piece.dart';
 
 /// One habit, and the town it is building.
@@ -356,7 +357,7 @@ class Habit {
     }
     return Habit(
       id: j['id'] as String? ?? 'h0',
-      name: j['n'] as String? ?? 'Mi hábito',
+      name: j['n'] as String? ?? tr('Mi hábito', 'My habit'),
       // Older saves hold an emoji here. They are read back as the mark that
       // means the same thing, so nobody's habit changes what it is about.
       symbol: resolveHabitSymbol(j['s'] as String?),

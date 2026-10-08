@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../fx/sensory.dart';
+import '../l10n/lang.dart';
 import '../model/store.dart';
 import 'style.dart';
 
@@ -52,8 +53,12 @@ class _BackupSheetState extends State<BackupSheet> {
     await Clipboard.setData(ClipboardData(text: text));
     if (!mounted) return;
     _say(
-      'Copiado: ${widget.store.describe()}. Pegalo donde lo vayas a '
-      'encontrar — una nota, un mail a vos mismo.',
+      tr(
+        'Copiado: ${widget.store.describe()}. Pegalo donde lo vayas a '
+            'encontrar — una nota, un mail a vos mismo.',
+        'Copied: ${widget.store.describe()}. Paste it somewhere you will '
+            'find it — a note, an email to yourself.',
+      ),
     );
   }
 
@@ -62,11 +67,19 @@ class _BackupSheetState extends State<BackupSheet> {
     if (!mounted) return;
     final text = data?.text ?? '';
     if (text.trim().isEmpty) {
-      _say('No hay nada copiado ahora mismo.', wrong: true);
+      _say(
+        tr('No hay nada copiado ahora mismo.', 'Nothing is copied right now.'),
+        wrong: true,
+      );
       return;
     }
     _paste.text = text;
-    _say('Pegado. Mirá que sea el tuyo y confirmá abajo.');
+    _say(
+      tr(
+        'Pegado. Mirá que sea el tuyo y confirmá abajo.',
+        'Pasted. Check that it is yours and confirm below.',
+      ),
+    );
   }
 
   void _restore() {
@@ -79,7 +92,12 @@ class _BackupSheetState extends State<BackupSheet> {
       return;
     }
     Sensory.instance.milestone();
-    _say('Listo: ${store.describe()}. Antes había $before.');
+    _say(
+      tr(
+        'Listo: ${store.describe()}. Antes había $before.',
+        'Done: ${store.describe()}. Before there were $before.',
+      ),
+    );
     setState(() {
       _pasting = false;
       _paste.clear();
@@ -93,11 +111,19 @@ class _BackupSheetState extends State<BackupSheet> {
       builder: (dialog) => AlertDialog(
         backgroundColor: t.panelStrong,
         elevation: 0,
-        title: Text('¿Reemplazar lo que hay?', style: t.body),
+        title: Text(
+          tr('¿Reemplazar lo que hay?', 'Replace what is there?'),
+          style: t.body,
+        ),
         content: Text(
-          'Ahora mismo tenés ${widget.store.describe()}. Volver a meter una '
-          'copia deja el valle exactamente como estaba en ella, y lo de ahora '
-          'se pierde. Si no estás seguro, copiá esto primero.',
+          tr(
+            'Ahora mismo tenés ${widget.store.describe()}. Volver a meter una '
+                'copia deja el valle exactamente como estaba en ella, y lo de '
+                'ahora se pierde. Si no estás seguro, copiá esto primero.',
+            'Right now you have ${widget.store.describe()}. Putting a copy '
+                'back leaves the valley exactly as it was in it, and what is '
+                "here now is lost. If you're not sure, copy this first.",
+          ),
           style: t.bodySoft,
         ),
         actions: [
@@ -111,7 +137,7 @@ class _BackupSheetState extends State<BackupSheet> {
               _restore();
             },
             child: Text(
-              'Reemplazar',
+              tr('Reemplazar', 'Replace'),
               style: TextStyle(color: t.accent, fontWeight: FontWeight.w600),
             ),
           ),
@@ -146,12 +172,19 @@ class _BackupSheetState extends State<BackupSheet> {
                 ),
               ),
               const SizedBox(height: 16),
-              Text('TUS DATOS', style: t.label),
+              Text(tr('TUS DATOS', 'YOUR DATA'), style: t.label),
               const SizedBox(height: 10),
               Text(
-                'Tenés ${widget.store.describe()}. Todo eso vive sólo en este '
-                'teléfono: la app no manda nada a ningún lado y no hay cuenta '
-                'que lo recupere. Sacá una copia de vez en cuando.',
+                tr(
+                  'Tenés ${widget.store.describe()}. Todo eso vive sólo en '
+                      'este teléfono: la app no manda nada a ningún lado y no '
+                      'hay cuenta que lo recupere. Sacá una copia de vez en '
+                      'cuando.',
+                  'You have ${widget.store.describe()}. All of it lives only '
+                      "on this phone: the app doesn't send anything anywhere, "
+                      'and there is no account to get it back. Make a copy '
+                      'now and then.',
+                ),
                 style: t.bodySoft,
               ),
 
@@ -159,7 +192,7 @@ class _BackupSheetState extends State<BackupSheet> {
               _Wide(
                 theme: t,
                 icon: Icons.copy_all_outlined,
-                label: 'Copiar mi valle',
+                label: tr('Copiar mi valle', 'Copy my valley'),
                 onTap: _copy,
                 filled: true,
               ),
@@ -167,7 +200,9 @@ class _BackupSheetState extends State<BackupSheet> {
               _Wide(
                 theme: t,
                 icon: Icons.settings_backup_restore,
-                label: _pasting ? 'Dejar de restaurar' : 'Volver a meterlo',
+                label: _pasting
+                    ? tr('Dejar de restaurar', 'Stop restoring')
+                    : tr('Volver a meterlo', 'Put it back'),
                 onTap: () {
                   Sensory.instance.tick();
                   setState(() {
@@ -193,7 +228,10 @@ class _BackupSheetState extends State<BackupSheet> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    'Pegá acá la copia que guardaste.',
+                                    tr(
+                                      'Pegá acá la copia que guardaste.',
+                                      'Paste the copy you saved here.',
+                                    ),
                                     style: t.bodySoft,
                                   ),
                                 ),
@@ -202,7 +240,7 @@ class _BackupSheetState extends State<BackupSheet> {
                                   style: TextButton.styleFrom(
                                     foregroundColor: t.accent,
                                   ),
-                                  child: const Text('Pegar'),
+                                  child: Text(tr('Pegar', 'Paste')),
                                 ),
                               ],
                             ),
@@ -228,7 +266,10 @@ class _BackupSheetState extends State<BackupSheet> {
                             _Wide(
                               theme: t,
                               icon: Icons.check,
-                              label: 'Reemplazar lo que hay',
+                              label: tr(
+                                'Reemplazar lo que hay',
+                                'Replace what is there',
+                              ),
                               onTap: _confirm,
                               filled: true,
                             ),

@@ -4,6 +4,7 @@ import '../core/rng.dart';
 import '../data/character.dart';
 import '../data/landmarks.dart';
 import '../data/landmarks_retired.dart';
+import '../l10n/lang.dart';
 import 'mason.dart';
 
 export 'mason.dart' show PieceKind;
@@ -74,14 +75,14 @@ const Map<BuildingKind, int> buildingCost = {
   BuildingKind.inn: 7,
 };
 
-const Map<BuildingKind, String> buildingName = {
-  BuildingKind.shed: 'Cobertizo',
-  BuildingKind.cottage: 'Casa',
-  BuildingKind.workshop: 'Taller',
-  BuildingKind.house: 'Casona',
-  BuildingKind.granary: 'Granero',
-  BuildingKind.townhouse: 'Casa de vecinos',
-  BuildingKind.inn: 'Posada',
+Map<BuildingKind, String> get buildingName => {
+  BuildingKind.shed: tr('Cobertizo', 'Shed'),
+  BuildingKind.cottage: tr('Casa', 'Cottage'),
+  BuildingKind.workshop: tr('Taller', 'Workshop'),
+  BuildingKind.house: tr('Casona', 'Manor'),
+  BuildingKind.granary: tr('Granero', 'Granary'),
+  BuildingKind.townhouse: tr('Casa de vecinos', 'Tenement'),
+  BuildingKind.inn: tr('Posada', 'Inn'),
 };
 
 /// What a building roofs with. Chosen once, when the town is laid out, from

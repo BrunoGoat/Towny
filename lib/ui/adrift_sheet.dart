@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../fx/sensory.dart';
+import '../l10n/lang.dart';
 import '../model/habit.dart';
 import 'style.dart';
 
@@ -86,19 +87,26 @@ class AdriftSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Text('EL PUEBLO PREGUNTA', style: t.label),
+            Text(tr('EL PUEBLO PREGUNTA', 'THE TOWN ASKS'), style: t.label),
             const SizedBox(height: 10),
             // La pregunta dice cuánto hace, no cuántas veces fallaste. Es el
             // mismo dato contado como lo contaría alguien que se alegra de
             // verte y no como lo contaría un registro de asistencia.
             Text(
-              'Hace $days días que ${habit.name} no recibe una pieza.',
+              tr(
+                'Hace $days días que ${habit.name} no recibe una pieza.',
+                "${habit.name} hasn't had a piece in $days days.",
+              ),
               style: t.title,
             ),
             const SizedBox(height: 6),
             Text(
-              '¿Seguimos intentando, o lo cambiamos? Las cuatro respuestas '
-              'valen. A lo mejor el problema no sos vos.',
+              tr(
+                '¿Seguimos intentando, o lo cambiamos? Las cuatro respuestas '
+                    'valen. A lo mejor el problema no sos vos.',
+                'Do we keep trying, or do we change it? All four answers are '
+                    "fine. Maybe the problem isn't you.",
+              ),
               style: t.bodySoft.copyWith(fontSize: 12.5, height: 1.4),
             ),
             if (suyo != null) ...[
@@ -109,8 +117,11 @@ class AdriftSheet extends StatelessWidget {
             _Way(
               theme: t,
               icon: Icons.play_arrow_rounded,
-              said: 'Seguimos',
-              why: 'No cambia nada. El pueblo te espera donde está.',
+              said: tr('Seguimos', 'Keep going'),
+              why: tr(
+                'No cambia nada. El pueblo te espera donde está.',
+                'Nothing changes. The town waits for you where it is.',
+              ),
               accent: true,
               onTap: () {
                 Navigator.of(context).pop();
@@ -121,12 +132,20 @@ class AdriftSheet extends StatelessWidget {
             _Way(
               theme: t,
               icon: Icons.compress,
-              said: 'Hacerlo más chico',
+              said: tr('Hacerlo más chico', 'Make it smaller'),
               why: habit.floor == null
-                  ? 'Escribí lo mínimo que todavía cuenta como una pieza. '
-                        'Cinco minutos no son treinta, y no son cero.'
-                  : 'Cambiá lo mínimo que cuenta. Si «${habit.floor}» se '
-                        'volvió mucho, es que era mucho.',
+                  ? tr(
+                      'Escribí lo mínimo que todavía cuenta como una pieza. '
+                          'Cinco minutos no son treinta, y no son cero.',
+                      'Write the least that still counts as a piece. Five '
+                          "minutes isn't thirty, and it isn't zero.",
+                    )
+                  : tr(
+                      'Cambiá lo mínimo que cuenta. Si «${habit.floor}» se '
+                          'volvió mucho, es que era mucho.',
+                      'Change the least that counts. If "${habit.floor}" '
+                          'became too much, it was too much.',
+                    ),
               onTap: () {
                 Navigator.of(context).pop();
                 onShrink();
@@ -136,10 +155,13 @@ class AdriftSheet extends StatelessWidget {
             _Way(
               theme: t,
               icon: Icons.bedtime_outlined,
-              said: 'Pausarlo',
-              why:
-                  'El pueblo duerme y no cuenta ningún día en contra. '
-                  'Elegís hasta cuándo.',
+              said: tr('Pausarlo', 'Pause it'),
+              why: tr(
+                'El pueblo duerme y no cuenta ningún día en contra. '
+                    'Elegís hasta cuándo.',
+                'The town sleeps and no day counts against you. You choose '
+                    'until when.',
+              ),
               onTap: () {
                 Navigator.of(context).pop();
                 onRest();
@@ -149,10 +171,13 @@ class AdriftSheet extends StatelessWidget {
             _Way(
               theme: t,
               icon: Icons.close,
-              said: 'Ya no lo quiero',
-              why:
-                  'Dejar de intentarlo también es una decisión, y es '
-                  'distinta de no estar pudiendo ahora.',
+              said: tr('Ya no lo quiero', "I don't want it any more"),
+              why: tr(
+                'Dejar de intentarlo también es una decisión, y es '
+                    'distinta de no estar pudiendo ahora.',
+                'Stopping is a decision too, and it is different from not '
+                    'managing right now.',
+              ),
               onTap: () {
                 Navigator.of(context).pop();
                 onDrop();
@@ -179,7 +204,12 @@ class AdriftSheet extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          esMotivo ? 'LO ESCRIBISTE VOS' : 'LO MÍNIMO QUE CUENTA, DIJISTE',
+          esMotivo
+              ? tr('LO ESCRIBISTE VOS', 'YOU WROTE THIS')
+              : tr(
+                  'LO MÍNIMO QUE CUENTA, DIJISTE',
+                  'THE LEAST THAT COUNTS, YOU SAID',
+                ),
           style: t.label.copyWith(fontSize: 9, letterSpacing: 1.6),
         ),
         const SizedBox(height: 6),

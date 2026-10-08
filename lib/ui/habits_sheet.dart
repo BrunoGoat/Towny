@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../data/character.dart';
 import '../data/symbols.dart';
 import '../fx/sensory.dart';
+import '../l10n/lang.dart';
 import '../model/cadence.dart';
 import '../model/habit.dart';
 import '../model/pledge.dart';
@@ -319,7 +320,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
     textCapitalization: TextCapitalization.sentences,
     maxLength: 24,
     decoration: InputDecoration(
-      hintText: 'Leer, correr, no fumar…',
+      hintText: tr('Leer, correr, no fumar…', 'Reading, running, not smoking…'),
       hintStyle: t.bodySoft.copyWith(
         fontSize: size * 0.82,
         color: velo.suave,
@@ -401,7 +402,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
     return Column(
       children: [
         Text(
-          'EL PLAN',
+          tr('EL PLAN', 'THE PLAN'),
           style: t.label.copyWith(
             fontSize: 9,
             letterSpacing: 1.8,
@@ -463,7 +464,13 @@ class _HabitsSheetState extends State<HabitsSheet> {
                         shadows: velo.aliento,
                       ),
                       const SizedBox(height: 4),
-                      _softLine(t, velo, _spot, 'EN QUÉ SITIO', 'en la cama'),
+                      _softLine(
+                        t,
+                        velo,
+                        _spot,
+                        tr('EN QUÉ SITIO', 'WHERE'),
+                        tr('en la cama', 'in bed'),
+                      ),
                     ],
                   )
                 : const SizedBox(width: double.infinity),
@@ -540,17 +547,20 @@ class _HabitsSheetState extends State<HabitsSheet> {
         t,
         velo,
         _why,
-        'PARA QUÉ',
-        'para tener más energía durante el día',
+        tr('PARA QUÉ', 'WHY'),
+        tr(
+          'para tener más energía durante el día',
+          'to have more energy during the day',
+        ),
       ),
       const SizedBox(height: 8),
       _softLine(
         t,
         velo,
         _identity,
-        'EN QUIÉN TE CONVIERTE',
-        'que lee todos los días',
-        prefix: 'alguien',
+        tr('EN QUIÉN TE CONVIERTE', 'WHO IT MAKES YOU'),
+        tr('que lee todos los días', 'who reads every day'),
+        prefix: identityPrefix,
       ),
       if (_hasFloor) ...[
         const SizedBox(height: 8),
@@ -558,8 +568,11 @@ class _HabitsSheetState extends State<HabitsSheet> {
           t,
           velo,
           _floor,
-          'LO MÍNIMO QUE CUENTA',
-          'abrir el libro y leer una página',
+          tr('LO MÍNIMO QUE CUENTA', 'THE LEAST THAT COUNTS'),
+          tr(
+            'abrir el libro y leer una página',
+            'open the book and read a page',
+          ),
         ),
       ],
     ],
@@ -707,7 +720,9 @@ class _HabitsSheetState extends State<HabitsSheet> {
           child: TextButton(
             onPressed: duerme ? () => _wake(h) : () => _sleep(t, h),
             child: Text(
-              duerme ? 'Despertar el pueblo' : 'Pausar este pueblo',
+              duerme
+                  ? tr('Despertar el pueblo', 'Wake the town')
+                  : tr('Pausar este pueblo', 'Pause this town'),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: t.bodySoft.copyWith(
@@ -723,7 +738,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
             onPressed: () => _confirmRemove(context),
             style: TextButton.styleFrom(foregroundColor: rojo),
             child: Text(
-              'Eliminar este hábito',
+              tr('Eliminar este hábito', 'Delete this habit'),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: t.bodySoft.copyWith(
@@ -915,11 +930,19 @@ class _HabitsSheetState extends State<HabitsSheet> {
       builder: (dialog) => AlertDialog(
         backgroundColor: t.panelStrong,
         elevation: 0,
-        title: Text('¿Eliminar ${h.name}?', style: t.body),
+        title: Text(
+          tr('¿Eliminar ${h.name}?', 'Delete ${h.name}?'),
+          style: t.body,
+        ),
         content: Text(
-          'Se borra su pueblo entero: ${h.total} piezas. No hay vuelta atrás.'
-          '${onlyOne ? ' Como es el único, el valle vuelve a empezar en '
-                    'blanco.' : ''}',
+          tr(
+            'Se borra su pueblo entero: ${h.total} piezas. No hay vuelta '
+                'atrás.'
+                '${onlyOne ? ' Como es el único, el valle vuelve a empezar en blanco.' : ''}',
+            'Its whole town is deleted: ${h.total} pieces. There is no going '
+                'back.'
+                '${onlyOne ? " Since it's the only one, the valley starts again from blank." : ''}',
+          ),
           style: t.bodySoft,
         ),
         actions: [
@@ -934,7 +957,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
               Navigator.of(context).pop();
             },
             child: Text(
-              'Eliminar',
+              tr('Eliminar', 'Delete'),
               style: TextStyle(
                 color: _danger(t.dark),
                 fontWeight: FontWeight.w600,

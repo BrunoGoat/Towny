@@ -2,6 +2,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
+import '../l10n/lang.dart';
 import '../model/habit.dart';
 import '../model/nudge.dart';
 
@@ -29,12 +30,15 @@ class Notifier {
   bool? _allowed;
   bool get allowed => _allowed ?? false;
 
-  static const _channel = AndroidNotificationChannel(
+  static AndroidNotificationChannel get _channel => AndroidNotificationChannel(
     'pueblo',
-    'Tu pueblo',
-    description:
-        'Avisos cuando llevás más de lo tuyo sin poner una pieza. Como mucho '
-        'dos por ausencia, y ninguno si no te retrasás.',
+    tr('Tu pueblo', 'Your town'),
+    description: tr(
+      'Avisos cuando llevás más de lo tuyo sin poner una pieza. Como mucho '
+          'dos por ausencia, y ninguno si no te retrasás.',
+      "Reminders when you've gone longer than usual without placing a piece. "
+          "Two per absence at most, and none if you're not behind.",
+    ),
     importance: Importance.defaultImportance,
   );
 

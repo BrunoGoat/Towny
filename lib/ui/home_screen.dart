@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../data/landmarks.dart';
 import '../engine/palette.dart';
 import '../fx/sensory.dart';
+import '../l10n/lang.dart';
 import '../model/appearance.dart';
 import '../model/board.dart';
 import '../model/board_seen.dart';
@@ -173,7 +174,10 @@ class _HomeScreenState extends State<HomeScreen>
     if (s.total == 0) return;
     if (h.resting) {
       _showWhisper(
-        'Este pueblo está durmiendo. Podés poner una pieza igual.',
+        tr(
+          'Este pueblo está durmiendo. Podés poner una pieza igual.',
+          'This town is asleep. You can still place a piece.',
+        ),
         duration: const Duration(seconds: 4),
       );
       return;
@@ -183,16 +187,23 @@ class _HomeScreenState extends State<HomeScreen>
     // nada que recuperar. El caso largo es el que se pierde si se calla.
     final largo = s.daysIdle >= 10;
     var vuelta = largo
-        ? 'El pueblo te estaba esperando. No perdiste nada: está todo donde '
-              'lo dejaste.'
-        : 'Acá seguís. El pueblo también.';
+        ? tr(
+            'El pueblo te estaba esperando. No perdiste nada: está todo donde '
+                'lo dejaste.',
+            "The town was waiting for you. You didn't lose anything: "
+                'everything is where you left it.',
+          )
+        : tr(
+            'Acá seguís. El pueblo también.',
+            "You're still here. So is the town.",
+          );
     // Y en el hueco largo, lo que vos mismo escribiste el día que fundaste
     // esto — el motivo primero, y si no hay, lo mínimo que cuenta. Éste es
     // justo el momento para el que se guardaron: no hacen falta cuando hay
     // ganas, hacen falta cuando ya no las hay.
     if (largo) {
       final suyo = h.why ?? h.floor;
-      if (suyo != null) vuelta = '$vuelta\n«$suyo»';
+      if (suyo != null) vuelta = tr('$vuelta\n«$suyo»', '$vuelta\n"$suyo"');
     }
     _showWhisper(vuelta, duration: Duration(seconds: largo ? 7 : 5));
   }
@@ -370,13 +381,16 @@ class _HomeScreenState extends State<HomeScreen>
                 GhostButton(
                   icon: Icons.zoom_out_map,
                   theme: t,
-                  tooltip: 'Ver todo el pueblo',
+                  tooltip: tr('Ver todo el pueblo', 'See the whole town'),
                   onTap: _wall.frameAll,
                 ),
                 GhostButton(
                   icon: Icons.center_focus_strong,
                   theme: t,
-                  tooltip: 'Ir a donde cae la siguiente',
+                  tooltip: tr(
+                    'Ir a donde cae la siguiente',
+                    'Go to where the next one lands',
+                  ),
                   onTap: _wall.lookAtNext,
                 ),
                 // Encendido mientras se está en el valle, y desde que se toca:
@@ -388,7 +402,7 @@ class _HomeScreenState extends State<HomeScreen>
                     builder: (_, arriba, _) => GhostButton(
                       icon: Icons.travel_explore,
                       theme: t,
-                      tooltip: 'Ver todo el valle',
+                      tooltip: tr('Ver todo el valle', 'See the whole valley'),
                       on: arriba || _flying,
                       onTap: _flyToValley,
                     ),
@@ -405,7 +419,10 @@ class _HomeScreenState extends State<HomeScreen>
                   // parece a donde lleva.
                   glyph: (c) => BoardGlyph(color: c, shadows: t.halo),
                   theme: t,
-                  tooltip: 'El tablón del pueblo',
+                  tooltip: tr(
+                    'El tablón del pueblo',
+                    "The town's notice board",
+                  ),
                   // El punto: hay algo clavado que no leíste. Del color de la
                   // hora, como todo lo demás — a las tres de la mañana un
                   // naranja de mediodía es una mancha que no es de aquí.
@@ -707,7 +724,7 @@ class _HomeScreenState extends State<HomeScreen>
           habit: h,
           theme: _theme,
           days: days,
-          onKeep: () => _showWhisper('Acá seguimos.'),
+          onKeep: () => _showWhisper(tr('Acá seguimos.', 'We keep going.')),
           // Lo mínimo que cuenta se escribe donde se escribe todo lo del
           // hábito, y no en una copia del campo dentro de esta hoja: hay una
           // sola manera de cambiarlo y está en un solo sitio.
@@ -748,7 +765,9 @@ class _HomeScreenState extends State<HomeScreen>
           theme: _theme,
           onPick: (n) {
             store.setCadence(h, n);
-            _showWhisper('Anotado: ${cadenceSaid(n)}.');
+            _showWhisper(
+              tr('Anotado: ${cadenceSaid(n)}.', 'Noted: ${cadenceSaid(n)}.'),
+            );
           },
         ),
       ).whenComplete(() => _asking = false);
@@ -768,7 +787,10 @@ class _HomeScreenState extends State<HomeScreen>
         onRest: (until) {
           widget.store.rest(h, until);
           _showWhisper(
-            'El pueblo duerme. Volvé cuando puedas: no cuenta ningún día.',
+            tr(
+              'El pueblo duerme. Volvé cuando puedas: no cuenta ningún día.',
+              'The town is asleep. Come back when you can: no day counts.',
+            ),
             duration: const Duration(seconds: 5),
           );
         },

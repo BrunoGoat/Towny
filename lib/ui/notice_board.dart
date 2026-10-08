@@ -7,6 +7,7 @@ import '../data/bandos.dart';
 import '../engine/board_plan.dart';
 import '../engine/solids.dart';
 import '../fx/sensory.dart';
+import '../l10n/lang.dart';
 import '../model/appearance.dart';
 import '../model/board.dart';
 import '../model/board_slots.dart';
@@ -158,7 +159,9 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
       // las dos veces lo que hace falta es la misma hoja.
       case NoticeKind.plan:
         return (
-          h.vowPlace == null ? 'Decir dónde' : 'Cambiarlo',
+          h.vowPlace == null
+              ? tr('Decir dónde', 'Say where')
+              : tr('Cambiarlo', 'Change it'),
           () => _writePlan(h),
         );
       default:
@@ -339,7 +342,10 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
                     onPressed: _tirar,
                     icon: const Icon(Icons.casino_outlined, size: 22),
                     color: Colors.white.withValues(alpha: 0.92),
-                    tooltip: 'Volver a repartir el tablón',
+                    tooltip: tr(
+                      'Volver a repartir el tablón',
+                      'Deal the board again',
+                    ),
                   ),
                 ),
               ),
@@ -392,7 +398,7 @@ class _PinButton extends StatelessWidget {
               border: Border.all(color: velo.canto),
             ),
             child: Text(
-              'Clavar una nota',
+              tr('Clavar una nota', 'Pin a note'),
               style: theme.bodySoft.copyWith(
                 fontSize: 13,
                 color: velo.cuerpo,
@@ -513,7 +519,10 @@ class _WriteSheetState extends State<_WriteSheet> {
                     contentPadding: EdgeInsets.zero,
                     counterText: '',
                     border: InputBorder.none,
-                    hintText: 'Lo que quieras acordarte de mirar acá.',
+                    hintText: tr(
+                      'Lo que quieras acordarte de mirar acá.',
+                      'Whatever you want to remember to look at here.',
+                    ),
                     hintStyle: t.body.copyWith(
                       fontSize: 17,
                       height: 1.3,
@@ -548,7 +557,7 @@ class _WriteSheetState extends State<_WriteSheet> {
                           vertical: 14,
                         ),
                         child: Text(
-                          'CLAVARLA',
+                          tr('CLAVARLA', 'PIN IT'),
                           style: TextStyle(
                             color: hay ? t.accent : velo.tenue,
                             fontSize: 11.5,

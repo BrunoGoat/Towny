@@ -14,6 +14,7 @@ import '../engine/sigils.dart';
 import '../engine/star_draw.dart';
 import '../engine/tones.dart';
 import '../fx/sensory.dart';
+import '../l10n/lang.dart';
 import '../model/board_seen.dart';
 import '../model/board_slots.dart';
 import '../model/habit.dart';
@@ -590,7 +591,9 @@ class _BoardSceneState extends State<BoardScene>
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 26),
                         child: _Unpin(
-                          word: quitar == null ? hacer!.$1 : 'Quitarla',
+                          word: quitar == null
+                              ? hacer!.$1
+                              : tr('Quitarla', 'Remove it'),
                           onTap: quitar == null
                               ? hacer!.$2
                               : () => widget.onUnpin!(quitar),

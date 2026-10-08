@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../fx/sensory.dart';
+import '../l10n/lang.dart';
 import 'style.dart';
 
 /// The one control in the app.
@@ -236,8 +237,10 @@ class _HoldToPlaceState extends State<HoldToPlace>
               ),
               child: Text(
                 _down && _fired && widget.rapid
-                    ? 'EN OBRA'
-                    : (_charge > 0.02 ? 'SOSTENÉ' : 'MANTENER'),
+                    ? tr('EN OBRA', 'BUILDING')
+                    : (_charge > 0.02
+                          ? tr('SOSTENÉ', 'KEEP HOLDING')
+                          : tr('MANTENER', 'HOLD')),
               ),
             ),
           ],

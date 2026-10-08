@@ -13,6 +13,7 @@ import '../engine/tones.dart';
 import '../engine/town.dart';
 import '../fx/effects.dart';
 import '../fx/sensory.dart';
+import '../l10n/lang.dart';
 import 'style.dart';
 
 /// La única vez que esta app te pregunta algo.
@@ -113,7 +114,7 @@ class ChoiceSheet extends StatelessWidget {
                         child: FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text(
-                            '¿Qué construir?',
+                            tr('¿Qué construir?', 'What to build?'),
                             maxLines: 1,
                             softWrap: false,
                             style: t.title.copyWith(
@@ -254,7 +255,9 @@ class _Option extends StatelessWidget {
                 ),
                 const SizedBox(width: 3),
                 Text(
-                  mark.cost == 1 ? 'pieza' : 'piezas',
+                  mark.cost == 1
+                      ? tr('pieza', 'piece')
+                      : tr('piezas', 'pieces'),
                   style: t.bodySoft.copyWith(fontSize: 11, color: ink.tenue),
                 ),
               ],

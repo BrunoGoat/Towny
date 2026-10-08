@@ -14,6 +14,7 @@ import '../engine/scene.dart';
 import '../engine/town.dart';
 import '../fx/effects.dart';
 import '../fx/sensory.dart';
+import '../l10n/lang.dart';
 import '../model/appearance.dart';
 import '../model/pledge.dart';
 import '../model/store.dart';
@@ -112,7 +113,11 @@ Future<bool> foundFirstTown(
     return false;
   }
   store.settle(0, character);
-  store.renameHabit(0, name: name.isEmpty ? 'Mi hábito' : name, symbol: symbol);
+  store.renameHabit(
+    0,
+    name: name.isEmpty ? tr('Mi hábito', 'My habit') : name,
+    symbol: symbol,
+  );
   store.describeHabit(0, why: why);
   store.pledgeHabit(0, identity: identity);
   store.justFounded = true;
@@ -139,12 +144,12 @@ class NextTown {
 
   /// «segundo», «tercer»… para decirlo con palabras y no con un número.
   String get ordinalWord => switch (ordinal) {
-    2 => 'segundo',
-    3 => 'tercer',
-    4 => 'cuarto',
-    5 => 'quinto',
-    6 => 'sexto',
-    _ => 'nuevo',
+    2 => tr('segundo', 'second'),
+    3 => tr('tercer', 'third'),
+    4 => tr('cuarto', 'fourth'),
+    5 => tr('quinto', 'fifth'),
+    6 => tr('sexto', 'sixth'),
+    _ => tr('nuevo', 'new'),
   };
 
   int get pieces => towns.fold(0, (a, t) => a + t.pieces);
@@ -294,7 +299,9 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
                 child: AnimatedBuilder(
                   animation: _leave,
                   builder: (_, _) => _FoundingName(
-                    name: nombre.isEmpty ? 'Tu pueblo' : nombre,
+                    name: nombre.isEmpty
+                        ? tr('Tu pueblo', 'Your town')
+                        : nombre,
                     t: _leave.value,
                   ),
                 ),
@@ -397,33 +404,57 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
     final uno = next.towns.length == 1;
     final primero = next.towns.first;
     return _Step(
-      over: 'El valle se abre',
-      title: 'Te ganaste tu ${next.ordinalWord} pueblo.',
+      over: tr('El valle se abre', 'The valley opens'),
+      title: tr(
+        'Te ganaste tu ${next.ordinalWord} pueblo.',
+        'You earned your ${next.ordinalWord} town.',
+      ),
       lines: [
         uno
-            ? '«${primero.name}» lleva ${primero.pieces} '
-                  '${primero.pieces == 1 ? 'pieza' : 'piezas'} y ya se '
-                  'sostiene solo. Eso es lo que abrió esta puerta.'
-            : 'Llevás ${next.pieces} piezas entre tus ${next.towns.length} '
-                  'pueblos, y se sostienen. Eso es lo que abrió esta puerta.',
-        'Un pueblo nuevo es un hábito nuevo, y empieza igual que el primero: '
-            'de a una pieza.',
+            ? tr(
+                '«${primero.name}» lleva ${primero.pieces} '
+                    '${primero.pieces == 1 ? 'pieza' : 'piezas'} y ya se '
+                    'sostiene solo. Eso es lo que abrió esta puerta.',
+                '"${primero.name}" has ${primero.pieces} '
+                    '${primero.pieces == 1 ? 'piece' : 'pieces'} and it '
+                    'stands on its own now. That is what opened this door.',
+              )
+            : tr(
+                'Llevás ${next.pieces} piezas entre tus ${next.towns.length} '
+                    'pueblos, y se sostienen. Eso es lo que abrió esta puerta.',
+                'You have ${next.pieces} pieces across your '
+                    '${next.towns.length} towns, and they hold. That is what '
+                    'opened this door.',
+              ),
+        tr(
+          'Un pueblo nuevo es un hábito nuevo, y empieza igual que el '
+              'primero: de a una pieza.',
+          'A new town is a new habit, and it starts just like the first one: '
+              'one piece at a time.',
+        ),
       ],
-      next: 'Fundar mi ${next.ordinalWord} pueblo',
+      next: tr(
+        'Fundar mi ${next.ordinalWord} pueblo',
+        'Found my ${next.ordinalWord} town',
+      ),
       onNext: () => _go(1),
-      skip: 'Ahora no',
+      skip: tr('Ahora no', 'Not now'),
       onSkip: widget.onCancel,
     );
   }
 
   Widget _welcomeFirst() => _Step(
-    title: 'Esto es un valle vacío.',
-    lines: const [
-      'Cada vez que cumplas, vas a poner una pieza. Las piezas levantan un '
-          'pueblo, y el pueblo es lo que llevás hecho.',
-      'Empecemos por uno.',
+    title: tr('Esto es un valle vacío.', 'This is an empty valley.'),
+    lines: [
+      tr(
+        'Cada vez que cumplas, vas a poner una pieza. Las piezas levantan un '
+            'pueblo, y el pueblo es lo que llevás hecho.',
+        'Every time you keep your habit, you place a piece. The pieces raise '
+            'a town, and the town is what you have done.',
+      ),
+      tr('Empecemos por uno.', "Let's start with one."),
     ],
-    next: 'Fundar mi pueblo',
+    next: tr('Fundar mi pueblo', 'Found my town'),
     onNext: () => _go(1),
   );
 
@@ -432,17 +463,20 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
     // pueblo, y se elige mirándola, no adivinándola en un botón de veinte
     // píxeles.
     top: _BigMark(symbol: _symbol),
-    over: 'Tu hábito',
-    title: '¿Qué hábito querés desarrollar?',
+    over: tr('Tu hábito', 'Your habit'),
+    title: tr(
+      '¿Qué hábito querés desarrollar?',
+      'What habit do you want to build?',
+    ),
     lines: const [],
-    next: 'Siguiente',
+    next: tr('Siguiente', 'Next'),
     onNext: _name.text.trim().isEmpty ? null : () => _go(2),
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         _Field(
           controller: _name,
-          hint: 'Leer, correr, no fumar…',
+          hint: tr('Leer, correr, no fumar…', 'Reading, running, not smoking…'),
           big: true,
           max: 24,
           onChanged: () => setState(() {}),
@@ -467,13 +501,17 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
   Widget _askPlace() {
     final ch = TownCharacter.byOrder(_place);
     return _Step(
-      over: 'Tu pueblo',
-      title: '¿Qué clase de pueblo?',
-      lines: const [
-        'Es sólo cómo se ve: cambia las casas y los tejados, no cómo funciona '
-            'nada.',
+      over: tr('Tu pueblo', 'Your town'),
+      title: tr('¿Qué clase de pueblo?', 'What kind of town?'),
+      lines: [
+        tr(
+          'Es sólo cómo se ve: cambia las casas y los tejados, no cómo '
+              'funciona nada.',
+          "It's only how it looks: it changes the houses and the roofs, not "
+              'how anything works.',
+        ),
       ],
-      next: 'Siguiente',
+      next: tr('Siguiente', 'Next'),
       onNext: () => _go(3),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -551,16 +589,21 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
   }
 
   Widget _askWhy() => _Step(
-    over: 'El motivo',
-    title: '¿Para qué querés ese hábito?',
-    lines: const ['Para que tengas claro por qué lo mantenés.'],
-    next: 'Siguiente',
-    skip: 'Ahora no',
+    over: tr('El motivo', 'The reason'),
+    title: tr('¿Para qué querés ese hábito?', 'Why do you want this habit?'),
+    lines: [
+      tr(
+        'Para que tengas claro por qué lo mantenés.',
+        "So it's clear to you why you keep it.",
+      ),
+    ],
+    next: tr('Siguiente', 'Next'),
+    skip: tr('Ahora no', 'Not now'),
     onSkip: () => _go(4),
     onNext: _why.text.trim().isEmpty ? null : () => _go(4),
     child: _Field(
       controller: _why,
-      hint: 'para dormir mejor',
+      hint: tr('para dormir mejor', 'to sleep better'),
       max: 60,
       onChanged: () => setState(() {}),
     ),
@@ -579,15 +622,23 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
   /// pueblo hace con esta línea es ponérsela él: al final es el pueblo el que
   /// dice de quién es.
   Widget _askWho() => _Step(
-    over: 'Quién sos',
-    title: '¿En quién te convierte tener ese hábito?',
-    lines: const [
-      'Qué buscás ser una vez que consigas el hábito: ¿alguien sabio? '
-          '¿Alguien sano? ¿Alguien más inteligente?',
+    over: tr('Quién sos', 'Who you are'),
+    title: tr(
+      '¿En quién te convierte tener ese hábito?',
+      'Who does this habit turn you into?',
+    ),
+    lines: [
+      tr(
+        'Qué buscás ser una vez que consigas el hábito: ¿alguien sabio? '
+            '¿Alguien sano? ¿Alguien más inteligente?',
+        'What you want to be once the habit is yours: someone wise? '
+            'Someone healthy? Someone sharper?',
+      ),
     ],
-    next:
-        'Fundar ${_name.text.trim().isEmpty ? 'el pueblo' : _name.text.trim()}',
-    skip: 'Ahora no',
+    next: _name.text.trim().isEmpty
+        ? tr('Fundar el pueblo', 'Found the town')
+        : tr('Fundar ${_name.text.trim()}', 'Found ${_name.text.trim()}'),
+    skip: tr('Ahora no', 'Not now'),
     onSkip: _found,
     onNext: _identity.text.trim().isEmpty ? null : _found,
     child: _Field(
@@ -595,8 +646,8 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
       // El «alguien» va escrito delante y no se borra: así se ve que lo que
       // falta es el resto de la frase —sabio, que lee todos los días, que
       // puede con todo— y no una frase entera.
-      prefix: 'alguien',
-      hint: 'que lee todos los días',
+      prefix: identityPrefix,
+      hint: tr('que lee todos los días', 'who reads every day'),
       max: 60,
       onChanged: () => setState(() {}),
     ),
@@ -927,7 +978,7 @@ class _MilestoneState extends State<_Milestone>
             Opacity(
               opacity: nuevo,
               child: Text(
-                'PUEBLO ${_roman(n)}',
+                tr('PUEBLO ${_roman(n)}', 'TOWN ${_roman(n)}'),
                 style: const TextStyle(
                   fontFamily: _Ink.serif,
                   fontSize: 40,
@@ -987,7 +1038,7 @@ class _Wordmark extends StatelessWidget {
   ];
 
   @override
-  Widget build(BuildContext context) => const Column(
+  Widget build(BuildContext context) => Column(
     mainAxisSize: MainAxisSize.min,
     children: [
       Text(
@@ -1003,7 +1054,7 @@ class _Wordmark extends StatelessWidget {
       ),
       SizedBox(height: 10),
       Text(
-        'UN PUEBLO PARA CADA HÁBITO',
+        tr('UN PUEBLO PARA CADA HÁBITO', 'A TOWN FOR EVERY HABIT'),
         style: TextStyle(
           fontSize: 11,
           letterSpacing: 3.2,
@@ -1038,7 +1089,7 @@ class _FoundingName extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'SE FUNDA',
+              tr('SE FUNDA', 'FOUNDING'),
               style: TextStyle(
                 fontSize: 11,
                 letterSpacing: 3.4,

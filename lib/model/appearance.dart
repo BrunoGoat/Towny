@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../engine/season.dart';
+import '../l10n/lang.dart';
 
 /// The handful of things about the app that are a preference rather than a
 /// record of what you did.
@@ -112,6 +113,40 @@ class Appearance extends ChangeNotifier {
   Future<void> setHemisphere(Hemisphere? v) async {
     if (v == _hemisphere) return;
     _hemisphere = v;
+    await _keep();
+  }
+
+  // ------------------------------------------------------------ el idioma
+
+  /// El idioma elegido a mano, o nulo para el del teléfono.
+  ///
+  /// Como el hemisferio: se guarda sólo si alguien lo toca. Y «el del
+  /// teléfono» sólo cuenta en la app de verdad ([followDevice]); en los tests
+  /// —que corren con el aparato en inglés— la app habla castellano, que es en
+  /// lo que están escritos.
+  Lang? _lang;
+
+  /// Lo enciende `main()`: a partir de ahí, sin idioma elegido, se habla el
+  /// del teléfono.
+  static bool followDevice = false;
+
+  Lang get language => _lang ?? (followDevice ? _langOfDevice : Lang.es);
+
+  /// Si está puesto a mano o sale del teléfono.
+  bool get languageChosen => _lang != null;
+
+  static Lang get _langOfDevice {
+    try {
+      return Lang.ofCode(PlatformDispatcher.instance.locale.languageCode);
+    } catch (_) {
+      return Lang.es;
+    }
+  }
+
+  Future<void> setLanguage(Lang? v) async {
+    if (v == _lang) return;
+    _lang = v;
+    lang = language;
     await _keep();
   }
 
@@ -284,6 +319,7 @@ class Appearance extends ChangeNotifier {
     _effectsVolume = _midway;
     _fakeHour = false;
     _fakeHourAt = 22.0;
+    _lang = null;
   }
 
   Future<void> load() async {
@@ -311,6 +347,7 @@ class Appearance extends ChangeNotifier {
     } catch (_) {
       // A phone that will not give us its preferences still gets a town.
     }
+    lang = language;
     notifyListeners();
   }
 
@@ -359,6 +396,12 @@ class Appearance extends ChangeNotifier {
             's' => Hemisphere.south,
             _ => null,
           };
+        case 'lang':
+          _lang = switch (value) {
+            'es' => Lang.es,
+            'en' => Lang.en,
+            _ => null,
+          };
         case 'seasons':
           _seasonsOff = value == '0';
         case 'fakeSeason':
@@ -404,6 +447,7 @@ class Appearance extends ChangeNotifier {
     // Sólo si alguien lo puso a mano: sin fila, manda el teléfono.
     if (_hemisphere != null)
       'hemisphere=${_hemisphere == Hemisphere.south ? 's' : 'n'}',
+    if (_lang != null) 'lang=${_lang!.code}',
     'seasons=${_seasonsOff ? 0 : 1}',
     'fakeSeason=${_fakeSeason ? 1 : 0}',
     'fakeSeasonAt=$_fakeSeasonAt',

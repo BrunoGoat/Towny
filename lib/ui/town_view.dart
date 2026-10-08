@@ -20,6 +20,7 @@ import '../engine/town.dart';
 import '../engine/world.dart';
 import '../fx/effects.dart';
 import '../fx/sensory.dart';
+import '../l10n/lang.dart';
 import '../model/appearance.dart';
 import '../model/board.dart';
 import '../model/board_slots.dart';
@@ -913,7 +914,9 @@ class _TownViewState extends State<TownView>
         _showcaseAge = 0;
         widget.onTownLandmark(mark, ordinal);
       } else {
-        widget.onWhisper('${building.name} en pie');
+        widget.onWhisper(
+          tr('${building.name} en pie', '${building.name} is standing'),
+        );
       }
     }
     if (result != null && result.returned) _welcomeBack(result, town, done);
@@ -926,7 +929,10 @@ class _TownViewState extends State<TownView>
         if (mounted) Sensory.instance.milestone();
       });
       widget.onWhisper(
-        'El valle abre un segundo solar. Ya podés fundar otro pueblo.',
+        tr(
+          'El valle abre un segundo solar. Ya podés fundar otro pueblo.',
+          'The valley opens a second plot. You can found another town now.',
+        ),
       );
     }
     // Y si ésta fue la pieza que ganó el título, el pueblo lo dice en voz alta
@@ -999,10 +1005,16 @@ class _TownViewState extends State<TownView>
     widget.onWhisper(
       result.woke
           // Volvió antes de lo que había dicho. Eso no se corrige, se celebra.
-          ? 'El pueblo despierta antes de tiempo.'
+          ? tr(
+              'El pueblo despierta antes de tiempo.',
+              'The town wakes up early.',
+            )
           : hondo > 0.6
-          ? 'Volviste. Está todo donde lo dejaste.'
-          : 'El pueblo te estaba esperando',
+          ? tr(
+              'Volviste. Está todo donde lo dejaste.',
+              "You're back. Everything is where you left it.",
+            )
+          : tr('El pueblo te estaba esperando', 'The town was waiting for you'),
     );
   }
 

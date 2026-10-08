@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../data/landmarks.dart';
 import '../fx/sensory.dart';
+import '../l10n/dates.dart';
+import '../l10n/lang.dart';
 import '../model/piece.dart';
 import '../model/works_log.dart';
 import 'style.dart';
@@ -37,10 +39,13 @@ class TownLandmarkOverlay extends StatelessWidget {
   String? get _cuando {
     final s = span;
     if (s == null || !s.done) return null;
-    final a = '${s.began.day} de ${_meses[s.began.month - 1]}';
-    final b = '${s.ended!.day} de ${_meses[s.ended!.month - 1]}';
+    final a = dayMonth(s.began);
+    final b = dayMonth(s.ended!);
     final d = s.days!;
-    return 'del $a al $b · $d ${d == 1 ? 'día' : 'días'}';
+    return tr(
+      'del $a al $b · $d ${d == 1 ? 'día' : 'días'}',
+      '$a to $b · $d ${d == 1 ? 'day' : 'days'}',
+    );
   }
 
   static const _icons = [
@@ -90,7 +95,7 @@ class TownLandmarkOverlay extends StatelessWidget {
                     ),
                     const SizedBox(height: 14),
                     Text(
-                      'HITO $ordinal DEL PUEBLO',
+                      tr('HITO $ordinal DEL PUEBLO', 'TOWN LANDMARK $ordinal'),
                       style: TextStyle(
                         color: t.accent,
                         fontSize: 10.5,
@@ -117,7 +122,10 @@ class TownLandmarkOverlay extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'levantado con ${mark.cost} piezas tuyas',
+                      tr(
+                        'levantado con ${mark.cost} piezas tuyas',
+                        'raised with ${mark.cost} of your pieces',
+                      ),
                       style: TextStyle(
                         color: t.fgFaint,
                         fontSize: 11,
@@ -209,21 +217,6 @@ class StoneCard extends StatelessWidget {
   /// tablón se fija justo en eso. Se toca la fecha y se arregla.
   final void Function(DateTime when) onWhen;
 
-  static const _months = [
-    'ene',
-    'feb',
-    'mar',
-    'abr',
-    'may',
-    'jun',
-    'jul',
-    'ago',
-    'sep',
-    'oct',
-    'nov',
-    'dic',
-  ];
-
   /// La misma fecha pero contada desde hoy: «hoy 21:44», «ayer 07:12»,
   /// «10 sep 12:23».
   ///
@@ -238,14 +231,14 @@ class StoneCard extends StatelessWidget {
     final hora =
         '${w.hour.toString().padLeft(2, '0')}:'
         '${w.minute.toString().padLeft(2, '0')}';
-    if (dias == 0) return 'hoy $hora';
-    if (dias == 1) return 'ayer $hora';
+    if (dias == 0) return tr('hoy $hora', 'today $hora');
+    if (dias == 1) return tr('ayer $hora', 'yesterday $hora');
     final ano = w.year == ahora.year ? '' : ' ${w.year}';
-    return '${w.day} ${_months[w.month - 1]}$ano $hora';
+    return '${dayMonthShort(w)}$ano $hora';
   }
 
   static String formatDate(DateTime w) =>
-      '${w.day} ${_months[w.month - 1]} ${w.year} · '
+      '${dayMonthShort(w)} ${w.year} · '
       '${w.hour.toString().padLeft(2, '0')}:${w.minute.toString().padLeft(2, '0')}';
 
   Future<void> _when(BuildContext context) async {
@@ -254,7 +247,7 @@ class StoneCard extends StatelessWidget {
     final puesto = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(when),
-      helpText: 'A QUÉ HORA FUE',
+      helpText: tr('A QUÉ HORA FUE', 'WHAT TIME WAS IT'),
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
           colorScheme: (t.dark ? ColorScheme.dark() : ColorScheme.light())
@@ -286,7 +279,7 @@ class StoneCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('PIEZA $number', style: rotulo),
+              Text(tr('PIEZA $number', 'PIECE $number'), style: rotulo),
               const SizedBox(height: 5),
               // La fecha lleva un relojito detrás: se puede corregir, y una
               // fecha que se toca tiene que verse distinta de una que no.
@@ -323,18 +316,3 @@ class StoneCard extends StatelessWidget {
     );
   }
 }
-
-const List<String> _meses = [
-  'enero',
-  'febrero',
-  'marzo',
-  'abril',
-  'mayo',
-  'junio',
-  'julio',
-  'agosto',
-  'septiembre',
-  'octubre',
-  'noviembre',
-  'diciembre',
-];

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../fx/sensory.dart';
+import '../l10n/lang.dart';
 import '../model/habit.dart';
 import '../model/piece.dart';
 import 'style.dart';
@@ -44,11 +45,29 @@ class _RestSheetState extends State<RestSheet> {
   /// corto; un mes porque es lo que dura una mudanza o un examen; y tres
   /// meses como techo, porque más allá de una estación lo honesto es
   /// preguntarse si esto sigue siendo tu hábito y no si está en pausa.
-  static const List<(int, String, String)> _spans = [
-    (7, 'Una semana', 'un viaje, una gripe, una semana imposible'),
-    (14, 'Dos semanas', 'unas vacaciones'),
-    (30, 'Un mes', 'una mudanza, un examen, un mes de los otros'),
-    (90, 'Tres meses', 'una temporada entera de tu vida'),
+  static List<(int, String, String)> get _spans => [
+    (
+      7,
+      tr('Una semana', 'One week'),
+      tr(
+        'un viaje, una gripe, una semana imposible',
+        'a trip, the flu, an impossible week',
+      ),
+    ),
+    (14, tr('Dos semanas', 'Two weeks'), tr('unas vacaciones', 'a holiday')),
+    (
+      30,
+      tr('Un mes', 'One month'),
+      tr(
+        'una mudanza, un examen, un mes de los otros',
+        'a move, an exam, one of those months',
+      ),
+    ),
+    (
+      90,
+      tr('Tres meses', 'Three months'),
+      tr('una temporada entera de tu vida', 'a whole season of your life'),
+    ),
   ];
 
   @override
@@ -75,13 +94,20 @@ class _RestSheetState extends State<RestSheet> {
               ),
             ),
             const SizedBox(height: 16),
-            Text('DORMIR EL PUEBLO', style: t.label),
+            Text(
+              tr('DORMIR EL PUEBLO', 'PUT THE TOWN TO SLEEP'),
+              style: t.label,
+            ),
             const SizedBox(height: 10),
-            Text('¿Hasta cuándo?', style: t.title),
+            Text(tr('¿Hasta cuándo?', 'Until when?'), style: t.title),
             const SizedBox(height: 6),
             Text(
-              'Mientras duerme no cuenta ningún día en contra. Podés volver '
-              'antes cuando quieras: poner una pieza lo despierta.',
+              tr(
+                'Mientras duerme no cuenta ningún día en contra. Podés volver '
+                    'antes cuando quieras: poner una pieza lo despierta.',
+                'While it sleeps, no day counts against you. You can come back '
+                    'earlier whenever you like: placing a piece wakes it up.',
+              ),
               style: t.bodySoft.copyWith(fontSize: 12.5, height: 1.4),
             ),
             const SizedBox(height: 16),
@@ -115,15 +141,22 @@ class _RestSheetState extends State<RestSheet> {
                 ),
                 child: Text(
                   _days == null
-                      ? 'Elegí cuánto'
-                      : 'Que duerma ${_days == 1 ? 'un día' : '$_days días'}',
+                      ? tr('Elegí cuánto', 'Choose how long')
+                      : tr(
+                          'Que duerma ${_days == 1 ? 'un día' : '$_days días'}',
+                          'Let it sleep ${_days == 1 ? 'one day' : '$_days days'}',
+                        ),
                 ),
               ),
             ),
             const SizedBox(height: 8),
             Center(
               child: Text(
-                'Esto no borra nada y no es lo mismo que eliminarlo.',
+                tr(
+                  'Esto no borra nada y no es lo mismo que eliminarlo.',
+                  "This doesn't delete anything, and it isn't the same as "
+                      'removing it.',
+                ),
                 style: t.bodySoft.copyWith(fontSize: 11.5),
               ),
             ),

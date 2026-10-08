@@ -9,6 +9,7 @@ import '../data/character.dart';
 import '../data/landmarks.dart';
 import '../data/symbols.dart';
 import '../engine/town.dart';
+import '../l10n/lang.dart';
 import 'appearance.dart';
 import 'arrival.dart';
 import 'cadence.dart';
@@ -458,7 +459,7 @@ class Store extends ChangeNotifier {
     final slot = _freeSlot();
     final h = Habit(
       id: 'h${DateTime.now().microsecondsSinceEpoch}',
-      name: name.trim().isEmpty ? 'Sin nombre' : name.trim(),
+      name: name.trim().isEmpty ? tr('Sin nombre', 'Untitled') : name.trim(),
       symbol: resolveHabitSymbol(symbol),
       slot: slot,
       character: character ?? TownCharacter.forSlot(slot).order,
@@ -637,7 +638,7 @@ class Store extends ChangeNotifier {
   /// first plot.
   static Habit _blankHabit() => Habit(
     id: 'h${DateTime.now().microsecondsSinceEpoch}',
-    name: 'Mi hábito',
+    name: tr('Mi hábito', 'My habit'),
     symbol: kDefaultHabitSymbol,
     slot: 0,
     createdAt: DateTime.now(),
@@ -782,30 +783,47 @@ class Store extends ChangeNotifier {
   /// refused, because it would look like it had worked.
   String? importSave(String text) {
     final raw = text.trim();
-    if (raw.isEmpty) return 'No hay nada pegado.';
+    if (raw.isEmpty) return tr('No hay nada pegado.', 'Nothing was pasted.');
     Object? parsed;
     try {
       parsed = jsonDecode(raw);
     } catch (_) {
-      return 'Eso no es una copia de Towny.';
+      return tr('Eso no es una copia de Towny.', "That isn't a Towny copy.");
     }
     if (parsed is! Map<String, dynamic>) {
-      return 'Eso no es una copia de Towny.';
+      return tr('Eso no es una copia de Towny.', "That isn't a Towny copy.");
     }
     final list = parsed['h'];
-    if (list is! List) return 'A esa copia le falta la lista de pueblos.';
+    if (list is! List) {
+      return tr(
+        'A esa copia le falta la lista de pueblos.',
+        'That copy is missing its list of towns.',
+      );
+    }
     final read = <Habit>[];
     try {
       for (final e in list) {
         read.add(Habit.fromJson(e as Map<String, dynamic>));
       }
     } catch (_) {
-      return 'Esa copia está rota: no pude leer uno de los pueblos.';
+      return tr(
+        'Esa copia está rota: no pude leer uno de los pueblos.',
+        "That copy is broken: I couldn't read one of the towns.",
+      );
     }
-    if (read.isEmpty) return 'Esa copia no tiene ningún pueblo dentro.';
+    if (read.isEmpty) {
+      return tr(
+        'Esa copia no tiene ningún pueblo dentro.',
+        'That copy has no towns in it.',
+      );
+    }
     if (read.length > Habit.maxSlots) {
-      return 'Esa copia trae ${read.length} pueblos y el valle tiene sitio '
-          'para ${Habit.maxSlots}.';
+      return tr(
+        'Esa copia trae ${read.length} pueblos y el valle tiene sitio '
+            'para ${Habit.maxSlots}.',
+        'That copy has ${read.length} towns and the valley has room for '
+            '${Habit.maxSlots}.',
+      );
     }
     habits
       ..clear()
@@ -827,8 +845,12 @@ class Store extends ChangeNotifier {
   String describe() {
     final towns = habits.length;
     final pieces = habits.fold<int>(0, (n, h) => n + h.total);
-    return '$pieces ${pieces == 1 ? 'pieza' : 'piezas'} en '
-        '$towns ${towns == 1 ? 'pueblo' : 'pueblos'}';
+    return tr(
+      '$pieces ${pieces == 1 ? 'pieza' : 'piezas'} en '
+          '$towns ${towns == 1 ? 'pueblo' : 'pueblos'}',
+      '$pieces ${pieces == 1 ? 'piece' : 'pieces'} in '
+          '$towns ${towns == 1 ? 'town' : 'towns'}',
+    );
   }
 
   void _save() {
@@ -1081,11 +1103,16 @@ class Store extends ChangeNotifier {
   /// What the town is putting up right now.
   String get nextEventLabel {
     final work = plan.underway(shownTotal, habit.chronicle);
-    if (work == null) return 'El pueblo sigue creciendo';
+    if (work == null) {
+      return tr('El pueblo sigue creciendo', 'The town keeps growing');
+    }
     final left = work.$2;
     return left == 1
-        ? 'Una pieza más y ${work.$1} queda en pie'
-        : '${work.$1} · faltan $left';
+        ? tr(
+            'Una pieza más y ${work.$1} queda en pie',
+            'One more piece and ${work.$1} stands',
+          )
+        : tr('${work.$1} · faltan $left', '${work.$1} · $left to go');
   }
 
   Future<void> wipe() async {
@@ -1093,7 +1120,7 @@ class Store extends ChangeNotifier {
     habits.add(
       Habit(
         id: 'h${DateTime.now().microsecondsSinceEpoch}',
-        name: 'Mi hábito',
+        name: tr('Mi hábito', 'My habit'),
         symbol: kDefaultHabitSymbol,
         slot: 0,
         createdAt: DateTime.now(),

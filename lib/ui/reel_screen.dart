@@ -15,6 +15,8 @@ import '../engine/town.dart';
 import '../engine/world.dart';
 import '../fx/effects.dart';
 import '../fx/sensory.dart';
+import '../l10n/dates.dart';
+import '../l10n/lang.dart';
 import '../model/appearance.dart';
 import '../model/habit.dart';
 import '../model/reel.dart';
@@ -676,21 +678,6 @@ class _Date extends StatelessWidget {
   final UiTheme theme;
   final bool show;
 
-  static const _meses = [
-    'enero',
-    'febrero',
-    'marzo',
-    'abril',
-    'mayo',
-    'junio',
-    'julio',
-    'agosto',
-    'septiembre',
-    'octubre',
-    'noviembre',
-    'diciembre',
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Positioned(
@@ -703,7 +690,7 @@ class _Date extends StatelessWidget {
           duration: const Duration(milliseconds: 600),
           child: Center(
             child: Text(
-              '${_meses[when.month - 1]} de ${when.year}'.toUpperCase(),
+              monthYear(when).toUpperCase(),
               style: TextStyle(
                 color: theme.fgSoft,
                 fontSize: 11.5,
@@ -733,7 +720,7 @@ class _Skip extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(10),
         child: Text(
-          'SALTAR',
+          tr('SALTAR', 'SKIP'),
           style: TextStyle(
             color: theme.fgFaint,
             fontSize: 11,
@@ -775,8 +762,7 @@ class _Ending extends StatelessWidget {
   /// pantalla de inicio lo único que hay que decir es de dónde salieron.
   final bool fromWidget;
 
-  static String _fecha(DateTime d) =>
-      '${d.day} de ${_Date._meses[d.month - 1]} de ${d.year}';
+  static String _fecha(DateTime d) => fullDate(d);
 
   @override
   Widget build(BuildContext context) {
@@ -843,7 +829,9 @@ class _Ending extends StatelessWidget {
                         ),
                         const SizedBox(width: 9),
                         Text(
-                          reel.pieces == 1 ? 'pieza' : 'piezas',
+                          reel.pieces == 1
+                              ? tr('pieza', 'piece')
+                              : tr('piezas', 'pieces'),
                           style: TextStyle(
                             color: velo.suave,
                             fontSize: 13.5,
@@ -858,16 +846,26 @@ class _Ending extends StatelessWidget {
                     const SizedBox(height: 12),
                     if (fromWidget)
                       _Line(
-                        left: 'puestas',
-                        right: 'desde la pantalla de inicio',
+                        left: tr('puestas', 'placed'),
+                        right: tr(
+                          'desde la pantalla de inicio',
+                          'from the home screen',
+                        ),
                         ink: velo,
                       )
                     else ...[
-                      _Line(left: 'desde', right: _fecha(reel.from), ink: velo),
+                      _Line(
+                        left: tr('desde', 'since'),
+                        right: _fecha(reel.from),
+                        ink: velo,
+                      ),
                       const SizedBox(height: 7),
                       _Line(
-                        left: 'son',
-                        right: '$dias ${dias == 1 ? 'día' : 'días'}',
+                        left: tr('son', 'that is'),
+                        right: tr(
+                          '$dias ${dias == 1 ? 'día' : 'días'}',
+                          '$dias ${dias == 1 ? 'day' : 'days'}',
+                        ),
                         ink: velo,
                       ),
                     ],
@@ -882,7 +880,9 @@ class _Ending extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         child: Center(
                           child: Text(
-                            fromWidget ? 'AL VALLE' : 'VOLVER AL VALLE',
+                            fromWidget
+                                ? tr('AL VALLE', 'TO THE VALLEY')
+                                : tr('VOLVER AL VALLE', 'BACK TO THE VALLEY'),
                             style: TextStyle(
                               color: theme.accent,
                               fontSize: 11.5,

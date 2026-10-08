@@ -14,6 +14,7 @@ library;
 
 import 'dart:math' as math;
 
+import '../l10n/lang.dart';
 import 'habit.dart';
 import 'piece.dart';
 import 'rhythm.dart';
@@ -113,9 +114,9 @@ int expectedGap(Habit h) {
 
 /// La frecuencia dicha con palabras, como la dice el pueblo.
 String cadenceSaid(int perWeek) => switch (perWeek) {
-  7 => 'todos los días',
-  1 => 'una vez por semana',
-  _ => '$perWeek veces por semana',
+  7 => tr('todos los días', 'every day'),
+  1 => tr('una vez por semana', 'once a week'),
+  _ => tr('$perWeek veces por semana', '$perWeek times a week'),
 };
 
 // ------------------------------------------------------------------ el candado

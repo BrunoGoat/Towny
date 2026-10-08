@@ -13,6 +13,7 @@ import '../engine/scene.dart';
 import '../engine/town.dart';
 import '../fx/effects.dart';
 import '../fx/sensory.dart';
+import '../l10n/lang.dart';
 import 'style.dart';
 
 /// El expositor de lo que hace la gente.
@@ -256,11 +257,11 @@ class _Header extends StatelessWidget {
   final VoidCallback onBack, onIndex;
 
   static String _where(Where w) => switch (w) {
-    Where.door => 'en su puerta',
-    Where.square => 'en la plaza',
-    Where.water => 'donde hay agua',
-    Where.work => 'al pie de una obra',
-    Where.meadow => 'en el prado',
+    Where.door => tr('en su puerta', 'at their door'),
+    Where.square => tr('en la plaza', 'in the square'),
+    Where.water => tr('donde hay agua', 'where there is water'),
+    Where.work => tr('al pie de una obra', 'at the foot of a work'),
+    Where.meadow => tr('en el prado', 'in the meadow'),
   };
 
   @override
@@ -285,7 +286,10 @@ class _Header extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${at + 1} DE $total  ·  ${doing.id.toUpperCase()}',
+                    tr(
+                      '${at + 1} DE $total  ·  ${doing.id.toUpperCase()}',
+                      '${at + 1} OF $total  ·  ${doing.id.toUpperCase()}',
+                    ),
                     style: t.label,
                   ),
                   const SizedBox(height: 3),
@@ -303,10 +307,11 @@ class _Header extends StatelessWidget {
                     '${doing.who == Who.anyone
                         ? ''
                         : doing.who == Who.kid
-                        ? ' · sólo críos'
-                        : ' · sólo mayores'}'
+                        ? tr(' · sólo críos', ' · children only')
+                        : tr(' · sólo mayores', ' · grown-ups only')}'
                     '${doing.prop == PropKind.none ? '' : ' · ${doing.prop.name}'}'
-                    ' · peso ${doing.weight.toStringAsFixed(1)}',
+                    '${tr(' · peso ', ' · weight ')}'
+                    '${doing.weight.toStringAsFixed(1)}',
                     style: t.bodySoft.copyWith(fontSize: 11.5),
                   ),
                 ],
@@ -369,12 +374,12 @@ class _Controls extends StatelessWidget {
                   theme: t,
                   text: place.region,
                   onTap: onPlace,
-                  hint: 'región',
+                  hint: tr('región', 'region'),
                 ),
                 const SizedBox(width: 8),
                 _Pill(
                   theme: t,
-                  text: kid ? 'crío' : 'mayor',
+                  text: kid ? tr('crío', 'child') : tr('mayor', 'grown-up'),
                   on: bothAges,
                   onTap: bothAges ? () => onKid(!kid) : null,
                   hint: 'edad',
@@ -498,11 +503,11 @@ class _IndexSheet extends StatelessWidget {
   final int at;
 
   static String _head(Where w) => switch (w) {
-    Where.door => 'EN SU PUERTA',
-    Where.square => 'EN LA PLAZA',
-    Where.water => 'DONDE HAY AGUA',
-    Where.work => 'AL PIE DE UNA OBRA',
-    Where.meadow => 'EN EL PRADO',
+    Where.door => tr('EN SU PUERTA', 'AT THEIR DOOR'),
+    Where.square => tr('EN LA PLAZA', 'IN THE SQUARE'),
+    Where.water => tr('DONDE HAY AGUA', 'WHERE THERE IS WATER'),
+    Where.work => tr('AL PIE DE UNA OBRA', 'AT THE FOOT OF A WORK'),
+    Where.meadow => tr('EN EL PRADO', 'IN THE MEADOW'),
   };
 
   @override

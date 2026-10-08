@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../engine/town.dart';
+import '../l10n/lang.dart';
 import '../model/appearance.dart';
 import '../model/piece.dart';
 import '../model/store.dart';
@@ -80,7 +81,7 @@ class TopBar extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.only(bottom: 2),
                       child: Text(
-                        'PIEZAS',
+                        tr('PIEZAS', 'PIECES'),
                         style: t.label.copyWith(shadows: t.halo),
                       ),
                     ),
@@ -94,7 +95,10 @@ class TopBar extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.only(bottom: 1),
                         child: Text(
-                          '${firme.done}/${firme.of} DÍAS',
+                          tr(
+                            '${firme.done}/${firme.of} DÍAS',
+                            '${firme.done}/${firme.of} DAYS',
+                          ),
                           style: t.label.copyWith(
                             shadows: t.halo,
                             color: t.fg.withValues(alpha: 0.44),
@@ -112,7 +116,7 @@ class TopBar extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.only(bottom: 1),
                         child: Text(
-                          '$hoy HOY',
+                          tr('$hoy HOY', '$hoy TODAY'),
                           style: t.label.copyWith(
                             shadows: t.halo,
                             color: t.fg.withValues(alpha: 0.44),
@@ -126,7 +130,10 @@ class TopBar extends StatelessWidget {
               const SizedBox(height: 5),
               Text(
                 asleep
-                    ? 'El pueblo duerme · ${sleepUntil(habit.wakesAt!)}'
+                    ? tr(
+                        'El pueblo duerme · ${sleepUntil(habit.wakesAt!)}',
+                        'The town is asleep · ${sleepUntil(habit.wakesAt!)}',
+                      )
                     : store.nextEventLabel,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -143,7 +150,10 @@ class TopBar extends StatelessWidget {
               if (ultima != null) ...[
                 const SizedBox(height: 2),
                 Text(
-                  'última pieza · ${StoneCard.formatWhen(ultima)}',
+                  tr(
+                    'última pieza · ${StoneCard.formatWhen(ultima)}',
+                    'last piece · ${StoneCard.formatWhen(ultima)}',
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -178,9 +188,9 @@ class TopBar extends StatelessWidget {
 /// Hasta cuándo duerme, dicho como se dice en voz alta.
 String sleepUntil(DateTime until) {
   final dias = daysBetween(DateTime.now(), until);
-  if (dias <= 0) return 'despierta hoy';
-  if (dias == 1) return 'despierta mañana';
-  return 'despierta en $dias días';
+  if (dias <= 0) return tr('despierta hoy', 'wakes today');
+  if (dias == 1) return tr('despierta mañana', 'wakes tomorrow');
+  return tr('despierta en $dias días', 'wakes in $dias days');
 }
 
 class BottomDeck extends StatelessWidget {
@@ -267,7 +277,10 @@ class PreviewBanner extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'VISTA DE ${store.shownTotal} PIEZAS',
+              tr(
+                'VISTA DE ${store.shownTotal} PIEZAS',
+                'PREVIEW OF ${store.shownTotal} PIECES',
+              ),
               style: TextStyle(
                 color: t.accent,
                 fontSize: 10.5,

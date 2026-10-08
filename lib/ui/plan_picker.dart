@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 import '../fx/sensory.dart';
+import '../l10n/lang.dart';
 import '../model/pledge.dart';
 import 'style.dart';
 
@@ -235,7 +236,7 @@ class _PlanSheetState extends State<PlanSheet> {
                     contentPadding: EdgeInsets.zero,
                     counterText: '',
                     border: InputBorder.none,
-                    hintText: 'en la cama',
+                    hintText: tr('en la cama', 'in bed'),
                     hintStyle: t.body.copyWith(
                       fontSize: 16,
                       height: 1.3,
@@ -248,7 +249,11 @@ class _PlanSheetState extends State<PlanSheet> {
                 Container(height: 1, color: velo.canto),
                 const SizedBox(height: 12),
                 Text(
-                  frase ?? 'Elegí la hora y escribí el sitio.',
+                  frase ??
+                      tr(
+                        'Elegí la hora y escribí el sitio.',
+                        'Choose the time and write the place.',
+                      ),
                   textAlign: TextAlign.center,
                   style: t.bodySoft.copyWith(
                     fontSize: 14,
@@ -268,7 +273,7 @@ class _PlanSheetState extends State<PlanSheet> {
                           vertical: 16,
                         ),
                         child: Text(
-                          'DARLO POR HECHO',
+                          tr('DARLO POR HECHO', 'CALL IT DONE'),
                           style: TextStyle(
                             color: frase == null ? velo.tenue : t.accent,
                             fontSize: 11.5,

@@ -28,6 +28,7 @@ library;
 
 import 'dart:math' as math;
 
+import '../l10n/lang.dart';
 import 'habit.dart';
 import 'piece.dart';
 import 'rhythm.dart';
@@ -47,7 +48,11 @@ String? vowOf(Habit h) => vowLine(h.name, h.vowHour, h.vowPlace);
 String? vowLine(String name, int? hour, String? place) {
   final sitio = _clean(place);
   if (hour == null && sitio == null) return null;
-  final que = 'Voy a ${lowerName(name.trim().isEmpty ? 'hacerlo' : name)}';
+  // En inglés, con dos puntos y no con un verbo: los hábitos se escriben como
+  // sustantivo —«Reading», «Gym»— y «I'm going to reading» no se dice.
+  final que = inEnglish
+      ? (name.trim().isEmpty ? 'The plan:' : '${name.trim()}:')
+      : 'Voy a ${lowerName(name.trim().isEmpty ? 'hacerlo' : name)}';
   if (hour == null) return '$que, ${placeSaid(sitio!)}.';
   if (sitio == null) return '$que ${hourSaid(hour)}.';
   return '$que ${hourSaid(hour)}, ${placeSaid(sitio)}.';
@@ -61,6 +66,14 @@ String? vowLine(String name, int? hour, String? place) {
 /// van por su nombre, que es como las llama cualquiera.
 String hourSaid(int hour) {
   final h = hour % 24;
+  if (inEnglish) {
+    return switch (h) {
+      0 => 'at midnight',
+      12 => 'at noon',
+      _ when h < 12 => 'at $h am',
+      _ => 'at ${h - 12} pm',
+    };
+  }
   return switch (h) {
     0 => 'a medianoche',
     1 => 'a la 1 de la madrugada',
@@ -79,6 +92,24 @@ String hourSaid(int hour) {
 String placeSaid(String place) {
   final t = place.trim();
   final bajo = t.toLowerCase();
+  if (inEnglish) {
+    for (final p in const [
+      'in ',
+      'at ',
+      'on ',
+      'by ',
+      'near ',
+      'before ',
+      'after ',
+      'while ',
+      'during ',
+      'from ',
+      'right ',
+    ]) {
+      if (bajo.startsWith(p)) return t;
+    }
+    return 'in $t';
+  }
   for (final p in const [
     'en ',
     'a ',
@@ -185,12 +216,21 @@ double? planKept(Habit h, {int least = 12}) {
   return dentro / h.pieces.length;
 }
 
+/// Lo que va fijo delante del campo: «alguien», o «someone» en inglés.
+String get identityPrefix => tr('alguien', 'someone');
+
 /// Lo que va en el campo después del «alguien» fijo: «sabio», «que lee todos
 /// los días». Lo que se guarda es la frase entera, así que al abrir un hábito
 /// se le quita el «alguien» del principio para no escribirlo dos veces.
+///
+/// Los dos prefijos, en cualquier idioma: una identidad escrita en castellano
+/// sigue abriéndose bien con la app en inglés, y al revés.
 String identityTail(String? whole) {
   final t = (whole ?? '').trim();
-  final m = RegExp(r'^alguien(\s+|$)', caseSensitive: false).firstMatch(t);
+  final m = RegExp(
+    r'^(alguien|someone)(\s+|$)',
+    caseSensitive: false,
+  ).firstMatch(t);
   return m == null ? t : t.substring(m.end).trim();
 }
 
@@ -199,7 +239,7 @@ String identityTail(String? whole) {
 /// sabio» en el campo—, no sale «alguien alguien sabio».
 String? identityWhole(String tail) {
   final resto = identityTail(tail);
-  return resto.isEmpty ? null : 'alguien $resto';
+  return resto.isEmpty ? null : '$identityPrefix $resto';
 }
 
 /// Lo que escribiste que querés ser, limpio y en minúscula: «alguien sabio».
@@ -219,7 +259,9 @@ String? identityWanted(Habit h) {
 /// se encarga de ser la prueba.
 String? identitySaid(Habit h) {
   final quien = identityWanted(h);
-  return quien == null ? null : 'Este pueblo es de $quien.';
+  return quien == null
+      ? null
+      : tr('Este pueblo es de $quien.', 'This town belongs to $quien.');
 }
 
 // ------------------------------------------------------- el título, ganado
@@ -378,9 +420,9 @@ IdentityStanding? identityStanding(Habit h, {DateTime? at}) {
 
 /// El ritmo dicho en voz alta: «cinco días de cada siete», «todos los días».
 String rhythmSaid(int perWeek) => switch (perWeek) {
-  >= 7 => 'todos los días',
-  1 => 'un día por semana',
-  _ => '$perWeek días de cada siete',
+  >= 7 => tr('todos los días', 'every day'),
+  1 => tr('un día por semana', 'one day a week'),
+  _ => tr('$perWeek días de cada siete', '$perWeek days out of seven'),
 };
 
 /// Un texto que puede venir vacío desde un archivo viejo o desde un campo que

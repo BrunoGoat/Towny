@@ -9,6 +9,7 @@ import '../engine/shooting_star.dart';
 import '../engine/town.dart';
 import '../fx/notifier.dart';
 import '../fx/sensory.dart';
+import '../l10n/lang.dart';
 import '../model/appearance.dart';
 import '../model/board_seen.dart';
 import '../model/board_slots.dart';
@@ -75,7 +76,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('AJUSTES', style: t.label),
+                  Text(tr('AJUSTES', 'SETTINGS'), style: t.label),
                   // Qué build es ésta.
                   //
                   // Existe porque no existía, y no saberlo costó una tarde: se
@@ -118,26 +119,55 @@ class _SettingsSheetState extends State<SettingsSheet> {
     return ListView(
       padding: const EdgeInsets.only(bottom: 20),
       children: [
-        _Head(theme: t, text: 'SONIDO'),
+        // Lo primero de todo: quien abrió los ajustes buscando esto puede no
+        // entender nada de lo que hay debajo.
+        _Head(theme: t, text: tr('IDIOMA · LANGUAGE', 'LANGUAGE · IDIOMA')),
+        _Pick(
+          theme: t,
+          options: [for (final l in Lang.values) (l.name, l.index * 1.0)],
+          value: wants.language.index * 1.0,
+          onPick: (at) => wants.setLanguage(Lang.values[at.round()]),
+        ),
+        Text(
+          wants.languageChosen
+              ? tr('Lo elegiste vos.', 'You chose it.')
+              : tr(
+                  'Sale del idioma del teléfono.',
+                  "It follows your phone's language.",
+                ),
+          style: t.bodySoft.copyWith(fontSize: 11.5, height: 1.4),
+        ),
+
+        const SizedBox(height: 26),
+        _Head(theme: t, text: tr('SONIDO', 'SOUND')),
         _Switch(
           theme: t,
-          title: 'Sonido',
-          subtitle: 'El interruptor de todo, música incluida.',
+          title: tr('Sonido', 'Sound'),
+          subtitle: tr(
+            'El interruptor de todo, música incluida.',
+            'The switch for everything, music included.',
+          ),
           on: !wants.soundOff,
           onChanged: (v) => wants.setSoundOff(!v),
         ),
         _Switch(
           theme: t,
-          title: 'Efectos',
-          subtitle: 'Lo que suena al poner una pieza.',
+          title: tr('Efectos', 'Effects'),
+          subtitle: tr(
+            'Lo que suena al poner una pieza.',
+            'What you hear when you place a piece.',
+          ),
           on: !wants.effectsOff,
           enabled: !wants.soundOff,
           onChanged: (v) => wants.setEffectsOff(!v),
         ),
         _Switch(
           theme: t,
-          title: 'Música',
-          subtitle: 'De fondo, y distinta según la hora del día.',
+          title: tr('Música', 'Music'),
+          subtitle: tr(
+            'De fondo, y distinta según la hora del día.',
+            'In the background, and different depending on the time of day.',
+          ),
           on: !wants.musicOff,
           enabled: !wants.soundOff,
           onChanged: (v) => wants.setMusicOff(!v),
@@ -145,13 +175,13 @@ class _SettingsSheetState extends State<SettingsSheet> {
         const SizedBox(height: 8),
         _Slider(
           theme: t,
-          title: 'Volumen de la música',
+          title: tr('Volumen de la música', 'Music volume'),
           value: wants.musicVolume,
           onChanged: wants.setMusicVolume,
         ),
         _Slider(
           theme: t,
-          title: 'Volumen de los efectos',
+          title: tr('Volumen de los efectos', 'Effects volume'),
           value: wants.effectsVolume,
           onChanged: (v) {
             wants.setEffectsVolume(v);
@@ -159,29 +189,46 @@ class _SettingsSheetState extends State<SettingsSheet> {
           onSettled: () => Sensory.instance.preview('place'),
         ),
         Text(
-          'La mitad es como sonaba antes de que hubiera dónde tocarlo, así que '
-          'lo que muevas se mide contra algo que ya conocés.',
+          tr(
+            'La mitad es como sonaba antes de que hubiera dónde tocarlo, así '
+                'que lo que muevas se mide contra algo que ya conocés.',
+            'Halfway is how it sounded before there was a way to change it, '
+                'so whatever you move is measured against something you know.',
+          ),
           style: t.bodySoft.copyWith(fontSize: 11.5, height: 1.4),
         ),
 
         const SizedBox(height: 26),
-        _Head(theme: t, text: 'EL TABLÓN'),
+        _Head(theme: t, text: tr('EL TABLÓN', 'THE NOTICE BOARD')),
         Text(
-          'Las letras del tablón ya no se eligen: tus cuentas van todas de la '
-          'misma mano y cada bando sale con la del vecino que lo colgó. Un '
-          'tablón de plaza se lee así, no con una letra que se elige en un '
-          'menú.',
+          tr(
+            'Las letras del tablón ya no se eligen: tus cuentas van todas de '
+                'la misma mano y cada bando sale con la del vecino que lo '
+                'colgó. Un tablón de plaza se lee así, no con una letra que se '
+                'elige en un menú.',
+            "The board's handwriting isn't chosen any more: your tallies are "
+                'all in the same hand, and each notice comes in the hand of the '
+                'neighbour who pinned it. That is how a town board reads, not '
+                'in a font picked from a menu.',
+          ),
           style: t.bodySoft.copyWith(fontSize: 11.5, height: 1.4),
         ),
         const SizedBox(height: 12),
         _Row(
           theme: t,
           icon: Icons.auto_stories_outlined,
-          title: 'Ver el tablón con un pueblo lleno',
-          subtitle:
-              'Un valle de mentira: entrenar durante 300 días. Trae un dado '
-              'que vuelve a repartirlo con notas al azar, para ver si el texto '
-              'cabe también en las que no salen nunca.',
+          title: tr(
+            'Ver el tablón con un pueblo lleno',
+            'See the board of a full town',
+          ),
+          subtitle: tr(
+            'Un valle de mentira: entrenar durante 300 días. Trae un dado '
+                'que vuelve a repartirlo con notas al azar, para ver si el '
+                'texto cabe también en las que no salen nunca.',
+            'A pretend valley: training for 300 days. It comes with a die '
+                'that deals it again with random notes, to check that the text '
+                'also fits in the ones that hardly ever come up.',
+          ),
           page: () {
             final valle = demoValley();
             return NoticeBoardScreen(
@@ -194,34 +241,45 @@ class _SettingsSheetState extends State<SettingsSheet> {
         ),
 
         const SizedBox(height: 26),
-        _Head(theme: t, text: 'LA HORA'),
+        _Head(theme: t, text: tr('LA HORA', 'THE TIME')),
         _Switch(
           theme: t,
-          title: 'Fingir la hora',
-          subtitle:
-              'Para mirar el pueblo a cualquier hora sin esperarla. Cambia el '
-              'cielo, la música, las ventanas y las fugaces, porque las cuatro '
-              'salen de la misma hora.',
+          title: tr('Fingir la hora', 'Pretend the time'),
+          subtitle: tr(
+            'Para mirar el pueblo a cualquier hora sin esperarla. Cambia el '
+                'cielo, la música, las ventanas y las fugaces, porque las '
+                'cuatro salen de la misma hora.',
+            'To look at the town at any hour without waiting for it. It '
+                'changes the sky, the music, the windows and the shooting '
+                'stars, because all four come from the same clock.',
+          ),
           on: wants.fakeHour,
           onChanged: wants.setFakeHour,
         ),
         if (wants.fakeHour)
           _Slider(
             theme: t,
-            title:
-                'Son las ${wants.fakeHourAt.floor().toString().padLeft(2, '0')}'
-                ':${((wants.fakeHourAt % 1) * 60).floor().toString().padLeft(2, '0')}',
+            title: tr(
+              'Son las ${wants.fakeHourAt.floor().toString().padLeft(2, '0')}'
+                  ':${((wants.fakeHourAt % 1) * 60).floor().toString().padLeft(2, '0')}',
+              "It's ${wants.fakeHourAt.floor().toString().padLeft(2, '0')}"
+                  ':${((wants.fakeHourAt % 1) * 60).floor().toString().padLeft(2, '0')}',
+            ),
             value: wants.fakeHourAt / 24,
             onChanged: (v) => wants.setFakeHourAt(v * 24),
           ),
         _Row(
           theme: t,
           icon: Icons.auto_awesome,
-          title: 'Tirar una estrella fugaz',
-          subtitle:
-              'Sale ya mismo, sin esperar. Dura cinco segundos, cruza por donde '
-              'estés mirando y de noche pasa una cada cuatro minutos y medio '
-              'de media.',
+          title: tr('Tirar una estrella fugaz', 'Send a shooting star'),
+          subtitle: tr(
+            'Sale ya mismo, sin esperar. Dura cinco segundos, cruza por donde '
+                'estés mirando y de noche pasa una cada cuatro minutos y medio '
+                'de media.',
+            'It goes right now, no waiting. It lasts five seconds, crosses '
+                "wherever you're looking, and at night one passes every four "
+                'and a half minutes on average.',
+          ),
           // Cierra los ajustes primero. Sin eso la fugaz cruzaba por detrás de
           // esta misma hoja durante los cinco segundos que dura, que es la
           // manera más tonta de que un botón de probar algo no pruebe nada. El
@@ -237,14 +295,18 @@ class _SettingsSheetState extends State<SettingsSheet> {
         ),
 
         const SizedBox(height: 26),
-        _Head(theme: t, text: 'EL AÑO'),
+        _Head(theme: t, text: tr('EL AÑO', 'THE YEAR')),
         _Switch(
           theme: t,
-          title: 'Las estaciones',
-          subtitle:
-              'El valle cambia con el año: verde nuevo en primavera, dorado en '
-              'otoño, nieve en los tejados en invierno, y los días más cortos '
-              'o más largos según toque.',
+          title: tr('Las estaciones', 'The seasons'),
+          subtitle: tr(
+            'El valle cambia con el año: verde nuevo en primavera, dorado en '
+                'otoño, nieve en los tejados en invierno, y los días más '
+                'cortos o más largos según toque.',
+            'The valley changes with the year: fresh green in spring, gold in '
+                'autumn, snow on the roofs in winter, and shorter or longer '
+                'days as the year turns.',
+          ),
           on: wants.seasons,
           onChanged: wants.setSeasons,
         ),
@@ -258,22 +320,33 @@ class _SettingsSheetState extends State<SettingsSheet> {
           // que contesta es dónde estás y no qué estás mirando.
           _Switch(
             theme: t,
-            title: 'Estoy en el hemisferio sur',
-            subtitle:
-                'Para que diciembre sea verano y julio invierno. '
-                '${wants.hemisphereChosen ? 'Lo pusiste vos' : 'Sale del idioma del teléfono'}, '
-                'y con eso hoy es '
-                '${Season.on(DateTime.now(), wants.hemisphere).name.toLowerCase()}.',
+            title: tr(
+              'Estoy en el hemisferio sur',
+              "I'm in the southern hemisphere",
+            ),
+            subtitle: tr(
+              'Para que diciembre sea verano y julio invierno. '
+                  '${wants.hemisphereChosen ? 'Lo pusiste vos' : 'Sale del idioma del teléfono'}, '
+                  'y con eso hoy es '
+                  '${Season.on(DateTime.now(), wants.hemisphere).name.toLowerCase()}.',
+              'So that December is summer and July is winter. '
+                  '${wants.hemisphereChosen ? 'You set it' : "It follows your phone's language"}, '
+                  'and with that today is '
+                  '${Season.on(DateTime.now(), wants.hemisphere).name.toLowerCase()}.',
+            ),
             on: wants.hemisphere == Hemisphere.south,
             onChanged: (v) =>
                 wants.setHemisphere(v ? Hemisphere.south : Hemisphere.north),
           ),
           _Switch(
             theme: t,
-            title: 'Fingir el día del año',
-            subtitle:
-                'Para ver el invierno en marzo sin esperarlo, igual que se '
-                'finge la hora.',
+            title: tr('Fingir el día del año', 'Pretend the day of the year'),
+            subtitle: tr(
+              'Para ver el invierno en marzo sin esperarlo, igual que se '
+                  'finge la hora.',
+              'To see winter in March without waiting for it, the same way '
+                  'you pretend the time.',
+            ),
             on: wants.fakeSeason,
             onChanged: wants.setFakeSeason,
           ),
@@ -289,11 +362,11 @@ class _SettingsSheetState extends State<SettingsSheet> {
               // va un mes por detrás del sol, así que en el solsticio todavía
               // se ve la estación que se va. Quien toca «Invierno» quiere ver
               // el invierno, no el 21 de diciembre.
-              options: const [
-                ('Invierno', 0.09),
-                ('Primavera', 0.34),
-                ('Verano', 0.59),
-                ('Otoño', 0.84),
+              options: [
+                (tr('Invierno', 'Winter'), 0.09),
+                (tr('Primavera', 'Spring'), 0.34),
+                (tr('Verano', 'Summer'), 0.59),
+                (tr('Otoño', 'Autumn'), 0.84),
               ],
               value: wants.fakeSeasonAt,
               onPick: wants.setFakeSeasonAt,
@@ -303,7 +376,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
               title:
                   '${Season(wants.fakeSeasonAt).name}, '
                   '${Season(wants.fakeSeasonAt).daylightHours.toStringAsFixed(1)}'
-                  ' horas de luz',
+                  '${tr(' horas de luz', ' hours of daylight')}',
               value: wants.fakeSeasonAt,
               onChanged: wants.setFakeSeasonAt,
             ),
@@ -311,15 +384,18 @@ class _SettingsSheetState extends State<SettingsSheet> {
         ],
 
         const SizedBox(height: 26),
-        _Head(theme: t, text: 'LO DEMÁS'),
+        _Head(theme: t, text: tr('LO DEMÁS', 'EVERYTHING ELSE')),
         // Encima de la vibración porque es el único de los tres que sale de la
         // app: los otros dos sólo suenan cuando ya la tenés abierta.
         _Switch(
           theme: t,
-          title: 'Que el pueblo te avise',
-          subtitle:
-              'Sólo cuando llevás más de lo tuyo sin poner una pieza, a tu '
-              'hora y con tus palabras. Como mucho dos por ausencia.',
+          title: tr('Que el pueblo te avise', 'Let the town remind you'),
+          subtitle: tr(
+            'Sólo cuando llevás más de lo tuyo sin poner una pieza, a tu '
+                'hora y con tus palabras. Como mucho dos por ausencia.',
+            "Only when you've gone longer than usual without placing a piece, "
+                'at your time and in your words. Two per absence at most.',
+          ),
           on: !wants.nudgesOff,
           onChanged: (v) async {
             if (v && !await Notifier.instance.ask()) return;
@@ -333,26 +409,35 @@ class _SettingsSheetState extends State<SettingsSheet> {
         ),
         _Switch(
           theme: t,
-          title: 'Vibración',
-          subtitle: 'El peso de la pieza al caer.',
+          title: tr('Vibración', 'Vibration'),
+          subtitle: tr(
+            'El peso de la pieza al caer.',
+            'The weight of the piece as it lands.',
+          ),
           on: !wants.hapticsOff,
           onChanged: (v) => wants.setHapticsOff(!v),
         ),
         _Switch(
           theme: t,
-          title: 'Modo rápido',
-          subtitle:
-              'Mantener pone piezas seguidas. Para probar, no para usar: una '
-              'pieza es un logro.',
+          title: tr('Modo rápido', 'Fast mode'),
+          subtitle: tr(
+            'Mantener pone piezas seguidas. Para probar, no para usar: una '
+                'pieza es un logro.',
+            'Holding places pieces one after another. For testing, not for '
+                'real use: a piece is an achievement.',
+          ),
           on: wants.rapid,
           onChanged: wants.setRapid,
         ),
         _Switch(
           theme: t,
-          title: 'Sin límite de hábitos',
-          subtitle:
-              'Fundar pueblos nuevos sin tener que desbloquearlos. Para probar: '
-              'el segundo pueblo se gana.',
+          title: tr('Sin límite de hábitos', 'No habit limit'),
+          subtitle: tr(
+            'Fundar pueblos nuevos sin tener que desbloquearlos. Para probar: '
+                'el segundo pueblo se gana.',
+            'Found new towns without unlocking them. For testing: the second '
+                'town is meant to be earned.',
+          ),
           on: wants.freeHabits,
           onChanged: wants.setFreeHabits,
         ),
@@ -360,8 +445,11 @@ class _SettingsSheetState extends State<SettingsSheet> {
         _Row(
           theme: t,
           icon: Icons.save_alt,
-          title: 'Tus datos',
-          subtitle: 'Copiar tu valle y volver a meterlo.',
+          title: tr('Tus datos', 'Your data'),
+          subtitle: tr(
+            'Copiar tu valle y volver a meterlo.',
+            'Copy your valley out and put it back in.',
+          ),
           open: () => BackupSheet(store: store, theme: t),
         ),
         // Al lado de «a futuro» a propósito: son la misma clase de cosa mirada
@@ -373,17 +461,22 @@ class _SettingsSheetState extends State<SettingsSheet> {
             _Row(
               theme: t,
               icon: Icons.play_circle_outline,
-              title: 'Ver cómo se hizo',
-              subtitle:
-                  'El valle entero, o uno de tus pueblos desde el primer día.',
+              title: tr('Ver cómo se hizo', 'Watch how it was made'),
+              subtitle: tr(
+                'El valle entero, o uno de tus pueblos desde el primer día.',
+                'The whole valley, or one of your towns from the first day.',
+              ),
               open: () => _WhichReel(store: store, theme: t),
             )
           else
             _Row(
               theme: t,
               icon: Icons.play_circle_outline,
-              title: 'Ver cómo se hizo',
-              subtitle: 'Tu pueblo entero desde el primer día, en un minuto.',
+              title: tr('Ver cómo se hizo', 'Watch how it was made'),
+              subtitle: tr(
+                'Tu pueblo entero desde el primer día, en un minuto.',
+                'Your whole town from the first day, in a minute.',
+              ),
               page: () => ReelScreen.town(
                 store: store,
                 habit: _conCronica(store).firstOrNull ?? 0,
@@ -392,17 +485,24 @@ class _SettingsSheetState extends State<SettingsSheet> {
         _Row(
           theme: t,
           icon: Icons.tune,
-          title: 'Ver el pueblo a futuro',
-          subtitle: 'Cómo se vería con 100, 500 o 5000 piezas.',
+          title: tr('Ver el pueblo a futuro', 'See the town in the future'),
+          subtitle: tr(
+            'Cómo se vería con 100, 500 o 5000 piezas.',
+            'How it would look with 100, 500 or 5000 pieces.',
+          ),
           open: () => DebugSheet(store: store, theme: t),
         ),
         _Row(
           theme: t,
           icon: Icons.fork_right,
-          title: 'Ver la tarjeta de elegir',
-          subtitle:
-              'La pregunta que sale al empezar una obra, con dos al azar del '
-              'catálogo. Mirar y ya: no elige nada ni toca tu pueblo.',
+          title: tr('Ver la tarjeta de elegir', 'See the choice card'),
+          subtitle: tr(
+            'La pregunta que sale al empezar una obra, con dos al azar del '
+                'catálogo. Mirar y ya: no elige nada ni toca tu pueblo.',
+            'The question that comes up when a work begins, with two random '
+                "ones from the catalogue. Just to look: it doesn't choose "
+                'anything or touch your town.',
+          ),
           act: (nav) {
             nav.pop();
             _verLaPregunta(nav, t, store);
@@ -411,10 +511,14 @@ class _SettingsSheetState extends State<SettingsSheet> {
         _Row(
           theme: t,
           icon: Icons.restart_alt,
-          title: 'Ver la primera vez otra vez',
-          subtitle:
-              'Abre la pantalla de entrada como si acabaras de instalar la '
-              'app. Es sólo para mirar: al terminar vuelve tu valle tal cual.',
+          title: tr('Ver la primera vez otra vez', 'See the first time again'),
+          subtitle: tr(
+            'Abre la pantalla de entrada como si acabaras de instalar la '
+                'app. Es sólo para mirar: al terminar vuelve tu valle tal cual.',
+            "Opens the welcome screen as if you'd just installed the app. "
+                "It's only for looking: when you finish, your valley comes back "
+                'as it was.',
+          ),
           act: (nav) {
             Appearance.instance.rehearseOnboarding();
             nav.pop();
@@ -423,19 +527,25 @@ class _SettingsSheetState extends State<SettingsSheet> {
         _Row(
           theme: t,
           icon: Icons.view_in_ar,
-          title: 'El expositor',
-          subtitle:
-              'Las ${landmarks.length + BuildingKind.values.length} estructuras '
-              'que el pueblo sabe construir.',
+          title: tr('El expositor', 'The showcase'),
+          subtitle: tr(
+            'Las ${landmarks.length + BuildingKind.values.length} estructuras '
+                'que el pueblo sabe construir.',
+            'The ${landmarks.length + BuildingKind.values.length} structures '
+                'the town knows how to build.',
+          ),
           page: () => GalleryScreen(theme: t),
         ),
         _Row(
           theme: t,
           icon: Icons.directions_walk,
-          title: 'El expositor de la gente',
-          subtitle:
-              'Las ${Doing.all.length} cosas que hacen los vecinos cuando no '
-              'están andando, una a una y de cerca.',
+          title: tr('El expositor de la gente', 'The people showcase'),
+          subtitle: tr(
+            'Las ${Doing.all.length} cosas que hacen los vecinos cuando no '
+                'están andando, una a una y de cerca.',
+            "The ${Doing.all.length} things the neighbours do when they're "
+                'not walking, one by one and up close.',
+          ),
           page: () => FolkGalleryScreen(theme: t),
         ),
         // Lo último de la hoja, lejos de todo lo demás: es lo único de acá
@@ -443,10 +553,12 @@ class _SettingsSheetState extends State<SettingsSheet> {
         _Row(
           theme: t,
           icon: Icons.delete_forever,
-          title: 'Empezar de cero',
-          subtitle:
-              'Borra todos los pueblos y vuelve a la pantalla de la primera '
-              'vez.',
+          title: tr('Empezar de cero', 'Start from scratch'),
+          subtitle: tr(
+            'Borra todos los pueblos y vuelve a la pantalla de la primera '
+                'vez.',
+            'Deletes every town and goes back to the first-time screen.',
+          ),
           act: (nav) => _empezarDeCero(nav, t, store),
         ),
       ],
@@ -466,17 +578,28 @@ void _empezarDeCero(NavigatorState nav, UiTheme t, Store store) {
     builder: (dialog) => AlertDialog(
       backgroundColor: t.panelStrong,
       elevation: 0,
-      title: Text('¿Borrar todo y empezar de cero?', style: t.body),
+      title: Text(
+        tr(
+          '¿Borrar todo y empezar de cero?',
+          'Delete everything and start from scratch?',
+        ),
+        style: t.body,
+      ),
       content: Text(
-        'Se borran todos tus pueblos, sus piezas y lo que clavaste en el '
-        'tablón. No se puede deshacer.\n\n'
-        'Si querés guardar una copia, sacala antes desde «Tus datos».',
+        tr(
+          'Se borran todos tus pueblos, sus piezas y lo que clavaste en el '
+              'tablón. No se puede deshacer.\n\n'
+              'Si querés guardar una copia, sacala antes desde «Tus datos».',
+          'All your towns, their pieces and what you pinned on the board are '
+              "deleted. It can't be undone.\n\n"
+              'If you want to keep a copy, take it first from "Your data".',
+        ),
         style: t.bodySoft,
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialog).pop(),
-          child: const Text('No'),
+          child: Text(tr('No', 'No')),
         ),
         TextButton(
           onPressed: () async {
@@ -490,7 +613,7 @@ void _empezarDeCero(NavigatorState nav, UiTheme t, Store store) {
             if (nav.mounted) nav.pop();
           },
           child: Text(
-            'Borrar todo',
+            tr('Borrar todo', 'Delete everything'),
             style: TextStyle(
               color: t.dark ? const Color(0xFFCC5B48) : const Color(0xFF9E3124),
               fontWeight: FontWeight.w600,
@@ -567,14 +690,25 @@ class _Undo extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Quitar la última pieza', style: t.body),
+                    Text(
+                      tr('Quitar la última pieza', 'Remove the last piece'),
+                      style: t.body,
+                    ),
                     const SizedBox(height: 2),
                     Text(
                       last == null
-                          ? 'Este pueblo todavía no tiene ninguna.'
-                          : 'La ${store.habit.total} de '
-                                '${store.habit.name}, puesta el '
-                                '${StoneCard.formatDate(last.placedAt)}.',
+                          ? tr(
+                              'Este pueblo todavía no tiene ninguna.',
+                              "This town doesn't have any yet.",
+                            )
+                          : tr(
+                              'La ${store.habit.total} de '
+                                  '${store.habit.name}, puesta el '
+                                  '${StoneCard.formatDate(last.placedAt)}.',
+                              'Number ${store.habit.total} of '
+                                  '${store.habit.name}, placed on '
+                                  '${StoneCard.formatDate(last.placedAt)}.',
+                            ),
                       style: t.bodySoft.copyWith(fontSize: 11.5, height: 1.35),
                     ),
                   ],
@@ -595,15 +729,24 @@ class _Undo extends StatelessWidget {
       builder: (dialog) => AlertDialog(
         backgroundColor: t.panelStrong,
         elevation: 0,
-        title: Text('¿Quitar la pieza ${store.habit.total}?', style: t.body),
+        title: Text(
+          tr(
+            '¿Quitar la pieza ${store.habit.total}?',
+            'Remove piece ${store.habit.total}?',
+          ),
+          style: t.body,
+        ),
         content: Text(
-          'Vuelve a quedar en ${store.habit.total - 1}.',
+          tr(
+            'Vuelve a quedar en ${store.habit.total - 1}.',
+            "It's back to ${store.habit.total - 1}.",
+          ),
           style: t.bodySoft,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialog).pop(),
-            child: const Text('No'),
+            child: Text(tr('No', 'No')),
           ),
           TextButton(
             onPressed: () {
@@ -611,7 +754,7 @@ class _Undo extends StatelessWidget {
               Navigator.of(dialog).pop();
             },
             child: Text(
-              'Quitarla',
+              tr('Quitarla', 'Remove it'),
               style: TextStyle(
                 color: t.dark
                     ? const Color(0xFFCC5B48)
@@ -914,15 +1057,18 @@ class _WhichReel extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Text('VER CÓMO SE HIZO', style: t.label),
+          Text(tr('VER CÓMO SE HIZO', 'WATCH HOW IT WAS MADE'), style: t.label),
           const SizedBox(height: 10),
           _Row(
             theme: t,
             icon: Icons.grass,
-            title: 'El valle entero',
-            subtitle:
-                'Salta de pieza en pieza y de pueblo en pueblo, en el orden '
-                'en que pasaron.',
+            title: tr('El valle entero', 'The whole valley'),
+            subtitle: tr(
+              'Salta de pieza en pieza y de pueblo en pueblo, en el orden '
+                  'en que pasaron.',
+              'It jumps from piece to piece and town to town, in the order '
+                  'they happened.',
+            ),
             page: () => ReelScreen(store: store),
           ),
           for (final i in cuales)
@@ -930,8 +1076,10 @@ class _WhichReel extends StatelessWidget {
               theme: t,
               icon: Icons.location_city,
               title: store.habits[i].name,
-              subtitle:
-                  'Sólo este pueblo, con la cámara dando la vuelta a su plaza.',
+              subtitle: tr(
+                'Sólo este pueblo, con la cámara dando la vuelta a su plaza.',
+                'Just this town, with the camera circling its square.',
+              ),
               page: () => ReelScreen.town(store: store, habit: i),
             ),
         ],

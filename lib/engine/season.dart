@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import '../core/math3.dart';
+import '../l10n/lang.dart';
 
 /// De qué lado del ecuador se está mirando el valle.
 ///
@@ -154,10 +155,10 @@ class Season {
   /// cuatro cambios y se adelanta uno en tres de ellos. Es una palabra en una
   /// fila de ajustes: no vale un calendario entero.
   String get name => switch (((turn + 0.008) % 1.0 * 4).floor().clamp(0, 3)) {
-    0 => 'Invierno',
-    1 => 'Primavera',
-    2 => 'Verano',
-    _ => 'Otoño',
+    0 => tr('Invierno', 'Winter'),
+    1 => tr('Primavera', 'Spring'),
+    2 => tr('Verano', 'Summer'),
+    _ => tr('Otoño', 'Autumn'),
   };
 
   /// El lado del mundo que le toca a un país, para no preguntar nada el primer

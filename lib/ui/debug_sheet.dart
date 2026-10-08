@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../fx/sensory.dart';
+import '../l10n/lang.dart';
 import '../model/store.dart';
 import 'style.dart';
 
@@ -58,10 +59,16 @@ class _DebugSheetState extends State<DebugSheet> {
             ),
           ),
           const SizedBox(height: 18),
-          Text('VER EL PUEBLO A FUTURO', style: t.label),
+          Text(
+            tr('VER EL PUEBLO A FUTURO', 'SEE THE TOWN IN THE FUTURE'),
+            style: t.label,
+          ),
           const SizedBox(height: 5),
           Text(
-            'Sólo mira. Tus ${store.total} piezas reales quedan intactas.',
+            tr(
+              'Sólo mira. Tus ${store.total} piezas reales quedan intactas.',
+              'Only looking. Your ${store.total} real pieces stay untouched.',
+            ),
             style: t.bodySoft.copyWith(fontSize: 12),
           ),
           const SizedBox(height: 20),
@@ -71,7 +78,7 @@ class _DebugSheetState extends State<DebugSheet> {
             children: [
               Text('$shown', style: t.number.copyWith(fontSize: 40)),
               const SizedBox(width: 9),
-              Text('PIEZAS', style: t.label),
+              Text(tr('PIEZAS', 'PIECES'), style: t.label),
               const Spacer(),
             ],
           ),
@@ -114,7 +121,7 @@ class _DebugSheetState extends State<DebugSheet> {
               if (layoutReady)
                 _Quiet(
                   theme: t,
-                  label: 'Volver a la mía',
+                  label: tr('Volver a la mía', 'Back to mine'),
                   onTap: () {
                     widget.store.setPreview(null);
                     Sensory.instance.tick();
@@ -124,7 +131,7 @@ class _DebugSheetState extends State<DebugSheet> {
               const Spacer(),
               _Quiet(
                 theme: t,
-                label: 'Listo',
+                label: tr('Listo', 'Done'),
                 accent: true,
                 onTap: () => Navigator.of(context).pop(),
               ),

@@ -4,6 +4,7 @@ import '../core/rng.dart';
 import '../data/gossip.dart';
 import '../engine/board_plan.dart';
 import '../engine/town.dart';
+import '../l10n/lang.dart';
 import 'findings.dart';
 import 'habit.dart';
 import 'notice.dart';
@@ -107,11 +108,16 @@ List<Notice> myNotices(Habit h) {
 /// es el día que la clavaste.
 String _cuando(DateTime at) {
   final dias = daysBetween(at, DateTime.now());
-  if (dias <= 0) return 'Clavada hoy.';
-  if (dias == 1) return 'Clavada ayer.';
-  if (dias < 30) return 'Clavada hace $dias días.';
+  if (dias <= 0) return tr('Clavada hoy.', 'Pinned today.');
+  if (dias == 1) return tr('Clavada ayer.', 'Pinned yesterday.');
+  if (dias < 30) {
+    return tr('Clavada hace $dias días.', 'Pinned $dias days ago.');
+  }
   final meses = (dias / 30).floor();
-  return 'Clavada hace $meses ${meses == 1 ? 'mes' : 'meses'}.';
+  return tr(
+    'Clavada hace $meses ${meses == 1 ? 'mes' : 'meses'}.',
+    'Pinned $meses ${meses == 1 ? 'month' : 'months'} ago.',
+  );
 }
 
 /// La hoja que se clava cuando de vos no se sabe nada.
@@ -122,11 +128,19 @@ Notice emptyNotice(Habit h) {
   final days = daysOf(h).length;
   return Notice(
     NoticeKind.life,
-    'El tablón está vacío.',
+    tr('El tablón está vacío.', 'The board is empty.'),
     days == 0
-        ? 'Todavía no hay nada que contar. Poné la primera pieza.'
-        : 'Llevás $days ${days == 1 ? 'día' : 'días'}. El pueblo prefiere '
-              'callarse a inventar: cuando tenga bastante para estar seguro '
-              'de algo, lo escribe acá.',
+        ? tr(
+            'Todavía no hay nada que contar. Poné la primera pieza.',
+            'There is nothing to tell yet. Place the first piece.',
+          )
+        : tr(
+            'Llevás $days ${days == 1 ? 'día' : 'días'}. El pueblo prefiere '
+                'callarse a inventar: cuando tenga bastante para estar seguro '
+                'de algo, lo escribe acá.',
+            "You're $days ${days == 1 ? 'day' : 'days'} in. The town would "
+                'rather stay quiet than make things up: when it has enough to '
+                'be sure of something, it will write it here.',
+          ),
   );
 }

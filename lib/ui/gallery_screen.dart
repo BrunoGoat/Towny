@@ -15,6 +15,7 @@ import '../engine/town.dart';
 import '../engine/world.dart';
 import '../fx/effects.dart';
 import '../fx/sensory.dart';
+import '../l10n/lang.dart';
 import 'style.dart';
 
 /// One thing the town knows how to build.
@@ -30,7 +31,11 @@ class _Exhibit {
   String get title => landmark?.name ?? name;
   int get pieces => landmark?.cost ?? cost;
   String get note =>
-      landmark?.blurb ?? 'Una de las casas corrientes del pueblo.';
+      landmark?.blurb ??
+      tr(
+        'Una de las casas corrientes del pueblo.',
+        "One of the town's ordinary houses.",
+      );
   int get tier => landmark?.tier ?? -1;
   String get id => landmark?.id ?? kind!.name;
 }
@@ -103,7 +108,9 @@ class _GalleryScreenState extends State<GalleryScreen>
     for (final c in builtTown(_layout, _shown).clusters) {
       cut += c.faces;
     }
-    return raw == 0 ? '0 CARAS' : '$cut CARAS (+${cut - raw})';
+    return raw == 0
+        ? tr('0 CARAS', '0 FACES')
+        : tr('$cut CARAS (+${cut - raw})', '$cut FACES (+${cut - raw})');
   }
 
   @override
@@ -350,8 +357,14 @@ class _Header extends StatelessWidget {
     final t = theme;
     final tier = exhibit.tier;
     final where = tier < 0
-        ? 'CASA · ${exhibit.pieces} PIEZAS · $cost'
-        : 'HITO ${'·' * (tier + 1)} · ${exhibit.pieces} PIEZAS · $cost';
+        ? tr(
+            'CASA · ${exhibit.pieces} PIEZAS · $cost',
+            'HOUSE · ${exhibit.pieces} PIECES · $cost',
+          )
+        : tr(
+            'HITO ${'·' * (tier + 1)} · ${exhibit.pieces} PIEZAS · $cost',
+            'LANDMARK ${'·' * (tier + 1)} · ${exhibit.pieces} PIECES · $cost',
+          );
 
     return Frosted(
       theme: t,
@@ -455,11 +468,16 @@ class _Controls extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _Pill(theme: t, label: 'Completa', on: !stepping, onTap: onWhole),
+              _Pill(
+                theme: t,
+                label: tr('Completa', 'Whole'),
+                on: !stepping,
+                onTap: onWhole,
+              ),
               const SizedBox(width: 8),
               _Pill(
                 theme: t,
-                label: 'Pieza a pieza',
+                label: tr('Pieza a pieza', 'Piece by piece'),
                 on: stepping,
                 onTap: onStep,
               ),
@@ -630,7 +648,10 @@ class _IndexSheet extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: Text('TODO LO QUE SE CONSTRUYE', style: t.label),
+                child: Text(
+                  tr('TODO LO QUE SE CONSTRUYE', 'EVERYTHING THAT GETS BUILT'),
+                  style: t.label,
+                ),
               ),
             ),
             const SizedBox(height: 8),
@@ -660,8 +681,14 @@ class _IndexSheet extends StatelessWidget {
                     ),
                     subtitle: Text(
                       e.tier < 0
-                          ? 'casa · ${e.pieces} piezas'
-                          : 'hito ${'·' * (e.tier + 1)} · ${e.pieces} piezas',
+                          ? tr(
+                              'casa · ${e.pieces} piezas',
+                              'house · ${e.pieces} pieces',
+                            )
+                          : tr(
+                              'hito ${'·' * (e.tier + 1)} · ${e.pieces} piezas',
+                              'landmark ${'·' * (e.tier + 1)} · ${e.pieces} pieces',
+                            ),
                       style: t.bodySoft.copyWith(fontSize: 11),
                     ),
                   );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../fx/sensory.dart';
+import '../l10n/lang.dart';
 import '../model/cadence.dart';
 import '../model/habit.dart';
 import 'style.dart';
@@ -71,25 +72,43 @@ class _CadenceSheetState extends State<CadenceSheet> {
             ),
             const SizedBox(height: 16),
             Text(
-              widget.first ? 'LA PRIMERA SEMANA' : 'CADA CUÁNTO',
+              widget.first
+                  ? tr('LA PRIMERA SEMANA', 'THE FIRST WEEK')
+                  : tr('CADA CUÁNTO', 'HOW OFTEN'),
               style: t.label,
             ),
             const SizedBox(height: 10),
             Text(
               widget.first
-                  ? 'Esta semana pusiste $piezas '
-                        '${piezas == 1 ? 'pieza' : 'piezas'} en $dias '
-                        '${dias == 1 ? 'día' : 'días'}.'
-                  : '¿Cada cuánto va ${h.name}?',
+                  ? tr(
+                      'Esta semana pusiste $piezas '
+                          '${piezas == 1 ? 'pieza' : 'piezas'} en $dias '
+                          '${dias == 1 ? 'día' : 'días'}.',
+                      'This week you placed $piezas '
+                          '${piezas == 1 ? 'piece' : 'pieces'} on $dias '
+                          '${dias == 1 ? 'day' : 'days'}.',
+                    )
+                  : tr(
+                      '¿Cada cuánto va ${h.name}?',
+                      'How often does ${h.name} happen?',
+                    ),
               style: t.title,
             ),
             const SizedBox(height: 6),
             Text(
               widget.first
-                  ? '¿${h.name} es de todos los días, o de algunos días por '
-                        'semana? Viene marcado lo que se ve.'
-                  : 'No es una meta. Es para que el pueblo sepa cuándo un '
-                        'hueco es un hueco.',
+                  ? tr(
+                      '¿${h.name} es de todos los días, o de algunos días por '
+                          'semana? Viene marcado lo que se ve.',
+                      'Is ${h.name} an everyday thing, or a few days a week? '
+                          'What it looks like so far is already marked.',
+                    )
+                  : tr(
+                      'No es una meta. Es para que el pueblo sepa cuándo un '
+                          'hueco es un hueco.',
+                      "It isn't a goal. It's so the town knows when a gap is "
+                          'really a gap.',
+                    ),
               style: t.bodySoft.copyWith(fontSize: 12.5, height: 1.4),
             ),
             const SizedBox(height: 18),
@@ -100,7 +119,9 @@ class _CadenceSheetState extends State<CadenceSheet> {
                 for (final n in _choices)
                   _Chip(
                     theme: t,
-                    text: n == 7 ? 'Todos los días' : '$n por semana',
+                    text: n == 7
+                        ? tr('Todos los días', 'Every day')
+                        : tr('$n por semana', '$n a week'),
                     chosen: n == _pick,
                     onTap: () {
                       Sensory.instance.tick();
@@ -126,13 +147,18 @@ class _CadenceSheetState extends State<CadenceSheet> {
                   Navigator.of(context).pop();
                   widget.onPick(_pick);
                 },
-                child: Text('Es ${cadenceSaid(_pick)}'),
+                child: Text(
+                  tr('Es ${cadenceSaid(_pick)}', "It's ${cadenceSaid(_pick)}"),
+                ),
               ),
             ),
             if (widget.first) ...[
               const SizedBox(height: 10),
               Text(
-                'Se cambia cuando quieras en la hoja del hábito.',
+                tr(
+                  'Se cambia cuando quieras en la hoja del hábito.',
+                  "You can change it whenever you like in the habit's sheet.",
+                ),
                 textAlign: TextAlign.center,
                 style: t.bodySoft.copyWith(fontSize: 11.5, height: 1.4),
               ),
