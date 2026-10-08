@@ -476,7 +476,7 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
       children: [
         _Field(
           controller: _name,
-          hint: tr('Leer, correr, no fumar…', 'Reading, running, not smoking…'),
+          hint: tr('Leer, correr, no fumar…', 'Reading, running, yoga…'),
           big: true,
           max: 24,
           onChanged: () => setState(() {}),

@@ -94,11 +94,51 @@ def sitio(lineas, ln):
     if clase and miembro: return f'{clase}.{miembro}'
     return clase or miembro or '—'
 
+def _fin_de_cadena(src, i):
+    """Dónde acaba la cadena que empieza en [i]."""
+    q = src[i]; triple = src[i:i+3] in ("'''", '"""')
+    cierre = src[i:i+3] if triple else q
+    j = i + len(cierre)
+    while j < len(src):
+        if src[j] == '\\': j += 2; continue
+        if src[j:j+len(cierre)] == cierre: return j + len(cierre)
+        if src[j:j+2] == '${':
+            prof = 1; k = j + 2
+            while k < len(src) and prof:
+                if src[k] in "'\"": k = _fin_de_cadena(src, k); continue
+                if src[k] == '{': prof += 1
+                elif src[k] == '}': prof -= 1
+                k += 1
+            j = k; continue
+        j += 1
+    return j
+
+def ingles(src):
+    """Los tramos que son la versión inglesa de un `tr('…', '…')`.
+
+    El inventario es del castellano, que es el original: la segunda mitad de
+    cada `tr` es su traducción, vive en el mismo sitio, y contarla sería
+    contar cada frase dos veces."""
+    tramos = []
+    for m in re.finditer(r'\btr\(', src):
+        i = m.end(); prof = 1; coma = None
+        while i < len(src) and prof:
+            c = src[i]
+            if c in "'\"": i = _fin_de_cadena(src, i); continue
+            if c in '([{': prof += 1
+            elif c in ')]}': prof -= 1
+            elif c == ',' and prof == 1 and coma is None: coma = i
+            i += 1
+        if coma is not None: tramos.append((coma, i))
+    return tramos
+
 res = {}
 for root, _, files in os.walk('lib'):
     for f in sorted(files):
         if not f.endswith('.dart'): continue
         p = os.path.join(root, f)
+        # Los catálogos en inglés: la traducción de lo que ya se cuenta.
+        if p.startswith('lib/l10n/'): continue
         src = sin_comentarios(open(p).read())
         lineas = src.split('\n')
         cortes = []
@@ -113,8 +153,10 @@ for root, _, files in os.walk('lib'):
                 else: hi = mid - 1
             return lo
         vistos, orden = {}, []
+        fuera = ingles(src)
         for t, pos in literales(src):
             if not visible(t) or t in vistos: continue
+            if any(a <= pos < b for a, b in fuera): continue
             ln = linea_de(pos)
             vistos[t] = True
             orden.append({'t': t, 'l': ln + 1, 'd': sitio(lineas, ln)})
@@ -360,7 +402,7 @@ bloque(f'Las notificaciones ({len(avisos)})',
   '\n'.join(f'- **N{i+1}** · `{e["t"]}`  <sub>{f}:{e["l"]}</sub>'
             for i, (f, e) in enumerate(avisos)))
 
-xml = open('android/app/src/main/res/values/towny_widget_strings.xml').read()
+xml = open('android/app/src/main/res/values-es/towny_widget_strings.xml').read()
 w = re.findall(r'<string name="([^"]+)">([^<]*)</string>', xml)
 bloque(f'El widget de Android ({len(w) + 1})',
   'El cuadrito de la pantalla de inicio del teléfono. `label` y `name` son el '

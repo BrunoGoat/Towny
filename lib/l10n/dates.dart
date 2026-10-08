@@ -64,3 +64,15 @@ String fullDate(DateTime d) => inEnglish
 String dayMonthShort(DateTime d) => inEnglish
     ? '${monthShort(d.month)} ${d.day}'
     : '${d.day} ${monthShort(d.month)}';
+
+/// Los días de la semana en plural, que es como se dicen en inglés los que se
+/// repiten: «Mondays». De 1 (lunes) a 7.
+String weekdaysEn(int w) => const [
+  'Mondays',
+  'Tuesdays',
+  'Wednesdays',
+  'Thursdays',
+  'Fridays',
+  'Saturdays',
+  'Sundays',
+][(w - 1).clamp(0, 6)];

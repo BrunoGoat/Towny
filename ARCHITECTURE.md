@@ -186,7 +186,7 @@ cambiar cuánto suena la mitad la recalcula sola.
 
 ```bash
 flutter pub get
-flutter test          # 705 tests
+flutter test          # 719 tests
 flutter analyze
 flutter run
 flutter build apk --release
@@ -264,8 +264,8 @@ con el sitio del que sale cada una. Se genera, no se escribe: la mitad la
 vuelca el test —el catálogo de obras, los bandos, las comarcas, que son listas
 de Dart y leerlas con una expresión regular es adivinar— y la otra mitad sale
 de rastrear los literales de cada pantalla. Es lo que hay que mirar antes de
-tocar una palabra, y lo que habrá que traducir el día que la app hable en otro
-idioma.
+tocar una palabra. Lista el castellano, que es el original: la versión inglesa
+de cada cosa está al lado, en `lib/l10n/`.
 
 Las tres hojas de contacto son para juzgar un catálogo, que es una cosa que no
 se puede hacer de una en una: el expositor de la app enseña una obra —o un
@@ -291,8 +291,19 @@ lib/
   model/     hábitos, piezas, ritmo, hallazgos, persistencia
   engine/    el pueblo y cómo se dibuja
   fx/        partículas, sonido y vibración
+  l10n/      el idioma de ahora, las fechas y los catálogos en inglés
   ui/        la pantalla, el botón, las hojas
 ```
+
+**Los dos idiomas.** La app habla castellano e inglés. Las frases sueltas van
+escritas en su sitio con las dos versiones juntas —`tr('Fundar mi pueblo',
+'Found my town')`, de `l10n/lang.dart`—; los catálogos largos —obras, bandos,
+comarcas, marcas— tienen su versión inglesa al lado en `l10n/en_*.dart`, por id
+o en el mismo orden, y `test/english_test.dart` falla si falta una o si al abrir
+las pantallas en inglés se cuela una palabra en castellano. Sin idioma elegido
+en Ajustes, manda el del teléfono; los tests no pasan por `main()` y hablan
+castellano. El widget de Android sigue al teléfono (`values/` en inglés,
+`values-es/` en castellano).
 
 Dentro de `engine/`, que es el más poblado:
 

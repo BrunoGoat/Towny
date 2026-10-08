@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:towny/l10n/lang.dart';
 import 'package:towny/model/appearance.dart';
 import 'package:towny/model/store.dart';
 import 'package:towny/ui/first_run.dart';
@@ -55,6 +56,10 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       await Appearance.instance.load();
       await Appearance.instance.setSoundOff(true);
+      // --dart-define=LANG=en para verla en inglés.
+      if (const String.fromEnvironment('LANG') == 'en') {
+        await Appearance.instance.setLanguage(Lang.en);
+      }
       await Appearance.instance.setFakeHour(true);
       await Appearance.instance.setFakeHourAt(hora);
       tester.view.physicalSize = const Size(390 * 3, 844 * 3);
@@ -119,22 +124,33 @@ void main() {
 
       await foto('1-bienvenida');
       await tester.tap(
-        find.textContaining('FUNDAR MI', skipOffstage: false).last,
+        find
+            .textContaining(tr('FUNDAR MI', 'FOUND MY'), skipOffstage: false)
+            .last,
       );
       await foto('2-nombre');
-      await tester.enterText(find.byType(TextField).last, 'Leer');
+      await tester.enterText(
+        find.byType(TextField).last,
+        tr('Leer', 'Reading'),
+      );
       await tester.pump();
-      await tester.tap(find.text('SIGUIENTE').last);
+      await tester.tap(find.text(tr('SIGUIENTE', 'NEXT')).last);
       await foto('3-comarca');
-      await tester.tap(find.text('SIGUIENTE').last);
+      await tester.tap(find.text(tr('SIGUIENTE', 'NEXT')).last);
       await foto('4-para-que');
-      await tester.enterText(find.byType(TextField).last, 'para dormir mejor');
+      await tester.enterText(
+        find.byType(TextField).last,
+        tr('para dormir mejor', 'to sleep better'),
+      );
       await tester.pump();
-      await tester.tap(find.text('SIGUIENTE').last);
+      await tester.tap(find.text(tr('SIGUIENTE', 'NEXT')).last);
       await foto('5-quien');
-      await tester.enterText(find.byType(TextField).last, 'que lee');
+      await tester.enterText(
+        find.byType(TextField).last,
+        tr('que lee', 'who reads'),
+      );
       await tester.pump();
-      await tester.tap(find.text('FUNDAR LEER').last);
+      await tester.tap(find.text(tr('FUNDAR LEER', 'FOUND READING')).last);
       // La bajada, en tres momentos. Sin esperar a que se asiente: lo que hay
       // que ver es el movimiento.
       Future<void> momento(String nombre, int ms) async {
@@ -167,6 +183,10 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     await Appearance.instance.load();
     await Appearance.instance.setSoundOff(true);
+    // --dart-define=LANG=en para verla en inglés.
+    if (const String.fromEnvironment('LANG') == 'en') {
+      await Appearance.instance.setLanguage(Lang.en);
+    }
     await Appearance.instance.setFakeHour(true);
     await Appearance.instance.setFakeHourAt(11);
     final store = Store();

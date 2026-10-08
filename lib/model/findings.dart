@@ -1,5 +1,8 @@
 import 'dart:math' as math;
 
+import '../l10n/dates.dart';
+import '../l10n/en_pledge.dart';
+import '../l10n/lang.dart';
 import 'habit.dart';
 import 'notice.dart';
 import 'piece.dart';
@@ -111,20 +114,41 @@ Notice? ahead(Habit h, String? what, int left, DateTime now) {
   return Notice(
     NoticeKind.ahead,
     days <= 1
-        ? 'A este ritmo, $what queda en pie mañana.'
-        : 'A este ritmo, $what queda en pie el ${_date(when)}'
-              '${when.year == now.year ? '' : ' de ${when.year}'}.',
-    'Le faltan $left ${_pieces(left)}, y llevás $recent en '
-    '${ventana == 1 ? 'un día' : '$ventana días'}.',
+        ? tr(
+            'A este ritmo, $what queda en pie mañana.',
+            'At this pace, $what stands tomorrow.',
+          )
+        : tr(
+            'A este ritmo, $what queda en pie el ${_date(when)}'
+                '${when.year == now.year ? '' : ' de ${when.year}'}.',
+            'At this pace, $what stands on ${_date(when)}'
+                '${when.year == now.year ? '' : ', ${when.year}'}.',
+          ),
+    tr(
+      'Le faltan $left ${_pieces(left)}, y llevás $recent en '
+          '${ventana == 1 ? 'un día' : '$ventana días'}.',
+      'It needs $left more ${_pieces(left)}, and you have placed $recent in '
+          '${ventana == 1 ? 'one day' : '$ventana days'}.',
+    ),
     bars: porDias ? dailyOf(h, desde, today) : weeksOf(h, now, 12),
     mark: porDias ? daysBetween(desde, today) : 11,
     more: porDias
-        ? 'La fecha sale del ritmo desde que empezaste y de nada más. Si '
-              'apretás se adelanta, y si aflojás se va. Las barras son esos '
-              'mismos días, uno cada una.'
-        : 'La fecha sale del ritmo del último mes y de nada más. Si apretás '
-              'se adelanta, y si aflojás se va. Las barras son las últimas '
-              'doce semanas, una por semana.',
+        ? tr(
+            'La fecha sale del ritmo desde que empezaste y de nada más. Si '
+                'apretás se adelanta, y si aflojás se va. Las barras son esos '
+                'mismos días, uno cada una.',
+            'The date comes from your pace since you started and nothing '
+                'else. Push and it comes sooner; ease off and it slips away. '
+                'The bars are those same days, one each.',
+          )
+        : tr(
+            'La fecha sale del ritmo del último mes y de nada más. Si apretás '
+                'se adelanta, y si aflojás se va. Las barras son las últimas '
+                'doce semanas, una por semana.',
+            "The date comes from the last month's pace and nothing else. Push "
+                'and it comes sooner; ease off and it slips away. The bars are '
+                'the last twelve weeks, one per week.',
+          ),
   );
 }
 
@@ -156,17 +180,29 @@ Notice? planned(Habit h) {
     if (uso == null) return null;
     return Notice(
       NoticeKind.plan,
-      'Casi siempre ${hourSaid(uso.$1)}.',
-      'Ahí caen el ${_pct(uso.$2)} de tus piezas. Si querés, contale al '
-          'pueblo dónde, y queda dicho.',
+      tr(
+        'Casi siempre ${hourSaid(uso.$1)}.',
+        'Almost always ${hourSaid(uso.$1)}.',
+      ),
+      tr(
+        'Ahí caen el ${_pct(uso.$2)} de tus piezas. Si querés, contale al '
+            'pueblo dónde, y queda dicho.',
+        '${_pct(uso.$2)} of your pieces land there. If you like, tell the '
+            "town where, and it's settled.",
+      ),
       bars: _clockBars(h),
       ticks: _clockTicks,
       mark: uso.$1,
-      more:
-          'No es una tarea: ya lo hacés. Decirlo con hora y sitio —«leer a las '
-          '22, en la cama»— lo deja decidido, y lo decidido no hay que volver '
-          'a pensarlo cada día. Las barras son las veinticuatro horas del día, '
-          'y la marcada es la tuya.',
+      more: tr(
+        'No es una tarea: ya lo hacés. Decirlo con hora y sitio —«leer a las '
+            '22, en la cama»— lo deja decidido, y lo decidido no hay que '
+            'volver a pensarlo cada día. Las barras son las veinticuatro horas '
+            'del día, y la marcada es la tuya.',
+        "It isn't a chore: you already do it. Saying it with a time and a "
+            'place — "reading at 10 pm, in bed" — makes it decided, and what '
+            "is decided doesn't need rethinking every day. The bars are the "
+            "day's twenty-four hours, and the marked one is yours.",
+      ),
     );
   }
 
@@ -182,18 +218,31 @@ Notice? planned(Habit h) {
       desvio >= 3) {
     return Notice(
       NoticeKind.plan,
-      'El plan dice ${hourSaid(hora)} y aparecés ${hourSaid(uso.$1)}.',
-      '«$dicho» El ${_pct(cumple)} de tus ${h.total} ${_pieces(h.total)} cae '
-          'a la hora del plan.',
+      tr(
+        'El plan dice ${hourSaid(hora)} y aparecés ${hourSaid(uso.$1)}.',
+        'The plan says ${hourSaid(hora)} and you show up ${hourSaid(uso.$1)}.',
+      ),
+      tr(
+        '«$dicho» El ${_pct(cumple)} de tus ${h.total} ${_pieces(h.total)} '
+            'cae a la hora del plan.',
+        '"$dicho" ${_pct(cumple)} of your ${h.total} ${_pieces(h.total)} land '
+            "at the plan's time.",
+      ),
       bars: _clockBars(h),
       ticks: _clockTicks,
       mark: uso.$1,
-      more:
-          'Cambiar el plan no es rendirse. Un plan que ya no es el tuyo no te '
-          'ahorra ninguna decisión, y el que sí lo es te la ahorra todos los '
-          'días: se cambia en la hoja del hábito, y no pasa nada más. Las '
-          'barras son las veinticuatro horas del día, y la marcada es la hora '
-          'a la que de verdad aparecés.',
+      more: tr(
+        'Cambiar el plan no es rendirse. Un plan que ya no es el tuyo no te '
+            'ahorra ninguna decisión, y el que sí lo es te la ahorra todos los '
+            'días: se cambia en la hoja del hábito, y no pasa nada más. Las '
+            'barras son las veinticuatro horas del día, y la marcada es la '
+            'hora a la que de verdad aparecés.',
+        "Changing the plan isn't giving up. A plan that's no longer yours "
+            "doesn't save you any decision, and one that is saves you one "
+            "every day: you change it in the habit's sheet, and nothing else "
+            "happens. The bars are the day's twenty-four hours, and the marked "
+            'one is the hour you really show up.',
+      ),
     );
   }
 
@@ -201,17 +250,29 @@ Notice? planned(Habit h) {
     NoticeKind.plan,
     dicho,
     cumple == null
-        ? 'Lo escribiste vos. El pueblo lo tiene clavado para que no haya que '
-              'acordarse de decidirlo otra vez.'
-        : 'Se cumple el ${_pct(cumple)} de las veces: ésa es la parte de tus '
-              '${h.total} ${_pieces(h.total)} que cae a esa hora.',
+        ? tr(
+            'Lo escribiste vos. El pueblo lo tiene clavado para que no haya '
+                'que acordarse de decidirlo otra vez.',
+            'You wrote it. The town keeps it pinned so you never have to '
+                'remember to decide it again.',
+          )
+        : tr(
+            'Se cumple el ${_pct(cumple)} de las veces: ésa es la parte de tus '
+                '${h.total} ${_pieces(h.total)} que cae a esa hora.',
+            "It holds ${_pct(cumple)} of the time: that's the share of your "
+                '${h.total} ${_pieces(h.total)} that land at that hour.',
+          ),
     bars: hora == null ? const [] : _clockBars(h),
     ticks: hora == null ? const [] : _clockTicks,
     mark: hora ?? -1,
     more: hora == null
         ? null
-        : 'Las veinticuatro horas del día, y en cada una cuántas piezas '
-              'pusiste. La marcada es la que dice el plan.',
+        : tr(
+            'Las veinticuatro horas del día, y en cada una cuántas piezas '
+                'pusiste. La marcada es la que dice el plan.',
+            "The day's twenty-four hours, and how many pieces you placed in "
+                'each. The marked one is what the plan says.',
+          ),
   );
 }
 
@@ -236,16 +297,28 @@ Notice? whoYouAre(Habit h, DateTime now) {
   return Notice(
     NoticeKind.who,
     dicho,
-    'El pueblo te llama así desde el ${_date(gano)}, cuando llevabas trece '
-    'semanas sin bajar de tu ritmo.',
+    tr(
+      'El pueblo te llama así desde el ${_date(gano)}, cuando llevabas trece '
+          'semanas sin bajar de tu ritmo.',
+      'The town has called you this since ${_date(gano)}, when you had gone '
+          'thirteen weeks without dropping below your pace.',
+    ),
     bars: identityStanding(h, at: now)?.weeks ?? const [],
-    more:
-        'Lo escribiste el día que fundaste esto y el pueblo se lo tomó en '
-        'serio: no lo dijo hasta que fue verdad. No es una meta —una meta se '
-        'cumple y entonces el hábito deja de tener para qué—; esto no se '
-        'cumple nunca, se es o no se es. Y ya no se pierde: un mal mes no te '
-        'quita lo que fuiste tres meses. Las barras son las últimas trece '
-        'semanas, por si querés ver cómo vas.',
+    more: tr(
+      'Lo escribiste el día que fundaste esto y el pueblo se lo tomó en '
+          'serio: no lo dijo hasta que fue verdad. No es una meta —una meta se '
+          'cumple y entonces el hábito deja de tener para qué—; esto no se '
+          'cumple nunca, se es o no se es. Y ya no se pierde: un mal mes no te '
+          'quita lo que fuiste tres meses. Las barras son las últimas trece '
+          'semanas, por si querés ver cómo vas.',
+      'You wrote it the day you founded this, and the town took it '
+          "seriously: it didn't say it until it was true. It isn't a goal — a "
+          'goal gets reached and then the habit has nothing left to be for; '
+          "this is never reached, you either are it or you aren't. And it "
+          "can't be lost now: one bad month doesn't take away what you were "
+          'for three. The bars are the last thirteen weeks, in case you want '
+          "to see how you're doing.",
+    ),
   );
 }
 
@@ -321,20 +394,44 @@ Notice? relapse(Habit h, DateTime now) {
   return Notice(
     NoticeKind.relapse,
     then > base
-        ? 'Un día en blanco se lleva al siguiente.'
-        : 'Un fallo no te tumba: volvés antes de lo normal.',
-    'Después de faltar un día, faltás el ${_pct(then)} de las veces. '
-    'Un día cualquiera, el ${_pct(base)}.',
+        ? tr(
+            'Un día en blanco se lleva al siguiente.',
+            'One blank day drags the next one with it.',
+          )
+        : tr(
+            'Un fallo no te tumba: volvés antes de lo normal.',
+            "A miss doesn't knock you down: you come back sooner than usual.",
+          ),
+    tr(
+      'Después de faltar un día, faltás el ${_pct(then)} de las veces. '
+          'Un día cualquiera, el ${_pct(base)}.',
+      'After missing a day, you miss ${_pct(then)} of the time. '
+          'On any other day, ${_pct(base)}.',
+    ),
     bars: [then, base],
-    ticks: const ['tras un fallo', 'un día cualquiera'],
+    ticks: [
+      tr('tras un fallo', 'after a miss'),
+      tr('un día cualquiera', 'any day'),
+    ],
     mark: 0,
     more: then > base
-        ? 'De los últimos ${grid.length} días, ${grid.length - misses} con '
-              'pieza. Es la diferencia entre las dos barras lo que dice algo: '
-              'el día de después de faltar no es un día cualquiera para vos.'
-        : 'De los últimos ${grid.length} días, ${grid.length - misses} con '
-              'pieza. Faltar te empuja a volver, que es lo contrario de lo '
-              'que le pasa a casi todo el mundo.',
+        ? tr(
+            'De los últimos ${grid.length} días, ${grid.length - misses} con '
+                'pieza. Es la diferencia entre las dos barras lo que dice '
+                'algo: el día de después de faltar no es un día cualquiera '
+                'para vos.',
+            'Of the last ${grid.length} days, ${grid.length - misses} had a '
+                'piece. It is the gap between the two bars that says '
+                "something: the day after a miss isn't just any day for you.",
+          )
+        : tr(
+            'De los últimos ${grid.length} días, ${grid.length - misses} con '
+                'pieza. Faltar te empuja a volver, que es lo contrario de lo '
+                'que le pasa a casi todo el mundo.',
+            'Of the last ${grid.length} days, ${grid.length - misses} had a '
+                'piece. Missing pushes you to come back, which is the '
+                'opposite of what happens to almost everyone.',
+          ),
   );
 }
 
@@ -371,17 +468,30 @@ Notice? peakHour(Habit h) {
     return Notice(
       NoticeKind.hour,
       width == 1
-          ? 'Casi siempre a las $at${_partOfDay(at)}.'
-          : 'Casi siempre entre las $at y las $end${_partOfDay(at)}.',
-      'Ahí caen el ${_pct(best / n)} de tus piezas.',
+          ? tr(
+              'Casi siempre a las $at${_partOfDay(at)}.',
+              'Almost always at ${clockEn(at)}.',
+            )
+          : tr(
+              'Casi siempre entre las $at y las $end${_partOfDay(at)}.',
+              'Almost always between ${clockEn(at)} and ${clockEn(end)}.',
+            ),
+      tr(
+        'Ahí caen el ${_pct(best / n)} de tus piezas.',
+        '${_pct(best / n)} of your pieces land there.',
+      ),
       bars: _clockBars(h),
       ticks: _clockTicks,
       mark: at,
       span: width,
-      more:
-          'Las veinticuatro horas del día, y en cada una cuántas piezas '
-          'pusiste. Un hábito con hora propia se ve de un vistazo; uno que '
-          'cae donde puede, también.',
+      more: tr(
+        'Las veinticuatro horas del día, y en cada una cuántas piezas '
+            'pusiste. Un hábito con hora propia se ve de un vistazo; uno que '
+            'cae donde puede, también.',
+        "The day's twenty-four hours, and how many pieces you placed in each. "
+            'A habit with its own hour shows at a glance; so does one that '
+            'lands wherever it can.',
+      ),
     );
   }
   return null;
@@ -447,18 +557,33 @@ Notice? standoutDay(Habit h, DateTime now) {
   final downGap = rest(low) - hit[low] / seen[low];
   if (math.max(upGap, downGap) < 0.18) return null;
   final week = [for (var w = 1; w <= 7; w++) hit[w] / seen[w]];
-  const initials = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
-  final more =
-      'Cada barra es un día de la semana, y lo alta que está es la parte de '
-      'esos días en los que pusiste algo. Medido contra cuántos ${_weekday(high)} '
-      'y cuántos ${_weekday(low)} han pasado de verdad, no contra los totales '
-      'de los otros días.';
+  final initials = inEnglish
+      ? const ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+      : const ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+  final more = tr(
+    'Cada barra es un día de la semana, y lo alta que está es la parte de '
+        'esos días en los que pusiste algo. Medido contra cuántos '
+        '${_weekday(high)} y cuántos ${_weekday(low)} han pasado de verdad, '
+        'no contra los totales de los otros días.',
+    'Each bar is a day of the week, and its height is the share of those '
+        'days on which you placed something. Measured against how many '
+        '${_weekday(high)} and how many ${_weekday(low)} have really gone '
+        "by, not against the other days' totals.",
+  );
   if (upGap >= downGap) {
     return Notice(
       NoticeKind.week,
-      'Los ${_weekday(high)} son tu día fuerte.',
-      'Cumplís el ${_pct(hit[high] / seen[high])} de los ${_weekday(high)}, '
-          'contra el ${_pct(rest(high))} del resto de la semana.',
+      tr(
+        'Los ${_weekday(high)} son tu día fuerte.',
+        '${_weekday(high)} are your strong day.',
+      ),
+      tr(
+        'Cumplís el ${_pct(hit[high] / seen[high])} de los ${_weekday(high)}, '
+            'contra el ${_pct(rest(high))} del resto de la semana.',
+        'You keep it on ${_pct(hit[high] / seen[high])} of '
+            '${_weekday(high)}, against ${_pct(rest(high))} for the rest of '
+            'the week.',
+      ),
       bars: week,
       ticks: initials,
       mark: high - 1,
@@ -467,9 +592,13 @@ Notice? standoutDay(Habit h, DateTime now) {
   }
   return Notice(
     NoticeKind.week,
-    'Los ${_weekday(low)} casi nunca.',
-    'Cumplís el ${_pct(hit[low] / seen[low])} de los ${_weekday(low)}, '
-        'contra el ${_pct(rest(low))} del resto de la semana.',
+    tr('Los ${_weekday(low)} casi nunca.', '${_weekday(low)}, almost never.'),
+    tr(
+      'Cumplís el ${_pct(hit[low] / seen[low])} de los ${_weekday(low)}, '
+          'contra el ${_pct(rest(low))} del resto de la semana.',
+      'You keep it on ${_pct(hit[low] / seen[low])} of ${_weekday(low)}, '
+          'against ${_pct(rest(low))} for the rest of the week.',
+    ),
     bars: week,
     ticks: initials,
     mark: low - 1,
@@ -507,24 +636,49 @@ Notice? comeback(Habit h) {
     // muchísimo, y ninguna racha sabe decirlo — para una racha las dos cosas
     // son «racha rota» y se acabó.
     trend != null
-        ? 'Cada vez tardás menos en volver.'
+        ? tr(
+            'Cada vez tardás menos en volver.',
+            'You take less and less time to come back.',
+          )
         : mid == 1
-        ? 'Cuando faltás, volvés al día siguiente.'
-        : 'Cuando faltás, solés volver a los $mid días.',
+        ? tr(
+            'Cuando faltás, volvés al día siguiente.',
+            'When you miss, you come back the next day.',
+          )
+        : tr(
+            'Cuando faltás, solés volver a los $mid días.',
+            'When you miss, you usually come back after $mid days.',
+          ),
     trend != null
-        ? 'Tus primeros huecos duraban ${_days(trend.$1)}. Los últimos, '
-              '${_days(trend.$2)}.'
+        ? tr(
+            'Tus primeros huecos duraban ${_days(trend.$1)}. Los últimos, '
+                '${_days(trend.$2)}.',
+            'Your first gaps lasted ${_days(trend.$1)}. The latest ones, '
+                '${_days(trend.$2)}.',
+          )
         : worst == 1
-        ? 'Nunca has estado más de un día fuera.'
-        : 'El hueco más largo que remontaste fue de $worst días.',
+        ? tr(
+            'Nunca has estado más de un día fuera.',
+            "You've never been away for more than a day.",
+          )
+        : tr(
+            'El hueco más largo que remontaste fue de $worst días.',
+            'The longest gap you climbed out of was $worst days.',
+          ),
     bars: [for (final c in tally) c / top],
     ticks: const ['1', '2', '3', '4', '5', '6+'],
     mark: (mid - 1).clamp(0, 5),
-    more:
-        'Cada barra es cuántas veces estuviste fuera ese número de días. '
-        '${gaps.length} huecos en total, y volviste de todos: el pueblo sigue '
-        'en pie. No se trata de no fallar nunca, se trata de volver — y esto '
-        'es lo único de acá que mejora cuando fallás.',
+    more: tr(
+      'Cada barra es cuántas veces estuviste fuera ese número de días. '
+          '${gaps.length} huecos en total, y volviste de todos: el pueblo '
+          'sigue en pie. No se trata de no fallar nunca, se trata de volver '
+          '— y esto es lo único de acá que mejora cuando fallás.',
+      'Each bar is how many times you were away for that many days. '
+          '${gaps.length} gaps in all, and you came back from every one: the '
+          "town still stands. It isn't about never missing, it's about "
+          'coming back — and this is the only thing here that gets better '
+          'when you miss.',
+    ),
   );
 }
 
@@ -555,11 +709,13 @@ Notice? comeback(Habit h) {
 /// Un número de días que puede no ser entero, dicho como se dice en voz alta.
 String _days(double v) {
   final r = (v * 10).round() / 10;
-  if (r == 1.0) return 'un día';
+  if (r == 1.0) return tr('un día', 'one day');
   final txt = r == r.roundToDouble()
       ? r.round().toString()
+      : inEnglish
+      ? r.toStringAsFixed(1)
       : r.toStringAsFixed(1).replaceAll('.', ',');
-  return '$txt días';
+  return tr('$txt días', '$txt days');
 }
 
 /// Two habits that turn up together, or never do.
@@ -624,22 +780,40 @@ Notice? pairing(Habit h, List<Habit> others, DateTime now) {
   final gap = (near - far).abs();
   if (gap < 0.20) return null;
   final said = near > far
-      ? '${a.name} arrastra a ${b.name}.'
-      : '${a.name} y ${b.name} casi nunca el mismo día.';
+      ? tr(
+          '${a.name} arrastra a ${b.name}.',
+          '${a.name} pulls ${b.name} along.',
+        )
+      : tr(
+          '${a.name} y ${b.name} casi nunca el mismo día.',
+          '${a.name} and ${b.name} almost never on the same day.',
+        );
   return (
     Notice(
       NoticeKind.pair,
       said,
-      'Los días de ${a.name}, ${b.name} aparece el ${_pct(near)} de las veces. '
-      'El resto de los días, el ${_pct(far)}.',
+      tr(
+        'Los días de ${a.name}, ${b.name} aparece el ${_pct(near)} de las '
+            'veces. El resto de los días, el ${_pct(far)}.',
+        'On ${a.name} days, ${b.name} shows up ${_pct(near)} of the time. '
+            'On the other days, ${_pct(far)}.',
+      ),
       bars: [near, far],
-      ticks: ['con ${a.name}', 'sin ${a.name}'],
+      ticks: [
+        tr('con ${a.name}', 'with ${a.name}'),
+        tr('sin ${a.name}', 'without ${a.name}'),
+      ],
       mark: 0,
-      more:
-          'Contado sobre los ${withA + withoutA} días desde que existen los '
-          'dos y ninguno dormía: '
-          '$withA con ${a.name} y $withoutA sin. Dos barras iguales serían dos '
-          'hábitos que no se enteran el uno del otro.',
+      more: tr(
+        'Contado sobre los ${withA + withoutA} días desde que existen los '
+            'dos y ninguno dormía: '
+            '$withA con ${a.name} y $withoutA sin. Dos barras iguales serían '
+            'dos hábitos que no se enteran el uno del otro.',
+        'Counted over the ${withA + withoutA} days since both have existed '
+            'and neither was asleep: '
+            '$withA with ${a.name} and $withoutA without. Two equal bars '
+            "would be two habits that don't notice each other.",
+      ),
     ),
     gap,
   );
@@ -652,13 +826,20 @@ Notice? lifetime(Habit h, DateTime now) {
   if (days.length < 25) return null;
   return Notice(
     NoticeKind.life,
-    '${days.length} días de tu vida.',
-    'Desde el ${_date(days.first)} de ${days.first.year}. '
-        '${h.total} ${_pieces(h.total)} en total.',
+    tr('${days.length} días de tu vida.', '${days.length} days of your life.'),
+    tr(
+      'Desde el ${_date(days.first)} de ${days.first.year}. '
+          '${h.total} ${_pieces(h.total)} en total.',
+      'Since ${_date(days.first)}, ${days.first.year}. '
+          '${h.total} ${_pieces(h.total)} in all.',
+    ),
     bars: weeksOf(h, now, 26),
-    more:
-        'Medio año, semana a semana. No hay nada que interpretar acá: es '
-        'sólo lo que hiciste, y es bastante.',
+    more: tr(
+      'Medio año, semana a semana. No hay nada que interpretar acá: es '
+          'sólo lo que hiciste, y es bastante.',
+      "Half a year, week by week. There's nothing to interpret here: it's "
+          "just what you did, and it's plenty.",
+    ),
   );
 }
 
@@ -688,51 +869,55 @@ Notice? crownOf(Habit h, List<Habit> all) {
     final by = top.total - next.total;
     return Notice(
       NoticeKind.crown,
-      '${h.name} lleva la corona del valle.',
+      tr(
+        '${h.name} lleva la corona del valle.',
+        "${h.name} wears the valley's crown.",
+      ),
       by == 0
-          ? 'Empatado con ${next.name}, a ${top.total} ${_pieces(top.total)}.'
-          : '${top.total} ${_pieces(top.total)}, $by más que ${next.name}.',
+          ? tr(
+              'Empatado con ${next.name}, a ${top.total} ${_pieces(top.total)}.',
+              'Tied with ${next.name}, at ${top.total} ${_pieces(top.total)}.',
+            )
+          : tr(
+              '${top.total} ${_pieces(top.total)}, $by más que ${next.name}.',
+              '${top.total} ${_pieces(top.total)}, $by more than ${next.name}.',
+            ),
       bars: bars,
       ticks: ticks,
       mark: 0,
-      more:
-          'La corona es del pueblo más grande del valle y se ve desde los '
-          'otros. No hace nada: sólo está ahí.',
+      more: tr(
+        'La corona es del pueblo más grande del valle y se ve desde los '
+            'otros. No hace nada: sólo está ahí.',
+        'The crown belongs to the biggest town in the valley, and it can be '
+            "seen from the others. It doesn't do anything: it's just there.",
+      ),
     );
   }
   final by = top.total - live[me].total;
   return Notice(
     NoticeKind.crown,
-    'La corona la tiene ${top.name}.',
+    tr('La corona la tiene ${top.name}.', '${top.name} has the crown.'),
     by == 1
-        ? 'Por una sola pieza.'
-        : 'Por $by piezas: ${top.name} va ${top.total} y ${h.name} va '
-              '${live[me].total}.',
+        ? tr('Por una sola pieza.', 'By a single piece.')
+        : tr(
+            'Por $by piezas: ${top.name} va ${top.total} y ${h.name} va '
+                '${live[me].total}.',
+            'By $by pieces: ${top.name} is at ${top.total} and ${h.name} is '
+                'at ${live[me].total}.',
+          ),
     bars: bars,
     ticks: ticks,
     mark: 0,
-    more:
-        'Cambia de cabeza el día que otro pueblo lo alcanza, y no hace falta '
-        'nada más para quitársela que seguir poniendo piezas.',
+    more: tr(
+      'Cambia de cabeza el día que otro pueblo lo alcanza, y no hace falta '
+          'nada más para quitársela que seguir poniendo piezas.',
+      'It changes hands the day another town catches up, and nothing more '
+          'is needed to take it than to keep placing pieces.',
+    ),
   );
 }
 
 // ------------------------------------------------------------------- saying
-
-const List<String> _months = [
-  'enero',
-  'febrero',
-  'marzo',
-  'abril',
-  'mayo',
-  'junio',
-  'julio',
-  'agosto',
-  'septiembre',
-  'octubre',
-  'noviembre',
-  'diciembre',
-];
 
 const List<String> _weekdays = [
   'lunes',
@@ -744,11 +929,12 @@ const List<String> _weekdays = [
   'domingos',
 ];
 
-String _weekday(int w) => _weekdays[(w - 1).clamp(0, 6)];
+String _weekday(int w) =>
+    inEnglish ? weekdaysEn(w) : _weekdays[(w - 1).clamp(0, 6)];
 
-String _date(DateTime d) => '${d.day} de ${_months[d.month - 1]}';
+String _date(DateTime d) => dayMonth(d);
 
-String _pieces(int n) => n == 1 ? 'pieza' : 'piezas';
+String _pieces(int n) => n == 1 ? tr('pieza', 'piece') : tr('piezas', 'pieces');
 
 String _pct(double v) => '${(v * 100).round()}%';
 

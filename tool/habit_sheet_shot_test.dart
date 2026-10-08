@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:towny/engine/palette.dart';
+import 'package:towny/l10n/lang.dart';
 import 'package:towny/model/appearance.dart';
 import 'package:towny/model/store.dart';
 import 'package:towny/ui/habits_sheet.dart';
@@ -29,6 +30,10 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     await Appearance.instance.load();
     await Appearance.instance.setSoundOff(true);
+    // --dart-define=LANG=en para verla en inglés.
+    if (const String.fromEnvironment('LANG') == 'en') {
+      await Appearance.instance.setLanguage(Lang.en);
+    }
     tester.view.physicalSize = size * 3;
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
@@ -37,19 +42,28 @@ void main() {
     await store.load();
     store.renameHabit(
       store.active,
-      name: 'Despertarse temprano',
+      name: tr('Despertarse temprano', 'Waking up early'),
       symbol: store.habit.symbol,
     );
     store.pledgeHabit(
       store.active,
       hour: 22,
-      place: 'en la mesa de la cocina',
-      identity: 'alguien que se levanta temprano',
+      place: tr('en la mesa de la cocina', 'at the kitchen table'),
+      identity: tr(
+        'alguien que se levanta temprano',
+        'someone who gets up early',
+      ),
     );
     store.describeHabit(
       store.active,
-      why: 'para tener más energía durante el día',
-      floor: 'abrir el libro y leer una página',
+      why: tr(
+        'para tener más energía durante el día',
+        'to have more energy during the day',
+      ),
+      floor: tr(
+        'abrir el libro y leer una página',
+        'open the book and read a page',
+      ),
     );
     store.setCadence(store.habit, 3);
 
@@ -86,7 +100,10 @@ void main() {
       await _shot(tester, key, '$out/plegada-$h.png');
       // Y con el reloj abierto, que es lo que se ve al tocar la frase.
       await tester.tap(
-        find.textContaining('Voy a despertarse', findRichText: true),
+        find.textContaining(
+          tr('Voy a despertarse', 'Waking up early:'),
+          findRichText: true,
+        ),
       );
       // Dos veces: en la primera el pliegue se entera de que creció y arranca
       // la animación, en la segunda ya llegó. Con una sola, lo que se

@@ -9,6 +9,9 @@
 /// masses everything else in the app is made of.
 library;
 
+import '../l10n/en_symbols.dart';
+import '../l10n/lang.dart';
+
 /// Every mark, in the order the picker shows them.
 ///
 /// Ordered so the first row is what most people are actually here for — read,
@@ -95,7 +98,11 @@ const List<String> habitSymbols = [
 ];
 
 /// What each mark is, for anyone who cannot see it.
-const Map<String, String> habitSymbolNames = {
+/// El nombre de cada marca en el idioma de ahora.
+Map<String, String> get habitSymbolNames =>
+    inEnglish ? habitSymbolNamesEn : _habitSymbolNamesEs;
+
+const Map<String, String> _habitSymbolNamesEs = {
   'libro': 'Libro abierto',
   'carrera': 'Corredor',
   'pesa': 'Pesa',

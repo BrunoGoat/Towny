@@ -16,6 +16,7 @@
 library;
 
 import '../core/rng.dart';
+import '../l10n/lang.dart';
 import '../model/habit.dart';
 import '../model/piece.dart';
 
@@ -88,7 +89,7 @@ Habit _entrenar(DateTime today) {
   }
   return Habit(
     id: 'demo-entrenar',
-    name: 'Entrenar',
+    name: tr('Entrenar', 'Training'),
     symbol: 'pesa',
     slot: 0,
     createdAt: today.subtract(const Duration(days: _span)),
@@ -97,8 +98,11 @@ Habit _entrenar(DateTime today) {
     // dos únicas que no se pueden deducir de las piezas: sin esto no hay manera
     // de mirar cómo se ven.
     vowHour: 7,
-    vowPlace: 'el gimnasio',
-    identity: 'alguien que entrena antes de que empiece el día',
+    vowPlace: tr('el gimnasio', 'at the gym'),
+    identity: tr(
+      'alguien que entrena antes de que empiece el día',
+      'someone who trains before the day begins',
+    ),
     // Y el título ya ganado, con su fecha. En un pueblo de verdad lo apunta la
     // pieza que completa las trece semanas; acá se pone a mano porque este
     // valle no se juega, se mira — y el papel del título es justamente uno de
@@ -108,9 +112,9 @@ Habit _entrenar(DateTime today) {
     // hace falta verla al lado de las otras dos para saber si se distinguen.
     notes: [
       '${today.subtract(const Duration(days: 2)).millisecondsSinceEpoch}'
-          '|Bajar el peso del banco, la espalda.',
+          '|${tr('Bajar el peso del banco, la espalda.', 'Lower the bench weight, mind the back.')}',
       '${today.subtract(const Duration(days: 19)).millisecondsSinceEpoch}'
-          '|Los martes cambiar de gimnasio.',
+          '|${tr('Los martes cambiar de gimnasio.', 'On Tuesdays, switch gyms.')}',
     ],
   );
 }
@@ -167,7 +171,7 @@ Habit _leer(DateTime today, Habit entrenar) {
   }
   return Habit(
     id: 'demo-leer',
-    name: 'Leer',
+    name: tr('Leer', 'Reading'),
     symbol: 'libro',
     slot: 1,
     createdAt: today.subtract(const Duration(days: _span - 62)),
@@ -175,6 +179,6 @@ Habit _leer(DateTime today, Habit entrenar) {
     // Leer va detrás de entrenar —el día que se entrena se lee bastante más—
     // y el tablón de leer lo dice como lo que es: una observación.
     vowHour: 22,
-    vowPlace: 'la cama',
+    vowPlace: tr('la cama', 'in bed'),
   );
 }

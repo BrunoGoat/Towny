@@ -1,18 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Lo poco que el cuadrito dice. En castellano, como toda la app. -->
+<!-- Lo poco que el cuadrito dice, en inglés: es lo que ve cualquier teléfono
+     que no esté en español, igual que la app sin idioma elegido. El castellano
+     está en values-es/. El cuadrito sigue el idioma del teléfono y no el que
+     se elija dentro de la app: Android lo dibuja sin preguntarle a la app. -->
 <resources>
     <string name="towny_widget_label">Towny</string>
     <string name="towny_widget_name">TOWNY</string>
     <!-- La descripción que se lee al elegirlo en la bandeja de widgets. -->
-    <string name="towny_widget_about">Poné una pieza sin entrar.</string>
-    <!-- El botón que aparece en una fila después del primer toque.
-
-         Dentro de la app una pieza se pone manteniendo el dedo hasta que
-         cierra un anillo; acá se pone tocando dos veces, que es lo mismo dicho
-         con lo que hay. Lo que decía antes era «Otra vez», y no se entendía:
-         una palabra suelta al final de una fila describe algo, no pide nada, y
-         la pregunta que dejaba era «¿otra vez qué?». Un verbo dentro de un
-         botón no deja esa duda. -->
-    <string name="towny_widget_confirm">Poner pieza</string>
-    <string name="towny_widget_empty">Abrí Towny y fundá tu primer pueblo.</string>
+    <string name="towny_widget_about">Place a piece without opening the app.</string>
+    <!-- El botón que aparece en una fila después del primer toque. -->
+    <string name="towny_widget_confirm">Place piece</string>
+    <string name="towny_widget_empty">Open Towny and found your first town.</string>
 </resources>

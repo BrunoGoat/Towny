@@ -1,6 +1,8 @@
 import 'dart:ui';
 
 import '../engine/town.dart' show BuildingKind;
+import '../l10n/en_regions.dart';
+import '../l10n/lang.dart';
 
 /// What kind of place a town is.
 ///
@@ -16,9 +18,9 @@ import '../engine/town.dart' show BuildingKind;
 /// one a town ends up with is chosen when it is founded.
 class TownCharacter {
   const TownCharacter({
-    required this.region,
-    required this.blurb,
-    required this.suits,
+    required this.regionEs,
+    required this.blurbEs,
+    required this.suitsEs,
     required this.symbol,
     required this.storey,
     required this.spread,
@@ -68,13 +70,19 @@ class TownCharacter {
   final bool portraitPlaza;
 
   /// What this kind of place is called, and one line about it.
-  final String region;
-  final String blurb;
+  /// Lo de abajo, en castellano. Se lee por [region], [blurb] y [suits],
+  /// que eligen el idioma.
+  final String regionEs;
+  final String blurbEs;
 
   /// Para qué clase de hábito pega, dicho como sugerencia y nada más: la
   /// comarca es sólo cómo se ve, y cualquier hábito puede vivir en cualquiera.
   /// Sale de cómo es el sitio, para que la relación se entienda sola.
-  final String suits;
+  final String suitsEs;
+
+  String get region => inEnglish ? regionsEn[order]?.$1 ?? regionEs : regionEs;
+  String get blurb => inEnglish ? regionsEn[order]?.$2 ?? blurbEs : blurbEs;
+  String get suits => inEnglish ? regionsEn[order]?.$3 ?? suitsEs : suitsEs;
 
   /// The mark it is chosen by when a habit is founded. One of the same marks
   /// the habits themselves wear, because they are the only marks this app
@@ -141,11 +149,11 @@ class TownCharacter {
 
   static const List<TownCharacter> all = [
     TownCharacter(
-      region: 'Ribera',
-      suits:
+      regionEs: 'Ribera',
+      suitsEs:
           'Para hábitos de calma y descanso: dormir mejor, meditar, tomar agua.',
       symbol: 'gota',
-      blurb: 'Casas anchas y bajas, encaladas de blanco, casi todas de teja.',
+      blurbEs: 'Casas anchas y bajas, encaladas de blanco, casi todas de teja.',
       storey: 0.9,
       spread: 1.2,
       pitch: 0.8,
@@ -160,11 +168,11 @@ class TownCharacter {
       trees: 0.10,
     ),
     TownCharacter(
-      region: 'Sierra',
-      suits:
+      regionEs: 'Sierra',
+      suitsEs:
           'Para los hábitos que cuestan esfuerzo físico y de verdad son difíciles: entrenar, correr, madrugar.',
       symbol: 'montana',
-      blurb: 'Alta y apretada, de piedra gris y pizarra, con tejados agudos.',
+      blurbEs: 'Alta y apretada, de piedra gris y pizarra, con tejados agudos.',
       storey: 1.34,
       spread: 0.8,
       pitch: 1.3,
@@ -182,11 +190,11 @@ class TownCharacter {
       lawn: Color(0xFF57705A),
     ),
     TownCharacter(
-      region: 'Marca',
-      suits:
+      regionEs: 'Marca',
+      suitsEs:
           'Para dejar algo y aguantar: no fumar, menos pantalla, menos azúcar.',
       symbol: 'escudo',
-      blurb: 'De frontera: muros gruesos, ocre, pocas ventanas y todo junto.',
+      blurbEs: 'De frontera: muros gruesos, ocre, pocas ventanas y todo junto.',
       storey: 1.06,
       spread: 1.0,
       pitch: 0.92,
@@ -203,11 +211,11 @@ class TownCharacter {
       lawn: Color(0xFF8A8445),
     ),
     TownCharacter(
-      region: 'Valle',
-      suits:
+      regionEs: 'Valle',
+      suitsEs:
           'Para hábitos ligados a la naturaleza y la salud: comer sano, cocinar, caminar al aire libre.',
       symbol: 'espiga',
-      blurb: 'Madera y paja, solares grandes y huerta en casi todas.',
+      blurbEs: 'Madera y paja, solares grandes y huerta en casi todas.',
       storey: 0.96,
       spread: 1.1,
       pitch: 1.2,
@@ -224,11 +232,11 @@ class TownCharacter {
       lawn: Color(0xFF5C7F3C),
     ),
     TownCharacter(
-      region: 'Costa',
-      suits:
+      regionEs: 'Costa',
+      suitsEs:
           'Para el orden y la claridad: ordenar la casa, las cuentas, planificar la semana.',
       symbol: 'ola',
-      blurb: 'Cal y añil, tejados casi planos y mucho aire entre las casas.',
+      blurbEs: 'Cal y añil, tejados casi planos y mucho aire entre las casas.',
       storey: 0.8,
       spread: 1.1,
       pitch: 0.52,
@@ -246,11 +254,11 @@ class TownCharacter {
       lawn: Color(0xFF7D8F66),
     ),
     TownCharacter(
-      region: 'Robledal',
-      suits:
+      regionEs: 'Robledal',
+      suitsEs:
           'Para lo que crece despacio, como un roble: leer, estudiar, escribir, aprender un instrumento.',
       symbol: 'arbol',
-      blurb: 'Madera oscura bajo los robles, tejados de paja muy inclinados.',
+      blurbEs: 'Madera oscura bajo los robles, tejados de paja muy inclinados.',
       storey: 1.16,
       spread: 0.88,
       pitch: 1.75,
@@ -272,12 +280,12 @@ class TownCharacter {
     // posición ([forSlot]), así que meterlas en medio le cambiaría la cara a
     // pueblos que ya existen.
     TownCharacter(
-      region: 'Encrucijada',
-      suits:
+      regionEs: 'Encrucijada',
+      suitsEs:
           'Para los vínculos: llamar a la familia, escribirle a un amigo, '
           'salir más, tener paciencia con los demás.',
       symbol: 'brujula',
-      blurb:
+      blurbEs:
           'Pueblo de camino: posadas, plazas anchas y casas de colores '
           'distintos.',
       storey: 1.02,
@@ -304,12 +312,12 @@ class TownCharacter {
       lawn: Color(0xFF7A8A3A),
     ),
     TownCharacter(
-      region: 'Alfar',
-      suits:
+      regionEs: 'Alfar',
+      suitsEs:
           'Para lo creativo: dibujar, tocar música, escribir, fotografiar, lo '
           'que se hace con las manos.',
       symbol: 'olla',
-      blurb: 'De artesanos: talleres y hornos, barro cocido y tejados rojos.',
+      blurbEs: 'De artesanos: talleres y hornos, barro cocido y tejados rojos.',
       storey: 0.94,
       spread: 1.05,
       pitch: 0.70,

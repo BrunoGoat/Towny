@@ -320,7 +320,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
     textCapitalization: TextCapitalization.sentences,
     maxLength: 24,
     decoration: InputDecoration(
-      hintText: tr('Leer, correr, no fumar…', 'Reading, running, not smoking…'),
+      hintText: tr('Leer, correr, no fumar…', 'Reading, running, yoga…'),
       hintStyle: t.bodySoft.copyWith(
         fontSize: size * 0.82,
         color: velo.suave,

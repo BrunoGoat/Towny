@@ -17,6 +17,9 @@
 /// esto.
 library;
 
+import '../l10n/en_doings.dart';
+import '../l10n/lang.dart';
+
 /// Dónde tiene sentido hacer algo.
 ///
 /// Es la mitad de lo que hace que esto parezca un pueblo y no un parque de
@@ -103,7 +106,7 @@ enum PropKind {
 class Doing {
   const Doing(
     this.id,
-    this.name, {
+    this.nameEs, {
     required this.where,
     this.who = Who.anyone,
     this.weight = 1.0,
@@ -123,7 +126,10 @@ class Doing {
   /// Dicho en castellano, para el tablón y para los tests. Que el test diga
   /// «nadie amasa pan en el prado» y no «el doing 34 no va en el where 4» es
   /// la diferencia entre poder leer lo que falla y no.
-  final String name;
+  final String nameEs;
+
+  /// Lo mismo en el idioma de ahora, para enseñarlo.
+  String get name => inEnglish ? doingsEn[id] ?? nameEs : nameEs;
 
   final Where where;
   final Who who;

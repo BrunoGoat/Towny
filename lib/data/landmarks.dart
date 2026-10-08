@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
 import '../engine/mason.dart';
+import '../l10n/en_landmarks.dart';
+import '../l10n/lang.dart';
 
 /// One landmark: a thing the town builds that marks an era rather than a week.
 ///
@@ -10,10 +12,10 @@ import '../engine/mason.dart';
 class Landmark {
   Landmark(
     this.id,
-    this.name,
+    this.nameEs,
     this.cost,
     this.tier,
-    this.blurb,
+    this.blurbEs,
     this.build, {
     this.rigid = false,
     this.scale = 1.0,
@@ -22,11 +24,16 @@ class Landmark {
   /// Stable identity. Never reuse one: it is what a saved town remembers.
   final String id;
 
-  final String name;
+  /// El nombre en castellano. Se lee por [name], que elige el idioma.
+  final String nameEs;
 
   /// One line, said once, the day it is finished. A landmark arrives every two
-  /// or three weeks: it is worth having something to say about it.
-  final String blurb;
+  /// or three weeks: it is worth having something to say about it. En
+  /// castellano; se lee por [blurb].
+  final String blurbEs;
+
+  String get name => inEnglish ? landmarksEn[id]?.$1 ?? nameEs : nameEs;
+  String get blurb => inEnglish ? landmarksEn[id]?.$2 ?? blurbEs : blurbEs;
 
   /// How many achievements it takes to finish.
   final int cost;

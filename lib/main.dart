@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'data/character.dart';
 import 'engine/palette.dart';
@@ -330,6 +331,10 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Towny',
+      // El idioma de la app manda también sobre los componentes de Material.
+      locale: Locale(Appearance.instance.language.code),
+      supportedLocales: [for (final l in Lang.values) Locale(l.code)],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
       navigatorKey: _nav,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(

@@ -28,6 +28,7 @@ library;
 
 import 'dart:math' as math;
 
+import '../l10n/en_pledge.dart';
 import '../l10n/lang.dart';
 import 'habit.dart';
 import 'piece.dart';
@@ -51,7 +52,7 @@ String? vowLine(String name, int? hour, String? place) {
   // En inglés, con dos puntos y no con un verbo: los hábitos se escriben como
   // sustantivo —«Reading», «Gym»— y «I'm going to reading» no se dice.
   final que = inEnglish
-      ? (name.trim().isEmpty ? 'The plan:' : '${name.trim()}:')
+      ? vowLeadEn(name)
       : 'Voy a ${lowerName(name.trim().isEmpty ? 'hacerlo' : name)}';
   if (hour == null) return '$que, ${placeSaid(sitio!)}.';
   if (sitio == null) return '$que ${hourSaid(hour)}.';
@@ -66,14 +67,7 @@ String? vowLine(String name, int? hour, String? place) {
 /// van por su nombre, que es como las llama cualquiera.
 String hourSaid(int hour) {
   final h = hour % 24;
-  if (inEnglish) {
-    return switch (h) {
-      0 => 'at midnight',
-      12 => 'at noon',
-      _ when h < 12 => 'at $h am',
-      _ => 'at ${h - 12} pm',
-    };
-  }
+  if (inEnglish) return hourSaidEn(h);
   return switch (h) {
     0 => 'a medianoche',
     1 => 'a la 1 de la madrugada',
@@ -92,24 +86,7 @@ String hourSaid(int hour) {
 String placeSaid(String place) {
   final t = place.trim();
   final bajo = t.toLowerCase();
-  if (inEnglish) {
-    for (final p in const [
-      'in ',
-      'at ',
-      'on ',
-      'by ',
-      'near ',
-      'before ',
-      'after ',
-      'while ',
-      'during ',
-      'from ',
-      'right ',
-    ]) {
-      if (bajo.startsWith(p)) return t;
-    }
-    return 'in $t';
-  }
+  if (inEnglish) return placeSaidEn(t);
   for (final p in const [
     'en ',
     'a ',

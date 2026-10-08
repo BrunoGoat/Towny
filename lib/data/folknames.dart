@@ -1,6 +1,8 @@
 library;
 
 import '../core/rng.dart';
+import '../l10n/en_folk.dart';
+import '../l10n/lang.dart';
 
 /// Cómo se llama la gente del valle.
 ///
@@ -135,8 +137,11 @@ String folkName(int seed) {
   // menos como salía: primero eras el herrero y sólo si no eras nada en
   // particular eras el de la otra orilla.
   if (hash01(seed, 103) < 0.68) {
-    final (el, la) = _trade[hashInt(_trade.length, seed, 102)];
+    final k = hashInt(_trade.length, seed, 102);
+    if (inEnglish) return '$pila ${tradeEn[k]}';
+    final (el, la) = _trade[k];
     return '$pila ${ella ? la : el}';
   }
-  return '$pila ${_from[hashInt(_from.length, seed, 102)]}';
+  final k = hashInt(_from.length, seed, 102);
+  return '$pila ${inEnglish ? fromEn[k] : _from[k]}';
 }

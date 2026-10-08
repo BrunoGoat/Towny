@@ -8,46 +8,20 @@ hace falta para seguir**.
 
 ## 1. Que la app hable otros idiomas
 
-**En qué punto está.** El inventario está hecho y es lo que hay que mirar
-antes de escribir una línea de código: **`TEXTOS.md`**, con las 1.248 entradas
-—unas 1.855 frases— que ve quien usa la app, agrupadas por dónde salen y con
-archivo, renglón y clase de cada una. No está escrito a mano: se regenera con
+**Hecho: castellano e inglés, la app entera.** Las dos decisiones que estaban
+abiertas se tomaron así:
 
-```bash
-flutter test tool/textos_test.dart    # vuelca el catálogo a /tmp/towny
-python3 tool/textos.py                # escribe TEXTOS.md
-```
+1. **Los bandos**: todos, los 436, en el mismo orden. Los nombres propios que
+   salen en ellos se quedan, salvo «Tomás», que pasa a «Tom» porque la tilde
+   es castellano en mitad de una frase inglesa.
+2. **Los nombres de la gente**: el de pila se queda —es un pueblo castellano—
+   y lo que va detrás se traduce: «Andrés el Herrero» es «Andrés the Smith».
 
-**Qué falta para seguir: decidir qué se borra.** Son más frases de las que
-parecía, y de ahí salió la pausa. Las cuentas, para poder decidir:
+Las obras retiradas también están traducidas: un pueblo viejo las nombra.
 
-| Bloque | Frases | Nota |
-|---|---|---|
-| Bandos del tablón | 872 | **El 47% de todo.** Costumbrismo de pueblo castellano: es lo más caro de traducir y lo que peor viaja |
-| Obras del catálogo | 120 | Nombre + la frase que se dice el día que se remata |
-| Obras retiradas | 106 | Sólo las ven los pueblos que ya las levantaron |
-| La interfaz entera | 394 | Las 28 pantallas |
-| Lo que el tablón dice de vos | 104 | Con huecos: números, fechas, nombres |
-| Símbolos de hábito | 72 | Etiquetas del selector de marcas |
-| Nombres de la gente | 87 | **No se traducen**: son nombres propios |
-| Comarcas, casas, sonidos, música, avisos, widget | ~100 | |
-
-**Sin los bandos y sin las retiradas, un idioma son unas 880 frases.** Con
-todo, 1.855.
-
-**Dos decisiones que hay que tomar antes de empezar:**
-
-1. **Los bandos.** Todos, ninguno, o una tanda de 150 que se reparta entre
-   ellos — el tablón cambia igual cada día y nadie cuenta cuántos hay.
-2. **Los nombres de la gente.** «Sancho de Aguilar» en una app en inglés no
-   está mal: es un pueblo castellano. Pero si se quiere que el pueblo sea de
-   quien lo juega, cada idioma necesita su propia lista de 49 nombres, 24
-   oficios y 14 procedencias. Es una decisión de diseño, no de traducción.
-
-**El plan, cuando haya decisión.** Un archivo por idioma con las frases, `es`
-como original, y la interfaz pidiendo cada frase por su código en vez de
-llevarla escrita dentro. Con una prueba que falle si un idioma se deja una
-frase sin traducir — que es la única manera de que no se pudra sola.
+**Para un tercer idioma**: `Lang` en `lib/l10n/lang.dart` tiene los dos;
+`tr()` pasaría a tomar uno por idioma, y cada `en_*.dart` tendría su hermano.
+El inventario de lo que hay que traducir sigue siendo `TEXTOS.md`.
 
 ---
 
@@ -136,7 +110,7 @@ entre qué dos fechas se levantó.)*
 - **Las obras retiradas.** Hoy siguen en pie en los pueblos que ya las
   levantaron: no se ofrecen más, pero no se borran. La alternativa es que esos
   pueblos se rehagan sin ellas, y eso mueve piedras que ya estaban puestas.
-  Mientras no se decida, sus 106 frases siguen contando para los idiomas.
+  Mientras no se decida, sus 106 frases siguen traducidas como las demás.
 - **Lo que no se va a hacer**, y conviene que siga escrito: rachas que
   castiguen, medallas encima del pueblo, comparación con otra gente,
   notificaciones que pidan atención, y cobrar por el catálogo. Cada una

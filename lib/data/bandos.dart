@@ -16,8 +16,15 @@
 /// sería el pueblo inventándose algo sobre alguien.
 library;
 
+import '../l10n/en_bandos.dart';
+import '../l10n/lang.dart';
+
 /// El catálogo entero. El titular, y el renglón que va debajo.
-const List<(String, String)> bandos = [
+/// El catálogo en el idioma de ahora. Ver `lib/l10n/en_bandos.dart`, que
+/// va en el mismo orden.
+List<(String, String)> get bandos => inEnglish ? bandosEn : _bandosEs;
+
+const List<(String, String)> _bandosEs = [
   ('Se perdió una cabra.', 'Atiende por Nube. Recompensa: media hogaza.'),
   (
     'El herrero busca aprendiz.',

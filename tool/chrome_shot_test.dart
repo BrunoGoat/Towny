@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:towny/data/character.dart';
 import 'package:towny/data/landmarks.dart';
 import 'package:towny/engine/palette.dart';
+import 'package:towny/l10n/lang.dart';
 import 'package:towny/model/appearance.dart';
 import 'package:towny/model/store.dart';
 import 'package:towny/ui/choice_sheet.dart';
@@ -31,6 +32,10 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     await Appearance.instance.load();
     await Appearance.instance.setSoundOff(true);
+    // --dart-define=LANG=en para verla en inglés.
+    if (const String.fromEnvironment('LANG') == 'en') {
+      await Appearance.instance.setLanguage(Lang.en);
+    }
     await Appearance.instance.setMusicOff(true);
   });
 
@@ -55,6 +60,10 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       await Appearance.instance.load();
       await Appearance.instance.setSoundOff(true);
+      // --dart-define=LANG=en para verla en inglés.
+      if (const String.fromEnvironment('LANG') == 'en') {
+        await Appearance.instance.setLanguage(Lang.en);
+      }
       await Appearance.instance.setFakeHour(true);
       await Appearance.instance.setFakeHourAt(hora);
       final store = Store();
