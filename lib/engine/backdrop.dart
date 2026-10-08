@@ -597,6 +597,12 @@ class Backdrop {
       // construcción, que es el sitio donde el suelo empieza. No hay forma de
       // que el pasto tape una montaña.
       final xs = <double>[], ys = <double>[];
+      // Y de cada muestra, hacia dónde cae, cuánto mide y en qué sitio del
+      // mundo está: la nieve se decide con eso, no con la pantalla.
+      final ths = <double>[],
+          hs = <double>[],
+          wxs = <double>[],
+          wzs = <double>[];
       var crest = size.height;
       for (var i = 0; i <= steps; i++) {
         final th = az - span + (i / steps) * (span * 2);
@@ -606,6 +612,10 @@ class Backdrop {
           look + dx * layer.radius,
           dz * layer.radius,
         );
+        ths.add(th);
+        hs.add(h);
+        wxs.add(look + dx * layer.radius);
+        wzs.add(dz * layer.radius);
         // El perfil sigue cambiando con el viaje, así que caminar por el valle
         // descubre otra sierra: eso es paralaje de verdad, y es la única que
         // una cosa tan lejos tiene derecho a tener.
@@ -675,31 +685,6 @@ class Backdrop {
         canvas.drawPath(shape, paint);
       }
 
-      // La nieve de las cumbres, como una línea de nieve y no como un borde:
-      // un degradado de arriba abajo con el corte a la misma altura en toda
-      // la sierra, así que se blanquean los picos que la pasan y las
-      // vaguadas se quedan en roca. Eso es lo que hace la nieve en un monte.
-      final cap = snowCap(pal, li, Landscape.ridges.length);
-      if (cap != null && crest < cut) {
-        final (nieve, linea) = cap;
-        final top = crest, alto = cut - crest;
-        final paintCap = Paint()
-          ..shader = ui.Gradient.linear(
-            Offset(0, top),
-            Offset(0, top + alto),
-            [
-              nieve,
-              nieve,
-              nieve.withValues(alpha: 0),
-              nieve.withValues(alpha: 0),
-            ],
-            [0.0, linea * 0.75, math.min(1.0, linea + 0.16), 1.0],
-          );
-        for (final shape in shapes) {
-          canvas.drawPath(shape, paintCap);
-        }
-      }
-
       // And the sun on the tops, as a wash that comes and goes across the
       // screen rather than a side that is either lit or not. Near ranges take
       // more of it: the far ones are too much air away to catch anything.
@@ -728,9 +713,115 @@ class Backdrop {
           canvas.drawPath(shape, glow);
         }
       }
+
+      // La nieve de las cumbres, encima y maciza.
+      final cap = snowCap(pal, li, Landscape.ridges.length);
+      if (cap != null) {
+        final (nieve, linea) = cap;
+        final manto = Path();
+        _snowOn(manto, p, layer, linea, ths, hs, wxs, wzs, xs, ys);
+        canvas.drawPath(manto, Paint()..color = nieve);
+      }
     }
 
     canvas.restore();
+  }
+
+  /// La nieve de una sierra: lo que pasa de la línea de nieve, relleno.
+  ///
+  /// Antes era un degradado de pantalla que empezaba en el pico más alto que
+  /// se viera, así que al girar la cámara —y entrar o salir de cuadro otro
+  /// pico— la nieve subía y bajaba por las laderas como una luz. Ahora la
+  /// línea de nieve es una **altura del mundo** ([linea], en las mismas
+  /// unidades que la sierra), y la nieve es la parte de la montaña que la
+  /// pasa: un sólido del mismo plano que la roca, que no se mueve al mirar
+  /// desde otro lado porque la montaña tampoco.
+  ///
+  /// La línea no es recta: sube y baja un poco con el sitio —ruido sobre la
+  /// posición en el mundo, no en la pantalla—, que es lo que la nieve hace en
+  /// un monte, entrar por las canaletas y quedarse corta en las aristas.
+  static void _snowOn(
+    Path manto,
+    Projector p,
+    RidgeLayer layer,
+    double linea,
+    List<double> ths,
+    List<double> hs,
+    List<double> wxs,
+    List<double> wzs,
+    List<double> xs,
+    List<double> ys,
+  ) {
+    double cota(int i) =>
+        linea +
+        layer.height *
+            0.05 *
+            (math.sin(wxs[i] * 0.11 + wzs[i] * 0.07) +
+                math.sin(wxs[i] * 0.05 - wzs[i] * 0.13));
+    Offset? pie(int i, double h) => skyPoint(
+      p,
+      ths[i],
+      math.atan2(math.max(h, layer.base), layer.radius),
+      minDen: 0.02,
+    );
+
+    final arriba = <Offset>[], abajo = <Offset>[];
+    void cerrar() {
+      if (arriba.length >= 2) {
+        manto.moveTo(arriba.first.dx, arriba.first.dy);
+        for (final o in arriba.skip(1)) {
+          manto.lineTo(o.dx, o.dy);
+        }
+        for (final o in abajo.reversed) {
+          manto.lineTo(o.dx, o.dy);
+        }
+        manto.close();
+      }
+      arriba.clear();
+      abajo.clear();
+    }
+
+    final n = hs.length;
+    for (var i = 0; i < n; i++) {
+      if (ys[i].isNaN) {
+        cerrar();
+        continue;
+      }
+      final sobra = hs[i] - cota(i);
+      final antes = i > 0 && !ys[i - 1].isNaN ? hs[i - 1] - cota(i - 1) : null;
+      if (sobra > 0) {
+        // Entrando en la nieve: el borde donde la ladera cruza la línea.
+        if (antes != null && antes <= 0) {
+          final t = antes / (antes - sobra);
+          final o = Offset(
+            lerpD(xs[i - 1], xs[i], t),
+            lerpD(ys[i - 1], ys[i], t),
+          );
+          arriba.add(o);
+          abajo.add(o);
+        }
+        final b = pie(i, cota(i));
+        if (b == null) {
+          cerrar();
+          continue;
+        }
+        arriba.add(Offset(xs[i], ys[i]));
+        abajo.add(b);
+      } else if (arriba.isNotEmpty) {
+        // Saliendo: el mismo borde del otro lado, y se cierra el trozo.
+        if (antes != null && antes > 0) {
+          final t = antes / (antes - sobra);
+          final o = Offset(
+            lerpD(xs[i - 1], xs[i], t),
+            lerpD(ys[i - 1], ys[i], t),
+          );
+          arriba.add(o);
+          abajo.add(o);
+        }
+        cerrar();
+      }
+    }
+    cerrar();
   }
 
   // ----------------------------------------------------------------- ghost

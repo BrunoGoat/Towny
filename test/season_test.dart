@@ -456,11 +456,24 @@ void main() {
         expect(snowCap(Palette.forMoment(13, season: julio), li, 3), isNull);
         final cap = snowCap(Palette.forMoment(13, season: enero), li, 3);
         expect(cap, isNotNull);
-        final (color, linea) = cap!;
-        expect(color.a, greaterThan(0.6), reason: 'sierra $li');
-        // Una línea de nieve, no la sierra entera: debajo queda roca.
-        expect(linea, inInclusiveRange(0.2, 0.7), reason: 'sierra $li');
+        // Sólida: es nieve, no una luz encima de la roca.
+        expect(cap!.$1.a, 1.0, reason: 'sierra $li');
       }
+    });
+
+    test('la nieve de las cumbres crece hasta enero y se retira después', () {
+      // La línea de nieve es una altura del mundo: cuanto más baja, más
+      // montaña blanca. Baja mes a mes hasta lo más crudo y sube igual de
+      // despacio, y fuera del frío no hay.
+      double? linea(int mes) =>
+          snowCap(Palette.forMoment(13, season: _n(mes, 25)), 2, 3)?.$2;
+      expect(linea(10), isNull);
+      expect(linea(11), isNotNull);
+      expect(linea(12)!, lessThan(linea(11)!));
+      expect(linea(1)!, lessThanOrEqualTo(linea(12)!));
+      expect(linea(2)!, greaterThan(linea(1)!));
+      expect(linea(3)!, greaterThan(linea(2)!));
+      expect(linea(4), isNull);
     });
 
     test('el aire de un día de nieve es frío, y sin nieve no cambia nada', () {

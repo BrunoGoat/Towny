@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import '../core/math3.dart';
 import '../core/rng.dart';
+import 'landscape.dart';
 import 'palette.dart';
 import 'season.dart';
 import 'solid.dart';
@@ -384,48 +385,41 @@ bool darkSky(Palette pal) {
     const Color(0xFF000000),
     lerpD(0.54 * lejos, 0.52 + 0.28 * lejos, noche),
   )!;
-  // En invierno las cumbres se ven blancas desde el valle, y empiezan a
-  // verse antes que la nieve de abajo: arriba hace más frío. Se aclara la
-  // sierra entera y no sólo su borde —a esta distancia una cordillera es una
-  // silueta plana— y con menos fuerza cuanto más lejos está, porque lo que
-  // está lejos lo tapa la bruma y no la nieve.
-  // Por lo frío que está y no por dónde está el sol: las cumbres se cubren
-  // cuando hace frío, que es un mes después del solsticio, igual que la nieve
-  // del valle y por lo mismo.
-  //
-  // Esto es sólo el velo de la sierra entera; lo blanco de verdad son las
-  // cumbres, que van aparte ([snowCap]): una sierra aclarada pareja salía
-  // color barro claro, y lo que dice «invierno» desde el valle es la línea
-  // de nieve, con la roca oscura debajo.
-  final alto = clampD(pal.season.chill * 1.45 - 0.30, 0.0, 1.0);
-  if (alto > 0.004) {
-    body = Color.lerp(
-      body,
-      snowTone(pal),
-      alto * (0.08 + 0.10 * near01) * (0.35 + 0.65 * pal.daylight),
-    )!;
-  }
+  // La nieve de las cumbres no tiñe la sierra entera: va aparte, maciza,
+  // encima de la roca ([snowCap]). Antes además se aclaraba toda la sierra, y
+  // salía color barro claro.
   body = winterAir(body, pal);
   return (body, Color.lerp(body, winterHaze(pal), 0.30 + 0.15 * near01)!);
 }
 
-/// La nieve de las cumbres de una sierra: de qué color, cuánta, y hasta
-/// dónde baja.
+/// La nieve de las cumbres de una sierra: de qué color es y hasta qué
+/// altura baja.
 ///
-/// Devuelve el color con su opacidad y la línea de nieve como fracción del
-/// alto de la sierra —cero la cresta, uno el pie—. Más abajo en las de
-/// delante, que son lomas del mismo valle nevado, y sólo las puntas en las
-/// del fondo. Nada si no hace frío.
+/// Devuelve el color —opaco: es nieve, no una luz— y la línea de nieve como
+/// una altura en las unidades de la propia sierra ([RidgeLayer]), así que la
+/// nieve es la parte de la montaña que pasa de ahí. Nada si no hace frío.
+///
+/// Va con lo frío que está la tierra y no con el calendario del sol, como la
+/// nieve del valle: empieza en lo más alto de las cumbres a fin de otoño,
+/// baja poco a poco hasta lo más crudo del invierno y se retira igual de
+/// despacio en primavera. Más abajo en las lomas de delante, que son del
+/// mismo valle nevado, y sólo las puntas en las del fondo.
 (Color, double)? snowCap(Palette pal, int li, int of) {
-  final alto = clampD(pal.season.chill * 1.45 - 0.30, 0.0, 1.0);
-  if (alto < 0.02) return null;
+  // Cuánto invierno hay en las cumbres: nada hasta que el suelo empieza a
+  // enfriarse de verdad —fin de octubre—, la mitad en noviembre, todo en
+  // diciembre y enero, y de vuelta a nada en abril.
+  final frio = smoothstep(0.58, 1.0, pal.season.chill);
+  if (frio < 0.01) return null;
   final near01 = of <= 1 ? 1.0 : (of - 1 - li) / (of - 1);
+  final layer = Landscape.ridges[li.clamp(0, Landscape.ridges.length - 1)];
   // Lo lejano, con algo del aire encima: la nieve del fondo no es tan blanca
-  // como la de delante.
+  // como la de delante. Pero sólida: el aire la tiñe, no la transparenta.
   final (body, _) = rangeTone(pal, li, of);
-  final nieve = Color.lerp(snowTone(pal), body, 0.30 * (1 - near01))!;
-  final cuanta = alto * (0.80 + 0.15 * near01) * (0.55 + 0.45 * pal.daylight);
-  // La línea baja con lo crudo del invierno: en noviembre sólo las puntas.
-  final linea = (0.34 + 0.22 * near01) * (0.45 + 0.55 * pal.season.snow);
-  return (nieve.withValues(alpha: cuanta), linea);
+  final nieve = Color.lerp(snowTone(pal), body, 0.12 + 0.22 * (1 - near01))!;
+  // La línea de nieve, en fracción del alto nominal de la sierra. Las
+  // cumbres de verdad no pasan de poco más de la mitad de ese alto (el ruido
+  // rara vez llega arriba), así que 0,56 es «ni las puntas» y en pleno
+  // invierno la línea queda por debajo de la mitad de la montaña.
+  final hasta = lerpD(0.56, 0.24 + 0.08 * (1 - near01), frio);
+  return (nieve, layer.base + layer.height * hasta);
 }
