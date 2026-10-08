@@ -25,6 +25,12 @@ class Landscape {
     return lerpD(a, b, v);
   }
 
+  /// Ruido suave de -1 a 1, en dos octavas. Ver [snowEdge].
+  static double edgeNoise(double x, double z, int seed) =>
+      (_noise(x, z, seed) * 0.7 + _noise(x * 2.1, z * 2.1, seed + 7) * 0.3) *
+          2 -
+      1;
+
   static double _fbm(double x, double z, int seed) {
     var v = 0.0;
     var amp = 0.55;
@@ -53,6 +59,16 @@ class Landscape {
     return l.base + shaped * l.height;
   }
 }
+
+/// Por dónde baja más o menos la nieve de una sierra, de -1 a 1.
+///
+/// Ruido suave sobre el mismo plano que la sierra y a una escala algo más
+/// fina que sus montañas: el borde de la nieve entra y sale al paso del
+/// terreno. Con una onda fija —lo de antes— en la sierra del fondo, que es
+/// la más ancha, el borde subía y bajaba cien veces más rápido que las
+/// montañas y se leía como una gráfica de seno.
+double snowEdge(RidgeLayer l, double wx, double wz) =>
+    Landscape.edgeNoise(wx * l.scale * 1.8, wz * l.scale * 1.8, l.seed + 503);
 
 class RidgeLayer {
   const RidgeLayer({

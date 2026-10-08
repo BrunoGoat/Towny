@@ -738,8 +738,9 @@ class Backdrop {
   /// desde otro lado porque la montaña tampoco.
   ///
   /// La línea no es recta: sube y baja un poco con el sitio —ruido sobre la
-  /// posición en el mundo, no en la pantalla—, que es lo que la nieve hace en
-  /// un monte, entrar por las canaletas y quedarse corta en las aristas.
+  /// posición en el mundo, no en la pantalla, y al paso de las propias
+  /// montañas ([snowEdge])—, que es lo que la nieve hace en un monte, entrar
+  /// por las canaletas y quedarse corta en las aristas.
   static void _snowOn(
     Path manto,
     Projector p,
@@ -753,11 +754,7 @@ class Backdrop {
     List<double> ys,
   ) {
     double cota(int i) =>
-        linea +
-        layer.height *
-            0.05 *
-            (math.sin(wxs[i] * 0.11 + wzs[i] * 0.07) +
-                math.sin(wxs[i] * 0.05 - wzs[i] * 0.13));
+        linea + layer.height * 0.07 * snowEdge(layer, wxs[i], wzs[i]);
     Offset? pie(int i, double h) => skyPoint(
       p,
       ths[i],
