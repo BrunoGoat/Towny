@@ -67,59 +67,41 @@ class _SettingsSheetState extends State<SettingsSheet> {
   @override
   Widget build(BuildContext context) {
     final t = widget.theme;
-    final velo = SheetInk.of(t);
-    return _Glass(
-      theme: t,
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-      child: ListenableBuilder(
-        listenable: Appearance.instance,
-        builder: (context, _) => SizedBox(
-          height: MediaQuery.of(context).size.height * 0.84,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _Asa(velo: velo),
-              const SizedBox(height: 14),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        widget.dev
-                            ? tr('Desarrollo', 'Developer')
-                            : tr('Ajustes', 'Settings'),
-                        style: t.title.copyWith(
-                          color: velo.cuerpo,
-                          fontSize: 26,
-                          fontWeight: FontWeight.w400,
-                          shadows: velo.aliento,
-                        ),
-                      ),
-                    ),
-                    // Qué build es ésta.
-                    //
-                    // Existe porque no existía, y no saberlo costó una tarde:
-                    // se probaba algo que no salía, y la pregunta «¿está el
-                    // cambio o es la build de antes?» no tenía manera de
-                    // contestarse desde el teléfono. Lo pone el flujo al
-                    // compilar y en local sale vacío, que es lo correcto.
-                    if (_build.isNotEmpty)
-                      Text(
-                        'BUILD $_build',
-                        style: t.label.copyWith(fontSize: 9, color: velo.tenue),
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              Expanded(child: _body(context, t)),
-            ],
-          ),
-        ),
-      ),
+    return ListenableBuilder(
+      listenable: Appearance.instance,
+      builder: (context, _) {
+        final hoy = Season.on(DateTime.now(), Appearance.instance.hemisphere);
+        return _Velo(
+          theme: t,
+          height: MediaQuery.of(context).size.height * 0.88,
+          emblem: widget.dev ? Icons.science_outlined : Icons.tune_rounded,
+          title: widget.dev
+              ? tr('Desarrollo', 'Developer')
+              : tr('Ajustes', 'Settings'),
+          // Debajo del título, una línea que dice algo de verdad: en qué punto
+          // del año está quien mira, o qué es esta hoja.
+          //
+          // Qué build es ésta va acá también. Existe porque no saberlo costó
+          // una tarde: se probaba algo que no salía, y la pregunta «¿está el
+          // cambio o es la build de antes?» no tenía manera de contestarse
+          // desde el teléfono. Lo pone el flujo al compilar; en local no hay.
+          line: [
+            if (widget.dev)
+              tr('Para probar, no para usar', 'For testing, not for using')
+            else if (Appearance.instance.seasons)
+              tr(
+                '${hoy.name} · ${hoy.daylightHours.toStringAsFixed(1)} horas '
+                    'de luz',
+                '${hoy.name} · ${hoy.daylightHours.toStringAsFixed(1)} hours '
+                    'of daylight',
+              )
+            else
+              tr('El año quieto', 'The year standing still'),
+            if (_build.isNotEmpty) 'build $_build',
+          ].join('  ·  '),
+          child: _body(context, t),
+        );
+      },
     );
   }
 
@@ -134,6 +116,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
             _Section(
               theme: t,
               title: tr('PIEZAS Y PUEBLOS', 'PIECES AND TOWNS'),
+              icon: Icons.grid_view_rounded,
               children: [
                 _Switch(
                   theme: t,
@@ -164,6 +147,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
             _Section(
               theme: t,
               title: tr('LA HORA', 'THE TIME'),
+              icon: Icons.schedule,
               children: [
                 _Switch(
                   theme: t,
@@ -221,6 +205,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
             _Section(
               theme: t,
               title: tr('EL AÑO', 'THE YEAR'),
+              icon: Icons.eco_outlined,
               children: [
                 if (!wants.seasons)
                   Text(
@@ -283,6 +268,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
             _Section(
               theme: t,
               title: tr('EL TABLÓN', 'THE NOTICE BOARD'),
+              icon: Icons.push_pin_outlined,
               children: [
                 Text(
                   tr(
@@ -328,6 +314,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
             _Section(
               theme: t,
               title: tr('PARA MIRAR', 'TO LOOK AT'),
+              icon: Icons.visibility_outlined,
               children: [
                 _Row(
                   theme: t,
@@ -410,6 +397,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
             _Section(
               theme: t,
               title: tr('IDIOMA · LANGUAGE', 'LANGUAGE · IDIOMA'),
+              icon: Icons.translate,
               children: [
                 _Pick(
                   theme: t,
@@ -433,6 +421,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
             _Section(
               theme: t,
               title: tr('IMAGEN', 'GRAPHICS'),
+              icon: Icons.auto_awesome,
               children: [
                 _Switch(
                   theme: t,
@@ -453,6 +442,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
             _Section(
               theme: t,
               title: tr('SONIDO', 'SOUND'),
+              icon: Icons.music_note,
               children: [
                 _Switch(
                   theme: t,
@@ -516,6 +506,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
             _Section(
               theme: t,
               title: tr('EL AÑO', 'THE YEAR'),
+              icon: Icons.eco_outlined,
               children: [
                 _Switch(
                   theme: t,
@@ -566,6 +557,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
             _Section(
               theme: t,
               title: tr('LO DEMÁS', 'EVERYTHING ELSE'),
+              icon: Icons.more_horiz,
               children: [
                 // Encima de la vibración porque es el único de los tres que sale de la
                 // app: los otros dos sólo suenan cuando ya la tenés abierta.
@@ -643,39 +635,24 @@ class _SettingsSheetState extends State<SettingsSheet> {
                         habit: _conCronica(store).firstOrNull ?? 0,
                       ),
                     ),
-                _Row(
-                  theme: t,
-                  icon: Icons.code,
-                  title: tr('Desarrollo', 'Developer'),
-                  subtitle: tr(
-                    'Lo que sirve para probar la app: fingir la hora y el día, poner '
-                        'piezas seguidas, los expositores, ver el pueblo a futuro.',
-                    'What helps to test the app: pretending the time and the day, '
-                        'placing pieces in a row, the showcases, seeing the town in '
-                        'the future.',
-                  ),
-                  open: () => SettingsSheet(store: store, theme: t, dev: true),
-                ),
               ],
             ),
-            _Section(
+            // Las dos salidas, como en la hoja del hábito: en letra y no en
+            // filas, y la que no se deshace en rojo.
+            _Salidas(
               theme: t,
-              children: [
-                // Lo último de la hoja, lejos de todo lo demás: es lo único de acá
-                // que no se deshace.
-                _Row(
-                  theme: t,
-                  icon: Icons.delete_forever,
-                  title: tr('Empezar de cero', 'Start from scratch'),
-                  subtitle: tr(
-                    'Borra todos los pueblos y vuelve a la pantalla de la primera '
-                        'vez.',
-                    'Deletes every town and goes back to the first-time screen.',
-                  ),
-                  act: (nav) => _empezarDeCero(nav, t, store),
-                  danger: true,
-                ),
-              ],
+              onDev: (nav) {
+                nav.pop();
+                showModalBottomSheet<void>(
+                  context: nav.context,
+                  backgroundColor: Colors.transparent,
+                  barrierColor: sheetScrim(t.dark),
+                  isScrollControlled: true,
+                  builder: (_) =>
+                      SettingsSheet(store: store, theme: t, dev: true),
+                );
+              },
+              onReset: (nav) => _empezarDeCero(nav, t, store),
             ),
           ];
     return ListView(
@@ -890,145 +867,129 @@ class _Undo extends StatelessWidget {
   }
 }
 
-/// El vidrio de estas hojas: el mismo ahumado que la hoja del hábito y el
-/// tablón.
+/// La hoja entera: la marca flotando sobre el pueblo, y debajo el velo que
+/// cuaja desde la nada, como el de la hoja del hábito.
 ///
-/// Tenía su propia superficie —la clara y opaca que usaban todas las hojas
-/// antes de que se encontrara el vidrio— y era la única hoja de la app que
-/// todavía parecía una tarjeta de papel puesta encima del pueblo.
-class _Glass extends StatelessWidget {
-  const _Glass({required this.theme, required this.child, this.padding});
+/// Tuvo la superficie clara y opaca de las primeras hojas, y después un vidrio
+/// con bloques redondeados: las dos se leían como la pantalla de ajustes de
+/// cualquier app. Ésta no tiene canto: arriba el velo es transparente y se ve
+/// el pueblo, y espesa hacia abajo hasta que la letra se lee.
+class _Velo extends StatelessWidget {
+  const _Velo({
+    required this.theme,
+    required this.height,
+    required this.emblem,
+    required this.title,
+    required this.line,
+    required this.child,
+  });
 
   final UiTheme theme;
+  final double height;
+  final IconData emblem;
+  final String title;
+  final String line;
   final Widget child;
-  final EdgeInsets? padding;
 
-  @override
-  Widget build(BuildContext context) {
-    final velo = SheetInk.of(theme);
-    const radio = BorderRadius.vertical(top: Radius.circular(28));
-    return ClipRRect(
-      borderRadius: radio,
-      child: BackdropFilter(
-        filter: ui.ImageFilter.blur(
-          sigmaX: math.max(velo.bruma, 0.01),
-          sigmaY: math.max(velo.bruma, 0.01),
-        ),
-        child: Container(
-          padding: padding,
-          decoration: BoxDecoration(
-            color: velo.tinte.withValues(alpha: velo.tapa),
-            borderRadius: radio,
-            border: Border(top: BorderSide(color: velo.canto)),
-          ),
-          child: child,
-        ),
-      ),
-    );
-  }
-}
-
-/// La rayita de arriba, por donde se agarra la hoja.
-class _Asa extends StatelessWidget {
-  const _Asa({required this.velo});
-  final SheetInk velo;
-
-  @override
-  Widget build(BuildContext context) => Center(
-    child: Container(
-      width: 38,
-      height: 4,
-      decoration: BoxDecoration(
-        color: velo.cuerpo.withValues(alpha: 0.24),
-        borderRadius: BorderRadius.circular(2),
-      ),
-    ),
-  );
-}
-
-TextStyle _titulo(UiTheme t) => t.body.copyWith(
-  color: SheetInk.of(t).cuerpo,
-  fontSize: 15,
-  height: 1.3,
-  fontWeight: FontWeight.w500,
-);
-
-TextStyle _bajada(UiTheme t) => t.bodySoft.copyWith(
-  color: SheetInk.of(t).suave,
-  fontSize: 12.5,
-  height: 1.4,
-);
-
-/// La letra de lo que explica sin ser una opción.
-TextStyle _nota(UiTheme t) => t.bodySoft.copyWith(
-  color: SheetInk.of(t).tenue,
-  fontSize: 12,
-  height: 1.45,
-);
-
-/// Una sección: su nombre en chico y, debajo, sus filas juntas en un bloque
-/// con una raya fina entre una y otra.
-///
-/// Iban sueltas una debajo de otra, todas iguales, con un rótulo naranja cada
-/// tanto: era una lista larga en la que nada decía dónde terminaba una cosa y
-/// empezaba la siguiente.
-class _Section extends StatelessWidget {
-  const _Section({required this.theme, this.title, required this.children});
-
-  final UiTheme theme;
-  final String? title;
-  final List<Widget> children;
+  static const double _marca = 46;
 
   @override
   Widget build(BuildContext context) {
     final t = theme;
     final velo = SheetInk.of(t);
-    final filas = <Widget>[];
-    for (final c in children) {
-      if (filas.isNotEmpty) {
-        filas.add(
-          Container(height: 1, color: velo.cuerpo.withValues(alpha: 0.08)),
-        );
-      }
-      // Las notas sueltas —lo que explica sin ser una opción— con el mismo
-      // aire que una fila.
-      filas.add(
-        c is Text
-            ? Padding(
-                padding: const EdgeInsets.symmetric(vertical: 11),
-                child: c,
-              )
-            : c,
-      );
-    }
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 22),
+    return SizedBox(
+      height: height,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (title != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(6, 0, 6, 8),
-              child: Text(
-                title!,
-                style: t.label.copyWith(
-                  color: t.accent,
-                  fontSize: 10.5,
-                  letterSpacing: 2.2,
-                  shadows: velo.aliento,
-                ),
+          // A los lados de la marca no hay hoja: tocar ahí es tocar fuera.
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => Navigator.of(context).maybePop(),
+            child: SizedBox(
+              width: double.infinity,
+              child: Center(
+                child: _Marca(theme: t, icon: emblem),
               ),
             ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-            decoration: BoxDecoration(
-              color: velo.cuerpo.withValues(alpha: 0.06),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: velo.cuerpo.withValues(alpha: 0.08)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: filas,
+          ),
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, caja) {
+                // El velo cuaja en los primeros treinta y pico píxeles, sean
+                // cuantos sean los de la hoja: medido en proporción, en una
+                // pantalla alta el título quedaba a medio fundir con el prado.
+                final cuaja = (34 / math.max(caja.maxHeight, 1)).clamp(
+                  0.0,
+                  0.5,
+                );
+                return _blurred(
+                  velo.bruma,
+                  cuaja,
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          velo.tinte.withValues(alpha: 0),
+                          velo.tinte.withValues(alpha: velo.tapa * 0.92),
+                          velo.tinte.withValues(alpha: velo.tapa),
+                        ],
+                        stops: [0.0, cuaja, 1.0],
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 30),
+                        Text(
+                          title,
+                          style: t.body.copyWith(
+                            fontSize: 24,
+                            height: 1.2,
+                            fontWeight: FontWeight.w600,
+                            color: velo.cuerpo,
+                            shadows: velo.aliento,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Text(
+                            line,
+                            textAlign: TextAlign.center,
+                            style: t.bodySoft.copyWith(
+                              fontSize: 12,
+                              color: velo.suave,
+                              shadows: velo.aliento,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Expanded(
+                          child: ShaderMask(
+                            // La lista se desvanece arriba al subir, en vez de
+                            // cortarse en seco debajo del título.
+                            shaderCallback: (r) => const LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Color(0x00FFFFFF), Color(0xFFFFFFFF)],
+                              stops: [0.0, 0.04],
+                            ).createShader(r),
+                            blendMode: BlendMode.dstIn,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                              ),
+                              child: child,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
           ),
         ],
@@ -1037,24 +998,262 @@ class _Section extends StatelessWidget {
   }
 }
 
-/// El dibujito de una fila, en su pastilla de color.
-class _Tile extends StatelessWidget {
-  const _Tile({required this.theme, required this.icon, this.danger = false});
+/// La marca de la hoja, flotando con su aliento, como la del hábito.
+class _Marca extends StatelessWidget {
+  const _Marca({required this.theme, required this.icon});
   final UiTheme theme;
   final IconData icon;
-  final bool danger;
 
   @override
   Widget build(BuildContext context) {
-    final c = danger ? _rojo(theme) : theme.accent;
+    final velo = SheetInk.of(theme);
+    const size = _Velo._marca;
     return Container(
-      width: 34,
-      height: 34,
+      width: size * 2.4,
+      height: size * 1.5,
+      alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: c.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(10),
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [
+            velo.tinte.withValues(alpha: 0.66),
+            velo.tinte.withValues(alpha: 0.32),
+            velo.tinte.withValues(alpha: 0),
+          ],
+          stops: const [0.26, 0.52, 1.0],
+        ),
       ),
-      child: Icon(icon, size: 18, color: c),
+      child: Icon(
+        icon,
+        size: size,
+        color: theme.accent,
+        shadows: [
+          Shadow(color: theme.accent.withValues(alpha: 0.45), blurRadius: 18),
+        ],
+      ),
+    );
+  }
+}
+
+/// Envuelve algo en un desenfoque de lo que tenga detrás, recortado y con
+/// máscara para que no se vea la raya donde el pueblo pasa de nítido a
+/// borroso. La receta es la de la hoja del hábito.
+Widget _blurred(double sigma, double cuaja, Widget child) {
+  if (sigma <= 0.5) return child;
+  return ClipRect(
+    child: ShaderMask(
+      shaderCallback: (r) => LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: const [Color(0x00FFFFFF), Color(0xFFFFFFFF)],
+        stops: [0.0, cuaja],
+      ).createShader(r),
+      blendMode: BlendMode.dstIn,
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
+        child: child,
+      ),
+    ),
+  );
+}
+
+/// Un filete de pelo: la única raya que dibujan estas hojas.
+Widget _hair(UiTheme t, [double? ancho]) => Container(
+  width: ancho,
+  height: 1,
+  color: SheetInk.of(t).cuerpo.withValues(alpha: 0.14),
+);
+
+TextStyle _titulo(UiTheme t) => t.body.copyWith(
+  color: SheetInk.of(t).cuerpo,
+  fontSize: 15,
+  height: 1.3,
+  fontWeight: FontWeight.w500,
+  shadows: SheetInk.of(t).aliento,
+);
+
+TextStyle _bajada(UiTheme t) => t.bodySoft.copyWith(
+  color: SheetInk.of(t).suave,
+  fontSize: 12.5,
+  height: 1.4,
+  shadows: SheetInk.of(t).aliento,
+);
+
+/// La letra de lo que explica sin ser una opción.
+TextStyle _nota(UiTheme t) => t.bodySoft.copyWith(
+  color: SheetInk.of(t).tenue,
+  fontSize: 12,
+  height: 1.45,
+  fontStyle: FontStyle.italic,
+  shadows: SheetInk.of(t).aliento,
+);
+
+/// Una sección: su nombre entre dos filetes con su dibujito, como la comarca
+/// en la hoja del hábito, y sus filas debajo separadas por un filete.
+///
+/// Sin caja. Fueron bloques redondeados y se leían como la pantalla de
+/// ajustes de cualquier teléfono; acá la hoja es un velo, y lo que separa una
+/// cosa de otra es aire y una raya de pelo.
+class _Section extends StatelessWidget {
+  const _Section({
+    required this.theme,
+    this.title,
+    this.icon,
+    required this.children,
+  });
+
+  final UiTheme theme;
+  final String? title;
+  final IconData? icon;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = theme;
+    final velo = SheetInk.of(t);
+    final filas = <Widget>[];
+    for (final c in children) {
+      if (filas.isNotEmpty) filas.add(_hair(t));
+      // Las notas sueltas —lo que explica sin ser una opción— con aire.
+      filas.add(
+        c is Text
+            ? Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: c,
+              )
+            : c,
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.only(top: 26),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (title != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                children: [
+                  Expanded(child: _hair(t)),
+                  const SizedBox(width: 12),
+                  if (icon != null) ...[
+                    Icon(
+                      icon,
+                      size: 15,
+                      color: t.accent.withValues(alpha: 0.9),
+                      shadows: velo.aliento,
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  Text(
+                    title!,
+                    style: t.label.copyWith(
+                      fontSize: 11,
+                      color: t.accent,
+                      letterSpacing: 2.4,
+                      shadows: velo.aliento,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(child: _hair(t)),
+                ],
+              ),
+            ),
+          ...filas,
+        ],
+      ),
+    );
+  }
+}
+
+/// El dibujito de una fila: suelto, del color del acento, con su aliento.
+class _Tile extends StatelessWidget {
+  const _Tile({required this.theme, required this.icon});
+  final UiTheme theme;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = theme.accent;
+    return SizedBox(
+      width: 28,
+      child: Icon(
+        icon,
+        size: 21,
+        color: c.withValues(alpha: 0.92),
+        shadows: SheetInk.of(theme).aliento,
+      ),
+    );
+  }
+}
+
+/// Las salidas del pie de la hoja, como las de la hoja del hábito: en letra,
+/// una al lado de la otra, y la que no se deshace en rojo.
+class _Salidas extends StatelessWidget {
+  const _Salidas({
+    required this.theme,
+    required this.onDev,
+    required this.onReset,
+  });
+
+  final UiTheme theme;
+  final void Function(NavigatorState nav) onDev;
+  final void Function(NavigatorState nav) onReset;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = theme;
+    final velo = SheetInk.of(t);
+    Widget boton(
+      String texto,
+      IconData icono,
+      Color color,
+      void Function(NavigatorState) hacer,
+    ) => Flexible(
+      child: TextButton.icon(
+        onPressed: () {
+          Sensory.instance.tick();
+          hacer(Navigator.of(context));
+        },
+        style: TextButton.styleFrom(foregroundColor: color),
+        icon: Icon(icono, size: 16, color: color),
+        label: Text(
+          texto,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: t.bodySoft.copyWith(
+            fontSize: 12.5,
+            color: color,
+            shadows: velo.aliento,
+          ),
+        ),
+      ),
+    );
+    return Padding(
+      padding: const EdgeInsets.only(top: 30),
+      child: Column(
+        children: [
+          _hair(t),
+          const SizedBox(height: 6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              boton(
+                tr('Desarrollo', 'Developer'),
+                Icons.science_outlined,
+                velo.suave,
+                onDev,
+              ),
+              boton(
+                tr('Empezar de cero', 'Start from scratch'),
+                Icons.delete_outline,
+                _rojo(t),
+                onReset,
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1110,7 +1309,8 @@ class _Switch extends StatelessWidget {
   }
 }
 
-/// Unas cuantas opciones en fila, para elegir una de un toque.
+/// Unas cuantas opciones en fila, para elegir una de un toque: palabras, y
+/// debajo de la elegida una raya del color del acento.
 class _Pick extends StatelessWidget {
   const _Pick({
     required this.theme,
@@ -1129,55 +1329,51 @@ class _Pick extends StatelessWidget {
     final t = theme;
     final velo = SheetInk.of(t);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Container(
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: velo.tinte.withValues(alpha: 0.35),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Row(
-          children: [
-            for (final (name, at) in options)
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    Sensory.instance.tick();
-                    onPick(at);
-                  },
-                  behavior: HitTestBehavior.opaque,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 180),
-                    alignment: Alignment.center,
-                    padding: const EdgeInsets.symmetric(vertical: 9),
-                    decoration: BoxDecoration(
-                      color: (value - at).abs() < 0.01
-                          ? t.accent.withValues(alpha: 0.26)
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: (value - at).abs() < 0.01
-                            ? t.accent.withValues(alpha: 0.75)
-                            : Colors.transparent,
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        children: [
+          for (final (name, at) in options)
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  Sensory.instance.tick();
+                  onPick(at);
+                },
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Column(
+                    children: [
+                      Text(
+                        name,
+                        style: t.body.copyWith(
+                          fontSize: 14,
+                          color: (value - at).abs() < 0.01
+                              ? velo.cuerpo
+                              : velo.tenue,
+                          fontWeight: (value - at).abs() < 0.01
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                          shadows: velo.aliento,
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      name,
-                      style: _bajada(t).copyWith(
-                        fontSize: 13,
-                        color: (value - at).abs() < 0.01
-                            ? velo.cuerpo
-                            : velo.suave,
-                        fontWeight: (value - at).abs() < 0.01
-                            ? FontWeight.w600
-                            : FontWeight.w400,
+                      const SizedBox(height: 6),
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeOutCubic,
+                        width: (value - at).abs() < 0.01 ? 26 : 0,
+                        height: 2,
+                        decoration: BoxDecoration(
+                          color: t.accent,
+                          borderRadius: BorderRadius.circular(1),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }
@@ -1251,7 +1447,6 @@ class _Row extends StatelessWidget {
     this.open,
     this.page,
     this.act,
-    this.danger = false,
   });
 
   final UiTheme theme;
@@ -1267,9 +1462,6 @@ class _Row extends StatelessWidget {
 
   /// O nada de eso: algo que pasa y ya, sin salir de aquí.
   final void Function(NavigatorState nav)? act;
-
-  /// Lo que no tiene vuelta atrás, en rojo.
-  final bool danger;
 
   @override
   Widget build(BuildContext context) {
@@ -1302,18 +1494,13 @@ class _Row extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
           children: [
-            _Tile(theme: t, icon: icon, danger: danger),
+            _Tile(theme: t, icon: icon),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: danger
-                        ? _titulo(t).copyWith(color: _rojo(t))
-                        : _titulo(t),
-                  ),
+                  Text(title, style: _titulo(t)),
                   const SizedBox(height: 2),
                   Text(subtitle, style: _bajada(t)),
                 ],
@@ -1348,33 +1535,23 @@ class _WhichReel extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = theme;
     final cuales = _conCronica(store);
-    final velo = SheetInk.of(t);
-    return _Glass(
+    return _Velo(
       theme: t,
-      padding: EdgeInsets.fromLTRB(
-        20,
-        12,
-        20,
-        24 + MediaQuery.of(context).padding.bottom,
+      height: math.min(
+        MediaQuery.of(context).size.height * 0.7,
+        300.0 + cuales.length * 76,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+      emblem: Icons.play_circle_outline,
+      title: tr('Ver cómo se hizo', 'Watch how it was made'),
+      line: tr(
+        'El valle entero, o uno de tus pueblos',
+        'The whole valley, or one of your towns',
+      ),
+      child: ListView(
+        padding: EdgeInsets.only(
+          bottom: 24 + MediaQuery.of(context).padding.bottom,
+        ),
         children: [
-          _Asa(velo: velo),
-          const SizedBox(height: 14),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text(
-              tr('Ver cómo se hizo', 'Watch how it was made'),
-              style: t.title.copyWith(
-                color: velo.cuerpo,
-                fontSize: 24,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
           _Section(
             theme: t,
             children: [

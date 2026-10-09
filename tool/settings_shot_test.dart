@@ -50,8 +50,17 @@ Future<void> _letras() async {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  for (final (dev, hora) in [(false, 13.0), (true, 13.0), (false, 22.0)]) {
-    final nombre = '${dev ? 'desarrollo' : 'ajustes'}-${hora.toInt()}';
+  // Las tres altísimas, para ver la lista entera, y una del alto de un
+  // teléfono, para ver cómo se abre de verdad.
+  for (final (dev, hora, alto) in [
+    (false, 13.0, 2000.0),
+    (true, 13.0, 2000.0),
+    (false, 22.0, 2000.0),
+    (false, 13.0, 844.0),
+  ]) {
+    final nombre =
+        '${dev ? 'desarrollo' : 'ajustes'}-${hora.toInt()}'
+        '${alto < 1000 ? '-telefono' : ''}';
     testWidgets(nombre, (tester) async {
       const out = String.fromEnvironment('OUT', defaultValue: '/tmp/ajustes');
       Directory(out).createSync(recursive: true);
@@ -61,8 +70,7 @@ void main() {
       final store = Store();
       await store.load();
       final pueblo = TownLayout(160, TownCharacter.all.first, seed: 21);
-      const alto = 2000.0;
-      tester.view.physicalSize = const Size(390 * 2, alto * 2);
+      tester.view.physicalSize = Size(390 * 2, alto * 2);
       tester.view.devicePixelRatio = 2;
       addTearDown(tester.view.reset);
       final key = GlobalKey();
