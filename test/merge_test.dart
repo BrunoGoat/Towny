@@ -252,6 +252,18 @@ void main() {
     });
   });
 
+  test('mover un ajuste de desarrollo no es un cambio para la nube', () async {
+    await _telefono();
+    await Appearance.instance.setFakeHour(true);
+    await Appearance.instance.setFakeHourAt(3);
+    await Appearance.instance.setFakeSeason(true);
+    await Appearance.instance.setFakeSeasonAt(0.4);
+    expect(LocalChanges.instance.changedAt, isNull);
+    // Y uno que sí viaja, sí.
+    await Appearance.instance.setCinematic(true);
+    expect(LocalChanges.instance.changedAt, isNotNull);
+  });
+
   test('los ajustes de desarrollo no viajan', () {
     final rows = toRows(
       LocalSnapshot(

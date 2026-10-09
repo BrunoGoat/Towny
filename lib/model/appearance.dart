@@ -59,14 +59,14 @@ class Appearance extends ChangeNotifier {
   Future<void> setFakeHour(bool v) async {
     if (v == _fakeHour) return;
     _fakeHour = v;
-    await _keep();
+    await _keep(travels: false);
   }
 
   Future<void> setFakeHourAt(double v) async {
     final want = v.clamp(0.0, 23.99);
     if (want == _fakeHourAt) return;
     _fakeHourAt = want;
-    await _keep();
+    await _keep(travels: false);
   }
 
   /// La hora con la que se pinta todo, de 0 a 24: la del reloj, o la fingida
@@ -187,14 +187,14 @@ class Appearance extends ChangeNotifier {
   Future<void> setFakeSeason(bool v) async {
     if (v == _fakeSeason) return;
     _fakeSeason = v;
-    await _keep();
+    await _keep(travels: false);
   }
 
   Future<void> setFakeSeasonAt(double v) async {
     final want = v.clamp(0.0, 0.999);
     if (want == _fakeSeasonAt) return;
     _fakeSeasonAt = want;
-    await _keep();
+    await _keep(travels: false);
   }
 
   /// En qué punto del año está el valle ahora mismo.
@@ -488,8 +488,11 @@ class Appearance extends ChangeNotifier {
   /// finger comes off. Dragging a volume slider changes this sixty times a
   /// second, and sixty writes a second to the phone's own storage is a way to
   /// make a slider feel broken.
-  Future<void> _keep() async {
-    LocalChanges.instance.touch();
+  /// [travels] es si el ajuste viaja a la nube: los de desarrollo no (ver
+  /// `localOnlyPrefs` en `lib/sync/tables.dart`), así que moverlos no es un
+  /// cambio que haya que subir.
+  Future<void> _keep({bool travels = true}) async {
+    if (travels) LocalChanges.instance.touch();
     notifyListeners();
     _writeSoon?.cancel();
     _writeSoon = Timer(const Duration(milliseconds: 400), _writeNow);
