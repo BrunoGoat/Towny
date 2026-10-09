@@ -17,7 +17,6 @@ abiertas se tomaron así:
 2. **Los nombres de la gente**: el de pila se queda —es un pueblo castellano—
    y lo que va detrás se traduce: «Andrés el Herrero» es «Andrés the Smith».
 
-Las obras retiradas también están traducidas: un pueblo viejo las nombra.
 
 **Para un tercer idioma**: `Lang` en `lib/l10n/lang.dart` tiene los dos;
 `tr()` pasaría a tomar uno por idioma, y cada `en_*.dart` tendría su hermano.
@@ -87,30 +86,11 @@ entre qué dos fechas se levantó.)*
    lee todos los días»— es la que más pesa de las tres en ese momento exacto, y
    hay que probar si pesa demasiado: en la hoja del abandono puede leerse como un
    reproche, que es justo lo que esa hoja no puede ser.
-9. **Siete obras retiradas tienen una pieza en el aire.** `tool/dump_test.dart`
-   vuelca el catálogo entero a un JSON, caja por caja, y mirándolo fuera
-   aparecen siete obras donde algún cuerpo no pisa el suelo ni roza ningún
-   otro: el travesaño del **abrevadero** (pieza 3) y el del **aljibe** (19), el
-   soportal de la **tahona** (7), los dos escalones de la **cantera** (2 y 3) y
-   el asta de los estandartes de **tahona**, **alhóndiga**, **canteros** y
-   **posada del camino**.
-
-   Las siete están entre las 53 retiradas, así que **en las 60 que se ofrecen
-   hoy no hay nada flotando**. Pero las retiradas siguen en pie en los pueblos
-   que ya las levantaron (ver «Decisiones abiertas»), y ahí el fallo se ve
-   igual: es el mismo del atril y el molino, invisible de frente. Si algún día
-   se decide que esos pueblos se rehacen sin ellas, esto se cae solo; si no,
-   son cuatro arreglos de una línea cada uno —los estandartes puede que estén
-   bien, un asta clavada en un tejado que la receta no llega a tocar.
 
 ---
 
 ## 4. Decisiones abiertas
 
-- **Las obras retiradas.** Hoy siguen en pie en los pueblos que ya las
-  levantaron: no se ofrecen más, pero no se borran. La alternativa es que esos
-  pueblos se rehagan sin ellas, y eso mueve piedras que ya estaban puestas.
-  Mientras no se decida, sus 106 frases siguen traducidas como las demás.
 - **Lo que no se va a hacer**, y conviene que siga escrito: rachas que
   castiguen, medallas encima del pueblo, comparación con otra gente,
   notificaciones que pidan atención, y cobrar por el catálogo. Cada una

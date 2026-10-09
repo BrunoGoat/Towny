@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:towny/data/bandos.dart';
 import 'package:towny/data/character.dart';
 import 'package:towny/data/landmarks.dart';
-import 'package:towny/data/landmarks_retired.dart';
 import 'package:towny/engine/town.dart';
 
 /// La mitad del inventario de textos que no se puede sacar leyendo el código.
@@ -25,11 +24,6 @@ void main() {
     b.writeln('## OBRAS (${landmarks.length})');
     for (final l in landmarks) {
       b.writeln('- [${l.id}] ${l.name} · ${l.cost} piezas · nivel ${l.tier}');
-      b.writeln('    ${l.blurb}');
-    }
-    b.writeln('\n## OBRAS RETIRADAS (${retiredLandmarks.length})');
-    for (final l in retiredLandmarks) {
-      b.writeln('- [${l.id}] ${l.name}');
       b.writeln('    ${l.blurb}');
     }
     b.writeln('\n## CASAS CORRIENTES (${buildingName.length})');

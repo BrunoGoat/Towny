@@ -584,7 +584,6 @@ List<Townsfolk> _folkOf(
 /// Un pueblo que todavía no ha levantado ninguna de éstas sencillamente no
 /// tiene a nadie haciendo cosas de agua, que es lo correcto.
 const Set<String> _wet = {
-  // Las que sigue habiendo.
   'pozo',
   'salinas',
   'alfar',
@@ -607,27 +606,6 @@ const Set<String> _wet = {
   'monasterio',
   'homenaje',
   'hospederia',
-  // Y las retiradas, que en un pueblo que ya las levantó siguen teniendo
-  // agua: la obra sigue en pie aunque no se ofrezca más.
-  'fuente',
-  'lavadero',
-  'abrevadero',
-  'acena',
-  'noria',
-  'vado',
-  'barca',
-  'pasarela',
-  'puente',
-  'acueducto',
-  'presa',
-  'embarcadero',
-  'astillero',
-  'banos',
-  'aljibe',
-  'batan',
-  'tinte',
-  'pescaderia',
-  'teneria',
 };
 
 /// Lo que se puede hacer en cada clase de sitio, repartido una sola vez.

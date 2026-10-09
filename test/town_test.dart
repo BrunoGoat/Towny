@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:towny/core/rng.dart';
 import 'package:towny/data/character.dart';
 import 'package:towny/data/landmarks.dart';
-import 'package:towny/data/landmarks_retired.dart';
 import 'package:towny/engine/mason.dart';
 import 'package:towny/engine/town.dart';
 import 'package:towny/model/habit.dart';
@@ -221,18 +220,11 @@ void main() {
       // distingue una obra de otra no es más largo, es más borroso.
       expect(landmarks.length, greaterThanOrEqualTo(55));
 
-      // Y las retiradas siguen sabiéndose levantar, que es lo que protege a
-      // un pueblo que ya tiene una en pie: ver `landmarks_retired.dart`.
-      expect(retiredLandmarks.length, greaterThanOrEqualTo(50));
-      final vivas = landmarks.map((l) => l.id).toSet();
-      for (final l in retiredLandmarks) {
-        expect(vivas.contains(l.id), isFalse, reason: l.id);
-        expect(
-          TownPlan.landmarkOf(l.id),
-          isNotNull,
-          reason: 'una crónica vieja ya no sabría levantar ${l.id}',
-        );
-      }
+      // Y las retiradas ya no existen: ni se ofrecen ni se saben levantar.
+      // Una crónica que nombre una obra que no está en el catálogo levanta
+      // una casa corriente en su lugar.
+      expect(TownPlan.landmarkOf('horno'), isNull);
+      expect(TownPlan.landmarkOf('porqueriza'), isNull);
     });
 
     test('every landmark has its own id and its own name', () {
@@ -414,7 +406,7 @@ void main() {
     test('every town still opens with something worth waiting for', () {
       // Different, but never worse: an honest shuffle hands out a pigsty
       // before the mill, and that is a bad first month whichever plot it is.
-      const dreary = {'porqueriza', 'osario', 'picota', 'camposanto', 'horca'};
+      const dreary = {'camposanto', 'horca'};
       for (final c in TownCharacter.all) {
         for (final id in road(c, 4)) {
           expect(

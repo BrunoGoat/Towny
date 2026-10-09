@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:towny/data/landmarks.dart';
-import 'package:towny/data/landmarks_retired.dart';
 import 'package:towny/engine/mason.dart';
 
 double alcance(Landmark l) {
@@ -18,19 +17,13 @@ double alcance(Landmark l) {
 void main() {
   test('audit', () {
     for (final t in [0, 1, 2]) {
-      final viejas = [
-        for (final l in retiredLandmarks)
-          if (l.tier == t) alcance(l),
-      ]..sort();
       final nuevas = [
         for (final l in landmarks)
           if (l.tier == t) alcance(l),
       ]..sort();
       // ignore: avoid_print
       print(
-        'tier $t  retiradas max=${viejas.isEmpty ? 0 : viejas.last.toStringAsFixed(2)} '
-        'mediana=${viejas.isEmpty ? 0 : viejas[viejas.length ~/ 2].toStringAsFixed(2)} | '
-        'vivas max=${nuevas.last.toStringAsFixed(2)} mediana=${nuevas[nuevas.length ~/ 2].toStringAsFixed(2)}',
+        'tier $t  vivas max=${nuevas.last.toStringAsFixed(2)} mediana=${nuevas[nuevas.length ~/ 2].toStringAsFixed(2)}',
       );
     }
     for (final l in landmarks) {

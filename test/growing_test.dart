@@ -223,13 +223,13 @@ void main() {
         casa,
         'pozo',
         '\${TownPlan.kindMark}shed',
-        'horno',
+        'palomar',
       ];
       final town = TownLayout(120, c, chronicle: made);
       expect(town.buildings.length, greaterThan(6));
       expect(town.buildings[4].name, TownPlan.landmarkOf('pozo')!.name);
       expect(town.buildings[5].isLandmark, isFalse);
-      expect(town.buildings[6].name, TownPlan.landmarkOf('horno')!.name);
+      expect(town.buildings[6].name, TownPlan.landmarkOf('palomar')!.name);
     });
 
     test('un pueblo sin crónica se construye igual que con la suya', () {

@@ -311,7 +311,6 @@ Dentro de `engine/`, que es el más poblado:
 |---|---|
 | `town.dart`, `mason.dart`, `solids.dart` | qué se construye y de qué caras está hecho |
 | `landmarks.dart` | las sesenta obras, cada una en una docena de líneas |
-| `landmarks_retired.dart` | las que ya no se ofrecen y hay que saber levantar igual |
 | `world.dart`, `bsp.dart` | en qué orden se pinta, resuelto una vez al poner la pieza |
 | `scene.dart` | lo que hay que pintar, dicho antes de pintarlo |
 | `renderer.dart` | el rasterizador: recortar, sombrear y rellenar caras |

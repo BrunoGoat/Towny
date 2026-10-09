@@ -8,7 +8,6 @@ import 'package:towny/data/doings.dart';
 import 'package:towny/data/folknames.dart';
 import 'package:towny/data/gossip.dart';
 import 'package:towny/data/landmarks.dart';
-import 'package:towny/data/landmarks_retired.dart';
 import 'package:towny/data/symbols.dart';
 import 'package:towny/engine/palette.dart';
 import 'package:towny/engine/season.dart';
@@ -84,8 +83,8 @@ void main() {
   tearDown(() => lang = Lang.es);
 
   group('no falta nada en los catálogos', () {
-    test('todas las obras, también las retiradas', () {
-      for (final l in [...landmarks, ...retiredLandmarks]) {
+    test('todas las obras', () {
+      for (final l in landmarks) {
         expect(landmarksEn[l.id], isNotNull, reason: l.id);
         _sinCastellano(l.name, 'el nombre de ${l.id}');
         _sinCastellano(l.blurb, 'la frase de ${l.id}');

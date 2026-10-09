@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:towny/data/landmarks.dart';
-import 'package:towny/data/landmarks_retired.dart';
 import 'package:towny/engine/mason.dart';
 
 /// Vuelca todas las obras del catálogo a un JSON, pieza por pieza.
@@ -22,7 +21,7 @@ import 'package:towny/engine/mason.dart';
 /// 2,4 en el volcado es un `dx: 2.4` en la receta, sin cuentas por el medio.
 void main() {
   test('el catálogo entero, en cajas', () {
-    final todas = [...landmarks, ...retiredLandmarks];
+    final todas = landmarks;
     final out = <Map<String, dynamic>>[];
     for (final l in todas) {
       // Un albañil neutro: sin estirar, centrado en el origen y con la semilla
@@ -35,7 +34,6 @@ void main() {
         'cost': l.cost,
         'tier': l.tier,
         'rigid': l.rigid,
-        'retired': retiredLandmarks.any((r) => r.id == l.id),
         'pieces': [
           for (var i = 0; i < m.out.length; i++)
             () {

@@ -16,7 +16,6 @@ nombres de fuente (`RockSalt.ttf`), la hoja de pruebas y los comentarios.
 | Bloque | Entradas | Frases | ¿Se traduce? |
 |---|---|---|---|
 | Obras del catálogo | 60 | 120 | sí |
-| Obras retiradas | 53 | 106 | sí, si se quedan |
 | Casas corrientes | 7 | 7 | sí |
 | Comarcas | 8 | 24 + 42 | sí |
 | Bandos del tablón | 436 | 872 | sí — el grueso |
@@ -28,7 +27,7 @@ nombres de fuente (`RockSalt.ttf`), la hoja de pruebas y los comentarios.
 | Notificaciones | 9 | 9 | sí |
 | Widget de Android | 6 | 6 | sí |
 
-**1263 entradas**, que son unas 1870 frases sueltas. Sin las retiradas y sin los bandos se quedan en unas 892.
+**1210 entradas**, que son unas 1764 frases sueltas. Sin los bandos se quedan en unas 892.
 
 
 
@@ -156,117 +155,6 @@ nombres de fuente (`RockSalt.ttf`), la hoja de pruebas y los comentarios.
     No cierra nada ni defiende nada. Se levantó por el gusto de poder.
 - **O60** · [panteon] Panteón de los fundadores · 18 piezas · nivel 2
     Los que empezaron esto tienen dónde estar, y a quién agradecerle el pueblo.
-
-## Las obras retiradas (53)
-
-> **Cuándo se ve.** Ya no se ofrecen a nadie, pero siguen en pie en los pueblos que las levantaron antes de la poda: ahí su nombre sigue saliendo en el cartel. Si decidís que los pueblos viejos se rehagan sin ellas, estas 106 frases se van enteras.
-
-- **R1** · [fuente] Fuente de la plaza
-    Cuatro caños y una plaza alrededor. Aquí es donde la gente se para a hablar.
-- **R2** · [horno] Horno comunal
-    Un solo fuego para todo el pueblo, encendido por turnos. Huele a pan desde tres calles.
-- **R3** · [fragua] Fragua
-    Golpes de martillo antes del amanecer. Todo lo que corta y todo lo que sujeta sale de aquí.
-- **R4** · [lavadero] Lavadero
-    Piedra inclinada y agua corriente. También el sitio donde se sabe todo lo que pasa.
-- **R5** · [abrevadero] Abrevadero
-    Los animales beben, y los que van de camino paran. Media posada por el precio de una piedra.
-- **R6** · [era] Era de trillar
-    Suelo duro y barrido, para separar el grano de la paja. Un año entero acaba aquí.
-- **R7** · [porqueriza] Porqueriza
-    Feo, sí. Pero es la carne de todo el invierno.
-- **R8** · [lenera] Leñera
-    Leña apilada y seca. En enero esto vale más que la plata.
-- **R9** · [carbonera] Carbonera
-    La madera arde tapada, días enteros, hasta volverse carbón. Paciencia hecha oficio.
-- **R10** · [tejar] Tejar
-    De aquí salen las tejas de todos los tejados que se ven desde aquí.
-- **R11** · [tinte] Tinte
-    Cubas de color y las manos manchadas por semanas. Que la ropa no sea siempre parda.
-- **R12** · [batan] Batán
-    Mazos de madera batiendo el paño hasta que aprieta. La lana se vuelve tela.
-- **R13** · [picota] Cepo y picota
-    No es bonito. Pero un pueblo con leyes propias es un pueblo que ya se gobierna.
-- **R14** · [ermita] Ermita
-    Pequeña, apartada y siempre abierta. Para el que pasa y para el que no quiere compañía.
-- **R15** · [humilladero] Humilladero
-    Cuatro pilares y un tejado, en el cruce de caminos. Para arrodillarse al salir y al volver.
-- **R16** · [osario] Osario
-    Los que levantaron esto siguen aquí. Un pueblo también se hace de eso.
-- **R17** · [mojon] Mojón de piedra
-    Hasta aquí llega el pueblo. Ahora hay un dentro y un fuera.
-- **R18** · [pasarela] Puente de tablas
-    Cuatro postes y unos tablones. El arroyo ya no decide quién cruza.
-- **R19** · [vado] Vado empedrado
-    Piedras asentadas en el fondo. Se pasa a pie enjuto casi todo el año.
-- **R20** · [barca] Barca de paso
-    Una maroma de orilla a orilla. El río deja de ser una pared.
-- **R21** · [tenada] Tenada
-    Techo sin paredes, para el ganado y para el que se moje.
-- **R22** · [majada] Majada
-    Cerco, abrigo y agua. El rebaño puede quedarse fuera del pueblo.
-- **R23** · [huertaCercada] Huerta cercada
-    Tres bancales cercados. Lo que se cena en agosto se planta en marzo.
-- **R24** · [molinoAgua] Molino de agua
-    La rueda gira sola día y noche. El río trabaja gratis.
-- **R25** · [acena] Aceña del río
-    Dos ruedas dentro del cauce, sobre pilas de piedra. Muele aunque el verano baje el agua.
-- **R26** · [noria] Noria
-    Cangilones subiendo agua del río a la huerta. El verano deja de dar miedo.
-- **R27** · [serreria] Serrería
-    La sierra corta sola con la fuerza del agua. Las vigas ya no vienen de fuera.
-- **R28** · [lagar] Lagar y viñedo
-    Cepas en línea y una prensa al fondo. Habrá vino propio, y habrá vendimia.
-- **R29** · [tahona] Tahona
-    Amasan de noche para que haya pan de mañana. Nadie se acuerda de agradecerlo.
-- **R30** · [carniceria] Carnicería
-    Con tabla a la calle y peso vigilado por el concejo. La carne deja de ser cosa de fiesta.
-- **R31** · [pescaderia] Pescadería
-    Del río a la piedra fría en una mañana. Los viernes tienen arreglo.
-- **R32** · [alhondiga] Alhóndiga
-    Se guarda el grano de todos y se vende al precio justo. Contra el hambre y contra el usurero.
-- **R33** · [aduana] Aduana
-    Lo que entra paga. Poco elegante, pero es lo que paga todo lo demás.
-- **R34** · [canteros] Gremio de canteros
-    Los que saben cortar piedra ya no vienen de fuera: viven aquí.
-- **R35** · [herrador] Casa del herrador
-    Un caballo cojo no llega a ningún lado. Todo el camino pasa por esta puerta.
-- **R36** · [cuadras] Cuadras
-    Cuadras y abrevadero. Los que van de paso ya pueden quedarse a dormir.
-- **R37** · [posadaCamino] Posada del camino
-    Cama, cuadra y fuego. El pueblo empieza a estar en el mapa de alguien.
-- **R38** · [leproseria] Leprosería
-    Apartada, con su cerco y su pozo. Cuidar a los que dan miedo dice más que una catedral.
-- **R39** · [banos] Baños
-    Agua caliente bajo una cúpula. Un lujo, y de los que se notan.
-- **R40** · [palomarTorre] Palomar torre
-    Mil nidos en una torre. Palomas, abono y correo, todo en la misma piedra.
-- **R41** · [reloj] Torre del reloj
-    La misma hora para todos. Parece poca cosa y lo cambia todo.
-- **R42** · [puente] Puente de piedra
-    Arcos de piedra, y ya no importa cómo venga el río.
-- **R43** · [acueducto] Acueducto
-    Dos órdenes de arcos trayendo agua desde el monte. Se cruza el valle por encima.
-- **R44** · [presa] Presa y azud
-    El agua se remansa y se reparte cuando hace falta. Domesticar un río es cosa seria.
-- **R45** · [embarcadero] Embarcadero
-    Postes hincados y una plataforma. Lo que llega por agua ya puede desembarcar.
-- **R46** · [astillero] Astillero
-    Una quilla en la grada. Aquí se empieza a construir para irse lejos.
-- **R47** · [cantera] Cantera
-    De este agujero salió media villa. La cicatriz que deja construir.
-- **R48** · [teneria] Tenería
-    Huele mal y está en las afueras por algo. Pero el cuero es cuero.
-- **R49** · [dehesa] Dehesa
-    Encinas viejas y sombra. El ganado engorda solo y nadie lo apura.
-- **R50** · [motte] Mota y empalizada
-    Un cerro levantado a mano, una empalizada y una torre encima. Así empezaron todos los castillos.
-- **R51** · [barbacana] Barbacana
-    Dos torres delante de la puerta, para que quien llegue lo piense.
-- **R52** · [aljibe] Aljibe mayor
-    Bóvedas llenas de agua de lluvia. Un asedio o una sequía dejan de dar miedo.
-- **R53** · [observatorio] Observatorio
-    Una torre con una cúpula que se abre. Desde esta noche el pueblo no sólo mira el suelo que pisa: hay alguien arriba anotando lo que pasa en el cielo, y lo que anota queda escrito para todo el valle.
 
 ## Las casas corrientes (7)
 

@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import '../core/rng.dart';
 import '../data/character.dart';
 import '../data/landmarks.dart';
-import '../data/landmarks_retired.dart';
 import '../l10n/lang.dart';
 import 'mason.dart';
 
@@ -469,13 +468,7 @@ class TownPlan {
   static Landmark? landmarkOf(String id) {
     if (id.startsWith(kindMark)) return null;
     if (_byId == null || _byIdOf != landmarks.length) {
-      // Las retiradas entran aquí y en ningún otro sitio. No se sortean ni se
-      // ofrecen —para eso está `landmarks` a secas—, pero una crónica vieja
-      // las nombra y hay que saber levantarlas: ver `landmarks_retired.dart`.
-      _byId = {
-        for (final l in retiredLandmarks) l.id: l,
-        for (final l in landmarks) l.id: l,
-      };
+      _byId = {for (final l in landmarks) l.id: l};
       _byIdOf = landmarks.length;
     }
     return _byId![id];
