@@ -354,18 +354,18 @@ void main() {
         h,
         hoy.subtract(const Duration(days: 1, hours: 2)),
       );
-      expect(antes.crowned, isNull);
+      expect(antes.identityWon, isNull);
       expect(h.identityWonAt, isNull);
 
       // Y la que cierra la decimotercera semana.
       final ahora = store.lay(h, hoy.add(const Duration(hours: 21)));
-      expect(ahora.crowned, 'Este pueblo es de alguien sabio.');
+      expect(ahora.identityWon, 'Este pueblo es de alguien sabio.');
       expect(h.identityWonAt, isNotNull);
 
       // Una sola vez: la siguiente pieza no vuelve a ganarlo.
       final gano = h.identityWonAt;
       final otra = store.lay(h, hoy.add(const Duration(hours: 22)));
-      expect(otra.crowned, isNull);
+      expect(otra.identityWon, isNull);
       expect(h.identityWonAt, gano);
     });
 

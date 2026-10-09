@@ -945,7 +945,7 @@ class _TownViewState extends State<TownView>
     // cuenta atrás en ninguna pantalla, ni papel diciendo lo que falta, así que
     // esto y el papel que aparece en el tablón son todo lo que hay. Y por eso
     // se celebra como un hito, que es lo que es.
-    final titulo = result?.crowned;
+    final titulo = result?.identityWon;
     if (titulo != null) {
       _fx.celebrate(V3(town.cx, 0, town.cz), 2.4, count: 54);
       Future.delayed(const Duration(milliseconds: 300), () {

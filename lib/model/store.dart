@@ -29,7 +29,7 @@ class PlaceResult {
     this.startedNewDay = false,
     this.woke = false,
     this.unlocked = false,
-    this.crowned,
+    this.identityWon,
   });
 
   final Piece piece;
@@ -59,7 +59,7 @@ class PlaceResult {
   ///
   /// Pasa una sola vez por pueblo y no se ve venir: no hay cuenta atrás en
   /// ninguna pantalla, así que lo único que hay es el día en que aparece.
-  final String? crowned;
+  final String? identityWon;
 }
 
 /// Everything the app remembers: the habits, and the towns they have built.
@@ -892,7 +892,7 @@ class Store extends ChangeNotifier {
     // Y si esta pieza empieza un edificio nuevo, queda escrito qué edificio es.
     _writeUpWorks(h);
     final abrio = _checkUnlock();
-    final titulo = _crownIdentity(h, when);
+    final titulo = _winIdentity(h, when);
 
     _save();
     notifyListeners();
@@ -903,7 +903,7 @@ class Store extends ChangeNotifier {
       startedNewDay: !hadToday,
       woke: wasResting,
       unlocked: abrio,
-      crowned: titulo,
+      identityWon: titulo,
     );
   }
 
@@ -914,7 +914,7 @@ class Store extends ChangeNotifier {
   /// que completa las trece semanas— y apuntar el día es lo que hace que sea un
   /// momento y no un estado que va y viene: a partir de ahí la frase está en el
   /// tablón para siempre, haya ido bien o mal el mes que viene.
-  String? _crownIdentity(Habit h, DateTime when) {
+  String? _winIdentity(Habit h, DateTime when) {
     if (h.identityWonAt != null) return null;
     final voy = identityStanding(h, at: when);
     if (voy == null || !voy.earned) return null;
