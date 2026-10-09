@@ -236,6 +236,35 @@ void main() {
     });
   });
 
+  group('el sol sale a la hora que sale', () {
+    // Lo que se vio: un 9 de octubre en Montevideo, con el sol saliendo a
+    // las siete menos cuarto, a las siete menos cinco la app seguía con la
+    // luna arriba. El disco estaba media hora por debajo de su propia hora
+    // de salida.
+    for (final (d, lado) in [
+      (DateTime(2026, 10, 9), Hemisphere.south),
+      (DateTime(2026, 6, 21), Hemisphere.south),
+      (DateTime(2026, 12, 21), Hemisphere.south),
+      (DateTime(2026, 3, 20), Hemisphere.north),
+      (DateTime(2026, 1, 15), Hemisphere.north),
+    ]) {
+      test('${d.day}/${d.month} en el ${lado.name}', () {
+        final s = Season.on(d, lado);
+        bool sol(double h) => Palette.forMoment(h, season: s).isDaylight;
+        const diez = 10 / 60;
+        expect(sol(s.sunrise - diez), isFalse, reason: 'sol antes de salir');
+        expect(sol(s.sunrise + diez), isTrue, reason: 'salió y no se ve');
+        expect(sol(s.sunset - diez), isTrue, reason: 'se fue antes de ponerse');
+        expect(sol(s.sunset + diez), isFalse, reason: 'sigue después');
+      });
+    }
+
+    test('el 9 de octubre en el sur, a las siete menos cinco ya es de día', () {
+      final s = Season.on(DateTime(2026, 10, 9), Hemisphere.south);
+      expect(Palette.forMoment(6 + 55 / 60, season: s).isDaylight, isTrue);
+    });
+  });
+
   group('la hora, llevada al horario del ciclo', () {
     // La paleta guarda en `hour` la hora ya remapeada, así que se puede leer
     // desde fuera sin abrir nada privado.

@@ -58,11 +58,19 @@ class Palette {
   /// It rises in the east at 06:00, is overhead around 13:00 and sets in the
   /// west at 20:00. This is what makes the shadows swing across the ground
   /// over the course of a day.
-  V3 get sunDir {
+  /// Cuánto de arco lleva el sol: cero al salir, pi al ponerse.
+  double get _arc {
     const rise = 6.0, set = 20.0;
-    final t = (hour - rise) / (set - rise); // 0 at sunrise, 1 at sunset
-    final a = t * math.pi;
-    final elev = math.sin(a) * 1.16 - 0.07;
+    return (hour - rise) / (set - rise) * math.pi;
+  }
+
+  V3 get sunDir {
+    final a = _arc;
+    // Cero justo en la salida y en la puesta, que son las que dice la
+    // estación. Tuvo un «− 0,07» que dejaba el sol bajo el horizonte media
+    // hora de más: en octubre en el sur, con el sol saliendo a las siete
+    // menos cuarto, la app seguía enseñando la luna a las siete y diez.
+    final elev = math.sin(a) * 1.09;
     final az = math.cos(a) * 1.25; // east -> west
     return V3(
       math.sin(az) * math.cos(elev),
@@ -71,14 +79,19 @@ class Palette {
     ).normalized;
   }
 
-  bool get isDaylight => sunDir.y > 0.02;
+  bool get isDaylight => sunDir.y > 0.0;
 
   /// How much of a day it is, from nought in the dark to one at noon.
   ///
   /// A number and not a yes-or-no, for everything that should change *through*
   /// dusk rather than at one instant during it. `isDaylight` flips in a single
   /// frame, and anything hung off it changes colour in that frame.
-  double get daylight => clampD(0.5 + sunDir.y * 2.2, 0.0, 1.0);
+  ///
+  /// Medida como antes de que el sol saliera a su hora: con el disco recién
+  /// asomado todavía es amanecer, y los colores del prado y de los montes se
+  /// ajustaron a mano contra esta cuenta.
+  double get daylight =>
+      clampD(0.5 + math.sin(math.sin(_arc) * 1.16 - 0.07) * 2.2, 0.0, 1.0);
 
   /// The moon rides the opposite arc, so there is still a direction to the
   /// light at night instead of flat ambience.
