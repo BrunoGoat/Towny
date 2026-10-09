@@ -108,6 +108,10 @@ class TownViewController {
   List<Rect> get boardTargets => [
     for (final b in _state?._hits.boards ?? const []) b.rect,
   ];
+
+  /// De quién es lo que se ve en ese punto: ver [TouchMap.ownerAt].
+  @visibleForTesting
+  int? ownerAt(Offset at) => _state?._hits.ownerAt(at.dx, at.dy);
 }
 
 /// El encargo de un pueblo: lo que hace falta para levantarlo, y nada más.
@@ -1432,11 +1436,19 @@ class _TownViewState extends State<TownView>
       return;
     }
 
+    // Lo que se ve bajo el dedo: la última cara pintada en ese punto.
+    final arriba = _hits.ownerAt(pos.dx, pos.dy);
+    final casa = arriba != null && (arriba >= 0 || arriba == TouchMap.building);
+
     // El tablón, antes que las casas: es una cosa chica en medio de un pueblo
     // lleno de tejados, y quien le apunta le apuntó. Si dos tablones caen bajo
     // el dedo, el más cercano a donde aterrizó.
+    //
+    // Pero sólo si lo que se ve ahí no es una casa. El blanco del tablón es su
+    // rectángulo, y el rectángulo sigue estando aunque una casa se le ponga
+    // delante: tocar esa casa abría el tablón que tapa.
     ({int town, double away})? tablon;
-    for (final b in _hits.boards) {
+    for (final b in casa ? const <BoardHit>[] : _hits.boards) {
       if (!b.rect.contains(pos)) continue;
       final dx = b.rect.center.dx - pos.dx, dy = b.rect.center.dy - pos.dy;
       final away = dx * dx + dy * dy;
@@ -1475,10 +1487,19 @@ class _TownViewState extends State<TownView>
     // punto de la pantalla y, de ésos, cuál está más cerca del ojo. Una pieza
     // no se toca a través de otra.
     PickTarget? best;
-    for (final t in _hits.pieces) {
-      // Un pelo de holgura.
-      if (!t.holds(pos.dx, pos.dy, 2)) continue;
-      if (best == null || t.near < best.near) best = t;
+    // Si lo que se ve es una pieza de este pueblo, es ésa y no hay que
+    // adivinar con rectángulos.
+    if (arriba != null && arriba >= 0) {
+      for (final t in _hits.pieces) {
+        if (t.brickIndex == arriba) best = t;
+      }
+    }
+    if (best == null) {
+      for (final t in _hits.pieces) {
+        // Un pelo de holgura.
+        if (!t.holds(pos.dx, pos.dy, 2)) continue;
+        if (best == null || t.near < best.near) best = t;
+      }
     }
     if (best == null) {
       if (_selectedPiece != null) setState(() => _selectedPiece = null);

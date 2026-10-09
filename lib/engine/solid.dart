@@ -197,6 +197,21 @@ class Facet {
         ..piece = piece;
 }
 
+/// Lo que vale [Facet.piece] en las caras del tablón: un mueble, como la
+/// plaza, pero uno que se puede tocar, y el dedo tiene que saber cuándo lo
+/// que tiene debajo es él.
+const int boardPiece = -2;
+
+/// Marca como tablón un sólido que ya es mueble.
+void asBoard(Solid solid) {
+  for (final f in solid.faces) {
+    f.piece = boardPiece;
+    for (final g in f.decals ?? const <Facet>[]) {
+      g.piece = boardPiece;
+    }
+  }
+}
+
 /// Deja un sólido marcado como mueble del pueblo, y no como pieza de nadie.
 ///
 /// Dos cosas, y las dos se olvidan en cuanto alguien arma los sólidos a mano

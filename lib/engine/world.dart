@@ -544,11 +544,12 @@ BuiltTown _build(TownLayout layout, int placed, BuiltTown? before) {
   }
 
   /// Files one lot of furniture: not a piece, so it belongs to no achievement.
-  void furnish(List<Solid> solids) {
+  void furnish(List<Solid> solids, {bool board = false}) {
     for (final solid in solids) {
       final box = Aabb.of(solid.faces);
       if (box == null) continue;
       asFurniture(solid, box);
+      if (board) asBoard(solid);
       file(solid, box, const <int>{});
     }
   }
@@ -590,7 +591,7 @@ BuiltTown _build(TownLayout layout, int placed, BuiltTown? before) {
         for (final f in s.faces)
           if (f.decals != null) f,
     ];
-    furnish(board);
+    furnish(board, board: true);
   }
 
   for (var i = from; i < take; i++) {

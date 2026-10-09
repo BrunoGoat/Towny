@@ -33,6 +33,9 @@ class _Face {
   int n = 0;
   int color = 0;
 
+  /// De quién es, para el dedo: ver [TouchMap.faceOwner].
+  int owner = TouchMap.nobody;
+
   /// La altura de cada vértice en el mundo, y si la cara es una pared. Sólo
   /// en calidad máxima: es lo que oscurece el pie de los muros.
   final Float32List ys = Float32List(28);
@@ -185,6 +188,8 @@ class TownPainter extends CustomPainter {
     _pickAt.clear();
     _faceCount = 0;
     _lamps.clear();
+    _lampOwner.clear();
+    _lastFaceOf.clear();
     _canvasW = size.width;
     _canvasH = size.height;
 
@@ -259,7 +264,9 @@ class TownPainter extends CustomPainter {
     }
     _drawRings(canvas, p, town, overlay: false);
     _collectTown(p, size);
+    _lampsAfterBuildings();
     _flush(canvas, size);
+    _keepFaces();
     _drawBirds(canvas, p, size, town);
     _drawRings(canvas, p, town, overlay: true);
     if (overlays) {
@@ -344,6 +351,7 @@ class TownPainter extends CustomPainter {
     }
     f.n = m;
     f.color = color;
+    f.owner = TouchMap.nobody;
     if (scene.cinematic) _heights(p, f, m);
   }
 
@@ -1596,10 +1604,11 @@ class TownPainter extends CustomPainter {
     // con el color y el desgaste del primer logro del pueblo y cambiaba de
     // golpe en el fotograma en que acababa de fundarse— y de qué mata es cada
     // hoja, que es lo que hace que el césped sea de un solo color.
-    void caer(List<Solid> solidos, double? dy) {
+    void caer(List<Solid> solidos, double? dy, {bool tablon = false}) {
       if (dy == null) return;
       for (final s in solidos) {
         asFurniture(s);
+        if (tablon) asBoard(s);
         for (final f in s.faces) {
           caras.add(dy.abs() < 1e-4 ? f : f.lifted(dy));
         }
@@ -1620,6 +1629,7 @@ class TownPainter extends CustomPainter {
     caer(
       NoticeBoard.solidsAt(l.cx, l.cz, sheets: l.notices),
       FoundingShow.liftAt(t, FoundingShow.boardAt),
+      tablon: true,
     );
     if (caras.isEmpty) return;
     BspTree.build(
@@ -1756,6 +1766,7 @@ class TownPainter extends CustomPainter {
     }
     if (f.piece >= e.layout.pieces.length) return;
     final piece = e.layout.pieces[f.piece];
+    _buildingNow = (e.layout, piece.building);
     final tone = _toneOf(e, piece, pal);
     final colour = _colourOf(p, f, piece, tone, pal, light, night);
     if (colour == null) return;
@@ -1770,6 +1781,16 @@ class TownPainter extends CustomPainter {
 
   /// A face with no achievement behind it: the town's own furniture.
   void _plain(Projector p, Facet f, Palette pal, V3 light) {
+    final antes = _faceCount;
+    _plainFaces(p, f, pal, light);
+    if (f.piece == boardPiece) {
+      for (var k = antes; k < _faceCount; k++) {
+        _facePool[k].owner = TouchMap.board;
+      }
+    }
+  }
+
+  void _plainFaces(Projector p, Facet f, Palette pal, V3 light) {
     final at = f.v.first;
     final colour = hazeAt(
       _shade(f.n, _plainTone(f, pal), light, pal, f.ao, 0, 0, f.surface),
@@ -1815,6 +1836,10 @@ class TownPainter extends CustomPainter {
     final before = _faceCount;
     _emit(p, _clipA, m, colour);
     if (piece == null || size == null) return;
+    if (_faceCount > before) {
+      _lastFaceOf[_buildingNow] = before;
+      _facePool[before].owner = _picking ? piece.index : TouchMap.building;
+    }
     // Todas sus caras, no la primera: la caja de una pieza es la de todo lo
     // que se ve de ella.
     if (_picking && _faceCount > before) {
@@ -1966,6 +1991,76 @@ class TownPainter extends CustomPainter {
     ).toARGB32();
   }
 
+  /// Las caras de este fotograma, copiadas al mapa de toques para que el dedo
+  /// sepa qué se ve en cada punto. Copiadas y no apuntadas: el depósito de
+  /// caras es de todos los pintores y el siguiente lo pisa.
+  void _keepFaces() {
+    var floats = 0;
+    for (var k = 0; k < _faceCount; k++) {
+      floats += _facePool[k].n * 2;
+    }
+    hits.reserveFaces(_faceCount, floats);
+    var at = 0;
+    for (var k = 0; k < _faceCount; k++) {
+      final f = _facePool[k];
+      hits.faceStart[k] = at;
+      hits.faceOwner[k] = f.owner;
+      for (var i = 0; i < f.n * 2; i++) {
+        hits.facePts[at++] = f.pts[i];
+      }
+    }
+    hits.faceStart[_faceCount] = at;
+    hits.faceCount = _faceCount;
+  }
+
+  /// De qué edificio es la cara que se está pintando, y la última cara que
+  /// pintó cada edificio. Para [_lampsAfterBuildings].
+  (TownLayout, int)? _buildingNow;
+  final Map<(TownLayout, int)?, int> _lastFaceOf = {};
+
+  /// De qué edificio es cada lámpara apuntada, en el mismo orden.
+  final List<(TownLayout, int)?> _lampOwner = [];
+
+  /// Las luces de un edificio van detrás de **todo** el edificio, no detrás
+  /// de su ventana.
+  ///
+  /// Iban justo detrás de la ventana, para que las tapara lo que hubiera
+  /// delante. Pero «lo que hay delante» incluía al piso de arriba del mismo
+  /// edificio, que el árbol pinta como un grupo aparte y después: su pared
+  /// cortaba en seco el resplandor de las ventanas de abajo, y de noche cada
+  /// pieza quedaba separada de la siguiente por una raya recta. Ahora cada luz
+  /// se pinta detrás de la última cara de su edificio, así que la fachada
+  /// entera queda alumbrada de una vez; los edificios que están delante se
+  /// siguen pintando después y la siguen tapando.
+  void _lampsAfterBuildings() {
+    final n = _lamps.length ~/ _lampStride;
+    if (n == 0) return;
+    var cambio = false;
+    for (var i = 0; i < n; i++) {
+      final ultima = _lastFaceOf[_lampOwner[i]];
+      if (ultima != null && ultima > _lamps[i * _lampStride + 4]) {
+        _lamps[i * _lampStride + 4] = ultima.toDouble();
+        cambio = true;
+      }
+    }
+    if (!cambio) return;
+    // Y vuelven a quedar en el orden en que se pintan las caras, que es como
+    // las recorre el volcado.
+    final orden = List<int>.generate(n, (i) => i)
+      ..sort((a, b) {
+        final c = _lamps[a * _lampStride + 4].compareTo(
+          _lamps[b * _lampStride + 4],
+        );
+        return c != 0 ? c : a.compareTo(b);
+      });
+    final copia = List<double>.of(_lamps);
+    for (var j = 0; j < n; j++) {
+      for (var k = 0; k < _lampStride; k++) {
+        _lamps[j * _lampStride + k] = copia[orden[j] * _lampStride + k];
+      }
+    }
+  }
+
   /// A window, which is where the town says how you are doing. A lit window is
   /// one achievement showing from the outside; a whole town of them read in a
   /// single glance is the thing the wall could never do. At night every one of
@@ -1992,6 +2087,7 @@ class TownPainter extends CustomPainter {
             // color, que es la ventana misma. De ahí sale su sitio en el
             // orden de pintado.
             ..add(_faceCount.toDouble());
+          _lampOwner.add(_buildingNow);
           _lampHeld = true;
         }
       }

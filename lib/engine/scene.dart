@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'dart:ui';
 
 import '../data/constellations.dart';
@@ -277,6 +278,52 @@ class TouchMap {
   /// La constelación de esta noche, si salió.
   final List<SkyHit> skies = [];
 
+  /// Las caras del fotograma, en el orden en que se pintaron, y de quién es
+  /// cada una: el número de la pieza, [building] si es de una casa que no se
+  /// puede elegir desde aquí —la de otro pueblo—, [board] si es del tablón o
+  /// [nobody] si es del prado o la plaza.
+  ///
+  /// Es lo que permite saber **qué se ve** en un punto de la pantalla, que no
+  /// es lo mismo que qué rectángulo lo contiene: la última cara pintada que
+  /// cae bajo el dedo es la que está delante, porque el orden de pintado es
+  /// el orden de profundidad.
+  Float32List facePts = Float32List(0);
+  Int32List faceStart = Int32List(1);
+  Int32List faceOwner = Int32List(0);
+  int faceCount = 0;
+
+  static const int nobody = -1;
+  static const int building = -2;
+  static const int board = -3;
+
+  /// Hace sitio para [faces] caras con [floats] números de vértices entre
+  /// todas.
+  void reserveFaces(int faces, int floats) {
+    if (faceOwner.length < faces) {
+      faceOwner = Int32List(faces + faces ~/ 2);
+      faceStart = Int32List(faceOwner.length + 1);
+    }
+    if (facePts.length < floats) facePts = Float32List(floats + floats ~/ 2);
+  }
+
+  /// De quién es lo que se ve en ese punto, o nulo si ahí no hay ninguna
+  /// cara (el cielo, o un fotograma sin pintar todavía).
+  int? ownerAt(double x, double y) {
+    for (var k = faceCount - 1; k >= 0; k--) {
+      final a = faceStart[k], b = faceStart[k + 1];
+      var dentro = false;
+      for (var i = a, j = b - 2; i < b; j = i, i += 2) {
+        final xi = facePts[i], yi = facePts[i + 1];
+        final xj = facePts[j], yj = facePts[j + 1];
+        if ((yi > y) != (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) {
+          dentro = !dentro;
+        }
+      }
+      if (dentro) return faceOwner[k];
+    }
+    return null;
+  }
+
   /// Se vacía entero al empezar cada fotograma. Que lo haga el propio mapa es
   /// lo que evita el fallo de olvidarse una: seis `clear()` en fila al
   /// principio de `paint` se convierten en cinco en cuanto alguien añade la
@@ -286,5 +333,6 @@ class TouchMap {
     signs.clear();
     boards.clear();
     skies.clear();
+    faceCount = 0;
   }
 }
