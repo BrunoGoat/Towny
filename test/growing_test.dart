@@ -116,8 +116,13 @@ void main() {
       // Lo que sí se promete es que la cola no se rehaga de abajo arriba: lo
       // que se veía venir de cerca sigue siendo lo que viene de cerca, y no
       // aparece de la nada una catedral que estaba cuarenta puestos más allá.
-      // Medido sobre esta versión: de las veinte que vienen ahora, las veinte
-      // estaban entre las treinta que venían antes.
+      // Medido sobre esta versión: de las veinte que vienen ahora, diecinueve
+      // o veinte estaban entre las treinta que venían antes. Fueron veinte
+      // hasta que cada hito pasó a tener un tamaño que le toca —chicas al
+      // principio, grandes al final—: las medianas llegan entonces una de cada
+      // tres, hay pocas en la cola, y una obra nueva en el sorteo puede
+      // adelantar una que estaba unos puestos más allá. Lo que no puede es
+      // traer una de cuarenta puestos atrás.
       // Eso es lo que hacía la versión anterior de esto, que barajaba las seis
       // primeras libres: meter una obra cambiaba *quiénes* eran esas seis, y
       // con ellas el sorteo entero.
@@ -137,7 +142,7 @@ void main() {
         );
         expect(
           despues.take(20).where(antes.take(30).contains).length,
-          greaterThanOrEqualTo(20),
+          greaterThanOrEqualTo(19),
           reason:
               '${c.region}: lo que viene de cerca no es lo que se veía venir '
               '(${despues.take(20).where((id) => !antes.contains(id))})',

@@ -230,34 +230,19 @@ class TownPlan {
     return n;
   }
 
-  /// The landmarks worth opening a town with.
+  /// Las obras que no abren un pueblo: se dejan para un poco más tarde dentro
+  /// de su nivel. Un camposanto es lo que tiene un pueblo que ya lleva años,
+  /// no lo primero que se levanta.
+  static const Set<String> _somber = {'camposanto', 'horca'};
+
+  /// Lo que cuesta una obra barata y una cara de cada nivel, para saber dónde
+  /// cae una obra dentro del suyo.
   ///
-  /// A town's first two years should show what the place is capable of — a mill
-  /// with its crops, a wheel turning in a river, a bridge, a castle — and not a
-  /// pigsty and a charnel house, which is what an honest shuffle keeps handing
-  /// out. So the openers are chosen; but *which* of them a given town gets, and
-  /// in what order, is its own, so two habits never walk the same road.
-  ///
-  /// Ésta es además la lista donde se mete algo que tiene que salirle a todo el
-  /// mundo, como el observatorio: a quien le queden obras de apertura por
-  /// terminar se lo va a encontrar, y a quien ya las tenga todas no se le mueve
-  /// ni una piedra.
-  static const List<String> _openers = [
-    'pozo',
-    'molinoViento',
-    'cruz',
-    'capilla',
-    'palomar',
-    'mercado',
-    'castillo',
-    'faro',
-    'iglesia',
-    'atalaya',
-    'claustro',
-    'concejo',
-    'puertaVilla',
-    'coso',
-  ];
+  /// Fijo, y no medido del catálogo: si saliera del catálogo, meter una obra
+  /// más barata o más cara que las que hay movería la cuenta de todas las
+  /// demás, y con ella el orden en que llegan. Lo que pase de un extremo se
+  /// queda en el extremo.
+  static const List<(int, int)> _costRange = [(5, 10), (11, 18), (18, 33)];
 
   /// Un número estable a partir de un texto. FNV-1a, que es corto y reparte
   /// bien.
@@ -287,14 +272,40 @@ class TownPlan {
   /// los demás no les toca ni el orden relativo. Eso es exactamente lo que
   /// hacía falta.
   ///
-  /// Las obras de apertura se van muy abajo, así que salen primero, barajadas
-  /// entre ellas. Y los niveles se solapan a propósito: sesenta y cinco
-  /// centésimas de sesgo por nivel sobre un azar que vale uno entero, así que
-  /// un pueblo empieza con obras chicas y termina con catedrales, pero por el
-  /// medio se mezclan en vez de venir en tres bloques.
+  /// **Lo chico primero y lo grande al final.** Un pueblo nuevo empieza con
+  /// obras de cinco a diez piezas —un pozo, un palomar, una cruz—, que le
+  /// llegan seguido y lo hacen un sitio; las medianas vienen después, y las
+  /// grandes —la catedral, el castillo, el coso— quedan para el pueblo que ya
+  /// es grande. Una obra de treinta piezas en un pueblo de sesenta es medio
+  /// pueblo, y lo que se ve es un caserío con un monumento encima; en uno de
+  /// cuatrocientas es lo que le da categoría.
+  ///
+  /// Hubo una lista de obras «de apertura» que se saltaban el orden, y metía
+  /// el coso o el castillo de cincuenta y dos piezas entre las primeras.
+  ///
+  /// Esto ordena dentro de cada nivel, y [tierFor] dice de qué nivel toca
+  /// cada hito. Lo más caro de cada nivel tiende a salir al final de él.
   double _when(Landmark l) {
     final r = hash01(character.order, 0x51, idHash(l.id));
-    return (_openers.contains(l.id) ? -10.0 : l.tier * 0.65) + r;
+    final (lo, hi) = _costRange[l.tier];
+    final caro = ((l.cost - lo) / (hi - lo)).clamp(0.0, 1.0);
+    final triste = _somber.contains(l.id) ? 1.0 : 0.0;
+    return l.tier * 0.8 + r * 0.7 + caro * 0.5 + triste;
+  }
+
+  /// De qué nivel es el hito número [no] de un pueblo.
+  ///
+  /// Los cinco primeros —hasta unas ciento cincuenta piezas— obras chicas; del
+  /// sexto al décimo, medianas; y del undécimo en adelante —pasadas unas
+  /// quinientas piezas, más de un año de días— dos de cada tres son grandes, y
+  /// la tercera es una chica o una mediana de las que quedan, que un pueblo
+  /// grande también se hace un palomar. Por número de hito y no por piezas,
+  /// porque los hitos llegan cada vez más espaciados y eso ya lo dice.
+  static int tierFor(int no) {
+    if (no < 5) return 0;
+    if (no < 10) return 1;
+    if ((no - 10) % 3 != 2) return 2;
+    return ((no - 10) ~/ 3).isEven ? 1 : 0;
   }
 
   /// El catálogo entero en el orden en que este pueblo lo construye.
@@ -358,9 +369,25 @@ class TownPlan {
   /// por obra, la nota de cada una no depende de las demás, y una obra nueva
   /// sólo puede hacer una cosa: presentarse a la rifa como una más.
   List<String> landmarkChoices(int no, Set<String> used, {int count = 2}) {
+    // Primero las del nivel que toca, en el orden del pueblo; y si de ése ya
+    // no quedan bastantes, las del nivel más cercano. Un pueblo que ya
+    // levantó todo lo chico no se queda sin hito por eso.
+    final quiere = tierFor(no);
+    final libres = [
+      for (final id in order)
+        if (!used.contains(id)) id,
+    ];
+    int lejos(String id) => (TownPlan.landmarkOf(id)!.tier - quiere).abs();
+    final porNivel = [...libres]
+      ..sort((a, b) {
+        final c = lejos(a).compareTo(lejos(b));
+        return c != 0 ? c : libres.indexOf(a).compareTo(libres.indexOf(b));
+      });
     final cerca = <String>[];
-    for (final id in order) {
-      if (used.contains(id)) continue;
+    for (final id in porNivel) {
+      // La ventana no cruza de nivel mientras el que toca tenga para
+      // ofrecer dos: si no, una catedral asomaba entre los palomares.
+      if (cerca.length >= count && lejos(id) > lejos(cerca.first)) break;
       cerca.add(id);
       if (cerca.length == choiceWindow) break;
     }

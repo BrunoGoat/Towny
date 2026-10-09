@@ -115,32 +115,65 @@ void main() {
       // The way a house goes wrong is the last piece landing above the ridge:
       // a door or a clock face left hanging over the tiles. Only a chimney is
       // allowed to come out through a roof.
+      //
+      // Y una torre, que no está encima del tejado sino que lo atraviesa: el
+      // campanario de una iglesia o el cimborrio de una catedral nacen del
+      // suelo y salen por las tejas, y lo que llevan arriba se apoya en la
+      // torre. Lo que no vale es lo que no tiene debajo una columna que suba
+      // desde más abajo del tejado hasta donde empieza.
+      //
+      // En todas las obras y todas las comarcas, y no en un pueblo de prueba:
+      // así se probaba sólo lo que ese pueblo llegaba a levantar, y al cambiar
+      // el orden de las obras aparecieron dos que nunca se habían mirado.
       const caps = {PieceKind.roof, PieceKind.spire};
-      final city = TownLayout(900, TownCharacter.all.first);
+      const crowns = {
+        PieceKind.chimney,
+        PieceKind.sail,
+        PieceKind.banner,
+        PieceKind.dome,
+        PieceKind.spire,
+      };
       bool over(TownPiece a, TownPiece b) =>
           (a.cx - b.cx).abs() < (a.w + b.w) * 0.4 &&
           (a.cz - b.cz).abs() < (a.d + b.d) * 0.4;
-      for (final b in city.buildings) {
-        final mine = city.pieces.where((p) => p.building == b.index).toList();
+      void revisar(String name, List<TownPiece> mine) {
         for (final p in mine) {
-          // A church has a nave and a bell tower, so the comparison is per
-          // column: only a roof this piece actually stands over counts.
-          const crowns = {
-            PieceKind.chimney,
-            PieceKind.sail,
-            PieceKind.banner,
-            PieceKind.dome,
-            PieceKind.spire,
-          };
           if (caps.contains(p.kind) || crowns.contains(p.kind)) continue;
           for (final cap in mine) {
             if (!caps.contains(cap.kind) || !over(p, cap)) continue;
+            if (p.y0 < cap.y1 - 0.01) continue;
+            // Bajando por la columna, pieza a pieza: un campanario es la
+            // torre y encima los arcos, y los arcos se apoyan en la torre.
+            bool sostenida(TownPiece x, int hondo) => mine.any(
+              (q) =>
+                  q != x &&
+                  !caps.contains(q.kind) &&
+                  over(x, q) &&
+                  q.y0 < x.y0 - 0.01 &&
+                  q.y1 >= x.y0 - 0.01 &&
+                  (q.y0 <= cap.y0 + 0.01 ||
+                      (hondo < 6 && sostenida(q, hondo + 1))),
+            );
             expect(
-              p.y0,
-              lessThan(cap.y1 - 0.01),
-              reason: '${b.name}: a ${p.kind.name} sits on the roof',
+              sostenida(p, 0),
+              isTrue,
+              reason: '$name: a ${p.kind.name} sits on the roof',
             );
           }
+        }
+      }
+
+      final city = TownLayout(900, TownCharacter.all.first);
+      for (final b in city.buildings) {
+        revisar(
+          b.name,
+          city.pieces.where((p) => p.building == b.index).toList(),
+        );
+      }
+      for (final mark in landmarks) {
+        for (final c in TownCharacter.all) {
+          final l = TownLayout.showcase(c, landmark: mark, placed: mark.cost);
+          revisar('${mark.id} en ${c.region}', l.pieces);
         }
       }
     });
@@ -481,6 +514,32 @@ void main() {
         TownCharacter.all.length,
         reason: 'dos plots construyen los mismos hitos en el mismo orden',
       );
+    });
+
+    test('lo chico primero y lo grande cuando el pueblo ya es grande', () {
+      // Un pueblo nuevo empieza con obras de cinco a diez piezas, que le
+      // llegan seguido; las medianas vienen después y las grandes —el coso,
+      // la catedral, el castillo— cuando el pueblo ya lleva más de un año.
+      // Hubo una lista de obras de apertura que metía el castillo de
+      // cincuenta y dos piezas entre las primeras, y un pueblo de sesenta con
+      // treinta de monumento se ve chico, no importante.
+      for (final c in TownCharacter.all) {
+        for (final seed in [0, 3, 11]) {
+          final l = TownLayout(1400, c, seed: seed);
+          final hitos = [
+            for (final b in l.buildings)
+              if (b.isLandmark) b.landmark!,
+          ];
+          expect(hitos.length, greaterThan(12), reason: c.region);
+          for (var i = 0; i < 5; i++) {
+            expect(hitos[i].tier, 0, reason: '${c.region} hito $i');
+          }
+          for (var i = 5; i < 10; i++) {
+            expect(hitos[i].tier, 1, reason: '${c.region} hito $i');
+          }
+          expect(hitos[10].tier, 2, reason: '${c.region} hito 10');
+        }
+      }
     });
 
     test('every town still opens with something worth waiting for', () {
