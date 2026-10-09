@@ -104,6 +104,21 @@ class BoardSeen {
     } catch (_) {}
   }
 
+  /// Qué se leyó en cada pueblo. Para la copia en la nube: ver `lib/sync/`.
+  Map<String, Set<String>> get all => {
+    for (final e in _read.entries) e.key: Set.unmodifiable(e.value),
+  };
+
+  /// Cambia todo lo leído por [rows] y lo guarda.
+  Future<void> replaceAll(Map<String, Set<String>> rows) async {
+    _read
+      ..clear()
+      ..addAll({
+        for (final e in rows.entries) e.key: {...e.value},
+      });
+    await flush();
+  }
+
   /// Para los tests: empezar sin haber leído nada.
   void forget() => _read.clear();
 }

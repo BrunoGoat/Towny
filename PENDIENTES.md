@@ -24,7 +24,33 @@ El inventario de lo que hay que traducir sigue siendo `TEXTOS.md`.
 
 ---
 
-## 2. Deuda medida
+## 2. La nube (Supabase)
+
+**Hecho: todo listo menos el enchufe.** Las tablas están en
+`supabase/migrations/` (probadas contra un Postgres 16 con el esquema `auth` de
+Supabase simulado: se crean, aceptan las filas de la app, cada usuario ve sólo
+lo suyo y borrar un hábito se lleva sus piezas). El traductor está en
+`lib/sync/tables.dart` y la interfaz en `lib/sync/remote.dart`.
+
+**Para conectarlo:**
+
+1. Crear el proyecto en Supabase y correr la migración (`supabase db push`, o
+   pegar el SQL en el editor).
+2. Agregar `supabase_flutter` y escribir una clase que implemente `Remote`:
+   `push` borra las filas del usuario que ya no están y hace `upsert` del resto,
+   tabla por tabla en el orden de `Tables.all`; `pull` hace `select` de cada
+   una.
+3. Decidir cómo se entra (correo con enlace mágico, Google…) y **cuándo** se
+   sube: al poner una pieza, al cerrar la app, o con un botón en Ajustes.
+4. Decidir qué pasa si el teléfono y la nube no coinciden. Lo más simple que no
+   pierde nada: gana el que tenga más piezas, y antes de pisar se guarda una
+   copia local.
+5. Decidir qué ajustes viajan. Hoy viajan todos; los de volumen y los de
+   desarrollo (hora fingida) quizá deberían quedarse en cada teléfono.
+
+---
+
+## 3. Deuda medida
 
 ### Lo que queda del render
 
@@ -51,7 +77,7 @@ mesa, con lo medido al lado:
 
 ---
 
-## 3. Ideas que quedaron sobre la mesa
+## 4. Ideas que quedaron sobre la mesa
 
 En orden de lo que más daría por lo que menos cuesta. *(Fechar las obras, que
 encabezaba esta lista, ya está hecho: la tarjeta del día que se remata dice
@@ -87,7 +113,7 @@ entre qué dos fechas se levantó.)*
 
 ---
 
-## 4. Decisiones abiertas
+## 5. Decisiones abiertas
 
 - **Lo que no se va a hacer**, y conviene que siga escrito: rachas que
   castiguen, medallas encima del pueblo, comparación con otra gente,

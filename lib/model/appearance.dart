@@ -447,6 +447,18 @@ class Appearance extends ChangeNotifier {
     return visto;
   }
 
+  /// Los ajustes tal como se guardan, `clave=valor`. Para la copia en la
+  /// nube: ver `lib/sync/`.
+  List<String> exportPrefs() => _writePrefs();
+
+  /// Los ajustes que trajo una copia, encima de los de ahora: lo que la copia
+  /// no traiga se queda como está.
+  Future<void> importPrefs(List<String> rows) async {
+    _readPrefs(rows);
+    lang = language;
+    await _keep();
+  }
+
   List<String> _writePrefs() => [
     'sound=${_soundOff ? 0 : 1}',
     'music=${_musicOff ? 0 : 1}',

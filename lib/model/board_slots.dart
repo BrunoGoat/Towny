@@ -161,6 +161,19 @@ class BoardSlots extends ChangeNotifier {
     } catch (_) {}
   }
 
+  /// Todo lo que recuerda, `pueblo/papel` → hueco. Para la copia en la nube:
+  /// ver `lib/sync/`.
+  Map<String, int> get all => Map.unmodifiable(_where);
+
+  /// Cambia todo lo que recuerda por [rows] y lo guarda.
+  Future<void> replaceAll(Map<String, int> rows) async {
+    _where
+      ..clear()
+      ..addAll(rows);
+    notifyListeners();
+    await flush();
+  }
+
   /// Para los tests: empezar con el tablón en blanco.
   void forget() => _where.clear();
 }

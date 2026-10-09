@@ -68,8 +68,15 @@ void main() {
         if (!visto.add(p)) continue;
         pila.addAll(arbol[p] ?? const []);
       }
-      final huerfanos = arbol.keys.where((p) => !visto.contains(p)).toList()
-        ..sort();
+      // Menos `lib/sync/`, que está a propósito sin enchufar: es lo que hará
+      // falta el día que se conecte Supabase, y lo prueba `sync_test.dart`.
+      // Ver PENDIENTES.md. Cuando se conecte, esta excepción sobra.
+      final huerfanos =
+          arbol.keys
+              .where((p) => !visto.contains(p))
+              .where((p) => !p.startsWith('lib/sync/'))
+              .toList()
+            ..sort();
       expect(
         huerfanos,
         isEmpty,

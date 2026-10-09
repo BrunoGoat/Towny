@@ -194,7 +194,7 @@ cambiar cuánto suena la mitad la recalcula sola.
 
 ```bash
 flutter pub get
-flutter test          # 746 tests
+flutter test          # 751 tests
 flutter analyze
 flutter run
 flutter build apk --release
@@ -300,8 +300,21 @@ lib/
   engine/    el pueblo y cómo se dibuja
   fx/        partículas, sonido y vibración
   l10n/      el idioma de ahora, las fechas y los catálogos en inglés
+  sync/      el valle en filas de Supabase, y el enchufe para subirlo
   ui/        la pantalla, el botón, las hojas
+supabase/    las tablas, en SQL
 ```
+
+**La nube, preparada pero sin conectar.** `supabase/migrations/` tiene las
+tablas de todo lo que la app guarda de una persona —el valle, cada hábito con
+sus piezas, vecinos, notas y pausas, los ajustes y el tablón—, cada una con una
+política que deja a cada uno ver sólo lo suyo. El pueblo en sí no se guarda: se
+calcula de eso, como en el teléfono. `sync/tables.dart` traduce la copia de la
+app a esas filas y de vuelta, sin red; `sync/remote.dart` es la interfaz que
+tendrá que cumplir el cliente de Supabase cuando se conecte, y restaurar desde
+allá pasa por la misma puerta que pegar una copia a mano.
+`test/sync_test.dart` hace el viaje de ida y vuelta con un valle entero y
+comprueba que las columnas de Dart y las del SQL son las mismas.
 
 **Los dos idiomas.** La app habla castellano e inglés. Las frases sueltas van
 escritas en su sitio con las dos versiones juntas —`tr('Fundar mi pueblo',
