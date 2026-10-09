@@ -194,7 +194,7 @@ cambiar cuánto suena la mitad la recalcula sola.
 
 ```bash
 flutter pub get
-flutter test          # 767 tests
+flutter test          # toda la suite; tiene que terminar en «All tests passed!»
 flutter analyze
 flutter run
 flutter build apk --release
