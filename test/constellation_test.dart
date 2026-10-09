@@ -96,7 +96,11 @@ void main() {
           }
         }
       }
-      expect(encima, greaterThan(30), reason: 'no se ve el nombre ($fuera fuera, caja $box)');
+      expect(
+        encima,
+        greaterThan(30),
+        reason: 'no se ve el nombre ($fuera fuera, caja $box)',
+      );
       expect(fuera, 0, reason: 'el nombre salió lejos de la figura');
       return;
     }

@@ -15,6 +15,8 @@
 /// que Postgres lee como `timestamptz` y lo que devuelve.
 library;
 
+import 'dart:convert';
+
 import '../model/census.dart';
 
 /// Los nombres de las tablas, en el orden en que hay que escribirlas: las
@@ -43,6 +45,19 @@ abstract final class Tables {
 
 typedef Row = Map<String, Object?>;
 
+/// La clave primaria de cada tabla, la misma que en el SQL (un test lo
+/// comprueba). Es lo que dice si dos filas son «la misma» al comparar.
+const Map<String, List<String>> primaryKeys = {
+  Tables.valleys: ['user_id'],
+  Tables.habits: ['user_id', 'id'],
+  Tables.pieces: ['user_id', 'habit_id', 'idx'],
+  Tables.villagers: ['user_id', 'habit_id', 'position'],
+  Tables.notes: ['user_id', 'habit_id', 'position'],
+  Tables.rests: ['user_id', 'habit_id', 'position'],
+  Tables.boardSlots: ['user_id', 'key'],
+  Tables.boardSeen: ['user_id', 'town_id', 'key'],
+};
+
 /// Todo lo de una persona, como filas.
 class ValleyRows {
   ValleyRows(this.tables);
@@ -54,6 +69,69 @@ class ValleyRows {
 
   int get count => tables.values.fold(0, (n, l) => n + l.length);
 }
+
+/// Lo que hay que mandar para que la nube pase de una copia a otra: las filas
+/// nuevas o cambiadas, y las claves de las que ya no están.
+///
+/// Es lo que hace que subir cueste lo que cambió y no lo que hay. Las piezas
+/// sólo se agregan y nunca cambian, así que poner una en un pueblo de mil son
+/// tres filas —la pieza, el hábito si avanzó su crónica, y la fecha del
+/// valle— y no mil.
+class RowChanges {
+  RowChanges(this.upserts, this.deletes);
+
+  /// Tabla → filas enteras a escribir (insertar o reemplazar).
+  final Map<String, List<Row>> upserts;
+
+  /// Tabla → claves (sólo las columnas de [primaryKeys]) a borrar.
+  final Map<String, List<Row>> deletes;
+
+  bool get isEmpty =>
+      upserts.values.every((l) => l.isEmpty) &&
+      deletes.values.every((l) => l.isEmpty);
+
+  int get count =>
+      upserts.values.fold(0, (n, l) => n + l.length) +
+      deletes.values.fold(0, (n, l) => n + l.length);
+}
+
+String _keyOf(String table, Row r) =>
+    jsonEncode([for (final k in primaryKeys[table]!) r[k]]);
+
+/// Qué cambió de [before] a [after]. Con [before] null, todo es nuevo.
+///
+/// Dos filas con la misma clave se comparan enteras, por su texto: [toRows]
+/// las escribe siempre igual, con las mismas columnas en el mismo orden. Por
+/// eso lo que vino de la nube se pasa antes por [canonical]: Postgres
+/// devuelve las fechas a su manera, y sin eso todo parecería cambiado.
+RowChanges diffRows(ValleyRows? before, ValleyRows after) {
+  final up = <String, List<Row>>{};
+  final del = <String, List<Row>>{};
+  for (final t in Tables.all) {
+    final antes = {
+      for (final r in before?[t] ?? const <Row>[]) _keyOf(t, r): jsonEncode(r),
+    };
+    final ahora = <String>{};
+    final nuevas = <Row>[];
+    for (final r in after[t]) {
+      final k = _keyOf(t, r);
+      ahora.add(k);
+      if (antes[k] != jsonEncode(r)) nuevas.add(r);
+    }
+    up[t] = nuevas;
+    del[t] = [
+      for (final r in before?[t] ?? const <Row>[])
+        if (!ahora.contains(_keyOf(t, r)))
+          {for (final k in primaryKeys[t]!) k: r[k]},
+    ];
+  }
+  return RowChanges(up, del);
+}
+
+/// Unas filas, escritas como las escribe [toRows]. Para comparar lo que vino
+/// de la nube con lo de acá.
+ValleyRows canonical(ValleyRows rows, String userId) =>
+    toRows(fromRows(rows), userId);
 
 /// Lo que la app tiene guardado, tal como lo tiene: la entrada y la salida
 /// del traductor.

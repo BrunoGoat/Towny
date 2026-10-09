@@ -12,26 +12,54 @@ import 'package:towny/sync/merge.dart';
 import 'package:towny/sync/remote.dart';
 import 'package:towny/sync/tables.dart';
 
-/// Una nube de mentira: guarda las filas en memoria, y se puede apagar.
+/// Una nube de mentira: guarda las filas en memoria por su clave, como una
+/// base de datos, y se puede apagar. Devuelve las fechas a la manera de
+/// Postgres (`+00:00` y no `Z`), para que una comparación que no las
+/// normalice crea que cambió todo.
 class _Nube implements Remote {
-  final Map<String, ValleyRows> _datos = {};
+  final Map<String, Map<String, Map<String, Row>>> _datos = {};
   bool caida = false;
-  int subidas = 0;
+  final List<int> enviadas = [];
+
+  String _clave(String t, Row r) =>
+      jsonEncode([for (final k in primaryKeys[t]!) r[k]]);
+
+  Object? _postgres(Object? v) =>
+      v is String && RegExp(r'^\d{4}-\d\d-\d\dT.*Z$').hasMatch(v)
+      ? '${v.substring(0, v.length - 1)}+00:00'
+      : v;
 
   @override
   Future<ValleyRows?> pull(String userId) async {
     if (caida) throw Exception('sin conexión');
-    return _datos[userId];
+    final d = _datos[userId];
+    if (d == null) return null;
+    return ValleyRows({
+      for (final t in Tables.all)
+        t: [
+          for (final r in (d[t] ?? const {}).values)
+            {for (final e in r.entries) e.key: _postgres(e.value)},
+        ],
+    });
   }
 
   @override
-  Future<void> push(String userId, ValleyRows rows) async {
+  Future<void> apply(String userId, RowChanges changes) async {
     if (caida) throw Exception('sin conexión');
-    subidas++;
-    _datos[userId] = rows;
+    enviadas.add(changes.count);
+    final d = _datos.putIfAbsent(userId, () => {});
+    for (final t in Tables.all) {
+      final tabla = d.putIfAbsent(t, () => {});
+      for (final r in changes.upserts[t] ?? const <Row>[]) {
+        tabla[_clave(t, r)] = r;
+      }
+      for (final r in changes.deletes[t] ?? const <Row>[]) {
+        tabla.remove(_clave(t, r));
+      }
+    }
   }
 
-  int piezas(String userId) => _datos[userId]?[Tables.pieces].length ?? 0;
+  int piezas(String userId) => _datos[userId]?[Tables.pieces]?.length ?? 0;
 }
 
 final _lunes = DateTime(2026, 10, 5, 9);
@@ -136,13 +164,13 @@ void main() {
     test('el teléfono recién instalado baja el valle entero', () async {
       final nube = _Nube();
       final viejo = await _telefono(valle: _valle());
-      await syncNow(viejo, nube, 'u');
+      await CloudSync(viejo, nube, 'u').connect();
       final piezas = viejo.habits.fold<int>(0, (n, h) => n + h.total);
       expect(nube.piezas('u'), piezas);
 
       final nuevo = await _telefono();
       expect(nuevo.total, 0);
-      final hecho = await syncNow(nuevo, nube, 'u');
+      final hecho = await CloudSync(nuevo, nube, 'u').connect();
       expect(hecho.action, SyncAction.download);
       expect(nuevo.habits.fold<int>(0, (n, h) => n + h.total), piezas);
       expect(LocalChanges.instance.dirty, isFalse);
@@ -151,13 +179,17 @@ void main() {
     test('cada cambio se sube solo, y sin conexión queda pendiente', () async {
       final nube = _Nube();
       final s = await _telefono(valle: _valle());
-      await syncNow(s, nube, 'u');
+      final nubeDe = CloudSync(s, nube, 'u', pause: Duration.zero);
+      await nubeDe.connect();
       final antes = nube.piezas('u');
-      final auto = AutoSync(s, nube, 'u', pause: Duration.zero)..start();
+      expect(antes, greaterThan(200));
 
       s.placePiece();
       await Future<void>.delayed(const Duration(milliseconds: 50));
       expect(nube.piezas('u'), antes + 1);
+      // Y se mandó lo nuevo, no el valle entero: la pieza, el hábito, la
+      // fecha del valle y quizá un vecino o un papel nuevo del tablón.
+      expect(nubeDe.lastSent, lessThanOrEqualTo(6));
 
       // Sin conexión: la pieza se pone igual y espera.
       nube.caida = true;
@@ -168,10 +200,39 @@ void main() {
 
       // Vuelve la conexión: al entrar, sube lo pendiente.
       nube.caida = false;
-      final hecho = await syncNow(s, nube, 'u');
+      final hecho = await nubeDe.connect();
       expect(hecho.action, SyncAction.upload);
       expect(nube.piezas('u'), antes + 2);
-      auto.stop();
+      expect(nubeDe.lastSent, lessThanOrEqualTo(6));
+      nubeDe.stop();
+    });
+
+    test('lo que ya no está se borra también allá', () async {
+      final nube = _Nube();
+      final s = await _telefono(valle: _valle());
+      final nubeDe = CloudSync(s, nube, 'u', pause: Duration.zero);
+      await nubeDe.connect();
+      final antes = nube.piezas('u');
+      final quitadas = s.habits.last.total;
+      s.removeHabit(s.habits.length - 1);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(nube.piezas('u'), antes - quitadas);
+      nubeDe.stop();
+    });
+
+    test('conectar con todo igual no manda nada', () async {
+      final nube = _Nube();
+      final s = await _telefono(valle: _valle());
+      await CloudSync(s, nube, 'u').connect();
+      final otra = CloudSync(s, nube, 'u');
+      final hecho = await otra.connect();
+      expect(hecho.action, SyncAction.none);
+      // Sin cambios, una subida a mano no manda ni una fila, aunque las
+      // fechas de la nube vengan escritas de otra manera.
+      LocalChanges.instance.touch();
+      await otra.pushNow();
+      expect(otra.lastSent, 1, reason: 'sólo la fecha del valle');
+      otra.stop();
     });
 
     test('mover un papel del tablón también es un cambio', () async {

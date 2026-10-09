@@ -36,8 +36,10 @@ lo suyo y borrar un hábito se lleva sus piezas). El traductor está en
 
 - **Se sube cada cambio**: una pieza, un papel movido en el tablón, un ajuste.
   `LocalChanges` (`lib/model/changes.dart`) apunta cuándo cambió algo y
-  `AutoSync` (`lib/sync/remote.dart`) lo sube con dos segundos de pausa, para
-  no subir diez veces lo mismo. Sin conexión queda pendiente.
+  `CloudSync` (`lib/sync/remote.dart`) lo sube con dos segundos de pausa, para
+  no subir diez veces lo mismo. Sube **sólo lo que cambió** desde lo último
+  que quedó en la nube: una pieza en un valle de trescientas son dos filas.
+  Sin conexión queda pendiente.
 - **Al entrar, si no coinciden** (`lib/sync/merge.dart`): si sólo cambió el
   teléfono se sube —el caso de usarla sin conexión—; si sólo cambió la nube se
   baja; si cambiaron los dos gana el cambio más reciente. Un teléfono vacío
@@ -55,9 +57,10 @@ lo suyo y borrar un hábito se lleva sus piezas). El traductor está en
 3. Pasar a la app la URL del proyecto y la clave pública (`anon`). No son
    secretas, pero tampoco van al repositorio: por `--dart-define`.
 4. Agregar `supabase_flutter`, el botón de entrar en Ajustes, y una clase que
-   implemente `Remote`: `push` borra las filas del usuario que ya no están y
-   hace `upsert` del resto, tabla por tabla en el orden de `Tables.all`; `pull`
-   hace `select` de cada una. Al entrar, `syncNow`; después, `AutoSync`.
+   implemente `Remote`: `apply` hace `upsert` de las filas y `delete` de las
+   claves que le llegan, tabla por tabla en el orden de `Tables.all` (los
+   borrados al revés); `pull` hace `select` de cada una. Al entrar,
+   `CloudSync.connect()`, y desde ahí sube solo.
 
 ---
 

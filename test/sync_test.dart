@@ -140,6 +140,31 @@ void main() {
     }
   });
 
+  test('las claves de Dart son las del SQL', () {
+    // Si no coincidieran, comparar dos copias diría que cambió lo que no
+    // cambió, o borraría allá filas que siguen vivas.
+    final sql = File(
+      'supabase/migrations/20261009000000_towny.sql',
+    ).readAsStringSync();
+    final tabla = RegExp(
+      r'create table if not exists public\.(\w+) \((.*?)\n\);',
+      dotAll: true,
+    );
+    for (final m in tabla.allMatches(sql)) {
+      final cuerpo = m.group(2)!;
+      final compuesta = RegExp(r'primary key \(([^)]*)\)').firstMatch(cuerpo);
+      final clave = compuesta != null
+          ? compuesta.group(1)!.split(',').map((c) => c.trim()).toList()
+          : [
+              RegExp(
+                r'^  (\w+) [^\n]*primary key',
+                multiLine: true,
+              ).firstMatch(cuerpo)!.group(1)!,
+            ];
+      expect(primaryKeys[m.group(1)], clave, reason: m.group(1));
+    }
+  });
+
   test('las fechas viajan en UTC con milisegundos', () {
     final rows = toRows(LocalSnapshot(save: _valle()), 'u');
     final p = rows[Tables.pieces].first['placed_at'] as String;

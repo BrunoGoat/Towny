@@ -2,14 +2,15 @@
 ///
 /// Todavía no hay ninguno conectado. Esto es el enchufe: cuando se conecte
 /// Supabase, lo que hace falta es una clase que implemente [Remote] con su
-/// cliente —`from(tabla).upsert(filas)` y `from(tabla).select()`— y nada más
-/// de la app tiene que cambiar. Qué hay en cada tabla lo dice
+/// cliente —`from(tabla).upsert(filas)`, `delete()` por clave y `select()`—
+/// y nada más de la app tiene que cambiar. Qué hay en cada tabla lo dice
 /// `supabase/migrations/`, y cómo se traduce, `tables.dart`.
 library;
 
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../model/appearance.dart';
@@ -24,9 +25,10 @@ abstract interface class Remote {
   /// Lo que hay guardado de [userId], o null si nunca subió nada.
   Future<ValleyRows?> pull(String userId);
 
-  /// Deja guardado exactamente [rows]: lo que ya no está —un hábito borrado,
-  /// una nota descolgada— se borra también allá. Una copia, no una suma.
-  Future<void> push(String userId, ValleyRows rows);
+  /// Aplica [changes]: escribe sus filas y borra sus claves. Las escrituras
+  /// tabla por tabla en el orden de [Tables.all] —el hábito antes que sus
+  /// piezas— y los borrados en el orden contrario.
+  Future<void> apply(String userId, RowChanges changes);
 }
 
 /// Lo que la app tiene ahora mismo, listo para traducir.
@@ -73,44 +75,20 @@ int _piecesOf(Map<String, dynamic> save) {
   return n;
 }
 
-/// Pone de acuerdo el teléfono y la nube, al entrar o al recuperar conexión.
-/// Ver [decide] para las reglas. Devuelve lo que hizo.
-Future<SyncPlan> syncNow(Store store, Remote remote, String userId) async {
-  final changes = LocalChanges.instance;
-  final local = captureLocal(store);
-  final rows = await remote.pull(userId);
-  final cloud = rows == null ? null : fromRows(rows);
-  final plan = decide(
-    localChanged: changes.changedAt,
-    lastSynced: changes.syncedAt,
-    remoteChanged: cloud?.changedAt,
-    localPieces: _piecesOf(local.save),
-    remotePieces: cloud == null ? 0 : _piecesOf(cloud.save),
-  );
-  switch (plan.action) {
-    case SyncAction.none:
-      changes.markSynced(DateTime.now());
-    case SyncAction.upload:
-      if (plan.backup && cloud != null) await _keepBackup(cloud.save);
-      await remote.push(userId, toRows(local, userId));
-      changes.markSynced(DateTime.now());
-    case SyncAction.download:
-      if (plan.backup) await _keepBackup(local.save);
-      final error = await applyLocal(store, cloud!);
-      if (error == null) changes.markSynced(DateTime.now());
-  }
-  return plan;
-}
-
-/// Sube cada cambio: una pieza, un papel movido en el tablón, un ajuste.
+/// La conexión con la nube de una persona: ponerse de acuerdo al entrar, y
+/// después subir cada cambio.
 ///
-/// Con una pausa corta antes de subir, porque un cambio casi nunca viene
+/// Guarda lo último que quedó en la nube ([_base]) para subir sólo la
+/// diferencia: una pieza nueva son tres filas, no el valle entero. Por eso
+/// lo primero siempre es [connect], que baja lo que hay y fija esa base; sin
+/// base no se sube nada.
+///
+/// Las subidas esperan una pausa corta, porque un cambio casi nunca viene
 /// solo —arrastrar un papel son muchos movimientos, y poner una pieza escribe
-/// el valle, el tablón y la crónica— y una subida por cada uno sería subir lo
-/// mismo diez veces. Si falla (sin conexión), lo cambiado queda marcado y se
-/// sube en el próximo cambio o en el próximo [syncNow].
-class AutoSync {
-  AutoSync(
+/// el valle, el tablón y la crónica—. Si una falla (sin conexión), lo
+/// cambiado queda marcado y va en la próxima, o en el próximo [connect].
+class CloudSync {
+  CloudSync(
     this.store,
     this.remote,
     this.userId, {
@@ -122,13 +100,61 @@ class AutoSync {
   final String userId;
   final Duration pause;
 
+  /// Lo que hay en la nube ahora, escrito como lo escribe [toRows].
+  ValleyRows? _base;
+
   Timer? _soon;
   bool _busy = false;
+  bool _listening = false;
 
-  void start() => LocalChanges.instance.addListener(_changed);
+  /// Cuántas filas se mandaron en la última subida. Para los tests.
+  @visibleForTesting
+  int lastSent = 0;
+
+  /// Pone de acuerdo el teléfono y la nube. Ver [decide] para las reglas.
+  /// Después de esto, cada cambio se sube solo.
+  Future<SyncPlan> connect() async {
+    final changes = LocalChanges.instance;
+    final local = captureLocal(store);
+    final rows = await remote.pull(userId);
+    final cloud = rows == null ? null : fromRows(rows);
+    final base = rows == null ? null : canonical(rows, userId);
+    final plan = decide(
+      localChanged: changes.changedAt,
+      lastSynced: changes.syncedAt,
+      remoteChanged: cloud?.changedAt,
+      localPieces: _piecesOf(local.save),
+      remotePieces: cloud == null ? 0 : _piecesOf(cloud.save),
+    );
+    switch (plan.action) {
+      case SyncAction.none:
+        _base = base;
+        changes.markSynced(DateTime.now());
+      case SyncAction.upload:
+        if (plan.backup && cloud != null) await _keepBackup(cloud.save);
+        final now = DateTime.now();
+        final mine = toRows(local, userId);
+        await _send(diffRows(base, mine));
+        _base = mine;
+        changes.markSynced(now);
+      case SyncAction.download:
+        if (plan.backup) await _keepBackup(local.save);
+        final error = await applyLocal(store, cloud!);
+        if (error == null) {
+          _base = base;
+          changes.markSynced(DateTime.now());
+        }
+    }
+    if (!_listening) {
+      _listening = true;
+      changes.addListener(_changed);
+    }
+    return plan;
+  }
 
   void stop() {
-    LocalChanges.instance.removeListener(_changed);
+    if (_listening) LocalChanges.instance.removeListener(_changed);
+    _listening = false;
     _soon?.cancel();
   }
 
@@ -137,14 +163,22 @@ class AutoSync {
     _soon = Timer(pause, pushNow);
   }
 
-  /// Sube ya lo que haya pendiente.
+  Future<void> _send(RowChanges changes) async {
+    lastSent = changes.count;
+    if (changes.isEmpty) return;
+    await remote.apply(userId, changes);
+  }
+
+  /// Sube ya lo que haya pendiente: sólo lo que cambió desde la última vez.
   Future<void> pushNow() async {
-    if (_busy || !LocalChanges.instance.dirty) return;
+    if (_busy || _base == null || !LocalChanges.instance.dirty) return;
     _busy = true;
     final now = DateTime.now();
     var subio = false;
     try {
-      await remote.push(userId, toRows(captureLocal(store), userId));
+      final mine = toRows(captureLocal(store), userId);
+      await _send(diffRows(_base, mine));
+      _base = mine;
       LocalChanges.instance.markSynced(now);
       subio = true;
     } catch (_) {
