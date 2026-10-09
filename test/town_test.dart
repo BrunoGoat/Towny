@@ -227,6 +227,86 @@ void main() {
       expect(TownPlan.landmarkOf('porqueriza'), isNull);
     });
 
+    test('toda obra se arma en el pueblo igual que en su receta', () {
+      // Lo que se vio: en la mitad de los pueblos el coso tenía dos lienzos de
+      // arcada cruzándole la arena por el medio. El sentido de los tejados
+      // salía al azar también para las obras, y eso giraba las arcadas, las
+      // escaleras y las ruedas que no dicen su sentido —sin moverlas de
+      // sitio—, mientras el taller de obras las armaba siempre derechas.
+      //
+      // Así que se exige pieza por pieza, en todas las obras y en todas las
+      // comarcas: el mismo sentido y lo largo para el mismo lado que en la
+      // receta, y la obra entera, sin que sobre ni falte ninguna pieza.
+      for (final mark in landmarks) {
+        final receta = Mason(0, 0, 1, true);
+        mark.build(receta);
+        expect(
+          receta.out.length,
+          mark.cost,
+          reason:
+              '${mark.id}: la receta da ${receta.out.length} piezas y '
+              'cuesta ${mark.cost}',
+        );
+        // Lo empinado del tejado sí es de la comarca, y va aparte.
+        // Y lo que se apoya en un tejado —la buhardilla— sube y baja con él.
+        bool techoDe(PieceKind k) =>
+            k == PieceKind.roof ||
+            k == PieceKind.thatch ||
+            k == PieceKind.dormer;
+        for (final c in TownCharacter.all) {
+          final l = TownLayout.showcase(c, landmark: mark, placed: mark.cost);
+          final hechas = l.pieces.where((p) => p.building == 0).toList();
+          expect(hechas.length, mark.cost, reason: '${mark.id} en ${c.region}');
+          // Y en su sitio y a su tamaño: lo único que la comarca le hace a una
+          // obra es estirarla entera, igual en todas sus piezas —a lo ancho
+          // por un número y a lo alto por otro—, así que cada pieza tiene que
+          // ser la del taller multiplicada por esos dos números.
+          final ref = receta.out.indexWhere((r) => r.w > 0.2);
+          final ancho = hechas[ref].w / receta.out[ref].w;
+          final ox = hechas[ref].cx - receta.out[ref].cx * ancho;
+          final oz = hechas[ref].cz - receta.out[ref].cz * ancho;
+          final alzado = receta.out.indexWhere(
+            (r) => r.y1 - r.y0 > 0.2 && !techoDe(r.kind),
+          );
+          final alto =
+              (hechas[alzado].y1 - hechas[alzado].y0) /
+              (receta.out[alzado].y1 - receta.out[alzado].y0);
+          for (var i = 0; i < hechas.length; i++) {
+            final r = receta.out[i], p = hechas[i];
+            final donde = '${mark.id} pieza $i (${r.kind.name}) en ${c.region}';
+            expect(p.cx, closeTo(ox + r.cx * ancho, 1e-6), reason: donde);
+            expect(p.cz, closeTo(oz + r.cz * ancho, 1e-6), reason: donde);
+            expect(p.w, closeTo(r.w * ancho, 1e-6), reason: donde);
+            expect(p.d, closeTo(r.d * ancho, 1e-6), reason: donde);
+            if (r.kind != PieceKind.dormer) {
+              expect(p.y0, closeTo(r.y0 * alto, 1e-6), reason: donde);
+            }
+            if (!techoDe(r.kind)) {
+              expect(p.y1, closeTo(r.y1 * alto, 1e-6), reason: donde);
+            }
+            // La comarca puede techar de paja lo que la receta techa de teja.
+            PieceKind techo(PieceKind k) =>
+                k == PieceKind.thatch ? PieceKind.roof : k;
+            expect(techo(p.kind), techo(r.kind), reason: '${mark.id} pieza $i');
+            expect(
+              p.alongX,
+              r.alongX,
+              reason: '${mark.id} pieza $i en ${c.region}: girada',
+            );
+            if ((r.w - r.d).abs() > 1e-6) {
+              expect(
+                p.w > p.d,
+                r.w > r.d,
+                reason:
+                    '${mark.id} pieza $i (${r.kind.name}) en '
+                    '${c.region}: lo largo para el otro lado',
+              );
+            }
+          }
+        }
+      }
+    });
+
     test('every landmark has its own id and its own name', () {
       expect(landmarks.map((l) => l.id).toSet().length, landmarks.length);
       expect(landmarks.map((l) => l.name).toSet().length, landmarks.length);

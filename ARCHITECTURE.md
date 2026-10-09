@@ -194,7 +194,7 @@ cambiar cuánto suena la mitad la recalcula sola.
 
 ```bash
 flutter pub get
-flutter test          # 743 tests
+flutter test          # 744 tests
 flutter analyze
 flutter run
 flutter build apk --release

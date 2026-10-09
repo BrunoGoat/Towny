@@ -23,11 +23,11 @@ nombres de fuente (`RockSalt.ttf`), la hoja de pruebas y los comentarios.
 | Nombres de la gente | 87 | 87 | no: nombres propios |
 | Lo que hace la gente | 12 | 12 | sí |
 | Símbolos de hábito | 72 | 72 | sí |
-| La interfaz | 408 | 408 | sí |
+| La interfaz | 409 | 409 | sí |
 | Notificaciones | 9 | 9 | sí |
 | Widget de Android | 6 | 6 | sí |
 
-**1210 entradas**, que son unas 1764 frases sueltas. Sin los bandos se quedan en unas 892.
+**1211 entradas**, que son unas 1765 frases sueltas. Sin los bandos se quedan en unas 893.
 
 
 
@@ -57,7 +57,7 @@ nombres de fuente (`RockSalt.ttf`), la hoja de pruebas y los comentarios.
     Ya hay gente que no se va a ir. Se viene a hablarles y se vuelve más liviano.
 - **O11** · [atalaya] Atalaya · 8 piezas · nivel 0
     Alguien mira por los demás mientras los demás duermen.
-- **O12** · [almenara] Almenara · 9 piezas · nivel 0
+- **O12** · [almenara] Almenara · 10 piezas · nivel 0
     Un fuego arriba para decirle al valle que aquí estamos y que avisamos.
 - **O13** · [molinoViento] Molino de viento · 13 piezas · nivel 1
     Se oyen las aspas desde la cama. Mientras giran, hay pan.
@@ -115,7 +115,7 @@ nombres de fuente (`RockSalt.ttf`), la hoja de pruebas y los comentarios.
     Llegar deja de ser aparecer. A partir de hoy se entra.
 - **O40** · [muralla] Lienzo de muralla · 23 piezas · nivel 2
     Un pueblo que se cierra de noche y amanece con todos dentro.
-- **O41** · [alcazar] Alcázar · 31 piezas · nivel 2
+- **O41** · [alcazar] Alcázar · 32 piezas · nivel 2
     Quien manda ya no vive como los demás, y se nota desde lejos.
 - **O42** · [palacio] Palacio del señor · 23 piezas · nivel 2
     Se recibe al que viene de fuera. El pueblo entero se pone de punta en blanco.
@@ -133,7 +133,7 @@ nombres de fuente (`RockSalt.ttf`), la hoja de pruebas y los comentarios.
     Se reza, se guarda y se reparte. En los malos años se nota quién guardaba.
 - **O49** · [colegiata] Colegiata · 22 piezas · nivel 2
     Demasiada iglesia para un pueblo así, y ése es justo el orgullo.
-- **O50** · [sinagoga] Sinagoga · 20 piezas · nivel 2
+- **O50** · [sinagoga] Sinagoga · 21 piezas · nivel 2
     Otra manera de rezar que también es de aquí, desde hace tanto como la otra.
 - **O51** · [mezquita] Mezquita · 21 piezas · nivel 2
     La llamada se oye en todo el barrio, y el barrio sabe la hora sin mirar.
@@ -141,7 +141,7 @@ nombres de fuente (`RockSalt.ttf`), la hoja de pruebas y los comentarios.
     Por aquí entra el que acaba de nacer. Sale con nombre y con gente.
 - **O53** · [hospitalMayor] Hospital mayor · 21 piezas · nivel 2
     Se cuida al que no tiene quién lo cuide. Del pueblo también es eso.
-- **O54** · [universidad] Universidad · 29 piezas · nivel 2
+- **O54** · [universidad] Universidad · 30 piezas · nivel 2
     Vienen de fuera a aprender aquí, y los que se van dejan el nombre por ahí.
 - **O55** · [biblioteca] Biblioteca · 21 piezas · nivel 2
     Un año entero para copiar un libro que va a leer alguien sin nacer.
@@ -149,7 +149,7 @@ nombres de fuente (`RockSalt.ttf`), la hoja de pruebas y los comentarios.
     Una tarde al año el pueblo se cuenta a sí mismo y se ríe de sí mismo.
 - **O57** · [coso] Coso y graderío · 28 piezas · nivel 2
     Todo el pueblo sentado en el mismo sitio, gritando lo mismo.
-- **O58** · [jardin] Jardín del palacio · 26 piezas · nivel 2
+- **O58** · [jardin] Jardín del palacio · 27 piezas · nivel 2
     No sirve para nada. Hacía falta igual.
 - **O59** · [arcoVilla] Arco de la villa · 19 piezas · nivel 2
     No cierra nada ni defiende nada. Se levantó por el gusto de poder.
@@ -1800,39 +1800,40 @@ Invierno, primavera, verano y otoño, en ajustes y en el tablón.
 
 Frases que no caen en ninguna pantalla concreta.
 
-- **U376** · `todos los días`  <sub>cadence.dart:117 · cadenceSaid</sub>
-- **U377** · `una vez por semana`  <sub>cadence.dart:118 · cadenceSaid</sub>
-- **U378** · `$perWeek veces por semana`  <sub>cadence.dart:119 · cadenceSaid</sub>
-- **U379** · `Voy a ${lowerName(name.trim().isEmpty ? 'hacerlo' : name)}`  <sub>pledge.dart:56 · vowLine</sub>
-- **U380** · `$que, ${placeSaid(sitio!)}.`  <sub>pledge.dart:57 · vowLine</sub>
-- **U381** · `$que ${hourSaid(hour)}, ${placeSaid(sitio)}.`  <sub>pledge.dart:59 · vowLine</sub>
-- **U382** · `a medianoche`  <sub>pledge.dart:72 · hourSaid</sub>
-- **U383** · `a la 1 de la madrugada`  <sub>pledge.dart:73 · hourSaid</sub>
-- **U384** · `al mediodía`  <sub>pledge.dart:74 · hourSaid</sub>
-- **U385** · `a las $h de la madrugada`  <sub>pledge.dart:75 · hourSaid</sub>
-- **U386** · `a las $h de la mañana`  <sub>pledge.dart:76 · hourSaid</sub>
-- **U387** · `a las $h de la tarde`  <sub>pledge.dart:77 · hourSaid</sub>
-- **U388** · `a las $h de la noche`  <sub>pledge.dart:78 · hourSaid</sub>
-- **U389** · `después `  <sub>pledge.dart:99 · placeSaid</sub>
-- **U390** · `nada más `  <sub>pledge.dart:102 · placeSaid</sub>
-- **U391** · `Este pueblo es de $quien.`  <sub>pledge.dart:241 · identitySaid</sub>
-- **U392** · `todos los días`  <sub>pledge.dart:400 · rhythmSaid</sub>
-- **U393** · `un día por semana`  <sub>pledge.dart:401 · rhythmSaid</sub>
-- **U394** · `$perWeek días de cada siete`  <sub>pledge.dart:402 · rhythmSaid</sub>
-- **U395** · `LA PRIMERA SEMANA`  <sub>cadence_sheet.dart:76 · _CadenceSheetState.build</sub>
-- **U396** · `CADA CUÁNTO`  <sub>cadence_sheet.dart:77 · _CadenceSheetState.build</sub>
-- **U397** · `Esta semana pusiste $piezas `  <sub>cadence_sheet.dart:84 · _CadenceSheetState.build</sub>
-- **U398** · `¿Cada cuánto va ${h.name}?`  <sub>cadence_sheet.dart:92 · _CadenceSheetState.build</sub>
-- **U399** · `¿${h.name} es de todos los días, o de algunos días por `  <sub>cadence_sheet.dart:101 · _CadenceSheetState.build</sub>
-- **U400** · `semana? Viene marcado lo que se ve.`  <sub>cadence_sheet.dart:102 · _CadenceSheetState.build</sub>
-- **U401** · `No es una meta. Es para que el pueblo sepa cuándo un `  <sub>cadence_sheet.dart:107 · _CadenceSheetState.build</sub>
-- **U402** · `hueco es un hueco.`  <sub>cadence_sheet.dart:108 · _CadenceSheetState.build</sub>
-- **U403** · `Todos los días`  <sub>cadence_sheet.dart:123 · _CadenceSheetState.build</sub>
-- **U404** · `$n por semana`  <sub>cadence_sheet.dart:124 · _CadenceSheetState.build</sub>
-- **U405** · `Se cambia cuando quieras en la hoja del hábito.`  <sub>cadence_sheet.dart:159 · _CadenceSheetState.build</sub>
-- **U406** · `en la cama`  <sub>plan_picker.dart:239 · _PlanSheetState.build</sub>
-- **U407** · `Elegí la hora y escribí el sitio.`  <sub>plan_picker.dart:254 · _PlanSheetState.build</sub>
-- **U408** · `DARLO POR HECHO`  <sub>plan_picker.dart:276 · _PlanSheetState.build</sub>
+- **U376** · `versión simple`  <sub>renderer.dart:2085 · TownPainter._colourOf</sub>
+- **U377** · `todos los días`  <sub>cadence.dart:117 · cadenceSaid</sub>
+- **U378** · `una vez por semana`  <sub>cadence.dart:118 · cadenceSaid</sub>
+- **U379** · `$perWeek veces por semana`  <sub>cadence.dart:119 · cadenceSaid</sub>
+- **U380** · `Voy a ${lowerName(name.trim().isEmpty ? 'hacerlo' : name)}`  <sub>pledge.dart:56 · vowLine</sub>
+- **U381** · `$que, ${placeSaid(sitio!)}.`  <sub>pledge.dart:57 · vowLine</sub>
+- **U382** · `$que ${hourSaid(hour)}, ${placeSaid(sitio)}.`  <sub>pledge.dart:59 · vowLine</sub>
+- **U383** · `a medianoche`  <sub>pledge.dart:72 · hourSaid</sub>
+- **U384** · `a la 1 de la madrugada`  <sub>pledge.dart:73 · hourSaid</sub>
+- **U385** · `al mediodía`  <sub>pledge.dart:74 · hourSaid</sub>
+- **U386** · `a las $h de la madrugada`  <sub>pledge.dart:75 · hourSaid</sub>
+- **U387** · `a las $h de la mañana`  <sub>pledge.dart:76 · hourSaid</sub>
+- **U388** · `a las $h de la tarde`  <sub>pledge.dart:77 · hourSaid</sub>
+- **U389** · `a las $h de la noche`  <sub>pledge.dart:78 · hourSaid</sub>
+- **U390** · `después `  <sub>pledge.dart:99 · placeSaid</sub>
+- **U391** · `nada más `  <sub>pledge.dart:102 · placeSaid</sub>
+- **U392** · `Este pueblo es de $quien.`  <sub>pledge.dart:241 · identitySaid</sub>
+- **U393** · `todos los días`  <sub>pledge.dart:400 · rhythmSaid</sub>
+- **U394** · `un día por semana`  <sub>pledge.dart:401 · rhythmSaid</sub>
+- **U395** · `$perWeek días de cada siete`  <sub>pledge.dart:402 · rhythmSaid</sub>
+- **U396** · `LA PRIMERA SEMANA`  <sub>cadence_sheet.dart:76 · _CadenceSheetState.build</sub>
+- **U397** · `CADA CUÁNTO`  <sub>cadence_sheet.dart:77 · _CadenceSheetState.build</sub>
+- **U398** · `Esta semana pusiste $piezas `  <sub>cadence_sheet.dart:84 · _CadenceSheetState.build</sub>
+- **U399** · `¿Cada cuánto va ${h.name}?`  <sub>cadence_sheet.dart:92 · _CadenceSheetState.build</sub>
+- **U400** · `¿${h.name} es de todos los días, o de algunos días por `  <sub>cadence_sheet.dart:101 · _CadenceSheetState.build</sub>
+- **U401** · `semana? Viene marcado lo que se ve.`  <sub>cadence_sheet.dart:102 · _CadenceSheetState.build</sub>
+- **U402** · `No es una meta. Es para que el pueblo sepa cuándo un `  <sub>cadence_sheet.dart:107 · _CadenceSheetState.build</sub>
+- **U403** · `hueco es un hueco.`  <sub>cadence_sheet.dart:108 · _CadenceSheetState.build</sub>
+- **U404** · `Todos los días`  <sub>cadence_sheet.dart:123 · _CadenceSheetState.build</sub>
+- **U405** · `$n por semana`  <sub>cadence_sheet.dart:124 · _CadenceSheetState.build</sub>
+- **U406** · `Se cambia cuando quieras en la hoja del hábito.`  <sub>cadence_sheet.dart:159 · _CadenceSheetState.build</sub>
+- **U407** · `en la cama`  <sub>plan_picker.dart:239 · _PlanSheetState.build</sub>
+- **U408** · `Elegí la hora y escribí el sitio.`  <sub>plan_picker.dart:254 · _PlanSheetState.build</sub>
+- **U409** · `DARLO POR HECHO`  <sub>plan_picker.dart:276 · _PlanSheetState.build</sub>
 
 ## Las notificaciones (9)
 

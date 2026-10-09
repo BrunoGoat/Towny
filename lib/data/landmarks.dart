@@ -331,7 +331,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'almenara',
     'Almenara',
-    9,
+    10,
     0,
     'Un fuego arriba para decirle al valle que aquí estamos y que '
         'avisamos.',
@@ -1204,7 +1204,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'alcazar',
     'Alcázar',
-    31,
+    32,
     2,
     'Quien manda ya no vive como los demás, y se nota desde lejos.',
     (m) {
@@ -1617,7 +1617,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'sinagoga',
     'Sinagoga',
-    20,
+    21,
     2,
     'Otra manera de rezar que también es de aquí, desde hace tanto como '
         'la otra.',
@@ -1759,7 +1759,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'universidad',
     'Universidad',
-    29,
+    30,
     2,
     'Vienen de fuera a aprender aquí, y los que se van dejan el nombre '
         'por ahí.',
@@ -1802,7 +1802,7 @@ final List<Landmark> landmarks = [
       m.banner(1.4, dx: -1.4, dz: 4.4, at: 3.6);
       m.banner(1.4, dx: 1.4, dz: 4.4, at: 3.6);
       m.stair(2.8, 0.4, 0.9, dz: 5.6);
-      m.tree(1.3, 2.5, dx: 4.8, dz: -5.4);
+      m.tree(1.3, 2.5, dx: 5.3, dz: -5.6);
     },
     scale: 0.65,
   ),
@@ -1920,7 +1920,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'jardin',
     'Jardín del palacio',
-    26,
+    27,
     2,
     'No sirve para nada. Hacía falta igual.',
     (m) {
