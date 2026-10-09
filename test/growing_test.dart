@@ -70,7 +70,10 @@ void main() {
             was.pieces.length,
             reason: '${c.region} con $placed',
           );
-          for (var i = 0; i < was.pieces.length; i++) {
+          // Lo puesto, y no la pieza que viene: la primera piedra de un hito
+          // que todavía no empezó no es «lo ya construido», y ése sí puede
+          // cambiar cuando el catálogo crece. Ver el test de abajo.
+          for (var i = 0; i < placed && i < was.pieces.length; i++) {
             final a = was.pieces[i], b = now.pieces[i];
             expect(b.kind, a.kind, reason: '${c.region}/$placed: pieza $i');
             expect(
@@ -95,6 +98,8 @@ void main() {
             );
           }
           for (var i = 0; i < was.buildings.length; i++) {
+            // Lo mismo con los edificios: los empezados, no el que viene.
+            if (was.buildings[i].firstPiece >= placed) continue;
             expect(
               now.buildings[i].name,
               was.buildings[i].name,

@@ -518,27 +518,48 @@ void main() {
 
     test('lo chico primero y lo grande cuando el pueblo ya es grande', () {
       // Un pueblo nuevo empieza con obras de cinco a diez piezas, que le
-      // llegan seguido; las medianas vienen después y las grandes —el coso,
-      // la catedral, el castillo— cuando el pueblo ya lleva más de un año.
-      // Hubo una lista de obras de apertura que metía el castillo de
-      // cincuenta y dos piezas entre las primeras, y un pueblo de sesenta con
-      // treinta de monumento se ve chico, no importante.
+      // llegan seguido; desde el sexto hito —unas ciento cincuenta piezas—
+      // puede salirle una grande, y al décimo seguro le salió. Hubo una lista
+      // de obras de apertura que metía el castillo de cincuenta y dos piezas
+      // entre las primeras, y un pueblo de sesenta con treinta de monumento se
+      // ve chico, no importante.
       for (final c in TownCharacter.all) {
-        for (final seed in [0, 3, 11]) {
-          final l = TownLayout(1400, c, seed: seed);
+        for (var seed = 0; seed < 12; seed++) {
+          final l = TownLayout(700, c, seed: seed);
           final hitos = [
             for (final b in l.buildings)
               if (b.isLandmark) b.landmark!,
           ];
-          expect(hitos.length, greaterThan(12), reason: c.region);
+          expect(hitos.length, greaterThan(10), reason: c.region);
+          for (var i = 0; i < 3; i++) {
+            expect(hitos[i].tier, 0, reason: '${c.region}/$seed hito $i');
+          }
           for (var i = 0; i < 5; i++) {
-            expect(hitos[i].tier, 0, reason: '${c.region} hito $i');
+            expect(
+              hitos[i].tier,
+              lessThan(2),
+              reason: '${c.region}/$seed hito $i',
+            );
           }
-          for (var i = 5; i < 10; i++) {
-            expect(hitos[i].tier, 1, reason: '${c.region} hito $i');
-          }
-          expect(hitos[10].tier, 2, reason: '${c.region} hito 10');
+          expect(
+            hitos.take(10).any((h) => h.tier == 2),
+            isTrue,
+            reason: '${c.region}/$seed: diez hitos y ninguno grande',
+          );
         }
+      }
+    });
+
+    test('entre hito y hito no hay un barrio de relleno', () {
+      // Entre el décimo hito y el undécimo llegó a haber catorce casas. Ahora
+      // la distancia empieza en tres casas y no pasa de seis.
+      var antes = -1;
+      for (var b = 0; b < 400; b++) {
+        if (!TownPlan.isLandmarkSlot(b)) continue;
+        if (antes >= 0) {
+          expect(b - antes - 1, inInclusiveRange(3, 6), reason: 'en el $b');
+        }
+        antes = b;
       }
     });
 

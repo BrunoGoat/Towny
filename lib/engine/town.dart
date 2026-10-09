@@ -205,25 +205,30 @@ class TownPlan {
   /// `casa` la casa con `casa` el hito que algún día se llame así.
   static const String kindMark = '#';
 
-  /// Landmarks arrive at a widening cadence, so the first one is close enough
-  /// to be worth waiting for and the twentieth does not arrive every fortnight.
+  /// Cada cuántos edificios llega un hito.
+  ///
+  /// Cuatro al principio —tres casas y el hito—, y la distancia crece un
+  /// edificio cada cuatro hitos, hasta siete. Crecía uno por hito y sin tope:
+  /// entre el décimo y el undécimo había catorce casas, y un pueblo de un año
+  /// era casi todo relleno con un monumento cada mucho.
+  static int _gap(int step) => step ~/ 4 + 4 > 7 ? 7 : step ~/ 4 + 4;
+
   static bool isLandmarkSlot(int b) {
-    var at = _firstLandmark, gap = _firstGap, step = 0;
+    var at = _firstLandmark, step = 0;
     while (at < b) {
-      at += gap + step;
+      at += _gap(step);
       step++;
     }
     return at == b;
   }
 
   static const int _firstLandmark = 4;
-  static const int _firstGap = 6;
 
   /// Which landmark this is, counting from the first one the town builds.
   static int landmarkNumber(int b) {
-    var n = 0, at = _firstLandmark, gap = _firstGap, step = 0;
+    var n = 0, at = _firstLandmark, step = 0;
     while (at < b) {
-      at += gap + step;
+      at += _gap(step);
       step++;
       n++;
     }
@@ -293,19 +298,32 @@ class TownPlan {
     return l.tier * 0.8 + r * 0.7 + caro * 0.5 + triste;
   }
 
-  /// De qué nivel es el hito número [no] de un pueblo.
+  /// De qué tamaño es el hito número [no] de este pueblo: 0 chico, 1
+  /// mediano, 2 grande.
   ///
-  /// Los cinco primeros —hasta unas ciento cincuenta piezas— obras chicas; del
-  /// sexto al décimo, medianas; y del undécimo en adelante —pasadas unas
-  /// quinientas piezas, más de un año de días— dos de cada tres son grandes, y
-  /// la tercera es una chica o una mediana de las que quedan, que un pueblo
-  /// grande también se hace un palomar. Por número de hito y no por piezas,
-  /// porque los hitos llegan cada vez más espaciados y eso ya lo dice.
-  static int tierFor(int no) {
-    if (no < 5) return 0;
-    if (no < 10) return 1;
-    if ((no - 10) % 3 != 2) return 2;
-    return ((no - 10) ~/ 3).isEven ? 1 : 0;
+  /// Sorteado, con la suerte cargando hacia lo grande según crece el pueblo.
+  /// Los tres primeros son siempre chicos; el cuarto y el quinto pueden ser
+  /// medianos; desde el sexto —unas ciento cincuenta piezas— **puede** salir
+  /// una grande, y cada vez es más probable. Puede, no tiene por qué: hay
+  /// pueblos a los que la primera catedral les llega pronto y otros que se
+  /// hacen despacio, y esa es la diferencia entre dos pueblos.
+  ///
+  /// Por número de hito y no por piezas, porque el número ya lo dice: los
+  /// hitos llegan a un ritmo fijo.
+  int tierFor(int no) {
+    if (no < 3) return 0;
+    // Mezclado dos veces: con una sola, hitos seguidos sacaban casi el mismo
+    // número y un pueblo encadenaba siete medianos.
+    final h = hash01(hash32(character.order * 7919 + seed, 0x71e7, no), no);
+    if (no < 5) return h < 0.65 ? 0 : 1;
+    // Y si al décimo todavía no salió ninguna grande, ésa lo es: la suerte
+    // decide cuándo llega la primera, no si llega.
+    if (no == 9 && ![for (var k = 5; k < 9; k++) tierFor(k)].contains(2)) {
+      return 2;
+    }
+    if (no < 8) return h < 0.25 ? 0 : (h < 0.70 ? 1 : 2);
+    if (no < 12) return h < 0.15 ? 0 : (h < 0.55 ? 1 : 2);
+    return h < 0.10 ? 0 : (h < 0.40 ? 1 : 2);
   }
 
   /// El catálogo entero en el orden en que este pueblo lo construye.
@@ -618,7 +636,13 @@ class TownPlan {
       if (!written && from >= placed) {
         if (from > placed) return null;
         if (landmarkOf(id) != null) {
-          return (b, landmarkChoices(landmarkNumber(b), used));
+          // Sólo se pregunta por las grandes. Las chicas y las medianas llegan
+          // cada pocas semanas y se eligen solas: preguntar por cada palomar
+          // sería un trámite, y la pregunta tiene que ser una decisión —
+          // catedral o castillo—, que es lo que se pregunta pocas veces al año.
+          final no = landmarkNumber(b);
+          if (tierFor(no) < 2) return null;
+          return (b, landmarkChoices(no, used));
         }
       }
       if (!id.startsWith(kindMark)) used.add(id);
