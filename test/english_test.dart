@@ -260,7 +260,7 @@ void main() {
         ),
       );
       await tester.pump(const Duration(milliseconds: 300));
-      expect(find.text('DEVELOPER'), findsOneWidget);
+      expect(find.text('Developer'), findsOneWidget);
       for (final x in _leer(tester)) {
         _sinCastellano(x, 'los ajustes de desarrollo');
       }

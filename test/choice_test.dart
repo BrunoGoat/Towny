@@ -469,7 +469,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(dev);
       await tester.pumpAndSettle();
-      expect(find.text('DESARROLLO'), findsOneWidget);
+      expect(find.text('Modo rápido'), findsOneWidget);
       return store;
     }
 

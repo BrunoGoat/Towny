@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 
 import '../core/rng.dart';
@@ -64,61 +67,54 @@ class _SettingsSheetState extends State<SettingsSheet> {
   @override
   Widget build(BuildContext context) {
     final t = widget.theme;
-    return SheetSurface(
+    final velo = SheetInk.of(t);
+    return _Glass(
       theme: t,
-      padding: const EdgeInsets.fromLTRB(22, 16, 22, 26),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
       child: ListenableBuilder(
         listenable: Appearance.instance,
         builder: (context, _) => SizedBox(
-          height: MediaQuery.of(context).size.height * 0.82,
+          height: MediaQuery.of(context).size.height * 0.84,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: Container(
-                  width: 38,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: t.fg.withValues(alpha: 0.22),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+              _Asa(velo: velo),
+              const SizedBox(height: 14),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        widget.dev
+                            ? tr('Desarrollo', 'Developer')
+                            : tr('Ajustes', 'Settings'),
+                        style: t.title.copyWith(
+                          color: velo.cuerpo,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w400,
+                          shadows: velo.aliento,
+                        ),
+                      ),
+                    ),
+                    // Qué build es ésta.
+                    //
+                    // Existe porque no existía, y no saberlo costó una tarde:
+                    // se probaba algo que no salía, y la pregunta «¿está el
+                    // cambio o es la build de antes?» no tenía manera de
+                    // contestarse desde el teléfono. Lo pone el flujo al
+                    // compilar y en local sale vacío, que es lo correcto.
+                    if (_build.isNotEmpty)
+                      Text(
+                        'BUILD $_build',
+                        style: t.label.copyWith(fontSize: 9, color: velo.tenue),
+                      ),
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    widget.dev
-                        ? tr('DESARROLLO', 'DEVELOPER')
-                        : tr('AJUSTES', 'SETTINGS'),
-                    style: t.label,
-                  ),
-                  // Qué build es ésta.
-                  //
-                  // Existe porque no existía, y no saberlo costó una tarde: se
-                  // probaba algo que no salía, y la pregunta «¿está el cambio
-                  // o es la build de antes?» no tenía manera de contestarse
-                  // desde el teléfono. Con las APK saliendo de un flujo que
-                  // numera cada ejecución, no decir el número en ninguna parte
-                  // es guardarse el único dato que hace falta para saber qué
-                  // se está mirando.
-                  //
-                  // Del mismo `--dart-define` que el resto de la app, así que
-                  // no añade dependencia ninguna: lo pone el flujo al compilar
-                  // y en local sale vacío, que es lo correcto — una build de
-                  // tu propia máquina no tiene número.
-                  if (_build.isNotEmpty)
-                    Text(
-                      'BUILD $_build',
-                      style: t.label.copyWith(
-                        fontSize: 9,
-                        color: t.fg.withValues(alpha: 0.30),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 10),
               Expanded(child: _body(context, t)),
             ],
           ),
@@ -135,504 +131,557 @@ class _SettingsSheetState extends State<SettingsSheet> {
     final store = widget.store;
     final items = widget.dev
         ? <Widget>[
-            _Head(theme: t, text: tr('PIEZAS Y PUEBLOS', 'PIECES AND TOWNS')),
-            _Switch(
+            _Section(
               theme: t,
-              title: tr('Modo rápido', 'Fast mode'),
-              subtitle: tr(
-                'Mantener pone piezas seguidas. Para probar, no para usar: una '
-                    'pieza es un logro.',
-                'Holding places pieces one after another. For testing, not for '
-                    'real use: a piece is an achievement.',
-              ),
-              on: wants.rapid,
-              onChanged: wants.setRapid,
-            ),
-            _Switch(
-              theme: t,
-              title: tr('Sin límite de hábitos', 'No habit limit'),
-              subtitle: tr(
-                'Fundar pueblos nuevos sin tener que desbloquearlos. Para probar: '
-                    'el segundo pueblo se gana.',
-                'Found new towns without unlocking them. For testing: the second '
-                    'town is meant to be earned.',
-              ),
-              on: wants.freeHabits,
-              onChanged: wants.setFreeHabits,
-            ),
-            const SizedBox(height: 26),
-            _Head(theme: t, text: tr('LA HORA', 'THE TIME')),
-            _Switch(
-              theme: t,
-              title: tr('Fingir la hora', 'Pretend the time'),
-              subtitle: tr(
-                'Para mirar el pueblo a cualquier hora sin esperarla. Cambia el '
-                    'cielo, la música, las ventanas y las fugaces, porque las '
-                    'cuatro salen de la misma hora.',
-                'To look at the town at any hour without waiting for it. It '
-                    'changes the sky, the music, the windows and the shooting '
-                    'stars, because all four come from the same clock.',
-              ),
-              on: wants.fakeHour,
-              onChanged: wants.setFakeHour,
-            ),
-            if (wants.fakeHour)
-              _Slider(
-                theme: t,
-                title: tr(
-                  'Son las ${wants.fakeHourAt.floor().toString().padLeft(2, '0')}'
-                      ':${((wants.fakeHourAt % 1) * 60).floor().toString().padLeft(2, '0')}',
-                  "It's ${wants.fakeHourAt.floor().toString().padLeft(2, '0')}"
-                      ':${((wants.fakeHourAt % 1) * 60).floor().toString().padLeft(2, '0')}',
-                ),
-                value: wants.fakeHourAt / 24,
-                onChanged: (v) => wants.setFakeHourAt(v * 24),
-              ),
-            _Row(
-              theme: t,
-              icon: Icons.auto_awesome,
-              title: tr('Tirar una estrella fugaz', 'Send a shooting star'),
-              subtitle: tr(
-                'Sale ya mismo, sin esperar. Dura cinco segundos, cruza por donde '
-                    'estés mirando y de noche pasa una cada cuatro minutos y medio '
-                    'de media.',
-                'It goes right now, no waiting. It lasts five seconds, crosses '
-                    "wherever you're looking, and at night one passes every four "
-                    'and a half minutes on average.',
-              ),
-              // Cierra los ajustes primero. Sin eso la fugaz cruzaba por detrás de
-              // esta misma hoja durante los cinco segundos que dura, que es la
-              // manera más tonta de que un botón de probar algo no pruebe nada. El
-              // sonido no lo toca esto: lo toca el valle al verla, y así suena una
-              // vez y no dos.
-              act: (nav) {
-                nav.pop();
-                Future<void>.delayed(
-                  const Duration(milliseconds: 260),
-                  ShootingStar.force,
-                );
-              },
-            ),
-
-            const SizedBox(height: 26),
-            _Head(theme: t, text: tr('EL AÑO', 'THE YEAR')),
-            if (!wants.seasons)
-              Text(
-                tr(
-                  'Las estaciones están apagadas en los ajustes.',
-                  'The seasons are switched off in settings.',
-                ),
-                style: t.bodySoft.copyWith(fontSize: 11.5, height: 1.4),
-              ),
-            if (wants.seasons) ...[
-              _Switch(
-                theme: t,
-                title: tr(
-                  'Fingir el día del año',
-                  'Pretend the day of the year',
-                ),
-                subtitle: tr(
-                  'Para ver el invierno en marzo sin esperarlo, igual que se '
-                      'finge la hora.',
-                  'To see winter in March without waiting for it, the same way '
-                      'you pretend the time.',
-                ),
-                on: wants.fakeSeason,
-                onChanged: wants.setFakeSeason,
-              ),
-              if (wants.fakeSeason) ...[
-                // Las cuatro de un toque, y el deslizador debajo para lo de en
-                // medio. Estaba sólo el deslizador y no servía para lo que la
-                // gente quiere hacer con esto, que es ver las cuatro estaciones
-                // seguidas: buscar el invierno a tientas en una barra no es verlo,
-                // es cazarlo.
-                _Pick(
+              title: tr('PIEZAS Y PUEBLOS', 'PIECES AND TOWNS'),
+              children: [
+                _Switch(
                   theme: t,
-                  // En el **pico** de cada una y no en su primer día: el suelo
-                  // va un mes por detrás del sol, así que en el solsticio todavía
-                  // se ve la estación que se va. Quien toca «Invierno» quiere ver
-                  // el invierno, no el 21 de diciembre.
-                  options: [
-                    (tr('Invierno', 'Winter'), 0.09),
-                    (tr('Primavera', 'Spring'), 0.34),
-                    (tr('Verano', 'Summer'), 0.59),
-                    (tr('Otoño', 'Autumn'), 0.84),
-                  ],
-                  value: wants.fakeSeasonAt,
-                  onPick: wants.setFakeSeasonAt,
+                  title: tr('Modo rápido', 'Fast mode'),
+                  subtitle: tr(
+                    'Mantener pone piezas seguidas. Para probar, no para usar: una '
+                        'pieza es un logro.',
+                    'Holding places pieces one after another. For testing, not for '
+                        'real use: a piece is an achievement.',
+                  ),
+                  on: wants.rapid,
+                  onChanged: wants.setRapid,
                 ),
-                _Slider(
+                _Switch(
                   theme: t,
-                  title:
-                      '${Season(wants.fakeSeasonAt).name}, '
-                      '${Season(wants.fakeSeasonAt).daylightHours.toStringAsFixed(1)}'
-                      '${tr(' horas de luz', ' hours of daylight')}',
-                  value: wants.fakeSeasonAt,
-                  onChanged: wants.setFakeSeasonAt,
+                  title: tr('Sin límite de hábitos', 'No habit limit'),
+                  subtitle: tr(
+                    'Fundar pueblos nuevos sin tener que desbloquearlos. Para probar: '
+                        'el segundo pueblo se gana.',
+                    'Found new towns without unlocking them. For testing: the second '
+                        'town is meant to be earned.',
+                  ),
+                  on: wants.freeHabits,
+                  onChanged: wants.setFreeHabits,
                 ),
               ],
-            ],
-            const SizedBox(height: 26),
-            _Head(theme: t, text: tr('EL TABLÓN', 'THE NOTICE BOARD')),
-            Text(
-              tr(
-                'Las letras del tablón ya no se eligen: tus cuentas van todas de '
-                    'la misma mano y cada bando sale con la del vecino que lo '
-                    'colgó. Un tablón de plaza se lee así, no con una letra que se '
-                    'elige en un menú.',
-                "The board's handwriting isn't chosen any more: your tallies are "
-                    'all in the same hand, and each notice comes in the hand of the '
-                    'neighbour who pinned it. That is how a town board reads, not '
-                    'in a font picked from a menu.',
-              ),
-              style: t.bodySoft.copyWith(fontSize: 11.5, height: 1.4),
             ),
-            const SizedBox(height: 12),
-            _Row(
+            _Section(
               theme: t,
-              icon: Icons.auto_stories_outlined,
-              title: tr(
-                'Ver el tablón con un pueblo lleno',
-                'See the board of a full town',
-              ),
-              subtitle: tr(
-                'Un valle de mentira: entrenar durante 300 días. Trae un dado '
-                    'que vuelve a repartirlo con notas al azar, para ver si el '
-                    'texto cabe también en las que no salen nunca.',
-                'A pretend valley: training for 300 days. It comes with a die '
-                    'that deals it again with random notes, to check that the text '
-                    'also fits in the ones that hardly ever come up.',
-              ),
-              page: () {
-                final valle = demoValley();
-                return NoticeBoardScreen(
-                  valley: valle,
-                  habit: valle.first,
+              title: tr('LA HORA', 'THE TIME'),
+              children: [
+                _Switch(
                   theme: t,
-                  dice: true,
-                );
-              },
+                  title: tr('Fingir la hora', 'Pretend the time'),
+                  subtitle: tr(
+                    'Para mirar el pueblo a cualquier hora sin esperarla. Cambia el '
+                        'cielo, la música, las ventanas y las fugaces, porque las '
+                        'cuatro salen de la misma hora.',
+                    'To look at the town at any hour without waiting for it. It '
+                        'changes the sky, the music, the windows and the shooting '
+                        'stars, because all four come from the same clock.',
+                  ),
+                  on: wants.fakeHour,
+                  onChanged: wants.setFakeHour,
+                ),
+                if (wants.fakeHour)
+                  _Slider(
+                    theme: t,
+                    title: tr(
+                      'Son las ${wants.fakeHourAt.floor().toString().padLeft(2, '0')}'
+                          ':${((wants.fakeHourAt % 1) * 60).floor().toString().padLeft(2, '0')}',
+                      "It's ${wants.fakeHourAt.floor().toString().padLeft(2, '0')}"
+                          ':${((wants.fakeHourAt % 1) * 60).floor().toString().padLeft(2, '0')}',
+                    ),
+                    value: wants.fakeHourAt / 24,
+                    onChanged: (v) => wants.setFakeHourAt(v * 24),
+                  ),
+                _Row(
+                  theme: t,
+                  icon: Icons.auto_awesome,
+                  title: tr('Tirar una estrella fugaz', 'Send a shooting star'),
+                  subtitle: tr(
+                    'Sale ya mismo, sin esperar. Dura cinco segundos, cruza por donde '
+                        'estés mirando y de noche pasa una cada cuatro minutos y medio '
+                        'de media.',
+                    'It goes right now, no waiting. It lasts five seconds, crosses '
+                        "wherever you're looking, and at night one passes every four "
+                        'and a half minutes on average.',
+                  ),
+                  // Cierra los ajustes primero. Sin eso la fugaz cruzaba por detrás de
+                  // esta misma hoja durante los cinco segundos que dura, que es la
+                  // manera más tonta de que un botón de probar algo no pruebe nada. El
+                  // sonido no lo toca esto: lo toca el valle al verla, y así suena una
+                  // vez y no dos.
+                  act: (nav) {
+                    nav.pop();
+                    Future<void>.delayed(
+                      const Duration(milliseconds: 260),
+                      ShootingStar.force,
+                    );
+                  },
+                ),
+              ],
             ),
-
-            const SizedBox(height: 26),
-            _Head(theme: t, text: tr('PARA MIRAR', 'TO LOOK AT')),
-            _Row(
+            _Section(
               theme: t,
-              icon: Icons.tune,
-              title: tr('Ver el pueblo a futuro', 'See the town in the future'),
-              subtitle: tr(
-                'Cómo se vería con 100, 500 o 5000 piezas.',
-                'How it would look with 100, 500 or 5000 pieces.',
-              ),
-              open: () => DebugSheet(store: store, theme: t),
+              title: tr('EL AÑO', 'THE YEAR'),
+              children: [
+                if (!wants.seasons)
+                  Text(
+                    tr(
+                      'Las estaciones están apagadas en los ajustes.',
+                      'The seasons are switched off in settings.',
+                    ),
+                    style: _nota(t),
+                  ),
+                if (wants.seasons) ...[
+                  _Switch(
+                    theme: t,
+                    title: tr(
+                      'Fingir el día del año',
+                      'Pretend the day of the year',
+                    ),
+                    subtitle: tr(
+                      'Para ver el invierno en marzo sin esperarlo, igual que se '
+                          'finge la hora.',
+                      'To see winter in March without waiting for it, the same way '
+                          'you pretend the time.',
+                    ),
+                    on: wants.fakeSeason,
+                    onChanged: wants.setFakeSeason,
+                  ),
+                  if (wants.fakeSeason) ...[
+                    // Las cuatro de un toque, y el deslizador debajo para lo de en
+                    // medio. Estaba sólo el deslizador y no servía para lo que la
+                    // gente quiere hacer con esto, que es ver las cuatro estaciones
+                    // seguidas: buscar el invierno a tientas en una barra no es verlo,
+                    // es cazarlo.
+                    _Pick(
+                      theme: t,
+                      // En el **pico** de cada una y no en su primer día: el suelo
+                      // va un mes por detrás del sol, así que en el solsticio todavía
+                      // se ve la estación que se va. Quien toca «Invierno» quiere ver
+                      // el invierno, no el 21 de diciembre.
+                      options: [
+                        (tr('Invierno', 'Winter'), 0.09),
+                        (tr('Primavera', 'Spring'), 0.34),
+                        (tr('Verano', 'Summer'), 0.59),
+                        (tr('Otoño', 'Autumn'), 0.84),
+                      ],
+                      value: wants.fakeSeasonAt,
+                      onPick: wants.setFakeSeasonAt,
+                    ),
+                    _Slider(
+                      theme: t,
+                      title:
+                          '${Season(wants.fakeSeasonAt).name}, '
+                          '${Season(wants.fakeSeasonAt).daylightHours.toStringAsFixed(1)}'
+                          '${tr(' horas de luz', ' hours of daylight')}',
+                      value: wants.fakeSeasonAt,
+                      onChanged: wants.setFakeSeasonAt,
+                    ),
+                  ],
+                ],
+              ],
             ),
-            _Row(
+            _Section(
               theme: t,
-              icon: Icons.fork_right,
-              title: tr('Ver la tarjeta de elegir', 'See the choice card'),
-              subtitle: tr(
-                'La pregunta que sale al empezar una obra, con dos al azar del '
-                    'catálogo. Mirar y ya: no elige nada ni toca tu pueblo.',
-                'The question that comes up when a work begins, with two random '
-                    "ones from the catalogue. Just to look: it doesn't choose "
-                    'anything or touch your town.',
-              ),
-              act: (nav) {
-                nav.pop();
-                _verLaPregunta(nav, t, store);
-              },
+              title: tr('EL TABLÓN', 'THE NOTICE BOARD'),
+              children: [
+                Text(
+                  tr(
+                    'Las letras del tablón ya no se eligen: tus cuentas van todas de '
+                        'la misma mano y cada bando sale con la del vecino que lo '
+                        'colgó. Un tablón de plaza se lee así, no con una letra que se '
+                        'elige en un menú.',
+                    "The board's handwriting isn't chosen any more: your tallies are "
+                        'all in the same hand, and each notice comes in the hand of the '
+                        'neighbour who pinned it. That is how a town board reads, not '
+                        'in a font picked from a menu.',
+                  ),
+                  style: _nota(t),
+                ),
+                const SizedBox(height: 12),
+                _Row(
+                  theme: t,
+                  icon: Icons.auto_stories_outlined,
+                  title: tr(
+                    'Ver el tablón con un pueblo lleno',
+                    'See the board of a full town',
+                  ),
+                  subtitle: tr(
+                    'Un valle de mentira: entrenar durante 300 días. Trae un dado '
+                        'que vuelve a repartirlo con notas al azar, para ver si el '
+                        'texto cabe también en las que no salen nunca.',
+                    'A pretend valley: training for 300 days. It comes with a die '
+                        'that deals it again with random notes, to check that the text '
+                        'also fits in the ones that hardly ever come up.',
+                  ),
+                  page: () {
+                    final valle = demoValley();
+                    return NoticeBoardScreen(
+                      valley: valle,
+                      habit: valle.first,
+                      theme: t,
+                      dice: true,
+                    );
+                  },
+                ),
+              ],
             ),
-            _Row(
+            _Section(
               theme: t,
-              icon: Icons.restart_alt,
-              title: tr(
-                'Ver la primera vez otra vez',
-                'See the first time again',
-              ),
-              subtitle: tr(
-                'Abre la pantalla de entrada como si acabaras de instalar la '
-                    'app. Es sólo para mirar: al terminar vuelve tu valle tal cual.',
-                "Opens the welcome screen as if you'd just installed the app. "
-                    "It's only for looking: when you finish, your valley comes back "
-                    'as it was.',
-              ),
-              act: (nav) {
-                Appearance.instance.rehearseOnboarding();
-                nav.pop();
-              },
-            ),
-            _Row(
-              theme: t,
-              icon: Icons.view_in_ar,
-              title: tr('El expositor', 'The showcase'),
-              subtitle: tr(
-                'Las ${landmarks.length + BuildingKind.values.length} estructuras '
-                    'que el pueblo sabe construir.',
-                'The ${landmarks.length + BuildingKind.values.length} structures '
-                    'the town knows how to build.',
-              ),
-              page: () => GalleryScreen(theme: t),
-            ),
-            _Row(
-              theme: t,
-              icon: Icons.directions_walk,
-              title: tr('El expositor de la gente', 'The people showcase'),
-              subtitle: tr(
-                'Las ${Doing.all.length} cosas que hacen los vecinos cuando no '
-                    'están andando, una a una y de cerca.',
-                "The ${Doing.all.length} things the neighbours do when they're "
-                    'not walking, one by one and up close.',
-              ),
-              page: () => FolkGalleryScreen(theme: t),
+              title: tr('PARA MIRAR', 'TO LOOK AT'),
+              children: [
+                _Row(
+                  theme: t,
+                  icon: Icons.tune,
+                  title: tr(
+                    'Ver el pueblo a futuro',
+                    'See the town in the future',
+                  ),
+                  subtitle: tr(
+                    'Cómo se vería con 100, 500 o 5000 piezas.',
+                    'How it would look with 100, 500 or 5000 pieces.',
+                  ),
+                  open: () => DebugSheet(store: store, theme: t),
+                ),
+                _Row(
+                  theme: t,
+                  icon: Icons.fork_right,
+                  title: tr('Ver la tarjeta de elegir', 'See the choice card'),
+                  subtitle: tr(
+                    'La pregunta que sale al empezar una obra, con dos al azar del '
+                        'catálogo. Mirar y ya: no elige nada ni toca tu pueblo.',
+                    'The question that comes up when a work begins, with two random '
+                        "ones from the catalogue. Just to look: it doesn't choose "
+                        'anything or touch your town.',
+                  ),
+                  act: (nav) {
+                    nav.pop();
+                    _verLaPregunta(nav, t, store);
+                  },
+                ),
+                _Row(
+                  theme: t,
+                  icon: Icons.restart_alt,
+                  title: tr(
+                    'Ver la primera vez otra vez',
+                    'See the first time again',
+                  ),
+                  subtitle: tr(
+                    'Abre la pantalla de entrada como si acabaras de instalar la '
+                        'app. Es sólo para mirar: al terminar vuelve tu valle tal cual.',
+                    "Opens the welcome screen as if you'd just installed the app. "
+                        "It's only for looking: when you finish, your valley comes back "
+                        'as it was.',
+                  ),
+                  act: (nav) {
+                    Appearance.instance.rehearseOnboarding();
+                    nav.pop();
+                  },
+                ),
+                _Row(
+                  theme: t,
+                  icon: Icons.view_in_ar,
+                  title: tr('El expositor', 'The showcase'),
+                  subtitle: tr(
+                    'Las ${landmarks.length + BuildingKind.values.length} estructuras '
+                        'que el pueblo sabe construir.',
+                    'The ${landmarks.length + BuildingKind.values.length} structures '
+                        'the town knows how to build.',
+                  ),
+                  page: () => GalleryScreen(theme: t),
+                ),
+                _Row(
+                  theme: t,
+                  icon: Icons.directions_walk,
+                  title: tr('El expositor de la gente', 'The people showcase'),
+                  subtitle: tr(
+                    'Las ${Doing.all.length} cosas que hacen los vecinos cuando no '
+                        'están andando, una a una y de cerca.',
+                    "The ${Doing.all.length} things the neighbours do when they're "
+                        'not walking, one by one and up close.',
+                  ),
+                  page: () => FolkGalleryScreen(theme: t),
+                ),
+              ],
             ),
           ]
         : <Widget>[
             // Lo primero de todo: quien abrió los ajustes buscando esto puede no
             // entender nada de lo que hay debajo.
-            _Head(theme: t, text: tr('IDIOMA · LANGUAGE', 'LANGUAGE · IDIOMA')),
-            _Pick(
+            _Section(
               theme: t,
-              options: [for (final l in Lang.values) (l.name, l.index * 1.0)],
-              value: wants.language.index * 1.0,
-              onPick: (at) => wants.setLanguage(Lang.values[at.round()]),
+              title: tr('IDIOMA · LANGUAGE', 'LANGUAGE · IDIOMA'),
+              children: [
+                _Pick(
+                  theme: t,
+                  options: [
+                    for (final l in Lang.values) (l.name, l.index * 1.0),
+                  ],
+                  value: wants.language.index * 1.0,
+                  onPick: (at) => wants.setLanguage(Lang.values[at.round()]),
+                ),
+                Text(
+                  wants.languageChosen
+                      ? tr('Lo elegiste vos.', 'You chose it.')
+                      : tr(
+                          'Sale del idioma del teléfono.',
+                          "It follows your phone's language.",
+                        ),
+                  style: _nota(t),
+                ),
+              ],
             ),
-            Text(
-              wants.languageChosen
-                  ? tr('Lo elegiste vos.', 'You chose it.')
-                  : tr(
-                      'Sale del idioma del teléfono.',
-                      "It follows your phone's language.",
+            _Section(
+              theme: t,
+              title: tr('IMAGEN', 'GRAPHICS'),
+              children: [
+                _Switch(
+                  theme: t,
+                  title: tr('Calidad máxima', 'Maximum quality'),
+                  subtitle: tr(
+                    'Sombras de verdad que giran con el sol, ventanas que resplandecen, '
+                        'rayos de luz al amanecer y al atardecer, y color de cine. '
+                        'Pide bastante más al aparato.',
+                    'Real shadows that turn with the sun, glowing windows, light rays '
+                        'at sunrise and sunset, and cinematic colour. It asks a lot '
+                        'more of your device.',
+                  ),
+                  on: wants.cinematic,
+                  onChanged: wants.setCinematic,
+                ),
+              ],
+            ),
+            _Section(
+              theme: t,
+              title: tr('SONIDO', 'SOUND'),
+              children: [
+                _Switch(
+                  theme: t,
+                  title: tr('Sonido', 'Sound'),
+                  subtitle: tr(
+                    'El interruptor de todo, música incluida.',
+                    'The switch for everything, music included.',
+                  ),
+                  on: !wants.soundOff,
+                  onChanged: (v) => wants.setSoundOff(!v),
+                ),
+                _Switch(
+                  theme: t,
+                  title: tr('Efectos', 'Effects'),
+                  subtitle: tr(
+                    'Lo que suena al poner una pieza.',
+                    'What you hear when you place a piece.',
+                  ),
+                  on: !wants.effectsOff,
+                  enabled: !wants.soundOff,
+                  onChanged: (v) => wants.setEffectsOff(!v),
+                ),
+                _Switch(
+                  theme: t,
+                  title: tr('Música', 'Music'),
+                  subtitle: tr(
+                    'De fondo, y distinta según la hora del día.',
+                    'In the background, and different depending on the time of day.',
+                  ),
+                  on: !wants.musicOff,
+                  enabled: !wants.soundOff,
+                  onChanged: (v) => wants.setMusicOff(!v),
+                ),
+                const SizedBox(height: 8),
+                _Slider(
+                  theme: t,
+                  title: tr('Volumen de la música', 'Music volume'),
+                  value: wants.musicVolume,
+                  onChanged: wants.setMusicVolume,
+                ),
+                _Slider(
+                  theme: t,
+                  title: tr('Volumen de los efectos', 'Effects volume'),
+                  value: wants.effectsVolume,
+                  onChanged: (v) {
+                    wants.setEffectsVolume(v);
+                  },
+                  onSettled: () => Sensory.instance.preview('place'),
+                ),
+                Text(
+                  tr(
+                    'La mitad es como sonaba antes de que hubiera dónde tocarlo, así '
+                        'que lo que muevas se mide contra algo que ya conocés.',
+                    'Halfway is how it sounded before there was a way to change it, '
+                        'so whatever you move is measured against something you know.',
+                  ),
+                  style: _nota(t),
+                ),
+              ],
+            ),
+            _Section(
+              theme: t,
+              title: tr('EL AÑO', 'THE YEAR'),
+              children: [
+                _Switch(
+                  theme: t,
+                  title: tr('Las estaciones', 'The seasons'),
+                  subtitle: tr(
+                    'El valle cambia con el año: verde nuevo en primavera, dorado en '
+                        'otoño, nieve en los tejados en invierno, y los días más '
+                        'cortos o más largos según toque.',
+                    'The valley changes with the year: fresh green in spring, gold in '
+                        'autumn, snow on the roofs in winter, and shorter or longer '
+                        'days as the year turns.',
+                  ),
+                  on: wants.seasons,
+                  onChanged: wants.setSeasons,
+                ),
+                if (wants.seasons) ...[
+                  // Y qué estación cree que es hoy, dicho en voz alta.
+                  //
+                  // Es la única manera de que quien lo mire sepa si esto está bien
+                  // puesto sin esperar tres meses: si está en Montevideo en agosto y
+                  // acá pone «otoño», el interruptor de abajo está del revés. Sale de
+                  // la fecha de verdad aunque el año esté apagado o fingido, porque lo
+                  // que contesta es dónde estás y no qué estás mirando.
+                  _Switch(
+                    theme: t,
+                    title: tr(
+                      'Estoy en el hemisferio sur',
+                      "I'm in the southern hemisphere",
                     ),
-              style: t.bodySoft.copyWith(fontSize: 11.5, height: 1.4),
+                    subtitle: tr(
+                      'Para que diciembre sea verano y julio invierno. '
+                          '${wants.hemisphereChosen ? 'Lo pusiste vos' : 'Sale del idioma del teléfono'}, '
+                          'y con eso hoy es '
+                          '${Season.on(DateTime.now(), wants.hemisphere).name.toLowerCase()}.',
+                      'So that December is summer and July is winter. '
+                          '${wants.hemisphereChosen ? 'You set it' : "It follows your phone's language"}, '
+                          'and with that today is '
+                          '${Season.on(DateTime.now(), wants.hemisphere).name.toLowerCase()}.',
+                    ),
+                    on: wants.hemisphere == Hemisphere.south,
+                    onChanged: (v) => wants.setHemisphere(
+                      v ? Hemisphere.south : Hemisphere.north,
+                    ),
+                  ),
+                ],
+              ],
             ),
-
-            const SizedBox(height: 26),
-            _Head(theme: t, text: tr('IMAGEN', 'GRAPHICS')),
-            _Switch(
+            _Section(
               theme: t,
-              title: tr('Calidad máxima', 'Maximum quality'),
-              subtitle: tr(
-                'Sombras de verdad que giran con el sol, ventanas que resplandecen, '
-                    'rayos de luz al amanecer y al atardecer, y color de cine. '
-                    'Pide bastante más al aparato.',
-                'Real shadows that turn with the sun, glowing windows, light rays '
-                    'at sunrise and sunset, and cinematic colour. It asks a lot '
-                    'more of your device.',
-              ),
-              on: wants.cinematic,
-              onChanged: wants.setCinematic,
-            ),
-
-            const SizedBox(height: 26),
-            _Head(theme: t, text: tr('SONIDO', 'SOUND')),
-            _Switch(
-              theme: t,
-              title: tr('Sonido', 'Sound'),
-              subtitle: tr(
-                'El interruptor de todo, música incluida.',
-                'The switch for everything, music included.',
-              ),
-              on: !wants.soundOff,
-              onChanged: (v) => wants.setSoundOff(!v),
-            ),
-            _Switch(
-              theme: t,
-              title: tr('Efectos', 'Effects'),
-              subtitle: tr(
-                'Lo que suena al poner una pieza.',
-                'What you hear when you place a piece.',
-              ),
-              on: !wants.effectsOff,
-              enabled: !wants.soundOff,
-              onChanged: (v) => wants.setEffectsOff(!v),
-            ),
-            _Switch(
-              theme: t,
-              title: tr('Música', 'Music'),
-              subtitle: tr(
-                'De fondo, y distinta según la hora del día.',
-                'In the background, and different depending on the time of day.',
-              ),
-              on: !wants.musicOff,
-              enabled: !wants.soundOff,
-              onChanged: (v) => wants.setMusicOff(!v),
-            ),
-            const SizedBox(height: 8),
-            _Slider(
-              theme: t,
-              title: tr('Volumen de la música', 'Music volume'),
-              value: wants.musicVolume,
-              onChanged: wants.setMusicVolume,
-            ),
-            _Slider(
-              theme: t,
-              title: tr('Volumen de los efectos', 'Effects volume'),
-              value: wants.effectsVolume,
-              onChanged: (v) {
-                wants.setEffectsVolume(v);
-              },
-              onSettled: () => Sensory.instance.preview('place'),
-            ),
-            Text(
-              tr(
-                'La mitad es como sonaba antes de que hubiera dónde tocarlo, así '
-                    'que lo que muevas se mide contra algo que ya conocés.',
-                'Halfway is how it sounded before there was a way to change it, '
-                    'so whatever you move is measured against something you know.',
-              ),
-              style: t.bodySoft.copyWith(fontSize: 11.5, height: 1.4),
-            ),
-
-            const SizedBox(height: 26),
-            _Head(theme: t, text: tr('EL AÑO', 'THE YEAR')),
-            _Switch(
-              theme: t,
-              title: tr('Las estaciones', 'The seasons'),
-              subtitle: tr(
-                'El valle cambia con el año: verde nuevo en primavera, dorado en '
-                    'otoño, nieve en los tejados en invierno, y los días más '
-                    'cortos o más largos según toque.',
-                'The valley changes with the year: fresh green in spring, gold in '
-                    'autumn, snow on the roofs in winter, and shorter or longer '
-                    'days as the year turns.',
-              ),
-              on: wants.seasons,
-              onChanged: wants.setSeasons,
-            ),
-            if (wants.seasons) ...[
-              // Y qué estación cree que es hoy, dicho en voz alta.
-              //
-              // Es la única manera de que quien lo mire sepa si esto está bien
-              // puesto sin esperar tres meses: si está en Montevideo en agosto y
-              // acá pone «otoño», el interruptor de abajo está del revés. Sale de
-              // la fecha de verdad aunque el año esté apagado o fingido, porque lo
-              // que contesta es dónde estás y no qué estás mirando.
-              _Switch(
-                theme: t,
-                title: tr(
-                  'Estoy en el hemisferio sur',
-                  "I'm in the southern hemisphere",
+              title: tr('LO DEMÁS', 'EVERYTHING ELSE'),
+              children: [
+                // Encima de la vibración porque es el único de los tres que sale de la
+                // app: los otros dos sólo suenan cuando ya la tenés abierta.
+                _Switch(
+                  theme: t,
+                  title: tr(
+                    'Que el pueblo te avise',
+                    'Let the town remind you',
+                  ),
+                  subtitle: tr(
+                    'Sólo cuando llevás más de lo tuyo sin poner una pieza, a tu '
+                        'hora y con tus palabras. Como mucho dos por ausencia.',
+                    "Only when you've gone longer than usual without placing a piece, "
+                        'at your time and in your words. Two per absence at most.',
+                  ),
+                  on: !wants.nudgesOff,
+                  onChanged: (v) async {
+                    if (v && !await Notifier.instance.ask()) return;
+                    await wants.setNudgesOff(!v);
+                    await Notifier.instance.reschedule(
+                      store.habits,
+                      DateTime.now(),
+                      on: v,
+                    );
+                  },
                 ),
-                subtitle: tr(
-                  'Para que diciembre sea verano y julio invierno. '
-                      '${wants.hemisphereChosen ? 'Lo pusiste vos' : 'Sale del idioma del teléfono'}, '
-                      'y con eso hoy es '
-                      '${Season.on(DateTime.now(), wants.hemisphere).name.toLowerCase()}.',
-                  'So that December is summer and July is winter. '
-                      '${wants.hemisphereChosen ? 'You set it' : "It follows your phone's language"}, '
-                      'and with that today is '
-                      '${Season.on(DateTime.now(), wants.hemisphere).name.toLowerCase()}.',
+                _Switch(
+                  theme: t,
+                  title: tr('Vibración', 'Vibration'),
+                  subtitle: tr(
+                    'El peso de la pieza al caer.',
+                    'The weight of the piece as it lands.',
+                  ),
+                  on: !wants.hapticsOff,
+                  onChanged: (v) => wants.setHapticsOff(!v),
                 ),
-                on: wants.hemisphere == Hemisphere.south,
-                onChanged: (v) => wants.setHemisphere(
-                  v ? Hemisphere.south : Hemisphere.north,
-                ),
-              ),
-            ],
-            const SizedBox(height: 26),
-            _Head(theme: t, text: tr('LO DEMÁS', 'EVERYTHING ELSE')),
-            // Encima de la vibración porque es el único de los tres que sale de la
-            // app: los otros dos sólo suenan cuando ya la tenés abierta.
-            _Switch(
-              theme: t,
-              title: tr('Que el pueblo te avise', 'Let the town remind you'),
-              subtitle: tr(
-                'Sólo cuando llevás más de lo tuyo sin poner una pieza, a tu '
-                    'hora y con tus palabras. Como mucho dos por ausencia.',
-                "Only when you've gone longer than usual without placing a piece, "
-                    'at your time and in your words. Two per absence at most.',
-              ),
-              on: !wants.nudgesOff,
-              onChanged: (v) async {
-                if (v && !await Notifier.instance.ask()) return;
-                await wants.setNudgesOff(!v);
-                await Notifier.instance.reschedule(
-                  store.habits,
-                  DateTime.now(),
-                  on: v,
-                );
-              },
-            ),
-            _Switch(
-              theme: t,
-              title: tr('Vibración', 'Vibration'),
-              subtitle: tr(
-                'El peso de la pieza al caer.',
-                'The weight of the piece as it lands.',
-              ),
-              on: !wants.hapticsOff,
-              onChanged: (v) => wants.setHapticsOff(!v),
-            ),
-            _Undo(theme: t, store: store),
-            _Row(
-              theme: t,
-              icon: Icons.save_alt,
-              title: tr('Tus datos', 'Your data'),
-              subtitle: tr(
-                'Copiar tu valle y volver a meterlo.',
-                'Copy your valley out and put it back in.',
-              ),
-              open: () => BackupSheet(store: store, theme: t),
-            ),
-            // Al lado de «a futuro» a propósito: son la misma clase de cosa mirada
-            // en las dos direcciones, y la de atrás es la única de las dos que
-            // habla de vos. Va primero porque es la que existe de verdad — la otra
-            // enseña un pueblo que todavía no es tuyo.
-            if (Reel.worthIt(store.habits))
-              if (_conCronica(store).length > 1)
+                _Undo(theme: t, store: store),
                 _Row(
                   theme: t,
-                  icon: Icons.play_circle_outline,
-                  title: tr('Ver cómo se hizo', 'Watch how it was made'),
+                  icon: Icons.save_alt,
+                  title: tr('Tus datos', 'Your data'),
                   subtitle: tr(
-                    'El valle entero, o uno de tus pueblos desde el primer día.',
-                    'The whole valley, or one of your towns from the first day.',
+                    'Copiar tu valle y volver a meterlo.',
+                    'Copy your valley out and put it back in.',
                   ),
-                  open: () => _WhichReel(store: store, theme: t),
-                )
-              else
+                  open: () => BackupSheet(store: store, theme: t),
+                ),
+                // Al lado de «a futuro» a propósito: son la misma clase de cosa mirada
+                // en las dos direcciones, y la de atrás es la única de las dos que
+                // habla de vos. Va primero porque es la que existe de verdad — la otra
+                // enseña un pueblo que todavía no es tuyo.
+                if (Reel.worthIt(store.habits))
+                  if (_conCronica(store).length > 1)
+                    _Row(
+                      theme: t,
+                      icon: Icons.play_circle_outline,
+                      title: tr('Ver cómo se hizo', 'Watch how it was made'),
+                      subtitle: tr(
+                        'El valle entero, o uno de tus pueblos desde el primer día.',
+                        'The whole valley, or one of your towns from the first day.',
+                      ),
+                      open: () => _WhichReel(store: store, theme: t),
+                    )
+                  else
+                    _Row(
+                      theme: t,
+                      icon: Icons.play_circle_outline,
+                      title: tr('Ver cómo se hizo', 'Watch how it was made'),
+                      subtitle: tr(
+                        'Tu pueblo entero desde el primer día, en un minuto.',
+                        'Your whole town from the first day, in a minute.',
+                      ),
+                      page: () => ReelScreen.town(
+                        store: store,
+                        habit: _conCronica(store).firstOrNull ?? 0,
+                      ),
+                    ),
                 _Row(
                   theme: t,
-                  icon: Icons.play_circle_outline,
-                  title: tr('Ver cómo se hizo', 'Watch how it was made'),
+                  icon: Icons.code,
+                  title: tr('Desarrollo', 'Developer'),
                   subtitle: tr(
-                    'Tu pueblo entero desde el primer día, en un minuto.',
-                    'Your whole town from the first day, in a minute.',
+                    'Lo que sirve para probar la app: fingir la hora y el día, poner '
+                        'piezas seguidas, los expositores, ver el pueblo a futuro.',
+                    'What helps to test the app: pretending the time and the day, '
+                        'placing pieces in a row, the showcases, seeing the town in '
+                        'the future.',
                   ),
-                  page: () => ReelScreen.town(
-                    store: store,
-                    habit: _conCronica(store).firstOrNull ?? 0,
-                  ),
+                  open: () => SettingsSheet(store: store, theme: t, dev: true),
                 ),
-            _Row(
-              theme: t,
-              icon: Icons.code,
-              title: tr('Desarrollo', 'Developer'),
-              subtitle: tr(
-                'Lo que sirve para probar la app: fingir la hora y el día, poner '
-                    'piezas seguidas, los expositores, ver el pueblo a futuro.',
-                'What helps to test the app: pretending the time and the day, '
-                    'placing pieces in a row, the showcases, seeing the town in '
-                    'the future.',
-              ),
-              open: () => SettingsSheet(store: store, theme: t, dev: true),
+              ],
             ),
-            // Lo último de la hoja, lejos de todo lo demás: es lo único de acá
-            // que no se deshace.
-            _Row(
+            _Section(
               theme: t,
-              icon: Icons.delete_forever,
-              title: tr('Empezar de cero', 'Start from scratch'),
-              subtitle: tr(
-                'Borra todos los pueblos y vuelve a la pantalla de la primera '
-                    'vez.',
-                'Deletes every town and goes back to the first-time screen.',
-              ),
-              act: (nav) => _empezarDeCero(nav, t, store),
+              children: [
+                // Lo último de la hoja, lejos de todo lo demás: es lo único de acá
+                // que no se deshace.
+                _Row(
+                  theme: t,
+                  icon: Icons.delete_forever,
+                  title: tr('Empezar de cero', 'Start from scratch'),
+                  subtitle: tr(
+                    'Borra todos los pueblos y vuelve a la pantalla de la primera '
+                        'vez.',
+                    'Deletes every town and goes back to the first-time screen.',
+                  ),
+                  act: (nav) => _empezarDeCero(nav, t, store),
+                  danger: true,
+                ),
+              ],
             ),
           ];
     return ListView(
-      padding: const EdgeInsets.only(bottom: 20),
+      padding: EdgeInsets.only(
+        bottom: 24 + MediaQuery.of(context).padding.bottom,
+      ),
       children: items,
     );
   }
@@ -750,13 +799,13 @@ class _Undo extends StatelessWidget {
     return Opacity(
       opacity: last == null ? 0.42 : 1,
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         onTap: last == null ? null : () => _ask(context, last),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Row(
             children: [
-              Icon(Icons.undo, size: 20, color: t.fgSoft),
+              _Tile(theme: t, icon: Icons.undo),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -764,7 +813,7 @@ class _Undo extends StatelessWidget {
                   children: [
                     Text(
                       tr('Quitar la última pieza', 'Remove the last piece'),
-                      style: t.body,
+                      style: _titulo(t),
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -781,7 +830,7 @@ class _Undo extends StatelessWidget {
                                   '${store.habit.name}, placed on '
                                   '${StoneCard.formatDate(last.placedAt)}.',
                             ),
-                      style: t.bodySoft.copyWith(fontSize: 11.5, height: 1.35),
+                      style: _bajada(t),
                     ),
                   ],
                 ),
@@ -841,17 +890,177 @@ class _Undo extends StatelessWidget {
   }
 }
 
-class _Head extends StatelessWidget {
-  const _Head({required this.theme, required this.text});
+/// El vidrio de estas hojas: el mismo ahumado que la hoja del hábito y el
+/// tablón.
+///
+/// Tenía su propia superficie —la clara y opaca que usaban todas las hojas
+/// antes de que se encontrara el vidrio— y era la única hoja de la app que
+/// todavía parecía una tarjeta de papel puesta encima del pueblo.
+class _Glass extends StatelessWidget {
+  const _Glass({required this.theme, required this.child, this.padding});
+
   final UiTheme theme;
-  final String text;
+  final Widget child;
+  final EdgeInsets? padding;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 6),
-    child: Text(text, style: theme.label.copyWith(color: theme.accent)),
+  Widget build(BuildContext context) {
+    final velo = SheetInk.of(theme);
+    const radio = BorderRadius.vertical(top: Radius.circular(28));
+    return ClipRRect(
+      borderRadius: radio,
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(
+          sigmaX: math.max(velo.bruma, 0.01),
+          sigmaY: math.max(velo.bruma, 0.01),
+        ),
+        child: Container(
+          padding: padding,
+          decoration: BoxDecoration(
+            color: velo.tinte.withValues(alpha: velo.tapa),
+            borderRadius: radio,
+            border: Border(top: BorderSide(color: velo.canto)),
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+/// La rayita de arriba, por donde se agarra la hoja.
+class _Asa extends StatelessWidget {
+  const _Asa({required this.velo});
+  final SheetInk velo;
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: Container(
+      width: 38,
+      height: 4,
+      decoration: BoxDecoration(
+        color: velo.cuerpo.withValues(alpha: 0.24),
+        borderRadius: BorderRadius.circular(2),
+      ),
+    ),
   );
 }
+
+TextStyle _titulo(UiTheme t) => t.body.copyWith(
+  color: SheetInk.of(t).cuerpo,
+  fontSize: 15,
+  height: 1.3,
+  fontWeight: FontWeight.w500,
+);
+
+TextStyle _bajada(UiTheme t) => t.bodySoft.copyWith(
+  color: SheetInk.of(t).suave,
+  fontSize: 12.5,
+  height: 1.4,
+);
+
+/// La letra de lo que explica sin ser una opción.
+TextStyle _nota(UiTheme t) => t.bodySoft.copyWith(
+  color: SheetInk.of(t).tenue,
+  fontSize: 12,
+  height: 1.45,
+);
+
+/// Una sección: su nombre en chico y, debajo, sus filas juntas en un bloque
+/// con una raya fina entre una y otra.
+///
+/// Iban sueltas una debajo de otra, todas iguales, con un rótulo naranja cada
+/// tanto: era una lista larga en la que nada decía dónde terminaba una cosa y
+/// empezaba la siguiente.
+class _Section extends StatelessWidget {
+  const _Section({required this.theme, this.title, required this.children});
+
+  final UiTheme theme;
+  final String? title;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = theme;
+    final velo = SheetInk.of(t);
+    final filas = <Widget>[];
+    for (final c in children) {
+      if (filas.isNotEmpty) {
+        filas.add(
+          Container(height: 1, color: velo.cuerpo.withValues(alpha: 0.08)),
+        );
+      }
+      // Las notas sueltas —lo que explica sin ser una opción— con el mismo
+      // aire que una fila.
+      filas.add(
+        c is Text
+            ? Padding(
+                padding: const EdgeInsets.symmetric(vertical: 11),
+                child: c,
+              )
+            : c,
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 22),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (title != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(6, 0, 6, 8),
+              child: Text(
+                title!,
+                style: t.label.copyWith(
+                  color: t.accent,
+                  fontSize: 10.5,
+                  letterSpacing: 2.2,
+                  shadows: velo.aliento,
+                ),
+              ),
+            ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+            decoration: BoxDecoration(
+              color: velo.cuerpo.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: velo.cuerpo.withValues(alpha: 0.08)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: filas,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// El dibujito de una fila, en su pastilla de color.
+class _Tile extends StatelessWidget {
+  const _Tile({required this.theme, required this.icon, this.danger = false});
+  final UiTheme theme;
+  final IconData icon;
+  final bool danger;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = danger ? _rojo(theme) : theme.accent;
+    return Container(
+      width: 34,
+      height: 34,
+      decoration: BoxDecoration(
+        color: c.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Icon(icon, size: 18, color: c),
+    );
+  }
+}
+
+/// El rojo de lo que no se deshace, legible sobre el vidrio.
+Color _rojo(UiTheme t) => const Color(0xFFE0705C);
 
 class _Switch extends StatelessWidget {
   const _Switch({
@@ -873,17 +1082,22 @@ class _Switch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = theme;
+    final velo = SheetInk.of(t);
     return Opacity(
       opacity: enabled ? 1 : 0.42,
       child: SwitchListTile(
         contentPadding: EdgeInsets.zero,
-        dense: true,
+        visualDensity: const VisualDensity(vertical: 1),
         value: on,
-        activeThumbColor: t.accent,
-        title: Text(title, style: t.body),
-        subtitle: Text(
-          subtitle,
-          style: t.bodySoft.copyWith(fontSize: 11.5, height: 1.35),
+        activeThumbColor: const Color(0xFFFFF8EC),
+        activeTrackColor: t.accent,
+        inactiveThumbColor: velo.cuerpo.withValues(alpha: 0.80),
+        inactiveTrackColor: velo.cuerpo.withValues(alpha: 0.14),
+        trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
+        title: Text(title, style: _titulo(t)),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: Text(subtitle, style: _bajada(t)),
         ),
         onChanged: enabled
             ? (v) {
@@ -913,46 +1127,57 @@ class _Pick extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = theme;
+    final velo = SheetInk.of(t);
     return Padding(
-      padding: const EdgeInsets.only(top: 4, bottom: 10),
-      child: Row(
-        children: [
-          for (final (name, at) in options) ...[
-            Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  Sensory.instance.tick();
-                  onPick(at);
-                },
-                behavior: HitTestBehavior.opaque,
-                child: Container(
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.symmetric(vertical: 9),
-                  decoration: BoxDecoration(
-                    color: t.fg.withValues(
-                      alpha: (value - at).abs() < 0.01 ? 0.13 : 0.04,
-                    ),
-                    borderRadius: BorderRadius.circular(11),
-                    border: Border.all(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: velo.tinte.withValues(alpha: 0.35),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            for (final (name, at) in options)
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    Sensory.instance.tick();
+                    onPick(at);
+                  },
+                  behavior: HitTestBehavior.opaque,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(vertical: 9),
+                    decoration: BoxDecoration(
                       color: (value - at).abs() < 0.01
-                          ? t.accent.withValues(alpha: 0.8)
-                          : t.stroke,
-                      width: (value - at).abs() < 0.01 ? 1.4 : 1,
+                          ? t.accent.withValues(alpha: 0.26)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: (value - at).abs() < 0.01
+                            ? t.accent.withValues(alpha: 0.75)
+                            : Colors.transparent,
+                      ),
                     ),
-                  ),
-                  child: Text(
-                    name,
-                    style: t.bodySoft.copyWith(
-                      fontSize: 12,
-                      color: (value - at).abs() < 0.01 ? t.fg : t.fgSoft,
+                    child: Text(
+                      name,
+                      style: _bajada(t).copyWith(
+                        fontSize: 13,
+                        color: (value - at).abs() < 0.01
+                            ? velo.cuerpo
+                            : velo.suave,
+                        fontWeight: (value - at).abs() < 0.01
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            if (at != options.last.$2) const SizedBox(width: 7),
           ],
-        ],
+        ),
       ),
     );
   }
@@ -979,29 +1204,31 @@ class _Slider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = theme;
+    final velo = SheetInk.of(t);
     return Padding(
-      padding: const EdgeInsets.only(top: 4),
+      padding: const EdgeInsets.only(top: 12, bottom: 2),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Expanded(child: Text(title, style: t.body)),
+              Expanded(child: Text(title, style: _titulo(t))),
               Text(
                 '${(value * 100).round()}%',
-                style: t.bodySoft.copyWith(
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
+                style: _bajada(
+                  t,
+                ).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
               ),
             ],
           ),
           SliderTheme(
             data: SliderTheme.of(context).copyWith(
-              activeTrackColor: t.accent.withValues(alpha: 0.85),
-              inactiveTrackColor: t.fg.withValues(alpha: 0.12),
-              thumbColor: t.accent,
-              overlayColor: t.accent.withValues(alpha: 0.12),
-              trackHeight: 3,
+              activeTrackColor: t.accent,
+              inactiveTrackColor: velo.cuerpo.withValues(alpha: 0.14),
+              thumbColor: const Color(0xFFFFF8EC),
+              overlayColor: t.accent.withValues(alpha: 0.14),
+              trackHeight: 4,
+              padding: const EdgeInsets.symmetric(vertical: 14),
             ),
             child: Slider(
               value: value,
@@ -1024,6 +1251,7 @@ class _Row extends StatelessWidget {
     this.open,
     this.page,
     this.act,
+    this.danger = false,
   });
 
   final UiTheme theme;
@@ -1040,11 +1268,15 @@ class _Row extends StatelessWidget {
   /// O nada de eso: algo que pasa y ya, sin salir de aquí.
   final void Function(NavigatorState nav)? act;
 
+  /// Lo que no tiene vuelta atrás, en rojo.
+  final bool danger;
+
   @override
   Widget build(BuildContext context) {
     final t = theme;
+    final velo = SheetInk.of(t);
     return InkWell(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(12),
       onTap: () {
         Sensory.instance.tick();
         final nav = Navigator.of(context);
@@ -1070,20 +1302,25 @@ class _Row extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
           children: [
-            Icon(icon, size: 19, color: t.fgSoft),
+            _Tile(theme: t, icon: icon, danger: danger),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: t.body),
+                  Text(
+                    title,
+                    style: danger
+                        ? _titulo(t).copyWith(color: _rojo(t))
+                        : _titulo(t),
+                  ),
                   const SizedBox(height: 2),
-                  Text(subtitle, style: t.bodySoft.copyWith(fontSize: 11.5)),
+                  Text(subtitle, style: _bajada(t)),
                 ],
               ),
             ),
             const SizedBox(width: 8),
-            Icon(Icons.chevron_right, size: 19, color: t.fgFaint),
+            Icon(Icons.chevron_right, size: 20, color: velo.tenue),
           ],
         ),
       ),
@@ -1111,49 +1348,61 @@ class _WhichReel extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = theme;
     final cuales = _conCronica(store);
-    return SheetSurface(
+    final velo = SheetInk.of(t);
+    return _Glass(
       theme: t,
-      padding: const EdgeInsets.fromLTRB(22, 16, 22, 26),
+      padding: EdgeInsets.fromLTRB(
+        20,
+        12,
+        20,
+        24 + MediaQuery.of(context).padding.bottom,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Center(
-            child: Container(
-              width: 38,
-              height: 4,
-              decoration: BoxDecoration(
-                color: t.fg.withValues(alpha: 0.22),
-                borderRadius: BorderRadius.circular(2),
+          _Asa(velo: velo),
+          const SizedBox(height: 14),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              tr('Ver cómo se hizo', 'Watch how it was made'),
+              style: t.title.copyWith(
+                color: velo.cuerpo,
+                fontSize: 24,
+                fontWeight: FontWeight.w400,
               ),
             ),
           ),
           const SizedBox(height: 16),
-          Text(tr('VER CÓMO SE HIZO', 'WATCH HOW IT WAS MADE'), style: t.label),
-          const SizedBox(height: 10),
-          _Row(
+          _Section(
             theme: t,
-            icon: Icons.grass,
-            title: tr('El valle entero', 'The whole valley'),
-            subtitle: tr(
-              'Salta de pieza en pieza y de pueblo en pueblo, en el orden '
-                  'en que pasaron.',
-              'It jumps from piece to piece and town to town, in the order '
-                  'they happened.',
-            ),
-            page: () => ReelScreen(store: store),
-          ),
-          for (final i in cuales)
-            _Row(
-              theme: t,
-              icon: Icons.location_city,
-              title: store.habits[i].name,
-              subtitle: tr(
-                'Sólo este pueblo, con la cámara dando la vuelta a su plaza.',
-                'Just this town, with the camera circling its square.',
+            children: [
+              _Row(
+                theme: t,
+                icon: Icons.grass,
+                title: tr('El valle entero', 'The whole valley'),
+                subtitle: tr(
+                  'Salta de pieza en pieza y de pueblo en pueblo, en el orden '
+                      'en que pasaron.',
+                  'It jumps from piece to piece and town to town, in the order '
+                      'they happened.',
+                ),
+                page: () => ReelScreen(store: store),
               ),
-              page: () => ReelScreen.town(store: store, habit: i),
-            ),
+              for (final i in cuales)
+                _Row(
+                  theme: t,
+                  icon: Icons.location_city,
+                  title: store.habits[i].name,
+                  subtitle: tr(
+                    'Sólo este pueblo, con la cámara dando la vuelta a su plaza.',
+                    'Just this town, with the camera circling its square.',
+                  ),
+                  page: () => ReelScreen.town(store: store, habit: i),
+                ),
+            ],
+          ),
         ],
       ),
     );

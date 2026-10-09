@@ -6,7 +6,13 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:towny/data/character.dart';
+import 'package:towny/engine/camera.dart';
 import 'package:towny/engine/palette.dart';
+import 'package:towny/engine/renderer.dart';
+import 'package:towny/engine/scene.dart';
+import 'package:towny/engine/town.dart';
+import 'package:towny/fx/effects.dart';
 import 'package:towny/model/appearance.dart';
 import 'package:towny/model/store.dart';
 import 'package:towny/ui/settings_sheet.dart';
@@ -44,8 +50,9 @@ Future<void> _letras() async {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  for (final dev in [false, true]) {
-    testWidgets(dev ? 'desarrollo' : 'ajustes', (tester) async {
+  for (final (dev, hora) in [(false, 13.0), (true, 13.0), (false, 22.0)]) {
+    final nombre = '${dev ? 'desarrollo' : 'ajustes'}-${hora.toInt()}';
+    testWidgets(nombre, (tester) async {
       const out = String.fromEnvironment('OUT', defaultValue: '/tmp/ajustes');
       Directory(out).createSync(recursive: true);
       await tester.runAsync(_letras);
@@ -53,7 +60,8 @@ void main() {
       await Appearance.instance.load();
       final store = Store();
       await store.load();
-      const alto = 2300.0;
+      final pueblo = TownLayout(160, TownCharacter.all.first, seed: 21);
+      const alto = 2000.0;
       tester.view.physicalSize = const Size(390 * 2, alto * 2);
       tester.view.devicePixelRatio = 2;
       addTearDown(tester.view.reset);
@@ -65,14 +73,50 @@ void main() {
           home: RepaintBoundary(
             key: key,
             child: Scaffold(
-              backgroundColor: const Color(0xFF3D4A33),
-              body: Align(
-                alignment: Alignment.bottomCenter,
-                child: SettingsSheet(
-                  store: store,
-                  theme: UiTheme(Palette.forMoment(13)),
-                  dev: dev,
-                ),
+              body: Stack(
+                children: [
+                  // El pueblo detrás, que es sobre lo que se abre la hoja:
+                  // sobre un color liso el vidrio no se ve.
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: TownPainter(
+                        TownScene(
+                          placed: 160,
+                          palette: Palette.forMoment(hora),
+                          camera: OrbitCamera()
+                            ..yaw = 0.68
+                            ..pitch = 0.5
+                            ..focusY = 2
+                            ..distance = 40
+                            ..wallLength = pueblo.radius * 2,
+                          time: 7.3,
+                          hourOfDay: hora,
+                          effects: EffectSystem(),
+                          budget: 60000,
+                          towns: [
+                            TownEntry(
+                              layout: pueblo,
+                              name: 'Leer',
+                              symbol: 'libro',
+                              placed: 160,
+                            ),
+                          ],
+                          active: 0,
+                          labels: false,
+                        ),
+                        TouchMap(),
+                      ),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: SettingsSheet(
+                      store: store,
+                      theme: UiTheme(Palette.forMoment(hora)),
+                      dev: dev,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -84,9 +128,7 @@ void main() {
       await tester.runAsync(() async {
         final img = await b.toImage(pixelRatio: 1.5);
         final png = await img.toByteData(format: ui.ImageByteFormat.png);
-        File(
-          '$out/${dev ? 'desarrollo' : 'ajustes'}.png',
-        ).writeAsBytesSync(png!.buffer.asUint8List());
+        File('$out/$nombre.png').writeAsBytesSync(png!.buffer.asUint8List());
         img.dispose();
       });
       await tester.pumpWidget(const SizedBox());
