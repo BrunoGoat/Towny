@@ -398,13 +398,86 @@ void main() {
         budget: 2500,
       );
       final p = _frame(apretado);
-      expect(p.unaffordableWorks, greaterThan(0), reason: 'no recortó nada');
+      expect(
+        p.unaffordableWorks + p.simplifiedWorks,
+        greaterThan(0),
+        reason: 'no recortó nada',
+      );
       // Y el pueblo que se está mirando se sirve primero: con el presupuesto
       // justo para uno, lo que se pinta es el suyo.
       expect(
         p.picks.map((t) => t.brickIndex).toList(),
         isNotEmpty,
         reason: 'no quedó ni una pieza del pueblo activo',
+      );
+    });
+
+    test('lo que no cabe entero se pinta simple, no desaparece', () async {
+      // Lo que se vio con el teléfono justo de fuerzas: el pueblo de al lado
+      // se quedaba con huecos donde había casas. Ahora lo que no entra entero
+      // sale en su versión simple —una caja con su tejado— en su sitio.
+      final s = _valle(260, pueblos: 3, dist: 30);
+      TownScene con(int budget) => TownScene(
+        placed: 260,
+        palette: s.palette,
+        camera: s.camera,
+        time: s.time,
+        hourOfDay: 14,
+        effects: EffectSystem(),
+        towns: s.towns,
+        active: 0,
+        budget: budget,
+        labels: false,
+        folk: false,
+      );
+      Future<List<int>> pixeles(TownScene scene, {required bool simple}) async {
+        TownPainter.simplifying = simple;
+        try {
+          final rec = ui.PictureRecorder();
+          TownPainter(scene, TouchMap()).paint(Canvas(rec), _size);
+          final img = await rec.endRecording().toImage(
+            _size.width.toInt(),
+            _size.height.toInt(),
+          );
+          final raw = await img.toByteData(format: ui.ImageByteFormat.rawRgba);
+          img.dispose();
+          return raw!.buffer.asUint8List();
+        } finally {
+          TownPainter.simplifying = true;
+        }
+      }
+
+      // Cuántos píxeles se apartan del fotograma entero.
+      int distinto(List<int> a, List<int> b) {
+        var n = 0;
+        for (var i = 0; i < a.length; i += 4) {
+          final d =
+              (a[i] - b[i]).abs() +
+              (a[i + 1] - b[i + 1]).abs() +
+              (a[i + 2] - b[i + 2]).abs();
+          if (d > 40) n++;
+        }
+        return n;
+      }
+
+      // Con presupuesto de sobra no cambia nada: todo sube a lo de verdad.
+      final holgado = _frame(con(60000));
+      expect(holgado.simplifiedWorks, 0);
+      expect(holgado.unaffordableWorks, 0);
+
+      final entero = await pixeles(con(60000), simple: true);
+      final sinSimple = await pixeles(con(1500), simple: false);
+      final conSimple = await pixeles(con(1500), simple: true);
+      final apretado = _frame(con(1500));
+      expect(apretado.simplifiedWorks, greaterThan(20));
+      final huecos = distinto(sinSimple, entero);
+      final simples = distinto(conSimple, entero);
+      expect(
+        simples,
+        lessThan(huecos ~/ 2),
+        reason:
+            'sin versión simple se apartan $huecos píxeles del entero, '
+            'con ella $simples',
       );
     });
 

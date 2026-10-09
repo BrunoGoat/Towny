@@ -29,16 +29,14 @@ El inventario de lo que hay que traducir sigue siendo `TEXTOS.md`.
 ### Lo que queda del render
 
 Hecho ya: tirar lo que no toca la pantalla, un presupuesto que recorta por
-tamaño en pantalla en vez de por distancia, no archivar las caras enterradas, y
+tamaño en pantalla en vez de por distancia —y que lo que no cabe entero lo
+pinta en una versión simple, una caja con su tejado, en vez de no pintarlo—, no archivar las caras enterradas, y
 mandar todas las caras en una sola llamada de dibujo, y levantar el pueblo en
 otro hilo mientras se ve la pantalla de apertura (`ARCHITECTURE.md`). El
 fotograma pasó de 12,0 a 4,3 ms con doscientas piezas y de 40,2 a 14,8 con mil
 quinientas; y los 280 ms de levantarlo de cero ya no los paga la pantalla. Lo que sigue sobre la
 mesa, con lo medido al lado:
 
-- **El edificio simplificado de lejos.** Una versión de cada grupo con su
-  silueta y sin ventanas ni buhardillas, construida una vez. Es lo que debería
-  hacer el presupuesto en vez de dejar de pintar.
 - **Un contador en ajustes** con el fotograma medio, las caras y el presupuesto
   de ahora mismo. Todo lo de arriba está medido en una máquina de escritorio;
   lo que importa es lo que pasa en el teléfono.

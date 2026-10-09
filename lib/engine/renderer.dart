@@ -51,11 +51,20 @@ class _Tone {
 /// Un edificio y lo que pide para pintarse: cuánta pantalla ocupa, cuántas
 /// caras cuesta y si es del pueblo que se está mirando.
 class _Gasto {
-  const _Gasto(this.cluster, this.area, this.faces, this.mine);
-  final Object cluster;
+  const _Gasto(this.cluster, this.layout, this.area, this.faces, this.mine);
+  final BuiltCluster cluster;
+  final TownLayout layout;
   final double area;
   final int faces;
   final bool mine;
+}
+
+/// Un bulto de la versión simple de un edificio: un cuerpo con su tejado, o
+/// un árbol. Se ordenan entre ellos por distancia al ojo, de lejos a cerca.
+class _Bulto {
+  const _Bulto(this.x, this.y, this.z, this.faces);
+  final double x, y, z;
+  final List<Facet> faces;
 }
 
 /// Draws the whole world: sky, ground, the wall in full detail nearby, and its
@@ -107,6 +116,16 @@ class TownPainter extends CustomPainter {
   /// no cupieron en el presupuesto, que son los únicos que alguien podría
   /// echar de menos.
   int offScreenWorks = 0, unaffordableWorks = 0;
+
+  /// Y cuántos se pintaron en su versión simple porque enteros no cabían.
+  int simplifiedWorks = 0;
+
+  /// La llave para apagar las versiones simples, que existe para que un test
+  /// pueda comparar con lo de antes: sin ellas, lo que no cabe no se pinta.
+  static bool simplifying = true;
+
+  /// Los edificios que este fotograma pinta en su versión simple.
+  final Set<Object> _lod = {};
 
   /// La llave para apagar el recorte, que existe **para poder demostrar que no
   /// se nota**: la prueba pinta la misma escena con él y sin él y exige que no
@@ -1129,7 +1148,13 @@ class TownPainter extends CustomPainter {
       if (take <= 0) continue;
       for (final c in builtTown(e.layout, take).clusters) {
         gasto.add(
-          _Gasto(c, _onScreen(p, c.bounds), c.faces, w == scene.active),
+          _Gasto(
+            c,
+            e.layout,
+            _onScreen(p, c.bounds),
+            c.faces,
+            w == scene.active,
+          ),
         );
       }
     }
@@ -1138,19 +1163,73 @@ class TownPainter extends CustomPainter {
       final c = b.area.compareTo(a.area);
       return c != 0 ? c : a.faces.compareTo(b.faces);
     });
+    //
+    // **Y lo que no cabe entero se pinta simple, no se deja de pintar.** Una
+    // casa del pueblo de al lado que no entra en el presupuesto sale como una
+    // caja con su tejado —una docena de caras en vez de un centenar— en su
+    // sitio y con sus colores. Antes desaparecía, y con el teléfono justo de
+    // fuerzas el valle se quedaba con huecos donde había pueblos.
+    //
+    // En dos pasadas. Primero todo lo que se ve recibe su versión simple, que
+    // es lo mínimo para que el valle esté entero; después, con lo que sobra,
+    // cada edificio sube a la versión de verdad en el orden de arriba —el
+    // pueblo que se mira primero, y lo que más pantalla ocupa antes—. Con
+    // presupuesto de sobra todo sube y no cambia nada de lo de siempre.
+    _lod.clear();
     var spend = 0;
     offScreenWorks = 0;
     unaffordableWorks = 0;
+    simplifiedWorks = 0;
+    final visibles = <_Gasto>[];
     for (final g in gasto) {
       if (g.area <= 0) {
         _skip.add(g.cluster);
         offScreenWorks++;
-        continue;
+      } else {
+        visibles.add(g);
       }
-      spend += g.faces;
-      if (spend > scene.budget) {
-        _skip.add(g.cluster);
-        unaffordableWorks++;
+    }
+    if (!simplifying) {
+      for (final g in visibles) {
+        spend += g.faces;
+        if (spend > scene.budget) {
+          _skip.add(g.cluster);
+          unaffordableWorks++;
+        }
+      }
+    } else {
+      final simple = [
+        for (final g in visibles) _simpleCost(g.cluster, g.layout),
+      ];
+      // Lo que no tiene versión simple —un sembrado, un patio— no se puede
+      // pintar en barato: o entra entero en la segunda pasada o no entra.
+      final nivel = List<int>.filled(
+        visibles.length,
+        0,
+      ); // 0 nada, 1 simple, 2 entero
+      for (var i = 0; i < visibles.length; i++) {
+        final s = simple[i];
+        if (s > 0 && spend + s <= scene.budget) {
+          spend += s;
+          nivel[i] = 1;
+        }
+      }
+      for (var i = 0; i < visibles.length; i++) {
+        final extra = visibles[i].faces - (nivel[i] == 1 ? simple[i] : 0);
+        if (spend + extra <= scene.budget) {
+          spend += extra;
+          nivel[i] = 2;
+        }
+      }
+      for (var i = 0; i < visibles.length; i++) {
+        final c = visibles[i].cluster;
+        if (nivel[i] == 1) {
+          _lod.add(c);
+          simplifiedWorks++;
+        } else if (nivel[i] == 0) {
+          _skip.add(c);
+          unaffordableWorks++;
+        }
       }
     }
 
@@ -1233,6 +1312,11 @@ class TownPainter extends CustomPainter {
             return;
           }
           if (_skip.contains(c)) {
+            _paintFolk(p, e, aqui, pal, light, size);
+            return;
+          }
+          if (_lod.contains(c)) {
+            _paintSimple(p, e, c, pal, light, night, size);
             _paintFolk(p, e, aqui, pal, light, size);
             return;
           }
@@ -1989,6 +2073,341 @@ class TownPainter extends CustomPainter {
       piece.cz,
       pal,
     ).toARGB32();
+  }
+
+  // ------------------------------------------------------- la versión simple
+
+  /// La versión simple de cada grupo de edificios, hecha una vez.
+  ///
+  /// Colgada del propio grupo: un grupo no cambia una vez archivado —el
+  /// pueblo crece archivando grupos nuevos—, así que lo que se calculó para
+  /// él vale mientras exista.
+  static final Expando<List<_Bulto>> _simple = Expando('versión simple');
+
+  List<_Bulto> _simpleOf(BuiltCluster c, TownLayout l) =>
+      _simple[c] ??= _buildSimple(c.members, l);
+
+  int _simpleCost(BuiltCluster c, TownLayout l) {
+    var n = 0;
+    for (final b in _simpleOf(c, l)) {
+      for (final f in b.faces) {
+        n += 1 + (f.decals?.length ?? 0);
+      }
+    }
+    return n;
+  }
+
+  /// Los bultos de la versión simple, de lejos a cerca, por el mismo camino
+  /// que las caras de verdad: así salen con los colores de su casa, la bruma
+  /// de la distancia, el blanco del dedo y, de noche, sus ventanas encendidas.
+  void _paintSimple(
+    Projector p,
+    TownEntry e,
+    BuiltCluster c,
+    Palette pal,
+    V3 light,
+    bool night,
+    Size size,
+  ) {
+    final eye = p.eye;
+    double lejos(_Bulto b) {
+      final dx = b.x - eye.x, dy = b.y - eye.y, dz = b.z - eye.z;
+      return dx * dx + dy * dy + dz * dz;
+    }
+
+    final orden = [..._simpleOf(c, e.layout)]
+      ..sort((a, b) => lejos(b).compareTo(lejos(a)));
+    for (final b in orden) {
+      for (final f in b.faces) {
+        _paint(p, e, f, pal, light, night, size);
+      }
+    }
+  }
+
+  /// Cada edificio del grupo en dos o tres cuerpos: una caja con todo lo que
+  /// es pared, un tejado a dos aguas con todo lo que es tejado y una pirámide
+  /// por cada aguja o cúpula. Los árboles, un bloque de hoja. Lo chico —la
+  /// chimenea, la buhardilla, el estandarte, el sembrado— no se ve a esa
+  /// distancia y no se pinta.
+  static List<_Bulto> _buildSimple(Set<int> members, TownLayout l) {
+    final porCasa = <int, List<TownPiece>>{};
+    final out = <_Bulto>[];
+    for (final i in members) {
+      if (i < 0 || i >= l.pieces.length) continue;
+      final pc = l.pieces[i];
+      switch (pc.kind) {
+        case PieceKind.tree:
+          out.add(
+            _Bulto(
+              pc.cx,
+              (pc.y0 + pc.y1) / 2,
+              pc.cz,
+              _caja(
+                pc.x0,
+                pc.y0,
+                pc.z0,
+                pc.x1,
+                pc.y1,
+                pc.z1,
+                pc.index,
+                Surface.leaf,
+                top: true,
+              ),
+            ),
+          );
+        case PieceKind.field:
+        case PieceKind.water:
+        case PieceKind.banner:
+        case PieceKind.sail:
+        case PieceKind.wheel:
+        case PieceKind.palisade:
+        case PieceKind.chimney:
+        case PieceKind.dormer:
+          break;
+        default:
+          porCasa.putIfAbsent(pc.building, () => []).add(pc);
+      }
+    }
+    for (final piezas in porCasa.values) {
+      final cuerpo = [
+        for (final pc in piezas)
+          if (!_tejado(pc.kind) && !_aguja(pc.kind)) pc,
+      ];
+      final tejado = [
+        for (final pc in piezas)
+          if (_tejado(pc.kind)) pc,
+      ];
+      final caras = <Facet>[];
+      var cx = 0.0, cy = 0.0, cz = 0.0;
+      if (cuerpo.isNotEmpty) {
+        final b = _union(cuerpo);
+        cx = (b.$1 + b.$4) / 2;
+        cy = (b.$2 + b.$5) / 2;
+        cz = (b.$3 + b.$6) / 2;
+        caras.addAll(
+          _caja(
+            b.$1,
+            b.$2,
+            b.$3,
+            b.$4,
+            b.$5,
+            b.$6,
+            cuerpo.first.index,
+            Surface.wall,
+            top: tejado.isEmpty,
+            windows: true,
+          ),
+        );
+      }
+      if (tejado.isNotEmpty) {
+        final b = _union(tejado);
+        var mayor = tejado.first;
+        for (final pc in tejado) {
+          if (pc.w * pc.d > mayor.w * mayor.d) mayor = pc;
+        }
+        final paja = tejado.any((pc) => pc.kind == PieceKind.thatch);
+        caras.addAll(
+          _dosAguas(
+            b.$1,
+            b.$2,
+            b.$3,
+            b.$4,
+            b.$5,
+            b.$6,
+            mayor.alongX,
+            mayor.index,
+            paja ? Surface.thatch : Surface.tile,
+          ),
+        );
+        if (cuerpo.isEmpty) {
+          cx = (b.$1 + b.$4) / 2;
+          cy = (b.$2 + b.$5) / 2;
+          cz = (b.$3 + b.$6) / 2;
+        }
+      }
+      for (final pc in piezas) {
+        if (!_aguja(pc.kind)) continue;
+        caras.addAll(
+          _piramide(pc.x0, pc.y0, pc.z0, pc.x1, pc.y1, pc.z1, pc.index),
+        );
+        if (caras.length <= 4) {
+          cx = pc.cx;
+          cy = (pc.y0 + pc.y1) / 2;
+          cz = pc.cz;
+        }
+      }
+      if (caras.isNotEmpty) out.add(_Bulto(cx, cy, cz, caras));
+    }
+    return out;
+  }
+
+  static bool _tejado(PieceKind k) =>
+      k == PieceKind.roof || k == PieceKind.thatch;
+
+  static bool _aguja(PieceKind k) =>
+      k == PieceKind.spire || k == PieceKind.dome;
+
+  static (double, double, double, double, double, double) _union(
+    List<TownPiece> piezas,
+  ) {
+    var x0 = double.infinity, y0 = double.infinity, z0 = double.infinity;
+    var x1 = -double.infinity, y1 = -double.infinity, z1 = -double.infinity;
+    for (final pc in piezas) {
+      x0 = math.min(x0, pc.x0);
+      y0 = math.min(y0, pc.y0);
+      z0 = math.min(z0, pc.z0);
+      x1 = math.max(x1, pc.x1);
+      y1 = math.max(y1, pc.y1);
+      z1 = math.max(z1, pc.z1);
+    }
+    return (x0, y0, z0, x1, y1, z1);
+  }
+
+  static Facet _cara(List<V3> v, V3 n, Surface s, int piece) =>
+      Facet(v, n, s)..piece = piece;
+
+  /// Una caja sin suelo. Con [windows], cada pared lleva una ventana pegada
+  /// como calcomanía, que es lo que de noche la enciende.
+  static List<Facet> _caja(
+    double x0,
+    double y0,
+    double z0,
+    double x1,
+    double y1,
+    double z1,
+    int piece,
+    Surface s, {
+    bool top = true,
+    bool windows = false,
+  }) {
+    final caras = <Facet>[];
+    void pared(List<V3> v, V3 n) {
+      final f = _cara(v, n, s, piece);
+      if (windows && y1 - y0 > 0.5) {
+        // El centro de la pared, a media altura y un pelo hacia afuera.
+        final a = v[0], b = v[1];
+        final mx = (a.x + b.x) / 2 + n.x * 0.01;
+        final mz = (a.z + b.z) / 2 + n.z * 0.01;
+        final ancho = math.sqrt(
+          (b.x - a.x) * (b.x - a.x) + (b.z - a.z) * (b.z - a.z),
+        );
+        final hw = math.min(ancho * 0.14, 0.32);
+        final my = y0 + (y1 - y0) * 0.58;
+        final hh = math.min((y1 - y0) * 0.16, 0.36);
+        final tx = (b.x - a.x) / ancho, tz = (b.z - a.z) / ancho;
+        f.decals = [
+          _cara(
+            [
+              V3(mx - tx * hw, my - hh, mz - tz * hw),
+              V3(mx + tx * hw, my - hh, mz + tz * hw),
+              V3(mx + tx * hw, my + hh, mz + tz * hw),
+              V3(mx - tx * hw, my + hh, mz - tz * hw),
+            ],
+            n,
+            Surface.window,
+            piece,
+          ),
+        ];
+      }
+      caras.add(f);
+    }
+
+    pared([
+      V3(x0, y0, z0),
+      V3(x1, y0, z0),
+      V3(x1, y1, z0),
+      V3(x0, y1, z0),
+    ], const V3(0, 0, -1));
+    pared([
+      V3(x1, y0, z1),
+      V3(x0, y0, z1),
+      V3(x0, y1, z1),
+      V3(x1, y1, z1),
+    ], const V3(0, 0, 1));
+    pared([
+      V3(x0, y0, z1),
+      V3(x0, y0, z0),
+      V3(x0, y1, z0),
+      V3(x0, y1, z1),
+    ], const V3(-1, 0, 0));
+    pared([
+      V3(x1, y0, z0),
+      V3(x1, y0, z1),
+      V3(x1, y1, z1),
+      V3(x1, y1, z0),
+    ], const V3(1, 0, 0));
+    if (top) {
+      caras.add(
+        _cara(
+          [V3(x0, y1, z0), V3(x1, y1, z0), V3(x1, y1, z1), V3(x0, y1, z1)],
+          const V3(0, 1, 0),
+          s,
+          piece,
+        ),
+      );
+    }
+    return caras;
+  }
+
+  /// Un tejado a dos aguas sobre esa caja: el alero abajo, la cumbrera arriba
+  /// y por donde corre la pieza más grande.
+  static List<Facet> _dosAguas(
+    double x0,
+    double y0,
+    double z0,
+    double x1,
+    double y1,
+    double z1,
+    bool alongX,
+    int piece,
+    Surface s,
+  ) {
+    final centro = V3((x0 + x1) / 2, (y0 + y1) / 2 - 0.01, (z0 + z1) / 2);
+    Facet cara(List<V3> v) =>
+        _cara(v, Facet.normalOf(v, away: centro), s, piece);
+    if (alongX) {
+      final cz = (z0 + z1) / 2;
+      return [
+        cara([V3(x0, y0, z0), V3(x1, y0, z0), V3(x1, y1, cz), V3(x0, y1, cz)]),
+        cara([V3(x1, y0, z1), V3(x0, y0, z1), V3(x0, y1, cz), V3(x1, y1, cz)]),
+        cara([V3(x0, y0, z1), V3(x0, y0, z0), V3(x0, y1, cz)]),
+        cara([V3(x1, y0, z0), V3(x1, y0, z1), V3(x1, y1, cz)]),
+      ];
+    }
+    final cx = (x0 + x1) / 2;
+    return [
+      cara([V3(x0, y0, z1), V3(x0, y0, z0), V3(cx, y1, z0), V3(cx, y1, z1)]),
+      cara([V3(x1, y0, z0), V3(x1, y0, z1), V3(cx, y1, z1), V3(cx, y1, z0)]),
+      cara([V3(x0, y0, z0), V3(x1, y0, z0), V3(cx, y1, z0)]),
+      cara([V3(x1, y0, z1), V3(x0, y0, z1), V3(cx, y1, z1)]),
+    ];
+  }
+
+  /// Una aguja o una cúpula, de lejos: cuatro caras hasta la punta.
+  static List<Facet> _piramide(
+    double x0,
+    double y0,
+    double z0,
+    double x1,
+    double y1,
+    double z1,
+    int piece,
+  ) {
+    final punta = V3((x0 + x1) / 2, y1, (z0 + z1) / 2);
+    final centro = V3(punta.x, y0, punta.z);
+    final base = [
+      V3(x0, y0, z0),
+      V3(x1, y0, z0),
+      V3(x1, y0, z1),
+      V3(x0, y0, z1),
+    ];
+    return [
+      for (var i = 0; i < 4; i++)
+        () {
+          final v = [base[i], base[(i + 1) % 4], punta];
+          return _cara(v, Facet.normalOf(v, away: centro), Surface.tile, piece);
+        }(),
+    ];
   }
 
   /// Las caras de este fotograma, copiadas al mapa de toques para que el dedo

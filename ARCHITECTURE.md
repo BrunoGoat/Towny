@@ -130,6 +130,14 @@ nueve mil caras en pantalla —un pueblo de trescientas piezas entero— y sube 
 rápido de lo que baja, porque de los dos errores posibles, enseñar de menos es
 el que se nota.
 
+Y lo que no cabe entero **no se cae: se pinta simple**. Cada edificio tiene una
+versión de una docena de caras —una caja con todo lo que es pared, un tejado a
+dos aguas, una pirámide por aguja y un bloque por árbol, con una ventana por
+pared que de noche se enciende— hecha una vez y colgada del grupo. El reparto
+va en dos pasadas: primero todo lo que se ve recibe su versión simple, y con lo
+que sobra cada edificio sube a la de verdad en el mismo orden de antes. Con
+presupuesto de sobra todo sube y no cambia nada.
+
 Lo que **no** vale la pena, medido: cachear el color de las caras. Calcular el
 tono, el sombreado y la bruma de cada cara cuesta, a doscientas piezas,
 **−0,07 ms de un fotograma de 4,7** — o sea nada. Pintar el pueblo entero de un
@@ -186,7 +194,7 @@ cambiar cuánto suena la mitad la recalcula sola.
 
 ```bash
 flutter pub get
-flutter test          # 742 tests
+flutter test          # 743 tests
 flutter analyze
 flutter run
 flutter build apk --release
