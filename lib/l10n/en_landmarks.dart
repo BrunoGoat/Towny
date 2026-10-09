@@ -7,269 +7,297 @@ const Map<String, (String, String)> landmarksEn = {
   // ---------------------------------------------------------- el catálogo
   'pozo': (
     'Council well',
-    'Water stops being a long walk. Now it is where people talk as evening '
-        'falls.',
+    'Clean water, close at hand for everyone. Around the well, the '
+        'square and the life of the town are born.',
   ),
   'cruz': (
     'Boundary cross',
-    'Whoever arrives knows they are home. Whoever leaves looks at it one last '
-        'time.',
+    'It marks the place where home begins. It welcomes those who arrive '
+        'and blesses those who set out.',
   ),
   'palomar': (
     'Dovecote',
-    'News you wait for looking at the sky. Almost always good.',
+    'Wings that link this town to the world. Every dove that returns '
+        'brings word from afar.',
   ),
   'colmenar': (
     'Apiary',
-    'Sweetness on the table and light at night, in exchange for leaving them '
-        'in peace.',
+    'Honey for the table and wax for light. A small kingdom of work and '
+        'harmony.',
   ),
   'huerto': (
     "The priest's garden",
-    'What is left over gets shared, and nobody keeps count of who got what.',
+    'Tended soil that gives more than it asks. What grows here is '
+        'shared with everyone.',
   ),
   'pajar': (
     'Hayloft',
-    'Storing in August what January will need is a way of believing there '
-        'will be a January.',
+    "Summer's harvest, kept safe for winter. Foresight built from "
+        "golden straw.",
   ),
   'corral': (
     'Pen',
-    'At dusk they are counted and shut in. Nothing is lost tonight.',
+    'Every animal safe beneath the night sky. Daily care turned into '
+        'shelter.',
   ),
   'gallinero': (
     'Henhouse',
-    "The first visit of every morning. Some kinds of love are just a habit.",
+    'Fresh eggs every morning. A simple, generous start to every day.',
   ),
   'alfar': (
     'Pottery',
-    'Everything in this town that holds something passed through a pair of '
-        'hands and a wheel.',
+    "From clay come jugs, plates and roof tiles. The potter's hands "
+        "give the town its shape.",
   ),
   'camposanto': (
     'Churchyard',
-    'There are people now who will never leave. Folk come to talk to them '
-        'and go home lighter.',
+    'A garden of memory for those who came before. Here the town honors '
+        'its roots.',
   ),
   'atalaya': (
     'Watchtower',
-    'Someone keeps watch for everyone else while everyone else sleeps.',
+    'A high, watchful eye over the valley. Because of it, the town '
+        'sleeps in peace.',
   ),
   'almenara': (
     'Signal fire',
-    'A fire up high to tell the valley that we are here and that we warn.',
+    'A fire on high that links town to town. The light that says: we '
+        'are here.',
   ),
   'molinoViento': (
     'Windmill',
-    'You can hear the sails from bed. While they turn, there is bread.',
+    'Wind turned into flour. While the sails turn, there is bread for '
+        'all.',
   ),
   'almazara': (
     'Olive press and grove',
-    'Oil from olive trees planted by people who never got to taste it.',
+    'Liquid gold from ancient olive trees. A gift of generations, still '
+        'harvested today.',
   ),
   'cerveceria': (
     'Brewhouse',
-    "Where the day ends. Nobody asks how it went if you'd rather not say.",
+    'Grain, water and patience made into celebration. Here the day ends '
+        'in good company.',
   ),
   'mercado': (
     'Covered market',
-    'One fixed day a week when the whole town sees each other\'s faces.',
+    'Under one roof meet the fields, the crafts and the people. A heart '
+        'that beats every week.',
   ),
   'salinas': (
     'Salt pans',
-    'Taking from the sea what makes food last. Slow, grateful work.',
+    'Sea and sun working together. The salt that preserves and gives '
+        'flavor to life.',
   ),
   'ceca': (
     'Mint',
-    "A coin with the town's mark, that travels far and comes back telling "
-        'where it has been.',
+    "Coins bearing the town's seal, travelling far and carrying its "
+        "name with pride.",
   ),
   'tejedores': (
     "Weavers' guild",
-    'Nobody haggles alone. The trade is defended by everyone or not at all.',
+    'Threads crossing to make something stronger. A craft upheld by '
+        'everyone together.',
   ),
   'hospederia': (
     "Pilgrims' hospital",
-    'A bed and a meal for whoever is passing through. No one asks where they '
-        'come from.',
+    'A roof and a warm meal for the traveller. Hospitality built in '
+        'stone.',
   ),
   'botica': (
     'Apothecary',
-    'You no longer have to just bear everything. Some things have a cure '
-        'now.',
+    "Herbs, knowledge and care within everyone's reach. Here, healing "
+        "begins.",
   ),
   'escuela': (
     'Grammar school',
-    'The children will know things their parents never knew.',
+    'Where children learn to read the world. Every lesson is a door '
+        'that opens.',
   ),
   'escribania': (
     "Scrivener's office",
-    'What is agreed gets written down, and people stop arguing about what '
-        'was said.',
+    'The written word that keeps agreements and memory. Here, trust has '
+        'a home.',
   ),
-  'capilla': ('Chapel', 'A small place for what is not said out loud.'),
+  'capilla': (
+    'Chapel',
+    'A corner of stillness and peace. Small on the outside, vast '
+        'within.',
+  ),
   'campanario': (
     'Free-standing bell tower',
-    'The bell tells the hour, the feast and the grief. It is heard from the '
-        'fields, and people know.',
+    'Its voice marks the hours, the feasts and the gatherings. The '
+        'whole valley knows it.',
   ),
   'claustro': (
     'Cloister',
-    'Four galleries for walking in circles, thinking, without bothering '
-        'anyone.',
+    'Four galleries around a serene garden. A place made for thought '
+        'and study.',
   ),
   'refectorio': (
     'Refectory',
-    'Eating together every day, in silence. That is love too.',
+    'The shared table that binds the community. Every meal is an act of '
+        'fellowship.',
   ),
   'bodega': (
     'Wine cellar',
-    "Down there nobody is in a hurry: this year's wine waits for next "
-        "year's.",
+    'In the cool shade, wine matures unhurried. Patience, too, can be '
+        'harvested.',
   ),
   'silos': (
     'Grain silos',
-    'Grain for three years. You sleep differently knowing that.',
+    'Grain kept safe for the years ahead. The calm of a town that looks '
+        'forward.',
   ),
   'faro': (
     'Lighthouse',
-    'Someone climbs up every evening to light it for those who have not come '
-        'back yet.',
+    'A light kindled every night to guide those returning home. No one '
+        'sails alone.',
   ),
   'herreriaMayor': (
     'Great forge',
-    'The hammer can be heard from the square. When it stops, everyone looks '
-        'up.',
+    'Fire, iron and strength. From its anvil come the tools that raise '
+        'the town.',
   ),
   'horca': (
     'Gallows field',
-    'There are rules and they are kept. It is not pretty, and everyone knows '
-        'what it is for.',
+    'The place where justice is served. Laws that everyone honors '
+        'protect everyone.',
   ),
   'palenque': (
     'Tourney lists',
-    'An afternoon of shouting in the sun that people talk about the rest of '
-        'the year.',
+    "Skill, courage and celebration under the sun. Today's feats become "
+        "tomorrow's stories.",
   ),
   'huertoMonjes': (
     "The monks' garden",
-    'You eat from what you tend. The same work every day, without '
-        'complaint.',
+    'Grown with patience and devotion. Every furrow is a prayer made '
+        'into work.',
   ),
   'vinedo': (
     "The chapter's vineyard",
-    'The wine for mass and the wine for afterwards come from the same vine.',
+    "Vines rooted deep in the town's history. From them flows the joy "
+        "of every feast.",
   ),
   'colmenarMayor': (
     'Great apiary',
-    'The honey from here is known elsewhere. The town is starting to be '
-        'famous for something good.',
+    "Honey so fine it carries the town's name beyond the valley.",
   ),
   'castillo': (
     'Castle',
-    'No more running for the hills every time dust rises on the road.',
+    'Strong walls that guard the whole valley. The safety that lets a '
+        'town dream big.',
   ),
   'homenaje': (
     'Keep',
-    'From the top you see the whole valley and, in the middle of it, what is '
-        'yours.',
+    'The tallest tower, where loyalties are sworn. From the top, all '
+        'that was built comes into view.',
   ),
   'puertaVilla': (
     'Town gate',
-    'Arriving stops being just showing up. From today on, you come in.',
+    'A worthy threshold for a town grown into a borough. Every arrival '
+        'becomes a welcome.',
   ),
   'muralla': (
     'Stretch of wall',
-    'A town that closes at night and wakes up with everyone inside.',
+    'Stone upon stone, an embrace around the town. Together and safe.',
   ),
   'alcazar': (
     'Fortress palace',
-    'Whoever rules no longer lives like everyone else, and it shows from '
-        'afar.',
+    "Fortress and palace at once. The town's greatness, visible from "
+        "afar.",
   ),
   'palacio': (
     "The lord's palace",
-    'Visitors from outside are received. The whole town puts on its best.',
+    'Halls that receive envoys and travellers. The town shows the world '
+        'its very best.',
   ),
   'concejo': (
     'Council house',
-    'Here things are argued loudly and decided by everyone. Nobody comes to '
-        'tell us how.',
+    "Where the town's voices are heard and decisions are made together. "
+        "Self-government made into a house.",
   ),
   'lonja': (
     "Merchants' exchange",
-    'A word given here is good in three kingdoms. Half the town lives on '
-        'that.',
+    'Honest trade beneath elegant arches. Here, a promise is worth more '
+        'than gold.',
   ),
   'iglesia': (
     'Church',
-    'Where the town gathers for the first things and for the last.',
+    'Where the town gathers for the most important moments of life.',
   ),
   'catedral': (
     'Cathedral',
-    'You start it knowing the grandchildren will finish it, and you start it '
-        'anyway.',
+    'The faith and effort of generations, made into stone and light '
+        'reaching for the sky.',
   ),
   'monasterio': (
     'Monastery',
-    'People who chose a smaller life to make it a deeper one.',
+    'A life devoted to silence, study and work. A beacon of learning '
+        'and serenity.',
   ),
   'abadia': (
     'Abbey',
-    'They pray, they store and they share. In the bad years you can tell who '
-        'was storing.',
+    'Prayer, work and generosity. In hard times, its doors are always '
+        'open.',
   ),
   'colegiata': (
     'Collegiate church',
-    'Too much church for a town like this, and that is exactly the pride.',
+    'A majestic church that reflects the ambition and pride of its '
+        'people.',
   ),
   'sinagoga': (
     'Synagogue',
-    'Another way of praying that also belongs here, for as long as the '
-        'other.',
+    "A house of prayer and study with ancient roots. An essential part "
+        "of the town's soul.",
   ),
   'mezquita': (
     'Mosque',
-    'The call is heard all over the quarter, and the quarter knows the time '
-        'without looking.',
+    'Serene courtyards and endless arches. The call to prayer sets the '
+        'rhythm of the quarter.',
   ),
   'baptisterio': (
     'Baptistery',
-    'The newborn come in through here. They leave with a name and with '
-        'people.',
+    'Here every new life receives its name and its place in the '
+        'community.',
   ),
   'hospitalMayor': (
     'Great hospital',
-    'Those with no one to care for them are cared for. That is the town '
-        'too.',
+    "Care for all who need it. The town's compassion made into an "
+        "institution.",
   ),
   'universidad': (
     'University',
-    'People come from outside to learn here, and those who leave carry the '
-        'name with them.',
+    'The house of learning, drawing minds from every land. Here, those '
+        'who will shape the future are formed.',
   ),
   'biblioteca': (
     'Library',
-    'A whole year to copy a book that someone not yet born will read.',
+    'The knowledge of humankind gathered under one roof. Every book is '
+        'a voice that crosses the centuries.',
   ),
   'teatro': (
     'Mystery-play yard',
-    'One afternoon a year the town tells its own story and laughs at '
-        'itself.',
+    'Stories, music and emotion, shared. The town sees itself on stage '
+        'and knows who it is.',
   ),
   'coso': (
     'Arena and stands',
-    'The whole town sitting in the same place, shouting the same thing.',
+    'A great open-air arena where the whole town thrills as one.',
   ),
-  'jardin': ('Palace garden', 'It is good for nothing. It was needed anyway.'),
+  'jardin': (
+    'Palace garden',
+    'Flowers, fountains and shade for rest. Beauty grown for the sheer '
+        'love of it.',
+  ),
   'arcoVilla': (
     'Town arch',
-    'It closes nothing and defends nothing. It was raised for the pleasure '
-        'of being able to.',
+    'A monument to all the town has achieved. A celebration of a long '
+        'road travelled.',
   ),
   'panteon': (
     "Founders' pantheon",
-    'Those who started this have a place to be, and someone to thank for '
-        'the town.',
+    'Eternal honor to those who founded the town. Their dream lives on '
+        'in every stone.',
   ),
 };

@@ -127,8 +127,8 @@ final List<Landmark> landmarks = [
     'Pozo del concejo',
     7,
     0,
-    'El agua deja de ser una caminata. Ahora es el sitio donde se habla '
-        'al caer la tarde.',
+    'Agua limpia y cerca para todos. Alrededor del pozo nacen la plaza '
+        'y la vida del pueblo.',
     (m) {
       m.plinth(1.5, 1.5, 0.26);
       m.parapet(1.1, 1.1, 0.6);
@@ -146,8 +146,8 @@ final List<Landmark> landmarks = [
     'Cruz de término',
     6,
     0,
-    'Quien llega sabe que ya está en casa. Quien se va la mira una '
-        'última vez.',
+    'Marca el lugar donde empieza el hogar. Recibe a quien llega y '
+        'acompaña a quien parte.',
     (m) {
       m.plinth(1.6, 1.6, 0.24);
       m.plinth(1.15, 1.15, 0.24);
@@ -164,7 +164,8 @@ final List<Landmark> landmarks = [
     'Palomar',
     7,
     0,
-    'Noticias que se esperan mirando al cielo. Casi siempre buenas.',
+    'Alas que unen este pueblo con el mundo. Cada paloma que vuelve '
+        'trae noticias de lejos.',
     (m) {
       m.plinth(1.9, 1.9, 0.28);
       m.floor(1.35, 1.35, 1.15);
@@ -181,8 +182,8 @@ final List<Landmark> landmarks = [
     'Colmenar',
     6,
     0,
-    'Dulce en la mesa y luz en la noche, a cambio de dejarlas '
-        'tranquilas.',
+    'Miel para la mesa y cera para la luz. Un pequeño reino de trabajo '
+        'y armonía.',
     (m) {
       m.plinth(2.6, 1.2, 0.22);
       final banco = m.y;
@@ -199,8 +200,8 @@ final List<Landmark> landmarks = [
     'Huerto del cura',
     6,
     0,
-    'Lo que sobra se reparte, y nadie lleva la cuenta de a quién le '
-        'tocó.',
+    'Tierra cuidada que da más de lo que pide. Lo que crece aquí se '
+        'comparte con todos.',
     (m) {
       m.field(2.4, 1.2, dz: -0.7);
       m.field(2.4, 1.2, dz: 0.7);
@@ -216,8 +217,8 @@ final List<Landmark> landmarks = [
     'Pajar',
     6,
     0,
-    'Guardar en agosto lo que hará falta en enero es una manera de '
-        'creer que habrá enero.',
+    'La cosecha del verano, guardada para el invierno. Previsión hecha '
+        'de paja dorada.',
     (m) {
       // Un pajar no tiene ventanas ni tejas: es un muro ciego con un portón y
       // un techo de paja gordo. Con planta de vivienda y tejado de teja era
@@ -236,7 +237,8 @@ final List<Landmark> landmarks = [
     'Corral',
     6,
     0,
-    'Al oscurecer se cuenta y se cierra. Esta noche no se pierde nada.',
+    'Cada animal a salvo bajo el cielo de la noche. El cuidado de cada '
+        'día hecho refugio.',
     (m) {
       m.palisade(3.2, 0.95, dz: -1.6);
       m.palisade(3.2, 0.95, dz: 1.6);
@@ -251,8 +253,8 @@ final List<Landmark> landmarks = [
     'Gallinero',
     5,
     0,
-    'La primera visita de cada mañana. Hay cariños que son sólo una '
-        'costumbre.',
+    'Huevos frescos cada mañana. Un comienzo sencillo y generoso para '
+        'cada día.',
     (m) {
       m.plinth(1.6, 1.3, 0.32);
       m.floor(1.3, 1.05, 0.78);
@@ -267,8 +269,8 @@ final List<Landmark> landmarks = [
     'Alfarería',
     7,
     0,
-    'Todo lo que guarda algo en este pueblo pasó por unas manos y una '
-        'rueda.',
+    'Del barro nacen cántaros, platos y tejas. Las manos del alfarero '
+        'dan forma al pueblo.',
     (m) {
       m.plinth(2.0, 1.7, 0.22);
       m.floor(1.7, 1.45, 1.0);
@@ -293,8 +295,8 @@ final List<Landmark> landmarks = [
     'Camposanto',
     8,
     0,
-    'Ya hay gente que no se va a ir. Se viene a hablarles y se vuelve '
-        'más liviano.',
+    'Un jardín de memoria para quienes vinieron antes. Aquí el pueblo '
+        'honra sus raíces.',
     (m) {
       // Tapia de piedra y no estacas: el corral, el colmenar y éste eran el
       // mismo cerco con otro nombre, y a un metro de distancia no se sabía
@@ -315,7 +317,8 @@ final List<Landmark> landmarks = [
     'Atalaya',
     8,
     0,
-    'Alguien mira por los demás mientras los demás duermen.',
+    'Una mirada alta y despierta sobre el valle. Gracias a ella, el '
+        'pueblo duerme en paz.',
     (m) {
       m.plinth(1.9, 1.9, 0.34);
       m.shaft(1.35, 4, 0.82);
@@ -333,8 +336,8 @@ final List<Landmark> landmarks = [
     'Almenara',
     10,
     0,
-    'Un fuego arriba para decirle al valle que aquí estamos y que '
-        'avisamos.',
+    'Un fuego en lo alto que une pueblo con pueblo. La luz que dice: '
+        'aquí estamos.',
     (m) {
       m.plinth(2.1, 2.1, 0.34);
       m.stair(1.15, 0.56, 1.0, dz: -1.5);
@@ -355,7 +358,8 @@ final List<Landmark> landmarks = [
     'Molino de viento',
     13,
     1,
-    'Se oyen las aspas desde la cama. Mientras giran, hay pan.',
+    'El viento convertido en harina. Mientras giran las aspas, hay pan '
+        'para todos.',
     (m) {
       m.field(3.4, 1.5, dz: -2.5);
       m.field(3.4, 1.5, dz: 2.5);
@@ -393,7 +397,8 @@ final List<Landmark> landmarks = [
     'Almazara y olivar',
     14,
     1,
-    'Aceite de olivos que plantó gente que no llegó a probarlo.',
+    'Oro líquido de olivos centenarios. Un regalo de generaciones que '
+        'se sigue cosechando.',
     (m) {
       // El olivar delante y la prensa detrás, y **todo lo que está al lado
       // dice a qué altura está**. Lo de antes ponía el cobertizo de la viga
@@ -422,8 +427,8 @@ final List<Landmark> landmarks = [
     'Cervecería',
     12,
     1,
-    'Donde se acaba el día. Nadie te pregunta qué tal te fue si no '
-        'querés contarlo.',
+    'Grano, agua y paciencia hechos celebración. Aquí el día termina en '
+        'buena compañía.',
     (m) {
       m.plinth(2.7, 2.2, 0.32);
       m.floor(2.4, 1.9, 1.2);
@@ -445,7 +450,8 @@ final List<Landmark> landmarks = [
     'Mercado cubierto',
     13,
     1,
-    'Un día fijo a la semana en que el pueblo entero se ve la cara.',
+    'Bajo un mismo techo se encuentran el campo, los oficios y la '
+        'gente. Un corazón que late cada semana.',
     (m) {
       // Lo que lo distingue de las otras veinte casas con tejado del catálogo
       // es que **no tiene paredes**: se entra por cualquier lado. Toda la
@@ -472,8 +478,8 @@ final List<Landmark> landmarks = [
     'Salinas',
     15,
     1,
-    'Sacarle al mar lo que hace que la comida dure. Trabajo lento y '
-        'agradecido.',
+    'El mar y el sol trabajando juntos. La sal que conserva y da sabor '
+        'a la vida.',
     (m) {
       for (var i = 0; i < 3; i++) {
         for (var j = 0; j < 2; j++) {
@@ -496,8 +502,8 @@ final List<Landmark> landmarks = [
     'Casa de la moneda',
     14,
     1,
-    'Una moneda con la marca de casa, que llega lejos y vuelve contando '
-        'dónde estuvo.',
+    'Monedas con el sello del pueblo, que viajan lejos y llevan su '
+        'nombre con orgullo.',
     (m) {
       // Una ceca es un sitio cerrado: tapia alta alrededor, un bloque ciego
       // dentro y la torre del arca en una esquina. Nada de esto se parece a
@@ -533,8 +539,8 @@ final List<Landmark> landmarks = [
     'Gremio de tejedores',
     13,
     1,
-    'Nadie regatea solo. El oficio se defiende entre todos o no se '
-        'defiende.',
+    'Hilos que se cruzan para hacer algo más fuerte. Un oficio que se '
+        'sostiene entre todos.',
     (m) {
       m.plinth(2.9, 2.3, 0.34);
       m.floor(2.6, 2.0, 1.25);
@@ -559,8 +565,8 @@ final List<Landmark> landmarks = [
     'Hospital de peregrinos',
     15,
     1,
-    'Cama y comida para el que va de paso. No se pregunta de dónde '
-        'viene.',
+    'Un techo y un plato caliente para el viajero. La hospitalidad '
+        'hecha piedra.',
     (m) {
       m.plinth(3.7, 2.5, 0.34);
       m.floor(3.4, 2.2, 1.3);
@@ -595,7 +601,8 @@ final List<Landmark> landmarks = [
     'Botica',
     11,
     1,
-    'Ya no hay que aguantarlo todo. Algunas cosas ahora tienen remedio.',
+    'Hierbas, saber y cuidado al alcance de todos. Aquí empieza la '
+        'curación.',
     (m) {
       m.plinth(2.3, 1.9, 0.3);
       m.floor(2.0, 1.65, 1.15);
@@ -618,7 +625,8 @@ final List<Landmark> landmarks = [
     'Escuela de gramática',
     13,
     1,
-    'Los hijos van a saber cosas que sus padres no supieron nunca.',
+    'Donde los niños aprenden a leer el mundo. Cada lección es una '
+        'puerta que se abre.',
     (m) {
       m.plinth(3.2, 2.3, 0.34);
       m.floor(2.9, 2.0, 1.3);
@@ -642,8 +650,8 @@ final List<Landmark> landmarks = [
     'Escribanía',
     12,
     1,
-    'Lo que se acuerda queda escrito, y se deja de discutir sobre lo '
-        'que se dijo.',
+    'La palabra escrita que guarda los acuerdos y la memoria. Aquí la '
+        'confianza tiene su casa.',
     (m) {
       m.plinth(2.4, 2.0, 0.32);
       m.floor(2.1, 1.7, 1.2);
@@ -666,7 +674,8 @@ final List<Landmark> landmarks = [
     'Capilla',
     12,
     1,
-    'Un sitio pequeño para lo que no se cuenta en voz alta.',
+    'Un rincón de recogimiento y de paz. Pequeña por fuera, inmensa por '
+        'dentro.',
     (m) {
       m.plinth(2.5, 3.4, 0.34);
       m.floor(2.2, 3.1, 1.45);
@@ -696,8 +705,8 @@ final List<Landmark> landmarks = [
     'Campanario exento',
     13,
     1,
-    'La campana dice la hora, la fiesta y la pena. Se oye desde el '
-        'campo y se sabe.',
+    'Su voz marca las horas, las fiestas y los encuentros. Todo el '
+        'valle la reconoce.',
     (m) {
       m.plinth(2.4, 2.4, 0.42);
       m.shaft(1.8, 4, 0.9);
@@ -719,7 +728,8 @@ final List<Landmark> landmarks = [
     'Claustro',
     18,
     1,
-    'Cuatro galerías para dar vueltas pensando sin molestar a nadie.',
+    'Cuatro galerías en torno a un jardín sereno. Un lugar hecho para '
+        'pensar y estudiar.',
     (m) {
       // Un claustro es un **hueco**: cuatro galerías de arcos mirando a un
       // patio. Antes era una casa con arcos en un lado, que es otra cosa.
@@ -753,7 +763,8 @@ final List<Landmark> landmarks = [
     'Refectorio',
     13,
     1,
-    'Comer juntos todos los días, en silencio. Eso también es quererse.',
+    'La mesa compartida que une a la comunidad. Cada comida es un acto '
+        'de hermandad.',
     (m) {
       m.plinth(4.6, 2.4, 0.34);
       m.floor(4.3, 2.1, 1.75);
@@ -778,8 +789,8 @@ final List<Landmark> landmarks = [
     'Bodega',
     12,
     1,
-    'Abajo nadie tiene prisa: el vino de este año espera al del que '
-        'viene.',
+    'En la penumbra fresca, el vino madura sin prisa. La paciencia '
+        'también se cosecha.',
     (m) {
       // Media bodega está enterrada: lo que se ve son los lomos de tierra, los
       // respiraderos y las portadas. Nada de esto es una casa con tejado.
@@ -820,7 +831,8 @@ final List<Landmark> landmarks = [
     'Silos de grano',
     13,
     1,
-    'Grano para tres años. Se duerme distinto sabiendo eso.',
+    'Grano a salvo para los años que vienen. La tranquilidad de un '
+        'pueblo que mira adelante.',
     (m) {
       m.box(PieceKind.plinth, 5.6, 1.9, 0.32, at: 0);
       for (var i = 0; i < 3; i++) {
@@ -843,8 +855,8 @@ final List<Landmark> landmarks = [
     'Faro',
     17,
     1,
-    'Alguien sube cada tarde a encenderlo por los que todavía no '
-        'volvieron.',
+    'Una luz encendida cada noche para guiar a los que vuelven. Nadie '
+        'navega solo.',
     (m) {
       m.water(5.2, 2.4, dz: 2.4);
       m.water(5.2, 1.4, dz: -2.7);
@@ -868,8 +880,8 @@ final List<Landmark> landmarks = [
     'Herrería mayor',
     13,
     1,
-    'Se oye el mazo desde la plaza. Cuando para, todos levantan la '
-        'cabeza.',
+    'Fuego, hierro y fuerza. De su yunque salen las herramientas que '
+        'levantan el pueblo.',
     (m) {
       m.plinth(3.2, 2.4, 0.34);
       m.floor(2.9, 2.1, 1.55);
@@ -892,8 +904,8 @@ final List<Landmark> landmarks = [
     'Campo de la horca',
     11,
     1,
-    'Hay reglas y se cumplen. No es bonito, y todos saben para qué '
-        'está.',
+    'El lugar donde se imparte justicia. Las leyes que todos respetan '
+        'protegen a todos.',
     (m) {
       m.plinth(2.7, 2.7, 0.36);
       m.plinth(2.1, 2.1, 0.3);
@@ -916,7 +928,8 @@ final List<Landmark> landmarks = [
     'Palenque de torneos',
     16,
     1,
-    'Una tarde de gritos al sol de la que se habla el resto del año.',
+    'Destreza, valor y fiesta bajo el sol. Las hazañas de hoy serán las '
+        'historias de mañana.',
     (m) {
       m.field(5.2, 3.6);
       m.palisade(5.6, 0.85, dz: -1.95);
@@ -942,7 +955,8 @@ final List<Landmark> landmarks = [
     'Huerto de los monjes',
     16,
     1,
-    'Se come de lo que se cuida. El mismo trabajo cada día, sin queja.',
+    'Cultivado con paciencia y devoción. Cada surco es una oración '
+        'hecha trabajo.',
     (m) {
       m.box(PieceKind.parapet, 5.8, 0.3, 0.95, dz: -2.75, at: 0);
       m.box(PieceKind.parapet, 5.8, 0.3, 0.95, dz: 2.75, at: 0);
@@ -968,7 +982,8 @@ final List<Landmark> landmarks = [
     'Viñedo del cabildo',
     14,
     1,
-    'El vino de la misa y el de después salen de la misma cepa.',
+    'Cepas que hunden sus raíces en la historia del pueblo. De ellas '
+        'brota la alegría de las fiestas.',
     (m) {
       m.field(5.2, 0.9, dz: -2.2);
       m.field(5.2, 0.9, dz: -1.1);
@@ -992,8 +1007,8 @@ final List<Landmark> landmarks = [
     'Colmenar mayor',
     12,
     1,
-    'La miel de aquí se conoce fuera. El pueblo empieza a tener fama de '
-        'algo bueno.',
+    'Una miel tan buena que lleva el nombre del pueblo más allá del '
+        'valle.',
     (m) {
       for (var i = 0; i < 4; i++) {
         m.dome(0.62, 0.62, 0.56, dx: -1.9 + i * 1.25, dz: -1.25, at: 0);
@@ -1014,7 +1029,8 @@ final List<Landmark> landmarks = [
     'Castillo',
     52,
     2,
-    'Se acabó huir al monte cada vez que se ve polvo en el camino.',
+    'Muros firmes que protegen a todo el valle. La seguridad que '
+        'permite soñar en grande.',
     (m) {
       // Un castillo de verdad: foso alrededor, muralla con cuatro torres en
       // las esquinas, puerta con su puente, y la torre grande en el patio.
@@ -1091,7 +1107,8 @@ final List<Landmark> landmarks = [
     'Torre del homenaje',
     23,
     2,
-    'Desde arriba se ve el valle entero y, en medio, lo tuyo.',
+    'La torre más alta, donde se juran lealtades. Desde arriba se '
+        'contempla todo lo construido.',
     (m) {
       // Un dado de piedra enorme con el talud abajo, y nada más. Lo que la
       // hace impresionante es que no tenga adornos.
@@ -1141,7 +1158,8 @@ final List<Landmark> landmarks = [
     'Puerta de la villa',
     21,
     2,
-    'Llegar deja de ser aparecer. A partir de hoy se entra.',
+    'Un umbral digno para un pueblo que ya es villa. Cada llegada se '
+        'convierte en bienvenida.',
     (m) {
       // Dos torreones **separados**, con el hueco de la puerta entre ellos y
       // el arco cruzándolo: ver el arco de la villa, que es el mismo
@@ -1174,7 +1192,8 @@ final List<Landmark> landmarks = [
     'Lienzo de muralla',
     23,
     2,
-    'Un pueblo que se cierra de noche y amanece con todos dentro.',
+    'Piedra sobre piedra, un abrazo que rodea al pueblo. Juntos y a '
+        'salvo.',
     (m) {
       // Un lienzo largo con tres torres, el adarve por arriba y el foso
       // delante. Se lee de un vistazo por lo largo que es.
@@ -1206,7 +1225,8 @@ final List<Landmark> landmarks = [
     'Alcázar',
     32,
     2,
-    'Quien manda ya no vive como los demás, y se nota desde lejos.',
+    'Fortaleza y palacio a la vez. La grandeza del pueblo, visible '
+        'desde lejos.',
     (m) {
       m.box(PieceKind.parapet, 10.4, 0.55, 2.0, dz: -4.6, at: 0);
       m.box(PieceKind.parapet, 0.55, 9.8, 2.0, dx: -4.6, at: 0);
@@ -1265,8 +1285,8 @@ final List<Landmark> landmarks = [
     'Palacio del señor',
     23,
     2,
-    'Se recibe al que viene de fuera. El pueblo entero se pone de punta '
-        'en blanco.',
+    'Salones que reciben a embajadores y viajeros. El pueblo muestra al '
+        'mundo lo mejor de sí.',
     (m) {
       // En U: cuerpo al fondo y dos alas abriéndose, con el patio de honor
       // en medio. La silueta no se parece a ninguna otra del catálogo.
@@ -1302,8 +1322,8 @@ final List<Landmark> landmarks = [
     'Casa del concejo',
     20,
     2,
-    'Aquí se discute a voces y se decide entre todos. Nadie viene a '
-        'decirnos cómo.',
+    'Donde se escuchan las voces del pueblo y se decide en común. El '
+        'gobierno de todos hecho casa.',
     (m) {
       // Lo que hace a un ayuntamiento: soportal abierto abajo, balcón corrido
       // arriba y el campanario del reloj encima.
@@ -1340,8 +1360,8 @@ final List<Landmark> landmarks = [
     'Lonja de mercaderes',
     20,
     2,
-    'La palabra dada aquí vale en tres reinos. De eso vive medio '
-        'pueblo.',
+    'Comercio honrado bajo arcos elegantes. Aquí la palabra dada vale '
+        'más que el oro.',
     (m) {
       // Una sola sala enorme, alta y sin pisos, sobre una lonja de arcos. Lo
       // que impresiona de una lonja es el vacío de dentro.
@@ -1387,7 +1407,8 @@ final List<Landmark> landmarks = [
     'Iglesia',
     21,
     2,
-    'Donde el pueblo se junta para lo primero y para lo último.',
+    'El lugar donde el pueblo se reúne en los momentos más importantes '
+        'de la vida.',
     (m) {
       // Nave larga, crucero cruzado y torre a los pies: la planta de cruz es
       // lo que la distingue de la capilla, que es una caja con campanario.
@@ -1424,8 +1445,8 @@ final List<Landmark> landmarks = [
     'Catedral',
     33,
     2,
-    'Se empieza sabiendo que la terminarán los nietos, y se empieza '
-        'igual.',
+    'La fe y el esfuerzo de generaciones, hechos piedra y luz hacia el '
+        'cielo.',
     (m) {
       // Lo mismo que la iglesia, llevado al límite: nave más alta, dos torres
       // a los pies, cimborrio sobre el crucero y contrafuertes a los lados.
@@ -1474,7 +1495,8 @@ final List<Landmark> landmarks = [
     'Monasterio',
     27,
     2,
-    'Gente que eligió una vida más chica para hacerla más honda.',
+    'Una vida dedicada al silencio, al estudio y al trabajo. Un faro de '
+        'saber y serenidad.',
     (m) {
       // Un recinto: tapia, iglesia a un lado, claustro al otro y la huerta al
       // fondo. Es el único hito que es **varios edificios**.
@@ -1523,8 +1545,8 @@ final List<Landmark> landmarks = [
     'Abadía',
     24,
     2,
-    'Se reza, se guarda y se reparte. En los malos años se nota quién '
-        'guardaba.',
+    'Oración, trabajo y generosidad. En los tiempos difíciles, sus '
+        'puertas siempre están abiertas.',
     (m) {
       m.box(PieceKind.plinth, 4.6, 9.4, 0.45, dx: -2.4, at: 0);
       m.box(PieceKind.floor, 4.0, 8.8, 3.4, dx: -2.4, at: 0.45);
@@ -1575,7 +1597,8 @@ final List<Landmark> landmarks = [
     'Colegiata',
     22,
     2,
-    'Demasiada iglesia para un pueblo así, y ése es justo el orgullo.',
+    'Una iglesia majestuosa que refleja la ambición y el orgullo de su '
+        'gente.',
     (m) {
       // Iglesia con claustrillo pegado: dos cosas distintas cosidas, que es
       // exactamente lo que es una colegiata.
@@ -1619,8 +1642,8 @@ final List<Landmark> landmarks = [
     'Sinagoga',
     21,
     2,
-    'Otra manera de rezar que también es de aquí, desde hace tanto como '
-        'la otra.',
+    'Una casa de oración y de estudio con raíces antiguas. Parte '
+        'esencial del alma del pueblo.',
     (m) {
       m.box(PieceKind.plinth, 6.4, 5.4, 0.5, dz: -1.4, at: 0);
       m.box(PieceKind.floor, 5.8, 4.8, 3.6, dz: -1.4, at: 0.5);
@@ -1652,8 +1675,8 @@ final List<Landmark> landmarks = [
     'Mezquita',
     21,
     2,
-    'La llamada se oye en todo el barrio, y el barrio sabe la hora sin '
-        'mirar.',
+    'Patios serenos y arcos sin fin. La llamada a la oración marca el '
+        'ritmo del barrio.',
     (m) {
       // Una mezquita es un **bosque de columnas**: la sala es toda arcada,
       // sin pisos, y el alminar sale del patio.
@@ -1695,7 +1718,7 @@ final List<Landmark> landmarks = [
     'Baptisterio',
     18,
     2,
-    'Por aquí entra el que acaba de nacer. Sale con nombre y con gente.',
+    'Aquí cada nueva vida recibe su nombre y su lugar en la comunidad.',
     (m) {
       // Un octógono exento: tres cuerpos que se van estrechando y la linterna
       // encima. Pequeño de planta y alto, que es lo contrario que la lonja.
@@ -1726,8 +1749,8 @@ final List<Landmark> landmarks = [
     'Hospital mayor',
     21,
     2,
-    'Se cuida al que no tiene quién lo cuide. Del pueblo también es '
-        'eso.',
+    'Cuidado para todo el que lo necesite. La compasión del pueblo '
+        'convertida en institución.',
     (m) {
       // La planta en cruz no es un adorno: es la idea del sitio, cuatro salas
       // que miran todas al mismo centro.
@@ -1761,8 +1784,8 @@ final List<Landmark> landmarks = [
     'Universidad',
     30,
     2,
-    'Vienen de fuera a aprender aquí, y los que se van dejan el nombre '
-        'por ahí.',
+    'La casa del saber, que atrae mentes de todas partes. Aquí se '
+        'forman quienes darán forma al futuro.',
     (m) {
       // Un patio cuadrado de dos pisos de arcos, con la torre del reloj en
       // una esquina. Es el claustro llevado a lo civil, y más alto.
@@ -1812,8 +1835,8 @@ final List<Landmark> landmarks = [
     'Biblioteca',
     21,
     2,
-    'Un año entero para copiar un libro que va a leer alguien sin '
-        'nacer.',
+    'El conocimiento de la humanidad reunido bajo un mismo techo. Cada '
+        'libro es una voz que atraviesa los siglos.',
     (m) {
       // Una sola sala altísima, de ventanal en ventanal, sobre un podio.
       // Nada de pisos: lo que se ve es la altura de dentro.
@@ -1843,8 +1866,8 @@ final List<Landmark> landmarks = [
     'Corral de misterios',
     24,
     2,
-    'Una tarde al año el pueblo se cuenta a sí mismo y se ríe de sí '
-        'mismo.',
+    'Historias, música y emoción compartidas. El pueblo se mira en el '
+        'escenario y se reconoce.',
     (m) {
       // Un corral de comedias: patio descubierto, galerías de madera en tres
       // lados y el tablado al fondo, bajo cubierta.
@@ -1881,7 +1904,8 @@ final List<Landmark> landmarks = [
     'Coso y graderío',
     28,
     2,
-    'Todo el pueblo sentado en el mismo sitio, gritando lo mismo.',
+    'Un gran escenario al aire libre donde todo el pueblo vibra a la '
+        'vez.',
     (m) {
       // **La obra más grande que sabe hacer el pueblo**: un anillo cerrado de
       // arcos, dos pisos, con la arena dentro. Cuatro lienzos de arcada por
@@ -1922,7 +1946,8 @@ final List<Landmark> landmarks = [
     'Jardín del palacio',
     27,
     2,
-    'No sirve para nada. Hacía falta igual.',
+    'Flores, fuentes y sombra para el descanso. La belleza cultivada '
+        'por puro amor a ella.',
     (m) {
       // Todo el hito es suelo: parterres, agua y setos, con un templete
       // pequeño al fondo. Es la única obra del catálogo que casi no sube.
@@ -1963,7 +1988,8 @@ final List<Landmark> landmarks = [
     'Arco de la villa',
     19,
     2,
-    'No cierra nada ni defiende nada. Se levantó por el gusto de poder.',
+    'Un monumento a todo lo que el pueblo ha logrado. La celebración de '
+        'un largo camino.',
     (m) {
       // **Lo que hace que un arco se lea como un arco es el agujero.** Dos
       // pilares separados de verdad, con aire entre ellos, y el arco cruzando
@@ -1998,8 +2024,8 @@ final List<Landmark> landmarks = [
     'Panteón de los fundadores',
     18,
     2,
-    'Los que empezaron esto tienen dónde estar, y a quién agradecerle '
-        'el pueblo.',
+    'Honor eterno a quienes fundaron el pueblo. Su sueño sigue vivo en '
+        'cada piedra.',
     (m) {
       // Una rotonda: podio, escalinata, pórtico de columnas y cúpula. Es la
       // única obra del catálogo que es redonda por fuera y por dentro.

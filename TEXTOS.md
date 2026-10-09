@@ -36,125 +36,125 @@ nombres de fuente (`RockSalt.ttf`), la hoja de pruebas y los comentarios.
 > **Cuándo se ve.** El **nombre** sale en tres sitios: en la tarjeta de elegir cuando el pueblo va a empezar una obra, en el cartel que flota sobre ella mientras se construye, y en la tarjeta del día que se remata. La **frase** se dice una sola vez, el día que la obra se remata, y también se lee en la tarjeta de elegir y en el expositor. Una obra llega cada dos o tres semanas.
 
 - **O1** · [pozo] Pozo del concejo · 7 piezas · nivel 0
-    El agua deja de ser una caminata. Ahora es el sitio donde se habla al caer la tarde.
+    Agua limpia y cerca para todos. Alrededor del pozo nacen la plaza y la vida del pueblo.
 - **O2** · [cruz] Cruz de término · 6 piezas · nivel 0
-    Quien llega sabe que ya está en casa. Quien se va la mira una última vez.
+    Marca el lugar donde empieza el hogar. Recibe a quien llega y acompaña a quien parte.
 - **O3** · [palomar] Palomar · 7 piezas · nivel 0
-    Noticias que se esperan mirando al cielo. Casi siempre buenas.
+    Alas que unen este pueblo con el mundo. Cada paloma que vuelve trae noticias de lejos.
 - **O4** · [colmenar] Colmenar · 6 piezas · nivel 0
-    Dulce en la mesa y luz en la noche, a cambio de dejarlas tranquilas.
+    Miel para la mesa y cera para la luz. Un pequeño reino de trabajo y armonía.
 - **O5** · [huerto] Huerto del cura · 6 piezas · nivel 0
-    Lo que sobra se reparte, y nadie lleva la cuenta de a quién le tocó.
+    Tierra cuidada que da más de lo que pide. Lo que crece aquí se comparte con todos.
 - **O6** · [pajar] Pajar · 6 piezas · nivel 0
-    Guardar en agosto lo que hará falta en enero es una manera de creer que habrá enero.
+    La cosecha del verano, guardada para el invierno. Previsión hecha de paja dorada.
 - **O7** · [corral] Corral · 6 piezas · nivel 0
-    Al oscurecer se cuenta y se cierra. Esta noche no se pierde nada.
+    Cada animal a salvo bajo el cielo de la noche. El cuidado de cada día hecho refugio.
 - **O8** · [gallinero] Gallinero · 5 piezas · nivel 0
-    La primera visita de cada mañana. Hay cariños que son sólo una costumbre.
+    Huevos frescos cada mañana. Un comienzo sencillo y generoso para cada día.
 - **O9** · [alfar] Alfarería · 7 piezas · nivel 0
-    Todo lo que guarda algo en este pueblo pasó por unas manos y una rueda.
+    Del barro nacen cántaros, platos y tejas. Las manos del alfarero dan forma al pueblo.
 - **O10** · [camposanto] Camposanto · 8 piezas · nivel 0
-    Ya hay gente que no se va a ir. Se viene a hablarles y se vuelve más liviano.
+    Un jardín de memoria para quienes vinieron antes. Aquí el pueblo honra sus raíces.
 - **O11** · [atalaya] Atalaya · 8 piezas · nivel 0
-    Alguien mira por los demás mientras los demás duermen.
+    Una mirada alta y despierta sobre el valle. Gracias a ella, el pueblo duerme en paz.
 - **O12** · [almenara] Almenara · 10 piezas · nivel 0
-    Un fuego arriba para decirle al valle que aquí estamos y que avisamos.
+    Un fuego en lo alto que une pueblo con pueblo. La luz que dice: aquí estamos.
 - **O13** · [molinoViento] Molino de viento · 13 piezas · nivel 1
-    Se oyen las aspas desde la cama. Mientras giran, hay pan.
+    El viento convertido en harina. Mientras giran las aspas, hay pan para todos.
 - **O14** · [almazara] Almazara y olivar · 14 piezas · nivel 1
-    Aceite de olivos que plantó gente que no llegó a probarlo.
+    Oro líquido de olivos centenarios. Un regalo de generaciones que se sigue cosechando.
 - **O15** · [cerveceria] Cervecería · 12 piezas · nivel 1
-    Donde se acaba el día. Nadie te pregunta qué tal te fue si no querés contarlo.
+    Grano, agua y paciencia hechos celebración. Aquí el día termina en buena compañía.
 - **O16** · [mercado] Mercado cubierto · 13 piezas · nivel 1
-    Un día fijo a la semana en que el pueblo entero se ve la cara.
+    Bajo un mismo techo se encuentran el campo, los oficios y la gente. Un corazón que late cada semana.
 - **O17** · [salinas] Salinas · 15 piezas · nivel 1
-    Sacarle al mar lo que hace que la comida dure. Trabajo lento y agradecido.
+    El mar y el sol trabajando juntos. La sal que conserva y da sabor a la vida.
 - **O18** · [ceca] Casa de la moneda · 14 piezas · nivel 1
-    Una moneda con la marca de casa, que llega lejos y vuelve contando dónde estuvo.
+    Monedas con el sello del pueblo, que viajan lejos y llevan su nombre con orgullo.
 - **O19** · [tejedores] Gremio de tejedores · 13 piezas · nivel 1
-    Nadie regatea solo. El oficio se defiende entre todos o no se defiende.
+    Hilos que se cruzan para hacer algo más fuerte. Un oficio que se sostiene entre todos.
 - **O20** · [hospederia] Hospital de peregrinos · 15 piezas · nivel 1
-    Cama y comida para el que va de paso. No se pregunta de dónde viene.
+    Un techo y un plato caliente para el viajero. La hospitalidad hecha piedra.
 - **O21** · [botica] Botica · 11 piezas · nivel 1
-    Ya no hay que aguantarlo todo. Algunas cosas ahora tienen remedio.
+    Hierbas, saber y cuidado al alcance de todos. Aquí empieza la curación.
 - **O22** · [escuela] Escuela de gramática · 13 piezas · nivel 1
-    Los hijos van a saber cosas que sus padres no supieron nunca.
+    Donde los niños aprenden a leer el mundo. Cada lección es una puerta que se abre.
 - **O23** · [escribania] Escribanía · 12 piezas · nivel 1
-    Lo que se acuerda queda escrito, y se deja de discutir sobre lo que se dijo.
+    La palabra escrita que guarda los acuerdos y la memoria. Aquí la confianza tiene su casa.
 - **O24** · [capilla] Capilla · 12 piezas · nivel 1
-    Un sitio pequeño para lo que no se cuenta en voz alta.
+    Un rincón de recogimiento y de paz. Pequeña por fuera, inmensa por dentro.
 - **O25** · [campanario] Campanario exento · 13 piezas · nivel 1
-    La campana dice la hora, la fiesta y la pena. Se oye desde el campo y se sabe.
+    Su voz marca las horas, las fiestas y los encuentros. Todo el valle la reconoce.
 - **O26** · [claustro] Claustro · 18 piezas · nivel 1
-    Cuatro galerías para dar vueltas pensando sin molestar a nadie.
+    Cuatro galerías en torno a un jardín sereno. Un lugar hecho para pensar y estudiar.
 - **O27** · [refectorio] Refectorio · 13 piezas · nivel 1
-    Comer juntos todos los días, en silencio. Eso también es quererse.
+    La mesa compartida que une a la comunidad. Cada comida es un acto de hermandad.
 - **O28** · [bodega] Bodega · 12 piezas · nivel 1
-    Abajo nadie tiene prisa: el vino de este año espera al del que viene.
+    En la penumbra fresca, el vino madura sin prisa. La paciencia también se cosecha.
 - **O29** · [silos] Silos de grano · 13 piezas · nivel 1
-    Grano para tres años. Se duerme distinto sabiendo eso.
+    Grano a salvo para los años que vienen. La tranquilidad de un pueblo que mira adelante.
 - **O30** · [faro] Faro · 17 piezas · nivel 1
-    Alguien sube cada tarde a encenderlo por los que todavía no volvieron.
+    Una luz encendida cada noche para guiar a los que vuelven. Nadie navega solo.
 - **O31** · [herreriaMayor] Herrería mayor · 13 piezas · nivel 1
-    Se oye el mazo desde la plaza. Cuando para, todos levantan la cabeza.
+    Fuego, hierro y fuerza. De su yunque salen las herramientas que levantan el pueblo.
 - **O32** · [horca] Campo de la horca · 11 piezas · nivel 1
-    Hay reglas y se cumplen. No es bonito, y todos saben para qué está.
+    El lugar donde se imparte justicia. Las leyes que todos respetan protegen a todos.
 - **O33** · [palenque] Palenque de torneos · 16 piezas · nivel 1
-    Una tarde de gritos al sol de la que se habla el resto del año.
+    Destreza, valor y fiesta bajo el sol. Las hazañas de hoy serán las historias de mañana.
 - **O34** · [huertoMonjes] Huerto de los monjes · 16 piezas · nivel 1
-    Se come de lo que se cuida. El mismo trabajo cada día, sin queja.
+    Cultivado con paciencia y devoción. Cada surco es una oración hecha trabajo.
 - **O35** · [vinedo] Viñedo del cabildo · 14 piezas · nivel 1
-    El vino de la misa y el de después salen de la misma cepa.
+    Cepas que hunden sus raíces en la historia del pueblo. De ellas brota la alegría de las fiestas.
 - **O36** · [colmenarMayor] Colmenar mayor · 12 piezas · nivel 1
-    La miel de aquí se conoce fuera. El pueblo empieza a tener fama de algo bueno.
+    Una miel tan buena que lleva el nombre del pueblo más allá del valle.
 - **O37** · [castillo] Castillo · 52 piezas · nivel 2
-    Se acabó huir al monte cada vez que se ve polvo en el camino.
+    Muros firmes que protegen a todo el valle. La seguridad que permite soñar en grande.
 - **O38** · [homenaje] Torre del homenaje · 23 piezas · nivel 2
-    Desde arriba se ve el valle entero y, en medio, lo tuyo.
+    La torre más alta, donde se juran lealtades. Desde arriba se contempla todo lo construido.
 - **O39** · [puertaVilla] Puerta de la villa · 21 piezas · nivel 2
-    Llegar deja de ser aparecer. A partir de hoy se entra.
+    Un umbral digno para un pueblo que ya es villa. Cada llegada se convierte en bienvenida.
 - **O40** · [muralla] Lienzo de muralla · 23 piezas · nivel 2
-    Un pueblo que se cierra de noche y amanece con todos dentro.
+    Piedra sobre piedra, un abrazo que rodea al pueblo. Juntos y a salvo.
 - **O41** · [alcazar] Alcázar · 32 piezas · nivel 2
-    Quien manda ya no vive como los demás, y se nota desde lejos.
+    Fortaleza y palacio a la vez. La grandeza del pueblo, visible desde lejos.
 - **O42** · [palacio] Palacio del señor · 23 piezas · nivel 2
-    Se recibe al que viene de fuera. El pueblo entero se pone de punta en blanco.
+    Salones que reciben a embajadores y viajeros. El pueblo muestra al mundo lo mejor de sí.
 - **O43** · [concejo] Casa del concejo · 20 piezas · nivel 2
-    Aquí se discute a voces y se decide entre todos. Nadie viene a decirnos cómo.
+    Donde se escuchan las voces del pueblo y se decide en común. El gobierno de todos hecho casa.
 - **O44** · [lonja] Lonja de mercaderes · 20 piezas · nivel 2
-    La palabra dada aquí vale en tres reinos. De eso vive medio pueblo.
+    Comercio honrado bajo arcos elegantes. Aquí la palabra dada vale más que el oro.
 - **O45** · [iglesia] Iglesia · 21 piezas · nivel 2
-    Donde el pueblo se junta para lo primero y para lo último.
+    El lugar donde el pueblo se reúne en los momentos más importantes de la vida.
 - **O46** · [catedral] Catedral · 33 piezas · nivel 2
-    Se empieza sabiendo que la terminarán los nietos, y se empieza igual.
+    La fe y el esfuerzo de generaciones, hechos piedra y luz hacia el cielo.
 - **O47** · [monasterio] Monasterio · 27 piezas · nivel 2
-    Gente que eligió una vida más chica para hacerla más honda.
+    Una vida dedicada al silencio, al estudio y al trabajo. Un faro de saber y serenidad.
 - **O48** · [abadia] Abadía · 24 piezas · nivel 2
-    Se reza, se guarda y se reparte. En los malos años se nota quién guardaba.
+    Oración, trabajo y generosidad. En los tiempos difíciles, sus puertas siempre están abiertas.
 - **O49** · [colegiata] Colegiata · 22 piezas · nivel 2
-    Demasiada iglesia para un pueblo así, y ése es justo el orgullo.
+    Una iglesia majestuosa que refleja la ambición y el orgullo de su gente.
 - **O50** · [sinagoga] Sinagoga · 21 piezas · nivel 2
-    Otra manera de rezar que también es de aquí, desde hace tanto como la otra.
+    Una casa de oración y de estudio con raíces antiguas. Parte esencial del alma del pueblo.
 - **O51** · [mezquita] Mezquita · 21 piezas · nivel 2
-    La llamada se oye en todo el barrio, y el barrio sabe la hora sin mirar.
+    Patios serenos y arcos sin fin. La llamada a la oración marca el ritmo del barrio.
 - **O52** · [baptisterio] Baptisterio · 18 piezas · nivel 2
-    Por aquí entra el que acaba de nacer. Sale con nombre y con gente.
+    Aquí cada nueva vida recibe su nombre y su lugar en la comunidad.
 - **O53** · [hospitalMayor] Hospital mayor · 21 piezas · nivel 2
-    Se cuida al que no tiene quién lo cuide. Del pueblo también es eso.
+    Cuidado para todo el que lo necesite. La compasión del pueblo convertida en institución.
 - **O54** · [universidad] Universidad · 30 piezas · nivel 2
-    Vienen de fuera a aprender aquí, y los que se van dejan el nombre por ahí.
+    La casa del saber, que atrae mentes de todas partes. Aquí se forman quienes darán forma al futuro.
 - **O55** · [biblioteca] Biblioteca · 21 piezas · nivel 2
-    Un año entero para copiar un libro que va a leer alguien sin nacer.
+    El conocimiento de la humanidad reunido bajo un mismo techo. Cada libro es una voz que atraviesa los siglos.
 - **O56** · [teatro] Corral de misterios · 24 piezas · nivel 2
-    Una tarde al año el pueblo se cuenta a sí mismo y se ríe de sí mismo.
+    Historias, música y emoción compartidas. El pueblo se mira en el escenario y se reconoce.
 - **O57** · [coso] Coso y graderío · 28 piezas · nivel 2
-    Todo el pueblo sentado en el mismo sitio, gritando lo mismo.
+    Un gran escenario al aire libre donde todo el pueblo vibra a la vez.
 - **O58** · [jardin] Jardín del palacio · 27 piezas · nivel 2
-    No sirve para nada. Hacía falta igual.
+    Flores, fuentes y sombra para el descanso. La belleza cultivada por puro amor a ella.
 - **O59** · [arcoVilla] Arco de la villa · 19 piezas · nivel 2
-    No cierra nada ni defiende nada. Se levantó por el gusto de poder.
+    Un monumento a todo lo que el pueblo ha logrado. La celebración de un largo camino.
 - **O60** · [panteon] Panteón de los fundadores · 18 piezas · nivel 2
-    Los que empezaron esto tienen dónde estar, y a quién agradecerle el pueblo.
+    Honor eterno a quienes fundaron el pueblo. Su sueño sigue vivo en cada piedra.
 
 ## Las casas corrientes (7)
 
