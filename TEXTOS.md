@@ -23,11 +23,11 @@ nombres de fuente (`RockSalt.ttf`), la hoja de pruebas y los comentarios.
 | Nombres de la gente | 87 | 87 | no: nombres propios |
 | Lo que hace la gente | 12 | 12 | sí |
 | Símbolos de hábito | 72 | 72 | sí |
-| La interfaz | 409 | 409 | sí |
+| La interfaz | 423 | 423 | sí |
 | Notificaciones | 9 | 9 | sí |
 | Widget de Android | 6 | 6 | sí |
 
-**1201 entradas**, que son unas 1755 frases sueltas. Sin los bandos se quedan en unas 883.
+**1215 entradas**, que son unas 1769 frases sueltas. Sin los bandos se quedan en unas 897.
 
 
 
@@ -1548,282 +1548,296 @@ Lo que se lee cuando se abre el sitio para un segundo pueblo en el valle.
 
 En ajustes: copiar el valle entero al portapapeles y volver a meterlo.
 
-- **U189** · `Copiado: ${widget.store.describe()}. Pegalo donde lo vayas a `  <sub>backup_sheet.dart:57 · _BackupSheetState._copy</sub>
-- **U190** · `encontrar — una nota, un mail a vos mismo.`  <sub>backup_sheet.dart:58 · _BackupSheetState._copy</sub>
-- **U191** · `No hay nada copiado ahora mismo.`  <sub>backup_sheet.dart:71 · _BackupSheetState._fromClipboard</sub>
-- **U192** · `Pegado. Mirá que sea el tuyo y confirmá abajo.`  <sub>backup_sheet.dart:79 · _BackupSheetState._fromClipboard</sub>
-- **U193** · `Listo: ${store.describe()}. Antes había $before.`  <sub>backup_sheet.dart:97 · _BackupSheetState._restore</sub>
-- **U194** · `¿Reemplazar lo que hay?`  <sub>backup_sheet.dart:115 · _BackupSheetState._confirm</sub>
-- **U195** · `Ahora mismo tenés ${widget.store.describe()}. Volver a meter una `  <sub>backup_sheet.dart:120 · _BackupSheetState._confirm</sub>
-- **U196** · `copia deja el valle exactamente como estaba en ella, y lo de `  <sub>backup_sheet.dart:121 · _BackupSheetState._confirm</sub>
-- **U197** · `ahora se pierde. Si no estás seguro, copiá esto primero.`  <sub>backup_sheet.dart:122 · _BackupSheetState._confirm</sub>
-- **U198** · `Reemplazar`  <sub>backup_sheet.dart:140 · _BackupSheetState._confirm</sub>
-- **U199** · `TUS DATOS`  <sub>backup_sheet.dart:175 · _BackupSheetState.build</sub>
-- **U200** · `Tenés ${widget.store.describe()}. Todo eso vive sólo en `  <sub>backup_sheet.dart:179 · _BackupSheetState.build</sub>
-- **U201** · `este teléfono: la app no manda nada a ningún lado y no `  <sub>backup_sheet.dart:180 · _BackupSheetState.build</sub>
-- **U202** · `hay cuenta que lo recupere. Sacá una copia de vez en `  <sub>backup_sheet.dart:181 · _BackupSheetState.build</sub>
-- **U203** · `Copiar mi valle`  <sub>backup_sheet.dart:195 · _BackupSheetState.build</sub>
-- **U204** · `Dejar de restaurar`  <sub>backup_sheet.dart:204 · _BackupSheetState.build</sub>
-- **U205** · `Volver a meterlo`  <sub>backup_sheet.dart:205 · _BackupSheetState.build</sub>
-- **U206** · `Pegá acá la copia que guardaste.`  <sub>backup_sheet.dart:232 · _BackupSheetState.build</sub>
-- **U207** · `Pegar`  <sub>backup_sheet.dart:243 · _BackupSheetState.build</sub>
-- **U208** · `Reemplazar lo que hay`  <sub>backup_sheet.dart:270 · _BackupSheetState.build</sub>
+- **U189** · `Copiado: ${widget.store.describe()}. Pegalo donde lo vayas a `  <sub>backup_sheet.dart:103 · _BackupSheetState._copy</sub>
+- **U190** · `encontrar — una nota, un mail a vos mismo.`  <sub>backup_sheet.dart:104 · _BackupSheetState._copy</sub>
+- **U191** · `No hay nada copiado ahora mismo.`  <sub>backup_sheet.dart:117 · _BackupSheetState._fromClipboard</sub>
+- **U192** · `Pegado. Mirá que sea el tuyo y confirmá abajo.`  <sub>backup_sheet.dart:125 · _BackupSheetState._fromClipboard</sub>
+- **U193** · `Listo: ${store.describe()}. Antes había $before.`  <sub>backup_sheet.dart:143 · _BackupSheetState._restore</sub>
+- **U194** · `¿Reemplazar lo que hay?`  <sub>backup_sheet.dart:161 · _BackupSheetState._confirm</sub>
+- **U195** · `Ahora mismo tenés ${widget.store.describe()}. Volver a meter una `  <sub>backup_sheet.dart:166 · _BackupSheetState._confirm</sub>
+- **U196** · `copia deja el valle exactamente como estaba en ella, y lo de `  <sub>backup_sheet.dart:167 · _BackupSheetState._confirm</sub>
+- **U197** · `ahora se pierde. Si no estás seguro, copiá esto primero.`  <sub>backup_sheet.dart:168 · _BackupSheetState._confirm</sub>
+- **U198** · `Reemplazar`  <sub>backup_sheet.dart:186 · _BackupSheetState._confirm</sub>
+- **U199** · `TUS DATOS`  <sub>backup_sheet.dart:221 · _BackupSheetState.build</sub>
+- **U200** · `Tenés ${widget.store.describe()}. Todo eso vive sólo en `  <sub>backup_sheet.dart:225 · _BackupSheetState.build</sub>
+- **U201** · `este teléfono: la app no manda nada a ningún lado y no `  <sub>backup_sheet.dart:226 · _BackupSheetState.build</sub>
+- **U202** · `hay cuenta que lo recupere. Sacá una copia de vez en `  <sub>backup_sheet.dart:227 · _BackupSheetState.build</sub>
+- **U203** · `Copiar mi valle`  <sub>backup_sheet.dart:241 · _BackupSheetState.build</sub>
+- **U204** · `Dejar de restaurar`  <sub>backup_sheet.dart:250 · _BackupSheetState.build</sub>
+- **U205** · `Volver a meterlo`  <sub>backup_sheet.dart:251 · _BackupSheetState.build</sub>
+- **U206** · `Pegá acá la copia que guardaste.`  <sub>backup_sheet.dart:278 · _BackupSheetState.build</sub>
+- **U207** · `Pegar`  <sub>backup_sheet.dart:289 · _BackupSheetState.build</sub>
+- **U208** · `Reemplazar lo que hay`  <sub>backup_sheet.dart:316 · _BackupSheetState.build</sub>
+- **U209** · `LA OTRA COPIA`  <sub>backup_sheet.dart:329 · _BackupSheetState.build</sub>
+- **U210** · `El ${fullDate(lost.at)} este teléfono y la nube no `  <sub>backup_sheet.dart:333 · _BackupSheetState.build</sub>
+- **U211** · `coincidían, y se quedó con la más reciente. La otra `  <sub>backup_sheet.dart:334 · _BackupSheetState.build</sub>
+- **U212** · `—${_describe(lost.save)}— quedó guardada acá, por si `  <sub>backup_sheet.dart:335 · _BackupSheetState.build</sub>
+- **U213** · `era la buena.`  <sub>backup_sheet.dart:336 · _BackupSheetState.build</sub>
+- **U214** · `Volver a esa copia`  <sub>backup_sheet.dart:348 · _BackupSheetState.build</sub>
 
 ### Ajustes
 
 Todo lo de la hoja de ajustes: sonido, hora, año, avisos, y los atajos de desarrollo del final.
 
-- **U209** · `Desarrollo`  <sub>settings_sheet.dart:79 · _SettingsSheetState.build</sub>
-- **U210** · `Ajustes`  <sub>settings_sheet.dart:80 · _SettingsSheetState.build</sub>
-- **U211** · `Para probar, no para usar`  <sub>settings_sheet.dart:90 · _SettingsSheetState.build</sub>
-- **U212** · `${hoy.name} · ${hoy.daylightHours.toStringAsFixed(1)} horas `  <sub>settings_sheet.dart:93 · _SettingsSheetState.build</sub>
-- **U213** · `de luz`  <sub>settings_sheet.dart:94 · _SettingsSheetState.build</sub>
-- **U214** · `El año quieto`  <sub>settings_sheet.dart:99 · _SettingsSheetState.build</sub>
-- **U215** · `BUILD`  <sub>settings_sheet.dart:109 · _SettingsSheetState.build</sub>
-- **U216** · `PIEZAS Y PUEBLOS`  <sub>settings_sheet.dart:118 · _SettingsSheetState._body</sub>
-- **U217** · `Modo rápido`  <sub>settings_sheet.dart:123 · _SettingsSheetState._body</sub>
-- **U218** · `Mantener pone piezas seguidas. Para probar, no para usar: una `  <sub>settings_sheet.dart:125 · _SettingsSheetState._body</sub>
-- **U219** · `pieza es un logro.`  <sub>settings_sheet.dart:126 · _SettingsSheetState._body</sub>
-- **U220** · `Sin límite de hábitos`  <sub>settings_sheet.dart:135 · _SettingsSheetState._body</sub>
-- **U221** · `Fundar pueblos nuevos sin tener que desbloquearlos. Para probar: `  <sub>settings_sheet.dart:137 · _SettingsSheetState._body</sub>
-- **U222** · `el segundo pueblo se gana.`  <sub>settings_sheet.dart:138 · _SettingsSheetState._body</sub>
-- **U223** · `LA HORA`  <sub>settings_sheet.dart:149 · _SettingsSheetState._body</sub>
-- **U224** · `Fingir la hora`  <sub>settings_sheet.dart:154 · _SettingsSheetState._body</sub>
-- **U225** · `Para mirar el pueblo a cualquier hora sin esperarla. Cambia el `  <sub>settings_sheet.dart:156 · _SettingsSheetState._body</sub>
-- **U226** · `cielo, la música, las ventanas y las fugaces, porque las `  <sub>settings_sheet.dart:157 · _SettingsSheetState._body</sub>
-- **U227** · `cuatro salen de la misma hora.`  <sub>settings_sheet.dart:158 · _SettingsSheetState._body</sub>
-- **U228** · `Son las ${wants.fakeHourAt.floor().toString().padLeft(2, '0')}`  <sub>settings_sheet.dart:170 · _SettingsSheetState._body</sub>
-- **U229** · `Tirar una estrella fugaz`  <sub>settings_sheet.dart:181 · _SettingsSheetState._body</sub>
-- **U230** · `Sale ya mismo, sin esperar. Dura cinco segundos, cruza por donde `  <sub>settings_sheet.dart:183 · _SettingsSheetState._body</sub>
-- **U231** · `estés mirando y de noche pasa una cada cuatro minutos y medio `  <sub>settings_sheet.dart:184 · _SettingsSheetState._body</sub>
-- **U232** · `de media.`  <sub>settings_sheet.dart:185 · _SettingsSheetState._body</sub>
-- **U233** · `EL AÑO`  <sub>settings_sheet.dart:207 · _SettingsSheetState._body</sub>
-- **U234** · `Las estaciones están apagadas en los ajustes.`  <sub>settings_sheet.dart:213 · _SettingsSheetState._body</sub>
-- **U235** · `Fingir el día del año`  <sub>settings_sheet.dart:222 · _SettingsSheetState._body</sub>
-- **U236** · `Para ver el invierno en marzo sin esperarlo, igual que se `  <sub>settings_sheet.dart:226 · _SettingsSheetState._body</sub>
-- **U237** · `finge la hora.`  <sub>settings_sheet.dart:227 · _SettingsSheetState._body</sub>
-- **U238** · `Invierno`  <sub>settings_sheet.dart:247 · _SettingsSheetState._body</sub>
-- **U239** · `Primavera`  <sub>settings_sheet.dart:248 · _SettingsSheetState._body</sub>
-- **U240** · `Verano`  <sub>settings_sheet.dart:249 · _SettingsSheetState._body</sub>
-- **U241** · `Otoño`  <sub>settings_sheet.dart:250 · _SettingsSheetState._body</sub>
-- **U242** · `EL TABLÓN`  <sub>settings_sheet.dart:270 · _SettingsSheetState._body</sub>
-- **U243** · `Las letras del tablón ya no se eligen: tus cuentas van todas de `  <sub>settings_sheet.dart:275 · _SettingsSheetState._body</sub>
-- **U244** · `la misma mano y cada bando sale con la del vecino que lo `  <sub>settings_sheet.dart:276 · _SettingsSheetState._body</sub>
-- **U245** · `colgó. Un tablón de plaza se lee así, no con una letra que se `  <sub>settings_sheet.dart:277 · _SettingsSheetState._body</sub>
-- **U246** · `elige en un menú.`  <sub>settings_sheet.dart:278 · _SettingsSheetState._body</sub>
-- **U247** · `Ver el tablón con un pueblo lleno`  <sub>settings_sheet.dart:291 · _SettingsSheetState._body</sub>
-- **U248** · `Un valle de mentira: entrenar durante 300 días. Trae un dado `  <sub>settings_sheet.dart:295 · _SettingsSheetState._body</sub>
-- **U249** · `que vuelve a repartirlo con notas al azar, para ver si el `  <sub>settings_sheet.dart:296 · _SettingsSheetState._body</sub>
-- **U250** · `texto cabe también en las que no salen nunca.`  <sub>settings_sheet.dart:297 · _SettingsSheetState._body</sub>
-- **U251** · `PARA MIRAR`  <sub>settings_sheet.dart:316 · _SettingsSheetState._body</sub>
-- **U252** · `Ver el pueblo a futuro`  <sub>settings_sheet.dart:323 · _SettingsSheetState._body</sub>
-- **U253** · `Cómo se vería con 100, 500 o 5000 piezas.`  <sub>settings_sheet.dart:327 · _SettingsSheetState._body</sub>
-- **U254** · `Ver la tarjeta de elegir`  <sub>settings_sheet.dart:335 · _SettingsSheetState._body</sub>
-- **U255** · `La pregunta que sale al empezar una obra, con dos al azar del `  <sub>settings_sheet.dart:337 · _SettingsSheetState._body</sub>
-- **U256** · `catálogo. Mirar y ya: no elige nada ni toca tu pueblo.`  <sub>settings_sheet.dart:338 · _SettingsSheetState._body</sub>
-- **U257** · `Ver la primera vez otra vez`  <sub>settings_sheet.dart:352 · _SettingsSheetState._body</sub>
-- **U258** · `Abre la pantalla de entrada como si acabaras de instalar la `  <sub>settings_sheet.dart:356 · _SettingsSheetState._body</sub>
-- **U259** · `app. Es sólo para mirar: al terminar vuelve tu valle tal cual.`  <sub>settings_sheet.dart:357 · _SettingsSheetState._body</sub>
-- **U260** · `El expositor`  <sub>settings_sheet.dart:370 · _SettingsSheetState._body</sub>
-- **U261** · `Las ${landmarks.length + BuildingKind.values.length} estructuras `  <sub>settings_sheet.dart:372 · _SettingsSheetState._body</sub>
-- **U262** · `que el pueblo sabe construir.`  <sub>settings_sheet.dart:373 · _SettingsSheetState._body</sub>
-- **U263** · `El expositor de la gente`  <sub>settings_sheet.dart:382 · _SettingsSheetState._body</sub>
-- **U264** · `Las ${Doing.all.length} cosas que hacen los vecinos cuando no `  <sub>settings_sheet.dart:384 · _SettingsSheetState._body</sub>
-- **U265** · `están andando, una a una y de cerca.`  <sub>settings_sheet.dart:385 · _SettingsSheetState._body</sub>
-- **U266** · `IDIOMA · LANGUAGE`  <sub>settings_sheet.dart:399 · _SettingsSheetState._body</sub>
-- **U267** · `Lo elegiste vos.`  <sub>settings_sheet.dart:412 · _SettingsSheetState._body</sub>
-- **U268** · `Sale del idioma del teléfono.`  <sub>settings_sheet.dart:414 · _SettingsSheetState._body</sub>
-- **U269** · `IMAGEN`  <sub>settings_sheet.dart:423 · _SettingsSheetState._body</sub>
-- **U270** · `Calidad máxima`  <sub>settings_sheet.dart:428 · _SettingsSheetState._body</sub>
-- **U271** · `Sombras de verdad que giran con el sol, ventanas que resplandecen, `  <sub>settings_sheet.dart:430 · _SettingsSheetState._body</sub>
-- **U272** · `rayos de luz al amanecer y al atardecer, y color de cine. `  <sub>settings_sheet.dart:431 · _SettingsSheetState._body</sub>
-- **U273** · `Pide bastante más al aparato.`  <sub>settings_sheet.dart:432 · _SettingsSheetState._body</sub>
-- **U274** · `SONIDO`  <sub>settings_sheet.dart:444 · _SettingsSheetState._body</sub>
-- **U275** · `Sonido`  <sub>settings_sheet.dart:449 · _SettingsSheetState._body</sub>
-- **U276** · `El interruptor de todo, música incluida.`  <sub>settings_sheet.dart:451 · _SettingsSheetState._body</sub>
-- **U277** · `Efectos`  <sub>settings_sheet.dart:459 · _SettingsSheetState._body</sub>
-- **U278** · `Lo que suena al poner una pieza.`  <sub>settings_sheet.dart:461 · _SettingsSheetState._body</sub>
-- **U279** · `Música`  <sub>settings_sheet.dart:470 · _SettingsSheetState._body</sub>
-- **U280** · `De fondo, y distinta según la hora del día.`  <sub>settings_sheet.dart:472 · _SettingsSheetState._body</sub>
-- **U281** · `Volumen de la música`  <sub>settings_sheet.dart:482 · _SettingsSheetState._body</sub>
-- **U282** · `Volumen de los efectos`  <sub>settings_sheet.dart:488 · _SettingsSheetState._body</sub>
-- **U283** · `La mitad es como sonaba antes de que hubiera dónde tocarlo, así `  <sub>settings_sheet.dart:497 · _SettingsSheetState._body</sub>
-- **U284** · `que lo que muevas se mide contra algo que ya conocés.`  <sub>settings_sheet.dart:498 · _SettingsSheetState._body</sub>
-- **U285** · `Las estaciones`  <sub>settings_sheet.dart:513 · _SettingsSheetState._body</sub>
-- **U286** · `El valle cambia con el año: verde nuevo en primavera, dorado en `  <sub>settings_sheet.dart:515 · _SettingsSheetState._body</sub>
-- **U287** · `otoño, nieve en los tejados en invierno, y los días más `  <sub>settings_sheet.dart:516 · _SettingsSheetState._body</sub>
-- **U288** · `cortos o más largos según toque.`  <sub>settings_sheet.dart:517 · _SettingsSheetState._body</sub>
-- **U289** · `Estoy en el hemisferio sur`  <sub>settings_sheet.dart:536 · _SettingsSheetState._body</sub>
-- **U290** · `Para que diciembre sea verano y julio invierno. `  <sub>settings_sheet.dart:540 · _SettingsSheetState._body</sub>
-- **U291** · `y con eso hoy es `  <sub>settings_sheet.dart:542 · _SettingsSheetState._body</sub>
-- **U292** · `LO DEMÁS`  <sub>settings_sheet.dart:559 · _SettingsSheetState._body</sub>
-- **U293** · `Que el pueblo te avise`  <sub>settings_sheet.dart:567 · _SettingsSheetState._body</sub>
-- **U294** · `Sólo cuando llevás más de lo tuyo sin poner una pieza, a tu `  <sub>settings_sheet.dart:571 · _SettingsSheetState._body</sub>
-- **U295** · `hora y con tus palabras. Como mucho dos por ausencia.`  <sub>settings_sheet.dart:572 · _SettingsSheetState._body</sub>
-- **U296** · `Vibración`  <sub>settings_sheet.dart:589 · _SettingsSheetState._body</sub>
-- **U297** · `El peso de la pieza al caer.`  <sub>settings_sheet.dart:591 · _SettingsSheetState._body</sub>
-- **U298** · `Tus datos`  <sub>settings_sheet.dart:601 · _SettingsSheetState._body</sub>
-- **U299** · `Copiar tu valle y volver a meterlo.`  <sub>settings_sheet.dart:603 · _SettingsSheetState._body</sub>
-- **U300** · `Ver cómo se hizo`  <sub>settings_sheet.dart:617 · _SettingsSheetState._body</sub>
-- **U301** · `El valle entero, o uno de tus pueblos desde el primer día.`  <sub>settings_sheet.dart:619 · _SettingsSheetState._body</sub>
-- **U302** · `Tu pueblo entero desde el primer día, en un minuto.`  <sub>settings_sheet.dart:630 · _SettingsSheetState._body</sub>
-- **U303** · `¿Borrar todo y empezar de cero?`  <sub>settings_sheet.dart:681 · _empezarDeCero</sub>
-- **U304** · `Se borran todos tus pueblos, sus piezas y lo que clavaste en el `  <sub>settings_sheet.dart:688 · _empezarDeCero</sub>
-- **U305** · `tablón. No se puede deshacer.\n\n`  <sub>settings_sheet.dart:689 · _empezarDeCero</sub>
-- **U306** · `Si querés guardar una copia, sacala antes desde «Tus datos».`  <sub>settings_sheet.dart:690 · _empezarDeCero</sub>
-- **U307** · `Borrar todo`  <sub>settings_sheet.dart:714 · _empezarDeCero</sub>
-- **U308** · `Quitar la última pieza`  <sub>settings_sheet.dart:792 · _Undo.build</sub>
-- **U309** · `Este pueblo todavía no tiene ninguna.`  <sub>settings_sheet.dart:799 · _Undo.build</sub>
-- **U310** · `La ${store.habit.total} de `  <sub>settings_sheet.dart:803 · _Undo.build</sub>
-- **U311** · `${store.habit.name}, puesta el `  <sub>settings_sheet.dart:804 · _Undo.build</sub>
-- **U312** · `¿Quitar la pieza ${store.habit.total}?`  <sub>settings_sheet.dart:832 · _Undo._ask</sub>
-- **U313** · `Vuelve a quedar en ${store.habit.total - 1}.`  <sub>settings_sheet.dart:839 · _Undo._ask</sub>
-- **U314** · `Quitarla`  <sub>settings_sheet.dart:855 · _Undo._ask</sub>
-- **U315** · `Empezar de cero`  <sub>settings_sheet.dart:1248 · _Salidas.build</sub>
-- **U316** · `El valle entero, o uno de tus pueblos`  <sub>settings_sheet.dart:1547 · _WhichReel.build</sub>
-- **U317** · `El valle entero`  <sub>settings_sheet.dart:1561 · _WhichReel.build</sub>
-- **U318** · `Salta de pieza en pieza y de pueblo en pueblo, en el orden `  <sub>settings_sheet.dart:1563 · _WhichReel.build</sub>
-- **U319** · `en que pasaron.`  <sub>settings_sheet.dart:1564 · _WhichReel.build</sub>
-- **U320** · `Sólo este pueblo, con la cámara dando la vuelta a su plaza.`  <sub>settings_sheet.dart:1576 · _WhichReel.build</sub>
+- **U215** · `Desarrollo`  <sub>settings_sheet.dart:79 · _SettingsSheetState.build</sub>
+- **U216** · `Ajustes`  <sub>settings_sheet.dart:80 · _SettingsSheetState.build</sub>
+- **U217** · `Para probar, no para usar`  <sub>settings_sheet.dart:90 · _SettingsSheetState.build</sub>
+- **U218** · `${hoy.name} · ${hoy.daylightHours.toStringAsFixed(1)} horas `  <sub>settings_sheet.dart:93 · _SettingsSheetState.build</sub>
+- **U219** · `de luz`  <sub>settings_sheet.dart:94 · _SettingsSheetState.build</sub>
+- **U220** · `El año quieto`  <sub>settings_sheet.dart:99 · _SettingsSheetState.build</sub>
+- **U221** · `BUILD`  <sub>settings_sheet.dart:109 · _SettingsSheetState.build</sub>
+- **U222** · `PIEZAS Y PUEBLOS`  <sub>settings_sheet.dart:118 · _SettingsSheetState._body</sub>
+- **U223** · `Modo rápido`  <sub>settings_sheet.dart:123 · _SettingsSheetState._body</sub>
+- **U224** · `Mantener pone piezas seguidas. Para probar, no para usar: una `  <sub>settings_sheet.dart:125 · _SettingsSheetState._body</sub>
+- **U225** · `pieza es un logro.`  <sub>settings_sheet.dart:126 · _SettingsSheetState._body</sub>
+- **U226** · `Sin límite de hábitos`  <sub>settings_sheet.dart:135 · _SettingsSheetState._body</sub>
+- **U227** · `Fundar pueblos nuevos sin tener que desbloquearlos. Para probar: `  <sub>settings_sheet.dart:137 · _SettingsSheetState._body</sub>
+- **U228** · `el segundo pueblo se gana.`  <sub>settings_sheet.dart:138 · _SettingsSheetState._body</sub>
+- **U229** · `LA HORA`  <sub>settings_sheet.dart:149 · _SettingsSheetState._body</sub>
+- **U230** · `Fingir la hora`  <sub>settings_sheet.dart:154 · _SettingsSheetState._body</sub>
+- **U231** · `Para mirar el pueblo a cualquier hora sin esperarla. Cambia el `  <sub>settings_sheet.dart:156 · _SettingsSheetState._body</sub>
+- **U232** · `cielo, la música, las ventanas y las fugaces, porque las `  <sub>settings_sheet.dart:157 · _SettingsSheetState._body</sub>
+- **U233** · `cuatro salen de la misma hora.`  <sub>settings_sheet.dart:158 · _SettingsSheetState._body</sub>
+- **U234** · `Son las ${wants.fakeHourAt.floor().toString().padLeft(2, '0')}`  <sub>settings_sheet.dart:170 · _SettingsSheetState._body</sub>
+- **U235** · `Tirar una estrella fugaz`  <sub>settings_sheet.dart:181 · _SettingsSheetState._body</sub>
+- **U236** · `Sale ya mismo, sin esperar. Dura cinco segundos, cruza por donde `  <sub>settings_sheet.dart:183 · _SettingsSheetState._body</sub>
+- **U237** · `estés mirando y de noche pasa una cada cuatro minutos y medio `  <sub>settings_sheet.dart:184 · _SettingsSheetState._body</sub>
+- **U238** · `de media.`  <sub>settings_sheet.dart:185 · _SettingsSheetState._body</sub>
+- **U239** · `EL AÑO`  <sub>settings_sheet.dart:207 · _SettingsSheetState._body</sub>
+- **U240** · `Las estaciones están apagadas en los ajustes.`  <sub>settings_sheet.dart:213 · _SettingsSheetState._body</sub>
+- **U241** · `Fingir el día del año`  <sub>settings_sheet.dart:222 · _SettingsSheetState._body</sub>
+- **U242** · `Para ver el invierno en marzo sin esperarlo, igual que se `  <sub>settings_sheet.dart:226 · _SettingsSheetState._body</sub>
+- **U243** · `finge la hora.`  <sub>settings_sheet.dart:227 · _SettingsSheetState._body</sub>
+- **U244** · `Invierno`  <sub>settings_sheet.dart:247 · _SettingsSheetState._body</sub>
+- **U245** · `Primavera`  <sub>settings_sheet.dart:248 · _SettingsSheetState._body</sub>
+- **U246** · `Verano`  <sub>settings_sheet.dart:249 · _SettingsSheetState._body</sub>
+- **U247** · `Otoño`  <sub>settings_sheet.dart:250 · _SettingsSheetState._body</sub>
+- **U248** · `EL TABLÓN`  <sub>settings_sheet.dart:270 · _SettingsSheetState._body</sub>
+- **U249** · `Las letras del tablón ya no se eligen: tus cuentas van todas de `  <sub>settings_sheet.dart:275 · _SettingsSheetState._body</sub>
+- **U250** · `la misma mano y cada bando sale con la del vecino que lo `  <sub>settings_sheet.dart:276 · _SettingsSheetState._body</sub>
+- **U251** · `colgó. Un tablón de plaza se lee así, no con una letra que se `  <sub>settings_sheet.dart:277 · _SettingsSheetState._body</sub>
+- **U252** · `elige en un menú.`  <sub>settings_sheet.dart:278 · _SettingsSheetState._body</sub>
+- **U253** · `Ver el tablón con un pueblo lleno`  <sub>settings_sheet.dart:291 · _SettingsSheetState._body</sub>
+- **U254** · `Un valle de mentira: entrenar durante 300 días. Trae un dado `  <sub>settings_sheet.dart:295 · _SettingsSheetState._body</sub>
+- **U255** · `que vuelve a repartirlo con notas al azar, para ver si el `  <sub>settings_sheet.dart:296 · _SettingsSheetState._body</sub>
+- **U256** · `texto cabe también en las que no salen nunca.`  <sub>settings_sheet.dart:297 · _SettingsSheetState._body</sub>
+- **U257** · `PARA MIRAR`  <sub>settings_sheet.dart:316 · _SettingsSheetState._body</sub>
+- **U258** · `Ver el pueblo a futuro`  <sub>settings_sheet.dart:323 · _SettingsSheetState._body</sub>
+- **U259** · `Cómo se vería con 100, 500 o 5000 piezas.`  <sub>settings_sheet.dart:327 · _SettingsSheetState._body</sub>
+- **U260** · `Ver la tarjeta de elegir`  <sub>settings_sheet.dart:335 · _SettingsSheetState._body</sub>
+- **U261** · `La pregunta que sale al empezar una obra, con dos al azar del `  <sub>settings_sheet.dart:337 · _SettingsSheetState._body</sub>
+- **U262** · `catálogo. Mirar y ya: no elige nada ni toca tu pueblo.`  <sub>settings_sheet.dart:338 · _SettingsSheetState._body</sub>
+- **U263** · `Ver la primera vez otra vez`  <sub>settings_sheet.dart:352 · _SettingsSheetState._body</sub>
+- **U264** · `Abre la pantalla de entrada como si acabaras de instalar la `  <sub>settings_sheet.dart:356 · _SettingsSheetState._body</sub>
+- **U265** · `app. Es sólo para mirar: al terminar vuelve tu valle tal cual.`  <sub>settings_sheet.dart:357 · _SettingsSheetState._body</sub>
+- **U266** · `El expositor`  <sub>settings_sheet.dart:370 · _SettingsSheetState._body</sub>
+- **U267** · `Las ${landmarks.length + BuildingKind.values.length} estructuras `  <sub>settings_sheet.dart:372 · _SettingsSheetState._body</sub>
+- **U268** · `que el pueblo sabe construir.`  <sub>settings_sheet.dart:373 · _SettingsSheetState._body</sub>
+- **U269** · `El expositor de la gente`  <sub>settings_sheet.dart:382 · _SettingsSheetState._body</sub>
+- **U270** · `Las ${Doing.all.length} cosas que hacen los vecinos cuando no `  <sub>settings_sheet.dart:384 · _SettingsSheetState._body</sub>
+- **U271** · `están andando, una a una y de cerca.`  <sub>settings_sheet.dart:385 · _SettingsSheetState._body</sub>
+- **U272** · `IDIOMA · LANGUAGE`  <sub>settings_sheet.dart:399 · _SettingsSheetState._body</sub>
+- **U273** · `Lo elegiste vos.`  <sub>settings_sheet.dart:412 · _SettingsSheetState._body</sub>
+- **U274** · `Sale del idioma del teléfono.`  <sub>settings_sheet.dart:414 · _SettingsSheetState._body</sub>
+- **U275** · `IMAGEN`  <sub>settings_sheet.dart:423 · _SettingsSheetState._body</sub>
+- **U276** · `Calidad máxima`  <sub>settings_sheet.dart:428 · _SettingsSheetState._body</sub>
+- **U277** · `Sombras de verdad que giran con el sol, ventanas que resplandecen, `  <sub>settings_sheet.dart:430 · _SettingsSheetState._body</sub>
+- **U278** · `rayos de luz al amanecer y al atardecer, y color de cine. `  <sub>settings_sheet.dart:431 · _SettingsSheetState._body</sub>
+- **U279** · `Pide bastante más al aparato.`  <sub>settings_sheet.dart:432 · _SettingsSheetState._body</sub>
+- **U280** · `SONIDO`  <sub>settings_sheet.dart:444 · _SettingsSheetState._body</sub>
+- **U281** · `Sonido`  <sub>settings_sheet.dart:449 · _SettingsSheetState._body</sub>
+- **U282** · `El interruptor de todo, música incluida.`  <sub>settings_sheet.dart:451 · _SettingsSheetState._body</sub>
+- **U283** · `Efectos`  <sub>settings_sheet.dart:459 · _SettingsSheetState._body</sub>
+- **U284** · `Lo que suena al poner una pieza.`  <sub>settings_sheet.dart:461 · _SettingsSheetState._body</sub>
+- **U285** · `Música`  <sub>settings_sheet.dart:470 · _SettingsSheetState._body</sub>
+- **U286** · `De fondo, y distinta según la hora del día.`  <sub>settings_sheet.dart:472 · _SettingsSheetState._body</sub>
+- **U287** · `Volumen de la música`  <sub>settings_sheet.dart:482 · _SettingsSheetState._body</sub>
+- **U288** · `Volumen de los efectos`  <sub>settings_sheet.dart:488 · _SettingsSheetState._body</sub>
+- **U289** · `La mitad es como sonaba antes de que hubiera dónde tocarlo, así `  <sub>settings_sheet.dart:497 · _SettingsSheetState._body</sub>
+- **U290** · `que lo que muevas se mide contra algo que ya conocés.`  <sub>settings_sheet.dart:498 · _SettingsSheetState._body</sub>
+- **U291** · `Las estaciones`  <sub>settings_sheet.dart:513 · _SettingsSheetState._body</sub>
+- **U292** · `El valle cambia con el año: verde nuevo en primavera, dorado en `  <sub>settings_sheet.dart:515 · _SettingsSheetState._body</sub>
+- **U293** · `otoño, nieve en los tejados en invierno, y los días más `  <sub>settings_sheet.dart:516 · _SettingsSheetState._body</sub>
+- **U294** · `cortos o más largos según toque.`  <sub>settings_sheet.dart:517 · _SettingsSheetState._body</sub>
+- **U295** · `Estoy en el hemisferio sur`  <sub>settings_sheet.dart:536 · _SettingsSheetState._body</sub>
+- **U296** · `Para que diciembre sea verano y julio invierno. `  <sub>settings_sheet.dart:540 · _SettingsSheetState._body</sub>
+- **U297** · `y con eso hoy es `  <sub>settings_sheet.dart:542 · _SettingsSheetState._body</sub>
+- **U298** · `LO DEMÁS`  <sub>settings_sheet.dart:559 · _SettingsSheetState._body</sub>
+- **U299** · `Que el pueblo te avise`  <sub>settings_sheet.dart:567 · _SettingsSheetState._body</sub>
+- **U300** · `Sólo cuando llevás más de lo tuyo sin poner una pieza, a tu `  <sub>settings_sheet.dart:571 · _SettingsSheetState._body</sub>
+- **U301** · `hora y con tus palabras. Como mucho dos por ausencia.`  <sub>settings_sheet.dart:572 · _SettingsSheetState._body</sub>
+- **U302** · `Vibración`  <sub>settings_sheet.dart:589 · _SettingsSheetState._body</sub>
+- **U303** · `El peso de la pieza al caer.`  <sub>settings_sheet.dart:591 · _SettingsSheetState._body</sub>
+- **U304** · `Tus datos`  <sub>settings_sheet.dart:601 · _SettingsSheetState._body</sub>
+- **U305** · `Copiar tu valle y volver a meterlo.`  <sub>settings_sheet.dart:603 · _SettingsSheetState._body</sub>
+- **U306** · `Ver cómo se hizo`  <sub>settings_sheet.dart:617 · _SettingsSheetState._body</sub>
+- **U307** · `El valle entero, o uno de tus pueblos desde el primer día.`  <sub>settings_sheet.dart:619 · _SettingsSheetState._body</sub>
+- **U308** · `Tu pueblo entero desde el primer día, en un minuto.`  <sub>settings_sheet.dart:630 · _SettingsSheetState._body</sub>
+- **U309** · `¿Borrar todo y empezar de cero?`  <sub>settings_sheet.dart:681 · _empezarDeCero</sub>
+- **U310** · `Se borran todos tus pueblos, sus piezas y lo que clavaste en el `  <sub>settings_sheet.dart:688 · _empezarDeCero</sub>
+- **U311** · `tablón. No se puede deshacer.\n\n`  <sub>settings_sheet.dart:689 · _empezarDeCero</sub>
+- **U312** · `Si querés guardar una copia, sacala antes desde «Tus datos».`  <sub>settings_sheet.dart:690 · _empezarDeCero</sub>
+- **U313** · `Borrar todo`  <sub>settings_sheet.dart:714 · _empezarDeCero</sub>
+- **U314** · `Quitar la última pieza`  <sub>settings_sheet.dart:792 · _Undo.build</sub>
+- **U315** · `Este pueblo todavía no tiene ninguna.`  <sub>settings_sheet.dart:799 · _Undo.build</sub>
+- **U316** · `La ${store.habit.total} de `  <sub>settings_sheet.dart:803 · _Undo.build</sub>
+- **U317** · `${store.habit.name}, puesta el `  <sub>settings_sheet.dart:804 · _Undo.build</sub>
+- **U318** · `¿Quitar la pieza ${store.habit.total}?`  <sub>settings_sheet.dart:832 · _Undo._ask</sub>
+- **U319** · `Vuelve a quedar en ${store.habit.total - 1}.`  <sub>settings_sheet.dart:839 · _Undo._ask</sub>
+- **U320** · `Quitarla`  <sub>settings_sheet.dart:855 · _Undo._ask</sub>
+- **U321** · `Empezar de cero`  <sub>settings_sheet.dart:1248 · _Salidas.build</sub>
+- **U322** · `El valle entero, o uno de tus pueblos`  <sub>settings_sheet.dart:1547 · _WhichReel.build</sub>
+- **U323** · `El valle entero`  <sub>settings_sheet.dart:1561 · _WhichReel.build</sub>
+- **U324** · `Salta de pieza en pieza y de pueblo en pueblo, en el orden `  <sub>settings_sheet.dart:1563 · _WhichReel.build</sub>
+- **U325** · `en que pasaron.`  <sub>settings_sheet.dart:1564 · _WhichReel.build</sub>
+- **U326** · `Sólo este pueblo, con la cámara dando la vuelta a su plaza.`  <sub>settings_sheet.dart:1576 · _WhichReel.build</sub>
 
 ### Las letras del tablón
 
 Elegir con qué letra se escriben las notas. Sólo los nombres en castellano se leen; los que parecen ingleses son el nombre técnico de la fuente.
 
-- **U321** · `La de ahora`  <sub>note_font.dart:29 · —</sub>
-- **U322** · `Varias manos`  <sub>note_font.dart:32 · —</sub>
-- **U323** · `Otra mano`  <sub>note_font.dart:82 · —</sub>
+- **U327** · `La de ahora`  <sub>note_font.dart:29 · —</sub>
+- **U328** · `Varias manos`  <sub>note_font.dart:32 · —</sub>
+- **U329** · `Otra mano`  <sub>note_font.dart:82 · —</sub>
 
 ### Estilo
 
 Un mensaje de error para quien programa.
 
-- **U324** · `un botón sin nada dentro`  <sub>style.dart:377 · GhostButton.GhostButton</sub>
+- **U330** · `un botón sin nada dentro`  <sub>style.dart:377 · GhostButton.GhostButton</sub>
 
 ### El arranque
 
 El nombre de la app y lo que se ve mientras carga.
 
-- **U325** · `SEED`  <sub>main.dart:245 · _PuebloAppState._boot</sub>
-- **U326** · `IDLE_DAYS`  <sub>main.dart:246 · _PuebloAppState._boot</sub>
-- **U327** · `REGION`  <sub>main.dart:250 · _PuebloAppState._boot</sub>
-- **U328** · `Leer`  <sub>main.dart:257 · _PuebloAppState._boot</sub>
-- **U329** · `VALLEY`  <sub>main.dart:267 · _PuebloAppState._boot</sub>
-- **U330** · `Correr`  <sub>main.dart:273 · _PuebloAppState._boot</sub>
-- **U331** · `Estudiar`  <sub>main.dart:274 · _PuebloAppState._boot</sub>
-- **U332** · `Guitarra`  <sub>main.dart:275 · _PuebloAppState._boot</sub>
-- **U333** · `Nadar`  <sub>main.dart:276 · _PuebloAppState._boot</sub>
-- **U334** · `Pintar`  <sub>main.dart:277 · _PuebloAppState._boot</sub>
-- **U335** · `GALLERY`  <sub>main.dart:328 · _PuebloAppState._boot</sub>
-- **U336** · `Towny`  <sub>main.dart:333 · _PuebloAppState.build</sub>
-- **U337** · `Roboto`  <sub>main.dart:349 · _PuebloAppState.build</sub>
-- **U338** · `EL PUEBLO`  <sub>main.dart:398 · _Opening.build</sub>
+- **U331** · `SEED`  <sub>main.dart:247 · _PuebloAppState._boot</sub>
+- **U332** · `IDLE_DAYS`  <sub>main.dart:248 · _PuebloAppState._boot</sub>
+- **U333** · `REGION`  <sub>main.dart:252 · _PuebloAppState._boot</sub>
+- **U334** · `Leer`  <sub>main.dart:259 · _PuebloAppState._boot</sub>
+- **U335** · `VALLEY`  <sub>main.dart:269 · _PuebloAppState._boot</sub>
+- **U336** · `Correr`  <sub>main.dart:275 · _PuebloAppState._boot</sub>
+- **U337** · `Estudiar`  <sub>main.dart:276 · _PuebloAppState._boot</sub>
+- **U338** · `Guitarra`  <sub>main.dart:277 · _PuebloAppState._boot</sub>
+- **U339** · `Nadar`  <sub>main.dart:278 · _PuebloAppState._boot</sub>
+- **U340** · `Pintar`  <sub>main.dart:279 · _PuebloAppState._boot</sub>
+- **U341** · `GALLERY`  <sub>main.dart:330 · _PuebloAppState._boot</sub>
+- **U342** · `Towny`  <sub>main.dart:335 · _PuebloAppState.build</sub>
+- **U343** · `Roboto`  <sub>main.dart:351 · _PuebloAppState.build</sub>
+- **U344** · `EL PUEBLO`  <sub>main.dart:400 · _Opening.build</sub>
 
 ### Mensajes del guardado
 
 Lo que contesta la app al pegar una copia del valle, y los nombres por defecto de un hábito.
 
-- **U339** · `Sin nombre`  <sub>store.dart:462 · Store.addHabit</sub>
-- **U340** · `Mi hábito`  <sub>store.dart:641 · Store._blankHabit</sub>
-- **U341** · `No hay nada pegado.`  <sub>store.dart:765 · Store.importSave</sub>
-- **U342** · `Eso no es una copia de Towny.`  <sub>store.dart:770 · Store.importSave</sub>
-- **U343** · `A esa copia le falta la lista de pueblos.`  <sub>store.dart:778 · Store.importSave</sub>
-- **U344** · `Esa copia está rota: no pude leer uno de los pueblos.`  <sub>store.dart:789 · Store.importSave</sub>
-- **U345** · `Esa copia no tiene ningún pueblo dentro.`  <sub>store.dart:795 · Store.importSave</sub>
-- **U346** · `Esa copia trae ${read.length} pueblos y el valle tiene sitio `  <sub>store.dart:801 · Store.importSave</sub>
-- **U347** · `para ${Habit.maxSlots}.`  <sub>store.dart:802 · Store.importSave</sub>
-- **U348** · `El pueblo sigue creciendo`  <sub>store.dart:1086 · Store._countOnFor</sub>
-- **U349** · `Una pieza más y ${work.$1} queda en pie`  <sub>store.dart:1091 · Store._countOnFor</sub>
-- **U350** · `${work.$1} · faltan $left`  <sub>store.dart:1094 · Store._countOnFor</sub>
+- **U345** · `Sin nombre`  <sub>store.dart:463 · Store.addHabit</sub>
+- **U346** · `Mi hábito`  <sub>store.dart:642 · Store._blankHabit</sub>
+- **U347** · `No hay nada pegado.`  <sub>store.dart:768 · Store.importSave</sub>
+- **U348** · `Eso no es una copia de Towny.`  <sub>store.dart:773 · Store.importSave</sub>
+- **U349** · `A esa copia le falta la lista de pueblos.`  <sub>store.dart:781 · Store.importSave</sub>
+- **U350** · `Esa copia está rota: no pude leer uno de los pueblos.`  <sub>store.dart:792 · Store.importSave</sub>
+- **U351** · `Esa copia no tiene ningún pueblo dentro.`  <sub>store.dart:798 · Store.importSave</sub>
+- **U352** · `Esa copia trae ${read.length} pueblos y el valle tiene sitio `  <sub>store.dart:804 · Store.importSave</sub>
+- **U353** · `para ${Habit.maxSlots}.`  <sub>store.dart:805 · Store.importSave</sub>
+- **U354** · `El pueblo sigue creciendo`  <sub>store.dart:1090 · Store._countOnFor</sub>
+- **U355** · `Una pieza más y ${work.$1} queda en pie`  <sub>store.dart:1095 · Store._countOnFor</sub>
+- **U356** · `${work.$1} · faltan $left`  <sub>store.dart:1098 · Store._countOnFor</sub>
 
 ### Un hábito sin nombre
 
 El nombre que lleva un hábito si no le pusiste ninguno.
 
-- **U351** · `Mi hábito`  <sub>habit.dart:360 · Habit.fromJson</sub>
+- **U357** · `Mi hábito`  <sub>habit.dart:360 · Habit.fromJson</sub>
 
 ### El tablón por dentro
 
 Los encabezados de las secciones del tablón.
 
-- **U352** · `Clavada hoy.`  <sub>board.dart:111 · _cuando</sub>
-- **U353** · `Clavada ayer.`  <sub>board.dart:112 · _cuando</sub>
-- **U354** · `Clavada hace $dias días.`  <sub>board.dart:114 · _cuando</sub>
-- **U355** · `Clavada hace $meses ${meses == 1 ? 'mes' : 'meses'}.`  <sub>board.dart:118 · tr</sub>
-- **U356** · `El tablón está vacío.`  <sub>board.dart:131 · Notice</sub>
-- **U357** · `Todavía no hay nada que contar. Poné la primera pieza.`  <sub>board.dart:134 · Notice</sub>
-- **U358** · `Llevás $days ${days == 1 ? 'día' : 'días'}. El pueblo prefiere `  <sub>board.dart:138 · Notice</sub>
-- **U359** · `callarse a inventar: cuando tenga bastante para estar seguro `  <sub>board.dart:139 · Notice</sub>
-- **U360** · `de algo, lo escribe acá.`  <sub>board.dart:140 · Notice</sub>
+- **U358** · `Clavada hoy.`  <sub>board.dart:111 · _cuando</sub>
+- **U359** · `Clavada ayer.`  <sub>board.dart:112 · _cuando</sub>
+- **U360** · `Clavada hace $dias días.`  <sub>board.dart:114 · _cuando</sub>
+- **U361** · `Clavada hace $meses ${meses == 1 ? 'mes' : 'meses'}.`  <sub>board.dart:118 · tr</sub>
+- **U362** · `El tablón está vacío.`  <sub>board.dart:131 · Notice</sub>
+- **U363** · `Todavía no hay nada que contar. Poné la primera pieza.`  <sub>board.dart:134 · Notice</sub>
+- **U364** · `Llevás $days ${days == 1 ? 'día' : 'días'}. El pueblo prefiere `  <sub>board.dart:138 · Notice</sub>
+- **U365** · `callarse a inventar: cuando tenga bastante para estar seguro `  <sub>board.dart:139 · Notice</sub>
+- **U366** · `de algo, lo escribe acá.`  <sub>board.dart:140 · Notice</sub>
 
 ### Los sonidos
 
 Los nombres de cada sonido, que se leen en la lista de ajustes de sonido.
 
-- **U361** · `Poner una pieza`  <sub>sensory.dart:52 · Sensory</sub>
-- **U362** · `Toque`  <sub>sensory.dart:53 · Sensory</sub>
-- **U363** · `Reparar`  <sub>sensory.dart:54 · Sensory</sub>
-- **U364** · `Obra terminada`  <sub>sensory.dart:55 · Sensory</sub>
-- **U365** · `Hito del pueblo`  <sub>sensory.dart:56 · Sensory</sub>
-- **U366** · `Estrella fugaz`  <sub>sensory.dart:57 · Sensory</sub>
-- **U367** · `Constelación`  <sub>sensory.dart:58 · Sensory</sub>
+- **U367** · `Poner una pieza`  <sub>sensory.dart:52 · Sensory</sub>
+- **U368** · `Toque`  <sub>sensory.dart:53 · Sensory</sub>
+- **U369** · `Reparar`  <sub>sensory.dart:54 · Sensory</sub>
+- **U370** · `Obra terminada`  <sub>sensory.dart:55 · Sensory</sub>
+- **U371** · `Hito del pueblo`  <sub>sensory.dart:56 · Sensory</sub>
+- **U372** · `Estrella fugaz`  <sub>sensory.dart:57 · Sensory</sub>
+- **U373** · `Constelación`  <sub>sensory.dart:58 · Sensory</sub>
 
 ### Las músicas
 
 El nombre de cada pieza de música y de qué está hecha.
 
-- **U368** · `Tarde`  <sub>tunes.dart:48 · tunes</sub>
-- **U369** · `Rhodes, bajo redondo y campanitas. Fa mayor, setenta y dos.`  <sub>tunes.dart:49 · tunes</sub>
-- **U370** · `Sendero`  <sub>tunes.dart:59 · tunes</sub>
-- **U371** · `Cuerda de nailon y flauta de madera. Sol mayor, sesenta y seis.`  <sub>tunes.dart:60 · tunes</sub>
+- **U374** · `Tarde`  <sub>tunes.dart:48 · tunes</sub>
+- **U375** · `Rhodes, bajo redondo y campanitas. Fa mayor, setenta y dos.`  <sub>tunes.dart:49 · tunes</sub>
+- **U376** · `Sendero`  <sub>tunes.dart:59 · tunes</sub>
+- **U377** · `Cuerda de nailon y flauta de madera. Sol mayor, sesenta y seis.`  <sub>tunes.dart:60 · tunes</sub>
 
 ### Las estaciones
 
 Invierno, primavera, verano y otoño, en ajustes y en el tablón.
 
-- **U372** · `Invierno`  <sub>season.dart:158 · Season._daysInYear</sub>
-- **U373** · `Primavera`  <sub>season.dart:159 · Season._daysInYear</sub>
-- **U374** · `Verano`  <sub>season.dart:160 · Season._daysInYear</sub>
-- **U375** · `Otoño`  <sub>season.dart:161 · Season._daysInYear</sub>
+- **U378** · `Invierno`  <sub>season.dart:158 · Season._daysInYear</sub>
+- **U379** · `Primavera`  <sub>season.dart:159 · Season._daysInYear</sub>
+- **U380** · `Verano`  <sub>season.dart:160 · Season._daysInYear</sub>
+- **U381** · `Otoño`  <sub>season.dart:161 · Season._daysInYear</sub>
 
 ### Sueltas
 
 Frases que no caen en ninguna pantalla concreta.
 
-- **U376** · `versión simple`  <sub>renderer.dart:2069 · TownPainter._colourOf</sub>
-- **U377** · `todos los días`  <sub>cadence.dart:117 · cadenceSaid</sub>
-- **U378** · `una vez por semana`  <sub>cadence.dart:118 · cadenceSaid</sub>
-- **U379** · `$perWeek veces por semana`  <sub>cadence.dart:119 · cadenceSaid</sub>
-- **U380** · `Voy a ${lowerName(name.trim().isEmpty ? 'hacerlo' : name)}`  <sub>pledge.dart:56 · vowLine</sub>
-- **U381** · `$que, ${placeSaid(sitio!)}.`  <sub>pledge.dart:57 · vowLine</sub>
-- **U382** · `$que ${hourSaid(hour)}, ${placeSaid(sitio)}.`  <sub>pledge.dart:59 · vowLine</sub>
-- **U383** · `a medianoche`  <sub>pledge.dart:72 · hourSaid</sub>
-- **U384** · `a la 1 de la madrugada`  <sub>pledge.dart:73 · hourSaid</sub>
-- **U385** · `al mediodía`  <sub>pledge.dart:74 · hourSaid</sub>
-- **U386** · `a las $h de la madrugada`  <sub>pledge.dart:75 · hourSaid</sub>
-- **U387** · `a las $h de la mañana`  <sub>pledge.dart:76 · hourSaid</sub>
-- **U388** · `a las $h de la tarde`  <sub>pledge.dart:77 · hourSaid</sub>
-- **U389** · `a las $h de la noche`  <sub>pledge.dart:78 · hourSaid</sub>
-- **U390** · `después `  <sub>pledge.dart:99 · placeSaid</sub>
-- **U391** · `nada más `  <sub>pledge.dart:102 · placeSaid</sub>
-- **U392** · `Este pueblo es de $quien.`  <sub>pledge.dart:241 · identitySaid</sub>
-- **U393** · `todos los días`  <sub>pledge.dart:400 · rhythmSaid</sub>
-- **U394** · `un día por semana`  <sub>pledge.dart:401 · rhythmSaid</sub>
-- **U395** · `$perWeek días de cada siete`  <sub>pledge.dart:402 · rhythmSaid</sub>
-- **U396** · `LA PRIMERA SEMANA`  <sub>cadence_sheet.dart:76 · _CadenceSheetState.build</sub>
-- **U397** · `CADA CUÁNTO`  <sub>cadence_sheet.dart:77 · _CadenceSheetState.build</sub>
-- **U398** · `Esta semana pusiste $piezas `  <sub>cadence_sheet.dart:84 · _CadenceSheetState.build</sub>
-- **U399** · `¿Cada cuánto va ${h.name}?`  <sub>cadence_sheet.dart:92 · _CadenceSheetState.build</sub>
-- **U400** · `¿${h.name} es de todos los días, o de algunos días por `  <sub>cadence_sheet.dart:101 · _CadenceSheetState.build</sub>
-- **U401** · `semana? Viene marcado lo que se ve.`  <sub>cadence_sheet.dart:102 · _CadenceSheetState.build</sub>
-- **U402** · `No es una meta. Es para que el pueblo sepa cuándo un `  <sub>cadence_sheet.dart:107 · _CadenceSheetState.build</sub>
-- **U403** · `hueco es un hueco.`  <sub>cadence_sheet.dart:108 · _CadenceSheetState.build</sub>
-- **U404** · `Todos los días`  <sub>cadence_sheet.dart:123 · _CadenceSheetState.build</sub>
-- **U405** · `$n por semana`  <sub>cadence_sheet.dart:124 · _CadenceSheetState.build</sub>
-- **U406** · `Se cambia cuando quieras en la hoja del hábito.`  <sub>cadence_sheet.dart:159 · _CadenceSheetState.build</sub>
-- **U407** · `en la cama`  <sub>plan_picker.dart:239 · _PlanSheetState.build</sub>
-- **U408** · `Elegí la hora y escribí el sitio.`  <sub>plan_picker.dart:254 · _PlanSheetState.build</sub>
-- **U409** · `DARLO POR HECHO`  <sub>plan_picker.dart:276 · _PlanSheetState.build</sub>
+- **U382** · `versión simple`  <sub>renderer.dart:2028 · TownPainter._colourOf</sub>
+- **U383** · `todos los días`  <sub>cadence.dart:117 · cadenceSaid</sub>
+- **U384** · `una vez por semana`  <sub>cadence.dart:118 · cadenceSaid</sub>
+- **U385** · `$perWeek veces por semana`  <sub>cadence.dart:119 · cadenceSaid</sub>
+- **U386** · `Voy a ${lowerName(name.trim().isEmpty ? 'hacerlo' : name)}`  <sub>pledge.dart:56 · vowLine</sub>
+- **U387** · `$que, ${placeSaid(sitio!)}.`  <sub>pledge.dart:57 · vowLine</sub>
+- **U388** · `$que ${hourSaid(hour)}, ${placeSaid(sitio)}.`  <sub>pledge.dart:59 · vowLine</sub>
+- **U389** · `a medianoche`  <sub>pledge.dart:72 · hourSaid</sub>
+- **U390** · `a la 1 de la madrugada`  <sub>pledge.dart:73 · hourSaid</sub>
+- **U391** · `al mediodía`  <sub>pledge.dart:74 · hourSaid</sub>
+- **U392** · `a las $h de la madrugada`  <sub>pledge.dart:75 · hourSaid</sub>
+- **U393** · `a las $h de la mañana`  <sub>pledge.dart:76 · hourSaid</sub>
+- **U394** · `a las $h de la tarde`  <sub>pledge.dart:77 · hourSaid</sub>
+- **U395** · `a las $h de la noche`  <sub>pledge.dart:78 · hourSaid</sub>
+- **U396** · `después `  <sub>pledge.dart:99 · placeSaid</sub>
+- **U397** · `nada más `  <sub>pledge.dart:102 · placeSaid</sub>
+- **U398** · `Este pueblo es de $quien.`  <sub>pledge.dart:241 · identitySaid</sub>
+- **U399** · `todos los días`  <sub>pledge.dart:400 · rhythmSaid</sub>
+- **U400** · `un día por semana`  <sub>pledge.dart:401 · rhythmSaid</sub>
+- **U401** · `$perWeek días de cada siete`  <sub>pledge.dart:402 · rhythmSaid</sub>
+- **U402** · `no hay nada en ningún lado`  <sub>merge.dart:61 · SyncPlan.toString</sub>
+- **U403** · `la nube está vacía`  <sub>merge.dart:63 · SyncPlan.toString</sub>
+- **U404** · `el teléfono está vacío y la nube no`  <sub>merge.dart:72 · SyncPlan.toString</sub>
+- **U405** · `nada cambió desde la última`  <sub>merge.dart:84 · SyncPlan.toString</sub>
+- **U406** · `sólo cambió el teléfono`  <sub>merge.dart:87 · SyncPlan.toString</sub>
+- **U407** · `sólo cambió la nube`  <sub>merge.dart:90 · SyncPlan.toString</sub>
+- **U408** · `cambiaron los dos y el teléfono es lo más reciente`  <sub>merge.dart:99 · SyncPlan.toString</sub>
+- **U409** · `cambiaron los dos y la nube es lo más reciente`  <sub>merge.dart:105 · SyncPlan.toString</sub>
+- **U410** · `LA PRIMERA SEMANA`  <sub>cadence_sheet.dart:76 · _CadenceSheetState.build</sub>
+- **U411** · `CADA CUÁNTO`  <sub>cadence_sheet.dart:77 · _CadenceSheetState.build</sub>
+- **U412** · `Esta semana pusiste $piezas `  <sub>cadence_sheet.dart:84 · _CadenceSheetState.build</sub>
+- **U413** · `¿Cada cuánto va ${h.name}?`  <sub>cadence_sheet.dart:92 · _CadenceSheetState.build</sub>
+- **U414** · `¿${h.name} es de todos los días, o de algunos días por `  <sub>cadence_sheet.dart:101 · _CadenceSheetState.build</sub>
+- **U415** · `semana? Viene marcado lo que se ve.`  <sub>cadence_sheet.dart:102 · _CadenceSheetState.build</sub>
+- **U416** · `No es una meta. Es para que el pueblo sepa cuándo un `  <sub>cadence_sheet.dart:107 · _CadenceSheetState.build</sub>
+- **U417** · `hueco es un hueco.`  <sub>cadence_sheet.dart:108 · _CadenceSheetState.build</sub>
+- **U418** · `Todos los días`  <sub>cadence_sheet.dart:123 · _CadenceSheetState.build</sub>
+- **U419** · `$n por semana`  <sub>cadence_sheet.dart:124 · _CadenceSheetState.build</sub>
+- **U420** · `Se cambia cuando quieras en la hoja del hábito.`  <sub>cadence_sheet.dart:159 · _CadenceSheetState.build</sub>
+- **U421** · `en la cama`  <sub>plan_picker.dart:239 · _PlanSheetState.build</sub>
+- **U422** · `Elegí la hora y escribí el sitio.`  <sub>plan_picker.dart:254 · _PlanSheetState.build</sub>
+- **U423** · `DARLO POR HECHO`  <sub>plan_picker.dart:276 · _PlanSheetState.build</sub>
 
 ## Las notificaciones (9)
 

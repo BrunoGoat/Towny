@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -89,6 +91,39 @@ class LocalChanges extends ChangeNotifier {
         if (syncedAt != null) 'synced=${syncedAt!.millisecondsSinceEpoch}',
       ]);
     } catch (_) {}
+  }
+
+  /// Dónde queda la copia que perdió, la última vez que el teléfono y la nube
+  /// no coincidieron y uno pisó al otro.
+  static const String backupKey = 'pueblo_respaldo_v1';
+
+  /// Guarda [save] —una copia del valle, como la de [Store.exportSave]— como
+  /// la que perdió. Se puede volver a ella desde la hoja de copias.
+  static Future<void> keepBackup(Map<String, dynamic> save) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        backupKey,
+        jsonEncode({'at': DateTime.now().millisecondsSinceEpoch, 'save': save}),
+      );
+    } catch (_) {}
+  }
+
+  /// La última copia que perdió, si hay: cuándo se guardó y la copia, como
+  /// texto que [Store.importSave] sabe leer.
+  static Future<({DateTime at, String save})?> lastBackup() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(backupKey);
+      if (raw == null) return null;
+      final j = jsonDecode(raw) as Map<String, dynamic>;
+      return (
+        at: DateTime.fromMillisecondsSinceEpoch((j['at'] as num).toInt()),
+        save: jsonEncode(j['save']),
+      );
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Para los tests.

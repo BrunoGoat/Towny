@@ -1,8 +1,15 @@
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:towny/data/character.dart';
+import 'package:towny/engine/palette.dart';
+import 'package:towny/model/changes.dart';
 import 'package:towny/model/habit.dart';
 import 'package:towny/model/store.dart';
+import 'package:towny/ui/backup_sheet.dart';
+import 'package:towny/ui/style.dart';
 
 Future<Store> freshStore() async {
   SharedPreferences.setMockInitialValues({});
@@ -166,4 +173,61 @@ void main() {
       expect(s.describe(), '2 piezas en 2 pueblos');
     });
   });
+
+  group('la copia que perdió al ponerse de acuerdo con la nube', () {
+    testWidgets('sin copia guardada, la hoja no la menciona', (tester) async {
+      final s = await freshStore();
+      await _hoja(tester, s);
+      expect(find.text('LA OTRA COPIA'), findsNothing);
+    });
+
+    testWidgets('se ve en la hoja de copias, y se puede volver a ella', (
+      tester,
+    ) async {
+      // Lo que perdió: un valle con tres piezas.
+      final s = await freshStore();
+      s
+        ..placePiece()
+        ..placePiece()
+        ..placePiece();
+      final perdida = jsonDecode(s.exportSave()) as Map<String, dynamic>;
+      await tester.runAsync(() => LocalChanges.keepBackup(perdida));
+      // Y lo que quedó: el mismo, con dos más.
+      s
+        ..placePiece()
+        ..placePiece();
+      expect(s.total, 5);
+
+      await _hoja(tester, s);
+      expect(find.text('LA OTRA COPIA'), findsOneWidget);
+      expect(find.textContaining('3 piezas en 1 pueblo'), findsOneWidget);
+
+      await tester.ensureVisible(find.text('Volver a esa copia'));
+      await tester.tap(find.text('Volver a esa copia'));
+      await tester.pumpAndSettle();
+      // Pregunta antes de pisar nada, como con una copia pegada a mano.
+      expect(find.text('¿Reemplazar lo que hay?'), findsOneWidget);
+      await tester.tap(find.text('Reemplazar'));
+      await tester.pumpAndSettle();
+      expect(s.total, 3);
+    });
+  });
+}
+
+Future<void> _hoja(WidgetTester tester, Store s) async {
+  tester.view.physicalSize = const Size(420, 1600);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+  await tester.pumpWidget(
+    MaterialApp(
+      home: Scaffold(
+        body: BackupSheet(store: s, theme: UiTheme(Palette.forMoment(13))),
+      ),
+    ),
+  );
+  // La copia se lee del disco al abrir la hoja.
+  await tester.runAsync(
+    () => Future<void>.delayed(const Duration(milliseconds: 20)),
+  );
+  await tester.pumpAndSettle();
 }

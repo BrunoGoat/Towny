@@ -11,7 +11,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../model/appearance.dart';
 import '../model/board_seen.dart';
@@ -52,19 +51,6 @@ Future<String?> applyLocal(Store store, LocalSnapshot copy) async {
   await BoardSlots.instance.replaceAll(copy.boardSlots);
   await BoardSeen.instance.replaceAll(copy.boardSeen);
   return null;
-}
-
-/// Dónde queda la copia que perdió, la última vez que dos no coincidieron.
-const String backupKey = 'pueblo_respaldo_v1';
-
-Future<void> _keepBackup(Map<String, dynamic> save) async {
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-      backupKey,
-      jsonEncode({'at': DateTime.now().millisecondsSinceEpoch, 'save': save}),
-    );
-  } catch (_) {}
 }
 
 int _piecesOf(Map<String, dynamic> save) {
@@ -131,14 +117,16 @@ class CloudSync {
         _base = base;
         changes.markSynced(DateTime.now());
       case SyncAction.upload:
-        if (plan.backup && cloud != null) await _keepBackup(cloud.save);
+        if (plan.backup && cloud != null) {
+          await LocalChanges.keepBackup(cloud.save);
+        }
         final now = DateTime.now();
         final mine = toRows(local, userId);
         await _send(diffRows(base, mine));
         _base = mine;
         changes.markSynced(now);
       case SyncAction.download:
-        if (plan.backup) await _keepBackup(local.save);
+        if (plan.backup) await LocalChanges.keepBackup(local.save);
         final error = await applyLocal(store, cloud!);
         if (error == null) {
           _base = base;

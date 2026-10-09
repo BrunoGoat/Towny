@@ -1,8 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../fx/sensory.dart';
+import '../l10n/dates.dart';
 import '../l10n/lang.dart';
+import '../model/changes.dart';
 import '../model/store.dart';
 import 'style.dart';
 
@@ -33,6 +37,48 @@ class _BackupSheetState extends State<BackupSheet> {
   String? _said;
   bool _wrong = false;
   bool _pasting = false;
+
+  /// La copia que perdió la última vez que el teléfono y la nube no
+  /// coincidieron, si hay alguna. Ver [LocalChanges.keepBackup].
+  ({DateTime at, String save})? _lost;
+
+  @override
+  void initState() {
+    super.initState();
+    LocalChanges.lastBackup().then((b) {
+      if (mounted && b != null) setState(() => _lost = b);
+    });
+  }
+
+  /// Cuánto hay en una copia, dicho como [Store.describe].
+  static String _describe(String save) {
+    try {
+      final j = jsonDecode(save) as Map<String, dynamic>;
+      final towns = (j['h'] as List?) ?? const [];
+      var pieces = 0;
+      for (final h in towns) {
+        pieces += ((h as Map)['p'] as List?)?.length ?? 0;
+      }
+      return tr(
+        '$pieces ${pieces == 1 ? 'pieza' : 'piezas'} en '
+            '${towns.length} ${towns.length == 1 ? 'pueblo' : 'pueblos'}',
+        '$pieces ${pieces == 1 ? 'piece' : 'pieces'} in '
+            '${towns.length} ${towns.length == 1 ? 'town' : 'towns'}',
+      );
+    } catch (_) {
+      return '';
+    }
+  }
+
+  /// Volver a la copia que perdió: por la misma puerta que una pegada a
+  /// mano, con la misma pregunta antes de pisar nada.
+  void _backToLost() {
+    final lost = _lost;
+    if (lost == null) return;
+    Sensory.instance.tick();
+    _paste.text = lost.save;
+    _confirm();
+  }
 
   @override
   void dispose() {
@@ -277,6 +323,32 @@ class _BackupSheetState extends State<BackupSheet> {
                         ),
                       ),
               ),
+
+              if (_lost case final lost?) ...[
+                const SizedBox(height: 22),
+                Text(tr('LA OTRA COPIA', 'THE OTHER COPY'), style: t.label),
+                const SizedBox(height: 8),
+                Text(
+                  tr(
+                    'El ${fullDate(lost.at)} este teléfono y la nube no '
+                        'coincidían, y se quedó con la más reciente. La otra '
+                        '—${_describe(lost.save)}— quedó guardada acá, por si '
+                        'era la buena.',
+                    'On ${fullDate(lost.at)} this phone and the cloud '
+                        "didn't match, and the most recent one was kept. The "
+                        'other one —${_describe(lost.save)}— was saved here, '
+                        'in case it was the right one.',
+                  ),
+                  style: t.bodySoft,
+                ),
+                const SizedBox(height: 10),
+                _Wide(
+                  theme: t,
+                  icon: Icons.history,
+                  label: tr('Volver a esa copia', 'Go back to that copy'),
+                  onTap: _backToLost,
+                ),
+              ],
 
               if (_said != null) ...[
                 const SizedBox(height: 14),
