@@ -240,21 +240,31 @@ void main() {
       // sin que nada estuviera roto. Peor: tapaba lo contrario, que un pueblo
       // se pusiera lento por un reparto desafortunado.
       //
-      // Hay además un precipicio conocido debajo de todo esto. Cuando ningún
-      // plano separa a un grupo de edificios hay que cortarlos en un solo
-      // árbol, y en un pueblo denso de casas anchas las cajas se tocan todas
-      // por el suelo: el pueblo entero es un nudo, y ese nudo se vuelve a
-      // cortar cada vez que crece. Por eso la mediana manda y el peor caso
-      // sólo tiene un techo: la mediana es lo que se arregló, y el peor caso
-      // es lo que queda por arreglar.
+      // Había además un precipicio debajo de todo esto. Cuando ningún plano
+      // separa a un grupo de edificios hay que cortarlos en un solo árbol, y
+      // un pueblo grande en molinete —cada casa tapando la calle de la de al
+      // lado— no tenía ninguno: el pueblo entero era un nudo de cuarenta mil
+      // caras, y cada pieza costaba dos segundos. Ahora se cortan sólo los
+      // edificios que pisa la mejor recta (`_wedge` en `world.dart`), y el
+      // peor caso es del orden de la mediana. El techo de abajo está para que
+      // el precipicio no vuelva sin que nadie se entere.
+      //
+      // Y de cada comarca, la más rápida de tres piezas seguidas. Lo que se
+      // mide es lo que cuesta el archivado, no lo ocupada que estaba la
+      // máquina: con la suite entera corriendo en paralelo, una sola medida
+      // salía a veces un diez por ciento más lenta sin que nada cambiara.
       final took = <int>[];
       for (final c in TownCharacter.all) {
         builtTown(TownLayout(1800, c), 1800);
-        final clock = Stopwatch()..start();
-        final after = builtTown(TownLayout(1801, c), 1801);
-        clock.stop();
-        expect(after.clusters, isNotEmpty, reason: c.region);
-        took.add(clock.elapsedMilliseconds);
+        var best = 1 << 30;
+        for (var n = 1801; n <= 1803; n++) {
+          final clock = Stopwatch()..start();
+          final after = builtTown(TownLayout(n, c), n);
+          clock.stop();
+          expect(after.clusters, isNotEmpty, reason: c.region);
+          best = math.min(best, clock.elapsedMilliseconds);
+        }
+        took.add(best);
       }
       took.sort();
       final middle = took[took.length ~/ 2];
@@ -265,7 +275,7 @@ void main() {
       );
       expect(
         took.last,
-        lessThan(1400),
+        lessThan(400),
         reason: 'el peor de los seis fue de ${took.last}ms: $took',
       );
     });
