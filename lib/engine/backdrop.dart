@@ -172,14 +172,37 @@ class Backdrop {
     final box = Rect.fromLTRB(x0, y0, x1, y1).inflate(16);
     skies.add(SkyHit(c.id, box));
 
-    // Y no lleva nombre escrito debajo.
-    //
-    // Lo llevó, y la razón era buena: sin él, unas cuantas estrellas unidas por
-    // rayas no son Casiopea. Pero un rótulo en mayúsculas flotando sobre el
-    // valle no es una cosa del cielo, es una etiqueta encima del cielo — y lo
-    // que tiene que hacer una constelación acá es pasar desapercibida hasta que
-    // alguien levante la vista. El nombre sigue estando: sale al tocarla, que
-    // es cuando alguien preguntó.
+    // El nombre no está siempre: un rótulo flotando sobre el valle no es una
+    // cosa del cielo, es una etiqueta encima del cielo. Sale al tocarla, chico
+    // y encima de la figura, y a los pocos segundos se va.
+    final rotulo = scene.skyLabel;
+    if (rotulo > 0.01) {
+      final tp = TextPainter(
+        text: TextSpan(
+          text: c.name.toUpperCase(),
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.85 * rotulo),
+            fontSize: 10,
+            letterSpacing: 2.4,
+            fontWeight: FontWeight.w600,
+            shadows: [
+              Shadow(
+                color: Colors.black.withValues(alpha: 0.55 * rotulo),
+                blurRadius: 8,
+              ),
+            ],
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      final x = clampD(
+        (x0 + x1) / 2 - tp.width / 2,
+        6,
+        math.max(6.0, size.width - tp.width - 6),
+      );
+      final y = math.max(4.0, y0 - 12 - tp.height);
+      tp.paint(canvas, Offset(x, y));
+    }
   }
 
   /// Una estrella fugaz, cada tanto, cuando hay noche.

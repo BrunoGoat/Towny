@@ -1402,11 +1402,11 @@ Carteles y avisos que se pintan dentro de la escena, encima del pueblo.
 - **U90** · `CAM_X`  <sub>town_view.dart:312 · _TownViewState.initState</sub>
 - **U91** · `CAM_Z`  <sub>town_view.dart:313 · _TownViewState.initState</sub>
 - **U92** · `HOUR`  <sub>town_view.dart:561 · _TownViewState._entryFor</sub>
-- **U93** · `${building.name} en pie`  <sub>town_view.dart:922 · _TownViewState._onImpact</sub>
-- **U94** · `El valle abre un segundo solar. Ya podés fundar otro pueblo.`  <sub>town_view.dart:937 · _TownViewState._onImpact</sub>
-- **U95** · `El pueblo despierta antes de tiempo.`  <sub>town_view.dart:1013 · _TownViewState._welcomeBack</sub>
-- **U96** · `Volviste. Está todo donde lo dejaste.`  <sub>town_view.dart:1018 · _TownViewState._welcomeBack</sub>
-- **U97** · `El pueblo te estaba esperando`  <sub>town_view.dart:1021 · _TownViewState._welcomeBack</sub>
+- **U93** · `${building.name} en pie`  <sub>town_view.dart:923 · _TownViewState._onImpact</sub>
+- **U94** · `El valle abre un segundo solar. Ya podés fundar otro pueblo.`  <sub>town_view.dart:938 · _TownViewState._onImpact</sub>
+- **U95** · `El pueblo despierta antes de tiempo.`  <sub>town_view.dart:1014 · _TownViewState._welcomeBack</sub>
+- **U96** · `Volviste. Está todo donde lo dejaste.`  <sub>town_view.dart:1019 · _TownViewState._welcomeBack</sub>
+- **U97** · `El pueblo te estaba esperando`  <sub>town_view.dart:1022 · _TownViewState._welcomeBack</sub>
 
 ### Lo que se dice al terminar algo
 
@@ -1790,7 +1790,7 @@ Invierno, primavera, verano y otoño, en ajustes y en el tablón.
 
 Frases que no caen en ninguna pantalla concreta.
 
-- **U376** · `versión simple`  <sub>renderer.dart:2070 · TownPainter._colourOf</sub>
+- **U376** · `versión simple`  <sub>renderer.dart:2069 · TownPainter._colourOf</sub>
 - **U377** · `todos los días`  <sub>cadence.dart:117 · cadenceSaid</sub>
 - **U378** · `una vez por semana`  <sub>cadence.dart:118 · cadenceSaid</sub>
 - **U379** · `$perWeek veces por semana`  <sub>cadence.dart:119 · cadenceSaid</sub>

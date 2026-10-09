@@ -130,6 +130,7 @@ class TownScene {
     this.labels = true,
     this.tonight,
     this.skyNight = 0,
+    this.skyLabel = 0,
     this.founding = 1.0,
     this.day = 0,
     this.folk = true,
@@ -242,6 +243,10 @@ class TownScene {
   /// La figura que hay en el cielo esta noche, si hay alguna. Muchas noches no
   /// hay ninguna, que es lo que hace que valga la pena mirar las que sí.
   final Constellation? tonight;
+
+  /// Cuánto se ve el nombre de la constelación, de cero a uno: sale unos
+  /// segundos al tocarla y se va solo.
+  final double skyLabel;
 
   /// Whether the landmark names are hung over the buildings. The exhibition
   /// hall says the name in its own header, and a second one floating in the

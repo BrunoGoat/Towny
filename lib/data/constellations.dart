@@ -24,6 +24,7 @@ library;
 import 'dart:math' as math;
 
 import '../core/rng.dart';
+import '../l10n/lang.dart';
 
 /// Una estrella: dónde está y cuánto brilla.
 class Star {
@@ -48,6 +49,12 @@ class Constellation {
   /// se anotaban las que uno había visto. Dejaron de anotarse y con eso dejó
   /// de leerse todo lo demás; la figura en el cielo no necesita más que esto.
   final String id;
+
+  /// Cómo se llama, para el rótulo chico que sale encima al tocarla.
+  String get name {
+    final (es, en) = constellationNames[id] ?? (id, id);
+    return tr(es, en);
+  }
 
   final List<Star> stars;
 
@@ -149,6 +156,18 @@ class Constellation {
 }
 
 /// Ocho, elegidas por ser las que cualquiera reconoce.
+/// Los nombres, en castellano y en inglés.
+const Map<String, (String, String)> constellationNames = {
+  'orion': ('Orión', 'Orion'),
+  'osamayor': ('Osa Mayor', 'Great Bear'),
+  'casiopea': ('Casiopea', 'Cassiopeia'),
+  'cruz': ('Cruz del Sur', 'Southern Cross'),
+  'cisne': ('Cisne', 'Swan'),
+  'escorpio': ('Escorpio', 'Scorpius'),
+  'lira': ('Lira', 'Lyra'),
+  'canmayor': ('Can Mayor', 'Great Dog'),
+};
+
 const List<Constellation> constellations = [
   Constellation(
     'orion',

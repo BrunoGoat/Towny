@@ -1420,6 +1420,21 @@ class _TownViewState extends State<TownView>
     _cam.travelBy(-along * worldPerPixel);
   }
 
+  /// Cuándo se tocó la constelación, en el reloj de la escena.
+  double? _skyTappedAt;
+
+  /// El nombre de la constelación: tres segundos a la vista y casi uno
+  /// deshaciéndose.
+  double _skyLabel() {
+    final at = _skyTappedAt;
+    if (at == null) return 0;
+    final t = _time - at;
+    if (t < 0 || t > 3.8) return 0;
+    if (t < 0.25) return t / 0.25;
+    if (t < 3.0) return 1;
+    return 1 - (t - 3.0) / 0.8;
+  }
+
   void _onTapUp(TapUpDetails d) {
     final pos = d.localPosition;
 
@@ -1428,6 +1443,7 @@ class _TownViewState extends State<TownView>
     // y si hay una figura encima de un tejado, se quiso la figura.
     for (final k in _hits.skies) {
       if (!k.rect.contains(pos)) continue;
+      _skyTappedAt = _time;
       widget.onSkyTapped(k.id);
       return;
     }
@@ -1554,6 +1570,7 @@ class _TownViewState extends State<TownView>
       charge: _charge,
       skyNight: night,
       tonight: tonightIs,
+      skyLabel: _skyLabel(),
       founding: _founding,
       day: dayKey(DateTime.now()),
       cinematic: Appearance.instance.cinematic,
