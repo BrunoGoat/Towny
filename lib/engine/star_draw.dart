@@ -52,39 +52,51 @@ class StarDraw {
     const cola = 0.30;
     final chispa = size.shortestSide;
 
-    // Tres pasadas sobre la misma estela: el resplandor ancho y desenfocado,
-    // el cuerpo, y el filo blanco de dentro. Una sola línea no brilla; brillar
-    // es tener un borde encendido dentro de algo difuso.
-    //
-    // La desenfocada va en seis tramos y las otras en veintiséis. No es un
-    // descuido: desenfocar cuesta, y hacerlo veintiséis veces por fotograma se
-    // nota en un teléfono. Difuminada, seis tramos y veintiséis se ven igual.
-    for (final (tramos, ancho, alfa, desenfoque) in [
-      (6, 0.055 * chispa, 0.20, 7.0),
-      (26, 0.016 * chispa, 0.42, 0.0),
-      (26, 0.006 * chispa, 0.95, 0.0),
-    ]) {
-      final paint = Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round
-        ..blendMode = BlendMode.plus;
-      if (desenfoque > 0) {
-        paint.maskFilter = ui.MaskFilter.blur(ui.BlurStyle.normal, desenfoque);
+    final head = en(star.u);
+
+    // **La estela es un solo trazo**, una cinta que se afina hacia atrás, y no
+    // una fila de rayas. Estuvo hecha de veintiséis tramos con la punta
+    // redonda, sumando luz: donde se pisaban dos puntas había el doble de luz,
+    // y la cola se veía como una ristra de perlas. Eso, más un halo
+    // desenfocado por encima de todo, era lo que la hacía parecer una imagen
+    // chica estirada: no tenía ni un borde nítido.
+    if (head != null) {
+      const pasos = 28;
+      final puntos = <Offset>[];
+      for (var i = 0; i <= pasos; i++) {
+        final p = en(star.u - cola * i / pasos);
+        if (p == null) break;
+        puntos.add(p);
       }
-      for (var i = 0; i < tramos; i++) {
-        final a = en(star.u - cola * (i + 1) / tramos);
-        final b = en(star.u - cola * i / tramos);
-        if (a == null || b == null) continue;
-        if (a.dy > horizonY && b.dy > horizonY) continue;
-        // Se afina y se apaga hacia atrás, que es lo que la hace cola.
-        final k = 1 - i / tramos;
-        final f = k * k;
-        paint
-          ..color = (desenfoque > 0 ? halo : core).withValues(
-            alpha: (glow * alfa * f).clamp(0.0, 1.0),
-          )
-          ..strokeWidth = math.max(0.6, ancho * math.pow(k, 1.3).toDouble());
-        canvas.drawLine(a, b, paint);
+      if (puntos.length >= 3) {
+        final fin = puntos.last;
+        // Un halo ancho y apenas difuso, y encima el filo: borde encendido
+        // dentro de algo blando, que es lo que se lee como luz.
+        for (final (ancho, desenfoque, alfa, color) in [
+          (0.030 * chispa, 2.5, 0.30, halo),
+          (0.010 * chispa, 0.0, 0.95, core),
+        ]) {
+          final cinta = _cinta(puntos, ancho);
+          canvas.drawPath(
+            cinta,
+            Paint()
+              ..blendMode = BlendMode.plus
+              ..isAntiAlias = true
+              ..maskFilter = desenfoque > 0
+                  ? ui.MaskFilter.blur(ui.BlurStyle.normal, desenfoque)
+                  : null
+              ..shader = ui.Gradient.linear(
+                head,
+                fin,
+                [
+                  color.withValues(alpha: (glow * alfa).clamp(0.0, 1.0)),
+                  color.withValues(alpha: (glow * alfa * 0.45).clamp(0.0, 1.0)),
+                  color.withValues(alpha: 0),
+                ],
+                const [0.0, 0.35, 1.0],
+              ),
+          );
+        }
       }
     }
 
@@ -96,25 +108,25 @@ class StarDraw {
       if (at == null || at.dy > horizonY) continue;
       final j = (star.id * 31 + i) % 7;
       final lado = Offset(
-        math.sin(j * 1.7 + star.u * 2.2) * chispa * 0.010 * k,
-        math.cos(j * 2.3 + star.u * 1.7) * chispa * 0.010 * k,
+        math.sin(j * 1.7 + star.u * 2.2) * chispa * 0.012 * k,
+        math.cos(j * 2.3 + star.u * 1.7) * chispa * 0.012 * k,
       );
       canvas.drawCircle(
         at + lado,
-        chispa * 0.0035 * (1 - k) + 0.5,
+        chispa * 0.0028 * (1 - k) + 0.4,
         Paint()
           ..blendMode = BlendMode.plus
           ..color = core.withValues(
-            alpha: (glow * 0.75 * (1 - k) * (1 - k)).clamp(0.0, 1.0),
+            alpha: (glow * 0.8 * (1 - k) * (1 - k)).clamp(0.0, 1.0),
           ),
       );
     }
 
-    final head = en(star.u);
     if (head == null || head.dy > horizonY) return;
 
-    // El resplandor de la cabeza: grande, para que sea imposible no verla.
-    final r = chispa * 0.15;
+    // El resplandor de la cabeza, más corto y más cerrado que antes: era de
+    // un séptimo de la pantalla y se comía la estrella.
+    final r = chispa * 0.09;
     canvas.drawCircle(
       head,
       r,
@@ -124,29 +136,80 @@ class StarDraw {
           head,
           r,
           [
-            core.withValues(alpha: 0.55 * glow),
-            halo.withValues(alpha: 0.22 * glow),
+            core.withValues(alpha: 0.42 * glow),
+            halo.withValues(alpha: 0.14 * glow),
             far.withValues(alpha: 0.0),
           ],
-          const [0.0, 0.30, 1.0],
+          const [0.0, 0.22, 1.0],
         ),
     );
 
-    // Y el destello de cuatro puntas, que es lo que la hace una estrella y no
-    // una bola. Gira despacio mientras cae.
-    _sparkle(canvas, head, chispa * 0.085, star.spin, glow);
-    _sparkle(canvas, head, chispa * 0.048, star.spin + math.pi / 4, glow * 0.6);
+    // El destello: cuatro puntas largas y cuatro cortas en diagonal, afiladas
+    // y nítidas, que se apagan hacia la punta. Gira despacio mientras cae.
+    _sparkle(canvas, head, chispa * 0.090, star.spin, glow);
+    _sparkle(canvas, head, chispa * 0.042, star.spin + math.pi / 4, glow * 0.7);
 
+    // Y el núcleo: un disco blanco de borde limpio con un brillo corto
+    // alrededor. Es el punto donde se apoya la vista.
+    final brillo = chispa * 0.024;
     canvas.drawCircle(
       head,
-      chispa * 0.008,
+      brillo,
       Paint()
         ..blendMode = BlendMode.plus
+        ..shader = ui.Gradient.radial(
+          head,
+          brillo,
+          [
+            Colors.white.withValues(alpha: (0.9 * glow).clamp(0.0, 1.0)),
+            core.withValues(alpha: (0.35 * glow).clamp(0.0, 1.0)),
+            core.withValues(alpha: 0),
+          ],
+          const [0.0, 0.35, 1.0],
+        ),
+    );
+    canvas.drawCircle(
+      head,
+      chispa * 0.0075,
+      Paint()
+        ..isAntiAlias = true
         ..color = Colors.white.withValues(alpha: glow.clamp(0.0, 1.0)),
     );
   }
 
-  /// Una cruz de cuatro puntas afiladas, del largo [len].
+  /// Una cinta que sigue [puntos] y se afina de [ancho] en el primero a nada
+  /// en el último.
+  static Path _cinta(List<Offset> puntos, double ancho) {
+    final n = puntos.length;
+    final izq = <Offset>[], der = <Offset>[];
+    for (var i = 0; i < n; i++) {
+      final antes = puntos[i == 0 ? 0 : i - 1];
+      final despues = puntos[i == n - 1 ? n - 1 : i + 1];
+      var d = despues - antes;
+      final largo = d.distance;
+      d = largo < 1e-6 ? const Offset(1, 0) : d / largo;
+      final normal = Offset(-d.dy, d.dx);
+      final k = 1 - i / (n - 1);
+      final a = ancho / 2 * math.pow(k, 1.2).toDouble();
+      izq.add(puntos[i] + normal * a);
+      der.add(puntos[i] - normal * a);
+    }
+    final p = Path()..moveTo(izq.first.dx, izq.first.dy);
+    for (final q in izq.skip(1)) {
+      p.lineTo(q.dx, q.dy);
+    }
+    for (final q in der.reversed) {
+      p.lineTo(q.dx, q.dy);
+    }
+    // La cabeza redonda, para que la cinta no acabe en un corte recto.
+    p
+      ..close()
+      ..addOval(Rect.fromCircle(center: puntos.first, radius: ancho / 2));
+    return p;
+  }
+
+  /// Cuatro puntas afiladas del largo [len], nítidas, que se apagan hacia
+  /// afuera.
   static void _sparkle(
     Canvas canvas,
     Offset at,
@@ -155,31 +218,33 @@ class StarDraw {
     double glow,
   ) {
     if (glow <= 0.01) return;
-    final ancho = len * 0.085;
+    final ancho = len * 0.07;
     final p = Path();
     for (var i = 0; i < 4; i++) {
       final a = spin + i * math.pi / 2;
       final dir = Offset(math.cos(a), math.sin(a));
       final lado = Offset(-dir.dy, dir.dx) * ancho;
       p
-        ..moveTo(at.dx, at.dy)
-        ..lineTo(
-          at.dx + dir.dx * len * 0.34 + lado.dx,
-          at.dy + dir.dy * len * 0.34 + lado.dy,
-        )
+        ..moveTo(at.dx + lado.dx, at.dy + lado.dy)
         ..lineTo(at.dx + dir.dx * len, at.dy + dir.dy * len)
-        ..lineTo(
-          at.dx + dir.dx * len * 0.34 - lado.dx,
-          at.dy + dir.dy * len * 0.34 - lado.dy,
-        )
+        ..lineTo(at.dx - lado.dx, at.dy - lado.dy)
         ..close();
     }
     canvas.drawPath(
       p,
       Paint()
         ..blendMode = BlendMode.plus
-        ..maskFilter = const ui.MaskFilter.blur(ui.BlurStyle.normal, 1.6)
-        ..color = core.withValues(alpha: (0.85 * glow).clamp(0.0, 1.0)),
+        ..isAntiAlias = true
+        ..shader = ui.Gradient.radial(
+          at,
+          len,
+          [
+            Colors.white.withValues(alpha: (0.95 * glow).clamp(0.0, 1.0)),
+            core.withValues(alpha: (0.55 * glow).clamp(0.0, 1.0)),
+            halo.withValues(alpha: 0),
+          ],
+          const [0.0, 0.35, 1.0],
+        ),
     );
   }
 
