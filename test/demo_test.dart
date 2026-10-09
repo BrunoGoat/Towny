@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:towny/core/math3.dart';
+import 'package:towny/core/rng.dart';
 import 'package:towny/data/bandos.dart';
 import 'package:towny/data/demo.dart';
 import 'package:towny/data/gossip.dart';
@@ -1532,6 +1533,40 @@ void _fugaz() {
           );
         }
       }
+    });
+
+    test('con el encuadre de siempre salen tantas como antes', () {
+      // Con la cámara de siempre, en la mitad de las direcciones las cumbres
+      // tapan el borde de arriba de la pantalla. La que no tiene hueco cuando
+      // le toca espera y reintenta, y la cámara que gira sola se lo da: salen
+      // todas, sin pisar un monte.
+      ShootingStar.forget();
+      const horas = 3.0;
+      var ventanas = 0;
+      for (var e = 0; e < horas * 3600 / ShootingStar.window; e++) {
+        if (hash01(e, 401) <= 0.34) ventanas++;
+      }
+      final vistas = <int>{};
+      for (var t = 0.0; t < horas * 3600; t += 0.25) {
+        final cam = OrbitCamera()
+          ..yaw = 0.05 * t
+          ..pitch = 0.30
+          ..distance = 9
+          ..focusY = 1.15;
+        final s = ShootingStar.at(
+          t,
+          22,
+          SkyView.of(cam.projector(w, h, 0), w, h),
+        );
+        if (s == null || !vistas.add(s.id)) continue;
+        for (var k = 0.0; k <= 1; k += 0.05) {
+          final a = s.aim(k);
+          if (a == null) continue;
+          expect(a.$2, greaterThan(Landscape.skylineAt(a.$1, 0)));
+        }
+      }
+      expect(vistas.length, greaterThanOrEqualTo((ventanas * 0.95).floor()));
+      expect(vistas.length, lessThanOrEqualTo(ventanas));
     });
 
     test('nunca cruza por delante de una montaña', () {

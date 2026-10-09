@@ -184,7 +184,7 @@ class ShootingStar {
   static SkyView _aim(int id, SkyView now) {
     final ya = _aimed[id];
     if (ya != null) return ya;
-    if (_aimed.length > 8) {
+    if (_aimed.length > 64) {
       _aimed.clear();
       _paths.clear();
     }
@@ -214,10 +214,43 @@ class ShootingStar {
     if (!nightEnough(hour)) return null;
     final epoch = (time / window).floor();
     if (hash01(epoch, 401) > chance) return null;
-    final began = epoch * window + hash01(epoch, 403) * (window - flight);
-    final u = (time - began) / flight;
-    if (u < 0 || u > 1) return null;
-    return _shape(epoch, u, view);
+
+    // Si cuando le toca no hay cielo libre a la vista —con el encuadre de
+    // siempre, en la mitad de las direcciones las cumbres llegan al borde de
+    // arriba de la pantalla— no se pierde: espera y vuelve a probar cada
+    // [retry] segundos mientras dure su ventana. La cámara gira sola cuando
+    // nadie la toca, así que el hueco casi siempre aparece; y como sale una
+    // sola por ventana, salen tantas como antes de que tuvieran que esquivar
+    // los montes.
+    final first = epoch * window + hash01(epoch, 403) * firstWithin;
+    for (var k = 0; k < tries; k++) {
+      final began = first + k * retry;
+      if (time < began) return null;
+      final id = epoch * 16 + k;
+      final u = (time - began) / flight;
+      if (u <= 1) return _shape(id, u, view);
+      // Ésta ya pasó: si salió, la de esta ventana ya se vio.
+      if (_flew(id, view)) return null;
+    }
+    return null;
+  }
+
+  /// Cuándo puede salir el primer intento dentro de su ventana, cada cuánto
+  /// se reintenta y cuántas veces. Todo cabe en la ventana: el último
+  /// intento empieza a los 20 + 9 × 7 = 83 segundos y acaba a los 88. En ese
+  /// rato la cámara que gira sola da media vuelta.
+  static const double firstWithin = 20, retry = 7;
+  static const int tries = 10;
+
+  /// Si el intento [id] salió de verdad. El que no se llegó a mirar —la app
+  /// estaba cerrada— se juzga con lo que se mira ahora.
+  static bool _flew(int id, SkyView now) {
+    final v = _aim(id, now);
+    if (!v.hasSky) return false;
+    final ruta = _paths.containsKey(id)
+        ? _paths[id]
+        : (_paths[id] = _route(id, v));
+    return ruta != null;
   }
 
   static ShootingStar? _shape(int id, double u, SkyView now) {
@@ -309,8 +342,8 @@ class ShootingStar {
         run = 0;
       }
     }
-    // Menos de un tercio de la pantalla no es un cruce, es un chispazo.
-    if (mejor < n * 0.30) return null;
+    // Menos de un quinto de la pantalla no es un cruce, es un chispazo.
+    if (mejor < n * 0.20) return null;
     final a = v.az - lado + 2 * lado * desde / n;
     final b = v.az - lado + 2 * lado * (desde + mejor - 1) / n;
     var cumbre = -1.0;
