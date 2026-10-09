@@ -669,6 +669,7 @@ class _TownViewState extends State<TownView>
               _cam.projector(medida.width, medida.height, _time),
               medida.width,
               medida.height,
+              travel: _cam.travel,
             ),
           );
     if (fugaz != null && fugaz.id != _lastWish) {

@@ -196,7 +196,7 @@ class Backdrop {
     final star = ShootingStar.at(
       scene.time,
       scene.hourOfDay,
-      SkyView.of(p, size.width, size.height),
+      SkyView.of(p, size.width, size.height, travel: scene.camera.travel),
     );
     if (star == null) return;
     StarDraw.sky(
@@ -215,7 +215,7 @@ class Backdrop {
     final star = ShootingStar.at(
       scene.time,
       scene.hourOfDay,
-      SkyView.of(p, size.width, size.height),
+      SkyView.of(p, size.width, size.height, travel: scene.camera.travel),
     );
     if (star == null) return;
     StarDraw.land(

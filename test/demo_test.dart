@@ -13,6 +13,7 @@ import 'package:towny/data/gossip.dart';
 import 'package:towny/engine/backdrop.dart';
 import 'package:towny/engine/board_plan.dart';
 import 'package:towny/engine/camera.dart';
+import 'package:towny/engine/landscape.dart';
 import 'package:towny/engine/palette.dart';
 import 'package:towny/engine/shooting_star.dart';
 import 'package:towny/engine/solids.dart';
@@ -1385,7 +1386,10 @@ void _fugaz() {
     // Un teléfono de pie, que es donde se mira esto.
     const w = 393.0, h = 852.0;
 
-    SkyView mirando({double pitch = 0.30, double yaw = 0.62}) {
+    // Un poco más arriba que el encuadre de siempre: con ése las cumbres
+    // llegan casi al borde de arriba y en muchas direcciones no hay cielo
+    // libre donde quepa una.
+    SkyView mirando({double pitch = 0.18, double yaw = 0.62}) {
       final cam = OrbitCamera()
         ..yaw = yaw
         ..pitch = pitch
@@ -1500,7 +1504,12 @@ void _fugaz() {
           final p = cam.projector(w, h, 0);
           final marco = Rect.fromLTWH(0, 0, w, h);
           final vuelo = _vuelo(SkyView.of(p, w, h));
-          expect(vuelo, isNotEmpty, reason: 'ninguna con pitch $pitch');
+          // Mirando al cielo sale siempre; con el encuadre de siempre, sólo
+          // si hay un hueco entre los montes.
+          if (pitch < 0.2) {
+            expect(vuelo, isNotEmpty, reason: 'ninguna con pitch $pitch');
+          }
+          if (vuelo.isEmpty) continue;
           var dentro = 0;
           for (final s in vuelo) {
             final a = s.aim(s.u);
@@ -1523,6 +1532,38 @@ void _fugaz() {
           );
         }
       }
+    });
+
+    test('nunca cruza por delante de una montaña', () {
+      // Antes de salir se calcula el vuelo entero: si toca una cordillera se
+      // sube, y si no cabe por encima de ninguna, cruza sólo el hueco entre
+      // dos, o no sale. Y por si la cuenta fallara, se pinta antes que los
+      // montes: nunca por delante.
+      var salieron = 0;
+      for (final pitch in [0.06, 0.18, 0.24, 0.30, 0.34]) {
+        for (var yaw = 0.0; yaw < 6.28; yaw += 0.41) {
+          for (final travel in [0.0, 1.5]) {
+            ShootingStar.forget();
+            final cam = OrbitCamera()
+              ..yaw = yaw
+              ..pitch = pitch
+              ..distance = 9
+              ..focusY = 1.15;
+            final v = SkyView.of(cam.projector(w, h, 0), w, h, travel: travel);
+            for (final s in _vuelo(v)) {
+              final a = s.aim(s.u);
+              if (a == null) continue;
+              salieron++;
+              expect(
+                a.$2,
+                greaterThan(Landscape.skylineAt(a.$1, travel)),
+                reason: 'pitch $pitch, yaw $yaw: tocó la montaña',
+              );
+            }
+          }
+        }
+      }
+      expect(salieron, greaterThan(1000));
     });
 
     test('mirando al suelo no sale ninguna, en vez de una que nadie ve', () {

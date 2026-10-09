@@ -51,6 +51,20 @@ class Landscape {
     RidgeLayer(radius: 690, scale: 0.0030, height: 250, base: -8.0, seed: 71),
   ];
 
+  /// Hasta qué elevación tapan las cordilleras el cielo en el azimut [az],
+  /// vistas desde el punto [travel] del valle. Es la misma cuenta con la que
+  /// se pintan, así que lo que esto dice que está libre lo está en pantalla.
+  static double skylineAt(double az, double travel) {
+    final dx = math.sin(az), dz = math.cos(az);
+    var top = -1.0;
+    for (final l in ridges) {
+      final h = ridgeHeight(l, travel + dx * l.radius, dz * l.radius);
+      final e = math.atan2(math.max(h, l.base), l.radius);
+      if (e > top) top = e;
+    }
+    return top;
+  }
+
   /// Height of a range at a point on it. Peaks are sharpened so the skyline
   /// reads as mountains rather than as dunes.
   static double ridgeHeight(RidgeLayer l, double wx, double wz) {

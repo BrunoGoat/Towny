@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import '../core/math3.dart';
 import '../core/rng.dart';
+import 'landscape.dart';
 
 /// Lo que la cámara alcanza a ver del cielo, ahora mismo.
 ///
@@ -18,6 +19,7 @@ class SkyView {
     required this.el,
     required this.halfWide,
     required this.halfTall,
+    this.travel = 0,
   });
 
   /// Hacia dónde mira, en azimut y elevación. La elevación es negativa cuando
@@ -27,16 +29,26 @@ class SkyView {
   /// Medio ángulo que abarca la lente, a lo ancho y a lo alto.
   final double halfWide, halfTall;
 
+  /// Por dónde del valle va la cámara: el perfil de las cordilleras cambia
+  /// con el viaje, y la fugaz tiene que esquivar el de ahora.
+  final double travel;
+
   /// De una cámara ya montada, para no tener que saber sus ángulos: salen del
   /// propio `forward`, así que esto vale igual para el valle y para el tablón,
   /// que arman su proyector cada uno por su cuenta.
-  factory SkyView.of(Projector p, double width, double height) {
+  factory SkyView.of(
+    Projector p,
+    double width,
+    double height, {
+    double travel = 0,
+  }) {
     final f = p.forward;
     return SkyView(
       az: math.atan2(f.x, f.z),
       el: math.asin(f.y.clamp(-1.0, 1.0)),
       halfWide: math.atan((width / 2) / p.focal),
       halfTall: math.atan((height / 2) / p.focal),
+      travel: travel,
     );
   }
 
@@ -51,11 +63,12 @@ class SkyView {
   /// pasar por donde no hay montaña sólo puede pasar por esos cuarenta
   /// píxeles, y ahí no cabe nada que se quiera mirar.
   ///
-  /// Lo que la hace visible es lo otro: se pinta **después** de las
-  /// cordilleras, así que cruza por delante de ellas. No es donde estaría de
-  /// verdad —una fugaz está más lejos que cualquier monte— pero es lo que la
-  /// pone a la vista y lo que hace que su luz caiga sobre las cumbres, que es
-  /// lo que se pidió.
+  /// Y la fugaz no cruza por delante de ninguna montaña: antes de salir se
+  /// calcula su recorrido entero y, si en algún punto toca la cordillera, se
+  /// sube un poco y se vuelve a probar, hasta que pasa limpia (ver
+  /// [ShootingStar] y `_clear`). Si ni en lo más alto de la franja cabe, se
+  /// pinta igual, pero **antes** que las cordilleras: pasa por detrás, que es
+  /// donde está de verdad una fugaz, y nunca por delante.
   static const double skyline = 0.012;
 
   /// Casi hasta el borde de arriba. Queda justo: con la cámara inclinada
@@ -158,12 +171,23 @@ class ShootingStar {
 
   /// Olvidar hacia dónde se miraba. Para los tests y para el expositor, que
   /// rebobina el reloj y vuelve a pedir la misma.
-  static void forget() => _aimed.clear();
+  static void forget() {
+    _aimed.clear();
+    _paths.clear();
+  }
+
+  /// La altura y la caída ya calculadas de cada una. Esquivar los montes
+  /// cuesta unos cientos de muestras del relieve, y esto se pregunta tres
+  /// veces por fotograma: se calcula una vez, el día que sale.
+  static final Map<int, (double, double, double, double)?> _paths = {};
 
   static SkyView _aim(int id, SkyView now) {
     final ya = _aimed[id];
     if (ya != null) return ya;
-    if (_aimed.length > 8) _aimed.clear();
+    if (_aimed.length > 8) {
+      _aimed.clear();
+      _paths.clear();
+    }
     _aimed[id] = now;
     return now;
   }
@@ -200,42 +224,132 @@ class ShootingStar {
     final v = _aim(id, now);
     if (!v.hasSky) return null;
 
-    // Cruza el encuadre entero y se sale un poco por los dos lados: entra ya
-    // volando y se va sin frenar, que es lo que hace que parezca que venía de
-    // lejos. El margen es corto a propósito: con uno ancho, la mitad del vuelo
-    // pasaba fuera de la pantalla y de cinco segundos se veían dos y medio.
-    final hacia = hash01(id, 409) < 0.5 ? -1.0 : 1.0;
-    final span = v.halfWide * 2 + 0.16;
-
-    // A qué altura cruza. En cualquier parte de la franja menos pegada al
-    // techo: el resplandor de la cabeza mide un séptimo de la pantalla, y
-    // saliendo del borde mismo se le va la mitad fuera.
-    final alto = v.elTop - v.elFloor;
-    final el0 = v.elFloor + alto * (0.30 + 0.55 * hash01(id, 407));
-
-    // Y cuánto baja mientras cruza: casi nada.
-    //
-    // Caían en diagonal porque así caen las de verdad, pero aquí el cielo que
-    // se ve es una franja de cuatro grados: una diagonal en cuatro grados no
-    // se lee como una diagonal, se lee como que la estrella se mete debajo del
-    // pueblo. Cruzando a lo largo, lo que se ve es lo que tiene que verse, que
-    // es que atraviesa el cielo entero. Una de cada cinco baja un poco más,
-    // para que no sean todas la misma raya.
-    final cae = hash01(id, 415);
-    final drop =
-        (el0 - v.elFloor) * (cae > 0.80 ? 0.30 + 0.35 * hash01(id, 413) : 0.10);
-
+    final ruta = _paths.containsKey(id)
+        ? _paths[id]
+        : (_paths[id] = _route(id, v));
+    if (ruta == null) return null;
+    final (az0, sweep, el0, drop) = ruta;
     return ShootingStar(
       id: id,
-      az0: v.az - hacia * span / 2,
+      az0: az0,
       el0: el0,
-      sweep: hacia * span,
+      sweep: sweep,
       drop: drop,
       u: u,
       glow: _glow(u),
       light: _light(u),
       spin: u * 2.1,
     );
+  }
+
+  /// El recorrido de la fugaz [id]: por dónde entra, cuánto barre, a qué
+  /// altura y cuánto cae. O ninguno, si no hay cielo libre donde quepa.
+  ///
+  /// Se elige como siempre —un sitio de la franja al azar, cruzando la
+  /// pantalla entera— y después se prueba: si en algún punto del vuelo la
+  /// estrella tocaría una cordillera, se sube un poco y se vuelve a probar,
+  /// hasta que pasa limpia por encima de todas. Si llega a lo más alto de la
+  /// franja y todavía no, se le quita la caída.
+  ///
+  /// Y si ni así —con el encuadre de siempre, las cumbres llegan al borde de
+  /// arriba de la pantalla en casi todas direcciones—, se busca el trozo de
+  /// cielo libre más ancho que haya entre dos montes y cruza sólo ése. Si
+  /// tampoco hay, no sale: una fugaz por delante de una montaña no está
+  /// donde está una fugaz, y una por detrás no la ve nadie.
+  static (double, double, double, double)? _route(int id, SkyView v) {
+    // Cruza el encuadre entero y se sale un poco por los dos lados: entra ya
+    // volando y se va sin frenar, que es lo que hace que parezca que venía de
+    // lejos. El margen es corto a propósito: con uno ancho, la mitad del vuelo
+    // pasaba fuera de la pantalla y de cinco segundos se veían dos y medio.
+    final hacia = hash01(id, 409) < 0.5 ? -1.0 : 1.0;
+    final span = v.halfWide * 2 + 0.16;
+    final az0 = v.az - hacia * span / 2;
+
+    // En cualquier parte de la franja menos pegada al techo: el resplandor de
+    // la cabeza mide un séptimo de la pantalla, y saliendo del borde mismo se
+    // le va la mitad fuera.
+    final alto = v.elTop - v.elFloor;
+    var el0 = v.elFloor + alto * (0.30 + 0.55 * hash01(id, 407));
+
+    // Cuánto baja: casi nada. En una franja de cuatro grados una diagonal no
+    // se lee como una diagonal, se lee como que la estrella se mete debajo del
+    // pueblo. Una de cada cinco baja un poco más, para que no sean todas la
+    // misma raya.
+    final cae = hash01(id, 415);
+    var drop =
+        (el0 - v.elFloor) * (cae > 0.80 ? 0.30 + 0.35 * hash01(id, 413) : 0.10);
+
+    final paso = math.max(0.0015, alto * 0.05);
+    while (true) {
+      if (_clear(az0, hacia * span, el0, drop, v.travel)) {
+        return (az0, hacia * span, el0, drop);
+      }
+      if (el0 >= v.elTop) {
+        if (drop == 0) break;
+        drop = 0;
+        continue;
+      }
+      el0 = math.min(v.elTop, el0 + paso);
+    }
+
+    // El hueco más ancho entre cumbres, dentro de la pantalla.
+    const n = 120;
+    final lado = v.halfWide * 0.97;
+    final techo = v.elTop - clearance;
+    var mejor = 0, desde = 0, run = 0;
+    for (var i = 0; i <= n; i++) {
+      final az = v.az - lado + 2 * lado * i / n;
+      if (Landscape.skylineAt(az, v.travel) < techo) {
+        run++;
+        if (run > mejor) {
+          mejor = run;
+          desde = i - run + 1;
+        }
+      } else {
+        run = 0;
+      }
+    }
+    // Menos de un tercio de la pantalla no es un cruce, es un chispazo.
+    if (mejor < n * 0.30) return null;
+    final a = v.az - lado + 2 * lado * desde / n;
+    final b = v.az - lado + 2 * lado * (desde + mejor - 1) / n;
+    var cumbre = -1.0;
+    for (var i = 0; i <= 32; i++) {
+      final r = Landscape.skylineAt(a + (b - a) * i / 32, v.travel);
+      if (r > cumbre) cumbre = r;
+    }
+    final suelo = cumbre + clearance;
+    final el = math.min(
+      v.elTop,
+      suelo + (v.elTop - suelo) * (0.25 + 0.5 * hash01(id, 407)),
+    );
+    final ida = hacia > 0 ? a : b;
+    final barre = hacia * (b - a);
+    if (!_clear(ida, barre, el, 0, v.travel)) return null;
+    return (ida, barre, el, 0.0);
+  }
+
+  /// Lo que tiene que quedar de cielo entre la estrella y la cumbre: la
+  /// cabeza no es un punto, y rozando la cresta se lee como que la toca.
+  static const double clearance = 0.006;
+
+  /// Si el vuelo entero pasa por encima de las cordilleras.
+  static bool _clear(
+    double az0,
+    double sweep,
+    double el0,
+    double drop,
+    double travel,
+  ) {
+    const n = 64;
+    for (var i = 0; i <= n; i++) {
+      final k = i / n;
+      final el = el0 - drop * (0.35 * k + 0.65 * k * k);
+      if (el < Landscape.skylineAt(az0 + sweep * k, travel) + clearance) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /// Cuánto luce la propia estrella.

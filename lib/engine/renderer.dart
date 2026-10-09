@@ -220,13 +220,12 @@ class TownPainter extends CustomPainter {
     fondo.drawSky(canvas, size, p, horizonY);
     fondo.drawGround(canvas, size, horizonY);
     fondo.drawTufts(canvas, p, size, horizonY);
-    fondo.drawRanges(canvas, p, size, horizonY);
-    // La fugaz va aquí y no dentro del cielo. Dentro del cielo la pintaban
-    // encima las tres cordilleras, que con el encuadre de siempre ocupan todo
-    // lo que hay por encima del horizonte menos una franja de cuarenta
-    // píxeles: aunque saliera donde se está mirando, se veía la mitad de una
-    // y a veces ninguna. Delante de los montes, además, su luz les cae encima.
+    // La fugaz va antes que las cordilleras: si alguna vez su recorrido
+    // tocara una, pasa por detrás, que es donde está de verdad. El recorrido
+    // ya se calcula para que no toque ninguna (ver `ShootingStar`); esto es
+    // por si la cuenta falla, o si no hay cielo libre donde quepa.
     fondo.drawShootingStar(canvas, size, p, horizonY);
+    fondo.drawRanges(canvas, p, size, horizonY);
     // La gente se resuelve una vez por fotograma y se usa dos: para su sombra
     // en el suelo, que va debajo de todo, y para pintarla en su sitio del
     // orden, que va entre los edificios. Resolverla dos veces sería que la
