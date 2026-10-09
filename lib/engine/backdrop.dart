@@ -195,13 +195,13 @@ class Backdrop {
         ),
         textDirection: TextDirection.ltr,
       )..layout();
-      final x = clampD(
-        (x0 + x1) / 2 - tp.width / 2,
-        6,
-        math.max(6.0, size.width - tp.width - 6),
+      // Clavado a la figura, como las estrellas: si la figura se va por un
+      // borde, el nombre se va con ella. Sujetarlo dentro de la pantalla lo
+      // dejaba pegado al borde, acompañando a la cámara.
+      tp.paint(
+        canvas,
+        Offset((x0 + x1) / 2 - tp.width / 2, y0 - 12 - tp.height),
       );
-      final y = math.max(4.0, y0 - 12 - tp.height);
-      tp.paint(canvas, Offset(x, y));
     }
   }
 

@@ -106,4 +106,58 @@ void main() {
     }
     fail('no se encontró la constelación en ninguna dirección');
   });
+
+  test(
+    'el nombre va clavado a la figura, aunque se salga por un borde',
+    () async {
+      // Antes se sujetaba dentro de la pantalla: con la figura saliéndose por
+      // la izquierda, el nombre se quedaba pegado al borde y acompañaba a la
+      // cámara. Ahora va donde va la figura.
+      final c = constellations.firstWhere((c) => c.id == 'casiopea');
+      var probadas = 0;
+      for (var yaw = 0.0; yaw < 6.3; yaw += 0.02) {
+        final cam = OrbitCamera()
+          ..yaw = yaw
+          ..pitch = -0.6
+          ..distance = 12
+          ..focusY = 1.15;
+        final (sin, hits) = await _pintar(_noche(cam, c, 0));
+        if (hits.skies.isEmpty) continue;
+        final box = hits.skies.first.rect.deflate(16);
+        // Que la figura esté entrando por el borde izquierdo, con el centro
+        // casi en el borde: donde el nombre sujeto se despegaba de ella.
+        if (box.center.dx < 10 || box.center.dx > 40) continue;
+        final (con, _) = await _pintar(_noche(cam, c, 1));
+        var n = 0;
+        for (var y = 0; y < _h; y++) {
+          for (var x = 0; x < _w; x++) {
+            final i = (y * _w + x) * 4;
+            final d =
+                (con[i] - sin[i]).abs() +
+                (con[i + 1] - sin[i + 1]).abs() +
+                (con[i + 2] - sin[i + 2]).abs();
+            if (d < 40) continue;
+            n++;
+          }
+        }
+        // Lo que se ve del nombre es su mitad derecha: empieza en el borde y
+        // termina pasado el centro de la figura, nunca mucho más allá.
+        if (n == 0) continue;
+        final derecha = [
+          for (var y = 0; y < _h; y++)
+            for (var x = _w - 1; x >= 0; x--)
+              if (((con[(y * _w + x) * 4] - sin[(y * _w + x) * 4]).abs()) > 40)
+                x,
+        ].fold<int>(0, (m, x) => x > m ? x : m);
+        expect(
+          derecha,
+          lessThan(box.center.dx + 60),
+          reason: 'el nombre se despegó de la figura (centro ${box.center.dx})',
+        );
+        probadas++;
+        if (probadas >= 3) return;
+      }
+      expect(probadas, greaterThan(0), reason: 'no se encontró el borde');
+    },
+  );
 }
