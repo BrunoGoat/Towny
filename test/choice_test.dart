@@ -461,6 +461,15 @@ void main() {
       );
       await tester.tap(find.text('ajustes'));
       await tester.pumpAndSettle();
+      // La fila está en la hoja de desarrollo, que se abre desde la última
+      // fila de los ajustes de siempre.
+      final dev = find.text('Desarrollo');
+      await tester.scrollUntilVisible(dev, 120);
+      await tester.ensureVisible(dev);
+      await tester.pumpAndSettle();
+      await tester.tap(dev);
+      await tester.pumpAndSettle();
+      expect(find.text('DESARROLLO'), findsOneWidget);
       return store;
     }
 

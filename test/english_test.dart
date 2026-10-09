@@ -245,6 +245,32 @@ void main() {
       }
     });
 
+    testWidgets('los ajustes de desarrollo', (tester) async {
+      final store = await valle();
+      await Appearance.instance.setFakeHour(true);
+      await Appearance.instance.setFakeSeason(true);
+      tester.view.physicalSize = const Size(420, 9000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SettingsSheet(store: store, theme: t, dev: true),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text('DEVELOPER'), findsOneWidget);
+      for (final x in _leer(tester)) {
+        _sinCastellano(x, 'los ajustes de desarrollo');
+      }
+      // Como estaban, y que se escriba ya: guardar espera a que se suelte el
+      // dedo, y un reloj pendiente al terminar es un test roto.
+      await Appearance.instance.setFakeHour(false);
+      await Appearance.instance.setFakeSeason(false);
+      await tester.pump(const Duration(seconds: 1));
+    });
+
     testWidgets('la hoja del hábito', (tester) async {
       final store = await valle();
       await abrir(tester, HabitsSheet(store: store, theme: t));
