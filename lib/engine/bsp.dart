@@ -256,6 +256,28 @@ Facet _choose(List<Facet> faces, int depth) {
   return best ?? faces.first;
 }
 
+/// Parte unas caras por un plano: las de delante y las de detrás, cortando
+/// en dos las que lo cruzan. Lo que está sobre el plano va con el sólido al
+/// que pertenece, que es el lado contrario al que mira.
+(List<Facet>, List<Facet>) splitFacets(List<Facet> faces, V3 n, double d) {
+  final front = <Facet>[], back = <Facet>[];
+  for (final f in faces) {
+    switch (_classify(f, n, d)) {
+      case _Side.front:
+        front.add(f);
+      case _Side.back:
+        back.add(f);
+      case _Side.on:
+        (f.n.dot(n) > 0 ? back : front).add(f);
+      case _Side.spanning:
+        final cut = _cut(f, n, d, withDecals: true);
+        if (cut.$1 != null) front.add(cut.$1!);
+        if (cut.$2 != null) back.add(cut.$2!);
+    }
+  }
+  return (front, back);
+}
+
 enum _Side { on, front, back, spanning }
 
 _Side _classify(Facet f, V3 n, double d) {

@@ -846,6 +846,14 @@ Order _order(
       }
     }
 
+    // Y si nadie se enreda con nadie y aun así no hay plano, es un molinete:
+    // cada edificio tapa la calle del de al lado, como las aspas, y ninguna
+    // recta cruza el pueblo sin pisar alguno. Fundirlo todo en un árbol era
+    // cortar cuarenta mil caras —dos segundos— con cada pieza que caía. Basta
+    // con cortar en dos los pocos edificios que pisa la mejor recta.
+    final cuna = _wedge(leaves, b, again, knots);
+    if (cuna != null) return cuna;
+
     // No plane separates them: they interleave, so they are filed into one
     // tree, which settles it exactly at the cost of some cutting. Built from
     // whole faces rather than from anybody's offcuts.
@@ -962,6 +970,118 @@ OrderLeaf _tie(
       BuiltCluster(key, b, BspTree.build(source), members, source);
   knots.add(made);
   return OrderLeaf(made.bounds, cluster: made);
+}
+
+/// Un plano que casi nada pisa, con lo poco que pisa cortado en dos por él.
+///
+/// Para cuando no hay ninguno que no pise nada. Los edificios que lo cruzan se
+/// parten por el plano —sólo ellos, que son dos o tres— y cada mitad va a su
+/// lado: el orden sigue siendo exacto, porque a cada lado del plano no queda
+/// nada que lo cruce. Lo que no es mampostería y cruza (un sembrado, una
+/// bandera) va debajo o encima de todo, como en un nudo.
+Order? _wedge(
+  List<OrderLeaf> leaves,
+  Aabb b,
+  Map<String, BuiltCluster> again,
+  List<BuiltCluster> knots,
+) {
+  final solid = [
+    for (final l in leaves)
+      if (l.cluster != null) l,
+  ];
+  final n = solid.length;
+  if (n < 6) return null;
+  double lo(Aabb q, int axis) => axis == 0 ? q.x0 : q.z0;
+  double hi(Aabb q, int axis) => axis == 0 ? q.x1 : q.z1;
+  int below(List<double> sorted, double v, {required bool orEqual}) {
+    var a = 0, z = sorted.length;
+    while (a < z) {
+      final m = (a + z) >> 1;
+      if (orEqual ? sorted[m] <= v : sorted[m] < v) {
+        a = m + 1;
+      } else {
+        z = m;
+      }
+    }
+    return a;
+  }
+
+  int? bestAxis;
+  var bestAt = 0.0, bestScore = double.infinity;
+  final most = math.max(3, n ~/ 20), least = math.max(2, n ~/ 6);
+  for (final axis in const [0, 2]) {
+    final los = [for (final l in solid) lo(l.bounds, axis)]..sort();
+    final his = [for (final l in solid) hi(l.bounds, axis)]..sort();
+    for (final at in his) {
+      // Los que quedan enteros abajo, enteros arriba, y los que pisa.
+      final low = below(his, at, orEqual: true);
+      final high = n - below(los, at, orEqual: false);
+      final cross = n - low - high;
+      if (cross > most || low < least || high < least) continue;
+      final score = cross * 1000.0 + (low - high).abs();
+      if (score < bestScore) {
+        bestScore = score;
+        bestAxis = axis;
+        bestAt = at;
+      }
+    }
+  }
+  final axis = bestAxis;
+  if (axis == null) return null;
+  final at = bestAt;
+  final normal = axis == 0 ? const V3(1, 0, 0) : const V3(0, 0, 1);
+
+  final low = <OrderLeaf>[], high = <OrderLeaf>[];
+  final under = <OrderLeaf>[], over = <OrderLeaf>[];
+  for (final l in leaves) {
+    final q = l.bounds;
+    if (hi(q, axis) <= at) {
+      low.add(l);
+      continue;
+    }
+    if (lo(q, axis) >= at) {
+      high.add(l);
+      continue;
+    }
+    final c = l.cluster;
+    if (c == null) {
+      (q.y1 <= 0.35 ? under : over).add(l);
+      continue;
+    }
+    final (front, back) = splitFacets(c.source, normal, at);
+    for (final (half, side, list) in [(back, 'lo', low), (front, 'hi', high)]) {
+      if (half.isEmpty) continue;
+      final key = '${c.key}|$axis@${at.toStringAsFixed(4)}$side';
+      final box = Aabb(
+        axis == 0 && side == 'lo' ? q.x0 : (axis == 0 ? at : q.x0),
+        q.y0,
+        axis == 2 && side == 'lo' ? q.z0 : (axis == 2 ? at : q.z0),
+        axis == 0 && side == 'hi' ? q.x1 : (axis == 0 ? at : q.x1),
+        q.y1,
+        axis == 2 && side == 'hi' ? q.z1 : (axis == 2 ? at : q.z1),
+      );
+      final made =
+          again[key] ??
+          BuiltCluster(key, box, BspTree.build(half), c.members, half);
+      knots.add(made);
+      list.add(OrderLeaf(made.bounds, cluster: made));
+    }
+  }
+  if (low.isEmpty || high.isEmpty) return null;
+  Order out = OrderSplit(
+    axis,
+    at,
+    _order(low, again, knots),
+    _order(high, again, knots),
+    b,
+  );
+  for (final l in under.reversed) {
+    out = OrderBoth(l, out, b);
+  }
+  for (final l in over) {
+    out = OrderBoth(out, l, b);
+  }
+  return out;
 }
 
 /// The most even plane that nothing straddles, or null when there is none.
