@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -160,4 +161,75 @@ void main() {
       expect(probadas, greaterThan(0), reason: 'no se encontró el borde');
     },
   );
+
+  test('detrás de una casa o de una montaña no se puede tocar', () async {
+    // La figura se pinta detrás de todo. Lo que se toca es lo que se ve: en
+    // el rectángulo de la figura, donde hay un tejado o una cumbre delante se
+    // toca eso, y sólo donde se ve cielo se toca la constelación.
+    final c = constellations.firstWhere((c) => c.id == 'osamayor');
+    final l = TownLayout(120, TownCharacter.all.first, seed: 21);
+    var tapada = false, libre = false;
+    for (var yaw = 0.0; yaw < 6.3 && !(tapada && libre); yaw += 0.1) {
+      final cam = OrbitCamera()
+        ..yaw = yaw
+        ..pitch = -0.05
+        ..distance = 14
+        ..focusY = 1.15;
+      final s = TownScene(
+        placed: 120,
+        palette: Palette.forMoment(23),
+        camera: cam,
+        time: 1,
+        hourOfDay: 23,
+        effects: EffectSystem(),
+        budget: 60000,
+        towns: [
+          TownEntry(layout: l, name: 'Leer', symbol: 'libro', placed: 120),
+        ],
+        active: 0,
+        labels: false,
+        folk: false,
+        ghost: false,
+        skyNight: 3,
+        tonight: c,
+      );
+      final (_, hits) = await _pintar(s);
+      if (hits.skies.isEmpty) continue;
+      final box = hits.skies.first.rect.intersect(
+        Rect.fromLTWH(0, 0, _w * 1.0, _h * 1.0),
+      );
+      for (var y = box.top; y < box.bottom; y += 4) {
+        for (var x = box.left; x < box.right; x += 4) {
+          final k = hits.topAt(x, y);
+          final cielo = k >= 0 && hits.faceOwner[k] == TouchMap.sky;
+          final t = hits.hitAt(Offset(x, y));
+          final toca = t >= 0 && hits.faceOwner[t] == TouchMap.sky;
+          if (cielo) {
+            libre = true;
+            expect(toca, isTrue, reason: 'cielo libre en ($x, $y)');
+          } else if (toca) {
+            // Sólo vale con el dedo corrido hasta un cielo que se ve.
+            expect(
+              [
+                for (var d = 3.0; d <= 8; d += 2.5)
+                  for (var i = 0; i < 12; i++) (d, i),
+              ].any((e) {
+                final o = hits.topAt(
+                  x + math.cos(e.$2 * math.pi / 6) * e.$1,
+                  y + math.sin(e.$2 * math.pi / 6) * e.$1,
+                );
+                return o >= 0 && hits.faceOwner[o] == TouchMap.sky;
+              }),
+              isTrue,
+              reason: 'se tocó la constelación a través de algo en ($x, $y)',
+            );
+          } else {
+            tapada = true;
+          }
+        }
+      }
+    }
+    expect(tapada, isTrue, reason: 'no se encontró una figura tapada');
+    expect(libre, isTrue, reason: 'no se encontró cielo libre en la figura');
+  });
 }

@@ -1438,89 +1438,60 @@ class _TownViewState extends State<TownView>
   void _onTapUp(TapUpDetails d) {
     final pos = d.localPosition;
 
-    // El cielo primero. Es lo que menos veces está ahí y lo que más
-    // deliberadamente se toca: nadie apunta a una constelación por accidente,
-    // y si hay una figura encima de un tejado, se quiso la figura.
-    for (final k in _hits.skies) {
-      if (!k.rect.contains(pos)) continue;
+    // Lo que se toca es lo que se ve bajo el dedo: la última cosa pintada
+    // ahí, sea el cielo, una casa, el tablón o un cartel. Ver [TouchMap.add].
+    // No hay un orden de «primero el cielo, después el tablón» que pueda
+    // dejar tocar algo a través de lo que tiene delante.
+    final k = _hits.hitAt(pos);
+    final owner = k < 0 ? TouchMap.nobody : _hits.faceOwner[k];
+
+    if (owner == TouchMap.sky && _hits.skies.isNotEmpty) {
       _skyTappedAt = _time;
-      widget.onSkyTapped(k.id);
+      widget.onSkyTapped(_hits.skies.first.id);
       return;
     }
 
-    // Lo que se ve bajo el dedo: la última cara pintada en ese punto.
-    final arriba = _hits.ownerAt(pos.dx, pos.dy);
-    final casa = arriba != null && (arriba >= 0 || arriba == TouchMap.building);
-
-    // El tablón, antes que las casas: es una cosa chica en medio de un pueblo
-    // lleno de tejados, y quien le apunta le apuntó. Si dos tablones caen bajo
-    // el dedo, el más cercano a donde aterrizó.
-    //
-    // Pero sólo si lo que se ve ahí no es una casa. El blanco del tablón es su
-    // rectángulo, y el rectángulo sigue estando aunque una casa se le ponga
-    // delante: tocar esa casa abría el tablón que tapa.
-    ({int town, double away})? tablon;
-    for (final b in casa ? const <BoardHit>[] : _hits.boards) {
-      if (!b.rect.contains(pos)) continue;
-      final dx = b.rect.center.dx - pos.dx, dy = b.rect.center.dy - pos.dy;
-      final away = dx * dx + dy * dy;
-      if (tablon == null || away < tablon.away) {
-        tablon = (town: b.town, away: away);
+    if (owner == TouchMap.board) {
+      // De qué pueblo: el tablón cuyo rectángulo está más cerca del dedo. El
+      // rectángulo ya no decide **si** se tocó —eso lo dice lo que se ve—,
+      // sólo de cuál de los tablones es la cara que se tocó.
+      ({int town, double away})? tablon;
+      for (final b in _hits.boards) {
+        final dx = b.rect.center.dx - pos.dx, dy = b.rect.center.dy - pos.dy;
+        final away = dx * dx + dy * dy;
+        if (tablon == null || away < tablon.away) {
+          tablon = (town: b.town, away: away);
+        }
       }
-    }
-    if (tablon != null) {
-      Sensory.instance.tick();
-      widget.onBoardTapped(tablon.town);
-      return;
-    }
-
-    // Then the signs. From across the valley a sign is the only thing you can
-    // read about a town, and reading it and tapping it should be the same
-    // gesture as going there.
-    for (final s in _hits.signs) {
-      if (!s.rect.contains(pos)) continue;
-      if (s.town == widget.store.active) {
-        // Already yours: frame it properly instead of doing nothing.
-        _frameTown();
+      if (tablon != null) {
         Sensory.instance.tick();
+        widget.onBoardTapped(tablon.town);
         return;
       }
+    }
+
+    // A sign: from across the valley it is the only thing you can read about
+    // a town, and reading it and tapping it should be the same gesture as
+    // going there.
+    if (owner == TouchMap.sign) {
+      final town = _hits.regionData[k];
       Sensory.instance.tick();
-      widget.onTownTapped(s.town);
+      if (town == widget.store.active) {
+        // Already yours: frame it properly instead of doing nothing.
+        _frameTown();
+        return;
+      }
+      widget.onTownTapped(town);
       return;
     }
 
-    // La de adelante, no la más cercana al dedo.
-    //
-    // Antes se buscaba el centro más próximo al toque, y eso hacía las dos
-    // cosas mal: el blanco era un círculo dentro de la pieza —más chico que
-    // ella— y, mirando desde arriba, el centro de la de abajo podía caer más
-    // cerca del dedo que el de la de encima. Ahora se mira quién ocupa ese
-    // punto de la pantalla y, de ésos, cuál está más cerca del ojo. Una pieza
-    // no se toca a través de otra.
-    PickTarget? best;
-    // Si lo que se ve es una pieza de este pueblo, es ésa y no hay que
-    // adivinar con rectángulos.
-    if (arriba != null && arriba >= 0) {
-      for (final t in _hits.pieces) {
-        if (t.brickIndex == arriba) best = t;
-      }
-    }
-    if (best == null) {
-      for (final t in _hits.pieces) {
-        // Un pelo de holgura.
-        if (!t.holds(pos.dx, pos.dy, 2)) continue;
-        if (best == null || t.near < best.near) best = t;
-      }
-    }
-    if (best == null) {
+    // Una pieza de este pueblo: la que se ve, que es la de adelante.
+    final brick = owner >= 0 ? widget.store.pieceAt(owner) : null;
+    if (brick == null) {
       if (_selectedPiece != null) setState(() => _selectedPiece = null);
       widget.onNothingTapped();
       return;
     }
-
-    final brick = widget.store.pieceAt(best.brickIndex);
-    if (brick == null) return;
     setState(() => _selectedPiece = brick.index);
     Sensory.instance.tick();
     widget.onStoneTapped(brick);

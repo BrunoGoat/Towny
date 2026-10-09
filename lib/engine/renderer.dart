@@ -77,8 +77,6 @@ class TownPainter extends CustomPainter {
   /// Lo que el fotograma deja marcado para que se pueda tocar.
   final TouchMap hits;
 
-  List<PickTarget> get picks => hits.pieces;
-  List<SignHit> get signs => hits.signs;
   List<BoardHit> get boards => hits.boards;
   List<SkyHit> get skies => hits.skies;
 
@@ -204,7 +202,6 @@ class TownPainter extends CustomPainter {
 
   Projector _paintWorld(Canvas canvas, Size size, {required bool overlays}) {
     hits.clear();
-    _pickAt.clear();
     _faceCount = 0;
     _lamps.clear();
     _lampOwner.clear();
@@ -213,7 +210,7 @@ class TownPainter extends CustomPainter {
     _canvasH = size.height;
 
     final p = scene.camera.projector(size.width, size.height, scene.time);
-    final fondo = Backdrop(scene, skies);
+    final fondo = Backdrop(scene, hits);
     final horizonY = horizonOf(p, size);
     final town = scene.town;
 
@@ -415,29 +412,6 @@ class TownPainter extends CustomPainter {
   }
 
   // --------------------------------------------------------------- stones
-
-  /// Dónde en qué índice de `picks` está cada pieza de este fotograma.
-  final Map<int, int> _pickAt = {};
-
-  void _registerPick(_Face f, int brickIndex, Size size, double near) {
-    var minX = double.infinity, minY = double.infinity;
-    var maxX = -double.infinity, maxY = -double.infinity;
-    for (var i = 0; i < f.n; i++) {
-      final x = f.pts[i * 2], y = f.pts[i * 2 + 1];
-      if (x < minX) minX = x;
-      if (x > maxX) maxX = x;
-      if (y < minY) minY = y;
-      if (y > maxY) maxY = y;
-    }
-    if (maxX < 0 || minX > size.width || maxY < 0 || minY > size.height) return;
-    final had = _pickAt[brickIndex];
-    if (had != null) {
-      picks[had].grow(minX, minY, maxX, maxY, near);
-      return;
-    }
-    _pickAt[brickIndex] = picks.length;
-    picks.add(PickTarget(brickIndex, minX, minY, maxX, maxY, near));
-  }
 
   /// The lanes between the blocks, and the shadow each building sits in.
   void _drawTownGround(
@@ -927,7 +901,7 @@ class TownPainter extends CustomPainter {
       if (taken.any(box.overlaps)) continue;
       taken.add(box);
       // Generous: a sign is small and a thumb is not.
-      signs.add(SignHit(i, box.inflate(10)));
+      hits.addRect(box.inflate(10), TouchMap.sign, data: i);
 
       final left = cx - content / 2;
       HabitSigils.draw(
@@ -1908,21 +1882,6 @@ class TownPainter extends CustomPainter {
       _lastFaceOf[_buildingNow] = before;
       _facePool[before].owner = _picking ? piece.index : TouchMap.building;
     }
-    // Todas sus caras, no la primera: la caja de una pieza es la de todo lo
-    // que se ve de ella.
-    if (_picking && _faceCount > before) {
-      var near = double.infinity;
-      for (var i = 0; i < m; i++) {
-        final z = _clipA[i * 3 + 2];
-        if (z < near) near = z;
-      }
-      _registerPick(
-        _facePool[before],
-        piece.index,
-        size,
-        math.max(near, p.near),
-      );
-    }
   }
 
   /// The colours a house is painted in. They belong to the house, not to the
@@ -2396,24 +2355,14 @@ class TownPainter extends CustomPainter {
 
   /// Las caras de este fotograma, copiadas al mapa de toques para que el dedo
   /// sepa qué se ve en cada punto. Copiadas y no apuntadas: el depósito de
-  /// caras es de todos los pintores y el siguiente lo pisa.
+  /// caras es de todos los pintores y el siguiente lo pisa. Van detrás del
+  /// cielo, el prado y las montañas, que ya se anotaron al pintarse, y antes
+  /// de los carteles, que van encima de todo.
   void _keepFaces() {
-    var floats = 0;
-    for (var k = 0; k < _faceCount; k++) {
-      floats += _facePool[k].n * 2;
-    }
-    hits.reserveFaces(_faceCount, floats);
-    var at = 0;
     for (var k = 0; k < _faceCount; k++) {
       final f = _facePool[k];
-      hits.faceStart[k] = at;
-      hits.faceOwner[k] = f.owner;
-      for (var i = 0; i < f.n * 2; i++) {
-        hits.facePts[at++] = f.pts[i];
-      }
+      hits.add(f.pts, f.n, f.owner);
     }
-    hits.faceStart[_faceCount] = at;
-    hits.faceCount = _faceCount;
   }
 
   /// De qué edificio es la cara que se está pintando, y la última cara que

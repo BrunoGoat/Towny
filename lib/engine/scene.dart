@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui';
 
@@ -46,50 +47,6 @@ class TownEntry {
   /// Si este pueblo llegó a fundarse. Falso es el hueco del valle en el que
   /// todavía no hay nada: ni plaza, ni suelo, ni nombre.
   final bool founded;
-}
-
-/// One stone as it appears on screen this frame, kept so taps can be resolved
-/// back to the brick that was drawn there.
-/// El sitio que una pieza ocupa en la pantalla, para poder tocarla.
-///
-/// Antes era un círculo alrededor del centro de **una** cara: la primera que se
-/// pintaba de esa pieza, que casi nunca es la que se está mirando. De ahí las
-/// dos quejas — que el blanco es más chico que la pieza, y que a veces sale la
-/// de debajo. Ahora es la caja de **todas** sus caras juntas, y lleva la
-/// distancia de la más cercana, que es lo que decide quién gana cuando dos se
-/// pisan: la de adelante. Una pieza no se toca a través de otra.
-class PickTarget {
-  PickTarget(this.brickIndex, this.x0, this.y0, this.x1, this.y1, this.near);
-
-  final int brickIndex;
-
-  /// Lo que abarca en pantalla, creciendo con cada cara suya que se pinta.
-  double x0, y0, x1, y1;
-
-  /// A qué distancia del ojo está lo más cercano suyo.
-  double near;
-
-  bool holds(double x, double y, double slack) =>
-      x >= x0 - slack && x <= x1 + slack && y >= y0 - slack && y <= y1 + slack;
-
-  void grow(double ax, double ay, double bx, double by, double z) {
-    if (ax < x0) x0 = ax;
-    if (ay < y0) y0 = ay;
-    if (bx > x1) x1 = bx;
-    if (by > y1) y1 = by;
-    if (z < near) near = z;
-  }
-}
-
-/// Where a town's sign landed on screen, so it can be tapped.
-///
-/// The sign is the only thing you can read about a town from the far side of
-/// the valley; tapping the thing you are reading and being taken there is what
-/// anybody expects it to do.
-class SignHit {
-  const SignHit(this.town, this.rect);
-  final int town;
-  final Rect rect;
 }
 
 /// Where a town's notice board landed on screen, so it can be read.
@@ -254,62 +211,84 @@ class TownScene {
   final bool labels;
 }
 
-/// Dónde quedó cada cosa que se puede tocar, apuntado al pintarla.
-///
-/// Las seis listas se rellenan en el mismo recorrido y se leen en el mismo
-/// sitio —la capa de gestos, cuando alguien pone el dedo—, así que son una
-/// cosa y no seis. Iban sueltas, y eso daba un pintor de siete parámetros
-/// posicionales y cuatro sitios declarando las mismas seis listas, uno de
-/// ellos así:
-///
-///     TownPainter(scene, [], [], [], [], [], [])
-///
-/// Seis corchetes vacíos en fila no dicen nada de lo que pasa ahí — y lo que
-/// pasa es «este expositor no tiene nada que tocar».
+/// Qué hay en cada punto de la pantalla, apuntado al pintarlo: lo único que
+/// mira el dedo. Ver [add].
 class TouchMap {
-  /// Cada pieza y el rectángulo que ocupa en pantalla.
-  final List<PickTarget> pieces = [];
-
-  /// El cartel de cada pueblo.
-  final List<SignHit> signs = [];
-
-  /// Su tablón.
+  /// Dónde quedó el tablón de cada pueblo. No decide si se tocó —eso lo dice
+  /// lo que se ve—: sólo de qué pueblo es el tablón que se tocó.
   final List<BoardHit> boards = [];
 
-  /// La constelación de esta noche, si salió.
+  /// La constelación de esta noche, si salió: cuál es.
   final List<SkyHit> skies = [];
 
-  /// Las caras del fotograma, en el orden en que se pintaron, y de quién es
-  /// cada una: el número de la pieza, [building] si es de una casa que no se
-  /// puede elegir desde aquí —la de otro pueblo—, [board] si es del tablón o
-  /// [nobody] si es del prado o la plaza.
+  /// Todo lo que se pintó en el fotograma, **en el orden en que se pintó**,
+  /// y de quién es cada cosa: el cielo de la constelación, el suelo y las
+  /// cordilleras, cada cara de las casas, de las piezas y del tablón, y los
+  /// carteles de los pueblos encima de todo.
   ///
-  /// Es lo que permite saber **qué se ve** en un punto de la pantalla, que no
-  /// es lo mismo que qué rectángulo lo contiene: la última cara pintada que
-  /// cae bajo el dedo es la que está delante, porque el orden de pintado es
-  /// el orden de profundidad.
+  /// Es lo único que mira el dedo. Lo que se toca es lo último que se pintó
+  /// bajo él, porque el orden de pintado es el orden de profundidad: así
+  /// nada se puede tocar a través de lo que tiene delante. Antes cada cosa
+  /// tocable guardaba su rectángulo y se revisaban en un orden fijo —el cielo,
+  /// el tablón, los carteles, las piezas—, y cada vez que algo quedaba detrás
+  /// de otra cosa hacía falta un parche: el tablón detrás de una casa, la
+  /// constelación detrás de un tejado. Con una sola lista no hay orden que
+  /// parchear.
+  ///
+  /// Dueños: el número de la pieza (cero o más), o uno de [nobody] (algo que
+  /// tapa pero no se toca: el prado, las montañas, la plaza), [building] (una
+  /// casa de otro pueblo), [board], [sky] o [sign]. [regionData] lleva el
+  /// pueblo del cartel.
   Float32List facePts = Float32List(0);
   Int32List faceStart = Int32List(1);
   Int32List faceOwner = Int32List(0);
+  Int32List regionData = Int32List(0);
   int faceCount = 0;
 
   static const int nobody = -1;
   static const int building = -2;
   static const int board = -3;
+  static const int sky = -4;
+  static const int sign = -5;
 
-  /// Hace sitio para [faces] caras con [floats] números de vértices entre
-  /// todas.
-  void reserveFaces(int faces, int floats) {
+  void _room(int faces, int floats) {
     if (faceOwner.length < faces) {
-      faceOwner = Int32List(faces + faces ~/ 2);
-      faceStart = Int32List(faceOwner.length + 1);
+      final n = faces + faces ~/ 2 + 16;
+      faceOwner = Int32List(n)..setRange(0, faceCount, faceOwner);
+      regionData = Int32List(n)..setRange(0, faceCount, regionData);
+      faceStart = Int32List(n + 1)..setRange(0, faceCount + 1, faceStart);
     }
-    if (facePts.length < floats) facePts = Float32List(floats + floats ~/ 2);
+    if (facePts.length < floats) {
+      final used = faceStart[faceCount];
+      facePts = Float32List(floats + floats ~/ 2 + 64)
+        ..setRange(0, used, facePts);
+    }
   }
 
-  /// De quién es lo que se ve en ese punto, o nulo si ahí no hay ninguna
-  /// cara (el cielo, o un fotograma sin pintar todavía).
-  int? ownerAt(double x, double y) {
+  /// Algo pintado ahora, encima de todo lo anterior: un polígono de [n]
+  /// vértices, con sus coordenadas `x, y` seguidas en [pts].
+  void add(List<double> pts, int n, int owner, {int data = 0}) {
+    final at = faceStart[faceCount];
+    _room(faceCount + 1, at + n * 2);
+    for (var i = 0; i < n * 2; i++) {
+      facePts[at + i] = pts[i];
+    }
+    faceOwner[faceCount] = owner;
+    regionData[faceCount] = data;
+    faceCount++;
+    faceStart[faceCount] = at + n * 2;
+  }
+
+  void addRect(Rect r, int owner, {int data = 0}) => add(
+    [r.left, r.top, r.right, r.top, r.right, r.bottom, r.left, r.bottom],
+    4,
+    owner,
+    data: data,
+  );
+
+  /// Lo que se ve en ese punto: el índice de lo último pintado ahí, o -1 si
+  /// ahí no se pintó nada.
+  int topAt(double x, double y) {
     for (var k = faceCount - 1; k >= 0; k--) {
       final a = faceStart[k], b = faceStart[k + 1];
       var dentro = false;
@@ -320,9 +299,40 @@ class TouchMap {
           dentro = !dentro;
         }
       }
-      if (dentro) return faceOwner[k];
+      if (dentro) return k;
     }
-    return null;
+    return -1;
+  }
+
+  /// De quién es lo que se ve en ese punto, o nulo si ahí no se pintó nada.
+  int? ownerAt(double x, double y) {
+    final k = topAt(x, y);
+    return k < 0 ? null : faceOwner[k];
+  }
+
+  /// Si se puede tocar algo de [owner].
+  static bool tappable(int owner) =>
+      owner >= 0 || owner == board || owner == sky || owner == sign;
+
+  /// Qué se toca en [pos]: lo que se ve bajo el dedo y, si eso no se puede
+  /// tocar, lo tocable que se vea más cerca a menos de [reach] píxeles. Un
+  /// tablón lejano o un cartel miden poco y un dedo no; pero sólo vale lo que
+  /// **se ve**, así que la holgura nunca alcanza algo que esté tapado.
+  ///
+  /// Devuelve el índice de la zona, o -1 si no hay nada que tocar.
+  int hitAt(Offset pos, {double reach = 8}) {
+    final k = topAt(pos.dx, pos.dy);
+    if (k >= 0 && tappable(faceOwner[k])) return k;
+    for (var r = 3.0; r <= reach; r += 2.5) {
+      var best = -1;
+      for (var i = 0; i < 12; i++) {
+        final a = i * math.pi / 6;
+        final o = topAt(pos.dx + math.cos(a) * r, pos.dy + math.sin(a) * r);
+        if (o >= 0 && tappable(faceOwner[o]) && o > best) best = o;
+      }
+      if (best >= 0) return best;
+    }
+    return -1;
   }
 
   /// Se vacía entero al empezar cada fotograma. Que lo haga el propio mapa es
@@ -330,8 +340,6 @@ class TouchMap {
   /// principio de `paint` se convierten en cinco en cuanto alguien añade la
   /// séptima cosa tocable.
   void clear() {
-    pieces.clear();
-    signs.clear();
     boards.clear();
     skies.clear();
     faceCount = 0;

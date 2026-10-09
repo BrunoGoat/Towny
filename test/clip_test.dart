@@ -406,7 +406,10 @@ void main() {
       // Y el pueblo que se está mirando se sirve primero: con el presupuesto
       // justo para uno, lo que se pinta es el suyo.
       expect(
-        p.picks.map((t) => t.brickIndex).toList(),
+        [
+          for (var k = 0; k < p.hits.faceCount; k++)
+            if (p.hits.faceOwner[k] >= 0) k,
+        ],
         isNotEmpty,
         reason: 'no quedó ni una pieza del pueblo activo',
       );

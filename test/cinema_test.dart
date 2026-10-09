@@ -213,8 +213,12 @@ void main() {
     final normal = TouchMap(), cine = TouchMap();
     await _pintar(_escena(l, 13, cine: false), normal);
     await _pintar(_escena(l, 13, cine: true), cine);
-    expect(normal.pieces, isNotEmpty);
-    expect(cine.pieces.length, normal.pieces.length);
+    int piezas(TouchMap m) => [
+      for (var k = 0; k < m.faceCount; k++)
+        if (m.faceOwner[k] >= 0) k,
+    ].length;
+    expect(piezas(normal), greaterThan(0));
+    expect(piezas(cine), piezas(normal));
     expect(cine.boards.length, normal.boards.length);
   });
 

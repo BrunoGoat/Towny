@@ -194,7 +194,7 @@ cambiar cuánto suena la mitad la recalcula sola.
 
 ```bash
 flutter pub get
-flutter test          # 767 tests
+flutter test          # 766 tests
 flutter analyze
 flutter run
 flutter build apk --release
@@ -305,6 +305,14 @@ lib/
 supabase/    las tablas, en SQL
 ```
 
+**Qué se toca.** Todo lo que se pinta —el cielo de la constelación, el prado,
+las cordilleras, cada cara de las casas, del tablón y de las piezas, y los
+carteles encima— se anota en `TouchMap` en el orden en que se pinta, con su
+dueño. El dedo toca lo último pintado bajo él, y si eso no se toca, lo tocable
+que **se vea** a menos de ocho píxeles. No hay rectángulos revisados en un orden
+fijo: nada se puede tocar a través de lo que tiene delante, y una cosa tocable
+nueva sólo tiene que anotarse al pintarse.
+
 **La nube, preparada pero sin conectar.** `supabase/migrations/` tiene las
 tablas de todo lo que la app guarda de una persona —el valle, cada hábito con
 sus piezas, vecinos, notas y pausas, los ajustes y el tablón—, cada una con una
@@ -338,7 +346,7 @@ Dentro de `engine/`, que es el más poblado:
 | `town.dart`, `mason.dart`, `solids.dart` | qué se construye y de qué caras está hecho |
 | `landmarks.dart` | las sesenta obras, cada una en una docena de líneas |
 | `world.dart`, `bsp.dart` | en qué orden se pinta, resuelto una vez al poner la pieza |
-| `scene.dart` | lo que hay que pintar, dicho antes de pintarlo |
+| `scene.dart` | lo que hay que pintar, dicho antes de pintarlo, y qué quedó en cada punto (`TouchMap`) |
 | `renderer.dart` | el rasterizador: recortar, sombrear y rellenar caras |
 | `backdrop.dart` | el cielo, el sol, el prado y las cordilleras |
 | `cinema.dart` | la calidad máxima: sombras proyectadas, resplandor, rayos de sol y color |

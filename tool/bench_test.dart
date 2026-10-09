@@ -79,7 +79,7 @@ double _cronometra(TownScene scene, {int vueltas = 40}) {
 double _cronometraFondo(TownScene scene, {int vueltas = 40}) {
   final p = scene.camera.projector(_size.width, _size.height, scene.time);
   final y = horizonOf(p, _size);
-  final fondo = Backdrop(scene, []);
+  final fondo = Backdrop(scene, TouchMap());
   final rec0 = ui.PictureRecorder();
   final c0 = Canvas(rec0);
   fondo.drawSky(c0, _size, p, y);

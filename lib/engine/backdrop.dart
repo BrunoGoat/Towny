@@ -35,13 +35,15 @@ import 'tones.dart';
 /// pueden separar aunque estén en el mismo sitio, porque lo que va en medio es
 /// el pueblo.
 class Backdrop {
-  Backdrop(this.scene, this.skies);
+  Backdrop(this.scene, this.touch);
 
   final TownScene scene;
 
-  /// Dónde cayó la constelación de esta noche, para poder tocarla. Es lo único
-  /// que este fichero devuelve hacia fuera.
-  final List<SkyHit> skies;
+  /// Lo que el dedo tiene que saber de lo que se pinta aquí: dónde quedó la
+  /// constelación de esta noche, y lo que la tapa —el prado y las
+  /// cordilleras—. Es lo único que este fichero devuelve hacia fuera. Ver
+  /// [TouchMap.add].
+  final TouchMap touch;
 
   void drawSky(Canvas canvas, Size size, Projector p, double horizonY) {
     final pal = scene.palette;
@@ -170,7 +172,8 @@ class Backdrop {
     }
 
     final box = Rect.fromLTRB(x0, y0, x1, y1).inflate(16);
-    skies.add(SkyHit(c.id, box));
+    touch.skies.add(SkyHit(c.id, box));
+    touch.addRect(box, TouchMap.sky);
 
     // El nombre no está siempre: un rótulo flotando sobre el valle no es una
     // cosa del cielo, es una etiqueta encima del cielo. Sale al tocarla, chico
@@ -323,6 +326,7 @@ class Backdrop {
     // Lo que sí tenía que cambiar sigue cambiando: el verde es otro a cada
     // hora.
     canvas.drawRect(rect, Paint()..color = meadowTone(scene.palette));
+    touch.addRect(rect, TouchMap.nobody);
   }
 
   /// Las matas de hierba que asoman entre la nieve.
@@ -669,6 +673,26 @@ class Backdrop {
           Offset(0, cut),
           [body, foot],
         );
+
+      // Lo que tapa, para el dedo: cada tramo de la sierra hasta el
+      // horizonte, que es donde la corta el prado.
+      final tramo = <double>[];
+      void tapa() {
+        if (tramo.length >= 4) {
+          tramo.addAll([tramo[tramo.length - 2], cut, tramo[0], cut]);
+          touch.add(tramo, tramo.length ~/ 2, TouchMap.nobody);
+        }
+        tramo.clear();
+      }
+
+      for (var i = 0; i <= steps; i++) {
+        if (ys[i].isNaN) {
+          tapa();
+        } else {
+          tramo.addAll([xs[i], math.min(ys[i], cut)]);
+        }
+      }
+      tapa();
 
       final shapes = <Path>[];
       Path? path;

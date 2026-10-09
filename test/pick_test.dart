@@ -13,9 +13,9 @@ import 'package:towny/fx/effects.dart';
 
 const Size _screen = Size(420, 860);
 
-/// Pinta un pueblo y devuelve los blancos táctiles que salieron, junto con la
-/// cámara con la que se pintó.
-(List<PickTarget>, TownLayout, OrbitCamera) shot({
+/// Pinta un pueblo y devuelve el mapa de lo que se ve, junto con la cámara
+/// con la que se pintó.
+(TouchMap, TownLayout, OrbitCamera) shot({
   required int placed,
   required double pitch,
   required double yaw,
@@ -52,106 +52,86 @@ const Size _screen = Size(420, 860);
   final rec = ui.PictureRecorder();
   TownPainter(scene, hits).paint(Canvas(rec), _screen);
   rec.endRecording().dispose();
-  return (hits.pieces, layout, cam);
+  return (hits, layout, cam);
 }
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  /// De quién es lo que se toca en [o].
+  int? tocado(TouchMap hits, Offset o) {
+    final k = hits.hitAt(o);
+    return k < 0 ? null : hits.faceOwner[k];
+  }
+
   group('tocar una pieza', () {
-    test('el blanco es la pieza entera y no un círculo dentro', () {
-      // Lo que se rompía: se registraba **una** cara por pieza —la primera que
-      // se pintaba, que casi nunca es la que se está mirando— y se guardaba
-      // como un círculo alrededor de su centro. El resultado era un blanco más
-      // chico que la pieza y, a veces, en otro sitio que la pieza.
-      //
-      // Esto lo mide contra el mundo: el centro real de la pieza, proyectado a
-      // la pantalla, tiene que caer dentro de su propio blanco. Con un círculo
-      // sobre una cara lateral, no caía.
+    test('cada pieza que se ve se puede tocar', () {
+      // Donde se ve una pieza, tocar es tocar ésa: no la de detrás, no la más
+      // cercana al dedo, no la que tenga el rectángulo más chico.
       for (final pitch in [0.25, 0.7, 1.2]) {
-        final (picks, layout, cam) = shot(placed: 60, pitch: pitch, yaw: 0.4);
-        expect(picks, isNotEmpty, reason: 'inclinación $pitch');
-        final p = cam.projector(_screen.width, _screen.height, 0);
-        var checked = 0;
-        for (final t in picks) {
-          final piece = layout.pieces[t.brickIndex];
-          final at = p.project(
-            V3(piece.cx, (piece.y0 + piece.y1) / 2, piece.cz),
-          );
-          if (at == null) continue;
-          if (at.x < 0 || at.x > _screen.width) continue;
-          if (at.y < 0 || at.y > _screen.height) continue;
-          checked++;
-          expect(
-            t.holds(at.x, at.y, 0),
-            isTrue,
-            reason:
-                'inclinación $pitch: el centro de la pieza ${t.brickIndex} '
-                'cae fuera de su propio blanco',
-          );
+        final (hits, _, _) = shot(placed: 60, pitch: pitch, yaw: 0.4);
+        final vistas = <int>{};
+        for (var y = 0.0; y < _screen.height; y += 3) {
+          for (var x = 0.0; x < _screen.width; x += 3) {
+            final dueno = hits.ownerAt(x, y);
+            if (dueno == null || dueno < 0) continue;
+            vistas.add(dueno);
+            expect(
+              tocado(hits, Offset(x, y)),
+              dueno,
+              reason: 'inclinación $pitch, en ($x, $y)',
+            );
+          }
         }
-        expect(checked, greaterThan(10), reason: 'inclinación $pitch');
+        expect(vistas.length, greaterThan(10), reason: 'inclinación $pitch');
       }
-    });
-
-    test('cada pieza tiene un blanco y sólo uno', () {
-      final (picks, _, _) = shot(placed: 90, pitch: 0.5, yaw: 1.1);
-      final seen = picks.map((t) => t.brickIndex).toList();
-      expect(seen.toSet().length, seen.length, reason: 'una pieza dos veces');
-    });
-
-    test('y no es un punto: se puede acertar con un dedo', () {
-      final (picks, _, _) = shot(placed: 40, pitch: 0.45, yaw: 0.2);
-      var big = 0;
-      for (final t in picks) {
-        if ((t.x1 - t.x0) >= 8 && (t.y1 - t.y0) >= 8) big++;
-      }
-      expect(
-        big,
-        greaterThan(picks.length ~/ 2),
-        reason: 'la mitad de los blancos son más chicos que una yema',
-      );
     });
 
     test('desde arriba gana la de encima, no la de debajo', () {
-      // La otra queja: mirando desde arriba, el centro de la pieza de abajo
-      // podía quedar más cerca del dedo que el de la de arriba, y salía la de
-      // abajo. Ahora, de los que ocupan ese punto, gana el que está más cerca
-      // del ojo — y una pieza apilada sobre otra está más cerca desde arriba.
-      final (picks, layout, _) = shot(placed: 60, pitch: 1.25, yaw: 0.3);
-      var pairs = 0;
-      for (final t in picks) {
-        final piece = layout.pieces[t.brickIndex];
-        // Alguien apilado justo encima, en la misma columna.
-        for (final other in picks) {
-          if (other.brickIndex == t.brickIndex) continue;
-          final o = layout.pieces[other.brickIndex];
-          if ((o.cx - piece.cx).abs() > 0.15) continue;
-          if ((o.cz - piece.cz).abs() > 0.15) continue;
-          if (o.y0 < piece.y1 - 0.01) continue;
-          // El de arriba tiene que estar más cerca del ojo que el de abajo.
-          pairs++;
+      // Mirando desde arriba, el techo de una pieza apilada tapa a la de
+      // abajo: tocar ahí es tocar la de arriba.
+      final (hits, layout, cam) = shot(placed: 60, pitch: 1.25, yaw: 0.3);
+      final p = cam.projector(_screen.width, _screen.height, 0);
+      var pares = 0;
+      for (final abajo in layout.pieces) {
+        for (final arriba in layout.pieces) {
+          if (identical(abajo, arriba)) continue;
+          if ((arriba.cx - abajo.cx).abs() > 0.15) continue;
+          if ((arriba.cz - abajo.cz).abs() > 0.15) continue;
+          if (arriba.y0 < abajo.y1 - 0.01) continue;
+          final o = p.project(V3(arriba.cx, arriba.y1, arriba.cz));
+          if (o == null) continue;
+          final t = tocado(hits, Offset(o.x, o.y));
+          if (t == null) continue;
+          pares++;
           expect(
-            other.near,
-            lessThanOrEqualTo(t.near + 1e-6),
-            reason:
-                'la pieza ${other.brickIndex} está encima de la '
-                '${t.brickIndex} y se dice más lejos',
+            t,
+            isNot(abajo.index),
+            reason: 'se tocó la ${abajo.index} a través de la ${arriba.index}',
           );
         }
       }
-      expect(pairs, greaterThan(3), reason: 'no había nada apilado que mirar');
+      expect(pares, greaterThan(3), reason: 'no había nada apilado que mirar');
     });
 
-    test('lo que queda fuera de la pantalla no se registra', () {
-      final (picks, _, _) = shot(placed: 60, pitch: 0.5, yaw: 0.4);
-      for (final t in picks) {
-        expect(t.x1, greaterThanOrEqualTo(0));
-        expect(t.y1, greaterThanOrEqualTo(0));
-        expect(t.x0, lessThanOrEqualTo(_screen.width));
-        expect(t.y0, lessThanOrEqualTo(_screen.height));
-        expect(t.near, greaterThan(0));
+    test('un dedo un poco corrido acierta igual', () {
+      // Una pieza lejana mide pocos píxeles y una yema no: a unos píxeles de
+      // ella, sobre el prado, se toca igual.
+      final (hits, _, _) = shot(placed: 40, pitch: 0.45, yaw: 0.2);
+      var probadas = 0;
+      for (var y = 0.0; y < _screen.height && probadas < 20; y += 5) {
+        for (var x = 0.0; x < _screen.width && probadas < 20; x += 5) {
+          final dueno = hits.ownerAt(x, y);
+          if (dueno == null || dueno < 0) continue;
+          // Un punto de prado a cinco píxeles.
+          final al = Offset(x, y + 5);
+          final debajo = hits.ownerAt(al.dx, al.dy);
+          if (debajo != null && debajo != TouchMap.nobody) continue;
+          probadas++;
+          expect(tocado(hits, al), isNotNull, reason: 'en $al');
+        }
       }
+      expect(probadas, greaterThan(5));
     });
   });
 }
