@@ -22,8 +22,15 @@ create table if not exists public.valleys (
   unlocked boolean not null default false,
   -- Hasta dónde se vio el buzón del widget.
   seen_arrival int not null default 0,
-  -- Los ajustes tal como los guarda la app: `{"clave": "valor"}`.
+  -- Los ajustes tal como los guarda la app: `{"clave": "valor"}`. Los de
+  -- desarrollo (la hora y la estación fingidas) no viajan: son de cada
+  -- teléfono.
   settings jsonb not null default '{}'::jsonb,
+  -- Cuándo cambió esto en el teléfono que lo subió, con el reloj de ese
+  -- teléfono. No es `updated_at`: una pieza puesta sin conexión el lunes y
+  -- subida el miércoles cambió el lunes, y eso es lo que se compara al
+  -- decidir qué copia gana (ver `lib/sync/merge.dart`).
+  changed_at timestamptz,
   updated_at timestamptz not null default now()
 );
 

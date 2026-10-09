@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'changes.dart';
 import 'notice.dart';
 
 /// Qué notas del tablón ya leíste.
@@ -82,6 +83,7 @@ class BoardSeen {
   Timer? _soon;
 
   void _keep() {
+    LocalChanges.instance.touch();
     _soon?.cancel();
     _soon = Timer(const Duration(milliseconds: 300), flush);
   }

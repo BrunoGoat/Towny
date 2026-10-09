@@ -194,7 +194,7 @@ cambiar cuánto suena la mitad la recalcula sola.
 
 ```bash
 flutter pub get
-flutter test          # 751 tests
+flutter test          # 762 tests
 flutter analyze
 flutter run
 flutter build apk --release
@@ -312,7 +312,11 @@ política que deja a cada uno ver sólo lo suyo. El pueblo en sí no se guarda: 
 calcula de eso, como en el teléfono. `sync/tables.dart` traduce la copia de la
 app a esas filas y de vuelta, sin red; `sync/remote.dart` es la interfaz que
 tendrá que cumplir el cliente de Supabase cuando se conecte, y restaurar desde
-allá pasa por la misma puerta que pegar una copia a mano.
+allá pasa por la misma puerta que pegar una copia a mano. Cada cambio queda
+apuntado en `model/changes.dart` y se sube solo (`AutoSync`); al entrar,
+`sync/merge.dart` decide qué copia manda sin que un teléfono vacío pueda pisar
+la nube, y la que pierde se guarda.
+`test/merge_test.dart` prueba esas decisiones con una nube de mentira, y
 `test/sync_test.dart` hace el viaje de ida y vuelta con un valle entero y
 comprueba que las columnas de Dart y las del SQL son las mismas.
 

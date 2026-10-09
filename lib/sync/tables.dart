@@ -60,6 +60,7 @@ class ValleyRows {
 class LocalSnapshot {
   const LocalSnapshot({
     required this.save,
+    this.changedAt,
     this.prefs = const [],
     this.boardSlots = const {},
     this.boardSeen = const {},
@@ -67,6 +68,10 @@ class LocalSnapshot {
 
   /// La copia del valle, ya leída: lo que escribe [Store.exportSave].
   final Map<String, dynamic> save;
+
+  /// Cuándo cambió por última vez, con el reloj del teléfono que la hizo:
+  /// [LocalChanges.changedAt].
+  final DateTime? changedAt;
 
   /// Los ajustes, `clave=valor`: [Appearance.exportPrefs].
   final List<String> prefs;
@@ -88,6 +93,15 @@ String? _when(Object? ms) => ms is num
 int? _ms(Object? iso) =>
     iso is String ? DateTime.parse(iso).millisecondsSinceEpoch : null;
 
+/// Los ajustes que no viajan: son para probar la app, y cada teléfono tiene
+/// los suyos.
+const Set<String> localOnlyPrefs = {
+  'fakeHour',
+  'fakeHourAt',
+  'fakeSeason',
+  'fakeSeasonAt',
+};
+
 /// La copia de la app, en filas para [userId].
 ValleyRows toRows(LocalSnapshot local, String userId) {
   final save = local.save;
@@ -98,9 +112,11 @@ ValleyRows toRows(LocalSnapshot local, String userId) {
     'active': (save['a'] as num?)?.toInt() ?? 0,
     'unlocked': save['u'] == true,
     'seen_arrival': (save['w'] as num?)?.toInt() ?? 0,
+    'changed_at': local.changedAt?.toUtc().toIso8601String(),
     'settings': {
       for (final row in local.prefs)
-        if (row.indexOf('=') > 0)
+        if (row.indexOf('=') > 0 &&
+            !localOnlyPrefs.contains(row.substring(0, row.indexOf('='))))
           row.substring(0, row.indexOf('=')): row.substring(
             row.indexOf('=') + 1,
           ),
@@ -299,7 +315,9 @@ LocalSnapshot fromRows(ValleyRows rows) {
     (seen[r['town_id'] as String] ??= {}).add(r['key'] as String);
   }
 
+  final changed = valley['changed_at'] as String?;
   return LocalSnapshot(
+    changedAt: changed == null ? null : DateTime.parse(changed).toLocal(),
     save: {
       'v': 1,
       'a': (valley['active'] as num?)?.toInt() ?? 0,

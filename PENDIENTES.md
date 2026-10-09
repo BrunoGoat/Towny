@@ -32,21 +32,32 @@ Supabase simulado: se crean, aceptan las filas de la app, cada usuario ve sólo
 lo suyo y borrar un hábito se lleva sus piezas). El traductor está en
 `lib/sync/tables.dart` y la interfaz en `lib/sync/remote.dart`.
 
-**Para conectarlo:**
+**Decidido y hecho** (falta sólo el enchufe):
 
-1. Crear el proyecto en Supabase y correr la migración (`supabase db push`, o
-   pegar el SQL en el editor).
-2. Agregar `supabase_flutter` y escribir una clase que implemente `Remote`:
-   `push` borra las filas del usuario que ya no están y hace `upsert` del resto,
-   tabla por tabla en el orden de `Tables.all`; `pull` hace `select` de cada
-   una.
-3. Decidir cómo se entra (correo con enlace mágico, Google…) y **cuándo** se
-   sube: al poner una pieza, al cerrar la app, o con un botón en Ajustes.
-4. Decidir qué pasa si el teléfono y la nube no coinciden. Lo más simple que no
-   pierde nada: gana el que tenga más piezas, y antes de pisar se guarda una
-   copia local.
-5. Decidir qué ajustes viajan. Hoy viajan todos; los de volumen y los de
-   desarrollo (hora fingida) quizá deberían quedarse en cada teléfono.
+- **Se sube cada cambio**: una pieza, un papel movido en el tablón, un ajuste.
+  `LocalChanges` (`lib/model/changes.dart`) apunta cuándo cambió algo y
+  `AutoSync` (`lib/sync/remote.dart`) lo sube con dos segundos de pausa, para
+  no subir diez veces lo mismo. Sin conexión queda pendiente.
+- **Al entrar, si no coinciden** (`lib/sync/merge.dart`): si sólo cambió el
+  teléfono se sube —el caso de usarla sin conexión—; si sólo cambió la nube se
+  baja; si cambiaron los dos gana el cambio más reciente. Un teléfono vacío
+  nunca pisa una nube con piezas, y la copia que pierde se guarda en el
+  teléfono (`pueblo_respaldo_v1`). Abrir la app no cuenta como cambio.
+- **Los ajustes de desarrollo no viajan** (hora y estación fingidas):
+  `localOnlyPrefs` en `lib/sync/tables.dart`.
+
+**Para conectarlo, con Google** (el botón de Google, elegir cuenta y listo):
+
+1. Crear el proyecto en Supabase y correr la migración.
+2. En Google Cloud, crear un cliente OAuth (tipo *Web*) y pegar su id y su
+   secreto en Supabase → Authentication → Providers → Google. Para Android hará
+   falta además un cliente *Android* con la huella SHA-1 de la firma.
+3. Pasar a la app la URL del proyecto y la clave pública (`anon`). No son
+   secretas, pero tampoco van al repositorio: por `--dart-define`.
+4. Agregar `supabase_flutter`, el botón de entrar en Ajustes, y una clase que
+   implemente `Remote`: `push` borra las filas del usuario que ya no están y
+   hace `upsert` del resto, tabla por tabla en el orden de `Tables.all`; `pull`
+   hace `select` de cada una. Al entrar, `syncNow`; después, `AutoSync`.
 
 ---
 

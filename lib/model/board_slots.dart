@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/rng.dart';
+import 'changes.dart';
 import 'notice.dart';
 
 /// Dónde quedó clavado cada papel, para siempre.
@@ -80,7 +81,9 @@ class BoardSlots extends ChangeNotifier {
       _where[ids[i]] = hueco;
       nuevo = true;
     }
-    if (nuevo) _keep();
+    // Repartir un papel nuevo no es algo que hizo nadie: se guarda, pero no
+    // cuenta como un cambio para la nube. Viaja con el próximo que sí.
+    if (nuevo) _keep(touch: false);
     return out;
   }
 
@@ -144,7 +147,8 @@ class BoardSlots extends ChangeNotifier {
 
   Timer? _soon;
 
-  void _keep() {
+  void _keep({bool touch = true}) {
+    if (touch) LocalChanges.instance.touch();
     _soon?.cancel();
     _soon = Timer(const Duration(milliseconds: 300), flush);
   }

@@ -16,6 +16,7 @@ import 'model/appearance.dart';
 import 'model/arrival.dart';
 import 'model/board_seen.dart';
 import 'model/board_slots.dart';
+import 'model/changes.dart';
 import 'model/reel.dart';
 import 'model/store.dart';
 import 'ui/first_run.dart';
@@ -232,6 +233,7 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
     await Appearance.instance.load();
     await BoardSlots.instance.load();
     await BoardSeen.instance.load();
+    await LocalChanges.instance.load();
     await store.load();
     // Quien ya tenía pueblo no pasa por la pantalla de la primera vez, y no se
     // entera de que existe. Se apunta como pasada y a otra cosa.

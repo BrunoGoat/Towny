@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../engine/season.dart';
 import '../l10n/lang.dart';
+import 'changes.dart';
 
 /// The handful of things about the app that are a preference rather than a
 /// record of what you did.
@@ -488,6 +489,7 @@ class Appearance extends ChangeNotifier {
   /// second, and sixty writes a second to the phone's own storage is a way to
   /// make a slider feel broken.
   Future<void> _keep() async {
+    LocalChanges.instance.touch();
     notifyListeners();
     _writeSoon?.cancel();
     _writeSoon = Timer(const Duration(milliseconds: 400), _writeNow);

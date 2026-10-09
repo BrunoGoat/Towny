@@ -14,6 +14,7 @@ import 'appearance.dart';
 import 'arrival.dart';
 import 'cadence.dart';
 import 'census.dart';
+import 'changes.dart';
 import 'habit.dart';
 import 'nudge.dart';
 import 'piece.dart';
@@ -704,7 +705,9 @@ class Store extends ChangeNotifier {
     // `l` de cada pieza) se vuelve a escribir sin ellas, para que no queden
     // guardadas en el teléfono sin que nada las lea.
     if (raw != null && raw.contains('"l":')) moved = true;
-    if (moved) _save();
+    // Arreglar al cargar no es un cambio de nadie: un teléfono recién
+    // instalado que se marcara como cambiado pisaría el valle de la nube.
+    if (moved) _save(touch: false);
     loaded = true;
     notifyListeners();
   }
@@ -832,7 +835,8 @@ class Store extends ChangeNotifier {
     );
   }
 
-  void _save() {
+  void _save({bool touch = true}) {
+    if (touch) LocalChanges.instance.touch();
     _dirty = true;
     // Writes are cheap but not free; coalesce bursts into one write.
     Future.microtask(() {
