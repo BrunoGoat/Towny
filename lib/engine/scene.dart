@@ -34,7 +34,6 @@ class TownEntry {
     required this.name,
     required this.symbol,
     required this.placed,
-    this.crowned = false,
     this.founded = true,
   });
 
@@ -43,9 +42,6 @@ class TownEntry {
   final String symbol;
 
   final int placed;
-
-  /// True for the town with the most pieces in the valley.
-  final bool crowned;
 
   /// Si este pueblo llegó a fundarse. Falso es el hueco del valle en el que
   /// todavía no hay nada: ni plaza, ni suelo, ni nombre.

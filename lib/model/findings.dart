@@ -45,7 +45,6 @@ List<Notice> noticesFor(
   add(pairing(h, others, now));
   add(relapse(h, now));
   add(comeback(h));
-  add(crownOf(h, others));
   add(lifetime(h, now));
   return out;
 }
@@ -839,80 +838,6 @@ Notice? lifetime(Habit h, DateTime now) {
           'sólo lo que hiciste, y es bastante.',
       "Half a year, week by week. There's nothing to interpret here: it's "
           "just what you did, and it's plenty.",
-    ),
-  );
-}
-
-/// Who is ahead in the valley.
-///
-/// The only competition this app has any business running: everybody is racing
-/// the same thing — one achievement at a time — and having several towns in
-/// sight of each other is what makes that visible at all. Said plainly, with
-/// the gap, and never with a word of encouragement stuck on the end.
-Notice? crownOf(Habit h, List<Habit> all) {
-  final live = [
-    for (final o in all)
-      if (o.total > 0) o,
-  ];
-  if (live.length < 2) return null;
-  live.sort((a, b) {
-    final c = b.total.compareTo(a.total);
-    return c != 0 ? c : a.createdAt.compareTo(b.createdAt);
-  });
-  final me = live.indexWhere((o) => o.id == h.id);
-  if (me < 0) return null;
-  final top = live.first;
-  final bars = [for (final o in live) o.total / top.total];
-  final ticks = [for (final o in live) o.name];
-  if (me == 0) {
-    final next = live[1];
-    final by = top.total - next.total;
-    return Notice(
-      NoticeKind.crown,
-      tr(
-        '${h.name} lleva la corona del valle.',
-        "${h.name} wears the valley's crown.",
-      ),
-      by == 0
-          ? tr(
-              'Empatado con ${next.name}, a ${top.total} ${_pieces(top.total)}.',
-              'Tied with ${next.name}, at ${top.total} ${_pieces(top.total)}.',
-            )
-          : tr(
-              '${top.total} ${_pieces(top.total)}, $by más que ${next.name}.',
-              '${top.total} ${_pieces(top.total)}, $by more than ${next.name}.',
-            ),
-      bars: bars,
-      ticks: ticks,
-      mark: 0,
-      more: tr(
-        'La corona es del pueblo más grande del valle y se ve desde los '
-            'otros. No hace nada: sólo está ahí.',
-        'The crown belongs to the biggest town in the valley, and it can be '
-            "seen from the others. It doesn't do anything: it's just there.",
-      ),
-    );
-  }
-  final by = top.total - live[me].total;
-  return Notice(
-    NoticeKind.crown,
-    tr('La corona la tiene ${top.name}.', '${top.name} has the crown.'),
-    by == 1
-        ? tr('Por una sola pieza.', 'By a single piece.')
-        : tr(
-            'Por $by piezas: ${top.name} va ${top.total} y ${h.name} va '
-                '${live[me].total}.',
-            'By $by pieces: ${top.name} is at ${top.total} and ${h.name} is '
-                'at ${live[me].total}.',
-          ),
-    bars: bars,
-    ticks: ticks,
-    mark: 0,
-    more: tr(
-      'Cambia de cabeza el día que otro pueblo lo alcanza, y no hace falta '
-          'nada más para quitársela que seguir poniendo piezas.',
-      'It changes hands the day another town catches up, and nothing more '
-          'is needed to take it than to keep placing pieces.',
     ),
   );
 }

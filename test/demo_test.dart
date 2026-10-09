@@ -49,8 +49,7 @@ void main() {
       expect(entrenar.total, inInclusiveRange(170, 230));
       expect(valle[1].name, 'Leer');
       expect(valle[1].total, inInclusiveRange(80, 170));
-      // Y el de entrenar va por delante, que es lo que le da sentido a la
-      // corona: dos pueblos empatados no dicen nada.
+      // Y el de entrenar es el más viejo y va por delante.
       expect(entrenar.total, greaterThan(valle[1].total));
     });
 

@@ -19,7 +19,7 @@ nombres de fuente (`RockSalt.ttf`), la hoja de pruebas y los comentarios.
 | Casas corrientes | 7 | 7 | sí |
 | Comarcas | 8 | 24 + 42 | sí |
 | Bandos del tablón | 436 | 872 | sí — el grueso |
-| Lo que el tablón dice de vos | 105 | 105 | sí |
+| Lo que el tablón dice de vos | 95 | 95 | sí |
 | Nombres de la gente | 87 | 87 | no: nombres propios |
 | Lo que hace la gente | 12 | 12 | sí |
 | Símbolos de hábito | 72 | 72 | sí |
@@ -27,7 +27,7 @@ nombres de fuente (`RockSalt.ttf`), la hoja de pruebas y los comentarios.
 | Notificaciones | 9 | 9 | sí |
 | Widget de Android | 6 | 6 | sí |
 
-**1211 entradas**, que son unas 1765 frases sueltas. Sin los bandos se quedan en unas 893.
+**1201 entradas**, que son unas 1755 frases sueltas. Sin los bandos se quedan en unas 883.
 
 
 
@@ -1170,115 +1170,105 @@ nombres de fuente (`RockSalt.ttf`), la hoja de pruebas y los comentarios.
 - **S71** · Nube
 - **S72** · Copo de nieve
 
-## Lo que el tablón dice de vos (105)
+## Lo que el tablón dice de vos (95)
 
 > **Cuándo se ve.** El tablón del pueblo, la parte que sí habla de vos: cuándo queda en pie lo que estás construyendo, a qué hora sueles poner la pieza, qué pasa el día después de fallar. Se calcula con tus datos y cambia solo. `${...}` es un hueco que se rellena con un número, una fecha o un nombre.
 
-- **T1** · `A este ritmo, $what queda en pie mañana.`  <sub>:118</sub>
-- **T2** · `A este ritmo, $what queda en pie el ${_date(when)}`  <sub>:122</sub>
-- **T3** · `Le faltan $left ${_pieces(left)}, y llevás $recent en `  <sub>:128</sub>
-- **T4** · `La fecha sale del ritmo desde que empezaste y de nada más. Si `  <sub>:137</sub>
-- **T5** · `apretás se adelanta, y si aflojás se va. Las barras son esos `  <sub>:138</sub>
-- **T6** · `mismos días, uno cada una.`  <sub>:139</sub>
-- **T7** · `La fecha sale del ritmo del último mes y de nada más. Si apretás `  <sub>:145</sub>
-- **T8** · `se adelanta, y si aflojás se va. Las barras son las últimas `  <sub>:146</sub>
-- **T9** · `doce semanas, una por semana.`  <sub>:147</sub>
-- **T10** · `Casi siempre ${hourSaid(uso.$1)}.`  <sub>:184</sub>
-- **T11** · `Ahí caen el ${_pct(uso.$2)} de tus piezas. Si querés, contale al `  <sub>:188</sub>
-- **T12** · `pueblo dónde, y queda dicho.`  <sub>:189</sub>
-- **T13** · `No es una tarea: ya lo hacés. Decirlo con hora y sitio —«leer a las `  <sub>:197</sub>
-- **T14** · `22, en la cama»— lo deja decidido, y lo decidido no hay que `  <sub>:198</sub>
-- **T15** · `volver a pensarlo cada día. Las barras son las veinticuatro horas `  <sub>:199</sub>
-- **T16** · `del día, y la marcada es la tuya.`  <sub>:200</sub>
-- **T17** · `El plan dice ${hourSaid(hora)} y aparecés ${hourSaid(uso.$1)}.`  <sub>:222</sub>
-- **T18** · `«$dicho» El ${_pct(cumple)} de tus ${h.total} ${_pieces(h.total)} `  <sub>:226</sub>
-- **T19** · `cae a la hora del plan.`  <sub>:227</sub>
-- **T20** · `Cambiar el plan no es rendirse. Un plan que ya no es el tuyo no te `  <sub>:235</sub>
-- **T21** · `ahorra ninguna decisión, y el que sí lo es te la ahorra todos los `  <sub>:236</sub>
-- **T22** · `días: se cambia en la hoja del hábito, y no pasa nada más. Las `  <sub>:237</sub>
-- **T23** · `barras son las veinticuatro horas del día, y la marcada es la `  <sub>:238</sub>
-- **T24** · `hora a la que de verdad aparecés.`  <sub>:239</sub>
-- **T25** · `Lo escribiste vos. El pueblo lo tiene clavado para que no haya `  <sub>:254</sub>
-- **T26** · `que acordarse de decidirlo otra vez.`  <sub>:255</sub>
-- **T27** · `Se cumple el ${_pct(cumple)} de las veces: ésa es la parte de tus `  <sub>:260</sub>
-- **T28** · `${h.total} ${_pieces(h.total)} que cae a esa hora.`  <sub>:261</sub>
-- **T29** · `Las veinticuatro horas del día, y en cada una cuántas piezas `  <sub>:271</sub>
-- **T30** · `pusiste. La marcada es la que dice el plan.`  <sub>:272</sub>
-- **T31** · `El pueblo te llama así desde el ${_date(gano)}, cuando llevabas trece `  <sub>:301</sub>
-- **T32** · `semanas sin bajar de tu ritmo.`  <sub>:302</sub>
-- **T33** · `Lo escribiste el día que fundaste esto y el pueblo se lo tomó en `  <sub>:308</sub>
-- **T34** · `serio: no lo dijo hasta que fue verdad. No es una meta —una meta se `  <sub>:309</sub>
-- **T35** · `cumple y entonces el hábito deja de tener para qué—; esto no se `  <sub>:310</sub>
-- **T36** · `cumple nunca, se es o no se es. Y ya no se pierde: un mal mes no te `  <sub>:311</sub>
-- **T37** · `quita lo que fuiste tres meses. Las barras son las últimas trece `  <sub>:312</sub>
-- **T38** · `semanas, por si querés ver cómo vas.`  <sub>:313</sub>
-- **T39** · `Un día en blanco se lleva al siguiente.`  <sub>:398</sub>
-- **T40** · `Un fallo no te tumba: volvés antes de lo normal.`  <sub>:402</sub>
-- **T41** · `Después de faltar un día, faltás el ${_pct(then)} de las veces. `  <sub>:406</sub>
-- **T42** · `Un día cualquiera, el ${_pct(base)}.`  <sub>:407</sub>
-- **T43** · `tras un fallo`  <sub>:413</sub>
-- **T44** · `un día cualquiera`  <sub>:414</sub>
-- **T45** · `De los últimos ${grid.length} días, ${grid.length - misses} con `  <sub>:419</sub>
-- **T46** · `pieza. Es la diferencia entre las dos barras lo que dice `  <sub>:420</sub>
-- **T47** · `algo: el día de después de faltar no es un día cualquiera `  <sub>:421</sub>
-- **T48** · `para vos.`  <sub>:422</sub>
-- **T49** · `pieza. Faltar te empuja a volver, que es lo contrario de lo `  <sub>:429</sub>
-- **T50** · `que le pasa a casi todo el mundo.`  <sub>:430</sub>
-- **T51** · `Casi siempre a las $at${_partOfDay(at)}.`  <sub>:472</sub>
-- **T52** · `Casi siempre entre las $at y las $end${_partOfDay(at)}.`  <sub>:476</sub>
-- **T53** · `Ahí caen el ${_pct(best / n)} de tus piezas.`  <sub>:480</sub>
-- **T54** · `pusiste. Un hábito con hora propia se ve de un vistazo; uno que `  <sub>:489</sub>
-- **T55** · `cae donde puede, también.`  <sub>:490</sub>
-- **T56** · `Cada barra es un día de la semana, y lo alta que está es la parte de `  <sub>:564</sub>
-- **T57** · `esos días en los que pusiste algo. Medido contra cuántos `  <sub>:565</sub>
-- **T58** · `${_weekday(high)} y cuántos ${_weekday(low)} han pasado de verdad, `  <sub>:566</sub>
-- **T59** · `no contra los totales de los otros días.`  <sub>:567</sub>
-- **T60** · `Los ${_weekday(high)} son tu día fuerte.`  <sub>:577</sub>
-- **T61** · `Cumplís el ${_pct(hit[high] / seen[high])} de los ${_weekday(high)}, `  <sub>:581</sub>
-- **T62** · `contra el ${_pct(rest(high))} del resto de la semana.`  <sub>:582</sub>
-- **T63** · `Los ${_weekday(low)} casi nunca.`  <sub>:595</sub>
-- **T64** · `Cumplís el ${_pct(hit[low] / seen[low])} de los ${_weekday(low)}, `  <sub>:597</sub>
-- **T65** · `contra el ${_pct(rest(low))} del resto de la semana.`  <sub>:598</sub>
-- **T66** · `Cada vez tardás menos en volver.`  <sub>:640</sub>
-- **T67** · `Cuando faltás, volvés al día siguiente.`  <sub>:645</sub>
-- **T68** · `Cuando faltás, solés volver a los $mid días.`  <sub>:649</sub>
-- **T69** · `Tus primeros huecos duraban ${_days(trend.$1)}. Los últimos, `  <sub>:654</sub>
-- **T70** · `Nunca has estado más de un día fuera.`  <sub>:661</sub>
-- **T71** · `El hueco más largo que remontaste fue de $worst días.`  <sub>:665</sub>
-- **T72** · `Cada barra es cuántas veces estuviste fuera ese número de días. `  <sub>:672</sub>
-- **T73** · `${gaps.length} huecos en total, y volviste de todos: el pueblo `  <sub>:673</sub>
-- **T74** · `sigue en pie. No se trata de no fallar nunca, se trata de volver `  <sub>:674</sub>
-- **T75** · `— y esto es lo único de acá que mejora cuando fallás.`  <sub>:675</sub>
-- **T76** · `un día`  <sub>:712</sub>
-- **T77** · `$txt días`  <sub>:718</sub>
-- **T78** · `${a.name} arrastra a ${b.name}.`  <sub>:784</sub>
-- **T79** · `${a.name} y ${b.name} casi nunca el mismo día.`  <sub>:788</sub>
-- **T80** · `Los días de ${a.name}, ${b.name} aparece el ${_pct(near)} de las `  <sub>:796</sub>
-- **T81** · `veces. El resto de los días, el ${_pct(far)}.`  <sub>:797</sub>
-- **T82** · `Contado sobre los ${withA + withoutA} días desde que existen los `  <sub>:808</sub>
-- **T83** · `dos y ninguno dormía: `  <sub>:809</sub>
-- **T84** · `$withA con ${a.name} y $withoutA sin. Dos barras iguales serían `  <sub>:810</sub>
-- **T85** · `dos hábitos que no se enteran el uno del otro.`  <sub>:811</sub>
-- **T86** · `${days.length} días de tu vida.`  <sub>:829</sub>
-- **T87** · `Desde el ${_date(days.first)} de ${days.first.year}. `  <sub>:831</sub>
-- **T88** · `${h.total} ${_pieces(h.total)} en total.`  <sub>:832</sub>
-- **T89** · `Medio año, semana a semana. No hay nada que interpretar acá: es `  <sub>:838</sub>
-- **T90** · `sólo lo que hiciste, y es bastante.`  <sub>:839</sub>
-- **T91** · `${h.name} lleva la corona del valle.`  <sub>:873</sub>
-- **T92** · `Empatado con ${next.name}, a ${top.total} ${_pieces(top.total)}.`  <sub>:878</sub>
-- **T93** · `${top.total} ${_pieces(top.total)}, $by más que ${next.name}.`  <sub>:882</sub>
-- **T94** · `La corona es del pueblo más grande del valle y se ve desde los `  <sub>:889</sub>
-- **T95** · `otros. No hace nada: sólo está ahí.`  <sub>:890</sub>
-- **T96** · `La corona la tiene ${top.name}.`  <sub>:899</sub>
-- **T97** · `Por una sola pieza.`  <sub>:901</sub>
-- **T98** · `Por $by piezas: ${top.name} va ${top.total} y ${h.name} va `  <sub>:903</sub>
-- **T99** · `Cambia de cabeza el día que otro pueblo lo alcanza, y no hace falta `  <sub>:912</sub>
-- **T100** · `nada más para quitársela que seguir poniendo piezas.`  <sub>:913</sub>
-- **T101** · `miércoles`  <sub>:925</sub>
-- **T102** · `sábados`  <sub>:928</sub>
-- **T103** · ` de la mañana`  <sub>:942</sub>
-- **T104** · ` de la tarde`  <sub>:943</sub>
-- **T105** · ` de la noche`  <sub>:944</sub>
+- **T1** · `A este ritmo, $what queda en pie mañana.`  <sub>:117</sub>
+- **T2** · `A este ritmo, $what queda en pie el ${_date(when)}`  <sub>:121</sub>
+- **T3** · `Le faltan $left ${_pieces(left)}, y llevás $recent en `  <sub>:127</sub>
+- **T4** · `La fecha sale del ritmo desde que empezaste y de nada más. Si `  <sub>:136</sub>
+- **T5** · `apretás se adelanta, y si aflojás se va. Las barras son esos `  <sub>:137</sub>
+- **T6** · `mismos días, uno cada una.`  <sub>:138</sub>
+- **T7** · `La fecha sale del ritmo del último mes y de nada más. Si apretás `  <sub>:144</sub>
+- **T8** · `se adelanta, y si aflojás se va. Las barras son las últimas `  <sub>:145</sub>
+- **T9** · `doce semanas, una por semana.`  <sub>:146</sub>
+- **T10** · `Casi siempre ${hourSaid(uso.$1)}.`  <sub>:183</sub>
+- **T11** · `Ahí caen el ${_pct(uso.$2)} de tus piezas. Si querés, contale al `  <sub>:187</sub>
+- **T12** · `pueblo dónde, y queda dicho.`  <sub>:188</sub>
+- **T13** · `No es una tarea: ya lo hacés. Decirlo con hora y sitio —«leer a las `  <sub>:196</sub>
+- **T14** · `22, en la cama»— lo deja decidido, y lo decidido no hay que `  <sub>:197</sub>
+- **T15** · `volver a pensarlo cada día. Las barras son las veinticuatro horas `  <sub>:198</sub>
+- **T16** · `del día, y la marcada es la tuya.`  <sub>:199</sub>
+- **T17** · `El plan dice ${hourSaid(hora)} y aparecés ${hourSaid(uso.$1)}.`  <sub>:221</sub>
+- **T18** · `«$dicho» El ${_pct(cumple)} de tus ${h.total} ${_pieces(h.total)} `  <sub>:225</sub>
+- **T19** · `cae a la hora del plan.`  <sub>:226</sub>
+- **T20** · `Cambiar el plan no es rendirse. Un plan que ya no es el tuyo no te `  <sub>:234</sub>
+- **T21** · `ahorra ninguna decisión, y el que sí lo es te la ahorra todos los `  <sub>:235</sub>
+- **T22** · `días: se cambia en la hoja del hábito, y no pasa nada más. Las `  <sub>:236</sub>
+- **T23** · `barras son las veinticuatro horas del día, y la marcada es la `  <sub>:237</sub>
+- **T24** · `hora a la que de verdad aparecés.`  <sub>:238</sub>
+- **T25** · `Lo escribiste vos. El pueblo lo tiene clavado para que no haya `  <sub>:253</sub>
+- **T26** · `que acordarse de decidirlo otra vez.`  <sub>:254</sub>
+- **T27** · `Se cumple el ${_pct(cumple)} de las veces: ésa es la parte de tus `  <sub>:259</sub>
+- **T28** · `${h.total} ${_pieces(h.total)} que cae a esa hora.`  <sub>:260</sub>
+- **T29** · `Las veinticuatro horas del día, y en cada una cuántas piezas `  <sub>:270</sub>
+- **T30** · `pusiste. La marcada es la que dice el plan.`  <sub>:271</sub>
+- **T31** · `El pueblo te llama así desde el ${_date(gano)}, cuando llevabas trece `  <sub>:300</sub>
+- **T32** · `semanas sin bajar de tu ritmo.`  <sub>:301</sub>
+- **T33** · `Lo escribiste el día que fundaste esto y el pueblo se lo tomó en `  <sub>:307</sub>
+- **T34** · `serio: no lo dijo hasta que fue verdad. No es una meta —una meta se `  <sub>:308</sub>
+- **T35** · `cumple y entonces el hábito deja de tener para qué—; esto no se `  <sub>:309</sub>
+- **T36** · `cumple nunca, se es o no se es. Y ya no se pierde: un mal mes no te `  <sub>:310</sub>
+- **T37** · `quita lo que fuiste tres meses. Las barras son las últimas trece `  <sub>:311</sub>
+- **T38** · `semanas, por si querés ver cómo vas.`  <sub>:312</sub>
+- **T39** · `Un día en blanco se lleva al siguiente.`  <sub>:397</sub>
+- **T40** · `Un fallo no te tumba: volvés antes de lo normal.`  <sub>:401</sub>
+- **T41** · `Después de faltar un día, faltás el ${_pct(then)} de las veces. `  <sub>:405</sub>
+- **T42** · `Un día cualquiera, el ${_pct(base)}.`  <sub>:406</sub>
+- **T43** · `tras un fallo`  <sub>:412</sub>
+- **T44** · `un día cualquiera`  <sub>:413</sub>
+- **T45** · `De los últimos ${grid.length} días, ${grid.length - misses} con `  <sub>:418</sub>
+- **T46** · `pieza. Es la diferencia entre las dos barras lo que dice `  <sub>:419</sub>
+- **T47** · `algo: el día de después de faltar no es un día cualquiera `  <sub>:420</sub>
+- **T48** · `para vos.`  <sub>:421</sub>
+- **T49** · `pieza. Faltar te empuja a volver, que es lo contrario de lo `  <sub>:428</sub>
+- **T50** · `que le pasa a casi todo el mundo.`  <sub>:429</sub>
+- **T51** · `Casi siempre a las $at${_partOfDay(at)}.`  <sub>:471</sub>
+- **T52** · `Casi siempre entre las $at y las $end${_partOfDay(at)}.`  <sub>:475</sub>
+- **T53** · `Ahí caen el ${_pct(best / n)} de tus piezas.`  <sub>:479</sub>
+- **T54** · `pusiste. Un hábito con hora propia se ve de un vistazo; uno que `  <sub>:488</sub>
+- **T55** · `cae donde puede, también.`  <sub>:489</sub>
+- **T56** · `Cada barra es un día de la semana, y lo alta que está es la parte de `  <sub>:563</sub>
+- **T57** · `esos días en los que pusiste algo. Medido contra cuántos `  <sub>:564</sub>
+- **T58** · `${_weekday(high)} y cuántos ${_weekday(low)} han pasado de verdad, `  <sub>:565</sub>
+- **T59** · `no contra los totales de los otros días.`  <sub>:566</sub>
+- **T60** · `Los ${_weekday(high)} son tu día fuerte.`  <sub>:576</sub>
+- **T61** · `Cumplís el ${_pct(hit[high] / seen[high])} de los ${_weekday(high)}, `  <sub>:580</sub>
+- **T62** · `contra el ${_pct(rest(high))} del resto de la semana.`  <sub>:581</sub>
+- **T63** · `Los ${_weekday(low)} casi nunca.`  <sub>:594</sub>
+- **T64** · `Cumplís el ${_pct(hit[low] / seen[low])} de los ${_weekday(low)}, `  <sub>:596</sub>
+- **T65** · `contra el ${_pct(rest(low))} del resto de la semana.`  <sub>:597</sub>
+- **T66** · `Cada vez tardás menos en volver.`  <sub>:639</sub>
+- **T67** · `Cuando faltás, volvés al día siguiente.`  <sub>:644</sub>
+- **T68** · `Cuando faltás, solés volver a los $mid días.`  <sub>:648</sub>
+- **T69** · `Tus primeros huecos duraban ${_days(trend.$1)}. Los últimos, `  <sub>:653</sub>
+- **T70** · `Nunca has estado más de un día fuera.`  <sub>:660</sub>
+- **T71** · `El hueco más largo que remontaste fue de $worst días.`  <sub>:664</sub>
+- **T72** · `Cada barra es cuántas veces estuviste fuera ese número de días. `  <sub>:671</sub>
+- **T73** · `${gaps.length} huecos en total, y volviste de todos: el pueblo `  <sub>:672</sub>
+- **T74** · `sigue en pie. No se trata de no fallar nunca, se trata de volver `  <sub>:673</sub>
+- **T75** · `— y esto es lo único de acá que mejora cuando fallás.`  <sub>:674</sub>
+- **T76** · `un día`  <sub>:711</sub>
+- **T77** · `$txt días`  <sub>:717</sub>
+- **T78** · `${a.name} arrastra a ${b.name}.`  <sub>:783</sub>
+- **T79** · `${a.name} y ${b.name} casi nunca el mismo día.`  <sub>:787</sub>
+- **T80** · `Los días de ${a.name}, ${b.name} aparece el ${_pct(near)} de las `  <sub>:795</sub>
+- **T81** · `veces. El resto de los días, el ${_pct(far)}.`  <sub>:796</sub>
+- **T82** · `Contado sobre los ${withA + withoutA} días desde que existen los `  <sub>:807</sub>
+- **T83** · `dos y ninguno dormía: `  <sub>:808</sub>
+- **T84** · `$withA con ${a.name} y $withoutA sin. Dos barras iguales serían `  <sub>:809</sub>
+- **T85** · `dos hábitos que no se enteran el uno del otro.`  <sub>:810</sub>
+- **T86** · `${days.length} días de tu vida.`  <sub>:828</sub>
+- **T87** · `Desde el ${_date(days.first)} de ${days.first.year}. `  <sub>:830</sub>
+- **T88** · `${h.total} ${_pieces(h.total)} en total.`  <sub>:831</sub>
+- **T89** · `Medio año, semana a semana. No hay nada que interpretar acá: es `  <sub>:837</sub>
+- **T90** · `sólo lo que hiciste, y es bastante.`  <sub>:838</sub>
+- **T91** · `miércoles`  <sub>:850</sub>
+- **T92** · `sábados`  <sub>:853</sub>
+- **T93** · ` de la mañana`  <sub>:867</sub>
+- **T94** · ` de la tarde`  <sub>:868</sub>
+- **T95** · ` de la noche`  <sub>:869</sub>
 
 ## La interfaz, pantalla por pantalla
 
@@ -1411,12 +1401,12 @@ Carteles y avisos que se pintan dentro de la escena, encima del pueblo.
 - **U89** · `CAM_DIST`  <sub>town_view.dart:307 · _TownViewState.initState</sub>
 - **U90** · `CAM_X`  <sub>town_view.dart:312 · _TownViewState.initState</sub>
 - **U91** · `CAM_Z`  <sub>town_view.dart:313 · _TownViewState.initState</sub>
-- **U92** · `HOUR`  <sub>town_view.dart:566 · _TownViewState._entryFor</sub>
-- **U93** · `${building.name} en pie`  <sub>town_view.dart:927 · _TownViewState._onImpact</sub>
-- **U94** · `El valle abre un segundo solar. Ya podés fundar otro pueblo.`  <sub>town_view.dart:942 · _TownViewState._onImpact</sub>
-- **U95** · `El pueblo despierta antes de tiempo.`  <sub>town_view.dart:1018 · _TownViewState._welcomeBack</sub>
-- **U96** · `Volviste. Está todo donde lo dejaste.`  <sub>town_view.dart:1023 · _TownViewState._welcomeBack</sub>
-- **U97** · `El pueblo te estaba esperando`  <sub>town_view.dart:1026 · _TownViewState._welcomeBack</sub>
+- **U92** · `HOUR`  <sub>town_view.dart:561 · _TownViewState._entryFor</sub>
+- **U93** · `${building.name} en pie`  <sub>town_view.dart:922 · _TownViewState._onImpact</sub>
+- **U94** · `El valle abre un segundo solar. Ya podés fundar otro pueblo.`  <sub>town_view.dart:937 · _TownViewState._onImpact</sub>
+- **U95** · `El pueblo despierta antes de tiempo.`  <sub>town_view.dart:1013 · _TownViewState._welcomeBack</sub>
+- **U96** · `Volviste. Está todo donde lo dejaste.`  <sub>town_view.dart:1018 · _TownViewState._welcomeBack</sub>
+- **U97** · `El pueblo te estaba esperando`  <sub>town_view.dart:1021 · _TownViewState._welcomeBack</sub>
 
 ### Lo que se dice al terminar algo
 
@@ -1735,16 +1725,16 @@ Lo que contesta la app al pegar una copia del valle, y los nombres por defecto d
 
 - **U339** · `Sin nombre`  <sub>store.dart:462 · Store.addHabit</sub>
 - **U340** · `Mi hábito`  <sub>store.dart:641 · Store._blankHabit</sub>
-- **U341** · `No hay nada pegado.`  <sub>store.dart:786 · Store.importSave</sub>
-- **U342** · `Eso no es una copia de Towny.`  <sub>store.dart:791 · Store.importSave</sub>
-- **U343** · `A esa copia le falta la lista de pueblos.`  <sub>store.dart:799 · Store.importSave</sub>
-- **U344** · `Esa copia está rota: no pude leer uno de los pueblos.`  <sub>store.dart:810 · Store.importSave</sub>
-- **U345** · `Esa copia no tiene ningún pueblo dentro.`  <sub>store.dart:816 · Store.importSave</sub>
-- **U346** · `Esa copia trae ${read.length} pueblos y el valle tiene sitio `  <sub>store.dart:822 · Store.importSave</sub>
-- **U347** · `para ${Habit.maxSlots}.`  <sub>store.dart:823 · Store.importSave</sub>
-- **U348** · `El pueblo sigue creciendo`  <sub>store.dart:1107 · Store._countOnFor</sub>
-- **U349** · `Una pieza más y ${work.$1} queda en pie`  <sub>store.dart:1112 · Store._countOnFor</sub>
-- **U350** · `${work.$1} · faltan $left`  <sub>store.dart:1115 · Store._countOnFor</sub>
+- **U341** · `No hay nada pegado.`  <sub>store.dart:765 · Store.importSave</sub>
+- **U342** · `Eso no es una copia de Towny.`  <sub>store.dart:770 · Store.importSave</sub>
+- **U343** · `A esa copia le falta la lista de pueblos.`  <sub>store.dart:778 · Store.importSave</sub>
+- **U344** · `Esa copia está rota: no pude leer uno de los pueblos.`  <sub>store.dart:789 · Store.importSave</sub>
+- **U345** · `Esa copia no tiene ningún pueblo dentro.`  <sub>store.dart:795 · Store.importSave</sub>
+- **U346** · `Esa copia trae ${read.length} pueblos y el valle tiene sitio `  <sub>store.dart:801 · Store.importSave</sub>
+- **U347** · `para ${Habit.maxSlots}.`  <sub>store.dart:802 · Store.importSave</sub>
+- **U348** · `El pueblo sigue creciendo`  <sub>store.dart:1086 · Store._countOnFor</sub>
+- **U349** · `Una pieza más y ${work.$1} queda en pie`  <sub>store.dart:1091 · Store._countOnFor</sub>
+- **U350** · `${work.$1} · faltan $left`  <sub>store.dart:1094 · Store._countOnFor</sub>
 
 ### Un hábito sin nombre
 
@@ -1800,7 +1790,7 @@ Invierno, primavera, verano y otoño, en ajustes y en el tablón.
 
 Frases que no caen en ninguna pantalla concreta.
 
-- **U376** · `versión simple`  <sub>renderer.dart:2085 · TownPainter._colourOf</sub>
+- **U376** · `versión simple`  <sub>renderer.dart:2070 · TownPainter._colourOf</sub>
 - **U377** · `todos los días`  <sub>cadence.dart:117 · cadenceSaid</sub>
 - **U378** · `una vez por semana`  <sub>cadence.dart:118 · cadenceSaid</sub>
 - **U379** · `$perWeek veces por semana`  <sub>cadence.dart:119 · cadenceSaid</sub>

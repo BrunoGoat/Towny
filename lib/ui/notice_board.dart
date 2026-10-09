@@ -40,7 +40,7 @@ class NoticeBoardScreen extends StatefulWidget {
   });
 
   /// Los pueblos del valle, [habit] incluido: de ahí salen las notas que
-  /// comparan dos hábitos y la corona. Pide la lista y no el almacén para que
+  /// miran dos hábitos juntos. Pide la lista y no el almacén para que
   /// se le pueda enseñar un valle inventado sin tocar el de verdad.
   final List<Habit> valley;
   final Habit habit;

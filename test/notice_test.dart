@@ -201,38 +201,6 @@ void main() {
     });
   });
 
-  group('the crown of the valley', () {
-    test('whoever has laid the most wears it, and the rest are told by how '
-        'much', () {
-      final big = _daily('Leer', 120);
-      final small = _daily('Correr', 90, hour: 19);
-      final mine = crownOf(big, [big, small]);
-      expect(mine, isNotNull);
-      expect(mine!.said, contains('Leer lleva la corona'));
-      expect(mine.because, contains('30 más que Correr'));
-
-      final theirs = crownOf(small, [big, small]);
-      expect(theirs, isNotNull);
-      expect(theirs!.said, contains('La corona la tiene Leer'));
-      expect(theirs.because, contains('30'));
-      // Both notices carry the same bars: the valley seen from either town.
-      expect(mine.bars.length, 2);
-      expect(theirs.bars.length, 2);
-      expect(theirs.bars.first, 1.0);
-    });
-
-    test('one town is not a valley', () {
-      final only = _daily('Leer', 90);
-      expect(crownOf(only, [only]), isNull);
-    });
-
-    test('a town nobody has begun is not in the running', () {
-      final live = _daily('Leer', 90);
-      final empty = _habit('Correr', const []);
-      expect(crownOf(live, [live, empty]), isNull);
-    });
-  });
-
   group('every notice can show its work', () {
     // The board lets you take a notice down and look at it up close, and what
     // it shows there is the evidence the sentence was read off. A notice with

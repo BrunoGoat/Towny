@@ -917,9 +917,7 @@ class TownPainter extends CustomPainter {
       // The habit's own drawn mark, painted rather than typed: it is the same
       // hand that drew the landmarks, and it looks the same on every phone.
       const glyph = 15.0;
-      const crown = 12.0;
-      final wears = e.crowned;
-      final content = glyph + 8 + tp.width + (wears ? crown + 5 : 0);
+      final content = glyph + 8 + tp.width;
       // Donde cae, y no donde quepa. Estaba recortado contra los dos bordes de
       // la pantalla, así que un pueblo que se iba de cuadro dejaba su nombre
       // pegado al canto: girar la cámara se sentía como que el cartel te
@@ -941,19 +939,6 @@ class TownPainter extends CustomPainter {
       );
       final after = left + glyph + 8;
       tp.paint(canvas, Offset(after, y - 4));
-      // The valley's crown, on whichever town has laid the most.
-      if (wears) {
-        HabitSigils.crown(
-          canvas,
-          Rect.fromLTWH(
-            after + tp.width + 5,
-            y - 4 + (tp.height - crown) / 2 + 1,
-            crown,
-            crown * 0.82,
-          ),
-          const Color(0xFFF2C25B).withValues(alpha: fade),
-        );
-      }
 
       // Y nada debajo del nombre. Había una regla que se llenaba según lo que
       // el pueblo llevara puesto, y es la clase de cosa que parece informativa

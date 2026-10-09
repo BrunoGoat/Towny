@@ -39,9 +39,6 @@ enum NoticeKind {
   /// How long this has been going on.
   life,
 
-  /// Who is ahead in the valley.
-  crown,
-
   /// Lo que el pueblo clava cuando no está hablando de vos: una cabra
   /// perdida, un baile el sábado. No sale de [noticesFor] —esto es lo que se
   /// sabe de alguien, y una cabra no se sabe de nadie— sino de

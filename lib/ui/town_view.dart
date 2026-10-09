@@ -522,13 +522,9 @@ class _TownViewState extends State<TownView>
   void _rebuildLayout() {
     final store = widget.store;
     final wasSlot = _slotFor;
-    // Whoever has laid the most wears the crown, and everybody else can see it
-    // from their own plaza.
-    final crown = store.leader;
-
     _entries = [
       for (var i = 0; i < store.habits.length; i++)
-        _entryFor(store, store.habits[i], i == crown),
+        _entryFor(store, store.habits[i]),
     ];
     _town = _entries[store.active.clamp(0, _entries.length - 1)].layout;
     _layoutFor = store.shownTotal;
@@ -549,14 +545,13 @@ class _TownViewState extends State<TownView>
     }
   }
 
-  TownEntry _entryFor(Store store, Habit h, bool crowned) {
+  TownEntry _entryFor(Store store, Habit h) {
     final mine = h.id == store.habit.id;
     return TownEntry(
       layout: _layoutOf(h, mine ? store.shownTotal : null),
       name: h.name,
       symbol: h.symbol,
       placed: mine ? store.shownTotal : h.total,
-      crowned: crowned,
     );
   }
 

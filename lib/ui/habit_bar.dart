@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../engine/sigils.dart';
 import '../fx/sensory.dart';
 import '../model/habit.dart';
 import '../model/store.dart';
@@ -66,8 +65,6 @@ class HabitBar extends StatelessWidget {
     // hábito siempre se podía fundar el segundo—. Con el candado sí pasa, y es
     // justo el primer día de la primera persona que instala la app: un valle
     // con un pueblo sin nombre y ninguna forma de nombrarlo.
-    final crown = store.leader;
-
     return SizedBox(
       height: height,
       child: ListView(
@@ -78,7 +75,6 @@ class HabitBar extends StatelessWidget {
             _Mark(
               habit: store.habits[i],
               on: i == store.active,
-              crowned: i == crown,
               theme: t,
               onTap: () {
                 if (i == store.active) {
@@ -106,7 +102,6 @@ class _Mark extends StatelessWidget {
   const _Mark({
     required this.habit,
     required this.on,
-    required this.crowned,
     required this.theme,
     required this.onTap,
   });
@@ -115,7 +110,6 @@ class _Mark extends StatelessWidget {
   final bool on;
 
   /// The most pieces in the valley. A whole competition in one small mark.
-  final bool crowned;
   final UiTheme theme;
   final VoidCallback onTap;
 
@@ -150,17 +144,6 @@ class _Mark extends StatelessWidget {
                       size: 21,
                     ),
                   ),
-                  if (crowned)
-                    Positioned(
-                      top: -6,
-                      right: -1,
-                      child: CustomPaint(
-                        size: const Size(11, 9),
-                        painter: _CrownMark(
-                          const Color(0xFFE8B84B).withValues(alpha: 0.92),
-                        ),
-                      ),
-                    ),
                   // Un pueblo dormido no se apaga, así que sin esto se ve
                   // exactamente igual que uno al día — que es cierto en cuanto
                   // a que no ha perdido nada, y confuso en cuanto a por qué no
@@ -306,17 +289,4 @@ class _UnlockRing extends CustomPainter {
   @override
   bool shouldRepaint(_UnlockRing old) =>
       old.progress != progress || old.on != on;
-}
-
-/// The valley's crown, small enough to sit over a mark.
-class _CrownMark extends CustomPainter {
-  const _CrownMark(this.color);
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) =>
-      HabitSigils.crown(canvas, Offset.zero & size, color);
-
-  @override
-  bool shouldRepaint(_CrownMark old) => old.color != color;
 }

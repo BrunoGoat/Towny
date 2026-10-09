@@ -671,27 +671,6 @@ class Store extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Which habit has laid the most pieces, or null while there is nothing to
-  /// compare — one habit is not a valley, and a valley where nobody has begun
-  /// has no leader either.
-  ///
-  /// Ties go to whoever got there first, so the crown never flickers between
-  /// two towns on the same count.
-  int? get leader {
-    if (habits.length < 2) return null;
-    var best = -1;
-    for (var i = 0; i < habits.length; i++) {
-      if (habits[i].total <= 0) continue;
-      if (best < 0 ||
-          habits[i].total > habits[best].total ||
-          (habits[i].total == habits[best].total &&
-              habits[i].createdAt.isBefore(habits[best].createdAt))) {
-        best = i;
-      }
-    }
-    return best < 0 ? null : best;
-  }
-
   // ------------------------------------------------------------------- state
 
   Future<void> load() async {
