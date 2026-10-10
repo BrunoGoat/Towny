@@ -373,10 +373,12 @@ class FolkPanel extends StatelessWidget {
           child: Text(
             c.name,
             maxLines: 2,
+            // La letra de los títulos de la primera vez: de libro antiguo,
+            // como los nombres de la gente del valle.
             style: const TextStyle(
-              fontSize: 25,
-              height: 1.1,
-              fontWeight: FontWeight.w600,
+              fontFamily: 'EBGaramond',
+              fontSize: 40,
+              height: 1.0,
               color: Colors.white,
               shadows: sombra,
             ),
