@@ -95,7 +95,7 @@ void main() {
       expect(c.name, v.name);
     });
 
-    testWidgets('al costado: nombre, oficio, desde cuándo y con qué casa', (
+    testWidgets('debajo de él: nombre, oficio, desde cuándo y con qué casa', (
       tester,
     ) async {
       final c = FolkCard(
@@ -111,23 +111,18 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: FolkPanel(
-              theme: UiTheme(Palette.forMoment(13)),
-              card: c,
-              now: DateTime(2026, 3, 11),
-              onClose: () {},
-            ),
+            body: FolkPanel(theme: UiTheme(Palette.forMoment(13)), card: c),
           ),
         ),
       );
-      expect(find.text('VECINA'), findsOneWidget);
       expect(find.text('Ximena la Tejedora'), findsOneWidget);
       expect(find.text('Tejedora'), findsOneWidget);
-      expect(find.textContaining('hace 10 días'), findsOneWidget);
-      expect(
-        find.textContaining('3.ª casa del pueblo: taller'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('desde el'), findsOneWidget);
+      expect(find.text('3.ª casa · taller'), findsOneWidget);
+      // Sin caja ni fondo: es texto sobre el pueblo.
+      expect(find.byType(Container), findsNothing);
+      expect(find.byType(DecoratedBox), findsNothing);
+      expect(find.byType(ColoredBox), findsNothing);
     });
   });
 

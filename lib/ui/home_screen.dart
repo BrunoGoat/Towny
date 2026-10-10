@@ -455,19 +455,18 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
 
-          // --- el vecino que sigue la cámara: quién es, al costado
+          // --- el vecino que sigue la cámara: quién es, debajo de él
           if (_folk != null)
             Positioned(
-              left: 14,
-              top: media.padding.top + 92,
-              child: FolkPanel(
-                key: ValueKey((_folk!.town, _folk!.home)),
-                theme: t,
-                card: _folk!,
-                onClose: () {
-                  _wall.stopFollowing();
-                  setState(() => _folk = null);
-                },
+              left: 26,
+              right: 26,
+              bottom: media.padding.bottom + 236,
+              child: IgnorePointer(
+                child: FolkPanel(
+                  key: ValueKey((_folk!.town, _folk!.home)),
+                  theme: t,
+                  card: _folk!,
+                ),
               ),
             ),
 

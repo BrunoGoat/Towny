@@ -318,26 +318,22 @@ class StoneCard extends StatelessWidget {
   }
 }
 
-/// La ficha de un vecino, al costado, mientras la cámara lo sigue.
+/// Quién es el vecino que sigue la cámara: su nombre grande, y al lado, en
+/// chico, a qué se dedica, desde cuándo vive en el pueblo y con qué casa
+/// llegó.
 ///
-/// Quién es, a qué se dedica, desde cuándo vive en el pueblo y con qué casa
-/// llegó. Va a un lado y no en medio porque lo que se está mirando es a la
-/// persona: la ficha acompaña, no tapa.
+/// Sin caja ni fondo: es texto puesto sobre el pueblo, debajo de la persona,
+/// como el rótulo de una película. Lo que se está mirando es a ella, y un
+/// recuadro oscuro encima tapaba justo eso. Lo único que lleva es una sombra
+/// suave, para que se lea igual sobre el prado, la nieve o un tejado.
+///
+/// No tiene botón de cerrar: tocar cualquier otra cosa deja de seguirla, y
+/// con eso se va.
 class FolkPanel extends StatelessWidget {
-  const FolkPanel({
-    super.key,
-    required this.theme,
-    required this.card,
-    required this.onClose,
-    this.now,
-  });
+  const FolkPanel({super.key, required this.theme, required this.card});
 
   final UiTheme theme;
   final FolkCard card;
-  final VoidCallback onClose;
-
-  /// Hoy, para los tests. Si no, el reloj.
-  final DateTime? now;
 
   static String ordinal(int n) {
     if (!inEnglish) return '$n.ª';
@@ -355,92 +351,70 @@ class FolkPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = theme;
     final c = card;
-    final rotulo = t.label.copyWith(fontSize: 8.5, letterSpacing: 1.2);
-    final suave = TextStyle(
+    // Blanco con sombra, a cualquier hora: es lo que se lee sobre todo lo que
+    // puede haber detrás —prado, nieve, piedra, cielo de noche—.
+    const sombra = [
+      Shadow(color: Color(0x99000000), blurRadius: 10),
+      Shadow(color: Color(0x66000000), blurRadius: 2, offset: Offset(0, 1)),
+    ];
+    final chico = TextStyle(
       fontSize: 12,
-      height: 1.35,
-      color: t.fg.withValues(alpha: 0.78),
+      height: 1.4,
+      color: Colors.white.withValues(alpha: 0.88),
+      shadows: sombra,
     );
     final born = c.born;
-    final hoy = now ?? DateTime.now();
-    final dias = born == null ? null : daysBetween(born, hoy);
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 220),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(4),
-        child: Container(
-          color: Color.lerp(t.panelStrong, t.accent, t.dark ? 0.16 : 0.13),
-          padding: const EdgeInsets.fromLTRB(14, 10, 8, 13),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Flexible(
+          flex: 5,
+          child: Text(
+            c.name,
+            maxLines: 2,
+            style: const TextStyle(
+              fontSize: 25,
+              height: 1.1,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+              shadows: sombra,
+            ),
+          ),
+        ),
+        const SizedBox(width: 18),
+        Flexible(
+          flex: 4,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      c.woman
-                          ? tr('VECINA', 'NEIGHBOUR')
-                          : tr('VECINO', 'NEIGHBOUR'),
-                      style: rotulo,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: onClose,
-                    behavior: HitTestBehavior.opaque,
-                    child: Padding(
-                      padding: const EdgeInsets.all(4),
-                      child: Icon(
-                        Icons.close,
-                        size: 14,
-                        color: t.fg.withValues(alpha: 0.6),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 2),
-              Padding(
-                padding: const EdgeInsets.only(right: 6),
-                child: Text(
-                  c.name,
-                  style: TextStyle(
-                    fontSize: 15.5,
-                    height: 1.2,
-                    fontWeight: FontWeight.w600,
-                    color: t.fg,
-                  ),
+              Text(
+                c.trade,
+                style: chico.copyWith(
+                  color: Color.lerp(theme.accent, Colors.white, 0.25),
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(height: 2),
-              Text(c.trade, style: suave.copyWith(color: t.accent)),
-              const SizedBox(height: 9),
               if (born != null)
                 Text(
                   tr(
-                    'En el pueblo desde el ${fullDate(born)}'
-                        '${dias != null && dias > 0 ? ', hace $dias ${dias == 1 ? 'día' : 'días'}' : ''}.',
-                    'In the town since ${fullDate(born)}'
-                        '${dias != null && dias > 0 ? ', $dias ${dias == 1 ? 'day' : 'days'} ago' : ''}.',
+                    'desde el ${dayMonthShort(born)} ${born.year}',
+                    'since ${dayMonthShort(born)} ${born.year}',
                   ),
-                  style: suave,
+                  style: chico,
                 ),
-              const SizedBox(height: 4),
               Text(
                 tr(
-                  'Llegó con la ${ordinal(c.house)} casa del pueblo: '
-                      '${c.houseName.toLowerCase()}.',
-                  "Came with the town's ${ordinal(c.house)} house: "
-                      '${c.houseName.toLowerCase()}.',
+                  '${ordinal(c.house)} casa · ${c.houseName.toLowerCase()}',
+                  '${ordinal(c.house)} house · ${c.houseName.toLowerCase()}',
                 ),
-                style: suave,
+                style: chico,
               ),
             ],
           ),
         ),
-      ),
+      ],
     );
   }
 }
