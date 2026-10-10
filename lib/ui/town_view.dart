@@ -11,6 +11,7 @@ import '../data/constellations.dart';
 import '../data/landmarks.dart';
 import '../engine/camera.dart';
 import '../engine/folk.dart';
+import '../engine/folk_body.dart';
 import '../engine/palette.dart';
 import '../engine/renderer.dart';
 import '../engine/scene.dart';
@@ -24,6 +25,7 @@ import '../l10n/lang.dart';
 import '../model/appearance.dart';
 import '../model/board.dart';
 import '../model/board_slots.dart';
+import '../model/census.dart';
 import '../model/habit.dart';
 import '../model/piece.dart';
 import '../model/store.dart';
@@ -64,6 +66,16 @@ class TownViewController {
   /// up where the stone is about to land.
   void setCharge(double v) => _state?.setCharge(v);
   void clearSelection() => _state?.clearSelection();
+
+  /// Dejar de seguir al vecino que se estaba siguiendo.
+  void stopFollowing() => _state?._stopFollowing();
+
+  /// El reloj de la escena, para los tests.
+  @visibleForTesting
+  double get clock => _state?._time ?? 0;
+
+  /// A quién se está siguiendo, si a alguien: su pueblo y su casa.
+  (int town, int home)? get following => _state?._following;
   void frameAll() => _state?.frameAll();
   void frameValley() => _state?.frameValley();
 
@@ -162,7 +174,17 @@ class TownView extends StatefulWidget {
     required this.onBoardTapped,
     required this.onWhisper,
     required this.onPaletteChanged,
+    this.onFolkTapped,
+    this.onFolkLost,
   });
+
+  /// Se tocó a un vecino: la cámara se le acerca y lo sigue, y esto dice
+  /// quién es para poder contarlo al lado.
+  final void Function(FolkCard card)? onFolkTapped;
+
+  /// Se dejó de seguir al vecino: se movió la cámara a mano, se tocó otra
+  /// cosa, o se metió en su casa al caer la tarde.
+  final VoidCallback? onFolkLost;
 
   final Store store;
   final TownViewController controller;
@@ -536,6 +558,7 @@ class _TownViewState extends State<TownView>
     // Moving to another habit is moving to another town: take the camera
     // there rather than leaving it hanging over an empty valley.
     if (wasSlot != _slotFor) {
+      _stopFollowing();
       _frameTown();
       _fx.clear();
       _placement = null;
@@ -626,6 +649,7 @@ class _TownViewState extends State<TownView>
     // Planea mientras baja al pueblo recién fundado, y sigue al dedo el resto
     // del tiempo. Un toque corta el planeo: quien mueve la cámara la quiere ya.
     if (_glide > 0) _glide -= dt;
+    if (_following != null && !_aimAtFollowed()) _stopFollowing();
     _cam.step(dt, rate: _glide > 0 ? 1.5 : 7.5);
     _watchTheHorizon();
     _fx.update(dt);
@@ -800,6 +824,7 @@ class _TownViewState extends State<TownView>
   /// are building. The wall travels along its own axis; the town orbits its
   /// plaza, so the most the camera does there is look at the right height.
   void _followPlacement(int index) {
+    _stopFollowing();
     final piece = _town.pieceFor(index);
     if (piece == null) return;
     _cam.follow = true;
@@ -1365,6 +1390,7 @@ class _TownViewState extends State<TownView>
   /// dedo sigue debajo. Sin salirse del valle: más allá de los pueblos no hay
   /// nada que buscar, y perderse en la nieve es fácil.
   void _panByDrag(Offset delta) {
+    _stopFollowing();
     final size = context.size;
     if (size == null) return;
     final p = _cam.projector(size.width, size.height, _time);
@@ -1408,6 +1434,7 @@ class _TownViewState extends State<TownView>
   /// Two-finger drag walks the camera along the wall, in whatever screen
   /// direction the wall happens to run right now.
   void _travelByDrag(Offset delta) {
+    _stopFollowing();
     final size = context.size;
     if (size == null) return;
     final p = _cam.projector(size.width, size.height, _time);
@@ -1418,6 +1445,64 @@ class _TownViewState extends State<TownView>
     final along = (delta.dx * ax + delta.dy * ay) / len;
     final worldPerPixel = _cam.distance / (p.focal * len);
     _cam.travelBy(-along * worldPerPixel);
+  }
+
+  // ------------------------------------------------------------ un vecino
+
+  /// A quién sigue la cámara: su pueblo y la casa en la que vive.
+  (int town, int home)? _following;
+
+  /// Se le acerca y lo empieza a seguir.
+  void _follow(int town, int home) {
+    if (town < 0 || town >= widget.store.habits.length) return;
+    final card = folkCardOf(
+      widget.store.habits[town],
+      _entries[town].layout,
+      town,
+      home,
+    );
+    if (card == null) return;
+    Sensory.instance.tick();
+    if (_selectedPiece != null) setState(() => _selectedPiece = null);
+    _following = (town, home);
+    _cam.follow = false;
+    // Cerca, y desde arriba como quien la sigue por encima de los tejados.
+    // A la altura de los ojos se la ve mejor, pero en un pueblo apretado lo
+    // que hay entre la cámara y una persona es casi siempre una pared: se
+    // probó, y lo que se veía era el encalado de la casa de enfrente.
+    _cam.distanceTarget = 4.6;
+    _cam.pitchTarget = 0.75;
+    _aimAtFollowed();
+    widget.onFolkTapped?.call(card);
+  }
+
+  void _stopFollowing() {
+    if (_following == null) return;
+    _following = null;
+    widget.onFolkLost?.call();
+  }
+
+  /// Le pone la mira encima, donde esté ahora. Falso si ya no se le ve: se
+  /// metió en su casa, o su pueblo ya no está.
+  bool _aimAtFollowed() {
+    final f = _following;
+    if (f == null || f.$1 >= _entries.length) return false;
+    final e = _entries[f.$1];
+    Townsfolk? who;
+    for (final v in folkOf(e.layout, e.placed)) {
+      if (v.home == f.$2) {
+        who = v;
+        break;
+      }
+    }
+    if (who == null) return false;
+    final donde = folkWhere(who, _time, folkHome(_palette.daylight));
+    if (donde == null) return false;
+    final talla = TownPainter.folkHeight(e.layout.character);
+    _cam.travelTarget = donde.at.x;
+    _cam.focusZTarget = donde.at.z;
+    _cam.focusYTarget = talla * 0.6;
+    return true;
   }
 
   /// Cuándo se tocó la constelación, en el reloj de la escena.
@@ -1444,6 +1529,14 @@ class _TownViewState extends State<TownView>
     // dejar tocar algo a través de lo que tiene delante.
     final k = _hits.hitAt(pos);
     final owner = k < 0 ? TouchMap.nobody : _hits.faceOwner[k];
+
+    if (owner == TouchMap.folk) {
+      final (town, home) = TouchMap.folkOf(_hits.regionData[k]);
+      _follow(town, home);
+      return;
+    }
+    // Tocar cualquier otra cosa es dejar de mirar a quien se seguía.
+    _stopFollowing();
 
     if (owner == TouchMap.sky && _hits.skies.isNotEmpty) {
       _skyTappedAt = _time;

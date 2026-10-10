@@ -237,8 +237,8 @@ class TouchMap {
   ///
   /// Dueños: el número de la pieza (cero o más), o uno de [nobody] (algo que
   /// tapa pero no se toca: el prado, las montañas, la plaza), [building] (una
-  /// casa de otro pueblo), [board], [sky] o [sign]. [regionData] lleva el
-  /// pueblo del cartel.
+  /// casa de otro pueblo), [board], [sky], [sign] o [folk]. [regionData]
+  /// lleva el pueblo del cartel, o quién es la persona.
   Float32List facePts = Float32List(0);
   Int32List faceStart = Int32List(1);
   Int32List faceOwner = Int32List(0);
@@ -250,6 +250,14 @@ class TouchMap {
   static const int board = -3;
   static const int sky = -4;
   static const int sign = -5;
+
+  /// Una persona. [regionData] dice cuál: ver [folkData].
+  static const int folk = -6;
+
+  /// Quién es una persona, en un número: su pueblo y el edificio en el que
+  /// vive, que es lo que la distingue de todos los demás.
+  static int folkData(int town, int home) => town << 20 | home;
+  static (int town, int home) folkOf(int data) => (data >> 20, data & 0xFFFFF);
 
   void _room(int faces, int floats) {
     if (faceOwner.length < faces) {
@@ -312,7 +320,11 @@ class TouchMap {
 
   /// Si se puede tocar algo de [owner].
   static bool tappable(int owner) =>
-      owner >= 0 || owner == board || owner == sky || owner == sign;
+      owner >= 0 ||
+      owner == board ||
+      owner == sky ||
+      owner == sign ||
+      owner == folk;
 
   /// Qué se toca en [pos]: lo que se ve bajo el dedo y, si eso no se puede
   /// tocar, lo tocable que se vea más cerca a menos de [reach] píxeles. Un

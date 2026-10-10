@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 
+import '../core/math3.dart';
 import '../core/rng.dart';
 import '../data/doings.dart';
 import '../data/folknames.dart';
@@ -339,6 +340,47 @@ class FolkAt {
 /// Se guarda con la misma llave que la mampostería: dónde está el pueblo y
 /// cuántas piezas lleva.
 final Map<String, ({int placed, int mundo, List<Townsfolk> gente})> _folk = {};
+
+/// Dónde está [who] a la hora [time] de la escena, con la tarde cayendo
+/// [homeward] (ver `folkHome`): de cero, de día, a uno, todos en casa.
+///
+/// Es lo único que dice dónde está alguien, y lo preguntan dos: el pintor, y
+/// la cámara que lo sigue cuando se le toca. Con la cuenta escrita dos veces,
+/// la cámara acabaría mirando un metro al lado de la persona.
+///
+/// Devuelve también cuánto se ha metido ya por su puerta ([sink], de cero a
+/// uno), o nulo si ya está dentro del todo.
+({FolkAt at, double sink})? folkWhere(
+  Townsfolk who,
+  double time,
+  double homeward,
+) {
+  var at = who.at(time);
+  if (homeward > 0.001) {
+    // Cae la tarde: cada uno tira para su puerta. No es un camino calculado,
+    // es la línea recta a su casa — y como todos arrancan desde donde estaban,
+    // se ve un pueblo entero yéndose a casa a la vez, que es exactamente lo
+    // que pasa a esa hora.
+    final k = smoothstep(0.0, 0.86, homeward);
+    final d = who.door;
+    at = FolkAt(
+      at.x + (d.$1 - at.x) * k,
+      at.z + (d.$2 - at.z) * k,
+      at.heading,
+      at.gait,
+      at.moving && k < 0.9,
+      // De camino a casa no se charla ni se suelta una cometa: lo que se hace
+      // es andar. Quien ya estaba andando sigue andando.
+      null,
+      at.phase,
+    );
+  }
+  // Y en el umbral se meten dentro: se hunden en su propia puerta en vez de
+  // apagarse en el aire.
+  final sink = ((homeward - 0.86) / 0.14).clamp(0.0, 1.0);
+  if (sink >= 0.999) return null;
+  return (at: at, sink: sink);
+}
 
 /// La gente que hay ahora mismo en [layout], y por dónde andan.
 ///

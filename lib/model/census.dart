@@ -1,3 +1,4 @@
+import '../core/rng.dart';
 import '../data/folknames.dart';
 import '../engine/folk.dart';
 import '../engine/town.dart';
@@ -91,4 +92,80 @@ List<Villager> enrolFolk(Habit habit, TownLayout layout) {
     habit.folk.add(v.line);
   }
   return nuevos;
+}
+
+/// Lo que se cuenta de un vecino cuando se le toca: quién es, a qué se
+/// dedica, desde cuándo vive en el pueblo y con qué casa llegó.
+class FolkCard {
+  const FolkCard({
+    required this.town,
+    required this.home,
+    required this.name,
+    required this.trade,
+    required this.born,
+    required this.house,
+    required this.houseName,
+    required this.woman,
+  });
+
+  /// De qué pueblo es, por su número en el valle, y en qué edificio vive.
+  final int town, home;
+
+  final String name;
+
+  /// A qué se dedica: el oficio que ya dice su nombre, o si su nombre no lo
+  /// dice, el de su casa.
+  final String trade;
+
+  /// El día que se remató su casa, que es el día que llegó. Nulo sólo si el
+  /// padrón todavía no lo apuntó.
+  final DateTime? born;
+
+  /// Con qué casa llegó, contando sólo casas: la primera del pueblo es la 1.
+  final int house;
+
+  /// Qué es esa casa: «Taller», «Posada».
+  final String houseName;
+
+  /// Para que lo que se dice de ella concuerde: «vecina», «llegó sola».
+  final bool woman;
+}
+
+/// La ficha del vecino que vive en el edificio [home] del pueblo de [habit].
+///
+/// Nada de esto se guarda: el nombre y la fecha salen del padrón, y el oficio
+/// sale de su semilla y de su casa, así que no cambia nunca.
+FolkCard? folkCardOf(Habit habit, TownLayout layout, int town, int home) {
+  if (home < 0 || home >= layout.buildings.length) return null;
+  final b = layout.buildings[home];
+  if (b.isLandmark) return null;
+  final apuntado = censusOf(habit.folk)[home];
+  final seed = apuntado?.seed ?? folkSeedOf(b.seed, b.index);
+  final woman = folkIsWoman(seed);
+  final k =
+      folkNamedTrade(seed) ??
+      switch (b.kind) {
+        BuildingKind.inn => innTrade,
+        BuildingKind.granary => farmTrade,
+        BuildingKind.shed => woodTrade,
+        BuildingKind.workshop =>
+          workshopTrades[hashInt(workshopTrades.length, seed, 117)],
+        _ => otherTrades[hashInt(otherTrades.length, seed, 117)],
+      };
+  var house = 0;
+  for (final o in layout.buildings) {
+    if (o.isLandmark) continue;
+    house++;
+    if (o.index == home) break;
+  }
+  return FolkCard(
+    town: town,
+    home: home,
+    name: apuntado?.name ?? folkName(seed),
+    trade: tradeNoun(k, woman: woman),
+    born: apuntado?.born,
+    house: house,
+    houseName: b.name,
+    woman: woman,
+  );
 }

@@ -4,6 +4,7 @@ import '../data/landmarks.dart';
 import '../fx/sensory.dart';
 import '../l10n/dates.dart';
 import '../l10n/lang.dart';
+import '../model/census.dart';
 import '../model/piece.dart';
 import '../model/works_log.dart';
 import 'style.dart';
@@ -308,6 +309,133 @@ class StoneCard extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// La ficha de un vecino, al costado, mientras la cámara lo sigue.
+///
+/// Quién es, a qué se dedica, desde cuándo vive en el pueblo y con qué casa
+/// llegó. Va a un lado y no en medio porque lo que se está mirando es a la
+/// persona: la ficha acompaña, no tapa.
+class FolkPanel extends StatelessWidget {
+  const FolkPanel({
+    super.key,
+    required this.theme,
+    required this.card,
+    required this.onClose,
+    this.now,
+  });
+
+  final UiTheme theme;
+  final FolkCard card;
+  final VoidCallback onClose;
+
+  /// Hoy, para los tests. Si no, el reloj.
+  final DateTime? now;
+
+  static String ordinal(int n) {
+    if (!inEnglish) return '$n.ª';
+    final dos = n % 100;
+    final suf = dos >= 11 && dos <= 13
+        ? 'th'
+        : switch (n % 10) {
+            1 => 'st',
+            2 => 'nd',
+            3 => 'rd',
+            _ => 'th',
+          };
+    return '$n$suf';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = theme;
+    final c = card;
+    final rotulo = t.label.copyWith(fontSize: 8.5, letterSpacing: 1.2);
+    final suave = TextStyle(
+      fontSize: 12,
+      height: 1.35,
+      color: t.fg.withValues(alpha: 0.78),
+    );
+    final born = c.born;
+    final hoy = now ?? DateTime.now();
+    final dias = born == null ? null : daysBetween(born, hoy);
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 220),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(4),
+        child: Container(
+          color: Color.lerp(t.panelStrong, t.accent, t.dark ? 0.16 : 0.13),
+          padding: const EdgeInsets.fromLTRB(14, 10, 8, 13),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      c.woman
+                          ? tr('VECINA', 'NEIGHBOUR')
+                          : tr('VECINO', 'NEIGHBOUR'),
+                      style: rotulo,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: onClose,
+                    behavior: HitTestBehavior.opaque,
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Icon(
+                        Icons.close,
+                        size: 14,
+                        color: t.fg.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Padding(
+                padding: const EdgeInsets.only(right: 6),
+                child: Text(
+                  c.name,
+                  style: TextStyle(
+                    fontSize: 15.5,
+                    height: 1.2,
+                    fontWeight: FontWeight.w600,
+                    color: t.fg,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(c.trade, style: suave.copyWith(color: t.accent)),
+              const SizedBox(height: 9),
+              if (born != null)
+                Text(
+                  tr(
+                    'En el pueblo desde el ${fullDate(born)}'
+                        '${dias != null && dias > 0 ? ', hace $dias ${dias == 1 ? 'día' : 'días'}' : ''}.',
+                    'In the town since ${fullDate(born)}'
+                        '${dias != null && dias > 0 ? ', $dias ${dias == 1 ? 'day' : 'days'} ago' : ''}.',
+                  ),
+                  style: suave,
+                ),
+              const SizedBox(height: 4),
+              Text(
+                tr(
+                  'Llegó con la ${ordinal(c.house)} casa del pueblo: '
+                      '${c.houseName.toLowerCase()}.',
+                  "Came with the town's ${ordinal(c.house)} house: "
+                      '${c.houseName.toLowerCase()}.',
+                ),
+                style: suave,
               ),
             ],
           ),

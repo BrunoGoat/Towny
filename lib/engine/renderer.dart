@@ -33,8 +33,10 @@ class _Face {
   int n = 0;
   int color = 0;
 
-  /// De quién es, para el dedo: ver [TouchMap.faceOwner].
+  /// De quién es, para el dedo: ver [TouchMap.faceOwner] y
+  /// [TouchMap.regionData].
   int owner = TouchMap.nobody;
+  int data = 0;
 
   /// La altura de cada vértice en el mundo, y si la cara es una pared. Sólo
   /// en calidad máxima: es lo que oscurece el pie de los muros.
@@ -367,6 +369,7 @@ class TownPainter extends CustomPainter {
     f.n = m;
     f.color = color;
     f.owner = TouchMap.nobody;
+    f.data = 0;
     if (scene.cinematic) _heights(p, f, m);
   }
 
@@ -1419,42 +1422,31 @@ class TownPainter extends CustomPainter {
       // pruebas exactas siguen debajo y siguen decidiendo — esto sólo se ahorra
       // trabajo, nunca cambia quién sale.
       final ronda = who.roam;
-      final centro = p.project(V3(ronda.x, talla * 0.6, ronda.z));
-      if (centro == null) continue;
-      final cerca = math.max(centro.depth - ronda.r, 0.01);
-      if (p.focal / cerca * talla < 2.2) continue;
-      final radio = p.focal / cerca * ronda.r;
-      if (centro.x + radio < -60 ||
-          centro.y + radio < -60 ||
-          centro.x - radio > size.width + 60 ||
-          centro.y - radio > size.height + 60) {
-        continue;
+      final medio = V3(ronda.x, talla * 0.6, ronda.z);
+      final centro = p.project(medio);
+      if (centro == null) {
+        // El medio de su ronda queda detrás del ojo. Eso no quiere decir que
+        // él también: con la cámara pegada a alguien —que es lo que hace al
+        // seguirlo— el centro de su paseo suele quedar a la espalda mientras
+        // él está delante. Sólo se descarta si la ronda **entera** queda
+        // detrás; si no, decide la prueba exacta de abajo.
+        if (p.cameraOf(medio).z + ronda.r < p.near) continue;
+      } else {
+        final cerca = math.max(centro.depth - ronda.r, 0.01);
+        if (p.focal / cerca * talla < 2.2) continue;
+        final radio = p.focal / cerca * ronda.r;
+        if (centro.x + radio < -60 ||
+            centro.y + radio < -60 ||
+            centro.x - radio > size.width + 60 ||
+            centro.y - radio > size.height + 60) {
+          continue;
+        }
       }
 
-      var at = who.at(scene.time);
-      if (dentro > 0.001) {
-        // Cae la tarde: cada uno tira para su puerta. No es un camino
-        // calculado, es la línea recta a su casa — y como todos arrancan
-        // desde donde estaban, se ve un pueblo entero yéndose a casa a la vez,
-        // que es exactamente lo que pasa a esa hora.
-        final k = smoothstep(0.0, 0.86, dentro);
-        final d = who.door;
-        at = FolkAt(
-          lerpD(at.x, d.$1, k),
-          lerpD(at.z, d.$2, k),
-          at.heading,
-          at.gait,
-          at.moving && k < 0.9,
-          // De camino a casa no se charla ni se suelta una cometa: lo que se
-          // hace es andar. Quien ya estaba andando sigue andando.
-          null,
-          at.phase,
-        );
-      }
-      // Y en el umbral se meten dentro: se hunden en su propia puerta en vez
-      // de apagarse en el aire.
-      final hunde = clampD((dentro - 0.86) / 0.14, 0, 1);
-      if (hunde >= 0.999) continue;
+      final donde = folkWhere(who, scene.time, dentro);
+      if (donde == null) continue;
+      final at = donde.at;
+      final hunde = donde.sink;
       final screen = p.project(V3(at.x, talla * 0.6, at.z));
       if (screen == null) continue;
       if (screen.x < -60 ||
@@ -1555,7 +1547,9 @@ class TownPainter extends CustomPainter {
     Size size,
   ) {
     if (folk.isEmpty) return;
+    final town = scene.towns.indexOf(e);
     for (final v in folk) {
+      final antes = _faceCount;
       final solids = folkSolids(
         v.who,
         v.at,
@@ -1607,6 +1601,12 @@ class TownPainter extends CustomPainter {
           }
           _plain(p, f, pal, light);
         }
+      }
+      // Para el dedo: estas caras son de esta persona.
+      for (var k = antes; k < _faceCount; k++) {
+        _facePool[k]
+          ..owner = TouchMap.folk
+          ..data = TouchMap.folkData(town, v.who.home);
       }
     }
   }
@@ -2361,7 +2361,7 @@ class TownPainter extends CustomPainter {
   void _keepFaces() {
     for (var k = 0; k < _faceCount; k++) {
       final f = _facePool[k];
-      hits.add(f.pts, f.n, f.owner);
+      hits.add(f.pts, f.n, f.owner, data: f.data);
     }
   }
 

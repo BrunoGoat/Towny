@@ -10,6 +10,7 @@ import '../model/appearance.dart';
 import '../model/board.dart';
 import '../model/board_seen.dart';
 import '../model/cadence.dart';
+import '../model/census.dart';
 import '../model/habit.dart';
 import '../model/piece.dart';
 import '../model/store.dart';
@@ -94,6 +95,9 @@ class _HomeScreenState extends State<HomeScreen>
   /// cada cuadro.
   static const Duration _signLife = Duration(milliseconds: 2600);
   Piece? _selected;
+
+  /// El vecino al que sigue la cámara, para contar quién es al costado.
+  FolkCard? _folk;
 
   /// De qué pueblo es la pieza elegida.
   ///
@@ -311,6 +315,13 @@ class _HomeScreenState extends State<HomeScreen>
                 setState(() {});
                 _askWhatToBuild();
               },
+              onFolkTapped: (card) => setState(() {
+                _folk = card;
+                _selected = null;
+              }),
+              onFolkLost: () {
+                if (_folk != null) setState(() => _folk = null);
+              },
               onStoneTapped: (brick) => setState(() {
                 _selected = brick;
                 _selectedTown = widget.store.habit.id;
@@ -441,6 +452,22 @@ class _HomeScreenState extends State<HomeScreen>
               right: 0,
               child: Center(
                 child: PreviewBanner(theme: t, store: store),
+              ),
+            ),
+
+          // --- el vecino que sigue la cámara: quién es, al costado
+          if (_folk != null)
+            Positioned(
+              left: 14,
+              top: media.padding.top + 92,
+              child: FolkPanel(
+                key: ValueKey((_folk!.town, _folk!.home)),
+                theme: t,
+                card: _folk!,
+                onClose: () {
+                  _wall.stopFollowing();
+                  setState(() => _folk = null);
+                },
               ),
             ),
 

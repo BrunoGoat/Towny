@@ -145,3 +145,45 @@ String folkName(int seed) {
   final k = hashInt(_from.length, seed, 102);
   return '$pila ${inEnglish ? fromEn[k] : _from[k]}';
 }
+
+/// Si el vecino de semilla [seed] es mujer: lo dice su nombre de pila.
+bool folkIsWoman(int seed) => _given[hashInt(_given.length, seed, 101)].$2;
+
+/// Cuántos de los de [_trade] son oficios de verdad. Los de después son
+/// motes —el Viejo, el Zurdo, el Romero— y no dicen a qué se dedica nadie.
+const int _realTrades = 17;
+
+/// El oficio que ya dice su nombre, si lo dice: «Ximena la Tejedora» teje.
+/// Nulo si se le conoce por un mote o por de dónde venía.
+int? folkNamedTrade(int seed) {
+  if (hash01(seed, 103) >= 0.68) return null;
+  final k = hashInt(_trade.length, seed, 102);
+  return k < _realTrades ? k : null;
+}
+
+/// Los oficios de [_trade] que son de taller, y los de fuera.
+const List<int> workshopTrades = [0, 1, 6, 7, 8, 9];
+const List<int> otherTrades = [2, 3, 4, 5, 10, 11, 12, 13, 14, 15, 16];
+
+/// Y tres que no están en ningún nombre pero sí en una casa: quien vive en
+/// la posada la lleva, quien vive en el granero labra, y quien vive en un
+/// cobertizo hace leña.
+const List<(String, String, String)> _byHome = [
+  ('Posadero', 'Posadera', 'Innkeeper'),
+  ('Labrador', 'Labradora', 'Farmer'),
+  ('Leñador', 'Leñadora', 'Woodcutter'),
+];
+const int innTrade = 100, farmTrade = 101, woodTrade = 102;
+
+/// El oficio número [k], como se dice de una persona: «Tejedora», «Weaver».
+/// [k] es de [_trade] (de 0 a 16) o uno de [innTrade], [farmTrade] y
+/// [woodTrade].
+String tradeNoun(int k, {required bool woman}) {
+  if (k >= 100) {
+    final (el, la, en) = _byHome[k - 100];
+    return inEnglish ? en : (woman ? la : el);
+  }
+  if (inEnglish) return tradeEn[k].replaceFirst('the ', '');
+  final (el, la) = _trade[k];
+  return (woman ? la : el).replaceFirst(RegExp(r'^(el|la) '), '');
+}
