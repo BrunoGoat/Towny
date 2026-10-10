@@ -318,7 +318,7 @@ class StoneCard extends StatelessWidget {
   }
 }
 
-/// Quién es el vecino que sigue la cámara: su nombre grande, y al lado, en
+/// Quién es el vecino que sigue la cámara: su nombre grande, y debajo, en
 /// chico, a qué se dedica, desde cuándo vive en el pueblo y con qué casa
 /// llegó.
 ///
@@ -358,63 +358,55 @@ class FolkPanel extends StatelessWidget {
       Shadow(color: Color(0x99000000), blurRadius: 10),
       Shadow(color: Color(0x66000000), blurRadius: 2, offset: Offset(0, 1)),
     ];
+    // Los detalles en Roboto Slab, la otra letra de títulos de la app: de
+    // bloque, distinta del Garamond del nombre para que no compitan.
     final chico = TextStyle(
+      fontFamily: 'Chronicle',
       fontSize: 12,
       height: 1.4,
       color: Colors.white.withValues(alpha: 0.88),
       shadows: sombra,
     );
     final born = c.born;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Flexible(
-          flex: 5,
-          child: Text(
-            c.name,
-            maxLines: 2,
-            // La letra de los títulos de la primera vez: de libro antiguo,
-            // como los nombres de la gente del valle.
-            style: const TextStyle(
-              fontFamily: 'EBGaramond',
-              fontSize: 40,
-              height: 1.0,
-              color: Colors.white,
-              shadows: sombra,
-            ),
+        Text(
+          c.name,
+          maxLines: 2,
+          // La letra de los títulos de la primera vez: de libro antiguo,
+          // como los nombres de la gente del valle.
+          style: const TextStyle(
+            fontFamily: 'EBGaramond',
+            fontSize: 40,
+            height: 1.0,
+            color: Colors.white,
+            shadows: sombra,
           ),
         ),
-        const SizedBox(width: 18),
-        Flexible(
-          flex: 4,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                c.trade,
-                style: chico.copyWith(
-                  color: Color.lerp(theme.accent, Colors.white, 0.25),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              if (born != null)
-                Text(
-                  tr(
-                    'desde el ${dayMonthShort(born)} ${born.year}',
-                    'since ${dayMonthShort(born)} ${born.year}',
-                  ),
-                  style: chico,
-                ),
-              Text(
-                tr(
-                  '${ordinal(c.house)} casa · ${c.houseName.toLowerCase()}',
-                  '${ordinal(c.house)} house · ${c.houseName.toLowerCase()}',
-                ),
-                style: chico,
-              ),
-            ],
+        const SizedBox(height: 8),
+        Text(
+          c.trade,
+          style: chico.copyWith(
+            color: Color.lerp(theme.accent, Colors.white, 0.25),
+            fontWeight: FontWeight.w600,
           ),
+        ),
+        if (born != null)
+          Text(
+            tr(
+              'desde el ${dayMonthShort(born)} ${born.year}',
+              'since ${dayMonthShort(born)} ${born.year}',
+            ),
+            style: chico,
+          ),
+        Text(
+          tr(
+            '${ordinal(c.house)} casa · ${c.houseName.toLowerCase()}',
+            '${ordinal(c.house)} house · ${c.houseName.toLowerCase()}',
+          ),
+          style: chico,
         ),
       ],
     );

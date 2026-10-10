@@ -456,11 +456,17 @@ class _HomeScreenState extends State<HomeScreen>
             ),
 
           // --- el vecino que sigue la cámara: quién es, debajo de él
+          //
+          // Colgado desde arriba y no desde abajo: la cámara lo tiene siempre
+          // en el centro de la pantalla, así que sus pies caen siempre a la
+          // misma altura, y el nombre empieza justo debajo. Colgado desde
+          // abajo, un nombre de dos renglones crecía hacia arriba y le tapaba
+          // las piernas.
           if (_folk != null)
             Positioned(
               left: 26,
               right: 26,
-              bottom: media.padding.bottom + 236,
+              top: media.size.height * 0.58,
               child: IgnorePointer(
                 child: FolkPanel(
                   key: ValueKey((_folk!.town, _folk!.home)),
