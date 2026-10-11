@@ -100,6 +100,33 @@ enum PropKind {
 
   /// Una cuerda entre dos palos con la ropa colgada.
   line,
+
+  /// Tres pelotas de colores dando vueltas por encima de la cabeza.
+  balls,
+
+  /// Un tambor colgado a la altura de la tripa y las dos baquetas.
+  drum,
+
+  /// Una comba que pasa por encima de la cabeza y por debajo de los pies.
+  rope,
+
+  /// Un tocón con un leño encima y el hacha subiendo y cayendo.
+  axe,
+
+  /// Tres gallinas picoteando alrededor de los pies, y el grano cayendo.
+  hens,
+
+  /// Un charco y un barco de papel con su vela, meciéndose.
+  boat,
+
+  /// Una carretilla cargada de piedras, con su rueda.
+  barrow,
+
+  /// Un cayado con la punta curva, y dos ovejas paciendo.
+  crook,
+
+  /// Un cesto lleno de flores, y las que quedan por coger en el suelo.
+  flowers,
 }
 
 /// Una cosa que se hace.
@@ -118,6 +145,7 @@ class Doing {
     this.turn = 1.0,
     this.prop = PropKind.none,
     this.lying = false,
+    this.hop = false,
   });
 
   /// Lo que se guarda si algún día se guarda. Nunca se reutiliza uno.
@@ -162,6 +190,11 @@ class Doing {
   /// con lo agachado que está alguien.
   final bool lying;
 
+  /// Que sube y baja **saltando**: despega del suelo y vuelve a él, sin
+  /// hundirse nunca por debajo. Es lo que hace quien salta a la comba, y no
+  /// se puede decir con [bob], que sube tanto como baja.
+  final bool hop;
+
   /// Si esto se lo puede hacer alguien de esta edad.
   bool fits(bool kid) => switch (who) {
     Who.anyone => true,
@@ -189,7 +222,7 @@ class Doing {
 
   /// Las que están bien.
   ///
-  /// **Catorce, y crece de a poco.** Hubo noventa y cuatro y se fueron todas:
+  /// **Veintitrés, y crece de a poco.** Hubo noventa y cuatro y se fueron todas:
   /// la mitad no se distinguía de estar quieto y la otra mitad llevaba un
   /// objeto que no era el objeto —la escoba era un palo—. Un catálogo grande
   /// de cosas que no se entienden vale menos que catorce que sí.
@@ -245,6 +278,31 @@ class Doing {
       prop: PropKind.line,
     ),
 
+    Doing(
+      'lena',
+      'parte leña',
+      where: Where.door,
+      who: Who.grown,
+      weight: 1.2,
+      bob: -0.020,
+      rate: 1.3,
+      lean: 0.03,
+      turn: 0.0,
+      prop: PropKind.axe,
+    ),
+    Doing(
+      'gallinas',
+      'echa de comer a las gallinas',
+      where: Where.door,
+      weight: 1.1,
+      bob: 0.006,
+      rate: 1.1,
+      wag: 0.010,
+      lean: 0.04,
+      turn: 0.35,
+      prop: PropKind.hens,
+    ),
+
     // ---------------------------------------------------------------- la plaza
     Doing(
       'laud',
@@ -269,6 +327,41 @@ class Doing {
       lean: 0.035,
       turn: 0.6,
       prop: PropKind.stall,
+    ),
+
+    Doing(
+      'malabares',
+      'hace malabares',
+      where: Where.square,
+      weight: 0.8,
+      bob: 0.008,
+      rate: 2.6,
+      lean: -0.03,
+      turn: 0.0,
+      prop: PropKind.balls,
+    ),
+    Doing(
+      'tambor',
+      'toca el tambor',
+      where: Where.square,
+      weight: 0.8,
+      bob: 0.010,
+      rate: 3.4,
+      lean: 0.01,
+      turn: 0.25,
+      prop: PropKind.drum,
+    ),
+    Doing(
+      'comba',
+      'salta a la comba',
+      where: Where.square,
+      who: Who.kid,
+      weight: 1.0,
+      bob: 0.110,
+      rate: 2.6,
+      turn: 0.0,
+      prop: PropKind.rope,
+      hop: true,
     ),
 
     // ------------------------------------------------------------- donde hay agua
@@ -309,6 +402,20 @@ class Doing {
       prop: PropKind.rod,
     ),
 
+    Doing(
+      'barquito',
+      'echa un barco de papel',
+      where: Where.water,
+      who: Who.kid,
+      weight: 1.0,
+      sink: 0.80,
+      bob: 0.005,
+      rate: 0.8,
+      lean: 0.06,
+      turn: 0.1,
+      prop: PropKind.boat,
+    ),
+
     // ------------------------------------------------------------ al pie de la obra
     Doing(
       'cantero',
@@ -333,6 +440,19 @@ class Doing {
       lean: 0.04,
       turn: 0.0,
       prop: PropKind.saw,
+    ),
+
+    Doing(
+      'carretilla',
+      'empuja la carretilla',
+      where: Where.work,
+      who: Who.grown,
+      weight: 1.2,
+      bob: 0.010,
+      rate: 1.4,
+      lean: 0.07,
+      turn: 0.0,
+      prop: PropKind.barrow,
     ),
 
     // ---------------------------------------------------------------- el prado
@@ -382,6 +502,29 @@ class Doing {
       rate: 0.35,
       turn: 0.0,
       lying: true,
+    ),
+    Doing(
+      'pastorear',
+      'cuida las ovejas',
+      where: Where.meadow,
+      weight: 1.0,
+      bob: 0.004,
+      rate: 0.4,
+      lean: 0.01,
+      turn: 0.6,
+      prop: PropKind.crook,
+    ),
+    Doing(
+      'flores',
+      'coge flores',
+      where: Where.meadow,
+      weight: 1.1,
+      sink: 0.50,
+      bob: -0.030,
+      rate: 0.9,
+      lean: 0.05,
+      turn: 0.1,
+      prop: PropKind.flowers,
     ),
   ];
 }

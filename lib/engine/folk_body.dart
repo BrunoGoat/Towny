@@ -247,7 +247,7 @@ List<Solid> folkSolids(
   /// **encima** de ella y no delante: sin esto el cuerpo seguía arrancando del
   /// suelo y la banqueta le salía por dentro, que era alguien de pie sobre una
   /// mesita.
-  final piso = act?.prop == PropKind.stool ? 0.30 - baja * 0.5 : 0.0;
+  final asiento = act?.prop == PropKind.stool ? 0.30 - baja * 0.5 : 0.0;
 
   // Lo único que anima a alguien sin brazos ni piernas: que suba y baje, que
   // se incline y que se balancee. Y alcanza de sobra — el paso de unas piernas
@@ -257,14 +257,19 @@ List<Solid> folkSolids(
   // Parado, lo que diga lo que esté haciendo: el que habla se mueve, el que
   // pica piedra dobla el espinazo, el que baila da saltos, y el que no hace
   // nada respira.
-  final swing = act == null
-      ? 0.0
-      : math.sin(ph * act.rate + hash01(seed, 16) * 6);
+  final beat = act == null ? 0.0 : ph * act.rate + hash01(seed, 16) * 6;
+  final swing = act == null ? 0.0 : math.sin(beat);
+  final salta = !at.moving && (act?.hop ?? false);
   final bob = at.moving
       ? math.cos(at.gait * 2) * 0.016
-      : (act == null
+      : (act == null || salta
             ? 0.0
             : act.bob * (act.bob < 0 ? math.max(0.0, swing) : swing));
+
+  /// Y quien salta despega entero: no es estirarse, son los pies los que
+  /// dejan el suelo. Sube con el valor absoluto, así que vuelve a tocar
+  /// tierra dos veces por vuelta de [beat], con el golpe seco de un salto.
+  final piso = asiento + (salta ? act!.bob * swing.abs() : 0.0);
   final wag = at.moving ? math.sin(at.gait) * 0.014 : (act?.wag ?? 0.0) * swing;
   final lean = at.moving ? 0.020 : (act?.lean ?? 0.0);
 
@@ -885,6 +890,539 @@ List<Solid> folkSolids(
           1.03,
         );
       }
+
+    case PropKind.balls:
+      // Tres pelotas de colores que suben por un lado, pasan por encima de la
+      // cabeza y caen por el otro, y vuelven a cruzar abajo, a la altura de
+      // las manos. Las manos no están, pero el arco las dibuja: arriba alto y
+      // despacio, abajo plano y deprisa, que es como se ve un malabar. Y
+      // quien las lanza mira hacia arriba, a ellas.
+      const colores = [0xFFC1543C, 0xFFD9B43C, 0xFF4F7FA8];
+      for (var k = 0; k < 3; k++) {
+        final c = beat * 0.32 + k / 3;
+        final f = c - c.floorToDouble();
+        // Dos tercios de la vuelta en el aire, un tercio en las manos.
+        final double bx, by;
+        if (f < 0.68) {
+          final u = f / 0.68;
+          bx = -0.17 + 0.34 * u;
+          by = 0.52 + 0.64 * 4 * u * (1 - u);
+        } else {
+          final u = (f - 0.68) / 0.32;
+          bx = 0.17 - 0.34 * u;
+          by = 0.50 - 0.06 * math.sin(math.pi * u);
+        }
+        final x = bx + wag, y = piso + by + bob, z = 0.34 + lean;
+        box(
+          x - 0.050,
+          y - 0.050,
+          z - 0.050,
+          x + 0.050,
+          y + 0.050,
+          z + 0.050,
+          colores[k],
+          1.06,
+        );
+      }
+
+    case PropKind.drum:
+      // El tambor colgado delante de la tripa, con la piel clara arriba, y
+      // las dos baquetas bajando una y otra. La caja roja y los aros oscuros
+      // son lo que lo separa de un cubo.
+      final y0 = piso + 0.22 + bob, y1 = y0 + 0.20;
+      const z0 = 0.16, z1 = 0.40;
+      box(-0.130, y0, z0, 0.130, y1, z1, 0xFFA34A30, 0.95);
+      for (final ay in [y0 - 0.005, y1 - 0.030]) {
+        box(
+          -0.142,
+          ay,
+          z0 - 0.012,
+          0.142,
+          ay + 0.035,
+          z1 + 0.012,
+          0xFF5A3A24,
+          0.90,
+        );
+      }
+      box(
+        -0.118,
+        y1,
+        z0 + 0.012,
+        0.118,
+        y1 + 0.014,
+        z1 - 0.012,
+        0xFFEADCB8,
+        1.08,
+      );
+      for (final s in [1.0, -1.0]) {
+        final alza = 0.5 + 0.5 * math.cos(beat + (s > 0 ? 0 : math.pi));
+        final punta = (s * 0.055, y1 + 0.020 + alza * 0.20, 0.29);
+        final mano = (s * 0.215, y1 + 0.110 + alza * 0.14, 0.20);
+        link(mano, punta, 0.015, 0xFFD8C08A, 1.0);
+        box(
+          punta.$1 - 0.020,
+          punta.$2 - 0.020,
+          punta.$3 - 0.020,
+          punta.$1 + 0.020,
+          punta.$2 + 0.020,
+          punta.$3 + 0.020,
+          0xFFEADCB8,
+          1.04,
+        );
+      }
+
+    case PropKind.rope:
+      // La comba: la cuerda da la vuelta entera alrededor de quien salta, por
+      // encima de la cabeza y por debajo de los pies, y el salto va con ella.
+      // Da dos vueltas por cada vuelta de [beat] porque el cuerpo salta dos
+      // veces en ella (sube con el valor absoluto), y así cada salto cae
+      // justo cuando la cuerda pasa por el suelo.
+      final giro = 2 * beat;
+      final cy = piso + 0.52 + bob;
+      const r = 0.56, ancho = 0.36;
+      // Ancha y plana por abajo, no en pico: con un arco de seno la cuerda
+      // sólo libraba los pies en el centro, y a los lados le atravesaba el
+      // cuerpo.
+      (double, double, double) punto(double u) {
+        final s = math.pow(math.sin(math.pi * u), 0.35).toDouble();
+        return (
+          -ancho + 2 * ancho * u,
+          cy + r * s * math.cos(giro),
+          r * s * math.sin(giro),
+        );
+      }
+
+      const tramos = 10;
+      for (var i = 0; i < tramos; i++) {
+        link(
+          punto(i / tramos),
+          punto((i + 1) / tramos),
+          0.013,
+          0xFFE2D3A4,
+          1.04,
+        );
+      }
+      // Las empuñaduras, que es donde se ve que la cuerda la lleva alguien.
+      for (final s in [1.0, -1.0]) {
+        box(
+          s * ancho - 0.024,
+          cy - 0.070,
+          -0.024,
+          s * ancho + 0.024,
+          cy + 0.020,
+          0.024,
+          0xFF9A5A34,
+          0.96,
+        );
+      }
+
+    case PropKind.axe:
+      // El tocón, el leño de pie encima y el hacha. Lo que se lee es el
+      // hacha **por encima de la cabeza** y cayendo de golpe: sube despacio,
+      // baja en un cuarto del tiempo y se queda clavada un momento. El pico
+      // de piedra golpea abajo y a compás; esto es otro gesto.
+      const cz = 0.66;
+      box(-0.13, 0.0, cz - 0.13, 0.13, 0.16, cz + 0.13, 0xFF6A4A2E, 0.86);
+      box(
+        -0.115,
+        0.160,
+        cz - 0.115,
+        0.115,
+        0.172,
+        cz + 0.115,
+        0xFFD8B47A,
+        1.02,
+      );
+      box(
+        -0.050,
+        0.172,
+        cz - 0.055,
+        0.050,
+        0.330,
+        cz + 0.055,
+        0xFFC09A62,
+        0.97,
+      );
+      final u = beat / (2 * math.pi) - (beat / (2 * math.pi)).floorToDouble();
+      // Cuánto está arriba: cae de golpe hasta el cuarto de vuelta, que es
+      // cuando el cuerpo se dobla, y vuelve a subir despacio.
+      final arriba = u < 0.25
+          ? 1 - (u / 0.25) * (u / 0.25)
+          : smoothstep(0.32, 0.95, u);
+      final a = 1.82 + (-0.05 - 1.82) * arriba;
+      final mano = (0.0, piso + 0.42 + 0.38 * arriba + bob, 0.31 + lean);
+      final d = (math.cos(a), math.sin(a));
+      final filo = (-math.sin(a), math.cos(a));
+      final cabo = (0.0, mano.$2 + d.$1 * 0.36, mano.$3 + d.$2 * 0.36);
+      link(mano, cabo, 0.015, _wood2, 0.95);
+      // La hoja: una chapa plana, fina de lado y ancha a lo largo del mango,
+      // que es lo que la hace hacha y no martillo.
+      for (var k = -2; k <= 2; k++) {
+        final o = k * 0.016;
+        final largo = 0.12 - k.abs() * 0.012;
+        final y = cabo.$2 - d.$1 * (0.02 - o), z = cabo.$3 - d.$2 * (0.02 - o);
+        link(
+          (0.0, y - filo.$1 * 0.03, z - filo.$2 * 0.03),
+          (0.0, y + filo.$1 * largo, z + filo.$2 * largo),
+          0.010,
+          0xFFB9BDC0,
+          1.06,
+        );
+      }
+
+    case PropKind.hens:
+      // Tres gallinas alrededor, cada una mirando a un lado y picoteando a su
+      // ritmo, y el grano cayendo de la mano. Lo que las hace gallinas y no
+      // cajitas es la cresta roja y la cola levantada.
+      const gallinas = [
+        (-0.44, 0.40, 1.0, 0.0, 0xFFEDE6D6),
+        (0.42, 0.56, -1.0, 0.0, 0xFFA0603A),
+        (-0.04, 0.80, 0.0, -1.0, 0xFFC08A4A),
+      ];
+      for (var k = 0; k < gallinas.length; k++) {
+        final (cx, cz, dx, dz, pluma) = gallinas[k];
+        void parte(
+          double f0,
+          double y0,
+          double l0,
+          double f1,
+          double y1,
+          double l1,
+          int tint,
+          double ao,
+        ) {
+          final xa = cx + f0 * dx + l0 * dz, xb = cx + f1 * dx + l1 * dz;
+          final za = cz + f0 * dz - l0 * dx, zb = cz + f1 * dz - l1 * dx;
+          box(
+            math.min(xa, xb),
+            y0,
+            math.min(za, zb),
+            math.max(xa, xb),
+            y1,
+            math.max(za, zb),
+            tint,
+            ao,
+          );
+        }
+
+        parte(-0.10, 0.05, -0.065, 0.08, 0.17, 0.065, pluma, 1.0);
+        parte(-0.15, 0.12, -0.035, -0.08, 0.23, 0.035, pluma, 0.94);
+        for (final l in [-0.030, 0.030]) {
+          parte(
+            -0.012,
+            0.0,
+            l - 0.009,
+            0.012,
+            0.05,
+            l + 0.009,
+            0xFFD9A040,
+            0.95,
+          );
+        }
+        // Picotea: la cabeza baja al suelo de vez en cuando, cada una a su
+        // aire.
+        final pica = math
+            .pow(math.max(0.0, math.sin(ph * 2.6 + k * 2.1)), 3)
+            .toDouble();
+        final hf = 0.07 + pica * 0.05, hy = 0.17 - pica * 0.14;
+        parte(hf, hy, -0.032, hf + 0.065, hy + 0.070, 0.032, pluma, 1.02);
+        parte(
+          hf + 0.010,
+          hy + 0.070,
+          -0.010,
+          hf + 0.050,
+          hy + 0.098,
+          0.010,
+          0xFFC0392B,
+          1.04,
+        );
+        parte(
+          hf + 0.065,
+          hy + 0.022,
+          -0.012,
+          hf + 0.095,
+          hy + 0.044,
+          0.012,
+          0xFFE0A030,
+          1.04,
+        );
+      }
+      // El grano, cayendo de la mano en un chorrito.
+      final m = hold(1, 0.40, 0.12);
+      for (var k = 0; k < 3; k++) {
+        final c = ph * 1.3 + k / 3;
+        final f = c - c.floorToDouble();
+        final gy = m.$2 * (1 - f);
+        final gx = m.$1 + 0.04 + f * 0.10 + (k - 1) * 0.02;
+        final gz = m.$3 + 0.04 + f * 0.08;
+        box(
+          gx - 0.014,
+          gy - 0.014,
+          gz - 0.014,
+          gx + 0.014,
+          gy + 0.014,
+          gz + 0.014,
+          0xFFE8D27A,
+          1.08,
+        );
+      }
+
+    case PropKind.boat:
+      // De rodillas al borde del agua, con un barco de papel meciéndose y
+      // una ramita para empujarlo. El charco va dibujado porque al lado del
+      // pozo o de la fuente no siempre hay agua a los pies, y sin él el
+      // barco estaría navegando por la hierba. De tres manchas que se pisan,
+      // para que tenga borde de charco y no de mantel.
+      const agua = 0xFF4F86AE;
+      box(-0.30, 0.0, 0.34, 0.30, 0.012, 0.86, agua, 1.0);
+      box(-0.40, 0.0, 0.44, 0.38, 0.012, 0.76, agua, 1.0);
+      box(-0.20, 0.0, 0.28, 0.18, 0.012, 0.94, agua, 1.0);
+      box(-0.22, 0.012, 0.44, 0.02, 0.015, 0.48, 0xFF8FB8D2, 1.06);
+      final bx = math.sin(ph * 0.45) * 0.08;
+      final by = 0.014 + (0.5 + 0.5 * math.sin(ph * 1.9)) * 0.015;
+      const bz = 0.62;
+      const papel = 0xFFF4F0E4;
+      box(
+        bx - 0.105,
+        by,
+        bz - 0.050,
+        bx + 0.105,
+        by + 0.045,
+        bz + 0.050,
+        papel,
+        1.02,
+      );
+      box(
+        bx - 0.165,
+        by + 0.045,
+        bz - 0.066,
+        bx + 0.165,
+        by + 0.085,
+        bz + 0.066,
+        papel,
+        1.06,
+      );
+      box(
+        bx - 0.072,
+        by + 0.085,
+        bz - 0.016,
+        bx + 0.072,
+        by + 0.180,
+        bz + 0.016,
+        papel,
+        1.10,
+      );
+      box(
+        bx - 0.030,
+        by + 0.180,
+        bz - 0.014,
+        bx + 0.030,
+        by + 0.255,
+        bz + 0.014,
+        papel,
+        1.10,
+      );
+      final m = hold(1, 0.40, 0.08);
+      link(m, (bx + 0.19, by + 0.06, bz - 0.04), 0.009, 0xFF7A5A38, 0.94);
+
+    case PropKind.barrow:
+      // La carretilla delante: el cajón con piedras, la rueda al frente y
+      // las dos varas hasta las manos. Empujar es ir y venir un poco y
+      // levantar las patas del suelo; la rueda no se mueve de sitio.
+      final empuja = swing * 0.030;
+      final alza = math.max(0.0, swing) * 0.035;
+      final z0 = 0.44 + empuja, z1 = 0.86 + empuja;
+      final y0 = 0.20 + alza, y1 = 0.36 + alza;
+      box(-0.20, y0, z0, 0.20, y1, z1, 0xFF8A6A42, 0.92);
+      box(
+        -0.17,
+        y1 - 0.02,
+        z0 + 0.03,
+        0.17,
+        y1 + 0.002,
+        z1 - 0.03,
+        0xFF4E3B28,
+        0.84,
+      );
+      const piedras = [
+        (-0.08, 0.58, 0.075, 0xFFB9B2A2),
+        (0.07, 0.66, 0.065, 0xFFA79F8D),
+        (-0.02, 0.76, 0.060, 0xFFC4BDAE),
+      ];
+      for (final (px, pz, r, tinte) in piedras) {
+        box(
+          px - r,
+          y1,
+          pz + empuja - r,
+          px + r,
+          y1 + r * 1.1,
+          pz + empuja + r,
+          tinte,
+          0.96,
+        );
+      }
+      // La rueda, debajo del frente del cajón y tocándolo: suelta delante se
+      // leía como una caja más. Dos cajas cruzadas, que a este tamaño ya es
+      // algo redondo, y el eje en medio.
+      final rz = z1 - 0.05;
+      box(-0.026, 0.0, rz - 0.060, 0.026, 0.20, rz + 0.060, 0xFF3E2E20, 0.86);
+      box(-0.026, 0.040, rz - 0.100, 0.026, 0.16, rz + 0.100, 0xFF3E2E20, 0.86);
+      box(-0.045, 0.085, rz - 0.018, 0.045, 0.115, rz + 0.018, _wood2, 0.9);
+      for (final s in [1.0, -1.0]) {
+        box(
+          s * 0.15 - 0.022,
+          alza,
+          z0 + 0.02,
+          s * 0.15 + 0.022,
+          y0,
+          z0 + 0.06,
+          _wood2,
+          0.86,
+        );
+        link(
+          (s * 0.20, piso + 0.40 + bob + alza, 0.22),
+          (s * 0.17, y1 - 0.04, z0 + 0.02),
+          0.016,
+          _wood2,
+          0.94,
+        );
+      }
+
+    case PropKind.crook:
+      // El cayado de pie al costado, con la vuelta arriba que lo hace
+      // cayado y no bastón, y dos ovejas paciendo. Las ovejas son lo que
+      // cuenta qué hace: sin ellas es alguien con un palo.
+      final vaiven = swing * 0.02;
+      const cx = 0.28, cz = 0.20;
+      final arriba = (cx + vaiven, 1.15, cz);
+      link((cx, 0.0, cz), arriba, 0.016, _wood2, 0.94);
+      final c1 = (cx + vaiven, 1.25, cz + 0.06);
+      final c2 = (cx + vaiven, 1.23, cz + 0.14);
+      final c3 = (cx + vaiven, 1.14, cz + 0.155);
+      link(arriba, c1, 0.016, _wood2, 0.94);
+      link(c1, c2, 0.016, _wood2, 0.94);
+      link(c2, c3, 0.016, _wood2, 0.94);
+      const ovejas = [(-0.66, 0.58, 0.0, 1.0), (0.62, 0.98, -1.0, 0.0)];
+      for (var k = 0; k < ovejas.length; k++) {
+        final (ox, oz, dx, dz) = ovejas[k];
+        void parte(
+          double f0,
+          double y0,
+          double l0,
+          double f1,
+          double y1,
+          double l1,
+          int tint,
+          double ao,
+        ) {
+          final xa = ox + f0 * dx + l0 * dz, xb = ox + f1 * dx + l1 * dz;
+          final za = oz + f0 * dz - l0 * dx, zb = oz + f1 * dz - l1 * dx;
+          box(
+            math.min(xa, xb),
+            y0,
+            math.min(za, zb),
+            math.max(xa, xb),
+            y1,
+            math.max(za, zb),
+            tint,
+            ao,
+          );
+        }
+
+        parte(-0.19, 0.10, -0.115, 0.14, 0.31, 0.115, 0xFFEFEADF, 1.02);
+        for (final f in [-0.13, 0.08]) {
+          for (final l in [-0.065, 0.065]) {
+            parte(
+              f - 0.022,
+              0.0,
+              l - 0.022,
+              f + 0.022,
+              0.11,
+              l + 0.022,
+              0xFF3A332C,
+              0.90,
+            );
+          }
+        }
+        // Pace: la cabeza casi siempre abajo, y de tanto en tanto la levanta.
+        final mira = math
+            .pow(math.max(0.0, math.sin(ph * 0.5 + k * 2.4)), 4)
+            .toDouble();
+        final hf = 0.15 - mira * 0.02, hy = 0.04 + mira * 0.18;
+        parte(hf, hy, -0.055, hf + 0.11, hy + 0.10, 0.055, 0xFF3A332C, 0.96);
+        parte(
+          hf + 0.005,
+          hy + 0.07,
+          -0.085,
+          hf + 0.04,
+          hy + 0.10,
+          0.085,
+          0xFF3A332C,
+          0.92,
+        );
+      }
+
+    case PropKind.flowers:
+      // En cuclillas cogiendo flores: las que quedan delante, en el suelo, y
+      // el cesto al lado lleno de las ya cogidas. Una va y viene en la mano,
+      // del suelo al cesto, al compás con que se agacha.
+      const cesto = 0xFFB08850;
+      box(-0.52, 0.0, 0.06, -0.28, 0.14, 0.30, cesto, 0.92);
+      box(-0.535, 0.12, 0.045, -0.265, 0.155, 0.315, 0xFF8A6A3A, 0.94);
+      link((-0.40, 0.15, 0.07), (-0.40, 0.31, 0.18), 0.010, 0xFF8A6A3A, 0.94);
+      link((-0.40, 0.31, 0.18), (-0.40, 0.15, 0.29), 0.010, 0xFF8A6A3A, 0.94);
+      const tintes = [0xFFD8505A, 0xFFE8C341, 0xFFB57BC4, 0xFFF2EEE4];
+      const enCesto = [
+        (-0.47, 0.11),
+        (-0.34, 0.12),
+        (-0.45, 0.24),
+        (-0.33, 0.24),
+      ];
+      for (var k = 0; k < enCesto.length; k++) {
+        final (fx, fz) = enCesto[k];
+        box(
+          fx - 0.035,
+          0.150,
+          fz - 0.035,
+          fx + 0.035,
+          0.205,
+          fz + 0.035,
+          tintes[k],
+          1.06,
+        );
+      }
+      const enSuelo = [(0.06, 0.50), (-0.14, 0.64), (0.24, 0.62), (0.08, 0.80)];
+      for (var k = 0; k < enSuelo.length; k++) {
+        final (fx, fz) = enSuelo[k];
+        link((fx, 0.0, fz), (fx, 0.12, fz), 0.008, 0xFF5E8A3E, 0.94);
+        box(
+          fx - 0.038,
+          0.12,
+          fz - 0.038,
+          fx + 0.038,
+          0.175,
+          fz + 0.038,
+          tintes[(k + 1) % tintes.length],
+          1.06,
+        );
+      }
+      final coge = math.max(0.0, swing);
+      final p = (
+        -0.30 + 0.38 * coge,
+        piso + 0.30 + bob - baja + (1 - coge) * 0.0 - coge * 0.08,
+        0.24 + 0.22 * coge,
+      );
+      link(p, (p.$1, p.$2 + 0.10, p.$3), 0.008, 0xFF5E8A3E, 0.94);
+      box(
+        p.$1 - 0.032,
+        p.$2 + 0.10,
+        p.$3 - 0.032,
+        p.$1 + 0.032,
+        p.$2 + 0.15,
+        p.$3 + 0.032,
+        tintes[0],
+        1.08,
+      );
 
     case PropKind.stool:
       // Una banqueta de tres patas. El asiento a la altura a la que la tabla

@@ -18,4 +18,13 @@ const Map<String, String> doingsEn = {
   'cometa': 'flies a kite',
   'leer': 'reads',
   'nubes': 'lies down to watch the clouds',
+  'malabares': 'juggles',
+  'tambor': 'plays the drum',
+  'comba': 'skips rope',
+  'lena': 'chops firewood',
+  'gallinas': 'feeds the hens',
+  'barquito': 'floats a paper boat',
+  'carretilla': 'pushes the wheelbarrow',
+  'pastorear': 'minds the sheep',
+  'flores': 'picks flowers',
 };
