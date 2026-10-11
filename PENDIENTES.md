@@ -1,135 +1,371 @@
 # Pendientes
 
-Lo que está empezado, lo que está medido y lo que está decidido a medias, para
-que no se pierda entre sesiones. Cada cosa dice **en qué punto está** y **qué
-hace falta para seguir**.
+**Ahora no se agregan cosas: se consolida lo que hay.** Para cada cosa,
+«terminada» quiere decir que **una persona la miró en la app y dijo que sí**.
+Que pase los tests o que la haya revisado Claude no alcanza.
+
+Cada colección dice:
+- qué hay hoy;
+- dónde se mira;
+- con qué criterio se aprueba;
+- qué falta.
+
+Lo que no pasa la revisión **se borra**, no se arregla de a poco. Se puede
+volver a hacer después, ya entera.
+
+Marcas: `[ ]` sin revisar · `[x]` aprobada por una persona · ~~tachada~~
+para borrar.
 
 ---
 
-## 1. Que la app hable otros idiomas
+## 1. Animaciones de la gente
 
-**Hecho: castellano e inglés, la app entera.** Las dos decisiones que estaban
-abiertas se tomaron así:
+**Hay 23 actividades**, más andar y quedarse mirando, en
+`lib/data/doings.dart`. Cada una tiene su objeto en `lib/engine/folk_body.dart`.
 
-1. **Los bandos**: todos, los 436, en el mismo orden. Los nombres propios que
-   salen en ellos se quedan, salvo «Tomás», que pasa a «Tom» porque la tilde
-   es castellano en mitad de una frase inglesa.
-2. **Los nombres de la gente**: el de pila se queda —es un pueblo castellano—
-   y lo que va detrás se traduce: «Andrés el Herrero» es «Andrés the Smith».
+**Dónde se miran:** Ajustes → *El expositor de la gente*. Se ven de cerca,
+dando la vuelta, con edad y región elegibles.
 
+**Criterio:**
+- Se entiende qué hace **sin leer el nombre**.
+- No es otra actividad con otro nombre.
+- El objeto es ese objeto y no un palo.
+- Tiene sentido en ese sitio.
 
-**Para un tercer idioma**: `Lang` en `lib/l10n/lang.dart` tiene los dos;
-`tr()` pasaría a tomar uno por idioma, y cada `en_*.dart` tendría su hermano.
-El inventario de lo que hay que traducir sigue siendo `TEXTOS.md`.
+**Pendiente:** revisar las 23 y quitar las malas. Las nueve últimas, marcadas
+*(nueva)*, no las miró nadie todavía.
+
+- **Puerta**
+  - [ ] barrer — barre el umbral
+  - [ ] sentarse — se sienta en una banqueta
+  - [ ] tender — tiende la ropa
+  - [ ] lena — parte leña *(nueva)*
+  - [ ] gallinas — echa de comer a las gallinas *(nueva)*
+- **Plaza**
+  - [ ] laud — toca el laúd
+  - [ ] puesto — atiende el puesto
+  - [ ] malabares — hace malabares *(nueva)*
+  - [ ] tambor — toca el tambor *(nueva)*
+  - [ ] comba — salta a la comba *(nueva, críos)*
+- **Agua**
+  - [ ] pozo — saca agua
+  - [ ] lavar — lava la ropa
+  - [ ] pescar — pesca
+  - [ ] barquito — echa un barco de papel *(nueva, críos)*
+- **Obra**
+  - [ ] cantero — pica piedra
+  - [ ] serrar — sierra un madero
+  - [ ] carretilla — empuja la carretilla *(nueva)*
+- **Prado**
+  - [ ] segar — siega
+  - [ ] cometa — vuela una cometa
+  - [ ] leer — lee
+  - [ ] nubes — se tumba a mirar las nubes
+  - [ ] pastorear — cuida las ovejas *(nueva)*
+  - [ ] flores — coge flores *(nueva)*
+- **Sin sitio**
+  - [ ] andar
+  - [ ] quieto — se queda mirando
+  - [ ] volver a casa al caer la tarde
+
+**Y la persona en sí:**
+- [ ] La figura: proporciones, ropa, pelo, críos frente a mayores.
+- [ ] Seguir a alguien al tocarlo: el zoom, la ficha con nombre, oficio, fecha
+  y casa, y que haga más cosas mientras se lo sigue.
 
 ---
 
-## 2. La nube (Supabase)
+## 2. Estructuras
 
-**Hecho: todo listo menos el enchufe.** Las tablas están en
-`supabase/migrations/` (probadas contra un Postgres 16 con el esquema `auth` de
-Supabase simulado: se crean, aceptan las filas de la app, cada usuario ve sólo
-lo suyo y borrar un hábito se lleva sus piezas). El traductor está en
-`lib/sync/tables.dart` y la interfaz en `lib/sync/remote.dart`.
+**Hay 60 hitos** en `lib/data/landmarks.dart`:
+- 12 chicos;
+- 24 medianos;
+- 24 grandes.
 
-**Decidido y hecho** (falta sólo el enchufe):
+**Y 7 clases de casa:** cobertizo, casita, taller, casa, granero, casona y
+posada.
 
-- **Se sube cada cambio**: una pieza, un papel movido en el tablón, un ajuste.
-  `LocalChanges` (`lib/model/changes.dart`) apunta cuándo cambió algo y
-  `CloudSync` (`lib/sync/remote.dart`) lo sube con dos segundos de pausa, para
-  no subir diez veces lo mismo. Sube **sólo lo que cambió** desde lo último
-  que quedó en la nube: una pieza en un valle de trescientas son dos filas.
-  Sin conexión queda pendiente.
-- **Al entrar, si no coinciden** (`lib/sync/merge.dart`): si sólo cambió el
-  teléfono se sube —el caso de usarla sin conexión—; si sólo cambió la nube se
-  baja; si cambiaron los dos gana el cambio más reciente. Un teléfono vacío
-  nunca pisa una nube con piezas, y la copia que pierde se guarda en el
-  teléfono (`pueblo_respaldo_v1`). Abrir la app no cuenta como cambio.
-- **Los ajustes de desarrollo no viajan** (hora y estación fingidas):
-  `localOnlyPrefs` en `lib/sync/tables.dart`.
+**Dónde se miran:** Ajustes → *El expositor*. Se ve cada una sola, dando la
+vuelta y **subiendo pieza a pieza**.
 
-**Para conectarlo, con Google** (el botón de Google, elegir cuenta y listo):
+**Criterio:**
+- Se reconoce qué es.
+- No se parece a otra.
+- Ninguna pieza flota ni atraviesa otra mientras sube.
+- Se ve bien en las ocho comarcas.
 
+**Pendiente:** revisar los 60 y las 7 casas, y quitar lo que no se distinga.
+Sesenta que se distinguen valen más que sesenta con diez repetidas.
+
+**Hitos chicos**
+- [ ] Pozo del concejo
+- [ ] Cruz de término
+- [ ] Palomar
+- [ ] Colmenar
+- [ ] Huerto del cura
+- [ ] Pajar
+- [ ] Corral
+- [ ] Gallinero
+- [ ] Alfarería
+- [ ] Camposanto
+- [ ] Atalaya
+- [ ] Almenara
+
+**Hitos medianos**
+- [ ] Molino de viento
+- [ ] Almazara y olivar
+- [ ] Cervecería
+- [ ] Mercado cubierto
+- [ ] Salinas
+- [ ] Casa de la moneda
+- [ ] Gremio de tejedores
+- [ ] Hospital de peregrinos
+- [ ] Botica
+- [ ] Escuela de gramática
+- [ ] Escribanía
+- [ ] Capilla
+- [ ] Campanario exento
+- [ ] Claustro
+- [ ] Refectorio
+- [ ] Bodega
+- [ ] Silos de grano
+- [ ] Faro
+- [ ] Herrería mayor
+- [ ] Campo de la horca
+- [ ] Palenque de torneos
+- [ ] Huerto de los monjes
+- [ ] Viñedo del cabildo
+- [ ] Colmenar mayor
+
+**Hitos grandes**
+- [ ] Castillo
+- [ ] Torre del homenaje
+- [ ] Puerta de la villa
+- [ ] Lienzo de muralla
+- [ ] Alcázar
+- [ ] Palacio del señor
+- [ ] Casa del concejo
+- [ ] Lonja de mercaderes
+- [ ] Iglesia
+- [ ] Catedral
+- [ ] Monasterio
+- [ ] Abadía
+- [ ] Colegiata
+- [ ] Sinagoga
+- [ ] Mezquita
+- [ ] Baptisterio
+- [ ] Hospital mayor
+- [ ] Universidad
+- [ ] Biblioteca
+- [ ] Corral de misterios
+- [ ] Coso y graderío
+- [ ] Jardín del palacio
+- [ ] Arco de la villa
+- [ ] Panteón de los fundadores
+
+**Casas**
+- [ ] Cobertizo
+- [ ] Casita
+- [ ] Taller
+- [ ] Casa
+- [ ] Granero
+- [ ] Casona
+- [ ] Posada
+- [ ] Techos de paja: cuáles los llevan y si se leen como paja.
+
+**Y cómo crece un pueblo**, que no es ninguna pieza suelta:
+- [ ] Calles, plaza y tablón: que el trazado tenga sentido a las 50, 300 y
+  1000 piezas.
+- [ ] Que nada quede tapado ni metido dentro de otra cosa desde ningún ángulo.
+
+---
+
+## 3. Comarcas
+
+**Hay 8** en `lib/data/character.dart`: Ribera, Sierra, Marca, Valle, Costa,
+Robledal, Encrucijada y Alfar. Cada una cambia la altura de las casas, los
+techos, los colores y la talla de la gente.
+
+**Dónde se miran:** en el selector de comarca al fundar, con la vista previa
+de 100 piezas, y en el expositor cambiando de región.
+
+**Criterio:**
+- Se distinguen entre sí de lejos.
+- El texto de «para qué hábitos» tiene que ver con cómo se ve.
+
+**Pendiente:**
+- [ ] Ribera
+- [ ] Sierra
+- [ ] Marca
+- [ ] Valle
+- [ ] Costa
+- [ ] Robledal
+- [ ] Encrucijada
+- [ ] Alfar
+
+---
+
+## 4. El paisaje y el cielo
+
+**Qué hay:**
+- montañas, suelo y estaciones (nieve, colores del año);
+- día y noche con su luz;
+- nubes;
+- 9 constelaciones (`lib/data/constellations.dart`), que muestran su nombre
+  al tocarlas;
+- estrellas fugaces, siempre por detrás de las montañas.
+
+**Dónde se mira:** en la app, con la hora y la estación fingidas de Ajustes →
+Desarrollo.
+
+**Pendiente:**
+- [ ] Un día entero, de amanecer a noche: que la luz no salte.
+- [ ] Las cuatro estaciones, sobre todo la nieve: pegada al suelo y quieta.
+- [ ] Las 9 constelaciones: que se reconozca la figura y el nombre quede
+  encima.
+- [ ] Estrellas fugaces: cuántas salen y por dónde pasan.
+- [ ] La vista del valle entero con varios pueblos, y el vuelo entre ellos.
+
+---
+
+## 5. Símbolos de hábito
+
+**Hay 72** en `lib/data/symbols.dart`. Se dibujan en la barra de hábitos, en
+el cartel del pueblo y en el tablón.
+
+**Criterio:**
+- Se reconoce qué es en chico.
+- Ninguno se confunde con otro.
+
+**Pendiente:** [ ] mirar los 72 juntos y quitar los que no se entiendan.
+
+---
+
+## 6. Textos
+
+Todos los textos de la app, en castellano y en inglés, están en `TEXTOS.md`.
+Se regenera con `flutter test tool/textos_test.dart` seguido de
+`python3 tool/textos.py`. Desde ahí se revisan sin abrir el código.
+
+**Criterio:**
+- Suena a pueblo y no a app.
+- No reprocha nada.
+- No se repite.
+- La versión inglesa dice lo mismo y no una traducción literal.
+
+**Pendiente:**
+- [ ] **Bandos del tablón**: 436 en castellano y 436 en inglés
+  (`lib/data/bandos.dart`). Marcar los malos para borrar. No hace falta que
+  queden todos.
+- [ ] **Descripciones de los 60 hitos**: reescritas para que inspiren y sin
+  humor. Falta que alguien las apruebe.
+- [ ] **Nombres y oficios de la gente** (`lib/data/folknames.dart`): que los
+  oficios tengan sentido con la casa en que viven.
+- [ ] **Lo que dice el tablón sobre tus hábitos**: rachas, obras en marcha y
+  crónica.
+- [ ] **Avisos** (`lib/fx/notifier.dart`): que ninguno pida atención ni
+  culpe.
+- [ ] **Interfaz**: hojas, botones, ajustes y la primera vez que se abre.
+- [ ] **Letras del tablón**: hay 24 tipografías de mano
+  (`lib/ui/note_font.dart`). Quitar las que no se lean.
+
+**Idiomas:** castellano e inglés están hechos, toda la app. Para un tercero,
+`Lang` en `lib/l10n/lang.dart` y un `en_*.dart` hermano por catálogo. No se
+hace ahora.
+
+---
+
+## 7. Sonido
+
+**Qué hay** (en `assets/sfx/`; el catálogo está en `lib/fx/sensory.dart`):
+- **2 músicas de fondo**: Tarde y Sendero (`lib/data/tunes.dart`). Cada una
+  son tres capas que se mezclan según la hora.
+- **2 piezas sueltas**: la del recuerdo (`mus_cronica`) y la de volver a la
+  app (`mus_regreso`).
+- **7 sonidos**: poner una pieza, toque, reparar, obra terminada, hito del
+  pueblo, estrella fugaz y constelación.
+
+**Pendiente:**
+- [ ] Escucharlos todos en el teléfono.
+- [ ] Que ninguno moleste a la décima vez.
+- [ ] Que las capas de cada música no salten al cambiar la hora.
+
+---
+
+## 8. Lo que no se ve
+
+### Rendimiento en el teléfono
+
+Todo lo medido hasta ahora es de una máquina de escritorio. Fotograma:
+- de 12,0 a 4,3 ms con 200 piezas;
+- de 40,2 a 14,8 ms con 1500 piezas.
+
+- [ ] **Un contador en Ajustes → Desarrollo**: fotograma medio, caras y
+  presupuesto. Sirve para medir en el teléfono de verdad.
+- [ ] **La notificación tarda unos 282 ms en el peor caso**: el 20 % de las
+  piezas recalculan el pueblo entero para decidir qué decir. Re-medirlo y, si
+  sigue, cortarlo: la notificación sólo necesita saber qué obra está en marcha.
+- [ ] **`ndkVersion`** en `android/app/build.gradle.kts`: no lo usa nada.
+  Quitarlo.
+
+### La nube (Supabase)
+
+**Hecho, menos el enchufe:**
+- las tablas (`supabase/migrations/`, probadas contra Postgres 16);
+- el traductor (`lib/sync/tables.dart`);
+- la sincronización (`lib/sync/remote.dart` y `merge.dart`). Sube cada cambio,
+  sólo lo nuevo; al entrar gana lo más reciente, y la copia que pierde queda
+  guardada en el teléfono. Los ajustes de desarrollo no viajan.
+
+**Para conectarlo, con Google:**
 1. Crear el proyecto en Supabase y correr la migración.
-2. En Google Cloud, crear un cliente OAuth (tipo *Web*) y pegar su id y su
-   secreto en Supabase → Authentication → Providers → Google. Para Android hará
-   falta además un cliente *Android* con la huella SHA-1 de la firma.
-3. Pasar a la app la URL del proyecto y la clave pública (`anon`). No son
-   secretas, pero tampoco van al repositorio: por `--dart-define`.
-4. Agregar `supabase_flutter`, el botón de entrar en Ajustes, y una clase que
-   implemente `Remote`: `apply` hace `upsert` de las filas y `delete` de las
-   claves que le llegan, tabla por tabla en el orden de `Tables.all` (los
-   borrados al revés); `pull` hace `select` de cada una. Al entrar,
-   `CloudSync.connect()`, y desde ahí sube solo.
+2. En Google Cloud, crear un cliente OAuth tipo *Web*. Pegar su id y su secreto
+   en Supabase → Authentication → Providers → Google. Para Android hace falta
+   además un cliente *Android* con la huella SHA-1 de la firma.
+3. Pasar a la app la URL y la clave `anon` por `--dart-define`, nunca en el
+   repositorio.
+4. Agregar `supabase_flutter`, el botón de entrar en Ajustes y una clase que
+   implemente `Remote`:
+   - `apply`: `upsert` y `delete` tabla por tabla en el orden de `Tables.all`
+     (los borrados al revés);
+   - `pull`: `select` de cada tabla.
+
+   Al entrar se llama a `CloudSync.connect()`, y desde ahí sube solo.
 
 ---
 
-## 3. Deuda medida
+## 9. Decisiones abiertas
 
-### Lo que queda del render
+- **¿Los cobertizos y graneros siguen trayendo vecinos?** Hoy los traen todas
+  las casas, y los hitos no traen ninguno. El padrón no se reescribe nunca, así
+  que cambiarlo valdría sólo de aquí en adelante.
+- **El aviso a la hora del plan** (`Habit.vowHour`): hay que decidir qué pasa
+  con quien no escribió hora, y con el hábito que se hace a otra hora que la
+  prometida.
+- **Lo que no se va a hacer**, y conviene que siga escrito:
+  - rachas que castiguen;
+  - medallas encima del pueblo;
+  - comparación con otra gente;
+  - notificaciones que pidan atención;
+  - cobrar por el catálogo.
 
-Hecho ya: tirar lo que no toca la pantalla, un presupuesto que recorta por
-tamaño en pantalla en vez de por distancia —y que lo que no cabe entero lo
-pinta en una versión simple, una caja con su tejado, en vez de no pintarlo—, no archivar las caras enterradas, y
-mandar todas las caras en una sola llamada de dibujo, y levantar el pueblo en
-otro hilo mientras se ve la pantalla de apertura (`ARCHITECTURE.md`). El
-fotograma pasó de 12,0 a 4,3 ms con doscientas piezas y de 40,2 a 14,8 con mil
-quinientas; y los 280 ms de levantarlo de cero ya no los paga la pantalla. Lo que sigue sobre la
-mesa, con lo medido al lado:
-
-- **Un contador en ajustes** con el fotograma medio, las caras y el presupuesto
-  de ahora mismo. Todo lo de arriba está medido en una máquina de escritorio;
-  lo que importa es lo que pasa en el teléfono.
-
-- **La notificación tarda ~282 ms en el peor caso.** El ~20% de las piezas
-  cambian la rejilla de calles y obligan a recalcular el pueblo entero para
-  decidir qué decir. Es lo único de la app que hace trabajo pesado fuera de un
-  fotograma. Hay que re-medirlo y, si sigue, cortarlo: la notificación no
-  necesita el pueblo, necesita saber qué obra está en marcha.
-- **`ndkVersion` en `android/app/build.gradle.kts`**: ningún plugin del
-  proyecto trae código nativo, así que no lo usa nada.
+  Cada una convierte «un registro de lo que hiciste» en «una app que te
+  vigila».
 
 ---
 
-## 4. Ideas que quedaron sobre la mesa
+## 10. Ideas congeladas
 
-En orden de lo que más daría por lo que menos cuesta. *(Fechar las obras, que
-encabezaba esta lista, ya está hecho: la tarjeta del día que se remata dice
-entre qué dos fechas se levantó.)*
+No se tocan hasta terminar todo lo de arriba. Quedan anotadas para que no se
+pierdan:
 
-1. **Volver a mirar un día.** En ajustes está «ver el pueblo a futuro». El
-   pasado vale más: tu pueblo el día que empezaste, hace un año, el día que
-   casi lo dejás. Es una vista, no un guardado.
-2. **La lámina.** Guardar o compartir una imagen del pueblo a la hora que
-   elijas. El render ya lo hace para el README.
-3. **El widget con el pueblo dentro.** Hoy cuenta piezas; el puente ya manda
-   un PNG por hábito, así que mandar un render chico del pueblo es más de lo
-   mismo.
-4. **Jubilar un hábito con dignidad.** Hay pausa y hay pueblo a la deriva.
-   Falta un final que no sea un fracaso: «este pueblo está terminado», se
-   queda en el valle como monumento, sin deterioro y sin culpa.
-5. **Accesibilidad.** No hay «menos movimiento» ni tamaño de letra. La cámara
-   deriva sola, las nubes corren, la gente camina.
-6. **Más maravillas.** La gramática está limpia y una obra nueva son quince
-   minutos — pero sesenta que se distinguen valen más que ochenta borrosas.
-   Mejor esperar a echar una de menos.
-7. **El aviso a la hora del plan.** Ahora que el plan guarda una hora de verdad
-   (`Habit.vowHour`), el recordatorio podría caer ahí en vez de a la hora que el
-   avisador deduce solo. Es lo único que falta para que el plan escrito haga
-   trabajo además de estar escrito, y es un cambio de una línea en
-   `fx/notifier.dart` — pero hay que decidir qué pasa con quien no escribió
-   ninguno y con el hábito que aparece a otra hora que la que prometió.
-8. **La identidad en la hoja que pregunta si seguimos.** Al desenganchate salen
-   el motivo y el mínimo. La frase de identidad —«este pueblo es de alguien que
-   lee todos los días»— es la que más pesa de las tres en ese momento exacto, y
-   hay que probar si pesa demasiado: en la hoja del abandono puede leerse como un
-   reproche, que es justo lo que esa hoja no puede ser.
-
----
-
-## 5. Decisiones abiertas
-
-- **Lo que no se va a hacer**, y conviene que siga escrito: rachas que
-  castiguen, medallas encima del pueblo, comparación con otra gente,
-  notificaciones que pidan atención, y cobrar por el catálogo. Cada una
-  convierte «un registro de lo que hiciste» en «una app que te vigila».
+- **Volver a mirar un día del pasado**: tu pueblo el día que empezaste. Es una
+  vista, no un guardado.
+- **La lámina**: guardar o compartir una imagen del pueblo a la hora que
+  elijas.
+- **El widget con el pueblo dentro**, en vez de sólo contar piezas.
+- **Jubilar un hábito con dignidad**: «este pueblo está terminado», sin
+  deterioro y sin culpa.
+- **Accesibilidad**: menos movimiento y tamaño de letra.
+- **La identidad en la hoja que pregunta si seguimos**: hay que probar antes
+  si se lee como reproche.
