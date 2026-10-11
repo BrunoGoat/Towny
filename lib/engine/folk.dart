@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 
-import '../core/math3.dart';
 import '../core/rng.dart';
 import '../data/doings.dart';
 import '../data/folknames.dart';
@@ -169,10 +168,11 @@ class Townsfolk {
   /// lado del pueblo desaparecía en cuanto salía de su paseo de siempre.
   ({double x, double z, double r}) get reach {
     final p = _trial;
-    if (p == null) return roam;
+    final h = _homing;
+    if (p == null && h == null) return roam;
     var x0 = roam.x - roam.r, x1 = roam.x + roam.r;
     var z0 = roam.z - roam.r, z1 = roam.z + roam.r;
-    for (final q in [...p.ida, ...p.vuelta]) {
+    for (final q in [...?p?.ida, ...?p?.vuelta, ...?h?.path]) {
       x0 = math.min(x0, q.$1 - 1.2);
       x1 = math.max(x1, q.$1 + 1.2);
       z0 = math.min(z0, q.$2 - 1.2);
@@ -359,6 +359,92 @@ class Townsfolk {
     return puede[k % puede.length];
   }
 
+  // ------------------------------------------------------------ a casa
+
+  /// Las calles del pueblo, para volver a casa rodeando lo construido. Nulo
+  /// en el expositor, que no tiene pueblo.
+  Streets? _calles;
+
+  /// Si ya se le vio alguna vez. Quien se ve por primera vez de noche ya
+  /// estaba en casa: no se le hace volver de ningún sitio.
+  bool _seen = false;
+
+  /// Si está dentro de su casa.
+  bool _inside = false;
+
+  /// La vuelta a casa de esta tarde, si va de camino: desde cuándo y por
+  /// dónde.
+  ({double t0, List<(double, double)> path})? _homing;
+
+  /// Cuándo salió de casa por la mañana, para verle salir por la puerta.
+  double? _outAt;
+
+  /// Lo que tarda en meterse por la puerta, o en salir de ella.
+  static const double _doorway = 0.8;
+
+  /// A qué altura de la tarde se va a casa: cada uno a la suya, para que se
+  /// vea a todo el pueblo yéndose poco a poco y no a la vez.
+  double get _bedtime => 0.06 + hash01(seed, 71) * 0.62;
+
+  /// Dónde está en el segundo [t] con la tarde en [homeward]. Ver
+  /// [folkWhere].
+  ({FolkAt at, double sink})? _evening(double t, double homeward) {
+    final first = !_seen;
+    _seen = true;
+    if (homeward >= _bedtime) {
+      if (_inside) return null;
+      // Si al abrir la app ya era su hora, o es noche cerrada, ya está en
+      // casa: no tiene sentido verlo volver de donde estuviera.
+      if (first || homeward >= 0.999) {
+        _inside = true;
+        _homing = null;
+        return null;
+      }
+      var h = _homing;
+      if (h == null) {
+        final now = at(t);
+        _trial = null;
+        final from = (now.x, now.z);
+        h = _homing = (
+          t0: t,
+          path: [from, ...?_calles?.route(from, door), door],
+        );
+      }
+      final s = t - h.t0;
+      final walk = _lengthOf(h.path) / pace;
+      if (s < walk) return (at: _walkAlong(h.path, s, seed), sink: 0.0);
+      final into = (s - walk) / _doorway;
+      if (into >= 1) {
+        _inside = true;
+        _homing = null;
+        return null;
+      }
+      return (
+        at: FolkAt(door.$1, door.$2, _facing.first, 0, false),
+        sink: into,
+      );
+    }
+    if (_inside || _homing != null) {
+      // Se hizo de día: sale de casa, y su ronda empieza en la puerta.
+      final estaba = _inside;
+      _inside = false;
+      _homing = null;
+      _resumeAtDoor(t);
+      if (estaba) _outAt = t;
+    }
+    final out = _outAt;
+    var sink = 0.0;
+    if (out != null) {
+      final k = (t - out) / _doorway;
+      if (k >= 1 || k < 0) {
+        _outAt = null;
+      } else {
+        sink = 1 - k;
+      }
+    }
+    return (at: at(t), sink: sink);
+  }
+
   // ---------------------------------------------------------------- prueba
 
   /// Una actividad que se le pidió desde fuera, para revisarla en el pueblo
@@ -536,18 +622,8 @@ class _Trial {
   /// El respiro de antes y de después, como en cualquier parada.
   static const double settle = 1.0;
 
-  static double _len(List<(double, double)> p) {
-    var d = 0.0;
-    for (var i = 0; i + 1 < p.length; i++) {
-      d += math.sqrt(
-        math.pow(p[i + 1].$1 - p[i].$1, 2) + math.pow(p[i + 1].$2 - p[i].$2, 2),
-      );
-    }
-    return d;
-  }
-
-  late final double _ida = _len(ida) / Townsfolk.pace;
-  late final double _vuelta = _len(vuelta) / Townsfolk.pace;
+  late final double _ida = _lengthOf(ida) / Townsfolk.pace;
+  late final double _vuelta = _lengthOf(vuelta) / Townsfolk.pace;
   late final double _stay = hold + 2 * settle;
 
   /// Cuándo está otra vez en su puerta.
@@ -557,7 +633,7 @@ class _Trial {
   FolkAt? at(double t, int seed) {
     var s = t - t0;
     if (s < 0) s = 0;
-    if (s < _ida) return _walk(ida, s, seed);
+    if (s < _ida) return _walkAlong(ida, s, seed);
     s -= _ida;
     if (s < _stay) {
       final p = ida.last;
@@ -575,33 +651,45 @@ class _Trial {
       );
     }
     s -= _stay;
-    if (s < _vuelta) return _walk(vuelta, s, seed);
+    if (s < _vuelta) return _walkAlong(vuelta, s, seed);
     return null;
   }
+}
 
-  FolkAt _walk(List<(double, double)> p, double s, int seed) {
-    var left = s * Townsfolk.pace;
-    var walked = hash01(seed, 8) * 40;
-    for (var i = 0; i + 1 < p.length; i++) {
-      final a = p[i], b = p[i + 1];
-      final dx = b.$1 - a.$1, dz = b.$2 - a.$2;
-      final d = math.sqrt(dx * dx + dz * dz);
-      if (left <= d && d > 0) {
-        final k = left / d;
-        return FolkAt(
-          a.$1 + dx * k,
-          a.$2 + dz * k,
-          math.atan2(dx, dz),
-          (walked + left) / Townsfolk.stride * 2 * math.pi,
-          true,
-        );
-      }
-      left -= d;
-      walked += d;
-    }
-    final last = p.last;
-    return FolkAt(last.$1, last.$2, 0, 0, true);
+/// Lo que mide un camino de punto a punto.
+double _lengthOf(List<(double, double)> p) {
+  var d = 0.0;
+  for (var i = 0; i + 1 < p.length; i++) {
+    d += math.sqrt(
+      math.pow(p[i + 1].$1 - p[i].$1, 2) + math.pow(p[i + 1].$2 - p[i].$2, 2),
+    );
   }
+  return d;
+}
+
+/// Dónde va quien lleva [s] segundos andando por [p], al paso de siempre.
+FolkAt _walkAlong(List<(double, double)> p, double s, int seed) {
+  var left = s * Townsfolk.pace;
+  var walked = hash01(seed, 8) * 40;
+  for (var i = 0; i + 1 < p.length; i++) {
+    final a = p[i], b = p[i + 1];
+    final dx = b.$1 - a.$1, dz = b.$2 - a.$2;
+    final d = math.sqrt(dx * dx + dz * dz);
+    if (left <= d && d > 0) {
+      final k = left / d;
+      return FolkAt(
+        a.$1 + dx * k,
+        a.$2 + dz * k,
+        math.atan2(dx, dz),
+        (walked + left) / Townsfolk.stride * 2 * math.pi,
+        true,
+      );
+    }
+    left -= d;
+    walked += d;
+  }
+  final last = p.last;
+  return FolkAt(last.$1, last.$2, 0, 0, true);
 }
 
 /// Manda a [who], vecino de [layout], a hacer [doing] desde el segundo [t].
@@ -720,37 +808,18 @@ _folk = {};
 ///
 /// Devuelve también cuánto se ha metido ya por su puerta ([sink], de cero a
 /// uno), o nulo si ya está dentro del todo.
+///
+/// **Y a casa se vuelve por la calle.** Antes cada uno iba en línea recta
+/// desde donde estaba hasta su puerta, y en línea recta hay casas en medio:
+/// al caer la tarde se veía a la gente atravesando paredes. Ahora cada uno se
+/// va a su hora —no todos a la vez— por el mismo camino que haría de día,
+/// rodeando lo construido, y se mete por su puerta al llegar. Ver
+/// [Townsfolk._evening].
 ({FolkAt at, double sink})? folkWhere(
   Townsfolk who,
   double time,
   double homeward,
-) {
-  var at = who.at(time);
-  if (homeward > 0.001) {
-    // Cae la tarde: cada uno tira para su puerta. No es un camino calculado,
-    // es la línea recta a su casa — y como todos arrancan desde donde estaban,
-    // se ve un pueblo entero yéndose a casa a la vez, que es exactamente lo
-    // que pasa a esa hora.
-    final k = smoothstep(0.0, 0.86, homeward);
-    final d = who.door;
-    at = FolkAt(
-      at.x + (d.$1 - at.x) * k,
-      at.z + (d.$2 - at.z) * k,
-      at.heading,
-      at.gait,
-      at.moving && k < 0.9,
-      // De camino a casa no se charla ni se suelta una cometa: lo que se hace
-      // es andar. Quien ya estaba andando sigue andando.
-      null,
-      at.phase,
-    );
-  }
-  // Y en el umbral se meten dentro: se hunden en su propia puerta en vez de
-  // apagarse en el aire.
-  final sink = ((homeward - 0.86) / 0.14).clamp(0.0, 1.0);
-  if (sink >= 0.999) return null;
-  return (at: at, sink: sink);
-}
+) => who._evening(time, homeward);
 
 /// La gente que hay ahora mismo en [layout], y por dónde andan.
 ///
@@ -969,7 +1038,7 @@ List<Townsfolk> _folkOf(
         facing,
         acts,
         math.max(period, 1),
-      ),
+      ).._calles = calles,
     );
   }
   return out;
