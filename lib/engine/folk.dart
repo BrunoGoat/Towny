@@ -197,6 +197,145 @@ class Townsfolk {
   @visibleForTesting
   List<Doing?> get debugActs => _act;
 
+  // ------------------------------------------------------------ protagonista
+
+  /// Si la cámara la está siguiendo. Ver [spotlight].
+  bool get spotlit => _spot != null;
+
+  /// Cuánto se corre su reloj: el de siempre ([_shift]) y el de cuando la
+  /// sigue la cámara ([_spot], nulo si no la sigue). Existen para que
+  /// cambiar de una manera de andar a la otra no la haga saltar de sitio.
+  double _shift = 0;
+  double? _spot;
+
+  /// Cuando la cámara la sigue, se queda menos en cada sitio y hace más
+  /// cosas. Ver [spotlight].
+  ///
+  /// Donde sólo cabe una cosa —un crío en la plaza sólo puede tocar el laúd—
+  /// la parada es la mitad: hacer lo mismo dieciséis segundos es estar quieto.
+  late final List<double> _spotStay = [
+    for (var i = 0; i < _stay.length; i++)
+      _act[i] == null
+          ? 0.0
+          : (_spotChoices(i).length > 1 ? _spotStop : _spotEach),
+  ];
+
+  /// Lo que puede hacer en la parada [i] cuando la sigue la cámara: lo de
+  /// siempre primero, y después todo lo demás que tiene sentido ahí.
+  List<Doing> _spotChoices(int i) {
+    final suya = _act[i] ?? Doing.idle;
+    return [
+      suya,
+      for (final d in Doing.all)
+        if (d.where == suya.where && d.fits(kid) && d.id != suya.id) d,
+    ];
+  }
+
+  late final double _spotPeriod = _periodWith(_spotStay);
+
+  double _periodWith(List<double> stays) {
+    var p = 0.0;
+    final n = _stops.length;
+    for (var i = 0; i < n; i++) {
+      final a = _stops[i], b = _stops[(i + 1) % n];
+      p +=
+          math.sqrt(math.pow(b.$1 - a.$1, 2) + math.pow(b.$2 - a.$2, 2)) / pace;
+      p += stays[(i + 1) % n];
+    }
+    return math.max(p, 1);
+  }
+
+  /// En qué segundo de su ronda va, con el reloj de la escena en [t].
+  double _uAt(double t) {
+    final spot = _spot;
+    if (spot != null) return (t + spot) % _spotPeriod;
+    // Quien ya vivía aquí arranca en un punto cualquiera de su ronda —es lo
+    // que hace que no salgan todos a la vez— y quien acaba de nacer arranca en
+    // su puerta, que es por donde se sale de casa la primera vez. Ver [debut].
+    final nace = debut;
+    return nace == null
+        ? (t + hash01(seed, 7) * period + _shift) % period
+        : (t - nace + _shift) % period;
+  }
+
+  /// Por dónde de la ronda va en el segundo [u] de una ronda con [stays]:
+  /// en qué tramo, si andando o parado, y cuánto lleva de eso.
+  (int, bool, double) _where(double u, List<double> stays) {
+    var acc = 0.0;
+    final n = _stops.length;
+    for (var i = 0; i < n; i++) {
+      final a = _stops[i], b = _stops[(i + 1) % n];
+      final walk =
+          math.sqrt(math.pow(b.$1 - a.$1, 2) + math.pow(b.$2 - a.$2, 2)) / pace;
+      if (u < acc + walk) return (i, true, walk <= 0 ? 1 : (u - acc) / walk);
+      acc += walk;
+      final stay = stays[(i + 1) % n];
+      if (u < acc + stay) return (i, false, u - acc);
+      acc += stay;
+    }
+    return (0, true, 0);
+  }
+
+  /// Lo contrario: en qué segundo de una ronda con [stays] se está en ese
+  /// punto.
+  double _uOf(int i, bool walking, double k, List<double> stays) {
+    var acc = 0.0;
+    final n = _stops.length;
+    for (var j = 0; j < n; j++) {
+      final a = _stops[j], b = _stops[(j + 1) % n];
+      final walk =
+          math.sqrt(math.pow(b.$1 - a.$1, 2) + math.pow(b.$2 - a.$2, 2)) / pace;
+      if (j == i && walking) return acc + walk * k;
+      acc += walk;
+      if (j == i) {
+        final stay = stays[(j + 1) % n];
+        return acc + math.min(k, math.max(0.0, stay - 0.01));
+      }
+      acc += stays[(j + 1) % n];
+    }
+    return 0;
+  }
+
+  /// Que la cámara la siga, o que deje de seguirla, en el segundo [t].
+  ///
+  /// Una persona en su ronda de siempre se queda de medio minuto a un minuto
+  /// en cada sitio haciendo una sola cosa. Visto de lejos, entre cuarenta, es
+  /// un pueblo tranquilo; con la cámara encima de ella es mirar a alguien
+  /// quieto. Así que cuando la siguen se queda menos en cada sitio, nunca pasa
+  /// de largo por su puerta, y en cada parada hace varias cosas de las que
+  /// tienen sentido ahí — se tumba en el prado, después lee, después siega.
+  ///
+  /// **Sin saltar de sitio.** Cambia el horario y no el camino: se busca en
+  /// qué punto del camino va ahora y la ronda nueva sigue desde ese mismo
+  /// punto. Lo mismo al dejar de seguirla.
+  void spotlight(double t, {required bool on}) {
+    if (on == spotlit) return;
+    final antes = on ? _stay : _spotStay;
+    final despues = on ? _spotStay : _stay;
+    final (i, walking, k) = _where(_uAt(t), antes);
+    final target = _uOf(i, walking, k, despues);
+    if (on) {
+      _spot = target - t;
+    } else {
+      _spot = null;
+      final nace = debut;
+      final base = nace == null ? t + hash01(seed, 7) * period : t - nace;
+      _shift = target - base;
+    }
+  }
+
+  /// Qué hace la persona seguida en la parada [i], a los [held] segundos de
+  /// haberse puesto: va cambiando cada [_spotEach] segundos entre las cosas
+  /// que tienen sentido en ese sitio, empezando por la de siempre.
+  Doing _spotAct(int i, double held) {
+    final puede = _spotChoices(i);
+    final k = (held / _spotEach).floor();
+    // Entre una cosa y la siguiente, un respiro: guardar la escoba y sacar
+    // el libro no pasa entre dos fotogramas.
+    if (k > 0 && held - k * _spotEach < 1.2) return Doing.idle;
+    return puede[k % puede.length];
+  }
+
   /// Lo que anda una persona en un segundo.
   ///
   /// Medido contra la puerta de una casa, que mide dos tercios de unidad: a
@@ -222,13 +361,9 @@ class Townsfolk {
   /// ronda da la vuelta sola, así que esto vale para cualquier [t] por grande
   /// que sea.
   FolkAt at(double t) {
-    // Quien ya vivía aquí arranca en un punto cualquiera de su ronda —es lo
-    // que hace que no salgan todos a la vez— y quien acaba de nacer arranca en
-    // su puerta, que es por donde se sale de casa la primera vez. Ver [debut].
-    final nace = debut;
-    final u = nace == null
-        ? (t + hash01(seed, 7) * period) % period
-        : (t - nace) % period;
+    final spot = _spot != null;
+    final stays = spot ? _spotStay : _stay;
+    final u = _uAt(t);
     var acc = 0.0;
     var walked = hash01(seed, 8) * 40; // para que no pisen todos a la vez
     final n = _stops.length;
@@ -251,7 +386,7 @@ class Townsfolk {
       }
       acc += walk;
       walked += d;
-      final stay = _stay[(i + 1) % n];
+      final stay = stays[(i + 1) % n];
       if (u < acc + stay) {
         // Parado: mirando a donde vino a mirar, con un balanceo lento que es
         // lo que separa a alguien esperando de un poste.
@@ -267,11 +402,17 @@ class Townsfolk {
         //
         // El de muestra no lo lleva: el expositor existe para mirar un gesto
         // concreto y empezarlo con dos segundos de nada sería empezarlo mal.
-        final settle = home < 0 ? 0.0 : math.min(2.4, stay * 0.15);
+        // Y para quien sigue la cámara, la mitad: está ahí para verla hacer
+        // cosas, no para verla llegar.
+        final settle = home < 0 ? 0.0 : math.min(spot ? 1.2 : 2.4, stay * 0.15);
         final metido = held >= settle && held <= stay - settle;
         // Y en el respiro no se queda congelado: respira y mira alrededor, que
         // es [Doing.idle] y es exactamente lo que hace quien acaba de llegar.
-        final what = metido ? _act[(i + 1) % n] : Doing.idle;
+        final what = !metido
+            ? Doing.idle
+            : spot
+            ? _spotAct((i + 1) % n, held - settle)
+            : _act[(i + 1) % n];
         final look = _facing[(i + 1) % n];
         // La cabeza se va yendo a mirar alrededor, y cuánto depende de en qué
         // ande: quien pica piedra no levanta la vista y quien no hace nada la
@@ -298,6 +439,10 @@ class Townsfolk {
     return FolkAt(last.$1, last.$2, _facing.first, 0, false, _act.first, 0);
   }
 }
+
+/// Lo que dura cada cosa que hace la persona a la que sigue la cámara, y lo
+/// que se queda en cada parada.
+const double _spotEach = 8.0, _spotStop = 16.0;
 
 /// Una persona en un instante: dónde está, hacia dónde mira, y por dónde va su
 /// paso.

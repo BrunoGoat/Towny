@@ -1452,6 +1452,9 @@ class _TownViewState extends State<TownView>
   /// A quién sigue la cámara: su pueblo y la casa en la que vive.
   (int town, int home)? _following;
 
+  /// La persona seguida, para devolverla a su ronda de siempre al soltarla.
+  Townsfolk? _spotlit;
+
   /// Se le acerca y lo empieza a seguir.
   void _follow(int town, int home) {
     if (town < 0 || town >= widget.store.habits.length) return;
@@ -1464,6 +1467,7 @@ class _TownViewState extends State<TownView>
     if (card == null) return;
     Sensory.instance.tick();
     if (_selectedPiece != null) setState(() => _selectedPiece = null);
+    _stopFollowing();
     _following = (town, home);
     _cam.follow = false;
     // Cerca, y desde arriba como quien la sigue por encima de los tejados.
@@ -1479,6 +1483,8 @@ class _TownViewState extends State<TownView>
   void _stopFollowing() {
     if (_following == null) return;
     _following = null;
+    _spotlit?.spotlight(_time, on: false);
+    _spotlit = null;
     widget.onFolkLost?.call();
   }
 
@@ -1496,6 +1502,14 @@ class _TownViewState extends State<TownView>
       }
     }
     if (who == null) return false;
+    // Mientras se la sigue hace más cosas: ver [Townsfolk.spotlight]. Si el
+    // pueblo se rehízo —cayó una pieza— la persona es otro objeto, y se le
+    // vuelve a encender.
+    if (!identical(who, _spotlit)) {
+      _spotlit?.spotlight(_time, on: false);
+      who.spotlight(_time, on: true);
+      _spotlit = who;
+    }
     final donde = folkWhere(who, _time, folkHome(_palette.daylight));
     if (donde == null) return false;
     final talla = TownPainter.folkHeight(e.layout.character);

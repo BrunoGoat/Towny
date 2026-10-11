@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:towny/data/character.dart';
+import 'package:towny/data/doings.dart';
 import 'package:towny/data/folknames.dart';
 import 'package:towny/engine/camera.dart';
 import 'package:towny/engine/folk.dart';
@@ -123,6 +124,96 @@ void main() {
       expect(find.byType(Container), findsNothing);
       expect(find.byType(DecoratedBox), findsNothing);
       expect(find.byType(ColoredBox), findsNothing);
+    });
+  });
+
+  group('a quien se sigue, se le ve hacer cosas', () {
+    // Lo que se vio: con la cámara encima, la persona se quedaba de medio
+    // minuto a un minuto en cada sitio haciendo una sola cosa.
+    /// Tres minutos mirándola: cuántas veces cambia lo que hace por minuto
+    /// —echar a andar, pararse, pasar a otra cosa—, cuánto dura el rato
+    /// más largo sin que cambie nada, y cuántas cosas distintas hace.
+    ({double cambios, double quieto, int cosas}) mirar(
+      Townsfolk who,
+      double desde,
+    ) {
+      var cambios = 0;
+      var quieto = 0.0, racha = 0.0;
+      final cosas = <String>{};
+      String? antes;
+      for (var t = desde; t < desde + 180; t += 0.25) {
+        final a = who.at(t);
+        final ahora = a.moving ? 'andar' : (a.act?.id ?? 'nada');
+        if (ahora != 'andar' && ahora != Doing.idle.id) cosas.add(ahora);
+        if (antes != null && ahora != antes && ahora != Doing.idle.id) {
+          cambios++;
+          racha = 0;
+        } else if (ahora == 'andar') {
+          // Andar es moverse: no cuenta como estar quieto.
+          racha = 0;
+        } else {
+          racha += 0.25;
+          if (racha > quieto) quieto = racha;
+        }
+        if (ahora != Doing.idle.id) antes = ahora;
+      }
+      return (cambios: cambios / 3, quieto: quieto, cosas: cosas.length);
+    }
+
+    test('cambia de cosa mucho más a menudo que en su ronda de siempre', () {
+      final l = TownLayout(160, TownCharacter.all.first, seed: 21);
+      final gente = folkOf(l, 160);
+      var cAntes = 0.0, cAhora = 0.0, qAntes = 0.0, qAhora = 0.0;
+      var cosasAntes = 0, cosasAhora = 0;
+      for (final who in gente) {
+        final normal = mirar(who, 0);
+        who.spotlight(0, on: true);
+        final seguida = mirar(who, 0);
+        who.spotlight(180, on: false);
+        cAntes += normal.cambios;
+        cAhora += seguida.cambios;
+        qAntes += normal.quieto;
+        qAhora += seguida.quieto;
+        cosasAntes += normal.cosas;
+        cosasAhora += seguida.cosas;
+        // Nunca más de dieciséis segundos haciendo lo mismo sin moverse: en
+        // un sitio donde sólo cabe una cosa —un crío en la plaza sólo puede
+        // tocar el laúd— se queda la mitad, y aunque la parada siguiente sea
+        // en el mismo sitio, son dos mitades.
+        expect(
+          seguida.quieto,
+          lessThanOrEqualTo(16),
+          reason: 'casa ${who.home}',
+        );
+      }
+      final n = gente.length;
+      expect(cAhora, greaterThan(cAntes * 2));
+      expect(cosasAhora, greaterThan(cosasAntes * 1.5));
+    });
+
+    test('ni al empezar ni al terminar salta de sitio', () {
+      final l = TownLayout(160, TownCharacter.all.first, seed: 21);
+      for (final who in folkOf(l, 160)) {
+        for (final t in [3.0, 47.0, 131.0, 260.0]) {
+          final a = who.at(t);
+          who.spotlight(t, on: true);
+          final b = who.at(t);
+          expect(
+            (a.x - b.x).abs() + (a.z - b.z).abs(),
+            lessThan(1e-6),
+            reason: 'casa ${who.home} al empezar, a los $t s',
+          );
+          final t2 = t + 37;
+          final c = who.at(t2);
+          who.spotlight(t2, on: false);
+          final d = who.at(t2);
+          expect(
+            (c.x - d.x).abs() + (c.z - d.z).abs(),
+            lessThan(1e-6),
+            reason: 'casa ${who.home} al terminar, a los $t2 s',
+          );
+        }
+      }
     });
   });
 
