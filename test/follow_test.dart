@@ -186,9 +186,13 @@ void main() {
           reason: 'casa ${who.home}',
         );
       }
+      // Medido sobre este pueblo: de 1,6 a 4,4 cambios por minuto, el rato
+      // más largo sin que cambie nada de 49 a 9 segundos de media, y de 2,4
+      // a 5,6 cosas distintas en tres minutos.
       final n = gente.length;
-      expect(cAhora, greaterThan(cAntes * 2));
-      expect(cosasAhora, greaterThan(cosasAntes * 1.5));
+      expect(cAhora / n, greaterThan(cAntes / n * 2));
+      expect(qAhora / n, lessThan(qAntes / n / 3));
+      expect(cosasAhora / n, greaterThan(cosasAntes / n * 1.5));
     });
 
     test('ni al empezar ni al terminar salta de sitio', () {
