@@ -16,6 +16,16 @@ import '../fx/sensory.dart';
 import '../l10n/lang.dart';
 import 'style.dart';
 
+/// Todas las actividades, por sitio y luego por nombre: es como se revisan,
+/// sitio por sitio, porque lo que se compara es lo que compite entre sí.
+List<Doing> doingsByPlace() => [
+  for (final w in Where.values)
+    ...[
+      for (final d in Doing.all)
+        if (d.where == w) d,
+    ]..sort((a, b) => a.name.compareTo(b.name)),
+];
+
 /// El expositor de lo que hace la gente.
 ///
 /// Hay noventa y cuatro cosas escritas en una tabla, y una tabla no se revisa
@@ -46,15 +56,7 @@ class _FolkGalleryScreenState extends State<FolkGalleryScreen>
   final OrbitCamera _cam = OrbitCamera();
   final EffectSystem _fx = EffectSystem();
 
-  /// Por sitio y luego por nombre: es como se revisa, sitio por sitio, porque
-  /// lo que se compara es lo que compite entre sí.
-  static final List<Doing> _all = [
-    for (final w in Where.values)
-      ...[
-        for (final d in Doing.all)
-          if (d.where == w) d,
-      ]..sort((a, b) => a.name.compareTo(b.name)),
-  ];
+  static final List<Doing> _all = doingsByPlace();
 
   late int _at = widget.start.clamp(0, _all.length - 1);
 
@@ -131,7 +133,7 @@ class _FolkGalleryScreenState extends State<FolkGalleryScreen>
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (_) => _IndexSheet(theme: widget.theme, all: _all, at: _at),
+      builder: (_) => DoingIndexSheet(theme: widget.theme, all: _all, at: _at),
     );
     if (n != null && mounted) setState(() => _at = n);
   }
@@ -495,8 +497,15 @@ class _Round extends StatelessWidget {
 }
 
 /// El índice, por sitio.
-class _IndexSheet extends StatelessWidget {
-  const _IndexSheet({required this.theme, required this.all, required this.at});
+/// La lista de todas las actividades, por sitio, para elegir una. Devuelve
+/// su posición en [all] al cerrarse.
+class DoingIndexSheet extends StatelessWidget {
+  const DoingIndexSheet({
+    super.key,
+    required this.theme,
+    required this.all,
+    this.at = -1,
+  });
 
   final UiTheme theme;
   final List<Doing> all;

@@ -21,6 +21,7 @@ import 'cadence_sheet.dart';
 import 'choice_sheet.dart';
 import 'cloud_flight.dart';
 import 'first_run.dart';
+import 'folk_gallery_screen.dart';
 import 'habits_sheet.dart';
 import 'home_chrome.dart';
 import 'notice_board.dart';
@@ -99,6 +100,11 @@ class _HomeScreenState extends State<HomeScreen>
   /// El vecino al que sigue la cámara, para contar quién es al costado.
   FolkCard? _folk;
 
+  /// Lo que se le pidió probar a quien se sigue, dicho debajo de su ficha
+  /// unos segundos.
+  String? _tryNote;
+  Timer? _tryNoteGone;
+
   /// De qué pueblo es la pieza elegida.
   ///
   /// Una pieza se identifica por su número dentro de su pueblo, así que al
@@ -130,6 +136,7 @@ class _HomeScreenState extends State<HomeScreen>
     Appearance.instance.removeListener(_onStore);
     _whisperTimer?.cancel();
     _signTimer?.cancel();
+    _tryNoteGone?.cancel();
     _flight.dispose();
     super.dispose();
   }
@@ -320,7 +327,12 @@ class _HomeScreenState extends State<HomeScreen>
                 _selected = null;
               }),
               onFolkLost: () {
-                if (_folk != null) setState(() => _folk = null);
+                if (_folk != null) {
+                  setState(() {
+                    _folk = null;
+                    _tryNote = null;
+                  });
+                }
               },
               onStoneTapped: (brick) => setState(() {
                 _selected = brick;
@@ -467,12 +479,21 @@ class _HomeScreenState extends State<HomeScreen>
               left: 26,
               right: 26,
               top: media.size.height * 0.58,
-              child: IgnorePointer(
-                child: FolkPanel(
-                  key: ValueKey((_folk!.town, _folk!.home)),
-                  theme: t,
-                  card: _folk!,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IgnorePointer(
+                    child: FolkPanel(
+                      key: ValueKey((_folk!.town, _folk!.home)),
+                      theme: t,
+                      card: _folk!,
+                      note: _tryNote,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _TryButton(onTap: _pickTryOut),
+                ],
               ),
             ),
 
@@ -649,6 +670,38 @@ class _HomeScreenState extends State<HomeScreen>
         ),
       ),
     );
+  }
+
+  /// El botón de prueba de quien se sigue: elegir una actividad de todas y
+  /// que la haga, en el pueblo de verdad. Ver [TownViewController.tryOut].
+  Future<void> _pickTryOut() async {
+    Sensory.instance.tick();
+    final all = doingsByPlace();
+    final n = await showModalBottomSheet<int>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: sheetScrim(_theme.dark),
+      builder: (_) => DoingIndexSheet(theme: _theme, all: all),
+    );
+    if (n == null || !mounted) return;
+    final d = all[n];
+    final found = _wall.tryOut(d);
+    if (found == null) return;
+    _tryNoteGone?.cancel();
+    setState(() {
+      _tryNote = found
+          ? tr('prueba: ${d.name}', 'trying: ${d.name}')
+          : tr(
+              'prueba: ${d.name}, aquí mismo — no hay sitio para eso en '
+                  'este pueblo',
+              'trying: ${d.name}, right here — there is no place for it '
+                  'in this town',
+            );
+    });
+    _tryNoteGone = Timer(const Duration(seconds: 8), () {
+      if (mounted) setState(() => _tryNote = null);
+    });
   }
 
   void _openHabits() {
@@ -891,6 +944,48 @@ class _HomeScreenState extends State<HomeScreen>
       backgroundColor: Colors.transparent,
       barrierColor: sheetScrim(_theme.dark),
       builder: (_) => SettingsSheet(store: widget.store, theme: _theme),
+    );
+  }
+}
+
+/// El botón de probar una actividad, debajo de la ficha de quien se sigue.
+///
+/// Es para revisar las actividades en un pueblo de verdad —con sus calles,
+/// su agua y su luz— y no sólo en el expositor. Sin caja, como la ficha:
+/// un renglón con borde fino.
+class _TryButton extends StatelessWidget {
+  const _TryButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.7)),
+          color: const Color(0x33000000),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.play_arrow_rounded, size: 16, color: Colors.white),
+            const SizedBox(width: 4),
+            Text(
+              tr('Probar una actividad', 'Try an activity'),
+              style: const TextStyle(
+                fontFamily: 'Chronicle',
+                fontSize: 12,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

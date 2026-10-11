@@ -330,10 +330,19 @@ class StoneCard extends StatelessWidget {
 /// No tiene botón de cerrar: tocar cualquier otra cosa deja de seguirla, y
 /// con eso se va.
 class FolkPanel extends StatelessWidget {
-  const FolkPanel({super.key, required this.theme, required this.card});
+  const FolkPanel({
+    super.key,
+    required this.theme,
+    required this.card,
+    this.note,
+  });
 
   final UiTheme theme;
   final FolkCard card;
+
+  /// Una línea más, debajo de todo: lo que está probando, si se le pidió
+  /// una actividad.
+  final String? note;
 
   static String ordinal(int n) {
     if (!inEnglish) return '$n.ª';
@@ -408,6 +417,16 @@ class FolkPanel extends StatelessWidget {
           ),
           style: chico,
         ),
+        if (note != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            note!,
+            style: chico.copyWith(
+              fontStyle: FontStyle.italic,
+              color: Color.lerp(theme.accent, Colors.white, 0.45),
+            ),
+          ),
+        ],
       ],
     );
   }

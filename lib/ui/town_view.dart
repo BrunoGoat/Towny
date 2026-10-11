@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import '../core/math3.dart';
 import '../core/rng.dart';
 import '../data/constellations.dart';
+import '../data/doings.dart';
 import '../data/landmarks.dart';
 import '../engine/camera.dart';
 import '../engine/folk.dart';
@@ -73,6 +74,11 @@ class TownViewController {
   /// El reloj de la escena, para los tests.
   @visibleForTesting
   double get clock => _state?._time ?? 0;
+
+  /// Que la persona seguida haga [doing], para verla en el pueblo de verdad.
+  /// Nulo si no se sigue a nadie; si no, si encontró un sitio de esa clase
+  /// (falso: lo hace donde está). Ver [folkTryOut].
+  bool? tryOut(Doing doing) => _state?._tryOut(doing);
 
   /// A quién se está siguiendo, si a alguien: su pueblo y su casa.
   (int town, int home)? get following => _state?._following;
@@ -1486,6 +1492,18 @@ class _TownViewState extends State<TownView>
     _spotlit?.spotlight(_time, on: false);
     _spotlit = null;
     widget.onFolkLost?.call();
+  }
+
+  bool? _tryOut(Doing doing) {
+    final f = _following;
+    if (f == null || f.$1 >= _entries.length) return null;
+    final e = _entries[f.$1];
+    for (final v in folkOf(e.layout, e.placed)) {
+      if (v.home == f.$2) {
+        return folkTryOut(e.layout, e.placed, v, doing, _time);
+      }
+    }
+    return null;
   }
 
   /// Le pone la mira encima, donde esté ahora. Falso si ya no se le ve: se

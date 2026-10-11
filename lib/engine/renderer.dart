@@ -1421,7 +1421,7 @@ class TownPainter extends CustomPainter {
       // cuadro. Quien no pasa ni así no se ve a ninguna hora del día. Las
       // pruebas exactas siguen debajo y siguen decidiendo — esto sólo se ahorra
       // trabajo, nunca cambia quién sale.
-      final ronda = who.roam;
+      final ronda = who.reach;
       final medio = V3(ronda.x, talla * 0.6, ronda.z);
       final centro = p.project(medio);
       if (centro == null) {

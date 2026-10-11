@@ -360,6 +360,12 @@ void main() {
         );
       }
 
+      // El botón de prueba: a quien se sigue se le puede pedir cualquier
+      // actividad, y la hace él, en este pueblo.
+      final barrer = Doing.all.firstWhere((d) => d.id == 'barrer');
+      expect(mando.tryOut(barrer), isTrue);
+      expect(vecino.trying, barrer);
+
       // Y arrastrar con dos dedos para irse es dejar de seguirlo.
       final a = await tester.createGesture(pointer: 1);
       final b = await tester.createGesture(pointer: 2);
