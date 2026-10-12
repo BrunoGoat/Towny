@@ -706,6 +706,12 @@ class _HomeScreenState extends State<HomeScreen>
 
   void _openHabits() {
     Sensory.instance.tick();
+    // La ficha de la pieza que estaba tocada se va: quedaba asomando por
+    // encima de la hoja, justo a la altura del nombre del hábito, y lo tapaba.
+    if (_selected != null) {
+      _wall.clearSelection();
+      setState(() => _selected = null);
+    }
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
