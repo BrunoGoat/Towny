@@ -462,15 +462,18 @@ List<Solid> folkSolids(
       1.0,
     );
     if (folkIsWoman(seed)) {
+      // Del mismo ancho, la misma nuca y la misma altura que el gorro, y del
+      // mismo tono: las dos cajas se juntan a ras, sin escalón ni costura, y
+      // se leen como una sola melena.
       box(
-        -0.224 + wag * 0.4,
+        -0.212 + wag * 0.4,
         piso + 0.380 + bob - baja,
-        -0.200 + lean * 1.5,
-        0.224 + wag * 0.4,
-        piso + 0.900 + bob - baja,
+        -0.182 + lean * 1.5,
+        0.212 + wag * 0.4,
+        piso + 0.985 + bob - baja,
         0.060 + lean * 1.5,
         pelo,
-        0.96,
+        1.0,
       );
     }
   }
