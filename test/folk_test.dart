@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:towny/data/character.dart';
 import 'package:towny/data/doings.dart';
+import 'package:towny/data/folknames.dart';
 import 'package:towny/engine/camera.dart';
 import 'package:towny/engine/folk.dart';
 import 'package:towny/engine/folk_body.dart';
@@ -547,7 +548,10 @@ void main() {
         for (final t in [0.0, 0.9, 1.8, 2.7, 3.6, 4.5]) {
           final piezas = folkSolids(quien, quien.at(t), 1.0);
           final cuerpo = [for (final s in piezas.take(2)) Aabb.of(s.faces)!];
-          for (final cosa in piezas.skip(3)) {
+          // Después del cuerpo y la cabeza va el pelo —el gorro, y ellas la
+          // melena, que cae por la espalda—: eso no es algo que se lleva.
+          final pelo = folkIsWoman(quien.seed) ? 2 : 1;
+          for (final cosa in piezas.skip(2 + pelo)) {
             for (final f in cosa.faces) {
               for (var i = 0; i < f.v.length; i++) {
                 final a = f.v[i], b = f.v[(i + 1) % f.v.length];

@@ -444,7 +444,7 @@ List<Solid> folkSolids(
   //
   // **El gorro, y ellas una caja más.** Ellos, un gorro corto arriba; ellas,
   // el mismo gorro y la melena: una caja que cae por detrás y por los lados
-  // hasta la barbilla, con la cara asomando por delante. Con una sola caja
+  // hasta media espalda, con la cara asomando por delante. Con una sola caja
   // para ellas, de frente no les quedaba pelo sobre la frente y parecían
   // calvas; con tablas —nuca, mechones, flequillo— eran demasiadas figuras
   // para una persona que es tres cajas. Que las cajas se metan en la cabeza
@@ -464,7 +464,7 @@ List<Solid> folkSolids(
     if (folkIsWoman(seed)) {
       box(
         -0.224 + wag * 0.4,
-        piso + 0.600 + bob - baja,
+        piso + 0.380 + bob - baja,
         -0.200 + lean * 1.5,
         0.224 + wag * 0.4,
         piso + 0.900 + bob - baja,
