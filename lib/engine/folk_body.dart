@@ -441,61 +441,66 @@ List<Solid> folkSolids(
   // El pelo, que es un gorro encima de la cara. A quince píxeles la cara es un
   // punto y el pelo es la mitad de la cabeza: es lo que hace que dos vecinos
   // no se confundan de lejos.
+  //
+  // **Una cáscara, no una caja encima.** Era una caja un pelo más grande que
+  // la cabeza metida sobre ella, y dos cajas metidas una en otra no tienen
+  // orden de pintado que valga: según el ángulo la cara salía por encima del
+  // pelo o el pelo se comía la cara. Ahora son tablas finas alrededor de la
+  // cabeza —encima, detrás, a los lados y el flequillo— que la tocan sin
+  // entrar en ella ni unas en otras. Y van en un solo sólido, porque son una
+  // sola cosa.
+  //
+  // Ellas, con melena: la de detrás baja hasta los hombros y la de los lados
+  // enmarca la cara. A quince píxeles no hay rasgos que separen a una mujer
+  // de un hombre, pero una melena es silueta, y la silueta se lee de lejos.
   if (detail > 0.25) {
+    final antes = out.length;
+    final hx = wag * 0.4, hz = lean * 1.5;
+    double y(double v) => piso + v + bob - baja;
+    final larga = folkIsWoman(seed);
+    final w = larga ? 0.236 : 0.214; // de ancho, por fuera
+    final fondo = larga ? -0.212 : -0.184; // la nuca, por fuera
+    // Encima.
+    box(-w + hx, y(0.960), fondo + hz, w + hx, y(0.990), 0.184 + hz, pelo, 1.0);
+    // Detrás: a los hombros ellas, a media cabeza ellos.
     box(
-      -0.212 + wag * 0.4,
-      piso + 0.830 + bob - baja,
-      -0.182 + lean * 1.5,
-      0.212 + wag * 0.4,
-      piso + 0.985 + bob - baja,
-      0.182 + lean * 1.5,
+      -w + hx,
+      y(larga ? 0.500 : 0.780),
+      fondo + hz,
+      w + hx,
+      y(0.960),
+      -0.175 + hz,
+      pelo,
+      0.96,
+    );
+    // A los lados, hasta delante de las orejas.
+    for (final s in [1.0, -1.0]) {
+      box(
+        (s > 0 ? 0.205 : -w) + hx,
+        y(larga ? 0.600 : 0.820),
+        -0.175 + hz,
+        (s > 0 ? w : -0.205) + hx,
+        y(0.960),
+        (larga ? 0.090 : 0.040) + hz,
+        pelo,
+        0.98,
+      );
+    }
+    // Y el flequillo sobre la frente.
+    box(
+      -0.205 + hx,
+      y(larga ? 0.880 : 0.900),
+      0.175 + hz,
+      0.205 + hx,
+      y(0.960),
+      0.184 + hz,
       pelo,
       1.0,
     );
-    // Y ellas, melena: por detrás de la cabeza hasta los hombros y un
-    // mechón a cada lado de la cara. A quince píxeles no hay rasgos que
-    // separen a una mujer de un hombre, pero una melena es silueta, y la
-    // silueta sí se lee de lejos.
-    if (folkIsWoman(seed)) {
-      final hx = wag * 0.4, hz = lean * 1.5;
-      final abajo = piso + 0.600 + bob - baja,
-          arriba = piso + 0.860 + bob - baja;
-      box(
-        -0.212 + hx,
-        abajo,
-        -0.222 + hz,
-        0.212 + hx,
-        arriba,
-        -0.176 + hz,
-        pelo,
-        0.97,
-      );
-      // Y cae por la espalda hasta los hombros: pegada al cuerpo, que se
-      // inclina menos que la cabeza, así que va con el cuerpo y no con ella.
-      final bz = lean * 0.5;
-      box(
-        -0.180 + wag,
-        piso + 0.400 + bob - baja,
-        -0.168 + bz,
-        0.180 + wag,
-        abajo + 0.02,
-        -0.122 + bz,
-        pelo,
-        0.95,
-      );
-      for (final s in [1.0, -1.0]) {
-        box(
-          (s > 0 ? 0.206 : -0.232) + hx,
-          abajo - 0.10,
-          -0.176 + hz,
-          (s > 0 ? 0.232 : -0.206) + hx,
-          arriba,
-          0.040 + hz,
-          pelo,
-          0.97,
-        );
-      }
-    }
+    final tablas = out.sublist(antes);
+    out
+      ..removeRange(antes, out.length)
+      ..add(Solid(-1, [for (final t in tablas) ...t.faces]));
   }
 
   // Y lo que lleva.
@@ -946,16 +951,8 @@ List<Solid> folkSolids(
             final p = punto;
             tela(
               p,
-              (
-                p.$1 + rx * 0.11 * lado,
-                p.$2 + 0.05,
-                p.$3 + rz * 0.11 * lado,
-              ),
-              (
-                p.$1 + rx * 0.11 * lado,
-                p.$2 - 0.05,
-                p.$3 + rz * 0.11 * lado,
-              ),
+              (p.$1 + rx * 0.11 * lado, p.$2 + 0.05, p.$3 + rz * 0.11 * lado),
+              (p.$1 + rx * 0.11 * lado, p.$2 - 0.05, p.$3 + rz * 0.11 * lado),
               0xFF2F62B0,
             );
           }

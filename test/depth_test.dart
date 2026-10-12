@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:towny/core/math3.dart';
 import 'package:towny/data/character.dart';
 import 'package:towny/data/doings.dart';
+import 'package:towny/data/folknames.dart';
 import 'package:towny/data/landmarks.dart';
 import 'package:towny/engine/bsp.dart';
 import 'package:towny/engine/folk.dart';
@@ -585,6 +586,75 @@ void main() {
       );
     });
   });
+
+  // Y una persona contra sí misma, de cerca. Lo que se vio en la web: según
+  // el ángulo, trozos del pelo desaparecían o la cara salía por encima de él.
+  // Era que las cajas de una persona se ordenaban por su centro, que sólo vale
+  // si no se tocan, y el pelo estaba metido en la cabeza. De cerca, el orden
+  // lo da un árbol de planos como el de los edificios, y eso es lo que se mide.
+  group('una persona de cerca', () {
+    test('ninguna parte de nadie tapa a otra que tiene delante', () {
+      final bad = <String>[];
+      var medidos = 0;
+      for (final d in [Doing.idle, ...Doing.all]) {
+        for (final ella in [true, false]) {
+          var sd = 7;
+          while (folkIsWoman(Townsfolk.showcase(d, seed: sd).seed) != ella) {
+            sd++;
+          }
+          final who = Townsfolk.showcase(d, seed: sd, kid: d.who == Who.kid);
+          for (final t in [0.4, 1.7]) {
+            final at = who.at(t);
+            for (var k = 0; k < 12; k++) {
+              for (final pitch in [0.15, 0.7]) {
+                final yaw = k * math.pi / 6 + 0.1;
+                const target = V3(0, 0.6, 0);
+                final cp = math.cos(pitch);
+                final eye =
+                    target +
+                    V3(
+                          math.sin(yaw) * cp,
+                          math.sin(pitch),
+                          math.cos(yaw) * cp,
+                        ) *
+                        2.2;
+                final forward = (target - eye).normalized;
+                final right = forward.cross(const V3(0, 1, 0)).normalized;
+                final up = right.cross(forward).normalized;
+                bool mira(Facet f) {
+                  final a = f.v.first;
+                  return (eye.x - a.x) * f.n.x +
+                          (eye.y - a.y) * f.n.y +
+                          (eye.z - a.z) * f.n.z >
+                      0;
+                }
+
+                final caras = [
+                  for (final s in folkSolids(who, at, 1.0, eye: eye))
+                    for (final f in s.faces)
+                      if (mira(f)) f,
+                ];
+                final seq = <Facet>[];
+                BspTree.build(caras).paint(eye, (f) {
+                  if (mira(f)) seq.add(f);
+                });
+                medidos++;
+                final mal = _clash(seq, eye, right, up, forward, 640.0, 0.004);
+                if (mal != null) {
+                  bad.add(
+                    '${d.id} ${ella ? 'ella' : 'él'} yaw '
+                    '${(yaw * 57.3).round()} pitch $pitch: $mal',
+                  );
+                }
+              }
+            }
+          }
+        }
+      }
+      expect(medidos, greaterThan(1000));
+      expect(bad, isEmpty, reason: '${bad.length}:\n${bad.take(4).join('\n')}');
+    });
+  });
 }
 
 String _k(V3 p) =>
@@ -846,12 +916,12 @@ String? _folkVsWall(BspTree arbol, Aabb caja, double ancho, double yaw) {
   final seq = <Facet>[];
   var caras = 0;
   final drops = <int>[];
+  // De cerca, como en el render: el orden de sus propias caras lo da un
+  // árbol de planos.
   final suyas = <Rider>[];
-  for (final s in folkInPaintOrder(folkSolids(who, at, talla), eye)) {
-    for (final f in visibles(s.faces)) {
-      suyas.add(Rider(f, suyas.length, 0));
-    }
-  }
+  BspTree.build([
+    for (final s in folkSolids(who, at, talla, eye: eye)) ...visibles(s.faces),
+  ]).paint(eye, (f) => suyas.add(Rider(f, suyas.length, 0)));
   arbol.paintRiders(
     eye,
     suyas,

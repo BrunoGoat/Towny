@@ -1476,6 +1476,11 @@ class TownPainter extends CustomPainter {
   /// tope, más lejos queda el que se cae de él.
   static const int _folkCap = 80;
 
+  /// A partir de cuántos píxeles de alto se ordenan las caras de una persona
+  /// con un árbol de planos y no por el centro de cada caja. Por debajo no se
+  /// distingue una costura, y el árbol cuesta.
+  static const double _folkExact = 36;
+
   void _paintFolk(
     Projector p,
     TownEntry e,
@@ -1528,18 +1533,36 @@ class TownPainter extends CustomPainter {
       // seq] de cada cara, y es el que manda entre caras de la gente que
       // acaban en el mismo hueco del árbol; contra los edificios manda el
       // árbol.
+      bool mira(Facet f) {
+        // Las que miran para el otro lado, fuera: un sólido cerrado no
+        // enseña sus caras de dentro.
+        final a = f.v.first;
+        return (p.eye.x - a.x) * f.n.x +
+                (p.eye.y - a.y) * f.n.y +
+                (p.eye.z - a.z) * f.n.z >
+            0;
+      }
+
+      if (v.pixels > _folkExact) {
+        // De cerca, el orden entre sus propias caras lo da un árbol de
+        // planos, como el de los edificios: exacto, ángulo a ángulo. El
+        // orden por el centro de cada caja vale para cajas que no se tocan
+        // y de lejos; de cerca se ven las costuras —el pelo que asoma por
+        // la cara, la mano que se esconde tras el palo—, y eso no puede
+        // depender de cómo de bien encajen las cajas de cada actividad.
+        final caras = [
+          for (final solid in solids)
+            for (final f in solid.faces)
+              if (mira(f)) f,
+        ];
+        BspTree.build(caras).paint(p.eye, (f) {
+          if (mira(f)) out.add(Rider(f, out.length, tag));
+        });
+        continue;
+      }
       for (final solid in folkInPaintOrder(solids, p.eye)) {
         for (final f in solid.faces) {
-          // Las que miran para el otro lado, fuera: un sólido cerrado no
-          // enseña sus caras de dentro.
-          final a = f.v.first;
-          if ((p.eye.x - a.x) * f.n.x +
-                  (p.eye.y - a.y) * f.n.y +
-                  (p.eye.z - a.z) * f.n.z <=
-              0) {
-            continue;
-          }
-          out.add(Rider(f, out.length, tag));
+          if (mira(f)) out.add(Rider(f, out.length, tag));
         }
       }
     }
