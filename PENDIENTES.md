@@ -23,8 +23,13 @@ para borrar.
 **Hay 23 actividades**, más andar y quedarse mirando, en
 `lib/data/doings.dart`. Cada una tiene su objeto en `lib/engine/folk_body.dart`.
 
-**Dónde se miran:** Ajustes → *El expositor de la gente*. Se ven de cerca,
-dando la vuelta, con edad y región elegibles.
+**Dónde se miran:**
+- Ajustes → *El expositor de la gente*: de cerca, dando la vuelta, con edad y
+  región elegibles.
+- En el pueblo de verdad: tocá a alguien para seguirlo y usá **Probar una
+  actividad**. Va andando hasta un sitio donde tenga sentido —su puerta, la
+  plaza, el agua, una obra o el prado—, la hace un rato y vuelve a su casa. Si
+  en el pueblo no hay sitio de esa clase, la hace donde está.
 
 **Criterio:**
 - Se entiende qué hace **sin leer el nombre**.
@@ -58,18 +63,25 @@ dando la vuelta, con edad y región elegibles.
   - [ ] carretilla — empuja la carretilla *(nueva)*
 - **Prado**
   - [ ] segar — siega
-  - [ ] cometa — vuela una cometa
+  - [ ] cometa — vuela una cometa *(rehecha: rombo de cuatro colores con cola
+    de lazos, siempre de cara a la cámara)*
   - [ ] leer — lee
   - [ ] nubes — se tumba a mirar las nubes
   - [ ] pastorear — cuida las ovejas *(nueva)*
   - [ ] flores — coge flores *(nueva)*
 - **Sin sitio**
-  - [ ] andar
+  - [ ] andar *(ahora a saltitos, uno por paso)*
   - [ ] quieto — se queda mirando
-  - [ ] volver a casa al caer la tarde
+  - [ ] volver a casa al caer la tarde *(rehecho: cada uno a su hora y por la
+    calle, no en línea recta)*
 
 **Y la persona en sí:**
-- [ ] La figura: proporciones, ropa, pelo, críos frente a mayores.
+- [ ] La figura: proporciones, ropa, críos frente a mayores.
+- [ ] El pelo: ellos, un gorro corto; ellas, el mismo gorro y una melena hasta
+  media espalda, a ras con él. Lleva cuatro vueltas; falta el visto bueno.
+- [ ] Que nada de nadie atraviese nada: ni las casas, ni la plaza, ni su propio
+  pelo. Está resuelto por regla y medido por tests (ver *Lo que no se ve*),
+  pero falta mirarlo en el teléfono.
 - [ ] Seguir a alguien al tocarlo: el zoom, la ficha con nombre, oficio, fecha
   y casa, y que haga más cosas mientras se lo sigue.
 
@@ -305,8 +317,26 @@ Todo lo medido hasta ahora es de una máquina de escritorio. Fotograma:
 - [ ] **La notificación tarda unos 282 ms en el peor caso**: el 20 % de las
   piezas recalculan el pueblo entero para decidir qué decir. Re-medirlo y, si
   sigue, cortarlo: la notificación sólo necesita saber qué obra está en marcha.
-- [ ] **`ndkVersion`** en `android/app/build.gradle.kts`: no lo usa nada.
-  Quitarlo.
+- [ ] **La cámara que sigue a alguien se mete a veces dentro de un tejado.**
+  Hay que apartarla cuando lo que tiene delante es una pared.
+
+### El orden de pintado de la gente
+
+**Hecho.** La gente se ordenaba contra los edificios por el punto de sus pies
+y se pintaba entera ahí, así que todo lo que se alejaba de ese punto —el
+cuerpo contra el bordillo de la plaza, el taburete contra su pared, la cometa,
+las ovejas— salía por delante o por detrás de lo que no tocaba. Ahora:
+
+- cada cara de una persona pasa por el árbol de planos de los edificios,
+  partiéndose donde cruza uno (`walkOrderRiders` en `world.dart`,
+  `BspTree.paintRiders` en `bsp.dart`);
+- de cerca, el orden entre sus propias caras también lo da un árbol de planos;
+- nadie se para donde lo que lleva se mete en algo construido: se mira todo lo
+  que ocupa el gesto entero contra el plano de calles (`_fitsAt` en
+  `folk.dart`).
+
+Los tests de `depth_test.dart` lo miden en pueblos de verdad (3300 encuadres)
+y de cerca para cada actividad desde 24 ángulos; ninguno falla.
 
 ### La nube (Supabase)
 
@@ -339,6 +369,9 @@ Todo lo medido hasta ahora es de una máquina de escritorio. Fotograma:
 - **¿Los cobertizos y graneros siguen trayendo vecinos?** Hoy los traen todas
   las casas, y los hitos no traen ninguno. El padrón no se reescribe nunca, así
   que cambiarlo valdría sólo de aquí en adelante.
+- **El botón «Probar una actividad»**: hoy sale siempre al seguir a alguien.
+  Una vez revisadas las actividades, ¿se queda, o pasa a Ajustes →
+  Desarrollo?
 - **El aviso a la hora del plan** (`Habit.vowHour`): hay que decidir qué pasa
   con quien no escribió hora, y con el hábito que se hace a otra hora que la
   prometida.

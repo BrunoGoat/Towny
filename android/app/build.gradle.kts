@@ -40,7 +40,6 @@ val signedForReal = keyProps.getProperty("storeFile") != null
 android {
     namespace = "com.towny.app"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
 
     compileOptions {
         // Lo pide `flutter_local_notifications`: usa las clases de fecha y

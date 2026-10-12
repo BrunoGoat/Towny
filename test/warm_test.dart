@@ -79,11 +79,14 @@ void main() {
         builtTown(encargo.layout, 200);
         frio.stop();
         // Si levantarlo de cero no costara nada, no habría nada que sacar de
-        // este hilo y esta prueba no mediría más que ruido.
+        // este hilo y esta prueba no mediría más que ruido. Pero sin un número
+        // fijo de milisegundos: pedía más de cuarenta, y en una máquina rápida
+        // salía justo cuarenta y la prueba fallaba por ir bien. Lo que importa
+        // es la proporción, y se mide abajo.
         expect(
-          frio.elapsedMilliseconds,
-          greaterThan(40),
-          reason: 'levantarlo costó ${frio.elapsedMilliseconds} ms',
+          frio.elapsedMicroseconds,
+          greaterThan(2000),
+          reason: 'levantarlo costó ${frio.elapsed}: no hay nada que medir',
         );
 
         forgetTowns();
@@ -95,6 +98,13 @@ void main() {
           tibio.elapsedMilliseconds,
           lessThan(30),
           reason: 'el fotograma lo volvió a levantar: ${tibio.elapsed}',
+        );
+        // Y mucho menos que levantarlo: si el fotograma tardara un cuarto de
+        // lo que tarda hacerlo de cero, es que lo estaba rehaciendo.
+        expect(
+          tibio.elapsedMicroseconds * 4,
+          lessThan(frio.elapsedMicroseconds),
+          reason: 'de cero ${frio.elapsed}, ya levantado ${tibio.elapsed}',
         );
         expect(hecho.clusters, isNotEmpty);
         // Y es el mismo objeto la segunda vez: está guardado, no rehecho.
