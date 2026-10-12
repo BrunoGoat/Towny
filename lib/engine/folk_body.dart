@@ -442,24 +442,37 @@ List<Solid> folkSolids(
   // punto y el pelo es la mitad de la cabeza: es lo que hace que dos vecinos
   // no se confundan de lejos.
   //
-  // **Una caja y nada más**, metida sobre la cabeza. Ellos, un gorro corto
-  // arriba; ellas, la misma caja pero bajando por detrás y por los lados
-  // hasta la barbilla, con la cara asomando por delante. Se probó con tablas
-  // —nuca, mechones, flequillo— y eran demasiadas figuras para una persona
-  // que es tres cajas. Que la caja se meta en la cabeza no importa: de cerca
-  // el orden lo da un árbol de planos, que corta lo que se cruza.
+  // **El gorro, y ellas una caja más.** Ellos, un gorro corto arriba; ellas,
+  // el mismo gorro y la melena: una caja que cae por detrás y por los lados
+  // hasta la barbilla, con la cara asomando por delante. Con una sola caja
+  // para ellas, de frente no les quedaba pelo sobre la frente y parecían
+  // calvas; con tablas —nuca, mechones, flequillo— eran demasiadas figuras
+  // para una persona que es tres cajas. Que las cajas se metan en la cabeza
+  // no importa: de cerca el orden lo da un árbol de planos, que corta lo que
+  // se cruza.
   if (detail > 0.25) {
-    final larga = folkIsWoman(seed);
     box(
-      (larga ? -0.222 : -0.212) + wag * 0.4,
-      piso + (larga ? 0.600 : 0.830) + bob - baja,
-      (larga ? -0.198 : -0.182) + lean * 1.5,
-      (larga ? 0.222 : 0.212) + wag * 0.4,
-      piso + (larga ? 0.995 : 0.985) + bob - baja,
-      (larga ? 0.080 : 0.182) + lean * 1.5,
+      -0.212 + wag * 0.4,
+      piso + 0.830 + bob - baja,
+      -0.182 + lean * 1.5,
+      0.212 + wag * 0.4,
+      piso + 0.985 + bob - baja,
+      0.182 + lean * 1.5,
       pelo,
       1.0,
     );
+    if (folkIsWoman(seed)) {
+      box(
+        -0.224 + wag * 0.4,
+        piso + 0.600 + bob - baja,
+        -0.200 + lean * 1.5,
+        0.224 + wag * 0.4,
+        piso + 0.900 + bob - baja,
+        0.060 + lean * 1.5,
+        pelo,
+        0.96,
+      );
+    }
   }
 
   // Y lo que lleva.
