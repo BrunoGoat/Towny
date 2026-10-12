@@ -286,19 +286,29 @@ class Backdrop {
           ],
         ),
     );
-    canvas.drawCircle(
-      Offset(sx, sy),
-      r,
-      Paint()..color = disc.withValues(alpha: 0.94),
-    );
-    if (!day) {
-      // A bite out of the disc, so it reads as a moon and not a pale sun.
-      canvas.drawCircle(
-        Offset(sx + r * 0.42, sy - r * 0.30),
-        r * 0.88,
-        Paint()..color = pal.skyTop.withValues(alpha: 0.92),
-      );
+    final cara = Paint()..color = disc.withValues(alpha: 0.94);
+    if (day) {
+      canvas.drawCircle(Offset(sx, sy), r, cara);
+      return;
     }
+    // La luna, en cuarto: el disco **menos** un mordisco, recortado de verdad.
+    //
+    // El mordisco se pintaba encima con el color de lo alto del cielo, y el
+    // cielo no es un color: es un degradado, con el halo de la propia luna
+    // por encima. Así que el mordisco nunca casaba con lo que tenía detrás y
+    // se veía un disco oscuro y medio transparente pegado a la luna. Ahora no
+    // se pinta nada donde falta luna, y detrás queda lo que haya.
+    final luna = Path.combine(
+      PathOperation.difference,
+      Path()..addOval(Rect.fromCircle(center: Offset(sx, sy), radius: r)),
+      Path()..addOval(
+        Rect.fromCircle(
+          center: Offset(sx + r * 0.42, sy - r * 0.30),
+          radius: r * 0.88,
+        ),
+      ),
+    );
+    canvas.drawPath(luna, cara);
   }
 
   void drawGround(Canvas canvas, Size size, double horizonY) {
