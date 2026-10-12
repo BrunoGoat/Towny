@@ -17,6 +17,7 @@ import 'dart:math' as math;
 import '../core/math3.dart';
 import '../core/rng.dart';
 import '../data/doings.dart';
+import '../data/folknames.dart';
 import 'folk.dart';
 import 'solid.dart';
 
@@ -260,16 +261,25 @@ List<Solid> folkSolids(
   final beat = act == null ? 0.0 : ph * act.rate + hash01(seed, 16) * 6;
   final swing = act == null ? 0.0 : math.sin(beat);
   final salta = !at.moving && (act?.hop ?? false);
-  final bob = at.moving
-      ? math.cos(at.gait * 2) * 0.016
-      : (act == null || salta
-            ? 0.0
-            : act.bob * (act.bob < 0 ? math.max(0.0, swing) : swing));
+  final bob = at.moving || act == null || salta
+      ? 0.0
+      : act.bob * (act.bob < 0 ? math.max(0.0, swing) : swing);
 
   /// Y quien salta despega entero: no es estirarse, son los pies los que
   /// dejan el suelo. Sube con el valor absoluto, así que vuelve a tocar
   /// tierra dos veces por vuelta de [beat], con el golpe seco de un salto.
-  final piso = asiento + (salta ? act!.bob * swing.abs() : 0.0);
+  ///
+  /// **Andar también es dar saltitos**: uno por paso, despegando del suelo y
+  /// cayendo seco. Antes andar era estirarse y encogerse sin levantar los
+  /// pies, y una figura sin piernas que no despega se lee como algo que
+  /// resbala por la calle. Con el saltito se lee el paso.
+  final piso =
+      asiento +
+      (at.moving
+          ? 0.045 * math.sin(at.gait).abs()
+          : salta
+          ? act!.bob * swing.abs()
+          : 0.0);
   final wag = at.moving ? math.sin(at.gait) * 0.014 : (act?.wag ?? 0.0) * swing;
   final lean = at.moving ? 0.020 : (act?.lean ?? 0.0);
 
@@ -441,6 +451,50 @@ List<Solid> folkSolids(
       pelo,
       1.0,
     );
+    // Y ellas, melena: por detrás de la cabeza hasta los hombros y un
+    // mechón a cada lado de la cara. A quince píxeles no hay rasgos que
+    // separen a una mujer de un hombre, pero una melena es silueta, y la
+    // silueta sí se lee de lejos.
+    if (folkIsWoman(seed)) {
+      final hx = wag * 0.4, hz = lean * 1.5;
+      final abajo = piso + 0.600 + bob - baja,
+          arriba = piso + 0.860 + bob - baja;
+      box(
+        -0.212 + hx,
+        abajo,
+        -0.222 + hz,
+        0.212 + hx,
+        arriba,
+        -0.176 + hz,
+        pelo,
+        0.97,
+      );
+      // Y cae por la espalda hasta los hombros: pegada al cuerpo, que se
+      // inclina menos que la cabeza, así que va con el cuerpo y no con ella.
+      final bz = lean * 0.5;
+      box(
+        -0.180 + wag,
+        piso + 0.400 + bob - baja,
+        -0.168 + bz,
+        0.180 + wag,
+        abajo + 0.02,
+        -0.122 + bz,
+        pelo,
+        0.95,
+      );
+      for (final s in [1.0, -1.0]) {
+        box(
+          (s > 0 ? 0.206 : -0.232) + hx,
+          abajo - 0.10,
+          -0.176 + hz,
+          (s > 0 ? 0.232 : -0.206) + hx,
+          arriba,
+          0.040 + hz,
+          pelo,
+          0.97,
+        );
+      }
+    }
   }
 
   // Y lo que lleva.
@@ -819,45 +873,46 @@ List<Solid> folkSolids(
       );
 
     case PropKind.kite:
-      // La cometa allá arriba y el hilo tenso. Es lo único del pueblo que
-      // pasa por encima de las cabezas, así que se ve desde cualquier sitio.
+      // Una cometa de cajón allá arriba, con su hilo.
+      //
+      // **De cajón y no de rombo.** El rombo era plano: de frente se leía, y
+      // de canto —que es como se la ve la mitad del tiempo, porque la cámara
+      // da vueltas— era un palo con una raya roja flotando. Una cometa de
+      // cajón son dos bandas de tela alrededor de un armazón, y se lee igual
+      // desde cualquier lado: dos franjas de color con un hueco en medio.
       final m = hold(1, 0.80, 0.05);
       final vaiven = swing * 0.12;
       final cx = 0.62 + vaiven, cy = 1.62 + swing * 0.10, cz = 0.92;
-      link(m, (cx, cy - 0.10, cz), 0.005, 0xFFE4DCC6, 1.04);
-      // El rombo: dos cajas cruzadas, que a esta distancia es un rombo.
-      box(
-        cx - 0.215,
-        cy - 0.052,
-        cz - 0.022,
-        cx + 0.215,
-        cy + 0.052,
-        cz + 0.022,
-        0xFFC1543C,
-        1.06,
-      );
-      box(
-        cx - 0.062,
-        cy - 0.245,
-        cz - 0.022,
-        cx + 0.062,
-        cy + 0.245,
-        cz + 0.022,
-        0xFFD98C3C,
-        1.04,
-      );
-      // Y la cola, tres lazos colgando, que es lo que dice que vuela.
-      for (var k = 0; k < 3; k++) {
-        final cai = cy - 0.27 - k * 0.135;
+      const r = 0.14, t = 0.022, banda = 0.17, hueco = 0.09;
+      link(m, (cx, cy - hueco - banda, cz + r), 0.005, 0xFFE4DCC6, 1.04);
+      for (final (y0, tinte) in [
+        (cy + hueco, 0xFFC1543C),
+        (cy - hueco - banda, 0xFFD98C3C),
+      ]) {
+        final y1 = y0 + banda;
+        // Delante y detrás, sin las esquinas, y los costados enteros: así
+        // ninguna tela se mete dentro de otra.
+        box(cx - r + t, y0, cz + r - t, cx + r - t, y1, cz + r, tinte, 1.06);
+        box(cx - r + t, y0, cz - r, cx + r - t, y1, cz - r + t, tinte, 0.96);
+        box(cx - r, y0, cz - r, cx - r + t, y1, cz + r, tinte, 1.0);
+        box(cx + r - t, y0, cz - r, cx + r, y1, cz + r, tinte, 1.0);
+      }
+      // Las cuatro varillas del armazón, a la vista en el hueco de en medio.
+      for (final (sx, sz) in [
+        (-1.0, -1.0),
+        (1.0, -1.0),
+        (-1.0, 1.0),
+        (1.0, 1.0),
+      ]) {
         box(
-          cx - 0.030 - vaiven * (k + 1) * 0.6,
-          cai - 0.048,
-          cz - 0.016,
-          cx + 0.030 - vaiven * (k + 1) * 0.6,
-          cai,
-          cz + 0.016,
+          cx + sx * (r - t / 2) - 0.008,
+          cy - hueco,
+          cz + sz * (r - t / 2) - 0.008,
+          cx + sx * (r - t / 2) + 0.008,
+          cy + hueco,
+          cz + sz * (r - t / 2) + 0.008,
           0xFFE4DCC6,
-          1.02,
+          1.0,
         );
       }
 

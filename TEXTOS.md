@@ -1812,7 +1812,7 @@ Invierno, primavera, verano y otoño, en ajustes y en el tablón.
 
 Frases que no caen en ninguna pantalla concreta.
 
-- **U389** · `versión simple`  <sub>renderer.dart:2028 · TownPainter._colourOf</sub>
+- **U389** · `versión simple`  <sub>renderer.dart:1980 · TownPainter._colourOf</sub>
 - **U390** · `todos los días`  <sub>cadence.dart:117 · cadenceSaid</sub>
 - **U391** · `una vez por semana`  <sub>cadence.dart:118 · cadenceSaid</sub>
 - **U392** · `$perWeek veces por semana`  <sub>cadence.dart:119 · cadenceSaid</sub>

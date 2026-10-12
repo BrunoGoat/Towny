@@ -364,11 +364,15 @@ void main() {
       // bastantes; ahora hay pocas a propósito, y lo que hay que exigir es lo
       // contrario: que **ninguna** se quede sin salir. Una fila escrita que no
       // se sortea nunca es una fila muerta.
-      final t = _town(400);
+      // En unos cuantos pueblos y no en uno: lo raro es raro a propósito, y
+      // en un pueblo concreto puede no tocarle a nadie.
       final vistas = <String>{};
-      for (final w in folkOf(t, 400)) {
-        for (final d in w.debugActs) {
-          if (d != null) vistas.add(d.id);
+      for (var seed = 0; seed < 10; seed++) {
+        final t = TownLayout(400, TownCharacter.all.first, seed: seed * 101);
+        for (final w in folkOf(t, 400)) {
+          for (final d in w.debugActs) {
+            if (d != null) vistas.add(d.id);
+          }
         }
       }
       for (final d in Doing.all) {

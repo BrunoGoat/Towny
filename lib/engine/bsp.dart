@@ -57,81 +57,52 @@ class BspTree {
     if (near != null) _walk(near, eye, emit);
   }
 
-  /// Lo mismo, pero soltando por el camino cosas que no son caras de este
-  /// sólido: la gente que anda entre sus paredes.
+  /// Lo mismo, pero soltando por el camino las caras de quien anda entre
+  /// sus paredes: la gente, y lo que lleva en la mano.
   ///
-  /// **Por qué hace falta.** Una persona y un edificio se ordenaban comparando
-  /// a la persona con la *caja envolvente* del edificio, y una caja no es un
-  /// edificio: hay hojas cuya caja abarca media parcela —las que llevan el
-  /// sembrado, el agua o una bandera— y ahí dentro cae todo el mundo, así que
-  /// no había ningún eje que separase y todos acababan pintados por delante.
-  /// De ahí que se viera a la gente a través de unos edificios y de otros no:
-  /// dependía de lo apretada que fuera la caja de cada uno.
+  /// **Cara a cara, y partiéndolas donde cruzan un plano.** Antes una persona
+  /// bajaba por el árbol como un punto —el de sus pies— y salía entera por
+  /// la hoja de ese punto. Para el cuerpo casi siempre daba bien, pero una
+  /// persona no es un punto: el taburete, la cometa a metro y medio, las
+  /// ovejas al lado, la caña hasta el agua. Todo eso se pintaba donde le
+  /// tocaba a los pies, y en cuanto cruzaba un plano de un edificio —el
+  /// bordillo de la plaza, la pared de su propia casa— salía por delante de
+  /// lo que tenía delante. No era un caso raro: era la regla, y se veía
+  /// cada vez que algo de una persona quedaba a un lado distinto que sus pies.
   ///
-  /// Con el árbol no hay caja que valga. El árbol son los planos de las
-  /// propias paredes, y un punto comparado con un plano está de un lado o del
-  /// otro sin discusión — es el mismo criterio exacto con el que se ordenan
-  /// entre sí las caras del edificio. Cuesta lo que cuesta repartir una lista
-  /// de cuatro vecinos por un árbol que ya se estaba recorriendo de todas
-  /// formas.
-  ///
-  /// [reach] da, para cada pasajero y cada plano, hasta dónde llega por los
-  /// dos lados: una persona no es un punto —mide lo suyo de alto— y contra un
-  /// plano horizontal a media altura está en los dos lados a la vez.
-  void paintWith<T>(
+  /// Ahora cada cara baja por su cuenta, igual que se ordenaron las caras de
+  /// los edificios entre sí, y la que cruza un plano se parte en dos y cada
+  /// mitad va por su lado. Es el mismo criterio exacto que el resto del
+  /// valle, sin nada que elegir: no hay «a caballo» que resolver.
+  void paintRiders(
     V3 eye,
-    List<T> riders,
-    (double lo, double hi) Function(T rider, V3 n, double d) reach,
+    List<Rider> riders,
     void Function(Facet) emit,
-    void Function(List<T>) drop,
+    void Function(List<Rider>) drop,
   ) {
     final n = _root;
     if (n == null) {
       drop(riders);
       return;
     }
-    _walkWith<T>(n, eye, riders, reach, emit, drop);
+    _walkRiders(n, eye, riders, emit, drop);
   }
 
-  static void _walkWith<T>(
+  static void _walkRiders(
     _Node node,
     V3 eye,
-    List<T> riders,
-    (double lo, double hi) Function(T rider, V3 n, double d) reach,
+    List<Rider> riders,
     void Function(Facet) emit,
-    void Function(List<T>) drop,
+    void Function(List<Rider>) drop,
   ) {
-    final side = node.n.dot(eye) - node.d;
-    final nearIsFront = side >= 0;
-
-    var mine = <T>[];
-    var theirs = <T>[];
-    if (riders.isNotEmpty) {
-      final cerca = <T>[], lejos = <T>[];
-      for (final r in riders) {
-        final (lo, hi) = reach(r, node.n, node.d);
-        if (lo > _eps) {
-          (nearIsFront ? cerca : lejos).add(r);
-        } else if (hi < -_eps) {
-          (nearIsFront ? lejos : cerca).add(r);
-        } else {
-          // A caballo del plano, que es lo que le pasa a cualquiera contra el
-          // suelo de la casa de al lado. No hay orden correcto, así que se
-          // elige el que menos duele: el lado del ojo, que se pinta el último.
-          // Lo que pasa entonces es que asoma por delante de un escalón; al
-          // revés, lo que pasa es que media pared le cae encima.
-          cerca.add(r);
-        }
-      }
-      mine = cerca;
-      theirs = lejos;
-    }
-
+    final nearIsFront = node.n.dot(eye) - node.d >= 0;
+    final (front, back) = sortRiders(riders, node.n, node.d, nearIsFront);
     final near = nearIsFront ? node.front : node.back;
     final far = nearIsFront ? node.back : node.front;
-
+    final mine = nearIsFront ? front : back;
+    final theirs = nearIsFront ? back : front;
     if (far != null) {
-      _walkWith<T>(far, eye, theirs, reach, emit, drop);
+      _walkRiders(far, eye, theirs, emit, drop);
     } else if (theirs.isNotEmpty) {
       drop(theirs);
     }
@@ -139,11 +110,51 @@ class BspTree {
       emit(f);
     }
     if (near != null) {
-      _walkWith<T>(near, eye, mine, reach, emit, drop);
+      _walkRiders(near, eye, mine, emit, drop);
     } else if (mine.isNotEmpty) {
       drop(mine);
     }
   }
+}
+
+/// Una cara que no es de la mampostería y la atraviesa al pintarse: la de una
+/// persona o la de lo que lleva. [seq] es su puesto en el orden en que se
+/// pintaría sola, que es el que manda entre caras que acaban en el mismo
+/// sitio; [tag] dice de quién es, para el dedo.
+class Rider {
+  const Rider(this.f, this.seq, this.tag);
+  final Facet f;
+  final int seq;
+  final int tag;
+}
+
+/// Reparte [riders] a los dos lados de un plano: (delante, detrás). La que lo
+/// cruza se parte en dos; la que está sobre él va con el lado del ojo
+/// ([eyeFront] dice cuál es), porque es una cara de alguien que está ahí
+/// delante y no una pared del otro lado.
+(List<Rider>, List<Rider>) sortRiders(
+  List<Rider> riders,
+  V3 n,
+  double d,
+  bool eyeFront,
+) {
+  if (riders.isEmpty) return (const [], const []);
+  final front = <Rider>[], back = <Rider>[];
+  for (final r in riders) {
+    switch (_classify(r.f, n, d)) {
+      case _Side.front:
+        front.add(r);
+      case _Side.back:
+        back.add(r);
+      case _Side.on:
+        (eyeFront ? front : back).add(r);
+      case _Side.spanning:
+        final (a, b) = _cut(r.f, n, d, withDecals: false);
+        if (a != null) front.add(Rider(a, r.seq, r.tag));
+        if (b != null) back.add(Rider(b, r.seq, r.tag));
+    }
+  }
+  return (front, back);
 }
 
 class _Node {

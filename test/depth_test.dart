@@ -440,6 +440,151 @@ void main() {
       expect(bad, isEmpty, reason: bad.join('\n'));
     });
   });
+
+  // **La regla, en el pueblo de verdad.** Gente de verdad, en su ronda y
+  // haciendo lo que hace, con todo lo que lleva, en pueblos de verdad y desde
+  // la cámara que la sigue: que ninguna cara de una persona se pinte encima
+  // de algo que tiene delante, ni al revés.
+  //
+  // Lo que esto caza se vio en la web: alguien en la plaza con el bordillo
+  // pintado por encima del cuerpo, alguien sentado en su puerta con la pared
+  // encima, la comba por delante de la valla que tenía delante. Pasaba porque
+  // cada persona bajaba por el árbol como el punto de sus pies y salía entera
+  // por ahí; ahora baja cara a cara, partiéndose donde cruza un plano.
+  group('la gente en el pueblo de verdad', () {
+    test('nada de nadie se pinta por delante de lo que tiene delante', () {
+      final bad = <String>[];
+      var medidos = 0;
+      var partidas = 0;
+      for (final c in [TownCharacter.all[0], TownCharacter.all[3]]) {
+        for (final placed in [24, 160, 400]) {
+          final layout = TownLayout(placed, c, seed: 77);
+          final built = builtTown(layout, placed);
+          final root = built.root!;
+          final talla = folkTalla(c);
+          final gente = folkOf(layout, placed);
+          for (var i = 0; i < gente.length; i += 3) {
+            final who = gente[i];
+            // Cada parada de su ronda, haciendo lo que hace en ella, y un
+            // momento andando.
+            final momentos = <FolkAt>[];
+            String? antes;
+            var anduvo = false;
+            for (var t = 0.0; t < who.period; t += 0.9) {
+              final at = who.at(t);
+              if (at.moving) {
+                if (!anduvo) momentos.add(at);
+                anduvo = true;
+                antes = null;
+                continue;
+              }
+              final que = at.act?.id;
+              if (que != null && que != 'quieto' && que != antes) {
+                momentos.add(at);
+              }
+              antes = que;
+            }
+            for (final at in momentos) {
+              final y0 = Plaza.floorAt(
+                at.x,
+                at.z,
+                layout.cx,
+                layout.cz,
+                TownLayout.plazaReach,
+              );
+              for (var k = 0; k < 6; k++) {
+                final yaw = k * math.pi / 3 + 0.3;
+                for (final (pitch, dist) in [(0.75, 4.6), (0.32, 3.0)]) {
+                  final target = V3(at.x, talla * 0.6, at.z);
+                  final cp = math.cos(pitch);
+                  final eye =
+                      target +
+                      V3(
+                            math.sin(yaw) * cp,
+                            math.sin(pitch),
+                            math.cos(yaw) * cp,
+                          ) *
+                          dist;
+                  final forward = (target - eye).normalized;
+                  var right = forward.cross(const V3(0, 1, 0));
+                  right = right.normalized;
+                  final up = right.cross(forward).normalized;
+                  bool mira(Facet f) {
+                    final a = f.v.first;
+                    return (eye.x - a.x) * f.n.x +
+                            (eye.y - a.y) * f.n.y +
+                            (eye.z - a.z) * f.n.z >
+                        0;
+                  }
+
+                  final suyas = <Rider>[];
+                  for (final sol in folkInPaintOrder(
+                    folkSolids(who, at, talla, lift: y0),
+                    eye,
+                  )) {
+                    for (final f in sol.faces) {
+                      if (mira(f)) suyas.add(Rider(f, suyas.length, 1));
+                    }
+                  }
+                  final seq = <Facet>[];
+                  final deEl = <Facet>{};
+                  void suelta(List<Rider> rs) {
+                    final orden = [...rs]
+                      ..sort((a, b) => a.seq.compareTo(b.seq));
+                    for (final r in orden) {
+                      seq.add(r.f);
+                      deEl.add(r.f);
+                    }
+                  }
+
+                  walkOrderRiders(root, eye, suyas, (leaf, aqui) {
+                    final cl = leaf.cluster;
+                    if (cl == null) {
+                      suelta(aqui);
+                      return;
+                    }
+                    cl.tree.paintRiders(eye, aqui, (f) {
+                      if (!mira(f)) return;
+                      seq.add(f);
+                      final d = f.decals;
+                      if (d != null) seq.addAll(d);
+                    }, suelta);
+                  });
+                  medidos++;
+                  if (deEl.length > suyas.length) partidas++;
+                  final mal = _clashOf(
+                    seq,
+                    deEl,
+                    eye,
+                    right,
+                    up,
+                    forward,
+                    640.0,
+                    0.03,
+                  );
+                  if (mal != null) {
+                    bad.add(
+                      '${c.region} $placed, ${who.name} '
+                      '(${at.act?.id ?? 'andando'}) yaw ${(yaw * 57.3).round()} '
+                      'pitch $pitch: $mal',
+                    );
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      // ignore: avoid_print
+      print('medidos $medidos, con alguna cara partida $partidas');
+      expect(medidos, greaterThan(100));
+      expect(
+        bad,
+        isEmpty,
+        reason: '${bad.length} encuadres:\n${bad.take(6).join('\n')}',
+      );
+    });
+  });
 }
 
 String _k(V3 p) =>
@@ -478,7 +623,7 @@ String? _fault(
 
 /// La misma comprobación sobre una secuencia de caras ya ordenada, venga de
 /// donde venga: la mampostería la saca de [paintSequence] y la gente contra los
-/// edificios de [BspTree.paintWith]. Es el mismo fallo en los dos sitios.
+/// edificios de [BspTree.paintRiders]. Es el mismo fallo en los dos sitios.
 String? _clash(
   Iterable<Facet> seq,
   V3 eye,
@@ -512,6 +657,47 @@ String? _clash(
               'standing ${(a - b).toStringAsFixed(2)} in front of it'
               '\n  painted second: ${later.world}'
               '\n  painted first:  ${under.world}';
+        }
+      }
+    }
+  }
+  return null;
+}
+
+/// Lo mismo que [_clash], pero mirando sólo los pares en los que una de las
+/// dos caras es de [these]: la gente contra el pueblo, sin volver a medir el
+/// pueblo contra sí mismo, que ya lo mide su propio barrido.
+String? _clashOf(
+  List<Facet> seq,
+  Set<Facet> these,
+  V3 eye,
+  V3 right,
+  V3 up,
+  V3 forward,
+  double focal,
+  double tol,
+) {
+  final polys = <(_Poly, bool)>[];
+  for (final f in seq) {
+    final p = _Poly.of(f, eye, right, up, forward, focal);
+    if (p != null) polys.add((p, these.contains(f)));
+  }
+  for (var j = 1; j < polys.length; j++) {
+    final (later, lf) = polys[j];
+    for (var i = 0; i < j; i++) {
+      final (under, uf) = polys[i];
+      if (lf == uf) continue;
+      if (!later.touches(under)) continue;
+      for (final s in later.samples) {
+        if (!under.holds(s)) continue;
+        final a = later.depthAt(s, focal);
+        final b = under.depthAt(s, focal);
+        if (a == null || b == null) continue;
+        if (a > b + tol) {
+          return '${lf ? 'la persona' : 'el pueblo'} (${later.what}) se pinta '
+              'sobre ${uf ? 'la persona' : 'el pueblo'} (${under.what}) '
+              'estando ${(a - b).toStringAsFixed(2)} detrás'
+              '\n  encima: ${later.world}\n  debajo: ${under.world}';
         }
       }
     }
@@ -660,25 +846,24 @@ String? _folkVsWall(BspTree arbol, Aabb caja, double ancho, double yaw) {
   final seq = <Facet>[];
   var caras = 0;
   final drops = <int>[];
-  arbol.paintWith<FolkAt>(
+  final suyas = <Rider>[];
+  for (final s in folkInPaintOrder(folkSolids(who, at, talla), eye)) {
+    for (final f in visibles(s.faces)) {
+      suyas.add(Rider(f, suyas.length, 0));
+    }
+  }
+  arbol.paintRiders(
     eye,
-    [at],
-    (r, n, d) {
-      // El mismo criterio que usa el render: por donde pisa.
-      final base = n.x * r.x + n.z * r.z - d;
-      return (base, base);
-    },
+    suyas,
     (f) {
       seq.add(f);
       caras++;
     },
     (gente) {
       drops.add(caras);
-      for (final _ in gente) {
-        for (final s in folkInPaintOrder(folkSolids(who, at, talla), eye)) {
-          seq.addAll(visibles(s.faces));
-        }
-      }
+      seq.addAll([
+        for (final r in [...gente]..sort((a, b) => a.seq.compareTo(b.seq))) r.f,
+      ]);
     },
   );
   // Un cuarto de unidad de margen, y está medido, no puesto a ojo.

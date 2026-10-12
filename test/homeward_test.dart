@@ -108,7 +108,8 @@ void main() {
   });
 
   test('quien se ve por primera vez de noche ya está en casa', () {
-    final t = TownLayout(300, TownCharacter.all.first);
+    // Otro pueblo, para que nadie lo haya visto en las pruebas de antes.
+    final t = TownLayout(300, TownCharacter.all.first, seed: 4242);
     final w = folkOf(t, 300)[7];
     expect(folkWhere(w, 5, 0.95), isNull);
   });

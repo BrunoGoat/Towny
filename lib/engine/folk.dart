@@ -3,8 +3,10 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 
 import '../core/rng.dart';
+import '../data/character.dart';
 import '../data/doings.dart';
 import '../data/folknames.dart';
+import 'folk_body.dart';
 import 'solids.dart';
 import 'streets.dart';
 import 'town.dart';
@@ -122,8 +124,16 @@ class Townsfolk {
   bool get kid => hash01(seed, 12) < 0.24;
 
   /// Lo que mide, contra lo que mide una persona hecha.
-  double get build =>
-      kid ? 0.66 + hash01(seed, 13) * 0.10 : 0.94 + hash01(seed, 14) * 0.15;
+  double get build => buildOf(seed);
+
+  /// Lo que mide quien sale de la semilla [seed]. Ver [build].
+  static double buildOf(int seed) => hash01(seed, 12) < 0.24
+      ? 0.66 + hash01(seed, 13) * 0.10
+      : 0.94 + hash01(seed, 14) * 0.15;
+
+  /// Lo que mide de verdad en el valle: su talla por la de su región. Cero en
+  /// el expositor, que no tiene región ni nada contra lo que chocar.
+  double _h = 0;
 
   /// Por dónde pasa: su puerta, sus recados, y los quiebros que da para
   /// rodear las casas que le quedan en medio.
@@ -245,12 +255,23 @@ class Townsfolk {
 
   /// Lo que puede hacer en la parada [i] cuando la sigue la cámara: lo de
   /// siempre primero, y después todo lo demás que tiene sentido ahí.
-  List<Doing> _spotChoices(int i) {
+  ///
+  /// Sólo las que **caben** ahí: mirando a donde mira en esa parada, nada de
+  /// lo que lleva puede meterse en una pared. Ver [_fitsAt].
+  List<Doing> _spotChoices(int i) => _spotMemo[i] ??= _spotChoicesOf(i);
+
+  final Map<int, List<Doing>> _spotMemo = {};
+
+  List<Doing> _spotChoicesOf(int i) {
     final suya = _act[i] ?? Doing.idle;
     return [
       suya,
       for (final d in Doing.all)
-        if (d.where == suya.where && d.fits(kid) && d.id != suya.id) d,
+        if (d.where == suya.where &&
+            d.fits(kid) &&
+            d.id != suya.id &&
+            _fitsAt(_calles, _h, d, kid, _stops[i], _facing[i]))
+          d,
     ];
   }
 
@@ -740,7 +761,39 @@ bool folkTryOut(
       mira = math.atan2(-math.sin(a), -math.cos(a));
     }
   }
-  final aqui = sitio ?? desde;
+  // Y que quepa: lo que lleva no puede meterse en nada. Si de cara al sitio
+  // no cabe se gira, y si girándose tampoco, se aparta del sitio de a palmos
+  // hasta que quepa. Ver [_fitsAt].
+  var aqui = sitio ?? desde;
+  final centro = doing.where == Where.door && who.home >= 0
+      ? (layout.buildings[who.home].cx, layout.buildings[who.home].cz)
+      : aqui;
+  var (_, que, cara) = _fitting(calles, who._h, who.kid, aqui, mira, [
+    doing,
+  ], step: false);
+  var dx = aqui.$1 - centro.$1, dz = aqui.$2 - centro.$2;
+  final largo = math.sqrt(dx * dx + dz * dz);
+  if (largo > 1e-6) {
+    dx /= largo;
+    dz /= largo;
+    for (var k = 1; que != doing && k <= 10; k++) {
+      final otro = calles.onStreets((
+        aqui.$1 + dx * k * 0.25,
+        aqui.$2 + dz * k * 0.25,
+      ));
+      final (_, q, c) = _fitting(calles, who._h, who.kid, otro, mira, [
+        doing,
+      ], step: false);
+      if (q == doing) {
+        aqui = otro;
+        que = q;
+        cara = c;
+      }
+    }
+  }
+  // Una prueba se hace siempre, aunque no quepa en ningún sitio: es para
+  // mirarla. Pero eso sólo pasa en un pueblo sin un hueco libre.
+  if (que == doing) mira = cara;
   final ida = [desde, ...calles.route(desde, aqui), aqui];
   final vuelta = [aqui, ...calles.route(aqui, who.door), who.door];
   who.tryOut(doing, t, ida: ida, facing: mira, vuelta: vuelta);
@@ -942,7 +995,7 @@ List<Townsfolk> _folkOf(
   final out = <Townsfolk>[];
   for (final b in casas) {
     final apuntado = padron[b.index];
-    final seed = apuntado?.$1 ?? folkSeedOf(b.seed, b.index);
+    final seed = apuntado?.$1 ?? folkSeedOf(layout.seed, b.seed, b.index);
     // La puerta, del lado por el que se sale al pueblo, y justo fuera de su
     // propia pared: si cae dentro, el vecino empieza el día dentro de su casa
     // y sale de ella atravesándola.
@@ -963,8 +1016,11 @@ List<Townsfolk> _folkOf(
     final encasa = hash01(seed, 61) < 0.45;
     final dwell = <double>[encasa ? hashRange(34.0, 74.0, seed, 62) : 0.0];
     final doing = <Doing>[_actAt(Where.door, seed, 9, crio)];
-    // Al volver a casa mira a la puerta, que es lo suyo.
-    final look = <double>[math.atan2(-dx, -dz)];
+    // En su puerta mira **hacia fuera**, a la calle, de espaldas a su casa.
+    // Miraba a la puerta, y todo lo que se hace en casa se hace con algo
+    // delante —el tocón, las gallinas, el taburete—, así que se le metía en
+    // la pared.
+    final look = <double>[math.atan2(dx, dz)];
     for (var k = 0; k < 3; k++) {
       final s = sitios[hashInt(sitios.length, seed, 20 + k)];
       // Alrededor del sitio y no encima: se ponen en corro mirando al medio,
@@ -991,6 +1047,25 @@ List<Townsfolk> _folkOf(
       // paseo que la trajo.
       dwell.add(hashRange(28.0, 64.0, seed, 40 + k));
       doing.add(_actAt(s.$4, seed, k, crio));
+    }
+
+    // Y que quepa lo que va a hacer en cada parada. Ver [_fitsAt].
+    final h = folkTalla(layout.character) * Townsfolk.buildOf(seed);
+    for (var k = 0; k < stops.length; k++) {
+      final (donde, que, mira) = _fitting(
+        calles,
+        h,
+        crio,
+        stops[k],
+        look[k],
+        [doing[k], ..._byWhere[doing[k].where]!],
+        // La puerta no se mueve: es por donde entra y sale de casa. Lo que
+        // no quepa en el umbral se cambia por otra cosa de casa que sí.
+        step: k > 0,
+      );
+      stops[k] = donde;
+      doing[k] = que;
+      look[k] = mira;
     }
 
     // El camino de verdad: los recados, y los quiebros para no meterse por
@@ -1029,19 +1104,133 @@ List<Townsfolk> _folkOf(
     }
     out.add(
       Townsfolk._(
-        b.index,
-        seed,
-        apuntado?.$2 ?? folkName(seed),
-        apuntado?.$3,
-        path,
-        stay,
-        facing,
-        acts,
-        math.max(period, 1),
-      ).._calles = calles,
+          b.index,
+          seed,
+          apuntado?.$2 ?? folkName(seed),
+          apuntado?.$3,
+          path,
+          stay,
+          facing,
+          acts,
+          math.max(period, 1),
+        )
+        .._calles = calles
+        .._h = h,
     );
   }
   return out;
+}
+
+/// Lo que mide una persona hecha, en un pueblo de esta región.
+///
+/// Medido contra el propio pueblo y no a ojo: una planta mide
+/// `1.155 * storey` de suelo a techo y una persona son dos tercios largos de
+/// eso, y una ventana mide el cuarenta por ciento de la planta y una persona
+/// es una ventana y media. Las dos cuentas dan lo mismo. Y un cuarto menos,
+/// porque las cabezas ocupan media figura y a la talla exacta salían gigantes
+/// cabezones. Ver `TownPainter.folkHeight`, que es esto mismo.
+double folkTalla(TownCharacter place) => 0.80 * 0.75 * place.storey;
+
+/// Lo que ocupa en el suelo cada actividad, en partes de lo que mide quien la
+/// hace y en su propio sistema (adelante en +z): el cuerpo, y todo lo que
+/// lleva a lo largo del gesto entero.
+final Map<String, (double, double, double, double)> _gestures = {};
+
+(double x0, double z0, double x1, double z1) _footprintOf(Doing d, bool kid) =>
+    _gestures['${d.id}:$kid'] ??= () {
+      final who = Townsfolk.showcase(d, kid: kid);
+      var x0 = 0.0, z0 = 0.0, x1 = 0.0, z1 = 0.0;
+      // Un gesto entero, a saltos de un octavo: lo que se mueve —la maza que
+      // baja, la pelota que sube— tiene que caber en todas sus posturas.
+      final vuelta = 2 * math.pi / math.max(d.rate, 0.05);
+      for (var k = 0; k < 16; k++) {
+        for (final s in folkSolids(who, who.at(vuelta * k / 16), 1.0)) {
+          for (final f in s.faces) {
+            for (final v in f.v) {
+              x0 = math.min(x0, v.x);
+              x1 = math.max(x1, v.x);
+              z0 = math.min(z0, v.z);
+              z1 = math.max(z1, v.z);
+            }
+          }
+        }
+      }
+      final b = who.build;
+      return (x0 / b, z0 / b, x1 / b, z1 / b);
+    }();
+
+/// Si alguien de talla [h] puede hacer [d] de pie en [p] mirando a
+/// [heading] sin que nada de lo suyo —el cuerpo, el taburete, el tocón, las
+/// ovejas, la cometa— se meta en algo construido.
+///
+/// **Es la regla, no un parche por actividad.** Antes sólo se comprobaba que
+/// los pies estuvieran en la calle, y lo que se lleva no se miraba nunca: un
+/// puesto de mercado de medio metro de fondo delante de alguien que está a
+/// un palmo de una pared es un puesto dentro de la pared. Ahora se mira todo
+/// lo que ocupa el gesto entero contra el mismo plano de calles que decide
+/// por dónde se anda, que ya deja un palmo de margen alrededor de lo
+/// construido.
+bool _fitsAt(
+  Streets? calles,
+  double h,
+  Doing d,
+  bool kid,
+  (double, double) p,
+  double heading,
+) {
+  if (calles == null || h <= 0) return true;
+  final (x0, z0, x1, z1) = _footprintOf(d, kid);
+  final cos = math.cos(heading), sin = math.sin(heading);
+  // Una rejilla por encima de lo que ocupa, a pasos de menos de una casilla
+  // del plano, con los bordes incluidos.
+  const paso = 0.1;
+  final nx = math.max(1, ((x1 - x0) * h / paso).ceil());
+  final nz = math.max(1, ((z1 - z0) * h / paso).ceil());
+  for (var i = 0; i <= nx; i++) {
+    final x = x0 + (x1 - x0) * i / nx;
+    for (var j = 0; j <= nz; j++) {
+      final z = z0 + (z1 - z0) * j / nz;
+      final q = (
+        p.$1 + (x * cos + z * sin) * h,
+        p.$2 + (-x * sin + z * cos) * h,
+      );
+      if (!calles.clearAt(q)) return false;
+    }
+  }
+  return true;
+}
+
+/// Lo que va a hacer alguien que viene a [p], dónde se pone y mirando a
+/// dónde: la primera de [prefer] que quepa, girándose lo que haga falta
+/// —primero de cara a lo que vino a mirar, después un poco de lado, y de
+/// espaldas lo último— y, si girándose no cabe y se puede [step], apartándose
+/// de a palmos de lo que vino a mirar (hacia atrás de [look]). Si no cabe
+/// ninguna, se queda mirando en [p], que no lleva nada.
+((double, double), Doing, double) _fitting(
+  Streets? calles,
+  double h,
+  bool kid,
+  (double, double) p,
+  double look,
+  List<Doing> prefer, {
+  bool step = true,
+}) {
+  const giros = [0.0, 0.785, -0.785, 1.571, -1.571, 2.356, -2.356, 3.142];
+  for (final d in prefer) {
+    if (!d.fits(kid)) continue;
+    for (var k = 0; k <= (step && calles != null ? 6 : 0); k++) {
+      final q = k == 0
+          ? p
+          : calles!.onStreets((
+              p.$1 - math.sin(look) * k * 0.2,
+              p.$2 - math.cos(look) * k * 0.2,
+            ));
+      for (final g in giros) {
+        if (_fitsAt(calles, h, d, kid, q, look + g)) return (q, d, look + g);
+      }
+    }
+  }
+  return (p, Doing.idle, look);
 }
 
 /// A dónde va la gente de [layout]: la plaza, los hitos terminados y tres
@@ -1147,12 +1336,17 @@ Doing _actAt(Where where, int seed, int k, bool kid) {
   return puede.last;
 }
 
-/// La semilla de quien viva en un edificio.
+/// La semilla de quien viva en un edificio del pueblo [townSeed].
 ///
 /// Aparte y pública porque el padrón la tiene que calcular igual el día que
 /// apunta a alguien, y a partir de ahí es lo guardado lo que manda.
-int folkSeedOf(int buildingSeed, int index) =>
-    hash32(buildingSeed, 0xF01C, index);
+///
+/// **El pueblo entra en la cuenta.** Salía sólo de la casa, y la semilla de
+/// una casa sale de su número: la primera casa de cualquier pueblo tenía la
+/// misma semilla, así que su vecino era la misma persona —misma cara, misma
+/// ropa, mismo nombre— en todos los pueblos de todo el mundo.
+int folkSeedOf(int townSeed, int buildingSeed, int index) =>
+    hash32(hash32(buildingSeed, 0xF01C, index), 0x70A7, townSeed);
 
 /// El padrón de [layout], leído.
 ///

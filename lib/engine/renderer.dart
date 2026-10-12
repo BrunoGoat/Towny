@@ -1245,109 +1245,47 @@ class TownPainter extends CustomPainter {
       // hoja, y para cualquier otra hoja hay un plano que las separa y que lo
       // pone del mismo lado que la suya. Su sitio en el orden es el de su hoja,
       // y eso sí es exacto.
-      final vecinos = _folkNow[w] ?? const <_Walker>[];
-      walkOrderWith<_Walker>(
-        root,
-        p.eye,
-        vecinos,
-        (v, axis) => switch (axis) {
-          0 => (v.at.x, v.at.x),
-          // De los pies a la coronilla. Una persona no es un punto: contra un
-          // plano horizontal a media altura está en los dos lados. Y los pies
-          // no siempre están a cero: en la plaza se anda un palmo más arriba.
-          1 => (v.y0, v.y0 + v.size),
-          _ => (v.at.z, v.at.z),
-        },
-        (leaf, aqui) {
-          final box = leaf.bounds;
-          if (p.cameraOf(V3(box.cx, box.cy, box.cz)).z + box.radius < p.near) {
-            // Se salta la mampostería, no a la gente: alguien puede estar
-            // andando por delante de un edificio que la cámara ya dejó atrás.
-            _paintFolk(p, e, aqui, pal, light, size);
+      final vecinos = _folkRiders(p, e, _folkNow[w] ?? const <_Walker>[], w);
+      walkOrderRiders(root, p.eye, vecinos, (leaf, aqui) {
+        final box = leaf.bounds;
+        if (p.cameraOf(V3(box.cx, box.cy, box.cz)).z + box.radius < p.near) {
+          // Se salta la mampostería, no a la gente: alguien puede estar
+          // andando por delante de un edificio que la cámara ya dejó atrás.
+          _paintRiders(p, aqui, pal, light);
+          return;
+        }
+        final c = leaf.cluster;
+        if (c == null) {
+          _emitWeather(p, e, e.layout.pieces[leaf.weather], pal, night);
+          _paintRiders(p, aqui, pal, light);
+          return;
+        }
+        if (_skip.contains(c)) {
+          _paintRiders(p, aqui, pal, light);
+          return;
+        }
+        if (_lod.contains(c)) {
+          _paintSimple(p, e, c, pal, light, night, size);
+          _paintRiders(p, aqui, pal, light);
+          return;
+        }
+        final mine = w == scene.active && c.members.contains(_fallingPiece);
+        // Y dentro de su propia hoja, cada cara cae **por el árbol del
+        // edificio**: los planos de sus propias paredes, el mismo criterio
+        // con el que se ordenan entre sí las caras del edificio.
+        c.tree.paintRiders(p.eye, aqui, (f) {
+          // `f.piece >= 0` matters: the town's own furniture is filed under
+          // no achievement at all, and "no achievement" must not collide
+          // with "the achievement that is in the air right now".
+          if (w == scene.active && f.piece >= 0 && f.piece == _fallingPiece) {
             return;
           }
-          final c = leaf.cluster;
-          if (c == null) {
-            _emitWeather(p, e, e.layout.pieces[leaf.weather], pal, night);
-            _paintFolk(p, e, aqui, pal, light, size);
-            return;
-          }
-          if (_skip.contains(c)) {
-            _paintFolk(p, e, aqui, pal, light, size);
-            return;
-          }
-          if (_lod.contains(c)) {
-            _paintSimple(p, e, c, pal, light, night, size);
-            _paintFolk(p, e, aqui, pal, light, size);
-            return;
-          }
-          final mine = w == scene.active && c.members.contains(_fallingPiece);
-          // Y dentro de su propia hoja, cada vecino cae **por el árbol del
-          // edificio**, no a un lado o a otro de su caja.
-          //
-          // Se repartían comparándolos con la caja envolvente de la hoja, y una
-          // caja no es un edificio: hay hojas cuya caja abarca media parcela
-          // —las que llevan el sembrado, el agua o una bandera— y ahí dentro
-          // cae todo el mundo, así que no había eje que separase a nadie y
-          // todos se pintaban por delante. De ahí que se viera a la gente a
-          // través de unos edificios y de otros no: dependía de lo apretada
-          // que fuera la caja de cada uno, que es exactamente la clase de cosa
-          // que en este valle no decide nada.
-          //
-          // El árbol son los planos de las propias paredes. Un punto contra un
-          // plano está de un lado o del otro y no hay discusión, que es el
-          // mismo criterio con el que se ordenan entre sí las caras del
-          // edificio.
-          c.tree.paintWith<_Walker>(
-            p.eye,
-            aqui,
-            (v, n, d) {
-              // **Por donde pisa, y no de los pies a la coronilla.**
-              //
-              // Lo primero que probé fue lo segundo: una persona mide lo suyo
-              // de alto, así que contra un plano horizontal está en los dos
-              // lados, y ahí no hay orden correcto — se elegía el lado del ojo.
-              // Medido sobre el catálogo entero desde ocho ángulos, eso deja
-              // trescientos sesenta y siete encuadres con alguien asomando por
-              // una pared; con el punto del pie quedan seis.
-              //
-              // El motivo es que los planos que parten un edificio son sus
-              // suelos y sus faldones, y quien está de pie en la calle los
-              // cruza todos por el medio: al mandarlo al lado del ojo se iba
-              // por delante del tejado, y la pared de la fachada —que vive al
-              // otro lado de ese mismo plano— se pintaba antes que él. Por
-              // donde pisa no hay empate que resolver, y el pie es además lo
-              // único de una persona que está de verdad en un sitio.
-              //
-              // El pie es un punto de verdad y se mide como tal, con su
-              // altura: para quien anda por el prado —o sea todo el mundo
-              // menos quien está en la plaza— `y0` es cero y esto es
-              // exactamente la misma cuenta de antes, término a término. Lo
-              // que arregla es la plaza, que está levantada: contra la cara de
-              // arriba del enlosado, sin la altura, el vecino salía siempre
-              // por debajo y la losa se le pintaba encima — cruzar la plaza
-              // era desaparecer.
-              final base = n.x * v.at.x + n.y * v.y0 + n.z * v.at.z - d;
-              return (base, base);
-            },
-            (f) {
-              // `f.piece >= 0` matters: the town's own furniture is filed under
-              // no achievement at all, and "no achievement" must not collide
-              // with "the achievement that is in the air right now".
-              if (w == scene.active &&
-                  f.piece >= 0 &&
-                  f.piece == _fallingPiece) {
-                return;
-              }
-              _paint(p, e, f, pal, light, night, size);
-            },
-            (gente) => _paintFolk(p, e, gente, pal, light, size),
-          );
-          // Straight after the building it belongs to, and before any building
-          // nearer than that one.
-          if (mine) _paintFalling(p, e, pal, light, night, size);
-        },
-      );
+          _paint(p, e, f, pal, light, night, size);
+        }, (gente) => _paintRiders(p, gente, pal, light));
+        // Straight after the building it belongs to, and before any building
+        // nearer than that one.
+        if (mine) _paintFalling(p, e, pal, light, night, size);
+      });
     }
 
     // If its own building never came up — filed away by the budget, or off
@@ -1524,7 +1462,7 @@ class TownPainter extends CustomPainter {
   /// silueta se posa bien contra las puertas y los aleros, que es lo que se
   /// mira. Es la única cifra de esto que no sale de una medida sino del ojo, y
   /// por eso va aparte y dicha.
-  static double folkHeight(TownCharacter place) => 0.80 * 0.75 * place.storey;
+  static double folkHeight(TownCharacter place) => folkTalla(place);
 
   /// Cuántos se pintan como mucho.
   ///
@@ -1545,11 +1483,26 @@ class TownPainter extends CustomPainter {
     Palette pal,
     V3 light,
     Size size,
+  ) => _paintRiders(
+    p,
+    _folkRiders(p, e, folk, scene.towns.indexOf(e)),
+    pal,
+    light,
+  );
+
+  /// Las caras de la gente de un pueblo, listas para ir por el árbol: ya sin
+  /// las que miran para el otro lado, y numeradas en el orden en que se
+  /// pintarían solas.
+  List<Rider> _folkRiders(
+    Projector p,
+    TownEntry e,
+    List<_Walker> folk,
+    int town,
   ) {
-    if (folk.isEmpty) return;
-    final town = scene.towns.indexOf(e);
+    if (folk.isEmpty) return const [];
+    final out = <Rider>[];
     for (final v in folk) {
-      final antes = _faceCount;
+      final tag = TouchMap.folkData(town, v.who.home);
       final solids = folkSolids(
         v.who,
         v.at,
@@ -1567,31 +1520,17 @@ class TownPainter extends CustomPainter {
 
       // **De atrás hacia delante, y no en el orden en que se hicieron.**
       //
-      // Descartar las caras traseras deja exacto el interior de *una* caja
-      // cerrada, pero no dice nada de en qué orden van dos cajas distintas — y
-      // una persona son cuatro o cinco: cuerpo, cabeza, pelo, y lo que lleve.
-      // Se pintaban en el orden en que se crean, y lo que lleva se crea el
-      // último, así que el libro se pintaba **siempre** encima del cuerpo. De
-      // frente daba el pego; desde detrás se veía el libro atravesando a quien
-      // lo estaba leyendo, que es exactamente lo que no puede pasar en un
-      // valle que presume de ordenar por geometría y no por una media.
-      //
-      // Aquí sí vale una media, y no es una excepción a la regla del pueblo:
-      // las cajas de una persona son pocas, convexas, del tamaño de un puño y
-      // **no se atraviesan entre ellas** — el libro está delante del pecho, el
-      // pelo encima de la cabeza. Con sólidos separados, ordenar por su centro
-      // da el mismo orden que daría un plano de separación, y cuesta cinco
-      // comparaciones en vez de un árbol por vecino y por fotograma.
+      // Las cajas de una persona son pocas, convexas, del tamaño de un puño y
+      // **no se atraviesan entre ellas** —el libro está delante del pecho, el
+      // pelo encima de la cabeza—, así que ordenarlas por su centro da el
+      // mismo orden que daría un plano de separación. Ese orden es el [Rider.
+      // seq] de cada cara, y es el que manda entre caras de la gente que
+      // acaban en el mismo hueco del árbol; contra los edificios manda el
+      // árbol.
       for (final solid in folkInPaintOrder(solids, p.eye)) {
         for (final f in solid.faces) {
-          // Las que miran para el otro lado, fuera.
-          //
-          // Es la regla de toda la mampostería del valle —un sólido cerrado no
-          // enseña sus caras de dentro— y la gente se la estaba saltando: se
-          // pintaba por `_plain`, que no la aplica, así que cada caja sacaba
-          // sus seis caras y la de atrás caía encima de la de delante. De ahí
-          // que no acabaran de parecer sólidos y que según el ángulo se
-          // comieran una cara.
+          // Las que miran para el otro lado, fuera: un sólido cerrado no
+          // enseña sus caras de dentro.
           final a = f.v.first;
           if ((p.eye.x - a.x) * f.n.x +
                   (p.eye.y - a.y) * f.n.y +
@@ -1599,14 +1538,27 @@ class TownPainter extends CustomPainter {
               0) {
             continue;
           }
-          _plain(p, f, pal, light);
+          out.add(Rider(f, out.length, tag));
         }
       }
-      // Para el dedo: estas caras son de esta persona.
+    }
+    return out;
+  }
+
+  /// Pinta caras de la gente que acabaron en el mismo sitio del orden, en el
+  /// orden en que se pintarían solas, y le dice al dedo de quién es cada una.
+  void _paintRiders(Projector p, List<Rider> caras, Palette pal, V3 light) {
+    if (caras.isEmpty) return;
+    final orden = caras.length < 2
+        ? caras
+        : (List<Rider>.of(caras)..sort((a, b) => a.seq.compareTo(b.seq)));
+    for (final r in orden) {
+      final antes = _faceCount;
+      _plain(p, r.f, pal, light);
       for (var k = antes; k < _faceCount; k++) {
         _facePool[k]
           ..owner = TouchMap.folk
-          ..data = TouchMap.folkData(town, v.who.home);
+          ..data = r.tag;
       }
     }
   }

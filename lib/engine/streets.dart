@@ -188,6 +188,15 @@ class Streets {
     return Streets(x0, z0, n, n, free);
   }
 
+  /// Si en [p] no hay nada construido. Fuera del plano es campo abierto, y
+  /// ahí no hay nada: a diferencia de [onStreets], esto no pregunta si se
+  /// puede llegar andando, sólo si cabe algo.
+  bool clearAt((double, double) p) {
+    final (cx, cz) = _cellOf(p);
+    if (cx < 0 || cz < 0 || cx >= cols || cz >= rows) return true;
+    return _free[cz * cols + cx];
+  }
+
   bool _freeAt(int cx, int cz) =>
       cx >= 0 && cz >= 0 && cx < cols && cz < rows && _free[cz * cols + cx];
 

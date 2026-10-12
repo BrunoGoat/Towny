@@ -81,7 +81,7 @@ List<Villager> enrolFolk(Habit habit, TownLayout layout) {
     final last = b.firstPiece + b.cost - 1;
     if (last >= habit.pieces.length) continue;
     if (had.contains(b.index)) continue;
-    final seed = folkSeedOf(b.seed, b.index);
+    final seed = folkSeedOf(layout.seed, b.seed, b.index);
     nuevos.add(
       Villager(b.index, seed, habit.pieces[last].placedAt, folkName(seed)),
     );
@@ -140,7 +140,7 @@ FolkCard? folkCardOf(Habit habit, TownLayout layout, int town, int home) {
   final b = layout.buildings[home];
   if (b.isLandmark) return null;
   final apuntado = censusOf(habit.folk)[home];
-  final seed = apuntado?.seed ?? folkSeedOf(b.seed, b.index);
+  final seed = apuntado?.seed ?? folkSeedOf(layout.seed, b.seed, b.index);
   final woman = folkIsWoman(seed);
   final k =
       folkNamedTrade(seed) ??

@@ -54,10 +54,11 @@ void main() {
       final r = _recorre(who, d, t0);
       expect(r.hizo, isNotNull, reason: '${d.id} no se hizo nunca');
       if (d.where == Where.door) {
-        // En su puerta, que es lo suyo.
+        // En su puerta, que es lo suyo — o a unos palmos, si lo que lleva
+        // no cabe en el umbral.
         expect(
           (r.x - who.door.$1).abs() + (r.z - who.door.$2).abs(),
-          lessThan(1e-6),
+          lessThan(3.6),
         );
       }
       // Y al terminar sigue con su vida, desde su puerta y sin salto.

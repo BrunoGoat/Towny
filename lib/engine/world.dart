@@ -1144,7 +1144,63 @@ void walkOrder(Order node, V3 eye, void Function(OrderLeaf) visit) {
   walkOrder(near, eye, visit);
 }
 
-/// Lo mismo, pero llevando de la mano cosas que se mueven.
+/// Si [f] y la caja [box] se separan por un plano de los ejes, y de qué lado
+/// queda el ojo: 1 si la cara está del lado del ojo (la caja, detrás), -1 si
+/// la caja está del lado del ojo (la cara, detrás), 0 si no se separan.
+///
+/// Y 2 si se separan por dos planos que dicen cosas contrarias. No es un
+/// empate: quiere decir que **ninguna de las dos puede tapar a la otra** —
+/// para tapar hay que estar del lado del ojo de todos los planos que las
+/// separan—, así que da igual cuál se pinte antes.
+int _facing(Facet f, Aabb box, V3 eye) {
+  var x0 = double.infinity, y0 = double.infinity, z0 = double.infinity;
+  var x1 = -double.infinity, y1 = -double.infinity, z1 = -double.infinity;
+  for (final q in f.v) {
+    if (q.x < x0) x0 = q.x;
+    if (q.x > x1) x1 = q.x;
+    if (q.y < y0) y0 = q.y;
+    if (q.y > y1) y1 = q.y;
+    if (q.z < z0) z0 = q.z;
+    if (q.z > z1) z1 = q.z;
+  }
+  const e = 1e-4;
+  int side(double lo, double hi, double b0, double b1, double eye) {
+    // La cara entera por debajo de la caja: el plano es b0.
+    if (hi <= b0 + e) return eye < b0 ? 1 : -1;
+    // Entera por encima: el plano es b1.
+    if (lo >= b1 - e) return eye > b1 ? 1 : -1;
+    return 0;
+  }
+
+  var delante = false, detras = false;
+  for (final s in [
+    side(x0, x1, box.x0, box.x1, eye.x),
+    side(y0, y1, box.y0, box.y1, eye.y),
+    side(z0, z1, box.z0, box.z1, eye.z),
+  ]) {
+    if (s == 1) delante = true;
+    if (s == -1) detras = true;
+  }
+  if (delante && detras) return 2;
+  return delante ? 1 : (detras ? -1 : 0);
+}
+
+/// Si el centro de [f] cae dentro de [box], mirándolo en planta.
+bool _centreIn(Facet f, Aabb box) {
+  var x = 0.0, z = 0.0;
+  for (final q in f.v) {
+    x += q.x;
+    z += q.z;
+  }
+  x /= f.v.length;
+  z /= f.v.length;
+  return x >= box.x0 - 0.5 &&
+      x <= box.x1 + 0.5 &&
+      z >= box.z0 - 0.5 &&
+      z <= box.z1 + 0.5;
+}
+
+/// Lo mismo, pero llevando de la mano las caras de lo que se mueve.
 ///
 /// El árbol de orden se corta y se archiva cuando cae una pieza, y los vecinos
 /// no están en él: andan. Meterlos dentro querría decir volver a cortarlo
@@ -1153,106 +1209,111 @@ void walkOrder(Order node, V3 eye, void Function(OrderLeaf) visit) {
 ///
 /// Pero tampoco hace falta. El árbol no es una lista ordenada: es una pila de
 /// planos que **parten el espacio**, y un plano que parte el espacio parte
-/// también lo que anda por él. Un vecino que está del lado bajo de un plano se
-/// pinta con todo lo del lado bajo, y eso es exacto — no es una aproximación
-/// ni un orden por distancia: es el mismo criterio con el que se ordenó la
-/// mampostería, aplicado a un punto.
-///
-/// Así que bajan con el recorrido, repartiéndose en cada plano, y salen por la
-/// hoja que les toca. Cuesta un reparto por vecino y por plano, que para
-/// cuarenta vecinos y un árbol de diez de fondo son cuatrocientas
-/// comparaciones por fotograma.
-/// Si lo que va montado cae dentro de una caja, mirándolo en planta.
-///
-/// En planta y no en tres dimensiones porque lo que va montado son personas:
-/// están de pie en el suelo y lo que dice con cuál de dos cosas van es dónde
-/// pisan, no a qué altura tienen la cabeza.
-bool _within<T>(Aabb box, T rider, (double, double) Function(T, int) span) {
-  final x = span(rider, 0).$1, z = span(rider, 2).$1;
-  return x >= box.x0 - 0.5 &&
-      x <= box.x1 + 0.5 &&
-      z >= box.z0 - 0.5 &&
-      z <= box.z1 + 0.5;
-}
-
-void walkOrderWith<T>(
+/// también lo que anda por él. Cada cara de una persona baja con el
+/// recorrido, repartiéndose en cada plano —y partiéndose si lo cruza—, y sale
+/// por la hoja que le toca. Ver [BspTree.paintRiders], que hace lo mismo
+/// dentro de cada edificio.
+void walkOrderRiders(
   Order node,
   V3 eye,
-  List<T> riders,
-  (double lo, double hi) Function(T rider, int axis) span,
-  void Function(OrderLeaf leaf, List<T> here) visit,
+  List<Rider> riders,
+  void Function(OrderLeaf leaf, List<Rider> here) visit,
 ) {
   if (node is OrderLeaf) {
     visit(node, riders);
     return;
   }
   if (node is OrderBoth) {
-    // Sin plano que los separe no hay reparto exacto, pero **volcarlos a todos
-    // en la segunda rama es lo peor que se puede hacer**, y es lo que hacía.
-    // Aquí llegan los sembrados, el agua y las banderas; al no separar a nadie,
-    // toda la gente del pueblo caía en la misma hoja —la penúltima de ciento
-    // cincuenta y cinco— y se pintaba encima de casi todo. Con cuatro vecinos
-    // se veía de vez en cuando; con sesenta, gente de pie en los tejados en
-    // todos los fotogramas.
-    //
-    // Sin plano queda la caja: cada uno se va con la rama en cuya caja cae, y
-    // el que no cae en ninguna se queda con la segunda, que es lo de antes.
-    List<T> unos = const [], otros = riders;
-    if (riders.isNotEmpty) {
-      final a = <T>[], b = <T>[];
-      for (final r in riders) {
-        (_within(node.first.bounds, r, span) ? a : b).add(r);
+    // Sin plano que parta las dos ramas: se pintan una y después la otra, y
+    // cada cara tiene que ir con la que la deje bien. Lo que lo decide es de
+    // qué lado está el ojo: una cara que tiene **toda la segunda rama por
+    // delante** va con la primera, que se pinta antes; una que tiene **toda
+    // la primera por detrás** va con la segunda. Sólo cuando ninguna caja se
+    // separa de ella por un eje se mira dónde cae, como antes.
+    final unos = <Rider>[], otros = <Rider>[];
+    final a = node.first.bounds, b = node.then.bounds;
+    void reparte(Rider r, int cortes) {
+      final fb = _facing(r.f, b, eye), fa = _facing(r.f, a, eye);
+      // Dentro de una sola de las dos cajas: va con ésa. Lo que la puede
+      // tapar o ser tapado por ella de verdad es lo que tiene pegado —la
+      // pared de al lado—, no lo de la otra caja, que está a un lado o a
+      // metros por encima y en pantalla casi nunca se le cruza.
+      if (fa == 0 && fb != 0) {
+        unos.add(r);
+        return;
       }
-      unos = a;
-      otros = b;
+      if (fb == 0 && fa != 0) {
+        otros.add(r);
+        return;
+      }
+      // Fuera de las dos: manda lo que obliga —la segunda tapándola, o la
+      // primera tapada por ella— y después lo que deja.
+      if (fa != 0 && fb != 0) {
+        final primera = switch ((fa, fb)) {
+          (_, -1) => true,
+          (1, _) => false,
+          (-1, _) => true,
+          (_, 1) => false,
+          (2, _) => false,
+          _ => true,
+        };
+        (primera ? unos : otros).add(r);
+        return;
+      }
+      // Y dentro de las dos: se parte por los planos de las cajas, y cada
+      // trozo que quede fuera de alguna se decide como arriba.
+      if (cortes < 12) {
+        for (final box in [b, a]) {
+          for (final (n, d) in [
+            (const V3(1, 0, 0), box.x0),
+            (const V3(1, 0, 0), box.x1),
+            (const V3(0, 1, 0), box.y0),
+            (const V3(0, 1, 0), box.y1),
+            (const V3(0, 0, 1), box.z0),
+            (const V3(0, 0, 1), box.z1),
+          ]) {
+            final (delante, detras) = sortRiders([r], n, d, true);
+            if (delante.isEmpty || detras.isEmpty) continue;
+            for (final q in [...delante, ...detras]) {
+              reparte(q, cortes + 1);
+            }
+            return;
+          }
+        }
+      }
+      (_centreIn(r.f, a) ? unos : otros).add(r);
     }
-    walkOrderWith<T>(node.first, eye, unos, span, visit);
-    walkOrderWith(node.then, eye, otros, span, visit);
+
+    for (final r in riders) {
+      reparte(r, 0);
+    }
+    walkOrderRiders(node.first, eye, unos, visit);
+    walkOrderRiders(node.then, eye, otros, visit);
     return;
   }
   final split = node as OrderSplit;
+  final n = switch (split.axis) {
+    0 => const V3(1, 0, 0),
+    1 => const V3(0, 1, 0),
+    _ => const V3(0, 0, 1),
+  };
   final e = switch (split.axis) {
     0 => eye.x,
     1 => eye.y,
     _ => eye.z,
   };
   final nearFirst = e >= split.at;
-  List<T> low = const [], high = const [];
-  if (riders.isNotEmpty) {
-    final lo = <T>[], hi = <T>[];
-    for (final r in riders) {
-      final (a, b) = span(r, split.axis);
-      // Lo que va montado **ocupa sitio**, no es un punto, y por eso hay tres
-      // casos y no dos. Una persona mide lo suyo de alto: contra un plano
-      // horizontal a media altura no está a un lado, está en los dos.
-      //
-      // Y cuando está en los dos no hay orden correcto, así que se elige el
-      // que menos duele: el lado del ojo, que se pinta el último. Lo que pasa
-      // entonces es que se dibuja por delante de un escalón; al revés, lo que
-      // pasaba es que media casa le caía encima y se le veían los pies.
-      if (b < split.at) {
-        lo.add(r);
-      } else if (a > split.at) {
-        hi.add(r);
-      } else {
-        (nearFirst ? hi : lo).add(r);
-      }
-    }
-    low = lo;
-    high = hi;
-  }
-  walkOrderWith(
+  final (high, low) = sortRiders(riders, n, split.at, nearFirst);
+  walkOrderRiders(
     nearFirst ? split.low : split.high,
     eye,
     nearFirst ? low : high,
-    span,
     visit,
   );
-  walkOrderWith(
+  walkOrderRiders(
     nearFirst ? split.high : split.low,
     eye,
     nearFirst ? high : low,
-    span,
     visit,
   );
 }
