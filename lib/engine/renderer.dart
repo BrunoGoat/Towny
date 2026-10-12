@@ -1508,6 +1508,7 @@ class TownPainter extends CustomPainter {
         v.at,
         v.size,
         lift: v.y0,
+        eye: p.eye,
         // Tres escalones y no dos: por debajo de catorce píxeles se van las
         // piernas y las mariposas, y por debajo de ocho se van también los
         // brazos. La cometa no se va nunca — es lo que se ve desde lejos.

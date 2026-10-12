@@ -146,6 +146,7 @@ List<Solid> folkSolids(
   double size, {
   double detail = 1.0,
   double lift = 0.0,
+  V3? eye,
 }) {
   final seed = who.seed;
   // Lo que mide éste. Un crío mide dos tercios de lo que mide su madre, y un
@@ -873,47 +874,93 @@ List<Solid> folkSolids(
       );
 
     case PropKind.kite:
-      // Una cometa de cajón allá arriba, con su hilo.
+      // La cometa de toda la vida: un rombo de cuatro colores y una cola con
+      // tres lazos, allá arriba y con su hilo.
       //
-      // **De cajón y no de rombo.** El rombo era plano: de frente se leía, y
-      // de canto —que es como se la ve la mitad del tiempo, porque la cámara
-      // da vueltas— era un palo con una raya roja flotando. Una cometa de
-      // cajón son dos bandas de tela alrededor de un armazón, y se lee igual
-      // desde cualquier lado: dos franjas de color con un hueco en medio.
+      // **Y mirando siempre a quien la mira.** Un rombo es plano, y de canto
+      // —que es como se lo ve la mitad del tiempo, porque la cámara da
+      // vueltas— era un palo con una raya flotando. Así que se gira sobre sí
+      // misma hacia el ojo, que es además lo que hace una cometa de verdad:
+      // se pone de cara al viento. Sin ojo (en las cuentas de lo que ocupa)
+      // mira hacia delante.
       final m = hold(1, 0.80, 0.05);
       final vaiven = swing * 0.12;
-      final cx = 0.62 + vaiven, cy = 1.62 + swing * 0.10, cz = 0.92;
-      const r = 0.14, t = 0.022, banda = 0.17, hueco = 0.09;
-      link(m, (cx, cy - hueco - banda, cz + r), 0.005, 0xFFE4DCC6, 1.04);
-      for (final (y0, tinte) in [
-        (cy + hueco, 0xFFC1543C),
-        (cy - hueco - banda, 0xFFD98C3C),
-      ]) {
-        final y1 = y0 + banda;
-        // Delante y detrás, sin las esquinas, y los costados enteros: así
-        // ninguna tela se mete dentro de otra.
-        box(cx - r + t, y0, cz + r - t, cx + r - t, y1, cz + r, tinte, 1.06);
-        box(cx - r + t, y0, cz - r, cx + r - t, y1, cz - r + t, tinte, 0.96);
-        box(cx - r, y0, cz - r, cx - r + t, y1, cz + r, tinte, 1.0);
-        box(cx + r - t, y0, cz - r, cx + r, y1, cz + r, tinte, 1.0);
+      final cx = 0.62 + vaiven, cy = 1.66 + swing * 0.08, cz = 0.92;
+      // El ojo, en el sistema de la persona: hacia dónde tiene que mirar.
+      var ox = 0.0, oz = 1.0;
+      if (eye != null) {
+        final dX = eye.x - (at.x + (cx * cos + cz * sin) * h);
+        final dZ = eye.z - (at.z + (-cx * sin + cz * cos) * h);
+        ox = dX * cos - dZ * sin;
+        oz = dX * sin + dZ * cos;
+        final l = math.sqrt(ox * ox + oz * oz);
+        if (l > 1e-6) {
+          ox /= l;
+          oz /= l;
+        } else {
+          ox = 0;
+          oz = 1;
+        }
       }
-      // Las cuatro varillas del armazón, a la vista en el hueco de en medio.
-      for (final (sx, sz) in [
-        (-1.0, -1.0),
-        (1.0, -1.0),
-        (-1.0, 1.0),
-        (1.0, 1.0),
-      ]) {
-        box(
-          cx + sx * (r - t / 2) - 0.008,
-          cy - hueco,
-          cz + sz * (r - t / 2) - 0.008,
-          cx + sx * (r - t / 2) + 0.008,
-          cy + hueco,
-          cz + sz * (r - t / 2) + 0.008,
-          0xFFE4DCC6,
-          1.0,
+      // A lo ancho del rombo: de lado respecto del ojo.
+      final rx = oz, rz = -ox;
+      (double, double, double) en(double a, double up) =>
+          (cx + rx * a, cy + up, cz + rz * a);
+      final arriba = en(0, 0.27), abajo = en(0, -0.48);
+      final izq = en(-0.25, 0), der = en(0.25, 0), medio = en(0, 0);
+      // Un triángulo por las dos caras: se ve de frente y de espaldas.
+      void tela(
+        (double, double, double) a,
+        (double, double, double) b,
+        (double, double, double) c,
+        int tinte,
+      ) {
+        final pa = world(a.$1, a.$2, a.$3);
+        final pb = world(b.$1, b.$2, b.$3);
+        final pc = world(c.$1, c.$2, c.$3);
+        final n = (pb - pa).cross(pc - pa).normalized;
+        final atras = V3(-n.x, -n.y, -n.z);
+        out.add(
+          Solid(-1, [
+            Facet([pa, pb, pc], n, Surface.cloth, ao: 1.06, tint: tinte),
+            Facet([pa, pb, pc], atras, Surface.cloth, ao: 0.96, tint: tinte),
+          ]),
         );
+      }
+
+      tela(arriba, izq, medio, 0xFFE0524A);
+      tela(arriba, medio, der, 0xFF22AE9C);
+      tela(izq, abajo, medio, 0xFFEFB02E);
+      tela(medio, abajo, der, 0xFFC56BA8);
+      // El hilo, a la cruz de las varillas.
+      link(m, medio, 0.005, 0xFFE4DCC6, 1.04);
+      // La cola: una cuerda que ondea y tres lazos azules.
+      var antes = abajo;
+      for (var k = 1; k <= 6; k++) {
+        final ondea = math.sin(ph * 2.2 - k * 0.9) * 0.05 - vaiven * k * 0.04;
+        final punto = en(ondea, -0.48 - k * 0.11);
+        link(antes, punto, 0.006, 0xFF2F62B0, 1.0);
+        if (k.isOdd) {
+          // El lazo: dos triangulitos que salen del nudo, uno a cada lado.
+          for (final lado in [-1.0, 1.0]) {
+            final p = punto;
+            tela(
+              p,
+              (
+                p.$1 + rx * 0.11 * lado,
+                p.$2 + 0.05,
+                p.$3 + rz * 0.11 * lado,
+              ),
+              (
+                p.$1 + rx * 0.11 * lado,
+                p.$2 - 0.05,
+                p.$3 + rz * 0.11 * lado,
+              ),
+              0xFF2F62B0,
+            );
+          }
+        }
+        antes = punto;
       }
 
     case PropKind.line:
