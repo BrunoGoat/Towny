@@ -442,65 +442,24 @@ List<Solid> folkSolids(
   // punto y el pelo es la mitad de la cabeza: es lo que hace que dos vecinos
   // no se confundan de lejos.
   //
-  // **Una cáscara, no una caja encima.** Era una caja un pelo más grande que
-  // la cabeza metida sobre ella, y dos cajas metidas una en otra no tienen
-  // orden de pintado que valga: según el ángulo la cara salía por encima del
-  // pelo o el pelo se comía la cara. Ahora son tablas finas alrededor de la
-  // cabeza —encima, detrás, a los lados y el flequillo— que la tocan sin
-  // entrar en ella ni unas en otras. Y van en un solo sólido, porque son una
-  // sola cosa.
-  //
-  // Ellas, con melena: la de detrás baja hasta los hombros y la de los lados
-  // enmarca la cara. A quince píxeles no hay rasgos que separen a una mujer
-  // de un hombre, pero una melena es silueta, y la silueta se lee de lejos.
+  // **Una caja y nada más**, metida sobre la cabeza. Ellos, un gorro corto
+  // arriba; ellas, la misma caja pero bajando por detrás y por los lados
+  // hasta la barbilla, con la cara asomando por delante. Se probó con tablas
+  // —nuca, mechones, flequillo— y eran demasiadas figuras para una persona
+  // que es tres cajas. Que la caja se meta en la cabeza no importa: de cerca
+  // el orden lo da un árbol de planos, que corta lo que se cruza.
   if (detail > 0.25) {
-    final antes = out.length;
-    final hx = wag * 0.4, hz = lean * 1.5;
-    double y(double v) => piso + v + bob - baja;
     final larga = folkIsWoman(seed);
-    final w = larga ? 0.236 : 0.214; // de ancho, por fuera
-    final fondo = larga ? -0.212 : -0.184; // la nuca, por fuera
-    // Encima.
-    box(-w + hx, y(0.960), fondo + hz, w + hx, y(0.990), 0.184 + hz, pelo, 1.0);
-    // Detrás: a los hombros ellas, a media cabeza ellos.
     box(
-      -w + hx,
-      y(larga ? 0.500 : 0.780),
-      fondo + hz,
-      w + hx,
-      y(0.960),
-      -0.175 + hz,
-      pelo,
-      0.96,
-    );
-    // A los lados, hasta delante de las orejas.
-    for (final s in [1.0, -1.0]) {
-      box(
-        (s > 0 ? 0.205 : -w) + hx,
-        y(larga ? 0.600 : 0.820),
-        -0.175 + hz,
-        (s > 0 ? w : -0.205) + hx,
-        y(0.960),
-        (larga ? 0.090 : 0.040) + hz,
-        pelo,
-        0.98,
-      );
-    }
-    // Y el flequillo sobre la frente.
-    box(
-      -0.205 + hx,
-      y(larga ? 0.880 : 0.900),
-      0.175 + hz,
-      0.205 + hx,
-      y(0.960),
-      0.184 + hz,
+      (larga ? -0.222 : -0.212) + wag * 0.4,
+      piso + (larga ? 0.600 : 0.830) + bob - baja,
+      (larga ? -0.198 : -0.182) + lean * 1.5,
+      (larga ? 0.222 : 0.212) + wag * 0.4,
+      piso + (larga ? 0.995 : 0.985) + bob - baja,
+      (larga ? 0.080 : 0.182) + lean * 1.5,
       pelo,
       1.0,
     );
-    final tablas = out.sublist(antes);
-    out
-      ..removeRange(antes, out.length)
-      ..add(Solid(-1, [for (final t in tablas) ...t.faces]));
   }
 
   // Y lo que lleva.
