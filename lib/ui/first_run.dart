@@ -904,6 +904,12 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
   /// pregunta y se va al dejarla, fundiéndose. Y cuánto se ve el cartel.
   double _preview = 0, _sign = 0;
 
+  /// Cuánto se ha ido el cartel arriba de todo, de cero a uno. En la pregunta
+  /// de la comarca el claro lo ocupa el pueblo de muestra, y el cartel no se
+  /// va: sube y se queda arriba mientras se elige, y al seguir vuelve a bajar
+  /// a su sitio sobre el claro.
+  double _lift = 0;
+
   /// El pueblo de muestra de cada comarca, hecho una vez. Trescientas piezas:
   /// un pueblo hecho y derecho, con sus hitos, que es lo que se quiere mirar
   /// para elegir — y explorar, con [_Valley.exploring].
@@ -1002,6 +1008,7 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
       _panZ -= _panZ * k;
     }
     _sign = toward(_sign, puesto, 0.45);
+    _lift = toward(_lift, widget.stage == 2 && !widget.leaving, 0.7);
     setState(() {});
   }
 
@@ -1139,23 +1146,31 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
           Positioned(
             left: 0,
             right: 0,
-            // En la pregunta de la comarca la respuesta ocupa más y el claro
-            // queda a su altura: ahí el cartel se pone más arriba, para
-            // que el momento de quedar puesto no caiga sobre la pregunta.
-            top: widget.stage == 2
-                ? math.min(cartel.y - 74, box.maxHeight * 0.20)
-                : cartel.y - 74,
+            // Sobre el claro, o arriba de todo mientras se elige la comarca.
+            top: lerpD(
+              cartel.y - 74,
+              MediaQuery.of(context).padding.top + 18,
+              Curves.easeInOutCubic.transform(_lift),
+            ),
             child: IgnorePointer(
               child: Opacity(
-                opacity: Curves.easeOut.transform(_sign) * (1 - vista),
+                // Al recorrer el pueblo, arriba va el nombre de la comarca.
+                opacity:
+                    Curves.easeOut.transform(_sign) *
+                    (1 - Curves.easeInOutCubic.transform(_explore)),
                 child: Transform.translate(
-                  offset: Offset(cartel.x - box.maxWidth / 2, 10 * (1 - _sign)),
+                  offset: Offset(
+                    (cartel.x - box.maxWidth / 2) *
+                        (1 - Curves.easeInOutCubic.transform(_lift)),
+                    10 * (1 - _sign),
+                  ),
                   child: _ClearingSign(
                     name: widget.name.trim(),
                     symbol: widget.symbol,
                     settle: _settledAt == null
                         ? 1
                         : clampD((_time - _settledAt!) / 1.6, 0, 1),
+                    lift: _lift,
                   ),
                 ),
               ),
@@ -1235,7 +1250,12 @@ class _ClearingSign extends StatelessWidget {
     required this.name,
     required this.symbol,
     required this.settle,
+    this.lift = 0,
   });
+
+  /// Cuánto está subido arriba de todo: ahí ya no está sobre el claro, y el
+  /// palo que lo clava en él se va.
+  final double lift;
 
   final String name;
   final String symbol;
@@ -1263,7 +1283,7 @@ class _ClearingSign extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    _Ink.gold.withValues(alpha: 0.55 * brillo),
+                    _Ink.gold.withValues(alpha: 0.20 * brillo),
                     _Ink.gold.withValues(alpha: 0),
                   ],
                 ),
@@ -1283,7 +1303,7 @@ class _ClearingSign extends StatelessWidget {
                   fontFamily: _Ink.serif,
                   fontSize: 28,
                   height: 1.05,
-                  color: Color.lerp(_Ink.cream, _Ink.gold, brillo * 0.8),
+                  color: Color.lerp(_Ink.cream, _Ink.gold, brillo * 0.45),
                   shadows: _Ink.shadow,
                 ),
               ),
@@ -1291,7 +1311,7 @@ class _ClearingSign extends StatelessWidget {
               Container(
                 width: 1.4,
                 height: 18,
-                color: _Ink.cream.withValues(alpha: 0.7),
+                color: _Ink.cream.withValues(alpha: 0.7 * (1 - lift)),
               ),
             ],
           ),
