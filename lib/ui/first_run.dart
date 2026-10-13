@@ -903,6 +903,16 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
   /// solo al dejar de explorar. [_explore] es cuánto se está explorando, de
   /// cero a uno, para que entrar y salir sean un planeo y no un corte.
   double _yawOff = 0, _pitchOff = 0, _zoom = 1, _panX = 0, _panZ = 0;
+
+  /// **A dónde va** cada uno de esos, que el dedo mueve; la cámara los sigue
+  /// con un planeo, al mismo ritmo que la del valle ([OrbitCamera.step]).
+  /// Moviendo la cámara directamente con el dedo, sin planeo, se sentía
+  /// quieta y de cartón: se paraba en seco en cuanto se levantaba el dedo.
+  double _yawT = 0, _pitchT = 0, _zoomT = 1, _panXT = 0, _panZT = 0;
+
+  /// Toma de recorrer: más cerca, más baja y mirando al pueblo de frente,
+  /// como se lo mira en el valle, y no desde la altura de la pregunta.
+  static const _walk = _Pose(0.46, 0.30, 30, 1.0);
   double _explore = 0, _lastScale = 1;
 
   /// Cuánto se ve el pueblo de muestra de la comarca: entra al llegar a esa
@@ -1006,11 +1016,23 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
     _explore = toward(_explore, widget.exploring, 0.6);
     if (!widget.exploring) {
       final k = 1 - math.exp(-dt * 3.5);
+      _yawT = 0;
+      _pitchT = 0;
+      _zoomT = 1;
+      _panXT = 0;
+      _panZT = 0;
       _yawOff -= _yawOff * k;
       _pitchOff -= _pitchOff * k;
       _zoom += (1 - _zoom) * k;
       _panX -= _panX * k;
       _panZ -= _panZ * k;
+    } else {
+      final k = 1 - math.exp(-dt * 7.5);
+      _yawOff += (_yawT - _yawOff) * k;
+      _pitchOff += (_pitchT - _pitchOff) * k;
+      _zoom += (_zoomT - _zoom) * k;
+      _panX += (_panXT - _panX) * k;
+      _panZ += (_panZT - _panZ) * k;
     }
     _sign = toward(_sign, puesto, 0.45);
     _lift = toward(_lift, widget.stage == 2 && !widget.leaving, 0.7);
@@ -1028,24 +1050,24 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
     final a = Appearance.instance;
     final hora = a.hourNow;
     final pal = Palette.forMoment(hora, season: a.season);
-    final pose = _pose;
     // Un vaivén lento, de lado a lado y un poco de altura: el valle respira.
     final vaiven = math.sin(_time * 0.22) * 0.035 * _sway;
     final sube = (0.5 + 0.5 * math.sin(_time * 0.17 + 1.3)) * 0.008 * _sway;
     final mira = Curves.easeInOutCubic.transform(_explore);
-    final yaw = pose.yaw + vaiven * (1 - mira) + _yawOff;
+    final base = _Pose.lerp(_pose, _walk, mira);
+    final yaw = base.yaw + vaiven * (1 - mira) + _yawOff;
     // Explorando, el pueblo va al centro: ya no hay preguntas que esquivar.
-    final lead = pose.lead * (1 - mira);
+    final lead = base.lead;
     _cam
       ..travel = math.sin(yaw) * lead + _panX
       ..focusZ = math.cos(yaw) * lead + _panZ
       ..yaw = yaw
-      ..pitch = clampD(pose.pitch + sube + _pitchOff, 0.03, 1.35)
+      ..pitch = clampD(base.pitch + sube + _pitchOff, 0.05, 1.35)
       ..distance =
-          pose.distance *
+          base.distance *
           _zoom *
           (1 + 0.05 * math.sin(math.pi * _swap.clamp(0.0, 1.0)))
-      ..focusY = pose.focusY;
+      ..focusY = base.focusY;
     TownScene scene(TownEntry town) => TownScene(
       placed: town.placed,
       palette: pal,
@@ -1077,6 +1099,10 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
             : null,
         onScaleStart: widget.exploring ? (_) => _lastScale = 1 : null,
         onScaleUpdate: widget.exploring ? _onScale : null,
+        // Y al soltar sigue un poco, con el impulso que llevaba el dedo.
+        onScaleEnd: widget.exploring
+            ? (d) => _yawT -= d.velocity.pixelsPerSecond.dx * 0.0062 * 0.18
+            : null,
         child: _scene(box, scene, noche, muestra, vista),
       ),
     );
@@ -1087,21 +1113,26 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
     if (d.pointerCount >= 2) {
       final f = d.scale / (_lastScale == 0 ? 1 : _lastScale);
       _lastScale = d.scale;
-      if (f.isFinite && f > 0) _zoom = clampD(_zoom / f, 0.30, 1.6);
+      if (f.isFinite && f > 0) _zoomT = clampD(_zoomT / f, 0.30, 1.8);
       // Lo que se arrastra con dos dedos es el suelo: se mueve con el dedo.
       final yaw = _cam.yaw;
       final k = _cam.distance / 700;
       final dx = d.focalPointDelta.dx * k, dy = d.focalPointDelta.dy * k;
-      _panX += -dx * math.cos(yaw) - dy * math.sin(yaw);
-      _panZ += dx * math.sin(yaw) - dy * math.cos(yaw);
-      final lejos = math.sqrt(_panX * _panX + _panZ * _panZ);
+      _panXT += -dx * math.cos(yaw) - dy * math.sin(yaw);
+      _panZT += dx * math.sin(yaw) - dy * math.cos(yaw);
+      final lejos = math.sqrt(_panXT * _panXT + _panZT * _panZT);
       if (lejos > 18) {
-        _panX *= 18 / lejos;
-        _panZ *= 18 / lejos;
+        _panXT *= 18 / lejos;
+        _panZT *= 18 / lejos;
       }
     } else {
-      _yawOff -= d.focalPointDelta.dx * 0.0062;
-      _pitchOff += d.focalPointDelta.dy * 0.0042;
+      _yawT -= d.focalPointDelta.dx * 0.0062;
+      // Lo mismo que la cámara del valle: entre casi a ras y casi cenital.
+      _pitchT = clampD(
+        _pitchT + d.focalPointDelta.dy * 0.0048,
+        0.05 - _walk.pitch,
+        1.30 - _walk.pitch,
+      );
     }
   }
 
