@@ -1622,11 +1622,13 @@ class TownPainter extends CustomPainter {
         out.add(Rider(f, seq++, -1));
       }
     }
-    // El agua sólo si se ve: de lejos la fuente es un punto, y treinta cintas
-    // de medio píxel no son agua sino ruido.
+    // El agua a cualquier distancia, con menos detalle cuanto más lejos.
+    // Antes se apagaba por debajo de cierto tamaño, y eso era una fuente que
+    // dejaba de correr de golpe al alejar la cámara: mejor un brillo que se
+    // mueve que un chorro que desaparece.
     final q = p.cameraOf(V3(l.cx, 0.7, l.cz));
-    final px = q.z > p.near ? p.focal / q.z : 0.0;
-    if (water && px > 12) {
+    final px = q.z > p.near ? p.focal / q.z : double.infinity;
+    if (water) {
       for (final f in fountainWater(
         l,
         p.eye,
