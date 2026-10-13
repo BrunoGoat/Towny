@@ -178,7 +178,8 @@ void main() {
     await antes.load();
     expect(antes.importSave(jsonEncode(_valle())), isNull);
     await Appearance.instance.load();
-    await Appearance.instance.setCinematic(true);
+    // Lo contrario de lo de fábrica, para que se note si no viaja.
+    await Appearance.instance.setCinematic(false);
     await BoardSlots.instance.replaceAll({'h0/x': 4});
     await BoardSeen.instance.replaceAll({
       'h0': {'y'},
@@ -193,11 +194,11 @@ void main() {
     await Appearance.instance.load();
     BoardSlots.instance.forget();
     BoardSeen.instance.forget();
-    expect(Appearance.instance.cinematic, isFalse);
+    expect(Appearance.instance.cinematic, isTrue);
 
     expect(await applyLocal(despues, fromRows(copia)), isNull);
     expect(despues.exportSave(), guardado);
-    expect(Appearance.instance.cinematic, isTrue);
+    expect(Appearance.instance.cinematic, isFalse);
     expect(BoardSlots.instance.all, {'h0/x': 4});
     expect(BoardSeen.instance.all, {
       'h0': {'y'},

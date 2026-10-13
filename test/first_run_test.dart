@@ -146,7 +146,7 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('las dos se pueden saltar, que para eso son opcionales', (
+    testWidgets('las dos hay que contestarlas: no se pueden saltar', (
       tester,
     ) async {
       String? elMotivo = 'sin tocar', laIdentidad = 'sin tocar';
@@ -172,14 +172,25 @@ void main() {
       // La comarca no se salta: ya viene una elegida.
       await _siguiente(tester);
       await _asentar(tester);
-      for (var i = 0; i < 2; i++) {
-        await tester.tap(find.text('Ahora no'));
+      // Ni «ahora no» ni seguir en blanco: el botón está, pero apagado.
+      for (final respuesta in ['para correr la maratón', 'que no se rinde']) {
+        expect(find.text('Ahora no'), findsNothing);
+        final apagado = find.textContaining(RegExp('SIGUIENTE|FUNDAR'));
+        await tester.ensureVisible(apagado.last);
+        await tester.tap(apagado.last, warnIfMissed: false);
+        await _asentar(tester);
+        expect(fundado, isFalse);
+        await tester.enterText(find.byType(TextField).first, respuesta);
+        await tester.pump();
+        await tester.ensureVisible(find.byType(TextField).first);
+        final boton = find.textContaining(RegExp('SIGUIENTE|FUNDAR'));
+        await tester.tap(boton.last);
         await _asentar(tester);
       }
       await _bajar(tester);
       expect(fundado, isTrue);
-      expect(elMotivo, isNull);
-      expect(laIdentidad, isNull);
+      expect(elMotivo, 'para correr la maratón');
+      expect(laIdentidad, 'alguien que no se rinde');
     });
 
     testWidgets('no se puede seguir sin decir qué querés hacer', (
@@ -272,11 +283,15 @@ void main() {
       await _asentar(tester);
       await _siguiente(tester);
       await _asentar(tester);
-      await tester.tap(find.text('Ahora no'));
+      await tester.enterText(find.byType(TextField).first, 'para saber más');
+      await tester.pump();
+      await _siguiente(tester);
       await _asentar(tester);
-      await tester.tap(find.text('Ahora no'));
+      await tester.enterText(find.byType(TextField).first, 'que lee');
+      await tester.pump();
+      await tester.tap(find.text('FUNDAR LEER'));
       await tester.pump(const Duration(milliseconds: 60));
-      await tester.tap(find.text('Ahora no'), warnIfMissed: false);
+      await tester.tap(find.text('FUNDAR LEER'), warnIfMissed: false);
       await _bajar(tester);
       expect(veces, 1);
     });
@@ -341,9 +356,13 @@ void main() {
       await _asentar(tester);
       await _siguiente(tester);
       await _asentar(tester);
-      await tester.tap(find.text('Ahora no'));
+      await tester.enterText(find.byType(TextField).first, 'para estar bien');
+      await tester.pump();
+      await _siguiente(tester);
       await _asentar(tester);
-      await tester.tap(find.text('Ahora no'));
+      await tester.enterText(find.byType(TextField).first, 'que corre');
+      await tester.pump();
+      await tester.tap(find.text('FUNDAR CORRER'));
       await _bajar(tester);
       expect(elNombre, 'Correr');
       expect(laComarca, isNot(TownCharacter.all.first.order));

@@ -403,13 +403,17 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
         alignment: Alignment.bottomCenter,
         children: [...previous, ?current],
       ),
+      // Lo contestado **sube y se desvanece**, hacia el claro donde queda
+      // escrito, y la pregunta nueva sale de abajo. De lado se leía como
+      // pasar páginas de un formulario; hacia arriba se lee como entregar la
+      // respuesta.
       transitionBuilder: (child, a) {
         final entra = child.key == ValueKey(_step);
         return FadeTransition(
           opacity: a,
           child: SlideTransition(
             position: Tween(
-              begin: Offset(entra ? 0.10 : -0.10, 0),
+              begin: Offset(0, entra ? 0.08 : -0.22),
               end: Offset.zero,
             ).animate(a),
             child: child,
@@ -501,9 +505,8 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
   );
 
   Widget _askName() => _Step(
-    // La marca no va aquí: va arriba, en el cartel sobre el claro, junto al
-    // nombre que se está escribiendo. Es la cara del pueblo, y se ve donde
-    // va a estar.
+    // La marca y el nombre se eligen aquí, y al confirmar suben al claro y
+    // quedan puestos en un cartel: ver [_ClearingSign].
     over: tr('Tu hábito', 'Your habit'),
     title: tr(
       '¿Qué hábito querés desarrollar?',
@@ -640,8 +643,6 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
       ),
     ],
     next: tr('Siguiente', 'Next'),
-    skip: tr('Ahora no', 'Not now'),
-    onSkip: () => _go(4),
     onNext: _why.text.trim().isEmpty ? null : () => _go(4),
     child: _Field(
       controller: _why,
@@ -680,8 +681,6 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
     next: _name.text.trim().isEmpty
         ? tr('Fundar el pueblo', 'Found the town')
         : tr('Fundar ${_name.text.trim()}', 'Found ${_name.text.trim()}'),
-    skip: tr('Ahora no', 'Not now'),
-    onSkip: _found,
     onNext: _identity.text.trim().isEmpty ? null : _found,
     child: _Field(
       controller: _identity,
@@ -791,6 +790,19 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
   /// Lo que corren las motas: se aceleran al fundar.
   double _rush = 0;
 
+  /// La comarca que enseña ahora el pueblo de muestra, y el cambio a otra:
+  /// de cero a uno mientras se cambia, uno quieto. **Un cambio y no un
+  /// corte**: el pueblo de antes se desvanece, la cámara toma aire y las
+  /// motas se arremolinan, y el nuevo aparece en la mitad del camino. Un
+  /// pueblo entero cambiando de golpe en un fotograma era lo único de esta
+  /// pantalla que no tenía ceremonia.
+  late int _shown = widget.place;
+  double _swap = 1;
+
+  /// Cuánto lleva en la pregunta de ahora, y cuándo quedó puesto el cartel.
+  double _age = 0;
+  double? _settledAt;
+
   /// Lo que el dedo le movió a la cámara mientras se exploraba: el giro, la
   /// inclinación, lo cerca, y el desplazamiento por el suelo. Vuelve a cero
   /// solo al dejar de explorar. [_explore] es cuánto se está explorando, de
@@ -838,6 +850,7 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
   @override
   void didUpdateWidget(_Valley old) {
     super.didUpdateWidget(old);
+    if (widget.stage != old.stage) _age = 0;
     if (widget.leaving && !old.leaving) {
       _aim(_Pose.handoff, FirstRun.leaving.inMilliseconds / 1000 * 0.96);
     } else if (widget.stage != old.stage && !widget.leaving) {
@@ -866,7 +879,26 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
     }
     double toward(double v, bool on, double seconds) =>
         on ? math.min(1, v + dt / seconds) : math.max(0, v - dt / seconds);
-    _preview = toward(_preview, widget.stage == 2 && !widget.leaving, 0.9);
+    _age += dt;
+    if (_swap >= 1 && widget.place != _shown) _swap = 0;
+    if (_swap < 1) {
+      final antes = _swap;
+      _swap = math.min(1, _swap + dt / 0.9);
+      // A mitad del cambio, con el de antes ya ido, se pone el nuevo: el que
+      // esté elegido entonces, aunque se haya tocado otro por el camino.
+      if (antes < 0.42 && _swap >= 0.42) _shown = widget.place;
+    }
+    // El cartel queda puesto al confirmar el nombre, no mientras se escribe:
+    // escrito a la vez en el campo y sobre el claro, se leía dos veces.
+    final puesto = widget.stage >= 2 && !widget.leaving;
+    if (puesto) _settledAt ??= _time;
+    // Y el pueblo de muestra espera a que el cartel termine de ponerse: los
+    // dos a la vez se tapaban el uno al otro.
+    _preview = toward(
+      _preview,
+      widget.stage == 2 && _age > 1.5 && !widget.leaving,
+      0.9,
+    );
     _explore = toward(_explore, widget.exploring, 0.6);
     if (!widget.exploring) {
       final k = 1 - math.exp(-dt * 3.5);
@@ -876,7 +908,7 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
       _panX -= _panX * k;
       _panZ -= _panZ * k;
     }
-    _sign = toward(_sign, widget.stage >= 1 && !widget.leaving, 0.45);
+    _sign = toward(_sign, puesto, 0.45);
     setState(() {});
   }
 
@@ -904,7 +936,10 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
       ..focusZ = math.cos(yaw) * lead + _panZ
       ..yaw = yaw
       ..pitch = clampD(pose.pitch + sube + _pitchOff, 0.03, 1.35)
-      ..distance = pose.distance * _zoom
+      ..distance =
+          pose.distance *
+          _zoom *
+          (1 + 0.05 * math.sin(math.pi * _swap.clamp(0.0, 1.0)))
       ..focusY = pose.focusY;
     TownScene scene(TownEntry town) => TownScene(
       placed: town.placed,
@@ -920,13 +955,20 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
       ghost: false,
     );
     final noche = 1 - clampD(pal.daylight * 1.6, 0, 1);
-    final muestra = Curves.easeInOutCubic.transform(_preview);
+    // Durante el cambio de comarca, la muestra se va y vuelve.
+    final cambio = _swap >= 1
+        ? 1.0
+        : _swap < 0.42
+        ? 1 - Curves.easeInCubic.transform(_swap / 0.42)
+        : Curves.easeOutCubic.transform((_swap - 0.42) / 0.58);
+    final vista = Curves.easeInOutCubic.transform(_preview);
+    final muestra = vista * cambio;
     return LayoutBuilder(
       builder: (_, box) => GestureDetector(
         behavior: HitTestBehavior.opaque,
         onScaleStart: widget.exploring ? (_) => _lastScale = 1 : null,
         onScaleUpdate: widget.exploring ? _onScale : null,
-        child: _scene(box, scene, noche, muestra),
+        child: _scene(box, scene, noche, muestra, vista),
       ),
     );
   }
@@ -959,6 +1001,7 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
     TownScene Function(TownEntry) scene,
     double noche,
     double muestra,
+    double vista,
   ) {
     final cartel = _sign > 0.001
         ? _cam
@@ -981,29 +1024,45 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
           Opacity(
             opacity: muestra,
             child: CustomPaint(
-              painter: TownPainter(scene(_previewOf(widget.place)), TouchMap()),
+              painter: TownPainter(scene(_previewOf(_shown)), TouchMap()),
               isComplex: true,
               willChange: true,
             ),
           ),
         IgnorePointer(
           child: CustomPaint(
-            painter: _Motes(time: _time, night: noche, rush: _rush),
+            painter: _Motes(
+              time: _time,
+              night: noche,
+              // Y en el cambio de comarca se arremolinan un momento.
+              rush: math.max(
+                _rush,
+                _swap < 1 ? 0.5 * math.sin(math.pi * _swap) : 0.0,
+              ),
+            ),
           ),
         ),
         if (cartel != null)
           Positioned(
             left: 0,
             right: 0,
-            top: cartel.y - 74,
+            // En la pregunta de la comarca la respuesta ocupa más y el claro
+            // queda a su altura: ahí el cartel se pone más arriba, para
+            // que el momento de quedar puesto no caiga sobre la pregunta.
+            top: widget.stage == 2
+                ? math.min(cartel.y - 74, box.maxHeight * 0.20)
+                : cartel.y - 74,
             child: IgnorePointer(
               child: Opacity(
-                opacity: Curves.easeOut.transform(_sign) * (1 - muestra),
+                opacity: Curves.easeOut.transform(_sign) * (1 - vista),
                 child: Transform.translate(
                   offset: Offset(cartel.x - box.maxWidth / 2, 10 * (1 - _sign)),
                   child: _ClearingSign(
                     name: widget.name.trim(),
                     symbol: widget.symbol,
+                    settle: _settledAt == null
+                        ? 1
+                        : clampD((_time - _settledAt!) / 1.6, 0, 1),
                   ),
                 ),
               ),
@@ -1079,37 +1138,74 @@ class _ExploreBar extends StatelessWidget {
 /// hace que la pregunta se sienta como poner un nombre a un sitio y no como
 /// rellenar un campo.
 class _ClearingSign extends StatelessWidget {
-  const _ClearingSign({required this.name, required this.symbol});
+  const _ClearingSign({
+    required this.name,
+    required this.symbol,
+    required this.settle,
+  });
 
   final String name;
   final String symbol;
 
+  /// De cero a uno, cómo va quedando puesto: llega grande y se asienta, con
+  /// un destello dorado que se apaga. Es lo que dice «esto ya es así».
+  final double settle;
+
   @override
-  Widget build(BuildContext context) => Column(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      HabitSigil(symbol: symbol, color: _Ink.gold, size: 30),
-      const SizedBox(height: 4),
-      Text(
-        name.isEmpty ? '…' : name,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(
-          fontFamily: _Ink.serif,
-          fontSize: 28,
-          height: 1.05,
-          color: _Ink.cream,
-          shadows: _Ink.shadow,
-        ),
+  Widget build(BuildContext context) {
+    final asienta = Curves.easeOutCubic.transform(settle);
+    final brillo = math.sin(math.pi * settle).clamp(0.0, 1.0);
+    return Transform.scale(
+      scale: 1 + 0.35 * (1 - asienta),
+      child: Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
+        children: [
+          // El destello: una luz redonda detrás, que crece y se apaga.
+          IgnorePointer(
+            child: Container(
+              width: 60 + 140 * asienta,
+              height: 60 + 140 * asienta,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    _Ink.gold.withValues(alpha: 0.55 * brillo),
+                    _Ink.gold.withValues(alpha: 0),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              HabitSigil(symbol: symbol, color: _Ink.gold, size: 30),
+              const SizedBox(height: 4),
+              Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontFamily: _Ink.serif,
+                  fontSize: 28,
+                  height: 1.05,
+                  color: Color.lerp(_Ink.cream, _Ink.gold, brillo * 0.8),
+                  shadows: _Ink.shadow,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Container(
+                width: 1.4,
+                height: 18,
+                color: _Ink.cream.withValues(alpha: 0.7),
+              ),
+            ],
+          ),
+        ],
       ),
-      const SizedBox(height: 6),
-      Container(
-        width: 1.4,
-        height: 18,
-        color: _Ink.cream.withValues(alpha: 0.7),
-      ),
-    ],
-  );
+    );
+  }
 }
 
 /// Lo que flota en el aire: polen de día, luciérnagas de noche.

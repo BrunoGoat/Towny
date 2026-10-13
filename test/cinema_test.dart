@@ -79,22 +79,25 @@ void main() {
   group('la calidad máxima se elige y se queda elegida', () {
     setUp(() => SharedPreferences.setMockInitialValues({}));
 
-    test('apagada de fábrica, y sobrevive a cerrar la app', () async {
-      final a = Appearance.instance;
-      await a.load();
-      expect(a.cinematic, isFalse, reason: 'cuesta: no se enciende sola');
-      await a.setCinematic(true);
-      await a.flush();
-      await a.setCinematic(false);
-      await a.load();
-      expect(a.cinematic, isTrue, reason: 'no se guardó');
-      await a.setCinematic(false);
-      await a.flush();
-      await a.load();
-      expect(a.cinematic, isFalse);
-    });
+    test(
+      'encendida de fábrica, por ahora, y sobrevive a cerrar la app',
+      () async {
+        final a = Appearance.instance;
+        await a.load();
+        expect(a.cinematic, isTrue, reason: 'por ahora, de fábrica encendida');
+        await a.setCinematic(false);
+        await a.flush();
+        await a.setCinematic(true);
+        await a.load();
+        expect(a.cinematic, isFalse, reason: 'no se guardó');
+        await a.setCinematic(true);
+        await a.flush();
+        await a.load();
+        expect(a.cinematic, isTrue);
+      },
+    );
 
-    testWidgets('está en los ajustes y el interruptor la enciende', (
+    testWidgets('está en los ajustes y el interruptor la apaga y la enciende', (
       tester,
     ) async {
       final store = Store();
@@ -116,13 +119,13 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
       final fila = find.widgetWithText(SwitchListTile, 'Calidad máxima');
       expect(fila, findsOneWidget);
-      expect(Appearance.instance.cinematic, isFalse);
-      await tester.tap(fila);
-      await tester.pump(const Duration(milliseconds: 500));
       expect(Appearance.instance.cinematic, isTrue);
       await tester.tap(fila);
       await tester.pump(const Duration(milliseconds: 500));
       expect(Appearance.instance.cinematic, isFalse);
+      await tester.tap(fila);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(Appearance.instance.cinematic, isTrue);
     });
   });
 

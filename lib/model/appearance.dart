@@ -87,29 +87,20 @@ class Appearance extends ChangeNotifier {
   /// De qué lado del ecuador está el valle.
   ///
   /// Hace falta y no se puede deducir del reloj: en enero medio mundo está
-  /// bajo la nieve y el otro medio en lo más alto del verano. Por defecto sale
-  /// del país del idioma del teléfono, que es lo único que hay sin pedir
-  /// permisos, y se puede corregir a mano — la lista de países nunca va a
-  /// acertar con todo el mundo, y equivocarse aquí se ve el primer día.
+  /// bajo la nieve y el otro medio en lo más alto del verano. Se puede
+  /// elegir a mano en ajustes.
   ///
-  /// Nulo quiere decir «lo que diga el teléfono». Se guarda sólo cuando
-  /// alguien lo toca, así que a quien no lo toque le sigue valiendo lo que
-  /// diga el teléfono aunque se mude.
+  /// Nulo quiere decir «el de fábrica» ([hemisphere]). Se guarda sólo cuando
+  /// alguien lo toca.
   Hemisphere? _hemisphere;
 
-  Hemisphere get hemisphere => _hemisphere ?? _fromLocale;
+  /// **Por ahora, el sur de fábrica**, y no el que diga el teléfono: es
+  /// donde se está probando la app, y el norte de un teléfono configurado en
+  /// otro país ponía el valle en la estación contraria.
+  Hemisphere get hemisphere => _hemisphere ?? Hemisphere.south;
 
   /// Si está puesto a mano o sale del teléfono.
   bool get hemisphereChosen => _hemisphere != null;
-
-  static Hemisphere get _fromLocale {
-    try {
-      final l = PlatformDispatcher.instance.locale;
-      return Season.hemisphereOf(l.countryCode);
-    } catch (_) {
-      return Hemisphere.north;
-    }
-  }
 
   Future<void> setHemisphere(Hemisphere? v) async {
     if (v == _hemisphere) return;
@@ -158,10 +149,11 @@ class Appearance extends ChangeNotifier {
   bool _seasonsOff = false;
   bool get seasons => !_seasonsOff;
 
-  /// La calidad máxima: sombras, resplandor, rayos y color de cine. Apagada
-  /// de fábrica, porque cuesta bastante más cada fotograma y no todos los
-  /// teléfonos lo aguantan.
-  bool _cinematic = false;
+  /// La calidad máxima: sombras, resplandor, rayos y color de cine.
+  /// **Encendida de fábrica, por ahora**: es como se está revisando la app.
+  /// Cuesta bastante más cada fotograma, y cuando llegue a teléfonos que no
+  /// lo aguanten habrá que volver a apagarla de fábrica.
+  bool _cinematic = true;
   bool get cinematic => _cinematic;
 
   Future<void> setCinematic(bool v) async {
@@ -333,7 +325,7 @@ class Appearance extends ChangeNotifier {
     _fakeHour = false;
     _fakeHourAt = 22.0;
     _lang = null;
-    _cinematic = false;
+    _cinematic = true;
   }
 
   Future<void> load() async {

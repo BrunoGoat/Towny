@@ -260,7 +260,7 @@ void main() {
     await Appearance.instance.setFakeSeasonAt(0.4);
     expect(LocalChanges.instance.changedAt, isNull);
     // Y uno que sí viaja, sí.
-    await Appearance.instance.setCinematic(true);
+    await Appearance.instance.setCinematic(!Appearance.instance.cinematic);
     expect(LocalChanges.instance.changedAt, isNotNull);
   });
 
