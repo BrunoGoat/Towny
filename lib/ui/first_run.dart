@@ -228,6 +228,15 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
   /// Si el último paso fue hacia atrás: la animación va al revés.
   bool _backward = false;
 
+  /// Lo que el dedo arrastró la pregunta desde el borde izquierdo, en el
+  /// gesto de volver. La pregunta lo sigue, y al soltar vuelve a su sitio si
+  /// no pasó de un tercio de la pantalla.
+  double _swipe = 0;
+
+  /// Si desde aquí se puede volver: lo que dice si el gesto hace algo.
+  bool get _canBack =>
+      !_leaving && (_exploring || _step > 0 || widget.onCancel != null);
+
   void _go(int to) {
     Sensory.instance.tick();
     setState(() {
@@ -384,28 +393,40 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
               padding: EdgeInsets.only(bottom: teclado),
               child: SafeArea(
                 top: false,
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: AnimatedSlide(
-                    duration: const Duration(milliseconds: 560),
-                    curve: Curves.easeInCubic,
-                    offset: _leaving ? const Offset(0, 0.35) : Offset.zero,
-                    child: AnimatedOpacity(
-                      duration: const Duration(milliseconds: 420),
-                      opacity: _leaving || _exploring ? 0 : 1,
-                      child: IgnorePointer(
-                        ignoring: _exploring,
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              maxWidth: 520,
-                              maxHeight: math.max(
-                                240,
-                                mq.size.height - teclado - mq.padding.top - 40,
+                child: Transform.translate(
+                  offset: Offset(_swipe, 0),
+                  child: Opacity(
+                    opacity: (1 - _swipe / (mq.size.width * 0.8)).clamp(
+                      0.0,
+                      1.0,
+                    ),
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: AnimatedSlide(
+                        duration: const Duration(milliseconds: 560),
+                        curve: Curves.easeInCubic,
+                        offset: _leaving ? const Offset(0, 0.35) : Offset.zero,
+                        child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 420),
+                          opacity: _leaving || _exploring ? 0 : 1,
+                          child: IgnorePointer(
+                            ignoring: _exploring,
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  maxWidth: 520,
+                                  maxHeight: math.max(
+                                    240,
+                                    mq.size.height -
+                                        teclado -
+                                        mq.padding.top -
+                                        40,
+                                  ),
+                                ),
+                                child: _Card(step: _step, child: _content()),
                               ),
                             ),
-                            child: _Card(step: _step, child: _content()),
                           ),
                         ),
                       ),
@@ -414,6 +435,30 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
                 ),
               ),
             ),
+            // El gesto de volver del teléfono: deslizar desde el borde
+            // izquierdo hacia la derecha. En la web el navegador no siempre
+            // lo da —sin página de antes, el gesto se va del sitio o no hace
+            // nada—, así que se atiende aquí, en una franja del borde.
+            if (_canBack)
+              Positioned(
+                left: 0,
+                top: 0,
+                bottom: 0,
+                width: 28,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onHorizontalDragUpdate: (d) =>
+                      setState(() => _swipe = math.max(0, _swipe + d.delta.dx)),
+                  onHorizontalDragEnd: (d) {
+                    final lejos =
+                        _swipe > mq.size.width / 3 ||
+                        (d.primaryVelocity ?? 0) > 700;
+                    setState(() => _swipe = 0);
+                    if (lejos) _back();
+                  },
+                  onHorizontalDragCancel: () => setState(() => _swipe = 0),
+                ),
+              ),
             // Explorando: sólo el nombre de la comarca, cómo se mueve la cámara,
             // y la vuelta.
             if (_exploring)

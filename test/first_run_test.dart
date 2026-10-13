@@ -319,6 +319,17 @@ void main() {
       await _asentar(tester);
       expect(find.text('¿Qué hábito querés desarrollar?'), findsOneWidget);
       expect(find.text('Leer'), findsWidgets);
+      // Y el gesto de deslizar desde el borde izquierdo.
+      await _siguiente(tester);
+      await _asentar(tester);
+      expect(find.text('¿Qué clase de pueblo?'), findsOneWidget);
+      // Uno corto no vuelve: la pregunta se queda.
+      await tester.dragFrom(const Offset(4, 400), const Offset(60, 0));
+      await _asentar(tester);
+      expect(find.text('¿Qué clase de pueblo?'), findsOneWidget);
+      await tester.dragFrom(const Offset(4, 400), const Offset(240, 0));
+      await _asentar(tester);
+      expect(find.text('¿Qué hábito querés desarrollar?'), findsOneWidget);
       // Y la flecha de arriba hace lo mismo.
       await tester.tap(find.byIcon(Icons.arrow_back_rounded));
       await _asentar(tester);
