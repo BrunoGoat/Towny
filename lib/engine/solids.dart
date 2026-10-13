@@ -1580,6 +1580,10 @@ class Plaza {
   static const int _kerb = 0xFFB9AE97;
   static const int _edge = 0xFF9C917B;
 
+  /// Los tonos del bordillo y de su canto, para quien pinte encima de ellos:
+  /// las sombras de la plaza (ver `plazaShadows`).
+  static const int kerbTint = _kerb, edgeTint = _edge;
+
   /// La hierba de la plaza: la misma gama que la del prado y las huertas.
   static const int _grass = 0xFF6B7A42;
   static const int _basin = 0xFFA79B83;

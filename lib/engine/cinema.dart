@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/painting.dart';
 
 import '../core/math3.dart';
+import 'fountain.dart';
 import 'palette.dart';
 import 'town.dart';
 
@@ -456,45 +457,24 @@ Path castShadowPath(
         m++;
       }
 
-      void box(double y) {
-        at(pc.x0, y, pc.z0);
-        at(pc.x1, y, pc.z0);
-        at(pc.x1, y, pc.z1);
-        at(pc.x0, y, pc.z1);
-      }
-
-      switch (pc.kind) {
-        case PieceKind.field:
-        case PieceKind.water:
-          continue;
-        case PieceKind.roof:
-        case PieceKind.thatch:
-          box(pc.y0);
-          if (pc.alongX) {
-            at(pc.x0, pc.y1, pc.cz);
-            at(pc.x1, pc.y1, pc.cz);
-          } else {
-            at(pc.cx, pc.y1, pc.z0);
-            at(pc.cx, pc.y1, pc.z1);
-          }
-        case PieceKind.spire:
-          box(pc.y0);
-          at(pc.cx, pc.y1, pc.cz);
-        case PieceKind.dome:
-        case PieceKind.tree:
-          final mid = pc.y0 + (pc.y1 - pc.y0) * 0.5;
-          final rx = pc.w / 2, rz = pc.d / 2;
-          at(pc.cx, pc.y0, pc.cz);
-          for (var k = 0; k < 10; k++) {
-            final a = k * math.pi / 5;
-            at(pc.cx + math.cos(a) * rx, mid, pc.cz + math.sin(a) * rz);
-          }
-          at(pc.cx, pc.y1, pc.cz);
-        default:
-          box(pc.y0);
-          box(pc.y1);
-      }
+      shadowPointsOf(pc, at);
       _hullInto(path, p, xs, zs, m);
+    }
+    // Y la fuente y el tablón, que no son piezas pero están: a última hora la
+    // sombra de la fuente sale de la plaza y sigue por el prado. Van ya
+    // envueltos, que un sólido de la fuente tiene más vértices que caben acá.
+    if (town.solo) continue;
+    for (final s in plazaFurniture(town)) {
+      final hull = convexHull([
+        for (final f in s.faces)
+          for (final v in f.v) (v.x + ox * v.y, v.z + oz * v.y),
+      ]);
+      if (hull.length > xs.length) continue;
+      for (var i = 0; i < hull.length; i++) {
+        xs[i] = hull[i].$1;
+        zs[i] = hull[i].$2;
+      }
+      _hullInto(path, p, xs, zs, hull.length);
     }
   }
   return path;

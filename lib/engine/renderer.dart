@@ -14,6 +14,7 @@ import 'camera.dart';
 import 'cinema.dart';
 import 'folk.dart';
 import 'folk_body.dart';
+import 'fountain.dart';
 import 'palette.dart';
 import 'scene.dart';
 import 'sigils.dart';
@@ -268,7 +269,10 @@ class TownPainter extends CustomPainter {
     if (scene.cinematic) {
       drawCastShadows(canvas, p, scene.palette, [
         for (final e in scene.towns)
-          if (e.placed > 0) (e.layout, e.placed),
+          // Con la plaza ya en el suelo, aunque no haya nada más: la fuente
+          // echa sombra desde el día que se funda.
+          if (e.placed > 0 || (e.founded && scene.founding >= 1.0))
+            (e.layout, e.placed),
       ]);
     }
     for (var i = 0; i < scene.towns.length; i++) {
@@ -1245,7 +1249,10 @@ class TownPainter extends CustomPainter {
       // hoja, y para cualquier otra hoja hay un plano que las separa y que lo
       // pone del mismo lado que la suya. Su sitio en el orden es el de su hoja,
       // y eso sí es exacto.
-      final vecinos = _folkRiders(p, e, _folkNow[w] ?? const <_Walker>[], w);
+      final vecinos = [
+        ..._plazaRiders(p, e, pal),
+        ..._folkRiders(p, e, _folkNow[w] ?? const <_Walker>[], w),
+      ];
       walkOrderRiders(root, p.eye, vecinos, (leaf, aqui) {
         final box = leaf.bounds;
         if (p.cameraOf(V3(box.cx, box.cy, box.cz)).z + box.radius < p.near) {
@@ -1569,6 +1576,35 @@ class TownPainter extends CustomPainter {
     return out;
   }
 
+  /// Lo que va por el árbol con la gente sin ser gente: el agua de la fuente
+  /// y las sombras sobre el césped de la plaza. Van con [Rider.seq] negativo
+  /// —antes que cualquier vecino del mismo hueco: la sombra está en el suelo
+  /// que él pisa— y con [Rider.tag] negativo, que es no ser de nadie.
+  List<Rider> _plazaRiders(Projector p, TownEntry e, Palette pal) {
+    final l = e.layout;
+    if (l.solo) return const [];
+    final out = <Rider>[];
+    var seq = -1 << 20;
+    if (scene.cinematic) {
+      for (final f in plazaShadows(
+        l,
+        math.min(e.placed, l.pieces.length),
+        pal,
+      )) {
+        out.add(Rider(f, seq++, -1));
+      }
+    }
+    // El agua sólo si se ve: de lejos la fuente es un punto, y treinta cintas
+    // de medio píxel no son agua sino ruido.
+    final q = p.cameraOf(V3(l.cx, 0.7, l.cz));
+    if (q.z > p.near && p.focal / q.z * 0.6 > 12) {
+      for (final f in fountainWater(l, p.eye, scene.time, pal)) {
+        out.add(Rider(f, seq++, -1));
+      }
+    }
+    return out;
+  }
+
   /// Pinta caras de la gente que acabaron en el mismo sitio del orden, en el
   /// orden en que se pintarían solas, y le dice al dedo de quién es cada una.
   void _paintRiders(Projector p, List<Rider> caras, Palette pal, V3 light) {
@@ -1579,6 +1615,7 @@ class TownPainter extends CustomPainter {
     for (final r in orden) {
       final antes = _faceCount;
       _plain(p, r.f, pal, light);
+      if (r.tag < 0) continue;
       for (var k = antes; k < _faceCount; k++) {
         _facePool[k]
           ..owner = TouchMap.folk
@@ -1649,6 +1686,19 @@ class TownPainter extends CustomPainter {
       FoundingShow.liftAt(t, FoundingShow.boardAt),
       tablon: true,
     );
+    // Y, ya en el suelo, lo que la plaza tiene de vivo —el agua, las
+    // sombras—, igual que lo tendrá en el fotograma siguiente, que ya lo
+    // pinta el camino de siempre.
+    final plaza = FoundingShow.liftAt(t, FoundingShow.plazaAt);
+    final tablon = FoundingShow.liftAt(t, FoundingShow.boardAt);
+    if (plaza != null &&
+        plaza.abs() < 1e-4 &&
+        tablon != null &&
+        tablon.abs() < 1e-4) {
+      for (final r in _plazaRiders(p, e, pal)) {
+        caras.add(r.f);
+      }
+    }
     if (caras.isEmpty) return;
     BspTree.build(
       caras,
