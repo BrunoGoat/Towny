@@ -535,6 +535,60 @@ V3 turnedAt(V3 v, double cx, double cz, double sinA, double cosA) {
 /// Se construye el mueble mirando a `+z`, como si estuviera solo en el mundo,
 /// y se gira al plantarlo. Escribir cada caja ya torcida habría sido escribir
 /// ocho veces la misma trigonometría.
+/// Un tronco de pirámide: [below] abajo, [above] arriba, del mismo número de
+/// lados y en el mismo orden. Una taza, un cuenco: lo que se abre al subir.
+List<Facet> frustumFaces(
+  List<(double, double)> below,
+  List<(double, double)> above,
+  double y0,
+  double y1,
+  Surface s, {
+  double ao = 1.0,
+  int? tint,
+}) {
+  var mx = 0.0, mz = 0.0;
+  for (final (x, z) in above) {
+    mx += x;
+    mz += z;
+  }
+  final mid = V3(mx / above.length, (y0 + y1) / 2, mz / above.length);
+  final out = <Facet>[
+    Facet(
+      [for (final (x, z) in above) V3(x, y1, z)],
+      const V3(0, 1, 0),
+      s,
+      ao: ao,
+      tint: tint,
+    ),
+    Facet(
+      [for (final (x, z) in below.reversed) V3(x, y0, z)],
+      const V3(0, -1, 0),
+      s,
+      ao: ao * 0.55,
+      tint: tint,
+    ),
+  ];
+  for (var i = 0; i < below.length; i++) {
+    final j = (i + 1) % below.length;
+    final v = [
+      V3(below[i].$1, y0, below[i].$2),
+      V3(below[j].$1, y0, below[j].$2),
+      V3(above[j].$1, y1, above[j].$2),
+      V3(above[i].$1, y1, above[i].$2),
+    ];
+    out.add(
+      Facet(
+        v,
+        Facet.normalOf(v, away: mid),
+        s,
+        ao: ao * 0.80,
+        tint: tint,
+      ),
+    );
+  }
+  return out;
+}
+
 List<Solid> turnedSolids(
   List<Solid> solids,
   double cx,
@@ -1704,24 +1758,62 @@ class Plaza {
           tint: _water,
         ),
       ),
-      // Y el pilar del caño en medio, que es lo que se ve de lejos.
+      // Y el pilar en medio, que es lo que se ve de lejos.
       Solid(
         -1,
         prismFaces(
-          ring(cx, cz, taza * 0.20, sides: 6),
-          alto - 0.055,
-          alto + 0.40,
+          ring(cx, cz, taza * 0.20, sides: 8),
+          poolLevel,
+          bowlFoot,
           Surface.stone,
           ao: 0.94,
           tint: _basin,
         ),
       ),
+      // La taza de arriba, como ⛲: un cuenco que se abre hacia arriba y del
+      // que rebosa el agua por todo el borde. Es lo que hace que sea una
+      // fuente y no un pilón con un caño.
+      Solid(
+        -1,
+        frustumFaces(
+          ring(cx, cz, taza * 0.17),
+          ring(cx, cz, taza * bowlOut),
+          bowlFoot,
+          bowlBase,
+          Surface.stone,
+          ao: 0.96,
+          tint: _basin,
+        ),
+      ),
+      ...ringSolids(
+        cx,
+        cz,
+        taza * (bowlOut - 0.06),
+        taza * bowlOut,
+        bowlBase,
+        bowlLip,
+        Surface.stone,
+        ao: 1.0,
+        tint: _rim,
+      ),
       Solid(
         -1,
         prismFaces(
-          ring(cx, cz, taza * 0.36, sides: 6),
-          alto + 0.40,
-          alto + 0.50,
+          ring(cx, cz, taza * (bowlOut - 0.055)),
+          bowlBase,
+          bowlWater,
+          Surface.own,
+          ao: 1.0,
+          tint: _water,
+        ),
+      ),
+      // Y el caño, que asoma del agua de la taza.
+      Solid(
+        -1,
+        prismFaces(
+          ring(cx, cz, taza * 0.05, sides: 6),
+          bowlWater,
+          spoutTop,
           Surface.stone,
           ao: 1.0,
           tint: _rim,
@@ -1729,6 +1821,25 @@ class Plaza {
       ),
     ];
   }
+
+  /// Las alturas de la fuente, que el agua tiene que saber para salir del
+  /// caño y caer donde hay agua: el pilón, el pie y el fondo de la taza de
+  /// arriba, su canto, su agua y la boca del caño.
+  static const double poolLevel = 0.345,
+      bowlFoot = 0.70,
+      bowlBase = 0.80,
+      bowlLip = 0.835,
+      bowlWater = 0.822,
+      spoutTop = 0.87;
+
+  /// Lo ancha que es la taza de arriba, en tazas del pilón.
+  static const double bowlOut = 0.50;
+
+  /// El radio del pilón por dentro, donde está el agua.
+  static double poolOf(double reach) => basinOf(reach) / 1.14 * 0.80;
+
+  /// El radio de la taza de arriba por fuera.
+  static double bowlOf(double reach) => basinOf(reach) / 1.14 * bowlOut;
 
   /// Todo lo que hay en el suelo de la plaza.
   ///

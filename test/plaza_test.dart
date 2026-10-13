@@ -346,37 +346,36 @@ void main() {
       // El brocal empezó siendo un bloque macizo con el agua dentro, que es un
       // bloque macizo: el agua estaba en la geometría y no se veía desde
       // ningún ángulo. Por eso es un anillo.
+      //
+      // Ahora hay dos aguas —el pilón y la taza de arriba— y la taza tapa la
+      // parte de en medio del pilón, que es lo que hace una fuente de dos
+      // pisos. Lo que no puede tapar nada es la orilla de cada agua: un
+      // anillo a la vista entre el borde y lo que suba del medio.
       final partes = Plaza.solidsAt(0, 0, TownLayout.plazaReach);
-      var techo = -1.0, aguaY = -1.0;
-      for (final s in partes) {
-        for (final f in s.faces) {
-          final esAgua = f.tint == 0xFF3F7C86;
-          for (final v in f.v) {
-            if (esAgua && v.y > aguaY) aguaY = v.y;
-          }
-        }
-      }
-      expect(aguaY, greaterThan(0), reason: 'no hay agua en la fuente');
-      // Nada de piedra tapa el agua por arriba dentro del radio del pilón.
-      final dentro = Plaza.basinOf(TownLayout.plazaReach) * 0.6;
-      for (final s in partes) {
-        for (final f in s.faces) {
-          if (f.tint == 0xFF3F7C86) continue;
-          if (f.n.y < 0.9) continue;
-          for (final v in f.v) {
-            if (math.sqrt(v.x * v.x + v.z * v.z) < dentro && v.y > aguaY) {
-              techo = v.y;
+      double radio(Facet f) =>
+          f.v.map((v) => math.sqrt(v.x * v.x + v.z * v.z)).reduce(math.max);
+      final aguas = [
+        for (final s in partes)
+          for (final f in s.faces)
+            if (f.tint == 0xFF3F7C86 && f.n.y > 0.9) f,
+      ];
+      expect(aguas, hasLength(2), reason: 'el pilón y la taza');
+      for (final agua in aguas) {
+        final y = agua.v.first.y, r = radio(agua);
+        for (final s in partes) {
+          for (final f in s.faces) {
+            if (f.tint == 0xFF3F7C86 || f.n.y < 0.9) continue;
+            for (final v in f.v) {
+              final d = math.sqrt(v.x * v.x + v.z * v.z);
+              expect(
+                v.y <= y || d < r * 0.65 || d > r * 0.97,
+                isTrue,
+                reason: 'hay piedra tapando la orilla del agua a ${v.y}',
+              );
             }
           }
         }
       }
-      // Sólo el pilar del caño, que sale del agua hacia arriba y es lo que se
-      // ve de lejos; nada que sea una tapa sobre el agua.
-      expect(
-        techo < 0 || techo > aguaY + 0.3,
-        isTrue,
-        reason: 'hay piedra tapando el agua a $techo',
-      );
     });
   });
 

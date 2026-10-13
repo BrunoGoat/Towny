@@ -10,7 +10,10 @@ library;
 
 import 'dart:math' as math;
 
+import 'dart:ui' show Color;
+
 import '../core/math3.dart';
+import '../core/rng.dart';
 import 'palette.dart';
 import 'solid.dart';
 import 'solids.dart';
@@ -18,116 +21,624 @@ import 'town.dart';
 
 // ------------------------------------------------------------------ el agua
 
+/// La marca de las caras de agua: no son de nadie, como el resto de la plaza,
+/// pero llevan su color ya hecho —con su transparencia— y el pintor no les
+/// pone luz encima. Ver `_plainFaces` en el pintor.
+const int waterPiece = -3;
+
+/// Lo que tira de cada gota hacia abajo, en unidades del mundo por segundo al
+/// cuadrado. Un poco más que la de verdad a esta escala —una persona mide
+/// unos tres décimos—, que a la de verdad el agua parece de miel.
+const double _g = 2.6;
+
+/// Una gota en el aire: dónde está, hacia dónde va, cuánto lleva volando, qué
+/// número es en su chorro —que es lo que la hace ella y no otra— y si es la
+/// última, la que ya tocó el agua.
+typedef _Gota = ({V3 p, V3 v, double edad, int i, bool fin});
+
 /// El agua de la fuente de la plaza, vista desde [eye] en el segundo [time].
 ///
-/// **Un surtidor y una corona**, como ⛲: un chorro fino que sube del caño, se
-/// abre arriba en ocho hilos que caen en arco hasta el pilón, y en cada caída
-/// unas gotas que saltan. Los hilos son cintas que miran siempre a quien mira
-/// —desde cualquier lado se ven igual de enteros— y por dentro de cada una
-/// corre un brillo hacia afuera, que es lo que hace que se lea agua corriendo
-/// y no alambre.
+/// **No es una forma que cambia de color: son gotas.** Cada chorro es una
+/// fila de gotas que salen del caño una detrás de otra, cada una con su
+/// impulso —un poco distinto del de la anterior— y que desde ahí vuelan solas
+/// con la gravedad. Lo que se dibuja es la cinta que las une. Así lo que se
+/// mueve se mueve de verdad: un engrosamiento del chorro es una gota más
+/// gorda que baja con las demás, el chorro respira porque el caño empuja a
+/// golpes, y abajo, donde el agua ya va estirada, la cinta se rompe y lo que
+/// cae son gotas sueltas.
 ///
-/// **De noche, más tranquila**: el chorro sube menos, corre más despacio y
-/// los hilos son menos. La fuente no se apaga —es el centro del pueblo—,
-/// pero baja la voz.
-List<Facet> fountainWater(TownLayout l, V3 eye, double time, Palette pal) {
+/// **Como ⛲**: un surtidor en la taza de arriba que sube, se abre y vuelve a
+/// caer en ella, y la taza que rebosa por todo el borde en un velo que se
+/// rasga en hilos antes de llegar al pilón. Donde cae, espuma, salpicaduras y
+/// ondas que se abren por el agua.
+///
+/// **De noche, más tranquila**: el surtidor sube la mitad, el velo cae casi
+/// pegado a la taza y la espuma se calma. No se apaga: es el centro del
+/// pueblo.
+///
+/// [detail] baja de uno a casi cero cuando la fuente se ve pequeña: menos
+/// hilos, sin el alma clara de cada chorro, sin salpicaduras.
+List<Facet> fountainWater(
+  TownLayout l,
+  V3 eye,
+  double time,
+  Palette pal, {
+  double detail = 1,
+}) {
   final cx = l.cx, cz = l.cz;
-  final taza = Plaza.basinOf(TownLayout.plazaReach) / 1.14;
-  // Del caño, que es lo de arriba del pilar, al agua del pilón.
-  const boca = 0.92, agua = 0.35;
+  final reach = TownLayout.plazaReach;
+  final pozo = Plaza.poolOf(reach);
+  final taza = Plaza.bowlOf(reach);
+  final pilar = Plaza.basinOf(reach) / 1.14 * 0.20;
+  const pilon = Plaza.poolLevel, aguaTaza = Plaza.bowlWater;
+
   final dia = smoothstep(0.05, 0.6, pal.daylight);
-  final alto = lerpD(0.16, 0.40, dia);
-  final corre = lerpD(0.30, 0.62, dia);
-  final hilos = dia > 0.5 ? 8 : 6;
-  final lejos = taza * 0.60;
+  final fino = detail >= 0.9;
+  final medio = detail >= 0.45;
 
-  final out = <Facet>[];
+  // ------------------------------------------------------------ los colores
+  //
+  // El agua no tiene color propio: es el cielo que refleja y la luz que la
+  // atraviesa. De día, clara y con el sol encendiéndola donde el chorro se
+  // pone de canto a él; de noche, gris azulada, de luna.
+  final luzSol = pal.isDaylight ? smoothstep(0.0, 0.25, pal.sunDir.y) : 0.35;
+  final luz = pal.lightDir;
+  final cuerpo = _mezcla(
+    _mezcla(0xFF5E7596, _argb(pal.skyTop), 0.30),
+    _mezcla(0xFFB4DDEA, _argb(pal.skyTop), 0.30),
+    dia,
+  );
+  final blanco = _escala(0xFFF4FBFD, lerpD(0.62, 1.0, dia));
+  // De noche el agua casi no se ve: se ve lo que brilla.
+  final velada = lerpD(0.62, 1.0, dia);
+  final destello = _mezcla(0xFFFFFFFF, _argb(pal.sun), 0.3);
 
-  // La parábola de un hilo: sale de la boca, sube [alto] y cae al agua a
-  // [lejos]. `u` va de cero (la boca) a uno (el agua).
-  final d = boca - agua;
-  final ua = (-2 * alto + math.sqrt(4 * alto * alto + 4 * d * alto)) / (2 * d);
-  final c = d / (1 - 2 * ua), b = 2 * c * ua;
-  double y(double u) => boca + b * u - c * u * u;
-
-  // Lo que hace de cinta: un tramo de [a] a [z] de ancho [w], de cara a [eye].
-  void cinta(V3 a, V3 z, double w, int tint, double ao) {
-    final dir = z - a;
-    final mitad = (a + z) * 0.5;
-    final ojo = eye - mitad;
-    var lado = dir.cross(ojo);
-    if (lado.length < 1e-9) return;
-    lado = lado.normalized * (w / 2);
-    var n = lado.cross(dir).normalized;
-    if (n.dot(ojo) < 0) n = n * -1;
-    out.add(
-      Facet(
-        [a - lado, z - lado, z + lado, a + lado],
-        n,
-        Surface.own,
-        ao: ao,
-        tint: tint,
-      )..piece = -1,
-    );
+  /// El color de un trozo de chorro que va en la dirección [t]: el cuerpo,
+  /// más blanco cuanto más espuma lleve, y el destello del sol donde la
+  /// superficie del chorro —un cilindro— lo refleja hacia el ojo, que es
+  /// donde el eje del chorro queda de canto a la mitad entre la luz y el ojo.
+  int tono(V3 p, V3 t, double espuma, double alfa) {
+    final ojo = (eye - p).normalized;
+    final h = (luz + ojo).normalized;
+    final tl = t.length;
+    final c = tl < 1e-9 ? 0.0 : t.dot(h) / tl;
+    final brillo = math.pow(math.max(0.0, 1 - c * c), 28).toDouble() * luzSol;
+    var col = _mezcla(cuerpo, blanco, espuma);
+    col = _mezcla(col, destello, brillo * 0.85);
+    final a = clampD(alfa * velada + brillo * 0.25, 0, 1);
+    return (col & 0x00FFFFFF) | ((a * 255).round() << 24);
   }
 
-  // Un brillo que corre por el hilo hacia afuera: claro donde pasa la ola,
-  // agua donde no.
-  int tono(double u, double fase) {
-    final ola = 0.5 + 0.5 * math.sin(2 * math.pi * (u * 2.4 - fase));
-    final k = ola * ola;
-    return _mix(0xFF8EC7DC, 0xFFF4FCFF, k);
+  // ------------------------------------------------------------- el pintar
+  //
+  // Todo va en trozos con su distancia al ojo y se pinta de lejos a cerca:
+  // el agua es transparente y el orden se ve.
+  final hondo = <double>[];
+  final trozos = <List<Facet>>[];
+  void pon((double, List<Facet>) t) {
+    hondo.add(t.$1);
+    trozos.add(t.$2);
   }
 
-  final fase = time * corre;
-
-  // El chorro de en medio, que sube derecho un poco más que la corona.
-  const pasosChorro = 5;
-  for (var i = 0; i < pasosChorro; i++) {
-    final u0 = i / pasosChorro, u1 = (i + 1) / pasosChorro;
-    final y0 = boca + alto * 1.12 * u0, y1 = boca + alto * 1.12 * u1;
-    cinta(
-      V3(cx, y0, cz),
-      V3(cx, y1, cz),
-      0.034 * (1 - 0.35 * u0),
-      tono(-u0, fase * 1.5),
-      1.12,
-    );
+  double lejos(V3 p) => (p - eye).length;
+  Facet cara(List<V3> v, int color) {
+    final c = v.fold<V3>(V3.zero, (a, b) => a + b) * (1 / v.length);
+    var n = (v[1] - v[0]).cross(v[v.length - 1] - v[0]);
+    if (n.length < 1e-12) n = eye - c;
+    n = n.normalized;
+    if (n.dot(eye - c) < 0) n = n * -1;
+    return Facet(v, n, Surface.own, tint: color)..piece = waterPiece;
   }
 
-  // La corona: los hilos en arco hasta el pilón.
-  const pasos = 12;
+  /// Hacia dónde se abre una cinta en [p] que va en [t], para que se vea de
+  /// frente desde el ojo, y de medio ancho [w].
+  ///
+  /// Con [lamina], el chorro es parte de una lámina que se abre en esa
+  /// dirección —el velo— y se abre sobre todo por ahí: una cinta que mira
+  /// siempre al ojo se retuerce y se vuelve un pico cuando el agua viene
+  /// derecho hacia él, y una lámina no.
+  V3 lado(V3 p, V3 t, double w, [V3? lamina]) {
+    var s = t.cross(eye - p);
+    var n = s.length;
+    if (lamina != null) {
+      final ojo = n < 1e-9 ? V3.zero : s * (1 / n);
+      final signo = ojo.dot(lamina) < 0 ? -1.0 : 1.0;
+      s = lamina + ojo * (0.35 * signo);
+      n = s.length;
+    }
+    if (n < 1e-9) return V3.zero;
+    return s * (w / 2 / n);
+  }
+
+  /// Un tramo de chorro entre dos gotas: la piel, más ancha y más clara, y el
+  /// alma, la mitad de ancha y más blanca encima.
+  void tramo(
+    _Gota a,
+    _Gota b,
+    double wa,
+    double wb,
+    double espuma,
+    double alfa, {
+    bool alma = false,
+    V3? lamina,
+  }) {
+    final la = lado(a.p, a.v, wa, lamina), lb = lado(b.p, b.v, wb, lamina);
+    if (la == V3.zero || lb == V3.zero) return;
+    final m = (a.p + b.p) * 0.5;
+    final t = b.p - a.p;
+    final caras = [
+      cara([a.p - la, b.p - lb, b.p + lb, a.p + la], tono(m, t, espuma, alfa)),
+      if (alma && fino)
+        cara([
+          a.p - la * 0.42,
+          b.p - lb * 0.42,
+          b.p + lb * 0.42,
+          a.p + la * 0.42,
+        ], tono(m, t, math.min(1, espuma + 0.35), math.min(1, alfa + 0.25))),
+    ];
+    pon((lejos(m), caras));
+  }
+
+  /// Una gota suelta, estirada a lo largo de lo que lleva recorrido en un
+  /// instante: así se lee que cae y no que flota.
+  void gota(V3 p, V3 v, double w, double espuma, double alfa) {
+    final rapida = v.length;
+    if (rapida < 1e-9) return;
+    final d = v * (1 / rapida);
+    // Una lágrima: la cabeza redonda delante y la estela detrás, tan larga
+    // como lo que la gota recorre en un instante.
+    final cola = p - d * math.max(w * 0.7, rapida * 0.03);
+    final la = lado(p, v, w);
+    if (la == V3.zero) return;
+    final cabeza = p + d * (w * 0.5);
+    final hombro = p - d * (w * 0.05);
+    pon((
+      lejos(p),
+      [
+        cara([
+          cola - la * 0.25,
+          hombro - la,
+          cabeza - la * 0.6,
+          cabeza + la * 0.6,
+          hombro + la,
+          cola + la * 0.25,
+        ], tono(p, v, espuma, alfa)),
+      ],
+    ));
+  }
+
+  /// Algo plano sobre el agua a la altura [y]: un polígono de [r] alrededor de
+  /// ([x], [z]), girado [giro], de [lados] lados.
+  void mancha(
+    double x,
+    double z,
+    double y,
+    double r,
+    int color, {
+    int lados = 6,
+    double giro = 0,
+    double aplana = 1,
+  }) {
+    pon((
+      lejos(V3(x, y, z)) + 0.25,
+      [
+        Facet(
+          [
+            for (var k = lados - 1; k >= 0; k--)
+              V3(
+                x + r * math.cos(giro + k * 2 * math.pi / lados),
+                y,
+                z + r * aplana * math.sin(giro + k * 2 * math.pi / lados),
+              ),
+          ],
+          const V3(0, 1, 0),
+          Surface.own,
+          tint: color,
+        )..piece = waterPiece,
+      ],
+    ));
+  }
+
+  /// Una onda: un anillo fino sobre el agua, de radio [r].
+  void onda(double y, double r, double ancho, int color, int lados) {
+    for (var k = 0; k < lados; k++) {
+      final a0 = k * 2 * math.pi / lados, a1 = (k + 1) * 2 * math.pi / lados;
+      V3 at(double rr, double a) =>
+          V3(cx + rr * math.cos(a), y, cz + rr * math.sin(a));
+      final v = [at(r + ancho, a0), at(r + ancho, a1), at(r, a1), at(r, a0)];
+      final mid = at(r, (a0 + a1) / 2);
+      pon((
+        lejos(mid) + 0.25,
+        [
+          Facet(v, const V3(0, 1, 0), Surface.own, tint: color)
+            ..piece = waterPiece,
+        ],
+      ));
+    }
+  }
+
+  int conAlfa(int c, double a) =>
+      (c & 0x00FFFFFF) | ((clampD(a, 0, 1) * 255).round() << 24);
+
+  // -------------------------------------------------------------- el vuelo
+
+  /// Las gotas de un chorro en el aire ahora mismo, de la boca hacia fuera.
+  ///
+  /// Sale una cada [dt] segundos; la `i` de cada una es su turno, y todo lo
+  /// que la distingue —su empuje, su grosor, si ahí se rompe el chorro— sale
+  /// de la `i`, así que una gota es la misma gota de un fotograma al otro y
+  /// sólo cambia dónde está. Vuela hasta que baja de [suelo] (o de lo que
+  /// diga [sueloDe] para ella, si cae en otro sitio), y esa última se corta
+  /// justo en el agua.
+  List<_Gota> vuelo({
+    required double dt,
+    required int cuantas,
+    required V3 Function(int i) boca,
+    required V3 Function(int i, double sale) empuje,
+    required double suelo,
+    double Function(V3 p)? sueloDe,
+  }) {
+    final out = <_Gota>[];
+    final n0 = (time / dt).floor();
+    _Gota? antes;
+    for (var j = -1; j < cuantas; j++) {
+      final i = n0 - j;
+      final sale = j < 0 ? time : i * dt;
+      final edad = time - sale;
+      final v0 = empuje(i, sale);
+      final o = boca(i);
+      var p = o + v0 * edad + V3(0, -_g * edad * edad / 2, 0);
+      final v = v0 + V3(0, -_g * edad, 0);
+      final hasta = sueloDe == null ? suelo : sueloDe(p);
+      if (p.y <= hasta) {
+        if (antes != null && antes.p.y > hasta) {
+          final t = (antes.p.y - hasta) / (antes.p.y - p.y);
+          p = antes.p + (p - antes.p) * t;
+          out.add((p: p, v: v, edad: edad, i: i, fin: true));
+        }
+        break;
+      }
+      final g = (p: p, v: v, edad: edad, i: i, fin: false);
+      out.add(g);
+      antes = g;
+    }
+    return out;
+  }
+
+  // ---------------------------------------------------------------- el velo
+  //
+  // La taza rebosa por todo el borde. Arriba, recién salida, el agua es una
+  // lámina: entre un hilo y el de al lado hay agua. Al caer se estira y se
+  // rasga —cada trozo de lámina a su altura— y lo que llega al pilón son
+  // hilos, y de los hilos, gotas.
+  final hilos = fino ? 18 : (medio ? 14 : 10);
+  final dtVelo = fino ? 0.036 : 0.055;
+  final caeVelo = math.sqrt(2 * (Plaza.bowlLip - pilon) / _g) + 0.1;
+  final cuantasVelo = (caeVelo / dtVelo).ceil() + 2;
+  final empujeVelo = lerpD(0.07, 0.19, dia);
+  final anchoVelo = lerpD(0.055, 0.090, dia);
+  final velo = <List<_Gota>>[];
+  final caidas = <V3>[];
+  final borde = <V3>[];
   for (var k = 0; k < hilos; k++) {
-    final a = k * 2 * math.pi / hilos + 0.2;
+    final a = (k + 0.5) * 2 * math.pi / hilos + 0.11;
     final dx = math.cos(a), dz = math.sin(a);
-    V3 at(double u) => V3(cx + dx * lejos * u, y(u), cz + dz * lejos * u);
-    for (var i = 0; i < pasos; i++) {
-      final u0 = i / pasos, u1 = (i + 1) / pasos;
-      // Más fino al caer, que es lo que hace el agua al estirarse.
-      cinta(at(u0), at(u1), 0.024 * (1 - 0.45 * u0), tono(u0, fase), 1.10);
-    }
-    // Y las gotas donde cae: saltan un poco y vuelven, cada una a su ritmo.
-    final cae = at(1);
-    for (var g = 0; g < 2; g++) {
-      final t =
-          (time * (1.1 + 0.3 * g) * (0.6 + 0.4 * dia) + k * 0.37 + g * 0.5) %
-          1.0;
-      final sube = 4 * t * (1 - t) * 0.07 * (0.5 + 0.5 * dia);
-      final gx = cae.x + dx * 0.03 * (g == 0 ? 1 : -1) + dz * 0.025 * g;
-      final gz = cae.z + dz * 0.03 * (g == 0 ? 1 : -1) - dx * 0.025 * g;
-      final p = V3(gx, agua + 0.01 + sube, gz);
-      cinta(p, p + const V3(0, 0.022, 0), 0.020, 0xFFE6F6FB, 1.12);
+    borde.add(V3(-dz, 0, dx));
+    final fase = hash01(k, 31) * 6.28;
+    final gotas = vuelo(
+      dt: dtVelo,
+      cuantas: cuantasVelo,
+      boca: (i) => V3(
+        cx + dx * (taza + 0.004),
+        Plaza.bowlLip + 0.010,
+        cz + dz * (taza + 0.004),
+      ),
+      empuje: (i, sale) {
+        // La taza no rebosa igual todo el rato: el surtidor le echa agua a
+        // golpes y el borde la suelta a golpes.
+        final ola =
+            1 +
+            0.12 * math.sin(2 * math.pi * 0.55 * sale + fase) +
+            0.06 * math.sin(2 * math.pi * 1.7 * sale + fase * 2);
+        // Y cada trozo de agua sale un poco distinto del de antes, pero no
+        // de golpe: de a poco, que el agua no tiembla, ondula.
+        final r = empujeVelo * ola * (1 + 0.16 * (_suave(k, 3, i / 5) - 0.5));
+        final t = 0.05 * (_suave(k, 4, i / 7) - 0.5);
+        return V3(dx * r - dz * t, 0.04, dz * r + dx * t);
+      },
+      suelo: pilon + 0.002,
+    );
+    velo.add(gotas);
+    if (gotas.isNotEmpty && gotas.last.fin) caidas.add(gotas.last.p);
+  }
+
+  double gordo(int k, int i) => 0.70 + 0.60 * _suave(k, 5, i / 4);
+
+  for (var k = 0; k < hilos; k++) {
+    final gotas = velo[k];
+    for (var j = 0; j + 1 < gotas.length; j++) {
+      final a = gotas[j], b = gotas[j + 1];
+      final u = clampD(a.edad / caeVelo, 0, 1);
+      final wa = anchoVelo * gordo(k, a.i) * (1 - 0.40 * u);
+      final wb = anchoVelo * gordo(k, b.i) * (1 - 0.40 * u);
+      // Abajo se rompe: cuanto más ha caído, más fácil que entre esta gota
+      // y la siguiente ya no haya agua.
+      final roto = u > 0.68 && hash01(k, a.i, 6) < (u - 0.68) * 1.7;
+      if (roto) {
+        gota(a.p, a.v, wa * 0.85, 0.30, 0.62);
+        continue;
+      }
+      tramo(
+        a,
+        b,
+        wa,
+        wb,
+        0.12 + 0.25 * _suave(k, 7, a.i / 3),
+        0.44,
+        lamina: borde[k],
+      );
+
+      // Y la lámina entre este hilo y el siguiente, mientras no se rasgue.
+      if (!medio) continue;
+      final otro = velo[(k + 1) % hilos];
+      if (j + 1 >= otro.length) continue;
+      final c = otro[j], d = otro[j + 1];
+      if (c.i != a.i || c.fin || d.fin || b.fin) continue;
+      final rasga = 0.18 + 0.30 * _suave(k, 8, a.i / 3);
+      if (a.edad > rasga) continue;
+      final alfa = 0.30 * (1 - a.edad / rasga);
+      final m = (a.p + b.p + c.p + d.p) * 0.25;
+      pon((
+        lejos(m) + 0.01,
+        [
+          cara([a.p, b.p, d.p, c.p], tono(m, b.p - a.p, 0.10, alfa)),
+        ],
+      ));
     }
   }
-  return out;
+
+  // --------------------------------------------------------------- el pilón
+  //
+  // Donde cae el velo: espuma que bulle, gotas que saltan y ondas que se
+  // abren hacia el borde y hacia el pilar.
+  final yPilon = pilon + 0.004;
+  final bulle = lerpD(0.45, 1.0, dia);
+  for (var k = 0; k < caidas.length; k++) {
+    final p = caidas[k];
+    // Cada mancha a su aire: crece y mengua, se corre un poco y se ovala,
+    // sin compás con las demás. Un collar de espumas iguales es un adorno.
+    final r1 =
+        (0.020 + 0.034 * _suave(k, 41, time * 2.3)) * lerpD(0.7, 1.0, bulle);
+    final ex = 0.03 * (_suave(k, 42, time * 1.7) - 0.5);
+    final ez = 0.03 * (_suave(k, 43, time * 1.9) - 0.5);
+    mancha(
+      p.x + ex,
+      p.z + ez,
+      yPilon,
+      r1,
+      conAlfa(blanco, (0.20 + 0.22 * _suave(k, 44, time * 3.1)) * bulle),
+      lados: 7,
+      giro: time * 0.9 + k,
+      aplana: 0.6 + 0.4 * _suave(k, 45, time),
+    );
+    if (fino) {
+      mancha(
+        p.x - ex * 0.5,
+        p.z - ez * 0.5,
+        yPilon + 0.001,
+        r1 * 0.5,
+        conAlfa(blanco, 0.55 * bulle),
+        lados: 5,
+        giro: -time * 1.3 + k,
+      );
+    }
+    if (!fino) continue;
+    // Salpicaduras: cada una sale, sube un poco y vuelve a caer; cuando
+    // cae, sale otra, de otro tamaño y hacia otro lado.
+    for (var s = 0; s < 1; s++) {
+      const vida = 0.38;
+      final reloj = time / vida + hash01(k, s, 9);
+      final turno = reloj.floor();
+      final t = (reloj - turno) * vida;
+      final ang = hash01(k, s, turno) * 2 * math.pi;
+      final sube = lerpD(0.22, 0.48, hash01(k, s, turno, 1)) * bulle;
+      final abre = 0.12 * hash01(k, s, turno, 2);
+      final v0 = V3(math.cos(ang) * abre, sube, math.sin(ang) * abre);
+      final q = p + v0 * t + V3(0, -_g * t * t / 2, 0);
+      if (q.y <= pilon) continue;
+      gota(q, v0 + V3(0, -_g * t, 0), 0.018, 0.65, 0.80);
+    }
+  }
+
+  // Las ondas: donde cae el velo nace un anillo cada tanto, que se va hacia
+  // el borde del pilón y otro hacia el pilar, apagándose.
+  if (caidas.isNotEmpty) {
+    var rCae = 0.0;
+    for (final p in caidas) {
+      rCae += math.sqrt((p.x - cx) * (p.x - cx) + (p.z - cz) * (p.z - cz));
+    }
+    rCae /= caidas.length;
+    final lados = fino ? 20 : 12;
+    final claro = _mezcla(cuerpo, blanco, 0.55);
+    for (var o = 0; o < (medio ? 2 : 1); o++) {
+      final f = (time * 0.75 * lerpD(0.6, 1, dia) + o / 2) % 1.0;
+      final apaga = math.sin(math.pi * f);
+      onda(
+        yPilon,
+        rCae + (pozo - 0.012 - rCae) * f,
+        0.010,
+        conAlfa(claro, 0.30 * apaga),
+        lados,
+      );
+      onda(
+        yPilon,
+        rCae - 0.02 - (rCae - 0.02 - pilar - 0.01) * f,
+        0.010,
+        conAlfa(claro, 0.26 * apaga),
+        lados,
+      );
+    }
+  }
+
+  // Y el sol en el agua: chispas que se encienden y se apagan, cada una en
+  // un sitio distinto cada vez.
+  if (fino && luzSol > 0.05) {
+    for (var s = 0; s < 9; s++) {
+      const vida = 0.9;
+      final reloj = time / vida + hash01(s, 11);
+      final turno = reloj.floor();
+      final f = reloj - turno;
+      final ang = hash01(s, turno, 12) * 2 * math.pi;
+      final r = lerpD(pilar + 0.04, pozo - 0.03, hash01(s, turno, 13));
+      mancha(
+        cx + math.cos(ang) * r,
+        cz + math.sin(ang) * r,
+        yPilon + 0.002,
+        0.016,
+        conAlfa(destello, 0.85 * math.sin(math.pi * f) * luzSol),
+        lados: 4,
+        giro: 0.3,
+        aplana: 0.5,
+      );
+    }
+  }
+
+  // ------------------------------------------------------------ el surtidor
+  //
+  // Del caño de la taza, derecho hacia arriba. La mayoría de las gotas suben
+  // juntas —la columna— y una de cada cuatro sale abierta: es el penacho que
+  // se abre arriba y cae como un paraguas sobre la taza.
+  final altoChorro = lerpD(0.20, 0.46, dia);
+  final vSube = math.sqrt(2 * _g * altoChorro);
+  final dtChorro = fino ? 0.022 : 0.04;
+  final vuela = 2 * vSube / _g + 0.12;
+  final columna = <_Gota>[];
+  final penacho = <_Gota>[];
+  final boca = V3(cx, Plaza.spoutTop, cz);
+  // La taza es donde cae casi todo; lo que se pase del borde sigue al pilón.
+  double sueloChorro(V3 p) {
+    final dx = p.x - cx, dz = p.z - cz;
+    return dx * dx + dz * dz < (taza - 0.03) * (taza - 0.03)
+        ? aguaTaza + 0.002
+        : pilon + 0.002;
+  }
+
+  final chorro = vuelo(
+    dt: dtChorro,
+    cuantas: (vuela / dtChorro).ceil() + 2,
+    boca: (i) => boca,
+    empuje: (i, sale) {
+      final ola =
+          1 +
+          0.07 * math.sin(2 * math.pi * 0.6 * sale) +
+          0.04 * math.sin(2 * math.pi * 1.9 * sale + 1.0);
+      final abierta = i % 4 == 0;
+      final ang =
+          (abierta ? hash01(i, 21) : _suave(0, 21, i / 8)) * 2 * math.pi;
+      final abre = abierta
+          ? lerpD(0.06, 0.20, hash01(i, 22)) * lerpD(0.6, 1, dia)
+          : 0.022 * _suave(0, 23, i / 6);
+      final sube =
+          vSube *
+          ola *
+          (abierta ? 0.88 : 1 + 0.06 * (_suave(0, 24, i / 5) - 0.5));
+      return V3(math.cos(ang) * abre, sube, math.sin(ang) * abre);
+    },
+    suelo: pilon + 0.002,
+    sueloDe: sueloChorro,
+  );
+  for (final g in chorro) {
+    (g.i % 4 == 0 ? penacho : columna).add(g);
+  }
+  final anchoChorro = lerpD(0.050, 0.068, dia);
+  final caidasChorro = <V3>[];
+  for (var j = 0; j + 1 < columna.length; j++) {
+    final a = columna[j], b = columna[j + 1];
+    if (b.i != a.i - 1 && b.i != a.i - 2) continue;
+    final baja = a.v.y < 0;
+    final roto = baja
+        ? hash01(a.i, 25) < 0.80
+        : a.v.y < 0.35 * vSube && hash01(a.i, 26) < 0.3;
+    final wa =
+        anchoChorro * (0.70 + 0.60 * _suave(0, 27, a.i / 4)) * (baja ? 0.7 : 1);
+    if (roto || b.fin) {
+      gota(a.p, a.v, wa * 0.60, 0.45, 0.62);
+      if (b.fin) caidasChorro.add(b.p);
+      continue;
+    }
+    final wb =
+        anchoChorro *
+        (0.70 + 0.60 * _suave(0, 27, b.i / 4)) *
+        (b.v.y < 0 ? 0.7 : 1);
+    tramo(a, b, wa, wb, 0.30 + 0.25 * hash01(a.i, 28), 0.62, alma: true);
+  }
+  for (final g in penacho) {
+    if (g.fin) {
+      caidasChorro.add(g.p);
+      continue;
+    }
+    gota(g.p, g.v, anchoChorro * 0.40, 0.55, 0.62);
+  }
+
+  // Donde cae el surtidor, en la taza: anillos que se abren hasta el borde,
+  // y donde cae algo, una chispa de espuma.
+  final yTaza = aguaTaza + 0.004;
+  if (medio) {
+    final claro = _mezcla(cuerpo, blanco, 0.55);
+    for (var o = 0; o < 2; o++) {
+      final f = (time * 0.9 + o / 2) % 1.0;
+      onda(
+        yTaza,
+        0.06 + (taza - 0.075) * f,
+        0.008,
+        conAlfa(claro, 0.30 * math.sin(math.pi * f)),
+        fino ? 16 : 10,
+      );
+    }
+  }
+  for (final p in caidasChorro) {
+    if (p.y < aguaTaza) continue;
+    mancha(p.x, p.z, yTaza, 0.016, conAlfa(blanco, 0.55), lados: 5);
+  }
+  mancha(
+    cx,
+    cz,
+    yTaza,
+    0.05 + 0.01 * math.sin(time * 7),
+    conAlfa(blanco, 0.40),
+    lados: 7,
+    giro: time,
+  );
+
+  // De lejos a cerca.
+  final orden = List<int>.generate(hondo.length, (i) => i)
+    ..sort((a, b) => hondo[b].compareTo(hondo[a]));
+  return [for (final i in orden) ...trozos[i]];
 }
 
-int _mix(int a, int b, double t) {
+int _argb(Color c) => c.toARGB32();
+
+/// Un ruido suave a lo largo de [x]: al azar en cada entero y de uno a otro
+/// sin saltos. Es lo que hace que un chorro engorde y adelgace a lo largo de
+/// unas cuantas gotas, y no de gota a gota como una sierra.
+double _suave(int a, int b, double x) {
+  final i = x.floor();
+  final f = x - i;
+  final t = f * f * (3 - 2 * f);
+  return lerpD(hash01(a, b, i), hash01(a, b, i + 1), t);
+}
+
+int _mezcla(int a, int b, double t) {
   int ch(int s) {
     final x = (a >> s) & 0xFF, y = (b >> s) & 0xFF;
     return (x + (y - x) * t).round().clamp(0, 255);
   }
 
+  return 0xFF000000 | (ch(16) << 16) | (ch(8) << 8) | ch(0);
+}
+
+int _escala(int a, double k) {
+  int ch(int s) => (((a >> s) & 0xFF) * k).round().clamp(0, 255);
   return 0xFF000000 | (ch(16) << 16) | (ch(8) << 8) | ch(0);
 }
 

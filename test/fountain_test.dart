@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:towny/core/math3.dart';
 import 'package:towny/data/character.dart';
@@ -20,11 +22,38 @@ void main() {
         for (final v in f.v) (v as V3).y,
     ].reduce((a, b) => a > b ? a : b);
     expect(techo(noche), lessThan(techo(dia)));
-    // Y se mueve: el mismo hilo, otro color un momento después.
-    final luego = fountainWater(l, ojo, 0.7, Palette.forMoment(11));
-    expect([
-      for (final f in luego) f.tint,
-    ], isNot(equals([for (final f in dia) f.tint])));
+    // Y se mueve de verdad: no es la misma forma con otro color, son las
+    // gotas las que están en otro sitio un momento después.
+    final luego = fountainWater(l, ojo, 1 / 30, Palette.forMoment(11));
+    double suma(List<dynamic> fs) {
+      var t = 0.0;
+      for (final f in fs) {
+        for (final v in f.v) {
+          t += (v as V3).y;
+        }
+      }
+      return t;
+    }
+
+    expect((suma(luego) - suma(dia)).abs(), greaterThan(0.01));
+  });
+
+  test('el agua cae dentro de la fuente', () {
+    final pozo = Plaza.poolOf(TownLayout.plazaReach);
+    for (final hora in [8.0, 11.0, 17.0, 23.0]) {
+      for (var t = 0.0; t < 3; t += 0.37) {
+        for (final f in fountainWater(l, ojo, t, Palette.forMoment(hora))) {
+          expect(f.piece, waterPiece);
+          for (final v in f.v) {
+            final dx = v.x - l.cx, dz = v.z - l.cz;
+            expect(math.sqrt(dx * dx + dz * dz), lessThan(pozo + 0.02));
+            // La cabeza de una gota que está entrando puede asomar por debajo
+            // del agua: ahí la tapa el agua misma.
+            expect(v.y, greaterThan(Plaza.poolLevel - 0.03));
+          }
+        }
+      }
+    }
   });
 
   test('la fuente y el tablón echan sombra sobre la plaza', () {

@@ -1250,10 +1250,30 @@ class TownPainter extends CustomPainter {
       // pone del mismo lado que la suya. Su sitio en el orden es el de su hoja,
       // y eso sí es exacto.
       final vecinos = [
-        ..._plazaRiders(p, e, pal),
+        ..._plazaRiders(p, e, pal, water: false),
         ..._folkRiders(p, e, _folkNow[w] ?? const <_Walker>[], w),
       ];
-      walkOrderRiders(root, p.eye, vecinos, (leaf, aqui) {
+      // **El agua no baja por el árbol del pueblo cara a cara.** Son cientos
+      // de caras, todas dentro de la fuente, y todas acabarían en la misma
+      // hoja: la de la plaza. Así que baja una sola, metida en el pilar, y
+      // donde caiga ésa va el agua entera; dentro de la hoja sí se reparte
+      // cara a cara por los planos de la piedra, que es donde se juega si un
+      // hilo pasa por delante o por detrás del pilar.
+      final agua = _plazaRiders(p, e, pal, shadows: false);
+      OrderLeaf? fuente;
+      if (agua.isNotEmpty) {
+        final c = V3(e.layout.cx, 0.55, e.layout.cz);
+        final testigo = Facet(
+          [c, c + const V3(0.01, 0, 0), c + const V3(0.01, 0.01, 0)],
+          const V3(0, 0, 1),
+          Surface.own,
+        );
+        walkOrderRiders(root, p.eye, [Rider(testigo, 0, -1)], (leaf, aqui) {
+          if (aqui.isNotEmpty) fuente ??= leaf;
+        });
+      }
+      walkOrderRiders(root, p.eye, vecinos, (leaf, llegan) {
+        final aqui = identical(leaf, fuente) ? [...llegan, ...agua] : llegan;
         final box = leaf.bounds;
         if (p.cameraOf(V3(box.cx, box.cy, box.cz)).z + box.radius < p.near) {
           // Se salta la mampostería, no a la gente: alguien puede estar
@@ -1580,12 +1600,20 @@ class TownPainter extends CustomPainter {
   /// y las sombras sobre el césped de la plaza. Van con [Rider.seq] negativo
   /// —antes que cualquier vecino del mismo hueco: la sombra está en el suelo
   /// que él pisa— y con [Rider.tag] negativo, que es no ser de nadie.
-  List<Rider> _plazaRiders(Projector p, TownEntry e, Palette pal) {
+  List<Rider> _plazaRiders(
+    Projector p,
+    TownEntry e,
+    Palette pal, {
+    bool shadows = true,
+    bool water = true,
+  }) {
     final l = e.layout;
     if (l.solo) return const [];
     final out = <Rider>[];
-    var seq = -1 << 20;
-    if (scene.cinematic) {
+    // Las sombras primero y el agua después: el agua cae encima de todo lo
+    // que hay en el suelo.
+    var seq = (water ? -1 : -2) << 20;
+    if (shadows && scene.cinematic) {
       for (final f in plazaShadows(
         l,
         math.min(e.placed, l.pieces.length),
@@ -1597,8 +1625,15 @@ class TownPainter extends CustomPainter {
     // El agua sólo si se ve: de lejos la fuente es un punto, y treinta cintas
     // de medio píxel no son agua sino ruido.
     final q = p.cameraOf(V3(l.cx, 0.7, l.cz));
-    if (q.z > p.near && p.focal / q.z * 0.6 > 12) {
-      for (final f in fountainWater(l, p.eye, scene.time, pal)) {
+    final px = q.z > p.near ? p.focal / q.z : 0.0;
+    if (water && px > 12) {
+      for (final f in fountainWater(
+        l,
+        p.eye,
+        scene.time,
+        pal,
+        detail: px > 110 ? 1 : (px > 45 ? 0.5 : 0.2),
+      )) {
         out.add(Rider(f, seq++, -1));
       }
     }
@@ -1700,9 +1735,12 @@ class TownPainter extends CustomPainter {
       }
     }
     if (caras.isEmpty) return;
-    BspTree.build(
-      caras,
-    ).paint(p.eye, (f) => _paint(p, e, f, pal, light, night, size));
+    BspTree.build(caras).paint(
+      p.eye,
+      (f) => f.piece == waterPiece
+          ? _plain(p, f, pal, light)
+          : _paint(p, e, f, pal, light, night, size),
+    );
   }
 
   void _paintFalling(
@@ -1860,6 +1898,24 @@ class TownPainter extends CustomPainter {
 
   void _plainFaces(Projector p, Facet f, Palette pal, V3 light) {
     final at = f.v.first;
+    if (f.piece == waterPiece) {
+      // El agua trae su color hecho y su transparencia: sólo la bruma de la
+      // distancia, y sin la sombra del pie de los muros, que es de la piedra.
+      final tint = f.tint ?? 0xFF808080;
+      final rgb = hazeAt(Color(tint | 0xFF000000), p, at.x, at.z, pal);
+      final antes = _faceCount;
+      _push(
+        p,
+        f.v,
+        (rgb.toARGB32() & 0x00FFFFFF) | (tint & 0xFF000000),
+        null,
+        null,
+      );
+      for (var k = antes; k < _faceCount; k++) {
+        _facePool[k].wall = false;
+      }
+      return;
+    }
     final colour = hazeAt(
       _shade(f.n, _plainTone(f, pal), light, pal, f.ao, 0, 0, f.surface),
       p,
