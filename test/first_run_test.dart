@@ -77,9 +77,8 @@ void main() {
       await _siguiente(tester);
       await _asentar(tester);
 
-      // La comarca, que es sólo cómo se ve, y que se dice así.
+      // La comarca: se elige mirando el pueblo de muestra, sin explicación.
       expect(find.text('¿Qué clase de pueblo?'), findsOneWidget);
-      expect(find.textContaining('Es sólo cómo se ve'), findsOneWidget);
       // Los botones son sólo el sello; el nombre se revela al tocarlo.
       expect(find.text('Sierra'), findsNothing);
       await tester.tap(
@@ -88,6 +87,23 @@ void main() {
       await _asentar(tester);
       expect(find.text('Sierra'), findsOneWidget);
       expect(find.textContaining('esfuerzo físico'), findsOneWidget);
+
+      // Y se puede recorrer: la pregunta se esconde, queda el pueblo de
+      // muestra con su nombre, y «Volver» devuelve a la misma pregunta.
+      await tester.ensureVisible(find.text('Recorrer este pueblo'));
+      await tester.pump();
+      await tester.tap(find.text('Recorrer este pueblo'));
+      await _asentar(tester);
+      expect(find.text('VOLVER'), findsOneWidget);
+      expect(find.text('Sierra'), findsNWidgets(2));
+      // Mientras se recorre, lo de la pregunta no se puede tocar.
+      expect(find.text('SIGUIENTE').hitTestable(), findsNothing);
+      await tester.drag(find.byType(Scaffold).first, const Offset(-120, 40));
+      await _asentar(tester);
+      await tester.tap(find.text('VOLVER'));
+      await _asentar(tester);
+      expect(find.text('VOLVER'), findsNothing);
+      expect(find.text('¿Qué clase de pueblo?'), findsOneWidget);
       await _siguiente(tester);
       await _asentar(tester);
 
