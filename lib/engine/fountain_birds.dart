@@ -14,6 +14,7 @@ import 'dart:math' as math;
 
 import '../core/math3.dart';
 import '../core/rng.dart';
+import 'bsp.dart';
 import 'palette.dart';
 import 'solid.dart';
 import 'solids.dart';
@@ -313,6 +314,24 @@ List<Facet> birdFaces(BirdVisit v, V3 eye) {
   }
 
   final out = <Facet>[];
+
+  /// Un sólido de ocho esquinas, en el orden de [hexFaces], sin las caras
+  /// que miran para el otro lado.
+  void solido(
+    List<(double, double, double)> esquinas,
+    int tinte, {
+    bool cabeza = false,
+  }) {
+    final c = [
+      for (final (x, y, z) in esquinas) mundo(x, y, z, cabeza: cabeza),
+    ];
+    for (final cara in hexFaces(c, Surface.own, tint: tinte)) {
+      final a = cara.v.first;
+      if ((eye - a).dot(cara.n) <= 0) continue;
+      out.add(cara..piece = -1);
+    }
+  }
+
   void caja(
     double x0,
     double x1,
@@ -323,22 +342,20 @@ List<Facet> birdFaces(BirdVisit v, V3 eye) {
     int tinte, {
     bool cabeza = false,
   }) {
-    V3 m(double x, double y, double z) => mundo(x, y, z, cabeza: cabeza);
-    final c = [
-      m(x0, y0, z0),
-      m(x1, y0, z0),
-      m(x1, y0, z1),
-      m(x0, y0, z1),
-      m(x0, y1, z0),
-      m(x1, y1, z0),
-      m(x1, y1, z1),
-      m(x0, y1, z1),
-    ];
-    for (final cara in hexFaces(c, Surface.own, tint: tinte)) {
-      final a = cara.v.first;
-      if ((eye - a).dot(cara.n) <= 0) continue;
-      out.add(cara..piece = -1);
-    }
+    solido(
+      [
+        (x0, y0, z0),
+        (x1, y0, z0),
+        (x1, y0, z1),
+        (x0, y0, z1),
+        (x0, y1, z0),
+        (x1, y1, z0),
+        (x1, y1, z1),
+        (x0, y1, z1),
+      ],
+      tinte,
+      cabeza: cabeza,
+    );
   }
 
   // Las patas, posado: dos palitos.
@@ -346,9 +363,20 @@ List<Facet> birdFaces(BirdVisit v, V3 eye) {
     caja(-0.15, 0.05, 0, 1.0, -0.45, -0.25, pico);
     caja(-0.15, 0.05, 0, 1.0, 0.25, 0.45, pico);
   }
-  // El cuerpo y el pecho.
-  caja(-1.4, 1.2, 0.9, 2.4, -0.75, 0.75, cuerpo);
-  caja(0.2, 1.45, 0.8, 1.9, -0.6, 0.6, pecho);
+  // El cuerpo: más alto y más ancho delante, donde va el pecho, y más fino
+  // hacia la cola, que es lo que hace que un taco se lea como un pájaro.
+  solido([
+    (-1.5, 1.35, -0.48),
+    (1.3, 0.8, -0.78),
+    (1.3, 0.8, 0.78),
+    (-1.5, 1.35, 0.48),
+    (-1.5, 2.25, -0.48),
+    (1.3, 2.5, -0.78),
+    (1.3, 2.5, 0.78),
+    (-1.5, 2.25, 0.48),
+  ], cuerpo);
+  // Y el pecho, del color del pecho, asomando por delante y por debajo.
+  caja(0.1, 1.42, 0.72, 1.85, -0.62, 0.62, pecho);
   // La cola, fina y hacia atrás.
   caja(-2.6, -1.2, 1.6, 1.9, -0.45, 0.45, alas);
   // La cabeza con su pico.
@@ -376,5 +404,13 @@ List<Facet> birdFaces(BirdVisit v, V3 eye) {
       out.add(Facet(v4, n, Surface.own, tint: alas)..piece = -1);
     }
   }
-  return out;
+  // **En orden de árbol, no en el orden en que se armaron.** Pintadas tal
+  // cual, la cabeza salía siempre después del cuerpo y el pico después de la
+  // cabeza: mirado desde atrás, la cabeza tapaba el cuerpo —el pájaro se
+  // quedaba sin tronco— y el pico se veía a través de ella. El árbol de
+  // planos ordena cada cara contra las demás desde donde está el ojo, igual
+  // que a la gente de cerca.
+  final ordenadas = <Facet>[];
+  BspTree.build(out).paint(eye, ordenadas.add);
+  return ordenadas;
 }
