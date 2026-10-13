@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:towny/core/math3.dart';
 import 'package:towny/data/character.dart';
 import 'package:towny/engine/fountain.dart';
+import 'package:towny/engine/fountain_birds.dart';
 import 'package:towny/engine/palette.dart';
 import 'package:towny/engine/solids.dart';
 import 'package:towny/engine/town.dart';
@@ -43,7 +44,8 @@ void main() {
     for (final hora in [8.0, 11.0, 17.0, 23.0]) {
       for (var t = 0.0; t < 3; t += 0.37) {
         for (final f in fountainWater(l, ojo, t, Palette.forMoment(hora))) {
-          expect(f.piece, waterPiece);
+          // Los pájaros vienen de fuera: esto es sólo para el agua.
+          if (f.piece != waterPiece) continue;
           for (final v in f.v) {
             final dx = v.x - l.cx, dz = v.z - l.cz;
             expect(math.sqrt(dx * dx + dz * dz), lessThan(pozo + 0.02));
@@ -69,5 +71,53 @@ void main() {
         expect(v.y, lessThan(Plaza.kerbTop + 0.03));
       }
     }
+  });
+
+  group('los pájaros de la fuente', () {
+    test('vienen cada tanto, se posan en el brocal y se van', () {
+      final taza = Plaza.basinOf(TownLayout.plazaReach) / 1.14;
+      var posados = 0, fuera = 0;
+      final hechos = <BirdDoing>{};
+      for (var t = 0.0; t < 1800; t += 0.5) {
+        for (var k = 0; k < fountainBirdSlots; k++) {
+          final v = birdVisit(l, k, t);
+          hechos.add(v.doing);
+          if (v.doing == BirdDoing.away) {
+            fuera++;
+            continue;
+          }
+          if (v.doing != BirdDoing.perched) continue;
+          posados++;
+          // En el brocal, entre el agua y el canto de fuera.
+          final dx = v.at.x - l.cx, dz = v.at.z - l.cz;
+          final r = math.sqrt(dx * dx + dz * dz);
+          expect(r, greaterThan(taza * 0.80));
+          expect(r, lessThan(taza));
+          expect(v.at.y, greaterThanOrEqualTo(0.40));
+        }
+      }
+      expect(hechos, containsAll(BirdDoing.values));
+      // Cada tanto, no siempre.
+      expect(posados, greaterThan(0));
+      expect(fuera, greaterThan(posados));
+    });
+
+    test('de noche duermen', () {
+      for (var t = 0.0; t < 600; t += 1) {
+        for (var k = 0; k < fountainBirdSlots; k++) {
+          expect(birdVisit(l, k, t, day: false).doing, BirdDoing.away);
+        }
+      }
+    });
+
+    test('van y vienen sin saltos de un fotograma al siguiente', () {
+      for (var t = 0.0; t < 900; t += 1 / 30) {
+        for (var k = 0; k < fountainBirdSlots; k++) {
+          final a = birdVisit(l, k, t), b = birdVisit(l, k, t + 1 / 30);
+          if (a.doing == BirdDoing.away || b.doing == BirdDoing.away) continue;
+          expect((a.at - b.at).length, lessThan(0.2), reason: 'a los $t s');
+        }
+      }
+    });
   });
 }

@@ -14,6 +14,7 @@ import 'dart:ui' show Color;
 
 import '../core/math3.dart';
 import '../core/rng.dart';
+import 'fountain_birds.dart';
 import 'palette.dart';
 import 'solid.dart';
 import 'solids.dart';
@@ -611,6 +612,12 @@ List<Facet> fountainWater(
   );
 
   // De lejos a cerca.
+  // Y los pájaros que bajan a beber, ordenados con el agua: uno posado del
+  // otro lado del pilón queda detrás del velo, y uno de este lado, delante.
+  if (medio) {
+    fountainBirds(l, eye, time, pal, (d, caras) => pon((d, caras)));
+  }
+
   final orden = List<int>.generate(hondo.length, (i) => i)
     ..sort((a, b) => hondo[b].compareTo(hondo[a]));
   return [for (final i in orden) ...trozos[i]];
