@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/painting.dart';
 
 import '../core/math3.dart';
@@ -420,6 +421,23 @@ void drawCastShadows(
       ? 0.56 * smoothstep(0.02, 0.20, pal.sunDir.y)
       : 0.20 * smoothstep(0.2, 0.8, 1 - pal.daylight);
   if (fuerza < 0.01) return;
+  final path = castShadowPath(p, pal, towns);
+  final sombra = Color.lerp(pal.ink, pal.skyTop, dia ? 0.30 : 0.45)!;
+  canvas.drawPath(
+    path,
+    Paint()
+      ..color = sombra.withValues(alpha: fuerza)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.4),
+  );
+}
+
+/// El trazado en pantalla de todas las sombras. Aparte para poder medirlo.
+@visibleForTesting
+Path castShadowPath(
+  Projector p,
+  Palette pal,
+  Iterable<(TownLayout, int)> towns,
+) {
   final l = pal.lightDir;
   final ly = math.max(l.y, 0.10);
   final ox = -l.x / ly, oz = -l.z / ly;
@@ -479,13 +497,7 @@ void drawCastShadows(
       _hullInto(path, p, xs, zs, m);
     }
   }
-  final sombra = Color.lerp(pal.ink, pal.skyTop, dia ? 0.30 : 0.45)!;
-  canvas.drawPath(
-    path,
-    Paint()
-      ..color = sombra.withValues(alpha: fuerza)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.4),
-  );
+  return path;
 }
 
 final Float64List _hx = Float64List(84), _hz = Float64List(84);
@@ -522,17 +534,44 @@ void _hullInto(Path path, Projector p, Float64List xs, Float64List zs, int n) {
   }
   k--; // el último repite el primero
   if (k < 3) return;
+  // **Recortada contra el plano de la cámara, no tirada entera.** Si algún
+  // vértice quedaba detrás del ojo, la sombra entera no se pintaba. Al
+  // atardecer las sombras son largas y llegan por detrás de la cámara, así
+  // que desaparecía de golpe la sombra de la casa que se tenía delante, y
+  // volvía —como salida de la nada— al subir la vista un pelo.
+  var m = 0;
   for (var i = 0; i < k; i++) {
-    final s = p.project(V3(_hx[i], 0.005, _hz[i]));
-    if (s == null) return;
-    _sx[i] = s.x;
-    _sy[i] = s.y;
+    final c = p.cameraOf(V3(_hx[i], 0.005, _hz[i]));
+    _cx[i] = c.x;
+    _cy[i] = c.y;
+    _cz[i] = c.z;
   }
+  final near = p.near + 0.01;
+  for (var i = 0; i < k; i++) {
+    final j = (i + 1) % k;
+    final aIn = _cz[i] >= near, bIn = _cz[j] >= near;
+    if (aIn) {
+      _sx[m] = p.screenX(_cx[i], _cz[i]);
+      _sy[m] = p.screenY(_cy[i], _cz[i]);
+      m++;
+    }
+    if (aIn != bIn) {
+      final t = (near - _cz[i]) / (_cz[j] - _cz[i]);
+      final x = _cx[i] + (_cx[j] - _cx[i]) * t;
+      final y = _cy[i] + (_cy[j] - _cy[i]) * t;
+      _sx[m] = p.screenX(x, near);
+      _sy[m] = p.screenY(y, near);
+      m++;
+    }
+  }
+  if (m < 3) return;
   path.moveTo(_sx[0], _sy[0]);
-  for (var i = 1; i < k; i++) {
+  for (var i = 1; i < m; i++) {
     path.lineTo(_sx[i], _sy[i]);
   }
   path.close();
 }
 
-final Float64List _sx = Float64List(84), _sy = Float64List(84);
+final Float64List _sx = Float64List(170), _sy = Float64List(170);
+final Float64List _cx = Float64List(84), _cy = Float64List(84);
+final Float64List _cz = Float64List(84);
