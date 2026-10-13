@@ -30,6 +30,7 @@ class Habit {
     this.afterId,
     this.perWeek,
     this.cadenceAskedAt,
+    this.cadenceLaterAt,
     this.askedAt,
     this.nudgedAt,
     this.nudgesIgnored = 0,
@@ -140,17 +141,25 @@ class Habit {
   /// copia vieja, y nada más lo mira.
   String? afterId;
 
-  /// Cuántos días por semana, de 1 a 7, si lo dijiste. Ver `model/cadence.dart`.
+  /// Cuántas veces por semana, si lo dijiste. Ver `model/cadence.dart`.
+  ///
+  /// Casi siempre un entero de 1 a 7, pero no siempre: «cada dos días» son
+  /// tres y media, y «cada dos semanas», media. Por eso es un número con
+  /// decimales y no un recuento de días.
   ///
   /// No se pregunta al fundar: el primer día sólo se habla de para qué y de
   /// en quién te convierte. Lo pregunta el pueblo al cumplir una semana, con
   /// lo que ya ve marcado, y se puede cambiar después en la hoja del hábito.
   /// Nulo es no haberlo dicho, y entonces vale lo que se ve.
-  int? perWeek;
+  double? perWeek;
 
-  /// Cuándo se preguntó por la frecuencia. Una vez en la vida del hábito, se
-  /// conteste o no.
+  /// Cuándo se contestó la pregunta por la frecuencia. Una vez contestada no
+  /// se vuelve a hacer.
   DateTime? cadenceAskedAt;
+
+  /// Cuándo se dijo «ahora no» a esa pregunta: hasta el día siguiente no se
+  /// vuelve a hacer.
+  DateTime? cadenceLaterAt;
 
   /// What kind of place this habit builds, chosen the day it was founded.
   ///
@@ -334,8 +343,11 @@ class Habit {
     if (identity != null && identity!.isNotEmpty) 'qn': identity,
     if (identityWonAt != null) 'iw': identityWonAt!.millisecondsSinceEpoch,
     if (afterId != null && afterId!.isNotEmpty) 'af': afterId,
-    if (perWeek != null) 'pw': perWeek,
+    // Entero cuando es entero: así lo lee igual una copia de antes, y el
+    // archivo no cambia de forma al ir y volver.
+    if (perWeek != null) 'pw': perWeek! % 1 == 0 ? perWeek!.round() : perWeek,
     if (cadenceAskedAt != null) 'ca': cadenceAskedAt!.millisecondsSinceEpoch,
+    if (cadenceLaterAt != null) 'cl': cadenceLaterAt!.millisecondsSinceEpoch,
     if (rests.isNotEmpty) 'r': rests,
     if (askedAt != null) 'k': askedAt!.millisecondsSinceEpoch,
     if (nudgedAt != null) 'g': nudgedAt!.millisecondsSinceEpoch,
@@ -391,13 +403,16 @@ class Habit {
       afterId: (j['af'] as String?)?.trim(),
       // Una frecuencia fuera de la semana —un archivo tocado a mano— se lee
       // como que no se dijo.
-      perWeek: switch ((j['pw'] as num?)?.toInt()) {
-        final int v when v >= 1 && v <= 7 => v,
+      perWeek: switch ((j['pw'] as num?)?.toDouble()) {
+        final double v when v >= 0.5 && v <= 7 => v,
         _ => null,
       },
       cadenceAskedAt: (j['ca'] as num?) == null
           ? null
           : DateTime.fromMillisecondsSinceEpoch((j['ca'] as num).toInt()),
+      cadenceLaterAt: (j['cl'] as num?) == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch((j['cl'] as num).toInt()),
       rests: [for (final e in (j['r'] as List?) ?? []) e.toString()],
       askedAt: (j['k'] as num?) == null
           ? null

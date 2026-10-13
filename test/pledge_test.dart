@@ -202,7 +202,7 @@ void main() {
         createdAt: desde,
         character: TownCharacter.all.first.order,
         identity: identity,
-        perWeek: perWeek,
+        perWeek: perWeek?.toDouble(),
         rests: [...rests],
       );
       var i = 0;

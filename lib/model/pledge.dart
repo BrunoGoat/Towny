@@ -361,7 +361,7 @@ IdentityStanding? identityStanding(Habit h, {DateTime? at}) {
   // mide contra lo que se le ve, por la mediana de las semanas enteras que
   // hubo. Una semana a medias —la primera de un pueblo recién fundado, o una
   // con pausa dentro— no dice cada cuánto lo hacés, así que no vota.
-  var rhythm = h.perWeek ?? 0;
+  var rhythm = h.perWeek ?? 0.0;
   if (rhythm <= 0) {
     final llenas = <int>[
       for (var i = 0; i < hechos.length; i++)
@@ -369,9 +369,9 @@ IdentityStanding? identityStanding(Habit h, {DateTime? at}) {
     ];
     if (llenas.isEmpty) return null;
     llenas.sort();
-    rhythm = llenas[llenas.length ~/ 2];
+    rhythm = llenas[llenas.length ~/ 2].toDouble();
   }
-  rhythm = rhythm.clamp(1, 7);
+  rhythm = rhythm.clamp(0.5, 7.0);
 
   // Y el cumplimiento, semana a semana y con tope.
   final semanas = <double>[];
@@ -388,7 +388,7 @@ IdentityStanding? identityStanding(Habit h, {DateTime? at}) {
   return IdentityStanding(
     wanted: wanted,
     said: said,
-    rhythm: rhythm,
+    rhythm: rhythm.round().clamp(1, 7),
     kept: pide <= 0 ? 0 : cumple / pide,
     weeks: semanas,
     done: semanas.length,

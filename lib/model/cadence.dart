@@ -37,7 +37,12 @@ const int cadenceAskLeast = 2;
 /// más nuevo—, llevados a una semana. Hace falta una semana entera de vida
 /// como poco: con tres días, uno solo con pieza serían dos por semana, y no se
 /// sabe nada.
-int? observedPerWeek(Habit h, {DateTime? at}) {
+int? observedPerWeek(Habit h, {DateTime? at}) =>
+    observedRate(h, at: at)?.round().clamp(1, 7);
+
+/// Lo mismo sin redondear: cuántas veces por semana, con decimales. Es lo que
+/// sabe distinguir «cada dos días» de «tres veces por semana».
+double? observedRate(Habit h, {DateTime? at}) {
   final today = dayStart(at ?? DateTime.now());
   final days = daysOf(h);
   if (days.isEmpty) return null;
@@ -60,43 +65,85 @@ int? observedPerWeek(Habit h, {DateTime? at}) {
     if (hecho) on++;
   }
   if (span < cadenceAskAfterDays || on == 0) return null;
-  return (on * 7 / span).round().clamp(1, 7);
+  return on * 7 / span;
+}
+
+/// Las respuestas posibles, en veces por semana.
+///
+/// No siete botones que dicen casi lo mismo —«seis por semana» y «cinco por
+/// semana» son la misma respuesta para el pueblo, y de «todos los días» a
+/// «una vez» había siete casi iguales y ninguna otra cosa—, sino cinco
+/// maneras distintas de llevar un hábito: a diario, en días sueltos de la
+/// semana —y ahí sí, cuántos—, en días alternos, una vez por semana y cada
+/// dos semanas.
+const double everyOtherDay = 3.5, everyOtherWeek = 0.5;
+
+/// Cuántos días por semana se pueden decir en «algunos días por semana».
+const List<int> someDaysAWeek = [2, 3, 4, 5, 6];
+
+/// Todas las frecuencias que se pueden decir.
+const List<double> cadenceChoices = [
+  7,
+  6,
+  5,
+  4,
+  everyOtherDay,
+  3,
+  2,
+  1,
+  everyOtherWeek,
+];
+
+/// La que más se parece a lo que se ve: la que viene marcada.
+double nearestCadence(double rate) {
+  var mejor = cadenceChoices.first;
+  for (final c in cadenceChoices) {
+    if ((c - rate).abs() < (mejor - rate).abs() - 1e-9) mejor = c;
+  }
+  return mejor;
 }
 
 /// Cada cuánto va: lo dicho si se dijo, si no lo que se ve, y si todavía no se
 /// ve nada, todos los días — que es lo que la app suponía siempre.
-int perWeekOf(Habit h, {DateTime? at}) =>
-    h.perWeek ?? observedPerWeek(h, at: at) ?? 7;
+double perWeekOf(Habit h, {DateTime? at}) =>
+    h.perWeek ?? observedPerWeek(h, at: at)?.toDouble() ?? 7;
 
 /// Si ya toca preguntar por la frecuencia de este hábito.
 ///
-/// Una vez en la vida del hábito: se apunta al preguntar, conteste lo que
-/// conteste, igual que la pregunta de si seguimos. Cerrar la hoja también es
-/// una respuesta —«ahora no»— y de ahí en adelante vale lo que se ve.
+/// Hasta que se conteste. Antes se preguntaba una vez y cerrar era contestar,
+/// y una pregunta que llega en mal momento se cierra sin leer: ahora se
+/// presenta primero —«contanos más de tu hábito», con un «ahora no»— y quien
+/// dice que ahora no la vuelve a ver al día siguiente.
 bool cadenceDue(Habit h, {DateTime? at}) {
   if (h.perWeek != null || h.cadenceAskedAt != null) return false;
   if (h.resting) return false;
   final now = at ?? DateTime.now();
+  final luego = h.cadenceLaterAt;
+  if (luego != null && !dayStart(now).isAfter(dayStart(luego))) return false;
   if (daysBetween(h.createdAt, now) < cadenceAskAfterDays) {
     return false;
   }
   return daysOf(h).length >= cadenceAskLeast;
 }
 
-/// Lo que se le cuenta a quien se le pregunta: cuántas piezas y en cuántos
-/// días, en la primera semana o en la última, la que sea más reciente.
-(int pieces, int days) lastWeekOf(Habit h, {DateTime? at}) {
+/// Lo que se le cuenta a quien se le pregunta: cuántas piezas puso y en
+/// cuántos días desde que empezó.
+///
+/// Los días **desde que empezó**, no los días con pieza. «Cuatro piezas en
+/// cuatro días» parecía decir que fue a diario, cuando eran cuatro de siete:
+/// el dato que hace pensar en el ritmo es el hueco, y contando sólo los días
+/// con pieza el hueco no aparece nunca.
+(int pieces, int days) sinceStartOf(Habit h, {DateTime? at}) {
   final today = dayStart(at ?? DateTime.now());
-  final from = DateTime(today.year, today.month, today.day - 6);
+  var born = dayStart(h.createdAt);
   var pieces = 0;
-  final set = <int>{};
   for (final p in h.pieces) {
     final d = dayStart(p.placedAt);
-    if (d.isBefore(from) || d.isAfter(today)) continue;
+    if (d.isAfter(today)) continue;
     pieces++;
-    set.add(dayKey(d));
+    if (d.isBefore(born)) born = d;
   }
-  return (pieces, set.length);
+  return (pieces, math.max(1, daysBetween(born, today)));
 }
 
 /// Cuántos días en blanco caben entre dos piezas sin salirse de lo tuyo.
@@ -113,10 +160,15 @@ int expectedGap(Habit h) {
 }
 
 /// La frecuencia dicha con palabras, como la dice el pueblo.
-String cadenceSaid(int perWeek) => switch (perWeek) {
-  7 => tr('todos los días', 'every day'),
+String cadenceSaid(double perWeek) => switch (perWeek) {
+  >= 7 => tr('todos los días', 'every day'),
+  everyOtherDay => tr('cada dos días', 'every other day'),
   1 => tr('una vez por semana', 'once a week'),
-  _ => tr('$perWeek veces por semana', '$perWeek times a week'),
+  everyOtherWeek => tr('cada dos semanas', 'every other week'),
+  _ => tr(
+    '${perWeek.round()} veces por semana',
+    '${perWeek.round()} times a week',
+  ),
 };
 
 // ------------------------------------------------------------------ el candado
@@ -143,8 +195,12 @@ class UnlockGoal {
     this.declared = false,
   });
 
-  /// El ritmo contra el que se mide.
-  final int perWeek;
+  /// El ritmo contra el que se mide, en veces por semana.
+  final double perWeek;
+
+  /// Cuántas valen como mucho en una semana: el ritmo, hacia arriba. Quien va
+  /// cada dos días tiene semanas de tres y semanas de cuatro.
+  int get cap => perWeek.ceil();
 
   /// En cuántos días se puede juntar.
   final int window;
@@ -159,7 +215,7 @@ class UnlockGoal {
   final bool declared;
 
   /// Cuántas veces se puede fallar por el camino y abrir igual.
-  int get slack => perWeek * window ~/ 7 - need;
+  int get slack => (perWeek * window / 7 + 1e-9).floor() - need;
 
   bool get met => have >= need;
   double get progress => need <= 0 ? 1 : (have / need).clamp(0.0, 1.0);
@@ -173,7 +229,7 @@ class UnlockGoal {
     // contando, así que pedir un setenta por ciento de tu propio ritmo lo
     // cumple cualquiera: el candado dejaría de ser un candado. Sin decir, vale
     // lo de siempre, todos los días.
-    final f = h.perWeek ?? 7;
+    final f = h.perWeek ?? 7.0;
     final window = f >= 3 ? 14 : 28;
     final need = (share * f * window / 7 - 1e-9).ceil();
     final today = dayStart(now);
@@ -192,7 +248,7 @@ class UnlockGoal {
         final d = DateTime(today.year, today.month, today.day - w * 7 - i);
         if (on.contains(dayKey(d))) semana++;
       }
-      have += math.min(semana, f);
+      have += math.min(semana, f.ceil());
     }
     return UnlockGoal(
       perWeek: f,

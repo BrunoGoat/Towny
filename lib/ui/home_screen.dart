@@ -840,13 +840,25 @@ class _HomeScreenState extends State<HomeScreen>
     if (!cadenceDue(h)) return;
     _asking = true;
     // Detrás del saludo, igual que la otra pregunta.
-    Future.delayed(const Duration(milliseconds: 3200), () {
+    Future.delayed(const Duration(milliseconds: 3200), () async {
       if (!mounted || store.habit != h) {
         _asking = false;
         return;
       }
-      store.cadenceAsked(h);
-      showModalBottomSheet<void>(
+      // Primero el aviso, en el medio: se puede decir que ahora no, y
+      // entonces se vuelve a avisar mañana. Tocar fuera es lo mismo.
+      final seguir = await showDialog<bool>(
+        context: context,
+        barrierColor: sheetScrim(_theme.dark),
+        builder: (_) => CadenceIntro(habit: h, theme: _theme),
+      );
+      if (!mounted) return;
+      if (seguir != true) {
+        store.cadenceLater(h);
+        _asking = false;
+        return;
+      }
+      await showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
@@ -861,7 +873,10 @@ class _HomeScreenState extends State<HomeScreen>
             );
           },
         ),
-      ).whenComplete(() => _asking = false);
+      );
+      // Cerrada sin contestar: como un «ahora no».
+      if (h.perWeek == null) store.cadenceLater(h);
+      _asking = false;
     });
   }
 

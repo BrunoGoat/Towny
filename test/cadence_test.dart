@@ -26,7 +26,7 @@ Habit _habit({
     symbol: 'carrera',
     slot: 0,
     createdAt: DateTime(today.year, today.month, today.day - age),
-    perWeek: perWeek,
+    perWeek: perWeek?.toDouble(),
     pieces: [
       for (var i = 0; i < dias.length; i++)
         Piece(
@@ -95,7 +95,7 @@ void main() {
       );
     });
 
-    test('una vez en la vida del hábito, se conteste o no', () {
+    test('contestada, no se vuelve a preguntar', () {
       final h = _habit(now: now, age: 9, on: [0, 2, 4]);
       h.cadenceAskedAt = now;
       expect(cadenceDue(h, at: now), isFalse);
@@ -103,9 +103,30 @@ void main() {
       expect(cadenceDue(dicho, at: now), isFalse);
     });
 
-    test('lo que se cuenta es la última semana', () {
-      final h = _habit(now: now, on: [0, 0, 1, 3, 5, 9]);
-      expect(lastWeekOf(h, at: now), (5, 4));
+    test('«ahora no» la deja para el día siguiente', () {
+      final h = _habit(now: now, age: 9, on: [0, 2, 4]);
+      h.cadenceLaterAt = now;
+      expect(cadenceDue(h, at: now), isFalse);
+      expect(cadenceDue(h, at: now.add(const Duration(hours: 1))), isFalse);
+      final manana = DateTime(now.year, now.month, now.day + 1, 9);
+      expect(cadenceDue(h, at: manana), isTrue);
+    });
+
+    test('lo que se cuenta son los días desde que empezó, no los de pieza', () {
+      // Cuatro piezas en una semana no son «cuatro piezas en cuatro días»:
+      // eso parece ir a diario. Son cuatro en siete.
+      final h = _habit(now: now, age: 7, on: [0, 1, 3, 5]);
+      expect(sinceStartOf(h, at: now), (4, 7));
+    });
+
+    test('cada dos días y cada dos semanas se distinguen de lo demás', () {
+      expect(nearestCadence(3.5), everyOtherDay);
+      expect(nearestCadence(3.1), 3);
+      expect(nearestCadence(0.4), everyOtherWeek);
+      expect(nearestCadence(6.8), 7);
+      expect(cadenceSaid(everyOtherDay), 'cada dos días');
+      expect(cadenceSaid(everyOtherWeek), 'cada dos semanas');
+      expect(cadenceSaid(5), '5 veces por semana');
     });
   });
 
@@ -218,10 +239,15 @@ void main() {
 
   group('lo que se guarda', () {
     test('la frecuencia y cuándo se preguntó van y vuelven del disco', () {
-      final h = _habit(now: now, on: [0], perWeek: 3)..cadenceAskedAt = now;
+      final h = _habit(now: now, on: [0], perWeek: 3)
+        ..cadenceAskedAt = now
+        ..cadenceLaterAt = now;
       final back = Habit.fromJson(h.toJson());
       expect(back.perWeek, 3);
       expect(back.cadenceAskedAt, now);
+      expect(back.cadenceLaterAt, now);
+      final alterno = Habit.fromJson((h..perWeek = everyOtherDay).toJson());
+      expect(alterno.perWeek, everyOtherDay);
     });
 
     test('un número fuera de la semana se lee como que no se dijo', () {
@@ -269,7 +295,7 @@ void main() {
     ) async {
       final hoy = DateTime.now();
       final h = _habit(now: hoy, age: 8, on: [0, 1, 1, 3, 5]);
-      int? elegido;
+      double? elegido;
       for (final hora in [13.0, 23.0]) {
         tester.view.physicalSize = const Size(320, 640);
         tester.view.devicePixelRatio = 1;
@@ -290,23 +316,67 @@ void main() {
         );
         await tester.pump();
         expect(tester.takeException(), isNull, reason: 'a las $hora');
-        expect(
-          find.text('Esta semana pusiste 5 piezas en 4 días.'),
-          findsOneWidget,
-        );
+        // Los días desde que empezó, no los días con pieza.
+        expect(find.text('En 8 días pusiste 5 piezas.'), findsOneWidget);
       }
       // Viene marcado lo que se ve, y un toque lo confirma.
       expect(
-        find.text('Es ${cadenceSaid(observedPerWeek(h)!)}'),
+        find.text('Es ${cadenceSaid(nearestCadence(observedRate(h)!))}'),
         findsOneWidget,
       );
-      await tester.tap(find.text('3 por semana'));
+      await tester.tap(find.text('Cada dos días'));
       await tester.pump();
-      await tester.ensureVisible(find.text('Es 3 veces por semana'));
+      expect(find.text('Es cada dos días'), findsOneWidget);
+      // Los días sueltos se eligen dentro de su renglón, desplegando.
+      await tester.tap(find.byIcon(Icons.expand_more_rounded));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('5 por semana').last);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Es 5 veces por semana'));
       await tester.pump();
-      await tester.tap(find.text('Es 3 veces por semana'));
+      await tester.tap(find.text('Es 5 veces por semana'));
       await tester.pump();
-      expect(elegido, 3);
+      expect(elegido, 5);
+    });
+
+    testWidgets('antes, un aviso que se puede dejar para mañana', (
+      tester,
+    ) async {
+      final h = _habit(now: DateTime.now(), age: 8, on: [0, 1, 3]);
+      bool? dijo;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: Center(
+                child: TextButton(
+                  onPressed: () async {
+                    dijo = await showDialog<bool>(
+                      context: context,
+                      builder: (_) => CadenceIntro(
+                        habit: h,
+                        theme: UiTheme(Palette.forMoment(13)),
+                      ),
+                    );
+                  },
+                  child: const Text('abrir'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('abrir'));
+      await tester.pumpAndSettle();
+      expect(find.text('Contanos más de tu hábito'), findsOneWidget);
+      await tester.tap(find.text('Ahora no'));
+      await tester.pumpAndSettle();
+      expect(dijo, isFalse);
+      await tester.tap(find.text('abrir'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Continuar'));
+      await tester.pumpAndSettle();
+      expect(dijo, isTrue);
     });
   });
 }

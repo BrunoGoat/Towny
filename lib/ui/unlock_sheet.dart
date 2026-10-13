@@ -141,10 +141,10 @@ class UnlockSheet extends StatelessWidget {
     final semanas = g.window ~/ 7;
     return tr(
       '$intro${g.need} días con pieza en las últimas $semanas semanas, '
-          'sin contar más de ${g.perWeek} por semana, porque dijiste que va '
+          'sin contar más de ${g.cap} por semana, porque dijiste que va '
           '${cadenceSaid(g.perWeek)}. Llevás ${g.have}.',
       '$intro${g.need} days with a piece in the last $semanas weeks, '
-          'counting no more than ${g.perWeek} a week, because you said it '
+          'counting no more than ${g.cap} a week, because you said it '
           'goes ${cadenceSaid(g.perWeek)}. You have ${g.have}.',
     );
   }

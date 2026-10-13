@@ -594,14 +594,14 @@ class Store extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Cada cuánto va, de 1 a 7 días por semana. Nulo lo deja sin decir, y
-  /// entonces vale lo que se ve.
+  /// Cada cuánto va, en veces por semana —de media a siete; ver
+  /// [cadenceChoices]—. Nulo lo deja sin decir, y entonces vale lo que se ve.
   ///
   /// Decirlo cuenta además como haber contestado la pregunta de la primera
   /// semana: quien lo cambió en la hoja del hábito no necesita que el pueblo
   /// se lo pregunte después.
-  void setCadence(Habit h, int? perWeek) {
-    h.perWeek = perWeek != null && perWeek >= 1 && perWeek <= 7
+  void setCadence(Habit h, double? perWeek) {
+    h.perWeek = perWeek != null && perWeek >= 0.5 && perWeek <= 7
         ? perWeek
         : null;
     h.cadenceAskedAt ??= DateTime.now();
@@ -611,10 +611,10 @@ class Store extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Que conste que ya se preguntó por la frecuencia, conteste lo que
-  /// conteste. Se apunta al abrir la hoja, igual que [asked].
-  void cadenceAsked(Habit h) {
-    h.cadenceAskedAt ??= DateTime.now();
+  /// «Ahora no» a la pregunta por la frecuencia: se vuelve a hacer otro día.
+  /// Cerrar la tarjeta sin contestar es lo mismo.
+  void cadenceLater(Habit h) {
+    h.cadenceLaterAt = DateTime.now();
     _save();
   }
 

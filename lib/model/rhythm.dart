@@ -157,7 +157,7 @@ class Consistency {
 /// esperado es la parte de los días que contaban que le toca a ese ritmo, y lo
 /// hecho no pasa de ahí. Tres días de cuatro para quien va tres veces por
 /// semana es todo, no la mitad de una semana.
-Consistency consistencyOf(Habit h, {DateTime? at, int perWeek = 7}) {
+Consistency consistencyOf(Habit h, {DateTime? at, double perWeek = 7}) {
   final now = at ?? DateTime.now();
   final today = dayStart(now);
   final days = daysOf(h);
