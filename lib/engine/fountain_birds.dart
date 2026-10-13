@@ -68,18 +68,24 @@ class BirdVisit {
 /// Cuántos pájaros distintos pueden andar por la fuente.
 const int fountainBirdSlots = 3;
 
-/// Lo que dura la llegada y la partida, en segundos.
-const double _llega = 2.4, _parte = 2.6;
+/// Lo que dura la llegada, la partida —el despegue y la subida— y cada cosa
+/// que hace posado, en segundos. Todo despacio: esta app se mira, no se usa,
+/// y un pájaro que pica el agua a toda prisa es un pájaro con miedo.
+const double _llega = 6.0, _despega = 3.0, _sube = 5.0, _compas = 3.6;
 
 BirdVisit birdVisit(TownLayout l, int slot, double time, {bool day = true}) {
-  final ciclo = 34.0 + slot * 13.0 + hash01(slot, l.cx.round(), 3) * 9;
+  // Cada pájaro tiene su ciclo, largo: de minuto y medio a casi tres, y en
+  // casi la mitad de las vueltas no viene. Una visita cada minuto y pico en
+  // toda la plaza, y no tres a la vez.
+  final ciclo = 90.0 + slot * 35.0 + hash01(slot, l.cx.round(), 3) * 20;
   final reloj = time / ciclo + hash01(slot, 41) + slot * 0.37;
   final vuelta = reloj.floor();
   final u = (reloj - vuelta) * ciclo;
-  // Una de cada tres vueltas no viene: así no es un reloj.
-  if (!day || hash01(slot, vuelta, 1) < 0.40) return BirdVisit.none;
-  final queda = 6.0 + 9.0 * hash01(slot, vuelta, 2);
-  final total = _llega + queda + _parte;
+  if (!day || hash01(slot, vuelta, 1) < 0.45) return BirdVisit.none;
+  // Cuántas cosas hace antes de aburrirse: beber, mirar, algún saltito.
+  final cosas = 5 + hashInt(6, slot, vuelta, 2);
+  final queda = cosas * _compas;
+  final total = _llega + queda + _despega + _sube;
   if (u >= total) return BirdVisit.none;
 
   final cx = l.cx, cz = l.cz;
@@ -97,26 +103,31 @@ BirdVisit birdVisit(TownLayout l, int slot, double time, {bool day = true}) {
       (hash01(slot, vuelta, 6) - 0.5) * 1.6;
   final r = taza * 0.85;
 
-  // Los saltitos por el brocal: cada segundo y pico decide qué hace, y lo
-  // que avanzó saltando se va sumando.
-  const compas = 1.3;
-  final quieto = (u - _llega).clamp(0.0, queda);
-  final paso = (quieto / compas).floor();
+  // Lo que hace en cada compás, y lo que avanzó saltando hasta ahora.
+  int que(int j) {
+    if (j == 0) return 0; // lo primero, siempre, beber
+    final h = hash01(slot, vuelta, j, 7);
+    return h < 0.62 ? 0 : (h < 0.88 ? 1 : 2); // beber, mirar, saltar
+  }
+
+  double salto(int j) => (hash01(slot, vuelta, j, 8) - 0.5) * 0.24;
+
+  final quieto = (u - _llega).clamp(0.0, queda - 1e-6);
+  final paso = (quieto / _compas).floor();
   var corrido = 0.0;
   for (var j = 0; j < paso; j++) {
-    if (hash01(slot, vuelta, j, 7) < 0.22) {
-      corrido += (hash01(slot, vuelta, j, 8) - 0.5) * 0.22;
-    }
+    if (que(j) == 2) corrido += salto(j);
   }
-  final f = (quieto - paso * compas) / compas;
-  final salta = hash01(slot, vuelta, paso, 7) < 0.22 && u > _llega;
+  final f = (quieto - paso * _compas) / _compas;
+  final posadoYa = u >= _llega && u < _llega + queda;
+  final hace = posadoYa ? que(paso) : 0;
   var ang = sitio + corrido / r;
   var alto = 0.0;
-  if (salta) {
-    final d = (hash01(slot, vuelta, paso, 8) - 0.5) * 0.22;
-    final s = smoothstep(0.0, 0.5, f);
-    ang += d * s / r;
-    alto = 4 * s * (1 - s) * 0.035 * size;
+  if (hace == 2) {
+    final s = smoothstep(0.1, 0.45, f);
+    ang += salto(paso) * s / r;
+    final arco = clampD((f - 0.1) / 0.35, 0, 1);
+    alto = 4 * arco * (1 - arco) * 0.035 * size;
   }
   final posado = V3(
     cx + math.cos(ang) * r,
@@ -125,26 +136,31 @@ BirdVisit birdVisit(TownLayout l, int slot, double time, {bool day = true}) {
   );
   // Mirando al agua, o un poco de lado.
   final alAgua = math.atan2(cz - posado.z, cx - posado.x);
-  final lado = (hash01(slot, vuelta, paso, 9) - 0.5) * 1.4;
+  final lado = (hash01(slot, vuelta, paso, 9) - 0.5) * 1.0;
 
   if (u < _llega) {
-    // Llega desde arriba y desde fuera, frenando al final.
+    // Baja desde lo alto —de donde la cámara no mira—, planeando, y frena al
+    // final abriendo las alas.
     final t = u / _llega;
-    final e = 1 - (1 - t) * (1 - t);
-    final desde = sitio + 1.2 * (hash01(slot, vuelta, 10) < 0.5 ? -1 : 1);
+    // Suave al empezar y al acabar: arriba no tiene por qué ir rápido, y
+    // abajo se posa.
+    final e = t * t * (3 - 2 * t);
+    final desde = sitio + 1.0 * (hash01(slot, vuelta, 10) < 0.5 ? -1 : 1);
     final a = V3(
-      cx + math.cos(desde) * 2.3,
-      2.2 + hash01(slot, vuelta, 11),
-      cz + math.sin(desde) * 2.3,
+      cx + math.cos(desde) * 2.6,
+      9.0 + 2 * hash01(slot, vuelta, 11),
+      cz + math.sin(desde) * 2.6,
     );
-    final ctrl = V3((a.x + posado.x) / 2, posado.y + 0.9, (a.z + posado.z) / 2);
+    final ctrl = V3((a.x + posado.x) / 2, posado.y + 1.0, (a.z + posado.z) / 2);
     final p = _bezier(a, ctrl, posado, e);
     final q = _bezier(a, ctrl, posado, math.min(1, e + 0.02));
     final rumbo = math.atan2(q.z - p.z, q.x - p.x);
-    // Bate rápido al venir y abre las alas para frenar al final.
+    // Bate despacio, planea a ratos, y abre las alas para frenar al final.
+    final ala = math.sin(time * 16 + slot);
+    final planea = 0.35 + 0.65 * smoothstep(-0.2, 0.6, math.sin(time * 0.9));
     final bate = t < 0.8
-        ? math.sin(time * 38 + slot)
-        : lerpD(math.sin(time * 38 + slot), 0.9, smoothstep(0.8, 1.0, t));
+        ? ala * planea
+        : lerpD(ala * planea, 0.9, smoothstep(0.8, 1.0, t));
     return BirdVisit(
       doing: BirdDoing.arriving,
       at: p,
@@ -159,43 +175,66 @@ BirdVisit birdVisit(TownLayout l, int slot, double time, {bool day = true}) {
 
   final fuera = u - _llega - queda;
   if (fuera >= 0) {
-    final t = fuera / _parte;
-    final e = t * t;
-    final hacia = ang + 1.4 * (hash01(slot, vuelta, 12) < 0.5 ? -1 : 1);
+    // Se va como vino pero al revés: primero sale del brocal hacia un lado y
+    // hacia arriba, y después sube y sube, hasta donde la cámara no mira. No
+    // desaparece: se va.
+    final hacia = ang + 1.2 * (hash01(slot, vuelta, 12) < 0.5 ? -1 : 1);
     final b = V3(
-      cx + math.cos(hacia) * 2.4,
-      1.9 + 0.6 * hash01(slot, vuelta, 13),
-      cz + math.sin(hacia) * 2.4,
+      cx + math.cos(hacia) * 1.7,
+      1.5 + 0.4 * hash01(slot, vuelta, 13),
+      cz + math.sin(hacia) * 1.7,
     );
-    final ctrl = V3(posado.x, posado.y + 0.5, posado.z);
-    final p = _bezier(posado, ctrl, b, e);
-    final q = _bezier(posado, ctrl, b, math.min(1, e + 0.02));
-    final rumbo = math.atan2(q.z - p.z, q.x - p.x);
+    final ctrl = V3(posado.x, posado.y + 0.45, posado.z);
+    V3 despegue(double t) => _bezier(posado, ctrl, b, t * t);
+    final bate = math.sin(time * 18 + slot);
+    if (fuera < _despega) {
+      final t = fuera / _despega;
+      final p = despegue(t);
+      final q = despegue(math.min(1, t + 0.02));
+      final rumbo = math.atan2(q.z - p.z, q.x - p.x);
+      return BirdVisit(
+        doing: BirdDoing.leaving,
+        at: p,
+        heading: _mezclaAng(alAgua + lado * 0.5, rumbo, smoothstep(0, 0.2, t)),
+        flap: bate,
+        kind: kind,
+        size: size,
+      );
+    }
+    // La subida: con la velocidad que traía, y cada vez más hacia arriba.
+    final vel = (b - ctrl) * (2 / _despega);
+    final tau = fuera - _despega;
+    final p = b + vel * tau + V3(0, 0.40 * tau * tau, 0);
     return BirdVisit(
       doing: BirdDoing.leaving,
       at: p,
-      heading: _mezclaAng(alAgua + lado, rumbo, smoothstep(0, 0.15, t)),
-      flap: math.sin(time * 40 + slot),
+      heading: math.atan2(vel.z, vel.x),
+      flap: bate,
       kind: kind,
       size: size,
     );
   }
 
-  // Posado. Cada compás bebe, mira o salta: beber es bajar el pico hasta el
-  // agua y volver; mirar es girar la cabeza a un lado.
-  final que = hash01(slot, vuelta, paso, 14);
+  // Posado, haciendo lo de este compás.
   var pitch = 0.0, look = 0.0;
-  if (!salta && que < 0.55) {
-    // Dos sorbos por compás.
-    final sorbo = math.sin(f * 2 * math.pi * 2).abs();
-    pitch = 0.95 * smoothstep(0.0, 0.35, sorbo);
-  } else if (!salta) {
-    look = math.sin(f * math.pi) * (que < 0.8 ? 0.7 : -0.7);
+  switch (hace) {
+    case 0:
+      // Beber: baja el pico despacio, se queda un rato en el agua tragando,
+      // lo sube, y levanta un poco la cabeza para que baje el trago —que es
+      // lo que hacen los pájaros, que no saben sorber—.
+      final baja = smoothstep(0.04, 0.38, f) * (1 - smoothstep(0.58, 0.82, f));
+      final traga = math.sin(f * math.pi * 6) * 0.04 * baja;
+      final alza = math.sin(clampD((f - 0.78) / 0.22, 0, 1) * math.pi);
+      pitch = 0.95 * baja + traga - 0.22 * alza;
+    case 1:
+      // Mirar: gira la cabeza a un lado, se queda mirando, y vuelve.
+      final gira = smoothstep(0.1, 0.35, f) * (1 - smoothstep(0.7, 0.92, f));
+      look = gira * (hash01(slot, vuelta, paso, 15) < 0.5 ? 0.75 : -0.75);
   }
   return BirdVisit(
     doing: BirdDoing.perched,
     at: posado,
-    heading: alAgua + (salta ? 0 : lado * 0.5),
+    heading: alAgua + (hace == 2 ? 0 : lado * 0.5),
     pitch: pitch,
     look: look,
     kind: kind,

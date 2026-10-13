@@ -119,5 +119,41 @@ void main() {
         }
       }
     });
+
+    test(
+      'despacio: visitas espaciadas, sorbos lentos, y se van hacia arriba',
+      () {
+        // Unas cuarenta visitas por hora en toda la plaza: un tercio de las que
+        // había, que eran demasiadas para una plaza tranquila.
+        var visitas = 0;
+        final antes = List.filled(fountainBirdSlots, BirdDoing.away);
+        for (var t = 0.0; t < 3600; t += 0.5) {
+          for (var k = 0; k < fountainBirdSlots; k++) {
+            final d = birdVisit(l, k, t).doing;
+            if (d == BirdDoing.arriving && antes[k] == BirdDoing.away) {
+              visitas++;
+            }
+            antes[k] = d;
+          }
+        }
+        expect(visitas, inInclusiveRange(20, 60));
+
+        var subida = 0.0;
+        for (var t = 0.0; t < 900; t += 1 / 30) {
+          for (var k = 0; k < fountainBirdSlots; k++) {
+            final a = birdVisit(l, k, t), b = birdVisit(l, k, t + 1 / 30);
+            if (a.doing == BirdDoing.perched && b.doing == BirdDoing.perched) {
+              // El pico no sube y baja a golpes.
+              expect((a.pitch - b.pitch).abs(), lessThan(0.06));
+            }
+            if (a.doing == BirdDoing.leaving && b.doing == BirdDoing.away) {
+              subida = math.max(subida, a.at.y);
+            }
+          }
+        }
+        // No se desvanece a la vista: cuando deja de existir ya está muy arriba.
+        expect(subida, greaterThan(8));
+      },
+    );
   });
 }
