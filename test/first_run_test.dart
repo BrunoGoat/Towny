@@ -51,6 +51,11 @@ void main() {
     testWidgets('cinco pantallas, y lo que se contestó llega entero', (
       tester,
     ) async {
+      // Del tamaño de un teléfono: en la pantalla de pruebas de siempre la
+      // pregunta de la comarca tapa el pueblo de muestra entero.
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
       // Los nombres de fuera no pueden llamarse igual que los parámetros con
       // nombre de la llamada, que si no los tapan.
       String? elNombre, laMarca, elMotivo, laIdentidad;
@@ -104,6 +109,12 @@ void main() {
       await _asentar(tester);
       expect(find.text('VOLVER'), findsNothing);
       expect(find.text('¿Qué clase de pueblo?'), findsOneWidget);
+      // Y tocar el pueblo de muestra, arriba, hace lo mismo que el botón.
+      await tester.tapAt(const Offset(300, 130));
+      await _asentar(tester);
+      expect(find.text('VOLVER'), findsOneWidget);
+      await tester.tap(find.text('VOLVER'));
+      await _asentar(tester);
       await _siguiente(tester);
       await _asentar(tester);
 

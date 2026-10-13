@@ -315,6 +315,7 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
               symbol: _symbol,
               place: _place,
               exploring: _exploring,
+              onExplore: () => _explore(true),
             ),
             // Dos veladuras: arriba, para que la marca se lea sobre un cielo de
             // mediodía; abajo, para que la tarjeta se apoye en algo.
@@ -839,7 +840,11 @@ class _Valley extends StatefulWidget {
     required this.symbol,
     required this.place,
     this.exploring = false,
+    this.onExplore,
   });
+
+  /// Tocar el pueblo de muestra: lo mismo que «Recorrer este pueblo».
+  final VoidCallback? onExplore;
 
   final int stage;
   final bool leaving;
@@ -1066,6 +1071,10 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
     return LayoutBuilder(
       builder: (_, box) => GestureDetector(
         behavior: HitTestBehavior.opaque,
+        // En la comarca, tocar el pueblo de muestra es ponerse a recorrerlo.
+        onTap: widget.stage == 2 && !widget.exploring && _preview > 0.5
+            ? widget.onExplore
+            : null,
         onScaleStart: widget.exploring ? (_) => _lastScale = 1 : null,
         onScaleUpdate: widget.exploring ? _onScale : null,
         child: _scene(box, scene, noche, muestra, vista),
