@@ -225,12 +225,34 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
     super.dispose();
   }
 
+  /// Si el último paso fue hacia atrás: la animación va al revés.
+  bool _backward = false;
+
   void _go(int to) {
     Sensory.instance.tick();
     setState(() {
+      _backward = to < _step;
       _step = to;
       _exploring = false;
     });
+  }
+
+  /// Lo que hace «atrás» —el botón del teléfono, el del navegador, el gesto,
+  /// o la flecha de arriba—: dejar de recorrer el pueblo de muestra si se lo
+  /// está recorriendo, volver a la pregunta anterior si la hay, y en la
+  /// bienvenida del pueblo siguiente volver al valle, que es dejar la
+  /// fundación para después. La primera vez, en la bienvenida, no hay adónde
+  /// volver.
+  void _back() {
+    if (_leaving) return;
+    if (_exploring) {
+      _explore(false);
+    } else if (_step > 0) {
+      FocusScope.of(context).unfocus();
+      _go(_step - 1);
+    } else {
+      widget.onCancel?.call();
+    }
   }
 
   void _explore(bool on) {
@@ -263,106 +285,128 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
     final teclado = mq.viewInsets.bottom;
     final nombre = _name.text.trim();
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF9FB6D8),
-      resizeToAvoidBottomInset: false,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          // El valle, vivo. Va en su propio widget con su propio reloj para
-          // que pintar sesenta cuadros por segundo no reconstruya los campos
-          // de texto.
-          _Valley(
-            stage: _step,
-            leaving: _leaving,
-            name: _name.text,
-            symbol: _symbol,
-            place: _place,
-            exploring: _exploring,
-          ),
-          // Dos veladuras: arriba, para que la marca se lea sobre un cielo de
-          // mediodía; abajo, para que la tarjeta se apoye en algo.
-          IgnorePointer(
-            child: AnimatedOpacity(
-              duration: const Duration(milliseconds: 900),
-              opacity: _leaving || _exploring ? 0 : 1,
-              child: const DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0x33000000),
-                      Color(0x00000000),
-                      Color(0x00000000),
-                      Color(0x8C0B0906),
-                      Color(0xC70B0906),
-                    ],
-                    stops: [0.0, 0.26, 0.40, 0.70, 1.0],
-                  ),
-                ),
-              ),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _back();
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF9FB6D8),
+        resizeToAvoidBottomInset: false,
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            // El valle, vivo. Va en su propio widget con su propio reloj para
+            // que pintar sesenta cuadros por segundo no reconstruya los campos
+            // de texto.
+            _Valley(
+              stage: _step,
+              leaving: _leaving,
+              name: _name.text,
+              symbol: _symbol,
+              place: _place,
+              exploring: _exploring,
             ),
-          ),
-          // La marca, sólo en la bienvenida.
-          Positioned(
-            left: 0,
-            right: 0,
-            top: mq.padding.top + mq.size.height * 0.09,
-            child: IgnorePointer(
+            // Dos veladuras: arriba, para que la marca se lea sobre un cielo de
+            // mediodía; abajo, para que la tarjeta se apoye en algo.
+            IgnorePointer(
               child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 600),
-                opacity: _step == 0 && !_leaving ? 1 : 0,
-                child: widget.next == null
-                    ? const _Wordmark()
-                    : _Milestone(next: widget.next!),
-              ),
-            ),
-          ),
-          // Mientras baja la cámara, el nombre del pueblo que se funda.
-          if (_leaving)
-            Center(
-              child: IgnorePointer(
-                child: AnimatedBuilder(
-                  animation: _leave,
-                  builder: (_, _) => _FoundingName(
-                    name: nombre.isEmpty
-                        ? tr('Tu pueblo', 'Your town')
-                        : nombre,
-                    t: _leave.value,
+                duration: const Duration(milliseconds: 900),
+                opacity: _leaving || _exploring ? 0 : 1,
+                child: const DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color(0x33000000),
+                        Color(0x00000000),
+                        Color(0x00000000),
+                        Color(0x8C0B0906),
+                        Color(0xC70B0906),
+                      ],
+                      stops: [0.0, 0.26, 0.40, 0.70, 1.0],
+                    ),
                   ),
                 ),
               ),
             ),
-          // La tarjeta, abajo, subiendo con el teclado.
-          AnimatedPadding(
-            duration: const Duration(milliseconds: 240),
-            curve: Curves.easeOutCubic,
-            padding: EdgeInsets.only(bottom: teclado),
-            child: SafeArea(
-              top: false,
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: AnimatedSlide(
-                  duration: const Duration(milliseconds: 560),
-                  curve: Curves.easeInCubic,
-                  offset: _leaving ? const Offset(0, 0.35) : Offset.zero,
-                  child: AnimatedOpacity(
-                    duration: const Duration(milliseconds: 420),
-                    opacity: _leaving || _exploring ? 0 : 1,
-                    child: IgnorePointer(
-                      ignoring: _exploring,
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            maxWidth: 520,
-                            maxHeight: math.max(
-                              240,
-                              mq.size.height - teclado - mq.padding.top - 40,
+            // La vuelta atrás, a la vista: no todo el mundo sabe que el botón
+            // del teléfono o del navegador también vuelve.
+            if (_step > 0 && !_leaving && !_exploring)
+              Positioned(
+                left: 6,
+                top: mq.padding.top + 6,
+                child: IconButton(
+                  onPressed: _back,
+                  tooltip: tr('Volver', 'Back'),
+                  icon: const Icon(
+                    Icons.arrow_back_rounded,
+                    color: _Ink.cream,
+                    shadows: _Ink.shadow,
+                  ),
+                ),
+              ),
+            // La marca, sólo en la bienvenida.
+            Positioned(
+              left: 0,
+              right: 0,
+              top: mq.padding.top + mq.size.height * 0.09,
+              child: IgnorePointer(
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 600),
+                  opacity: _step == 0 && !_leaving ? 1 : 0,
+                  child: widget.next == null
+                      ? const _Wordmark()
+                      : _Milestone(next: widget.next!),
+                ),
+              ),
+            ),
+            // Mientras baja la cámara, el nombre del pueblo que se funda.
+            if (_leaving)
+              Center(
+                child: IgnorePointer(
+                  child: AnimatedBuilder(
+                    animation: _leave,
+                    builder: (_, _) => _FoundingName(
+                      name: nombre.isEmpty
+                          ? tr('Tu pueblo', 'Your town')
+                          : nombre,
+                      t: _leave.value,
+                    ),
+                  ),
+                ),
+              ),
+            // La tarjeta, abajo, subiendo con el teclado.
+            AnimatedPadding(
+              duration: const Duration(milliseconds: 240),
+              curve: Curves.easeOutCubic,
+              padding: EdgeInsets.only(bottom: teclado),
+              child: SafeArea(
+                top: false,
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: AnimatedSlide(
+                    duration: const Duration(milliseconds: 560),
+                    curve: Curves.easeInCubic,
+                    offset: _leaving ? const Offset(0, 0.35) : Offset.zero,
+                    child: AnimatedOpacity(
+                      duration: const Duration(milliseconds: 420),
+                      opacity: _leaving || _exploring ? 0 : 1,
+                      child: IgnorePointer(
+                        ignoring: _exploring,
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: 520,
+                              maxHeight: math.max(
+                                240,
+                                mq.size.height - teclado - mq.padding.top - 40,
+                              ),
                             ),
+                            child: _Card(step: _step, child: _content()),
                           ),
-                          child: _Card(step: _step, child: _content()),
                         ),
                       ),
                     ),
@@ -370,20 +414,20 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
                 ),
               ),
             ),
-          ),
-          // Explorando: sólo el nombre de la comarca, cómo se mueve la cámara,
-          // y la vuelta.
-          if (_exploring)
-            TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0, end: 1),
-              duration: const Duration(milliseconds: 420),
-              builder: (_, v, c) => Opacity(opacity: v, child: c),
-              child: _ExploreBar(
-                region: TownCharacter.byOrder(_place).region,
-                onBack: () => _explore(false),
+            // Explorando: sólo el nombre de la comarca, cómo se mueve la cámara,
+            // y la vuelta.
+            if (_exploring)
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: 1),
+                duration: const Duration(milliseconds: 420),
+                builder: (_, v, c) => Opacity(opacity: v, child: c),
+                child: _ExploreBar(
+                  region: TownCharacter.byOrder(_place).region,
+                  onBack: () => _explore(false),
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -407,15 +451,16 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
       // escrito, y la pregunta nueva sale de abajo. De lado se leía como
       // pasar páginas de un formulario; hacia arriba se lee como entregar la
       // respuesta.
+      //
+      // Y hacia atrás, al revés: lo de ahora baja y se va, y la pregunta de
+      // antes vuelve desde arriba, de donde se había ido.
       transitionBuilder: (child, a) {
         final entra = child.key == ValueKey(_step);
+        final dy = _backward ? (entra ? -0.22 : 0.08) : (entra ? 0.08 : -0.22);
         return FadeTransition(
           opacity: a,
           child: SlideTransition(
-            position: Tween(
-              begin: Offset(0, entra ? 0.08 : -0.22),
-              end: Offset.zero,
-            ).animate(a),
+            position: Tween(begin: Offset(0, dy), end: Offset.zero).animate(a),
             child: child,
           ),
         );
@@ -892,6 +937,9 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
     // escrito a la vez en el campo y sobre el claro, se leía dos veces.
     final puesto = widget.stage >= 2 && !widget.leaving;
     if (puesto) _settledAt ??= _time;
+    // Si se volvió atrás a cambiar el nombre, al confirmarlo otra vez se
+    // vuelve a poner con su destello.
+    if (!puesto && _sign <= 0) _settledAt = null;
     // Y el pueblo de muestra espera a que el cartel termine de ponerse: los
     // dos a la vez se tapaban el uno al otro.
     _preview = toward(

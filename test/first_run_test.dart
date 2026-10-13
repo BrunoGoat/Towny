@@ -297,6 +297,59 @@ void main() {
     });
   });
 
+  group('atrás', () {
+    testWidgets('vuelve a la pregunta de antes, con lo contestado', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _marco(
+          FirstRun(onDone: (_, _, {required character, why, identity}) {}),
+        ),
+      );
+      await _asentar(tester);
+      await tester.tap(find.text('FUNDAR MI PUEBLO'));
+      await _asentar(tester);
+      await tester.enterText(find.byType(TextField).first, 'Leer');
+      await tester.pump();
+      await _siguiente(tester);
+      await _asentar(tester);
+      expect(find.text('¿Qué clase de pueblo?'), findsOneWidget);
+      // El botón de atrás del sistema.
+      await tester.binding.handlePopRoute();
+      await _asentar(tester);
+      expect(find.text('¿Qué hábito querés desarrollar?'), findsOneWidget);
+      expect(find.text('Leer'), findsWidgets);
+      // Y la flecha de arriba hace lo mismo.
+      await tester.tap(find.byIcon(Icons.arrow_back_rounded));
+      await _asentar(tester);
+      expect(find.text('FUNDAR MI PUEBLO'), findsOneWidget);
+      expect(find.byIcon(Icons.arrow_back_rounded), findsNothing);
+    });
+
+    testWidgets('en la bienvenida del siguiente, vuelve al valle', (
+      tester,
+    ) async {
+      var cancelado = false;
+      await tester.pumpWidget(
+        _marco(
+          FirstRun(
+            next: NextTown(
+              towns: [
+                (name: 'Leer', symbol: 'libro', pieces: 34, character: 0),
+              ],
+            ),
+            onCancel: () => cancelado = true,
+            onDone: (_, _, {required character, why, identity}) {},
+          ),
+        ),
+      );
+      await _asentar(tester);
+      await tester.binding.handlePopRoute();
+      await tester.pump();
+      expect(cancelado, isTrue);
+    });
+  });
+
   group('el pueblo siguiente', () {
     final next = NextTown(
       towns: [

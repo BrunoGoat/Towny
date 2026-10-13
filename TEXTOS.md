@@ -1291,49 +1291,49 @@ La pantalla que sale una sola vez, al abrir la app por primera vez: fundar el pr
 
 - **U1** · `Mi hábito`  <sub>first_run.dart:116 · FirstRun.createState</sub>
 - **U2** · `EBGaramond`  <sub>first_run.dart:166 · _Ink.soft</sub>
-- **U3** · `Tu pueblo`  <sub>first_run.dart:330 · _FirstRunState.build</sub>
-- **U4** · `El valle se abre`  <sub>first_run.dart:453 · _FirstRunState._welcomeNext</sub>
-- **U5** · `Te ganaste tu ${next.ordinalWord} pueblo.`  <sub>first_run.dart:455 · _FirstRunState._welcomeNext</sub>
-- **U6** · `«${primero.name}» lleva ${primero.pieces} `  <sub>first_run.dart:461 · _FirstRunState._welcomeNext</sub>
-- **U7** · `${primero.pieces == 1 ? 'pieza' : 'piezas'} y ya se `  <sub>first_run.dart:462 · _FirstRunState._welcomeNext</sub>
-- **U8** · `sostiene solo. Eso es lo que abrió esta puerta.`  <sub>first_run.dart:463 · _FirstRunState._welcomeNext</sub>
-- **U9** · `Llevás ${next.pieces} piezas entre tus ${next.towns.length} `  <sub>first_run.dart:469 · _FirstRunState._welcomeNext</sub>
-- **U10** · `pueblos, y se sostienen. Eso es lo que abrió esta puerta.`  <sub>first_run.dart:470 · _FirstRunState._welcomeNext</sub>
-- **U11** · `Un pueblo nuevo es un hábito nuevo, y empieza igual que el `  <sub>first_run.dart:476 · _FirstRunState._welcomeNext</sub>
-- **U12** · `primero: de a una pieza.`  <sub>first_run.dart:477 · _FirstRunState._welcomeNext</sub>
-- **U13** · `Fundar mi ${next.ordinalWord} pueblo`  <sub>first_run.dart:483 · _FirstRunState._welcomeNext</sub>
-- **U14** · `Ahora no`  <sub>first_run.dart:487 · _FirstRunState._welcomeNext</sub>
-- **U15** · `Esto es un valle vacío.`  <sub>first_run.dart:493 · _FirstRunState._welcomeFirst</sub>
-- **U16** · `Cada vez que cumplas, vas a poner una pieza. Las piezas levantan un `  <sub>first_run.dart:496 · _FirstRunState._welcomeFirst</sub>
-- **U17** · `pueblo, y el pueblo es lo que llevás hecho.`  <sub>first_run.dart:497 · _FirstRunState._welcomeFirst</sub>
-- **U18** · `Empecemos por uno.`  <sub>first_run.dart:501 · _FirstRunState._welcomeFirst</sub>
-- **U19** · `Fundar mi pueblo`  <sub>first_run.dart:503 · _FirstRunState._welcomeFirst</sub>
-- **U20** · `Tu hábito`  <sub>first_run.dart:510 · _FirstRunState._askName</sub>
-- **U21** · `¿Qué hábito querés desarrollar?`  <sub>first_run.dart:512 · _FirstRunState._askName</sub>
-- **U22** · `Siguiente`  <sub>first_run.dart:516 · _FirstRunState._askName</sub>
-- **U23** · `Leer, correr, no fumar…`  <sub>first_run.dart:523 · _FirstRunState._askName</sub>
-- **U24** · `¿Qué clase de pueblo?`  <sub>first_run.dart:549 · _FirstRunState._askPlace</sub>
-- **U25** · `Recorrer este pueblo`  <sub>first_run.dart:622 · _FirstRunState._askPlace</sub>
-- **U26** · `El motivo`  <sub>first_run.dart:637 · _FirstRunState._askWhy</sub>
-- **U27** · `¿Para qué querés ese hábito?`  <sub>first_run.dart:638 · _FirstRunState._askWhy</sub>
-- **U28** · `Para que tengas claro por qué lo mantenés.`  <sub>first_run.dart:641 · _FirstRunState._askWhy</sub>
-- **U29** · `para dormir mejor`  <sub>first_run.dart:649 · _FirstRunState._askWhy</sub>
-- **U30** · `Quién sos`  <sub>first_run.dart:668 · _FirstRunState._askWho</sub>
-- **U31** · `¿En quién te convierte tener ese hábito?`  <sub>first_run.dart:670 · _FirstRunState._askWho</sub>
-- **U32** · `Qué buscás ser una vez que consigas el hábito: ¿alguien sabio? `  <sub>first_run.dart:675 · _FirstRunState._askWho</sub>
-- **U33** · `¿Alguien sano? ¿Alguien más inteligente?`  <sub>first_run.dart:676 · _FirstRunState._askWho</sub>
-- **U34** · `Fundar el pueblo`  <sub>first_run.dart:682 · _FirstRunState._askWho</sub>
-- **U35** · `Fundar ${_name.text.trim()}`  <sub>first_run.dart:683 · _FirstRunState._askWho</sub>
-- **U36** · `que lee todos los días`  <sub>first_run.dart:691 · _FirstRunState._askWho</sub>
-- **U37** · `Arrastrá para girar · dos dedos para acercar y mover`  <sub>first_run.dart:1108 · _ExploreBar.build</sub>
-- **U38** · `Volver`  <sub>first_run.dart:1127 · _ExploreBar.build</sub>
-- **U39** · `PUEBLO ${_roman(n)}`  <sub>first_run.dart:1367 · _MilestoneState.build</sub>
-- **U40** · `III`  <sub>first_run.dart:1409 · _MilestoneState._roman</sub>
-- **U41** · `VII`  <sub>first_run.dart:1413 · _MilestoneState._roman</sub>
-- **U42** · `VIII`  <sub>first_run.dart:1414 · _MilestoneState._roman</sub>
-- **U43** · `Towny`  <sub>first_run.dart:1431 · _Wordmark.build</sub>
-- **U44** · `UN PUEBLO PARA CADA HÁBITO`  <sub>first_run.dart:1443 · _Wordmark.build</sub>
-- **U45** · `SE FUNDA`  <sub>first_run.dart:1478 · _FoundingName.build</sub>
+- **U3** · `Volver`  <sub>first_run.dart:342 · _FirstRunState.build</sub>
+- **U4** · `Tu pueblo`  <sub>first_run.dart:373 · _FirstRunState.build</sub>
+- **U5** · `El valle se abre`  <sub>first_run.dart:498 · _FirstRunState._welcomeNext</sub>
+- **U6** · `Te ganaste tu ${next.ordinalWord} pueblo.`  <sub>first_run.dart:500 · _FirstRunState._welcomeNext</sub>
+- **U7** · `«${primero.name}» lleva ${primero.pieces} `  <sub>first_run.dart:506 · _FirstRunState._welcomeNext</sub>
+- **U8** · `${primero.pieces == 1 ? 'pieza' : 'piezas'} y ya se `  <sub>first_run.dart:507 · _FirstRunState._welcomeNext</sub>
+- **U9** · `sostiene solo. Eso es lo que abrió esta puerta.`  <sub>first_run.dart:508 · _FirstRunState._welcomeNext</sub>
+- **U10** · `Llevás ${next.pieces} piezas entre tus ${next.towns.length} `  <sub>first_run.dart:514 · _FirstRunState._welcomeNext</sub>
+- **U11** · `pueblos, y se sostienen. Eso es lo que abrió esta puerta.`  <sub>first_run.dart:515 · _FirstRunState._welcomeNext</sub>
+- **U12** · `Un pueblo nuevo es un hábito nuevo, y empieza igual que el `  <sub>first_run.dart:521 · _FirstRunState._welcomeNext</sub>
+- **U13** · `primero: de a una pieza.`  <sub>first_run.dart:522 · _FirstRunState._welcomeNext</sub>
+- **U14** · `Fundar mi ${next.ordinalWord} pueblo`  <sub>first_run.dart:528 · _FirstRunState._welcomeNext</sub>
+- **U15** · `Ahora no`  <sub>first_run.dart:532 · _FirstRunState._welcomeNext</sub>
+- **U16** · `Esto es un valle vacío.`  <sub>first_run.dart:538 · _FirstRunState._welcomeFirst</sub>
+- **U17** · `Cada vez que cumplas, vas a poner una pieza. Las piezas levantan un `  <sub>first_run.dart:541 · _FirstRunState._welcomeFirst</sub>
+- **U18** · `pueblo, y el pueblo es lo que llevás hecho.`  <sub>first_run.dart:542 · _FirstRunState._welcomeFirst</sub>
+- **U19** · `Empecemos por uno.`  <sub>first_run.dart:546 · _FirstRunState._welcomeFirst</sub>
+- **U20** · `Fundar mi pueblo`  <sub>first_run.dart:548 · _FirstRunState._welcomeFirst</sub>
+- **U21** · `Tu hábito`  <sub>first_run.dart:555 · _FirstRunState._askName</sub>
+- **U22** · `¿Qué hábito querés desarrollar?`  <sub>first_run.dart:557 · _FirstRunState._askName</sub>
+- **U23** · `Siguiente`  <sub>first_run.dart:561 · _FirstRunState._askName</sub>
+- **U24** · `Leer, correr, no fumar…`  <sub>first_run.dart:568 · _FirstRunState._askName</sub>
+- **U25** · `¿Qué clase de pueblo?`  <sub>first_run.dart:594 · _FirstRunState._askPlace</sub>
+- **U26** · `Recorrer este pueblo`  <sub>first_run.dart:667 · _FirstRunState._askPlace</sub>
+- **U27** · `El motivo`  <sub>first_run.dart:682 · _FirstRunState._askWhy</sub>
+- **U28** · `¿Para qué querés ese hábito?`  <sub>first_run.dart:683 · _FirstRunState._askWhy</sub>
+- **U29** · `Para que tengas claro por qué lo mantenés.`  <sub>first_run.dart:686 · _FirstRunState._askWhy</sub>
+- **U30** · `para dormir mejor`  <sub>first_run.dart:694 · _FirstRunState._askWhy</sub>
+- **U31** · `Quién sos`  <sub>first_run.dart:713 · _FirstRunState._askWho</sub>
+- **U32** · `¿En quién te convierte tener ese hábito?`  <sub>first_run.dart:715 · _FirstRunState._askWho</sub>
+- **U33** · `Qué buscás ser una vez que consigas el hábito: ¿alguien sabio? `  <sub>first_run.dart:720 · _FirstRunState._askWho</sub>
+- **U34** · `¿Alguien sano? ¿Alguien más inteligente?`  <sub>first_run.dart:721 · _FirstRunState._askWho</sub>
+- **U35** · `Fundar el pueblo`  <sub>first_run.dart:727 · _FirstRunState._askWho</sub>
+- **U36** · `Fundar ${_name.text.trim()}`  <sub>first_run.dart:728 · _FirstRunState._askWho</sub>
+- **U37** · `que lee todos los días`  <sub>first_run.dart:736 · _FirstRunState._askWho</sub>
+- **U38** · `Arrastrá para girar · dos dedos para acercar y mover`  <sub>first_run.dart:1156 · _ExploreBar.build</sub>
+- **U39** · `PUEBLO ${_roman(n)}`  <sub>first_run.dart:1415 · _MilestoneState.build</sub>
+- **U40** · `III`  <sub>first_run.dart:1457 · _MilestoneState._roman</sub>
+- **U41** · `VII`  <sub>first_run.dart:1461 · _MilestoneState._roman</sub>
+- **U42** · `VIII`  <sub>first_run.dart:1462 · _MilestoneState._roman</sub>
+- **U43** · `Towny`  <sub>first_run.dart:1479 · _Wordmark.build</sub>
+- **U44** · `UN PUEBLO PARA CADA HÁBITO`  <sub>first_run.dart:1491 · _Wordmark.build</sub>
+- **U45** · `SE FUNDA`  <sub>first_run.dart:1526 · _FoundingName.build</sub>
 
 ### La pantalla de inicio
 
