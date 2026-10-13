@@ -1179,7 +1179,6 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
                     settle: _settledAt == null
                         ? 1
                         : clampD((_time - _settledAt!) / 1.6, 0, 1),
-                    lift: _lift,
                   ),
                 ),
               ),
@@ -1259,12 +1258,7 @@ class _ClearingSign extends StatelessWidget {
     required this.name,
     required this.symbol,
     required this.settle,
-    this.lift = 0,
   });
-
-  /// Cuánto está subido arriba de todo: ahí ya no está sobre el claro, y el
-  /// palo que lo clava en él se va.
-  final double lift;
 
   final String name;
   final String symbol;
@@ -1315,12 +1309,6 @@ class _ClearingSign extends StatelessWidget {
                   color: Color.lerp(_Ink.cream, _Ink.gold, brillo * 0.45),
                   shadows: _Ink.shadow,
                 ),
-              ),
-              const SizedBox(height: 6),
-              Container(
-                width: 1.4,
-                height: 18,
-                color: _Ink.cream.withValues(alpha: 0.7 * (1 - lift)),
               ),
             ],
           ),
