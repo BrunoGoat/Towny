@@ -2051,40 +2051,58 @@ class _Marks extends StatelessWidget {
   final String chosen;
   final void Function(String) onPick;
 
-  // Cuarenta y ocho de paso a propósito: en un teléfono de 390 entran seis
-  // columnas y media, y la media que asoma es lo que dice que hay más.
-  static const double _tile = 40, _gap = 8;
+  static const double _gap = 8;
   static const int _rows = 2;
+
+  /// **Siempre con una marca cortada por la mitad al final.** Antes la
+  /// medida era fija —cuarenta de lado— y se suponía que en un teléfono de
+  /// 390 asomaba media; en otros anchos entraban siete enteras justas, y
+  /// siete enteras se leen como que no hay más. Ahora se mide el ancho y se
+  /// elige el tamaño para que entren tantas y media: la media que asoma es
+  /// la que dice que se puede deslizar.
+  static double _tileFor(double ancho) {
+    const ideal = 44.0;
+    final enteras = math.max(
+      3,
+      ((ancho + _gap) / (ideal + _gap) - 0.5).round(),
+    );
+    return (ancho - enteras * _gap) / (enteras + 0.5);
+  }
 
   @override
   Widget build(BuildContext context) {
     final columnas = (habitSymbols.length + _rows - 1) ~/ _rows;
-    return SizedBox(
-      height: _rows * _tile + (_rows - 1) * _gap,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.zero,
-        itemCount: columnas,
-        itemBuilder: (_, col) => Padding(
-          padding: EdgeInsets.only(right: col == columnas - 1 ? 0 : _gap),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (var row = 0; row < _rows; row++)
-                Padding(
-                  padding: EdgeInsets.only(top: row == 0 ? 0 : _gap),
-                  child: _tileAt(col * _rows + row),
-                ),
-            ],
+    return LayoutBuilder(
+      builder: (_, box) {
+        final tile = _tileFor(box.maxWidth);
+        return SizedBox(
+          height: _rows * tile + (_rows - 1) * _gap,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsets.zero,
+            itemCount: columnas,
+            itemBuilder: (_, col) => Padding(
+              padding: EdgeInsets.only(right: col == columnas - 1 ? 0 : _gap),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (var row = 0; row < _rows; row++)
+                    Padding(
+                      padding: EdgeInsets.only(top: row == 0 ? 0 : _gap),
+                      child: _tileAt(col * _rows + row, tile),
+                    ),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
-  Widget _tileAt(int at) {
+  Widget _tileAt(int at, double tile) {
     if (at >= habitSymbols.length) {
-      return const SizedBox(width: _tile, height: _tile);
+      return SizedBox(width: tile, height: tile);
     }
     final m = habitSymbols[at];
     final elegida = m == chosen;
@@ -2092,8 +2110,8 @@ class _Marks extends StatelessWidget {
       onTap: () => onPick(m),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 220),
-        width: _tile,
-        height: _tile,
+        width: tile,
+        height: tile,
         alignment: Alignment.center,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
@@ -2106,7 +2124,7 @@ class _Marks extends StatelessWidget {
         child: HabitSigil(
           symbol: m,
           color: elegida ? _Ink.gold : _Ink.soft(0.80),
-          size: 20,
+          size: tile * 0.48,
         ),
       ),
     );
