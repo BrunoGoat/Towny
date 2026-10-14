@@ -281,7 +281,10 @@ List<Solid> folkSolids(
           : salta
           ? act!.bob * swing.abs()
           : 0.0);
-  final wag = at.moving ? math.sin(at.gait) * 0.014 : (act?.wag ?? 0.0) * swing;
+  // Andando no se ladea: va derecho, a saltitos. El vaivén de un pie al otro
+  // se leía como un zigzag del torso, y lo que dice «paso» ya lo dice el
+  // saltito.
+  final wag = at.moving ? 0.0 : (act?.wag ?? 0.0) * swing;
   final lean = at.moving ? 0.020 : (act?.lean ?? 0.0);
 
   /// Dónde le flota lo que lleva. No hay mano: hay un sitio a la altura y al

@@ -124,16 +124,40 @@ BirdVisit birdVisit(TownLayout l, int slot, double time, {bool day = true}) {
   final hace = posadoYa ? que(paso) : 0;
   var ang = sitio + corrido / r;
   var alto = 0.0;
+  // Un saltito: sube y baja en [desde, hasta] del compás, con el golpe seco
+  // de caer.
+  double brinco(double desde, double hasta) {
+    final a = clampD((f - desde) / (hasta - desde), 0, 1);
+    return 4 * a * (1 - a) * 0.022 * size;
+  }
+
   if (hace == 2) {
-    final s = smoothstep(0.1, 0.45, f);
-    ang += salto(paso) * s / r;
-    final arco = clampD((f - 0.1) / 0.35, 0, 1);
-    alto = 4 * arco * (1 - arco) * 0.035 * size;
+    // De costado no se desliza: va a saltitos, tres, cada uno un tercio.
+    const n = 3;
+    final g = clampD((f - 0.1) / 0.6, 0, 1) * n;
+    final k = math.min(g.floor(), n - 1);
+    final dentro = g - k;
+    final avance = (k + smoothstep(0.15, 0.85, dentro)) / n;
+    ang += salto(paso) * avance / r;
+    if (g < n) alto = 4 * dentro * (1 - dentro) * 0.022 * size;
+  }
+  // Para beber se arrima al agua de un saltito, y al terminar —si lo que
+  // sigue no es volver a beber— vuelve de otro.
+  var rr = r;
+  if (posadoYa && hace == 0) {
+    const arrimo = 0.03;
+    final venia = paso > 0 && que(paso - 1) == 0;
+    final sigue = paso + 1 < cosas && que(paso + 1) == 0;
+    final ida = venia ? 1.0 : smoothstep(0.0, 0.10, f);
+    final vuelta = sigue ? 0.0 : smoothstep(0.90, 1.0, f);
+    rr -= arrimo * (ida - vuelta);
+    if (!venia) alto += brinco(0.0, 0.10);
+    if (!sigue) alto += brinco(0.90, 1.0);
   }
   final posado = V3(
-    cx + math.cos(ang) * r,
+    cx + math.cos(ang) * rr,
     brocal + alto,
-    cz + math.sin(ang) * r,
+    cz + math.sin(ang) * rr,
   );
   // Mirando al agua, o un poco de lado.
   final alAgua = math.atan2(cz - posado.z, cx - posado.x);
@@ -223,9 +247,9 @@ BirdVisit birdVisit(TownLayout l, int slot, double time, {bool day = true}) {
       // Beber: baja el pico despacio, se queda un rato en el agua tragando,
       // lo sube, y levanta un poco la cabeza para que baje el trago —que es
       // lo que hacen los pájaros, que no saben sorber—.
-      final baja = smoothstep(0.04, 0.38, f) * (1 - smoothstep(0.58, 0.82, f));
+      final baja = smoothstep(0.10, 0.40, f) * (1 - smoothstep(0.50, 0.76, f));
       final traga = math.sin(f * math.pi * 6) * 0.04 * baja;
-      final alza = math.sin(clampD((f - 0.78) / 0.22, 0, 1) * math.pi);
+      final alza = math.sin(clampD((f - 0.76) / 0.14, 0, 1) * math.pi);
       pitch = 0.95 * baja + traga - 0.22 * alza;
     case 1:
       // Mirar: gira la cabeza a un lado, se queda mirando, y vuelve.
@@ -291,26 +315,36 @@ List<Facet> birdFaces(BirdVisit v, V3 eye) {
   final rr = V3(-f.z, 0, f.x);
   const up = V3(0, 1, 0);
   final vuela = v.doing != BirdDoing.perched;
-  // El cuerpo va un poco inclinado hacia arriba posado, y horizontal volando.
-  final cabeceo = vuela ? 0.0 : -0.25 + v.pitch;
-  final pivote = 1.6; // la altura del cuerpo, en `s`
+  // Posado, el cuerpo va un poco levantado de pecho; volando, horizontal.
+  // Al beber se inclina un poco hacia delante, desde la cadera —las patas
+  // se quedan donde están—, y lo que de verdad baja es el cuello.
+  final tronco = vuela ? 0.0 : -0.25 + 0.35 * v.pitch;
+  final cuello = vuela ? 0.0 : 0.85 * v.pitch;
+  const cadera = (0.0, 1.0), nuca = (1.15, 2.2);
+
+  (double, double) gira(double x, double y, (double, double) o, double a) {
+    if (a == 0) return (x, y);
+    final c = math.cos(a), sn = math.sin(a);
+    final dx = x - o.$1, dy = y - o.$2;
+    return (o.$1 + dx * c + dy * sn, o.$2 - dx * sn + dy * c);
+  }
 
   // Del espacio del pájaro —x adelante, y arriba, z a la derecha, en `s`— al
-  // mundo, con el cabeceo alrededor de la cadera y, para la cabeza, el giro
-  // de mirar alrededor del cuello.
-  V3 mundo(double x, double y, double z, {bool cabeza = false}) {
-    if (cabeza && v.look != 0) {
-      const cuelloX = 1.3;
-      final dx = x - cuelloX;
-      final c = math.cos(v.look), sn = math.sin(v.look);
-      x = cuelloX + dx * c - z * sn;
-      z = dx * sn + z * c;
+  // mundo. Tres partes que se mueven distinto: las patas no se mueven, el
+  // cuerpo se inclina alrededor de la cadera, y la cabeza además gira
+  // alrededor de la nuca —para mirar a los lados y para bajar a beber—.
+  V3 mundo(double x, double y, double z, {int parte = 1}) {
+    if (parte == 2) {
+      if (v.look != 0) {
+        final dx = x - nuca.$1;
+        final c = math.cos(v.look), sn = math.sin(v.look);
+        x = nuca.$1 + dx * c - z * sn;
+        z = dx * sn + z * c;
+      }
+      (x, y) = gira(x, y, nuca, cuello);
     }
-    final c = math.cos(cabeceo), sn = math.sin(cabeceo);
-    final dy = y - pivote;
-    final x2 = x * c + dy * sn;
-    final y2 = pivote - x * sn + dy * c;
-    return v.at + f * (x2 * s) + up * (y2 * s) + rr * (z * s);
+    if (parte >= 1) (x, y) = gira(x, y, cadera, tronco);
+    return v.at + f * (x * s) + up * (y * s) + rr * (z * s);
   }
 
   final out = <Facet>[];
@@ -320,11 +354,9 @@ List<Facet> birdFaces(BirdVisit v, V3 eye) {
   void solido(
     List<(double, double, double)> esquinas,
     int tinte, {
-    bool cabeza = false,
+    int parte = 1,
   }) {
-    final c = [
-      for (final (x, y, z) in esquinas) mundo(x, y, z, cabeza: cabeza),
-    ];
+    final c = [for (final (x, y, z) in esquinas) mundo(x, y, z, parte: parte)];
     for (final cara in hexFaces(c, Surface.own, tint: tinte)) {
       final a = cara.v.first;
       if ((eye - a).dot(cara.n) <= 0) continue;
@@ -340,7 +372,7 @@ List<Facet> birdFaces(BirdVisit v, V3 eye) {
     double z0,
     double z1,
     int tinte, {
-    bool cabeza = false,
+    int parte = 1,
   }) {
     solido(
       [
@@ -354,14 +386,14 @@ List<Facet> birdFaces(BirdVisit v, V3 eye) {
         (x0, y1, z1),
       ],
       tinte,
-      cabeza: cabeza,
+      parte: parte,
     );
   }
 
   // Las patas, posado: dos palitos.
   if (!vuela) {
-    caja(-0.15, 0.05, 0, 1.0, -0.45, -0.25, pico);
-    caja(-0.15, 0.05, 0, 1.0, 0.25, 0.45, pico);
+    caja(-0.15, 0.05, 0, 1.0, -0.45, -0.25, pico, parte: 0);
+    caja(-0.15, 0.05, 0, 1.0, 0.25, 0.45, pico, parte: 0);
   }
   // El cuerpo: más alto y más ancho delante, donde va el pecho, y más fino
   // hacia la cola, que es lo que hace que un taco se lea como un pájaro.
@@ -380,8 +412,8 @@ List<Facet> birdFaces(BirdVisit v, V3 eye) {
   // La cola, fina y hacia atrás.
   caja(-2.6, -1.2, 1.6, 1.9, -0.45, 0.45, alas);
   // La cabeza con su pico.
-  caja(0.9, 2.1, 2.0, 3.1, -0.6, 0.6, cabeza, cabeza: true);
-  caja(2.1, 2.9, 2.35, 2.65, -0.15, 0.15, pico, cabeza: true);
+  caja(0.9, 2.1, 2.0, 3.1, -0.6, 0.6, cabeza, parte: 2);
+  caja(2.1, 2.9, 2.35, 2.65, -0.15, 0.15, pico, parte: 2);
   // Las alas: plegadas sobre el lomo posado; en vuelo, abiertas y batiendo
   // desde el hombro.
   if (!vuela) {
