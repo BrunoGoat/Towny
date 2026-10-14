@@ -30,7 +30,7 @@ Habit _daily(String name, int days, {int hour = 8, int minute = 0}) =>
 void main() {
   group('la hoja de bienvenida del tablón', () {
     bool tiene(List<dynamic> notas) =>
-        notas.any((n) => n.said == 'Este es el tablón de Leer.');
+        notas.any((n) => n.said == 'Este es el tablón de anuncios de Leer.');
 
     test('está el primer día, aunque hayas clavado notas tuyas', () {
       final nuevo = _habit('Leer', const []);

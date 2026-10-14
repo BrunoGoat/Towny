@@ -132,16 +132,18 @@ String _cuando(DateTime at) {
 Notice emptyNotice(Habit h) {
   return Notice(
     NoticeKind.life,
-    tr('Este es el tablón de ${h.name}.', 'This is the board for ${h.name}.'),
     tr(
-      'Acá el pueblo va clavando lo que aprende de vos: a qué hora lo hacés, '
-          'qué días te cuestan, cuánto falta para la próxima obra. Los vecinos '
-          'dejan sus anuncios, y vos podés clavar los tuyos. Tocá una hoja '
-          'para leerla de cerca.',
-      'Here the town pins what it learns about you: the hour you do it, '
-          'which days are hard, how long until the next building. The '
-          'neighbours leave their notices, and you can pin your own. Tap a '
-          'sheet to read it up close.',
+      'Este es el tablón de anuncios de ${h.name}.',
+      'This is the notice board for ${h.name}.',
+    ),
+    tr(
+      'Acá el pueblo va clavando lo que aprende de vos y te brinda '
+          'información para ayudarte. También, los vecinos dejan sus '
+          'anuncios, y vos podés clavar los tuyos. Tocá una hoja para leerla '
+          'de cerca.',
+      'Here the town pins what it learns about you and gives you '
+          'information to help you. The neighbours also leave their notices, '
+          'and you can pin your own. Tap a sheet to read it up close.',
     ),
   );
 }
