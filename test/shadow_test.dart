@@ -30,7 +30,7 @@ void main() {
       cx: 200,
       cy: 400,
     );
-    final path = castShadowPath(p, pal, [(layout, 6)]);
+    final path = castShadowPath(p, pal, [(layout, 6, const [])]);
     final b = path.getBounds();
     expect(b.isEmpty, isFalse, reason: 'la sombra de delante no se pinta');
     // Y llega hasta debajo del borde de la pantalla (de 800 de alto): está a

@@ -8,6 +8,7 @@ import 'package:flutter/painting.dart';
 import '../core/math3.dart';
 import 'fountain.dart';
 import 'palette.dart';
+import 'solid.dart';
 import 'town.dart';
 
 /// La calidad máxima: lo que se le hace al cuadro cuando ya está pintado.
@@ -433,70 +434,98 @@ void drawCastShadows(
   Canvas canvas,
   Projector p,
   Palette pal,
-  Iterable<(TownLayout, int)> towns,
+  Iterable<(TownLayout, int, Iterable<ShadowCaster>)> towns,
 ) {
   final dia = pal.isDaylight;
   final fuerza = dia
       ? 0.56 * smoothstep(0.02, 0.20, pal.sunDir.y)
       : 0.20 * smoothstep(0.2, 0.8, 1 - pal.daylight);
   if (fuerza < 0.01) return;
-  final path = castShadowPath(p, pal, towns);
   final sombra = Color.lerp(pal.ink, pal.skyTop, dia ? 0.30 : 0.45)!;
-  canvas.drawPath(
-    path,
-    Paint()
-      ..color = sombra.withValues(alpha: fuerza)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.4),
-  );
+  // Dos trazados: lo macizo, y lo que deja pasar la luz —el agua—, que
+  // oscurece menos. Cada uno en un solo trazado para que donde dos sombras
+  // se pisan no se oscurezca el doble.
+  for (final claro in [false, true]) {
+    final path = castShadowPath(p, pal, towns, translucent: claro);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = sombra.withValues(alpha: fuerza * (claro ? 0.45 : 1.0))
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.4),
+    );
+  }
 }
 
 /// El trazado en pantalla de todas las sombras. Aparte para poder medirlo.
+///
+/// De dos clases de cosas: las piezas, por sus cajas ([shadowPointsOf]), y
+/// todo lo demás que echa sombra ([ShadowCaster]): los muebles que se
+/// archivaron con el pueblo y lo que se pinta este fotograma — la gente, los
+/// pájaros, el agua. Con [translucent], sólo lo que se transparenta.
 @visibleForTesting
 Path castShadowPath(
   Projector p,
   Palette pal,
-  Iterable<(TownLayout, int)> towns,
-) {
+  Iterable<(TownLayout, int, Iterable<ShadowCaster>)> towns, {
+  bool translucent = false,
+}) {
   final l = pal.lightDir;
   final ly = math.max(l.y, 0.10);
   final ox = -l.x / ly, oz = -l.z / ly;
 
   final path = Path();
   final xs = Float64List(40), zs = Float64List(40);
-  for (final (town, take) in towns) {
-    final n = math.min(take, town.pieces.length);
-    for (var i = 0; i < n; i++) {
-      final pc = town.pieces[i];
-      if (pc.y1 <= 0.02) continue;
-      var m = 0;
-      void at(double x, double y, double z) {
-        xs[m] = x + ox * y;
-        zs[m] = z + oz * y;
-        m++;
-      }
+  for (final (town, take, otros) in towns) {
+    if (!translucent) {
+      final n = math.min(take, town.pieces.length);
+      for (var i = 0; i < n; i++) {
+        final pc = town.pieces[i];
+        if (pc.y1 <= 0.02) continue;
+        var m = 0;
+        void at(double x, double y, double z) {
+          xs[m] = x + ox * y;
+          zs[m] = z + oz * y;
+          m++;
+        }
 
-      shadowPointsOf(pc, at);
-      _hullInto(path, p, xs, zs, m);
-    }
-    // Y la fuente y el tablón, que no son piezas pero están: a última hora la
-    // sombra de la fuente sale de la plaza y sigue por el prado. Van ya
-    // envueltos, que un sólido de la fuente tiene más vértices que caben acá.
-    if (town.solo) continue;
-    for (final s in plazaFurniture(town)) {
-      final hull = convexHull([
-        for (final f in s.faces)
-          for (final v in f.v) (v.x + ox * v.y, v.z + oz * v.y),
-      ]);
-      if (hull.length > xs.length) continue;
-      for (var i = 0; i < hull.length; i++) {
-        xs[i] = hull[i].$1;
-        zs[i] = hull[i].$2;
+        shadowPointsOf(pc, at);
+        _hullInto(path, p, xs, zs, m);
       }
-      _hullInto(path, p, xs, zs, hull.length);
+    }
+    for (final c in otros) {
+      if ((c.k < 1) != translucent) continue;
+      var alto = 0.0;
+      for (final v in c.pts) {
+        if (v.y > alto) alto = v.y;
+      }
+      // Lo que está pegado al suelo no echa sombra que se vea.
+      if (alto <= 0.02) continue;
+      // Lo que no se mueve vuelve fotograma tras fotograma con la misma
+      // lista: su envolvente en el suelo se guarda mientras el sol no se mueva.
+      final hay = _enSuelo[c.pts];
+      final List<(double, double)> pts;
+      if (hay != null && hay.$1 == ox && hay.$2 == oz) {
+        pts = hay.$3;
+      } else {
+        pts = c.pts.length <= xs.length
+            ? [for (final v in c.pts) (v.x + ox * v.y, v.z + oz * v.y)]
+            : convexHull([
+                for (final v in c.pts) (v.x + ox * v.y, v.z + oz * v.y),
+              ]);
+        _enSuelo[c.pts] = (ox, oz, pts);
+      }
+      if (pts.length > xs.length || pts.length < 3) continue;
+      for (var i = 0; i < pts.length; i++) {
+        xs[i] = pts[i].$1;
+        zs[i] = pts[i].$2;
+      }
+      _hullInto(path, p, xs, zs, pts.length);
     }
   }
   return path;
 }
+
+final Expando<(double, double, List<(double, double)>)> _enSuelo = Expando();
 
 final Float64List _hx = Float64List(84), _hz = Float64List(84);
 

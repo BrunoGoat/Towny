@@ -266,13 +266,50 @@ class TownPainter extends CustomPainter {
         }
       }
     }
+    // Lo que se mueve, resuelto una vez: se usa para su sombra, que va
+    // debajo de todo, y después para pintarlo en su sitio del orden.
+    _gentePintada.clear();
+    _aguaPintada.clear();
+    _sombraMovil.clear();
+    if (solo == null) {
+      for (var i = 0; i < scene.towns.length; i++) {
+        final e = scene.towns[i];
+        final take = math.min(e.placed, e.layout.pieces.length);
+        if (take <= 0 && !e.founded) continue;
+        _gentePintada[i] = _folkRiders(
+          p,
+          e,
+          _folkNow[i] ?? const <_Walker>[],
+          i,
+        );
+        _aguaPintada[i] = _plazaRiders(p, e, scene.palette, shadows: false);
+        _sombraMovil[i] = [
+          ..._casterDe(_gentePintada[i]!),
+          ..._casterDe(_aguaPintada[i]!),
+        ];
+      }
+    }
     if (scene.cinematic) {
       drawCastShadows(canvas, p, scene.palette, [
-        for (final e in scene.towns)
+        for (var i = 0; i < scene.towns.length; i++)
           // Con la plaza ya en el suelo, aunque no haya nada más: la fuente
           // echa sombra desde el día que se funda.
-          if (e.placed > 0 || (e.founded && scene.founding >= 1.0))
-            (e.layout, e.placed),
+          if (scene.towns[i].placed > 0 ||
+              (scene.towns[i].founded && scene.founding >= 1.0))
+            (
+              scene.towns[i].layout,
+              scene.towns[i].placed,
+              [
+                ...builtTown(
+                  scene.towns[i].layout,
+                  math.min(
+                    scene.towns[i].placed,
+                    scene.towns[i].layout.pieces.length,
+                  ),
+                ).casters,
+                ..._sombraMovil[i] ?? const [],
+              ],
+            ),
       ]);
     }
     for (var i = 0; i < scene.towns.length; i++) {
@@ -1249,9 +1286,20 @@ class TownPainter extends CustomPainter {
       // hoja, y para cualquier otra hoja hay un plano que las separa y que lo
       // pone del mismo lado que la suya. Su sitio en el orden es el de su hoja,
       // y eso sí es exacto.
+      final gente =
+          _gentePintada[w] ??
+          _folkRiders(p, e, _folkNow[w] ?? const <_Walker>[], w);
+      final agua = _aguaPintada[w] ?? _plazaRiders(p, e, pal, shadows: false);
       final vecinos = [
-        ..._plazaRiders(p, e, pal, water: false),
-        ..._folkRiders(p, e, _folkNow[w] ?? const <_Walker>[], w),
+        ..._plazaRiders(
+          p,
+          e,
+          pal,
+          water: false,
+          moving:
+              _sombraMovil[w] ?? [..._casterDe(gente), ..._casterDe(agua)],
+        ),
+        ...gente,
       ];
       // **El agua no baja por el árbol del pueblo cara a cara.** Son cientos
       // de caras, todas dentro de la fuente, y todas acabarían en la misma
@@ -1259,7 +1307,6 @@ class TownPainter extends CustomPainter {
       // donde caiga ésa va el agua entera; dentro de la hoja sí se reparte
       // cara a cara por los planos de la piedra, que es donde se juega si un
       // hilo pasa por delante o por detrás del pilar.
-      final agua = _plazaRiders(p, e, pal, shadows: false);
       OrderLeaf? fuente;
       if (agua.isNotEmpty) {
         final c = V3(e.layout.cx, 0.55, e.layout.cz);
@@ -1340,6 +1387,48 @@ class TownPainter extends CustomPainter {
   /// Se resuelve una vez por pueblo y por fotograma, no una vez por hoja del
   /// árbol: el recorrido los reparte, no los vuelve a calcular.
   /// La gente de cada pueblo, ya resuelta para este fotograma.
+  /// Lo que se mueve en cada pueblo este fotograma, ya hecho caras: la
+  /// gente, y el agua y los pájaros de la fuente. Se hace una vez y se usa
+  /// dos: para su sombra y para pintarlo.
+  final Map<int, List<Rider>> _gentePintada = {};
+  final Map<int, List<Rider>> _aguaPintada = {};
+  final Map<int, List<ShadowCaster>> _sombraMovil = {};
+
+  /// La sombra de todo lo que se pinta como jinete del árbol: cada cara la
+  /// suya. Es lo que hace que lo que se mueve tenga sombra sin pedirla.
+  ///
+  /// Menos las caras planas y tumbadas —una onda en el agua, la espuma, la
+  /// tapa de una caja—: lo que está acostado sobre algo deja la sombra sobre
+  /// eso mismo, y el resto de su cuerpo ya la echa por los lados.
+  ///
+  /// Juntas por dueño y por trozo de suelo de un palmo: la sombra de cada cara
+  /// suelta eran cientos de envolventes por fotograma, y la de las caras de
+  /// un mismo vecino en el mismo palmo es la envolvente de todas juntas.
+  static Iterable<ShadowCaster> _casterDe(List<Rider> riders) {
+    final juntos = <int, (List<V3>, double)>{};
+    for (final r in riders) {
+      final f = r.f;
+      if (f.n.y.abs() >= 0.95) continue;
+      final c = casterOf(f);
+      var sx = 0.0, sz = 0.0;
+      for (final v in f.v) {
+        sx += v.x;
+        sz += v.z;
+      }
+      // Lo que se transparenta, en trozos más grandes: sus sombras se suman
+      // donde se pisan, y en trozos chicos el agua dejaba un rayado.
+      final palmo = c.k < 1 ? 0.6 : 0.2;
+      final gx = (sx / f.v.length / palmo).floor() & 0x3FF;
+      final gz = (sz / f.v.length / palmo).floor() & 0x3FF;
+      final key =
+          (((r.tag & 0xFFFF) << 21) | (gx << 11) | (gz << 1)) |
+          (c.k < 1 ? 1 : 0);
+      final g = juntos.putIfAbsent(key, () => (<V3>[], c.k));
+      g.$1.addAll(c.pts);
+    }
+    return [for (final (pts, k) in juntos.values) (pts: pts, k: k)];
+  }
+
   final Map<int, List<_Walker>> _folkNow = {};
 
   List<_Walker> _folkOut(
@@ -1596,6 +1685,22 @@ class TownPainter extends CustomPainter {
     return out;
   }
 
+  /// La sombra sobre la plaza de lo que no se mueve —las piezas y los
+  /// muebles—, que sólo cambia cuando cambia el sol o se pone una pieza. Se
+  /// guarda entre fotogramas: rehacerla cada vez costaba más que pintarla.
+  static List<Facet> _plazaQuieta(TownLayout l, int take, Palette pal) {
+    final d = pal.lightDir;
+    final key = (take, pal.isDaylight, d.x, d.y, d.z, pal.daylight);
+    final hay = _quietas[l];
+    if (hay != null && hay.$1 == key) return hay.$2;
+    final hecha = plazaShadows(l, take, pal, builtTown(l, take).casters);
+    _quietas[l] = (key, hecha);
+    return hecha;
+  }
+
+  static final Expando<((int, bool, double, double, double, double), List<Facet>)>
+  _quietas = Expando();
+
   /// Lo que va por el árbol con la gente sin ser gente: el agua de la fuente
   /// y las sombras sobre el césped de la plaza. Van con [Rider.seq] negativo
   /// —antes que cualquier vecino del mismo hueco: la sombra está en el suelo
@@ -1606,6 +1711,7 @@ class TownPainter extends CustomPainter {
     Palette pal, {
     bool shadows = true,
     bool water = true,
+    Iterable<ShadowCaster> moving = const [],
   }) {
     final l = e.layout;
     if (l.solo) return const [];
@@ -1614,11 +1720,11 @@ class TownPainter extends CustomPainter {
     // que hay en el suelo.
     var seq = (water ? -1 : -2) << 20;
     if (shadows && scene.cinematic) {
-      for (final f in plazaShadows(
-        l,
-        math.min(e.placed, l.pieces.length),
-        pal,
-      )) {
+      final take = math.min(e.placed, l.pieces.length);
+      for (final f in [
+        ..._plazaQuieta(l, take, pal),
+        ...plazaShadows(l, 0, pal, moving),
+      ]) {
         out.add(Rider(f, seq++, -1));
       }
     }

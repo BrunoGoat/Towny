@@ -8,6 +8,7 @@ import 'package:towny/engine/fountain_birds.dart';
 import 'package:towny/engine/palette.dart';
 import 'package:towny/engine/solids.dart';
 import 'package:towny/engine/town.dart';
+import 'package:towny/engine/world.dart';
 
 void main() {
   final l = TownLayout(120, TownCharacter.forSlot(0));
@@ -59,7 +60,12 @@ void main() {
   });
 
   test('la fuente y el tablón echan sombra sobre la plaza', () {
-    final sombras = plazaShadows(l, 0, Palette.forMoment(8));
+    final sombras = plazaShadows(
+      l,
+      0,
+      Palette.forMoment(8),
+      builtTown(l, 0).casters,
+    );
     expect(sombras, isNotEmpty);
     final r = TownLayout.plazaReach;
     for (final f in sombras) {

@@ -315,3 +315,36 @@ class Aabb {
     return math.sqrt(dx * dx + dy * dy + dz * dz) / 2;
   }
 }
+
+/// Algo que echa sombra: sus puntos en el mundo, y cuánto tapa la luz —uno
+/// lo macizo, menos lo que se transparenta, como el agua—.
+///
+/// **Toda la sombra sale de aquí.** No hay una sombra por cosa: lo que se
+/// archiva como mueble del pueblo deja su sombra al archivarse, y lo que se
+/// mueve —la gente, los pájaros, el agua— la deja por el solo hecho de
+/// pintarse. Lo que se añada mañana tiene sombra sin que nadie se acuerde de
+/// dársela. Ver `castShadowPath` y `plazaShadows`.
+typedef ShadowCaster = ({List<V3> pts, double k});
+
+/// Lo que echa sombra de una cara: sus esquinas, y lo opaca que es por su
+/// color —un tinte transparente, como el del agua, tapa menos—.
+ShadowCaster casterOf(Facet f) {
+  final t = f.tint;
+  final a = t == null ? 1.0 : ((t >> 24) & 0xFF) / 255.0;
+  return (pts: f.v, k: a >= 0.99 ? 1.0 : 0.35 + 0.4 * a);
+}
+
+/// Lo que echa sombra de un sólido: todas sus esquinas, o nada si no se
+/// levanta del suelo lo bastante como para que se vea.
+ShadowCaster? casterOfSolid(Solid s, {double over = 0.12}) {
+  final pts = <V3>[];
+  var top = -double.infinity;
+  for (final f in s.faces) {
+    for (final v in f.v) {
+      pts.add(v);
+      if (v.y > top) top = v.y;
+    }
+  }
+  if (pts.length < 3 || top < over) return null;
+  return (pts: pts, k: 1.0);
+}

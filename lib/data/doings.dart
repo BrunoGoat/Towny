@@ -191,8 +191,9 @@ class Doing {
   /// con lo agachado que está alguien.
   final bool lying;
 
-  /// Sentado en el suelo: el cuerpo entero, a su altura, y las piernas
-  /// estiradas hacia delante, del mismo color — una L. Agacharlo lo
+  /// Sentado: la postura de sentarse de todos, en el suelo o en lo que haya
+  /// (ver `folkSolids`). El torso, dos tercios del cuerpo, y las piernas, el
+  /// otro tercio, hacia delante y del mismo color — una L. Agacharlo lo
   /// encogía, y alguien encogido se lee como más chico, no como sentado.
   final bool seated;
 
@@ -264,12 +265,12 @@ class Doing {
       'se sienta en una banqueta',
       where: Where.door,
       weight: 1.6,
-      sink: 1.0,
       bob: 0.005,
       rate: 0.45,
       lean: -0.02,
       turn: 0.7,
       prop: PropKind.stool,
+      seated: true,
     ),
 
     Doing(
@@ -401,11 +402,11 @@ class Doing {
       'pesca',
       where: Where.water,
       weight: 1.2,
-      sink: 0.92,
       bob: 0.004,
       rate: 0.35,
       turn: 0.08,
       prop: PropKind.rod,
+      seated: true,
     ),
 
     Doing(

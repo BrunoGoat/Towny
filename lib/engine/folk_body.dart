@@ -254,7 +254,7 @@ List<Solid> folkSolids(
   /// **encima** de ella y no delante: sin esto el cuerpo seguía arrancando del
   /// suelo y la banqueta le salía por dentro, que era alguien de pie sobre una
   /// mesita.
-  final asiento = act?.prop == PropKind.stool ? 0.30 - baja * 0.5 : 0.0;
+  final asiento = sentado && act?.prop == PropKind.stool ? _banqueta : 0.0;
 
   // Lo único que anima a alguien sin brazos ni piernas: que suba y baje, que
   // se incline y que se balancee. Y alcanza de sobra — el paso de unas piernas
@@ -436,21 +436,38 @@ List<Solid> folkSolids(
     pano,
     1.0,
   );
-  // Sentado en el suelo: las piernas, estiradas hacia delante desde el pie
-  // del cuerpo y del mismo color, que con el cuerpo hacen una L. Es lo
-  // mínimo que dice «sentado» sin encoger a nadie.
+  // **Sentado: una sola postura para todos.** Leer en el prado, pescar en
+  // la orilla, sentarse en la banqueta de la puerta: cualquier actividad
+  // que diga [Doing.seated] se sienta así, y cambiar cómo se sienta la gente
+  // es cambiar esto y nada más.
+  //
+  // Las piernas, del mismo color que el cuerpo, salen hacia delante desde su
+  // pie: con el cuerpo hacen una L. Tan largas como lo que el cuerpo perdió
+  // de alto, un tercio. Y si el asiento no es el suelo, bajan hasta él.
   if (sentado) {
-    // Tan largas como lo que el cuerpo perdió de alto: un tercio.
+    final frente = 0.116 + lean * 0.5;
     box(
       -0.150 + wag,
       piso,
-      0.116 + lean * 0.5 - 0.02,
+      frente - 0.02,
       0.150 + wag,
       piso + 0.13,
-      0.116 + lean * 0.5 + _piernas,
+      frente + _piernas,
       pano,
       0.97,
     );
+    if (piso > 0.02) {
+      box(
+        -0.150 + wag,
+        0.0,
+        frente + _piernas - 0.11,
+        0.150 + wag,
+        piso,
+        frente + _piernas,
+        pano,
+        0.95,
+      );
+    }
   }
   box(
     -0.205 + wag * 0.4,
@@ -1525,9 +1542,9 @@ List<Solid> folkSolids(
       );
 
     case PropKind.stool:
-      // Una banqueta de tres patas. El asiento a la altura a la que la tabla
-      // ya le ha bajado el cuerpo, así que se sienta en ella y no sobre ella.
-      final alto = 0.30 - baja * 0.5;
+      // Una banqueta de tres patas, a la altura a la que se sienta quien se
+      // sienta en ella (ver [_banqueta]).
+      const alto = _banqueta;
       box(-0.135, alto - 0.045, -0.120, 0.135, alto, 0.120, _wood2, 0.88);
       for (final (px, pz) in [
         (-0.095, -0.080),
@@ -1553,3 +1570,6 @@ List<Solid> folkSolids(
 /// Lo que miden las piernas de alguien sentado en el suelo: un tercio del
 /// cuerpo, que de pie mide 0,56. Ver [Doing.seated].
 const double _piernas = 0.56 / 3;
+
+/// A qué altura queda el asiento de una banqueta.
+const double _banqueta = 0.20;

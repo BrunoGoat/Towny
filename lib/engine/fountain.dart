@@ -701,27 +701,6 @@ void shadowPointsOf(
   }
 }
 
-/// Los muebles de la plaza que echan sombra —la fuente y el tablón—, como
-/// sólidos del mundo. Hechos una vez por plaza.
-final Map<String, List<Solid>> _furniture = {};
-
-List<Solid> plazaFurniture(TownLayout l) =>
-    _furniture['${l.cx},${l.cz}'] ??= () {
-      if (_furniture.length > 16) _furniture.clear();
-      final todo = [
-        ...Plaza.solidsAt(l.cx, l.cz, TownLayout.plazaReach),
-        ...NoticeBoard.solidsAt(l.cx, l.cz),
-      ];
-      // Lo que asoma del suelo: el bordillo y la hierba de la plaza no echan
-      // sombra que se vea, y el agua tampoco.
-      return [
-        for (final s in todo)
-          if (s.faces.any((f) => f.v.any((v) => v.y > 0.15)) &&
-              !s.faces.any((f) => f.surface == Surface.own))
-            s,
-      ];
-    }();
-
 /// La envolvente convexa de unos puntos del suelo, en el sentido contrario a
 /// las agujas mirando desde arriba.
 List<(double, double)> convexHull(List<(double, double)> pts) {
@@ -786,7 +765,16 @@ List<(double, double)> clipConvex(
 /// y el tablón no echaban ninguna. Aquí se calculan sobre cada uno de los
 /// tres suelos de la plaza —el césped, el bordillo y su canto, cada uno a su
 /// altura— y se recortan a él, y se pintan de su color a la sombra.
-List<Facet> plazaShadows(TownLayout l, int placed, Palette pal) {
+///
+/// Echan sombra las piezas, y todo lo que diga [casters]: los muebles que se
+/// archivaron con el pueblo y lo que se pinta este fotograma —la gente, los
+/// pájaros, el agua—. Ver [ShadowCaster].
+List<Facet> plazaShadows(
+  TownLayout l,
+  int placed,
+  Palette pal, [
+  Iterable<ShadowCaster> casters = const [],
+]) {
   final dia = pal.isDaylight;
   final fuerza = dia
       ? 0.56 * smoothstep(0.02, 0.20, pal.sunDir.y)
@@ -800,7 +788,7 @@ List<Facet> plazaShadows(TownLayout l, int placed, Palette pal) {
 
   // Lo que echa sombra, como puntos en el aire: la sombra de cada cosa sobre
   // un suelo a la altura `y` es la envolvente de esos puntos llevados a él.
-  final echan = <List<V3>>[];
+  final echan = <(List<V3>, double)>[];
   final n = math.min(placed, l.pieces.length);
   final largo = math.sqrt(ox * ox + oz * oz);
   for (var i = 0; i < n; i++) {
@@ -811,11 +799,33 @@ List<Facet> plazaShadows(TownLayout l, int placed, Palette pal) {
     if (dx * dx + dz * dz > alcance * alcance) continue;
     final pts = <V3>[];
     shadowPointsOf(pc, (x, y, z) => pts.add(V3(x, y, z)));
-    if (pts.length >= 3) echan.add(pts);
+    if (pts.length >= 3) echan.add((pts, 1.0));
   }
-  for (final s in plazaFurniture(l)) {
-    echan.add([for (final f in s.faces) ...f.v]);
+  // Y lo demás, si puede llegar con su sombra hasta la plaza.
+  for (final c in casters) {
+    if (c.pts.length < 3) continue;
+    var cerca = false, alto = 0.0;
+    for (final v in c.pts) {
+      if (v.y > alto) alto = v.y;
+    }
+    if (alto <= Plaza.lawnTop + 0.01) continue;
+    final alcance = reach + largo * alto + 0.5;
+    for (final v in c.pts) {
+      final dx = v.x - cx, dz = v.z - cz;
+      if (dx * dx + dz * dz < alcance * alcance) {
+        cerca = true;
+        break;
+      }
+    }
+    if (cerca) echan.add((c.pts, c.k));
   }
+  // Cada sombra se pinta del color del suelo ya oscurecido, no encima de la
+  // otra: donde se pisan, gana la última. Así que lo que se transparenta va
+  // antes, y la sombra entera tapa a la clara; al revés, el agua dejaba la
+  // de la piedra rayada de claro.
+  echan.sort((a, b) => a.$2.compareTo(b.$2));
+  // Lo que cae entero bajo la fuente no se ve: la tapa el pilón.
+  final pilon = Plaza.basinOf(reach) * 1.02;
 
   // Los suelos: el césped entero, y el anillo de piedra en ocho trozos, que
   // un anillo no es convexo y cada trozo sí.
@@ -830,8 +840,8 @@ List<Facet> plazaShadows(TownLayout l, int placed, Palette pal) {
   // Del color de cada suelo, oscurecido lo mismo que oscurece la sombra del
   // prado —que es [fuerza] de tinta encima—, para que la de una casa que
   // empieza en el prado y acaba en la plaza se lea como una sola. `ao` escala
-  // la luz entera, y la tinta es casi negra: con eso basta.
-  final oscuro = 1 - fuerza * 0.92;
+  // la luz entera, y la tinta es casi negra: con eso basta. Lo que se
+  // transparenta oscurece menos (ver [ShadowCaster.k]).
   final suelos = [
     (
       Plaza.lawnTop,
@@ -856,18 +866,55 @@ List<Facet> plazaShadows(TownLayout l, int placed, Palette pal) {
     ),
   ];
 
+  // La caja de cada trozo de suelo, y hasta dónde llega el césped sin tocar
+  // el bordillo.
+  final cajas = <List<(double, double)>, (double, double, double, double)>{
+    for (final (_, trozos, _, _, _) in suelos)
+      for (final t in trozos)
+        t: (
+          t.map((q) => q.$1).reduce(math.min),
+          t.map((q) => q.$1).reduce(math.max),
+          t.map((q) => q.$2).reduce(math.min),
+          t.map((q) => q.$2).reduce(math.max),
+        ),
+  };
+  final dentro = reach * Plaza.lawnOut * math.cos(math.pi / 8) - 0.01;
+
   final out = <Facet>[];
   for (final (alto, trozos, surface, tint, ao) in suelos) {
     final y = alto + 0.004;
-    for (final pts in echan) {
-      final suelo = [
-        for (final v in pts)
-          if (v.y > alto - 1e-6)
-            (v.x + ox * (v.y - alto), v.z + oz * (v.y - alto)),
-      ];
+    for (final (pts, k) in echan) {
+      // Llevado al suelo, y de paso su caja y cuánto se aleja del centro:
+      // con eso se descarta lo que no toca este suelo antes de hacer nada
+      // caro. Son cientos de cosas por fotograma —cada cara de cada vecino,
+      // cada tramo de agua— y casi ninguna llega a cada suelo.
+      final suelo = <(double, double)>[];
+      var x0 = double.infinity, x1 = -double.infinity;
+      var z0 = double.infinity, z1 = -double.infinity;
+      var r2 = 0.0;
+      for (final v in pts) {
+        if (v.y <= alto - 1e-6) continue;
+        final x = v.x + ox * (v.y - alto), z = v.z + oz * (v.y - alto);
+        suelo.add((x, z));
+        if (x < x0) x0 = x;
+        if (x > x1) x1 = x;
+        if (z < z0) z0 = z;
+        if (z > z1) z1 = z;
+        final d = (x - cx) * (x - cx) + (z - cz) * (z - cz);
+        if (d > r2) r2 = d;
+      }
       if (suelo.length < 3) continue;
+      // Entera bajo la fuente: la tapa el pilón.
+      if (alto == Plaza.lawnTop && r2 < pilon * pilon) continue;
+      // Entera dentro del césped: no llega al bordillo.
+      if (alto != Plaza.lawnTop && r2 < dentro * dentro) continue;
       final sombra = convexHull(suelo);
+      final cuanto = 1 - fuerza * 0.92 * k;
       for (final trozo in trozos) {
+        final caja = cajas[trozo]!;
+        if (x1 < caja.$1 || x0 > caja.$2 || z1 < caja.$3 || z0 > caja.$4) {
+          continue;
+        }
         final c = clipConvex(sombra, trozo);
         if (c.length < 3) continue;
         out.add(
@@ -875,7 +922,7 @@ List<Facet> plazaShadows(TownLayout l, int placed, Palette pal) {
               [for (final p in c) V3(p.$1, y, p.$2)],
               const V3(0, 1, 0),
               surface,
-              ao: ao * oscuro,
+              ao: ao * cuanto,
               tint: tint,
             )
             ..data = l.character.order

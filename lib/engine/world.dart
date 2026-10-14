@@ -104,7 +104,13 @@ class BuiltTown {
     this.solid = const [],
     this.board = const [],
     this.notices = const [],
+    this.casters = const [],
   });
+
+  /// La sombra de todo lo que se archivó como mueble —la plaza, la fuente,
+  /// el tablón, los huertos, los árboles de las parcelas—, apuntada al
+  /// archivarlo. Ver [ShadowCaster]: lo que se archive mañana entra solo.
+  final List<ShadowCaster> casters;
 
   /// Las caras de la plancha del tablón, que son las que llevan los papeles.
   ///
@@ -397,8 +403,10 @@ BuiltTown _build(TownLayout layout, int placed, BuiltTown? before) {
   final weather = <int>[];
   final weatherBox = <Aabb>[];
   var from = 0;
+  final sombras = <ShadowCaster>[];
   if (before != null && before.placed <= take && before.clusters.isNotEmpty) {
     from = before.placed;
+    sombras.addAll(before.casters);
     for (final c in before.clusters) {
       faces.add(c.source);
       bounds.add(c.bounds);
@@ -550,6 +558,8 @@ BuiltTown _build(TownLayout layout, int placed, BuiltTown? before) {
       if (box == null) continue;
       asFurniture(solid, box);
       if (board) asBoard(solid);
+      final sombra = casterOfSolid(solid);
+      if (sombra != null) sombras.add(sombra);
       file(solid, box, const <int>{});
     }
   }
@@ -693,6 +703,7 @@ BuiltTown _build(TownLayout layout, int placed, BuiltTown? before) {
       solid: macizos,
       board: tablon,
       notices: [...layout.notices],
+      casters: sombras,
     );
   }
 
@@ -795,6 +806,7 @@ BuiltTown _build(TownLayout layout, int placed, BuiltTown? before) {
     solid: macizos,
     board: tablon,
     notices: [...layout.notices],
+    casters: sombras,
   );
 }
 

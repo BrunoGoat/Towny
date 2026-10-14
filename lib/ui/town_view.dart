@@ -1495,7 +1495,7 @@ class _TownViewState extends State<TownView>
     // A la altura de los ojos se la ve mejor, pero en un pueblo apretado lo
     // que hay entre la cámara y una persona es casi siempre una pared: se
     // probó, y lo que se veía era el encalado de la casa de enfrente.
-    _cam.distanceTarget = 4.6;
+    _cam.distanceTarget = 5.06;
     _cam.pitchTarget = 0.75;
     _aimAtFollowed();
     widget.onFolkTapped?.call(card);

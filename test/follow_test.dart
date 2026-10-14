@@ -339,7 +339,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
       expect(ficha, isNotNull, reason: 'tocarlo no dijo quién es');
       expect(mando.following, isNotNull);
-      expect(mando.distanceTarget, lessThan(5));
+      expect(mando.distanceTarget, lessThan(5.5));
 
       // Lo sigue: en cada momento, la mira está donde está él.
       final quien = mando.following!;
