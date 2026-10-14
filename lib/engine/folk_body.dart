@@ -241,11 +241,12 @@ List<Solid> folkSolids(
   // El cuerpo entero sale de cinco números de la tabla. No hay un caso por
   // actividad: hay una manera de moverse, y sesenta juegos de números.
   final sit = act?.sink ?? 0.0;
-  // Sentado en el suelo pierde la mitad de abajo del cuerpo —las piernas,
-  // que pasan a ir hacia delante— y no un poco de todo: el torso es la
-  // mitad de arriba, y la cabeza baja con él. Ver [Doing.seated].
+  // Sentado en el suelo pierde lo de abajo del cuerpo —las piernas, que
+  // pasan a ir hacia delante— y no un poco de todo: el torso son los dos
+  // tercios de arriba, las piernas el tercio de abajo, y la cabeza baja con
+  // el torso. Ver [Doing.seated].
   final sentado = !at.moving && (act?.seated ?? false);
-  final baja = sentado ? 0.28 : sit * 0.26;
+  final baja = sentado ? _piernas : sit * 0.26;
 
   /// A qué altura tiene los pies.
   ///
@@ -439,14 +440,14 @@ List<Solid> folkSolids(
   // del cuerpo y del mismo color, que con el cuerpo hacen una L. Es lo
   // mínimo que dice «sentado» sin encoger a nadie.
   if (sentado) {
-    // Tan largas como lo que el cuerpo perdió de alto.
+    // Tan largas como lo que el cuerpo perdió de alto: un tercio.
     box(
       -0.150 + wag,
       piso,
       0.116 + lean * 0.5 - 0.02,
       0.150 + wag,
       piso + 0.13,
-      0.116 + lean * 0.5 + 0.28,
+      0.116 + lean * 0.5 + _piernas,
       pano,
       0.97,
     );
@@ -554,7 +555,7 @@ List<Solid> folkSolids(
       // lee sentado.
       // Delante y en medio, sobre las piernas: sentado en el suelo el libro
       // se sostiene encima del regazo, no a un costado.
-      final m = hold(0, 0.58, 0.06);
+      final m = hold(0, 0.42, 0.06);
       final y = m.$2, z = m.$3;
       const ancho = 0.140, fondo = 0.128;
       // El lomo.
@@ -1548,3 +1549,7 @@ List<Solid> folkSolids(
 
   return out;
 }
+
+/// Lo que miden las piernas de alguien sentado en el suelo: un tercio del
+/// cuerpo, que de pie mide 0,56. Ver [Doing.seated].
+const double _piernas = 0.56 / 3;
