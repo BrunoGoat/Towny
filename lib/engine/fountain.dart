@@ -65,6 +65,7 @@ List<Facet> fountainWater(
   double time,
   Palette pal, {
   double detail = 1,
+  bool Function(V3 at, double radius)? seen,
 }) {
   final cx = l.cx, cz = l.cz;
   final reach = TownLayout.plazaReach;
@@ -614,9 +615,11 @@ List<Facet> fountainWater(
   // De lejos a cerca.
   // Y los pájaros que bajan a beber, ordenados con el agua: uno posado del
   // otro lado del pilón queda detrás del velo, y uno de este lado, delante.
-  if (medio) {
-    fountainBirds(l, eye, time, pal, (d, caras) => pon((d, caras)));
-  }
+  //
+  // A cualquier distancia, no sólo de cerca: un pájaro no se apaga porque se
+  // aleje la cámara. Deja de estar cuando sale del cuadro o cuando ya no
+  // llega a un píxel, que es lo que dice [seen].
+  fountainBirds(l, eye, time, pal, (d, caras) => pon((d, caras)), seen: seen);
 
   final orden = List<int>.generate(hondo.length, (i) => i)
     ..sort((a, b) => hondo[b].compareTo(hondo[a]));

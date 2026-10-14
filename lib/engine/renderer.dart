@@ -1635,6 +1635,18 @@ class TownPainter extends CustomPainter {
         scene.time,
         pal,
         detail: px > 110 ? 1 : (px > 45 ? 0.5 : 0.2),
+        // Dentro del cuadro y de al menos medio píxel: lo que no se vería.
+        seen: (at, r) {
+          final c = p.cameraOf(at);
+          if (c.z <= p.near) return false;
+          final radio = p.focal / c.z * r;
+          if (radio < 0.5) return false;
+          final x = p.screenX(c.x, c.z), y = p.screenY(c.y, c.z);
+          return x > -radio &&
+              x < 2 * p.cx + radio &&
+              y > -radio &&
+              y < 2 * p.cy + radio;
+        },
       )) {
         out.add(Rider(f, seq++, -1));
       }

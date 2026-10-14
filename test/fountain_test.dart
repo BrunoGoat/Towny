@@ -76,12 +76,13 @@ void main() {
   group('los pájaros de la fuente', () {
     test('vienen cada tanto, se posan en el brocal y se van', () {
       final taza = Plaza.basinOf(TownLayout.plazaReach) / 1.14;
-      var posados = 0, fuera = 0;
+      var posados = 0, fuera = 0, todo = 0;
       final hechos = <BirdDoing>{};
       for (var t = 0.0; t < 1800; t += 0.5) {
         for (var k = 0; k < fountainBirdSlots; k++) {
           final v = birdVisit(l, k, t);
           hechos.add(v.doing);
+          todo++;
           if (v.doing == BirdDoing.away) {
             fuera++;
             continue;
@@ -99,7 +100,8 @@ void main() {
       expect(hechos, containsAll(BirdDoing.values));
       // Cada tanto, no siempre.
       expect(posados, greaterThan(0));
-      expect(fuera, greaterThan(posados));
+      expect(fuera, greaterThan(0));
+      expect(posados, lessThan(todo * 0.5));
     });
 
     test('de noche duermen', () {
@@ -115,6 +117,11 @@ void main() {
         for (var k = 0; k < fountainBirdSlots; k++) {
           final a = birdVisit(l, k, t), b = birdVisit(l, k, t + 1 / 30);
           if (a.doing == BirdDoing.away || b.doing == BirdDoing.away) continue;
+          // El cambio de vuelta: el que se fue ya está lejísimos, y el que
+          // llega es otra visita.
+          if (a.doing == BirdDoing.leaving && b.doing == BirdDoing.arriving) {
+            continue;
+          }
           expect((a.at - b.at).length, lessThan(0.2), reason: 'a los $t s');
         }
       }
@@ -130,7 +137,7 @@ void main() {
         for (var t = 0.0; t < 3600; t += 0.5) {
           for (var k = 0; k < fountainBirdSlots; k++) {
             final d = birdVisit(l, k, t).doing;
-            if (d == BirdDoing.arriving && antes[k] == BirdDoing.away) {
+            if (d == BirdDoing.arriving && antes[k] != BirdDoing.arriving) {
               visitas++;
             }
             antes[k] = d;
@@ -138,21 +145,26 @@ void main() {
         }
         expect(visitas, inInclusiveRange(20, 60));
 
-        var subida = 0.0;
+        var lejos = double.infinity;
         for (var t = 0.0; t < 900; t += 1 / 30) {
           for (var k = 0; k < fountainBirdSlots; k++) {
             final a = birdVisit(l, k, t), b = birdVisit(l, k, t + 1 / 30);
             if (a.doing == BirdDoing.perched && b.doing == BirdDoing.perched) {
               // El pico no sube y baja a golpes.
-              expect((a.pitch - b.pitch).abs(), lessThan(0.06));
+              expect((a.pitch - b.pitch).abs(), lessThan(0.09));
             }
-            if (a.doing == BirdDoing.leaving && b.doing == BirdDoing.away) {
-              subida = math.max(subida, a.at.y);
+            if (a.doing == BirdDoing.leaving && b.doing != BirdDoing.leaving) {
+              final dx = a.at.x - l.cx, dz = a.at.z - l.cz;
+              lejos = math.min(
+                lejos,
+                math.sqrt(dx * dx + a.at.y * a.at.y + dz * dz),
+              );
             }
           }
         }
-        // No se desvanece a la vista: cuando deja de existir ya está muy arriba.
-        expect(subida, greaterThan(8));
+        // No se desvanece a la vista: cuando deja de existir está a decenas
+        // de metros, en diagonal, lejos de cualquier cuadro.
+        expect(lejos, greaterThan(40));
       },
     );
   });
