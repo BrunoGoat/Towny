@@ -262,28 +262,46 @@ class Cinema {
           ),
       );
     }
-    // Y el destello del propio sol: una estrella de seis puntas muy floja.
+    // La estrella de seis puntas del sol ya no va acá: ver [sunStar].
+  }
+
+  /// La estrella de seis puntas del sol, **en el cielo y no en la lente**.
+  ///
+  /// Se pintaba al final, encima del cuadro entero, y eso tenía dos fallos
+  /// que se veían juntos: las puntas cruzaban el disco del sol —parecían
+  /// rayos delante del sol, no saliendo de él— y seguían por encima de una
+  /// casa o un monte que lo tapara. Ahora la pinta el cielo, antes del disco
+  /// y antes de todo lo demás: el disco queda delante de sus puntas, y lo
+  /// que está delante del sol queda delante de ellas.
+  static void sunStar(
+    Canvas canvas,
+    Palette pal,
+    Offset sol,
+    double base,
+    double disco,
+  ) {
+    final golden = _goldenOf(pal);
+    final a = smoothstep(0.06, 0.24, pal.sunDir.y) * (0.55 + golden * 0.45);
+    if (a < 0.02) return;
+    final tinte = Color.lerp(pal.sun, const Color(0xFFFF9A4D), golden)!;
     final largo = base * (0.22 + golden * 0.18);
-    for (var i = 0; i < 3; i++) {
+    for (var i = 0; i < 6; i++) {
+      // Seis medias puntas que salen del borde del disco, no tres rayas que
+      // lo atraviesan.
       final ang = i * math.pi / 3 + 0.3;
-      final d = Offset(math.cos(ang), math.sin(ang)) * largo;
+      final u = Offset(math.cos(ang), math.sin(ang));
+      final desde = sol + u * (disco * 0.9);
+      final hasta = sol + u * largo;
       canvas.drawLine(
-        sol - d,
-        sol + d,
+        desde,
+        hasta,
         Paint()
-          ..blendMode = BlendMode.plus
           ..strokeWidth = 1.6
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.5)
-          ..shader = ui.Gradient.linear(
-            sol - d,
-            sol + d,
-            [
-              tinte.withValues(alpha: 0),
-              tinte.withValues(alpha: 0.35 * a),
-              tinte.withValues(alpha: 0),
-            ],
-            [0.0, 0.5, 1.0],
-          ),
+          ..shader = ui.Gradient.linear(desde, hasta, [
+            tinte.withValues(alpha: 0.45 * a),
+            tinte.withValues(alpha: 0),
+          ]),
       );
     }
   }

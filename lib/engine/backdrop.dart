@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import '../core/math3.dart';
 import '../core/rng.dart';
 import '../data/constellations.dart';
+import 'cinema.dart';
 import 'landscape.dart';
 import 'scene.dart';
 import 'shooting_star.dart';
@@ -286,6 +287,11 @@ class Backdrop {
           ],
         ),
     );
+    // En calidad máxima, la estrella del sol detrás del disco (ver
+    // [Cinema.sunStar]).
+    if (day && scene.cinematic) {
+      Cinema.sunStar(canvas, pal, Offset(sx, sy), size.shortestSide, r);
+    }
     final cara = Paint()..color = disc.withValues(alpha: 0.94);
     if (day) {
       canvas.drawCircle(Offset(sx, sy), r, cara);
