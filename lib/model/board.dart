@@ -136,14 +136,11 @@ Notice emptyNotice(Habit h) {
     NoticeKind.life,
     tr('Este es el tablón de ${h.name}.', 'This is the board for ${h.name}.'),
     tr(
-      'A medida que vayas poniendo piezas, acá van a ir apareciendo cosas que '
-          'el pueblo aprende de vos: a qué hora lo hacés, qué días de la '
-          'semana te cuestan, cuánto tardás en volver. Y la gente del pueblo clava sus anuncios cada día.'
+      'Con cada pieza, acá va apareciendo lo que el pueblo aprende de vos. '
+          'Y los vecinos clavan sus anuncios.'
           '${dias == 0 ? ' Empezá por la primera pieza.' : ''}',
-      "As you place pieces, things the town learns about you will show up "
-          'here: the hour you do it, which weekdays are hard, how long you '
-          'take to come back. And the '
-          "townsfolk pin their own notices every day."
+      'With every piece, what the town learns about you shows up here. '
+          'And the neighbours pin their notices.'
           '${dias == 0 ? ' Start with the first piece.' : ''}',
     ),
   );
