@@ -54,7 +54,10 @@ List<Notice> boardNotices(
   // caben, lo que se recorta es lo del pueblo, que seguirá ahí mañana. Una
   // nota que clavaste y no aparece es un tablón roto.
   final mias = myNotices(h);
-  final vacio = said.isEmpty && mias.isEmpty;
+  // Mientras el pueblo no sepa nada de vos, la hoja de bienvenida que explica
+  // el tablón. Se va sola con la primera nota de verdad, aunque ya hayas
+  // clavado alguna tuya: lo que explica es lo que el pueblo va a escribir.
+  final vacio = said.isEmpty;
   final paraNotas = math.max(
     0,
     BoardPlan.capacity - mias.length - (vacio ? 1 : 0),
@@ -120,27 +123,28 @@ String _cuando(DateTime at) {
   );
 }
 
-/// La hoja que se clava cuando de vos no se sabe nada.
+/// La hoja que se clava cuando de vos no se sabe nada: la que presenta el
+/// tablón.
 ///
-/// Va clavada como cualquier otra porque es lo que sería en la plaza: nadie
-/// deja el hueco en blanco, se clava un papel avisando.
+/// Antes decía que el tablón estaba vacío, que es verdad pero no ayuda: el
+/// primer día uno no sabe qué es esto ni qué va a aparecer acá. Así que la
+/// primera hoja lo cuenta, como lo contaría un cartel en una plaza nueva, y
+/// se despega sola en cuanto llega la primera nota con un dato tuyo.
 Notice emptyNotice(Habit h) {
-  final days = daysOf(h).length;
+  final dias = daysOf(h).length;
   return Notice(
     NoticeKind.life,
-    tr('El tablón está vacío.', 'The board is empty.'),
-    days == 0
-        ? tr(
-            'Todavía no hay nada que contar. Poné la primera pieza.',
-            'There is nothing to tell yet. Place the first piece.',
-          )
-        : tr(
-            'Llevás $days ${days == 1 ? 'día' : 'días'}. El pueblo prefiere '
-                'callarse a inventar: cuando tenga bastante para estar seguro '
-                'de algo, lo escribe acá.',
-            "You're $days ${days == 1 ? 'day' : 'days'} in. The town would "
-                'rather stay quiet than make things up: when it has enough to '
-                'be sure of something, it will write it here.',
-          ),
+    tr('Este es el tablón de ${h.name}.', 'This is the board for ${h.name}.'),
+    tr(
+      'A medida que vayas poniendo piezas, acá van a ir apareciendo cosas que '
+          'el pueblo aprende de vos: a qué hora lo hacés, qué días de la '
+          'semana te cuestan, cuánto tardás en volver. Y la gente del pueblo clava sus anuncios cada día.'
+          '${dias == 0 ? ' Empezá por la primera pieza.' : ''}',
+      "As you place pieces, things the town learns about you will show up "
+          'here: the hour you do it, which weekdays are hard, how long you '
+          'take to come back. And the '
+          "townsfolk pin their own notices every day."
+          '${dias == 0 ? ' Start with the first piece.' : ''}',
+    ),
   );
 }

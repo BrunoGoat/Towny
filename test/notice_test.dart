@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:towny/model/board.dart';
 import 'package:towny/model/findings.dart';
 import 'package:towny/model/habit.dart';
 import 'package:towny/model/piece.dart';
@@ -27,6 +28,24 @@ Habit _daily(String name, int days, {int hour = 8, int minute = 0}) =>
     ]);
 
 void main() {
+  group('la hoja de bienvenida del tablón', () {
+    bool tiene(List<dynamic> notas) =>
+        notas.any((n) => n.said == 'Este es el tablón de Leer.');
+
+    test('está el primer día, aunque hayas clavado notas tuyas', () {
+      final nuevo = _habit('Leer', const []);
+      expect(tiene(boardNotices(nuevo, at: _now)), isTrue);
+      nuevo.notes.add('${_now.millisecondsSinceEpoch}|comprar libros');
+      expect(tiene(boardNotices(nuevo, at: _now)), isTrue);
+    });
+
+    test('se va con la primera nota de verdad', () {
+      final viejo = _daily('Leer', 40);
+      expect(noticesFor(viejo, at: _now), isNotEmpty);
+      expect(tiene(boardNotices(viejo, at: _now)), isFalse);
+    });
+  });
+
   group('the board says nothing it cannot back up', () {
     // The rule the whole thing stands on. A town that tells you something
     // about yourself on four days of evidence is a town that will tell you

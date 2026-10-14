@@ -1163,6 +1163,18 @@ void main() {
       final todas = <Notice>[
         ...reales,
         for (final (dice, y) in bandos) Notice(NoticeKind.pueblo, dice, y),
+        // Y la de bienvenida del primer día, que es la más larga de todas,
+        // con un nombre de hábito largo.
+        for (final nombre in ['Leer', 'Practicar el violonchelo'])
+          emptyNotice(
+            Habit(
+              id: nombre,
+              name: nombre,
+              symbol: 'libro',
+              slot: 0,
+              createdAt: DateTime(2026, 3, 12),
+            ),
+          ),
       ];
       for (final f in NoteFont.values) {
         if (f.family == null) continue;
