@@ -9,7 +9,6 @@ import 'findings.dart';
 import 'habit.dart';
 import 'notice.dart';
 import 'piece.dart';
-import 'rhythm.dart';
 
 /// Lo que hay clavado en el tablón de un pueblo.
 ///
@@ -131,17 +130,18 @@ String _cuando(DateTime at) {
 /// primera hoja lo cuenta, como lo contaría un cartel en una plaza nueva, y
 /// se despega sola en cuanto llega la primera nota con un dato tuyo.
 Notice emptyNotice(Habit h) {
-  final dias = daysOf(h).length;
   return Notice(
     NoticeKind.life,
     tr('Este es el tablón de ${h.name}.', 'This is the board for ${h.name}.'),
     tr(
-      'Con cada pieza, acá va apareciendo lo que el pueblo aprende de vos. '
-          'Y los vecinos clavan sus anuncios.'
-          '${dias == 0 ? ' Empezá por la primera pieza.' : ''}',
-      'With every piece, what the town learns about you shows up here. '
-          'And the neighbours pin their notices.'
-          '${dias == 0 ? ' Start with the first piece.' : ''}',
+      'Acá el pueblo va clavando lo que aprende de vos: a qué hora lo hacés, '
+          'qué días te cuestan, cuánto falta para la próxima obra. Los vecinos '
+          'dejan sus anuncios, y vos podés clavar los tuyos. Tocá una hoja '
+          'para leerla de cerca.',
+      'Here the town pins what it learns about you: the hour you do it, '
+          'which days are hard, how long until the next building. The '
+          'neighbours leave their notices, and you can pin your own. Tap a '
+          'sheet to read it up close.',
     ),
   );
 }
