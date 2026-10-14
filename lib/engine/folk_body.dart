@@ -241,7 +241,11 @@ List<Solid> folkSolids(
   // El cuerpo entero sale de cinco números de la tabla. No hay un caso por
   // actividad: hay una manera de moverse, y sesenta juegos de números.
   final sit = act?.sink ?? 0.0;
-  final baja = sit * 0.26;
+  // Sentado en el suelo pierde la mitad de abajo del cuerpo —las piernas,
+  // que pasan a ir hacia delante— y no un poco de todo: el torso es la
+  // mitad de arriba, y la cabeza baja con él. Ver [Doing.seated].
+  final sentado = !at.moving && (act?.seated ?? false);
+  final baja = sentado ? 0.28 : sit * 0.26;
 
   /// A qué altura tiene los pies.
   ///
@@ -431,6 +435,22 @@ List<Solid> folkSolids(
     pano,
     1.0,
   );
+  // Sentado en el suelo: las piernas, estiradas hacia delante desde el pie
+  // del cuerpo y del mismo color, que con el cuerpo hacen una L. Es lo
+  // mínimo que dice «sentado» sin encoger a nadie.
+  if (sentado) {
+    // Tan largas como lo que el cuerpo perdió de alto.
+    box(
+      -0.150 + wag,
+      piso,
+      0.116 + lean * 0.5 - 0.02,
+      0.150 + wag,
+      piso + 0.13,
+      0.116 + lean * 0.5 + 0.28,
+      pano,
+      0.97,
+    );
+  }
   box(
     -0.205 + wag * 0.4,
     piso + 0.520 + bob - baja,
@@ -532,7 +552,9 @@ List<Solid> folkSolids(
       // Un libro abierto: dos páginas en ángulo con su tapa por debajo y el
       // lomo en medio. Sostenido delante y un poco inclinado, que es como se
       // lee sentado.
-      final m = hold(1, 0.46, 0.09);
+      // Delante y en medio, sobre las piernas: sentado en el suelo el libro
+      // se sostiene encima del regazo, no a un costado.
+      final m = hold(0, 0.58, 0.06);
       final y = m.$2, z = m.$3;
       const ancho = 0.140, fondo = 0.128;
       // El lomo.

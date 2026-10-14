@@ -145,6 +145,7 @@ class Doing {
     this.turn = 1.0,
     this.prop = PropKind.none,
     this.lying = false,
+    this.seated = false,
     this.hop = false,
   });
 
@@ -189,6 +190,11 @@ class Doing {
   /// se acuesta, la cabeza se va a un extremo, y no hay manera de decir eso
   /// con lo agachado que está alguien.
   final bool lying;
+
+  /// Sentado en el suelo: el cuerpo entero, a su altura, y las piernas
+  /// estiradas hacia delante, del mismo color — una L. Agacharlo lo
+  /// encogía, y alguien encogido se lee como más chico, no como sentado.
+  final bool seated;
 
   /// Que sube y baja **saltando**: despega del suelo y vuelve a él, sin
   /// hundirse nunca por debajo. Es lo que hace quien salta a la comba, y no
@@ -486,12 +492,12 @@ class Doing {
       'lee',
       where: Where.meadow,
       weight: 1.4,
-      sink: 0.60,
       bob: 0.004,
       rate: 0.55,
       lean: 0.030,
       turn: 0.1,
       prop: PropKind.book,
+      seated: true,
     ),
     Doing(
       'nubes',

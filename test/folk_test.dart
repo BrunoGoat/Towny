@@ -107,13 +107,40 @@ void main() {
       }
     });
 
-    test('la ronda se cierra: vuelven por donde salieron', () {
+    test('la ronda se cierra: de una vuelta a la otra no hay saltos', () {
+      // Cada vuelta puede hacer lo suyo en otro trozo del sitio, pero el paso
+      // de una vuelta a la siguiente es andar, no aparecer en otro lado.
       final t = _town(200);
-      for (final w in folkOf(t, 200)) {
-        final a = w.at(0), b = w.at(w.period);
-        expect((a.x - b.x).abs(), lessThan(1e-6));
-        expect((a.z - b.z).abs(), lessThan(1e-6));
+      for (final w in folkOf(t, 200).take(12)) {
+        var antes = w.at(0);
+        for (var s = 1 / 10; s < w.period * 3; s += 1 / 10) {
+          final ahora = w.at(s);
+          final dx = ahora.x - antes.x, dz = ahora.z - antes.z;
+          expect(
+            math.sqrt(dx * dx + dz * dz),
+            lessThan(Townsfolk.pace / 10 + 1e-6),
+            reason: 'salta a los $s s',
+          );
+          antes = ahora;
+        }
       }
+    });
+
+    test('cada vuelta hacen lo suyo en otro trozo del sitio', () {
+      // Con la ronda fija, quien se tumba en el prado se tumbaba siempre en
+      // el mismo palmo de suelo. Ahora, de una vuelta a otra, cambia.
+      final t = _town(200);
+      var cambian = 0;
+      for (final w in folkOf(t, 200)) {
+        final sitios = <String>{};
+        for (var s = 0.0; s < w.period * 6; s += 2) {
+          final a = w.at(s);
+          if (a.moving || a.act == null || a.act == Doing.idle) continue;
+          sitios.add('${a.x.toStringAsFixed(1)},${a.z.toStringAsFixed(1)}');
+        }
+        if (sitios.length > 3) cambian++;
+      }
+      expect(cambian, greaterThan(folkOf(t, 200).length ~/ 3));
     });
 
     test('se mueven de verdad, y no se van del pueblo', () {

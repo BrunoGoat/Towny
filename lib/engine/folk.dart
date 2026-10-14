@@ -263,25 +263,29 @@ class Townsfolk {
   final Map<int, List<Doing>> _spotMemo = {};
 
   List<Doing> _spotChoicesOf(int i) {
-    final suya = _act[i] ?? Doing.idle;
+    final suya = (_spotActs ?? _act)[i] ?? Doing.idle;
+    final donde = (_spotStops ?? _stops)[i];
+    final mira = (_spotFacing ?? _facing)[i];
     return [
       suya,
       for (final d in Doing.all)
         if (d.where == suya.where &&
             d.fits(kid) &&
             d.id != suya.id &&
-            _fitsAt(_calles, _h, d, kid, _stops[i], _facing[i]))
+            _fitsAt(_calles, _h, d, kid, donde, mira))
           d,
     ];
   }
 
-  late final double _spotPeriod = _periodWith(_spotStay);
+  double get _spotPeriod =>
+      _spotPeriodMemo ??= _periodWith(_spotStay, _spotStops ?? _stops);
+  double? _spotPeriodMemo;
 
-  double _periodWith(List<double> stays) {
+  double _periodWith(List<double> stays, List<(double, double)> stops) {
     var p = 0.0;
-    final n = _stops.length;
+    final n = stops.length;
     for (var i = 0; i < n; i++) {
-      final a = _stops[i], b = _stops[(i + 1) % n];
+      final a = stops[i], b = stops[(i + 1) % n];
       p +=
           math.sqrt(math.pow(b.$1 - a.$1, 2) + math.pow(b.$2 - a.$2, 2)) / pace;
       p += stays[(i + 1) % n];
@@ -296,19 +300,134 @@ class Townsfolk {
     // Quien ya vivía aquí arranca en un punto cualquiera de su ronda —es lo
     // que hace que no salgan todos a la vez— y quien acaba de nacer arranca en
     // su puerta, que es por donde se sale de casa la primera vez. Ver [debut].
+    return _baseAt(t) % period;
+  }
+
+  /// El reloj de su ronda sin dar la vuelta: cuántos segundos lleva de
+  /// rondas desde que empezó. De aquí sale en qué vuelta va.
+  double _baseAt(double t) {
     final nace = debut;
-    return nace == null
-        ? (t + hash01(seed, 7) * period + _shift) % period
-        : (t - nace + _shift) % period;
+    return (nace == null ? t + hash01(seed, 7) * period : t - nace) + _shift;
+  }
+
+  /// En qué vuelta de su ronda va.
+  int _lapAt(double t) => (_baseAt(t) / period).floor();
+
+  // ------------------------------------------------------------- la vuelta
+
+  /// **Cada vuelta, en otro sitio.** La ronda es la misma —los mismos
+  /// recados, por las mismas calles—, pero lo que pasa al llegar no: quien
+  /// se tumba a mirar las nubes en el prado se tumba cada vez en otro trozo
+  /// del prado, mirando para otro lado, y a veces en vez de tumbarse lee. Con
+  /// la ronda fija, cada vecino iba a parar exactamente al mismo palmo de
+  /// suelo cada vez, y en cuanto uno se fijaba se veía el reloj.
+  ///
+  /// Sólo se corre si cabe: lo que va a hacer tiene que caber ahí sin meterse
+  /// en nada ([_fitsAt]) y los dos tramos que llegan y salen de ahí tienen
+  /// que ir por suelo libre. Y lo que se anda de más o de menos se le quita o
+  /// se le pone a lo que se queda, así que la vuelta dura lo mismo y el
+  /// reloj de la ronda no se entera.
+  int? _lapKey;
+  List<(double, double)> _lapStops = const [];
+  List<double> _lapStay = const [];
+  List<Doing?> _lapActs = const [];
+  List<double> _lapFacing = const [];
+
+  void _lapFor(int lap) {
+    if (_lapKey == lap) return;
+    _lapKey = lap;
+    final stops = [..._stops];
+    final stay = [..._stay];
+    final acts = [..._act];
+    final facing = [..._facing];
+    final calles = _calles;
+    final n = stops.length;
+    if (calles != null && home >= 0 && _h > 0) {
+      double largo((double, double) a, (double, double) b) =>
+          math.sqrt(math.pow(b.$1 - a.$1, 2) + math.pow(b.$2 - a.$2, 2));
+      bool libre((double, double) a, (double, double) b) {
+        final pasos = math.max(1, (largo(a, b) / 0.1).ceil());
+        for (var k = 1; k < pasos; k++) {
+          final q = (
+            a.$1 + (b.$1 - a.$1) * k / pasos,
+            a.$2 + (b.$2 - a.$2) * k / pasos,
+          );
+          if (!calles.clearAt(q)) return false;
+        }
+        return true;
+      }
+
+      for (var i = 1; i < n; i++) {
+        final suya = acts[i];
+        if (suya == null || stay[i] <= 0) continue;
+        // En la orilla no: pescar o lavar es en el borde del agua, y corrido
+        // un metro ya no hay agua delante.
+        if (suya.where == Where.water) continue;
+        final antes = stops[i - 1], despues = stops[(i + 1) % n];
+        final anda = largo(antes, stops[i]) + largo(stops[i], despues);
+        // A veces, otra cosa de las que se hacen en ese sitio.
+        final otras = _spotChoices(i);
+        var que = suya;
+        if (otras.length > 1 && hash01(seed, lap, i, 41) < 0.45) {
+          que = otras[1 + hashInt(otras.length - 1, seed, lap, i * 7 + 42)];
+        }
+        for (var intento = 0; intento < 10; intento++) {
+          final h = i * 16 + intento;
+          final r = hashRange(0.35, 1.4, seed, lap, h, 43);
+          final a = hash01(seed, lap, h, 44) * 2 * math.pi;
+          final p = (
+            stops[i].$1 + math.cos(a) * r,
+            stops[i].$2 + math.sin(a) * r,
+          );
+          final mira = facing[i] + (hash01(seed, lap, h, 45) - 0.5) * 1.2;
+          var hace = que;
+          if (!_fitsAt(calles, _h, hace, kid, p, mira)) {
+            if (hace == suya || !_fitsAt(calles, _h, suya, kid, p, mira)) {
+              continue;
+            }
+            hace = suya;
+          }
+          if (!libre(antes, p) || !libre(p, despues)) continue;
+          // Y con aire alrededor: corrido a un sitio nuevo, que no quede
+          // pegado a nada construido. Los sitios de siempre se eligieron
+          // lejos de las paredes; éste tiene que estarlo también.
+          var holgado = true;
+          for (var k = 0; k < 8 && holgado; k++) {
+            final b = k * math.pi / 4;
+            holgado = calles.clearAt((
+              p.$1 + math.cos(b) * 0.6,
+              p.$2 + math.sin(b) * 0.6,
+            ));
+          }
+          if (!holgado) continue;
+          final queda =
+              stay[i] - (largo(antes, p) + largo(p, despues) - anda) / pace;
+          if (queda < 10) continue;
+          stops[i] = p;
+          stay[i] = queda;
+          acts[i] = hace;
+          facing[i] = mira;
+          break;
+        }
+      }
+    }
+    _lapStops = stops;
+    _lapStay = stay;
+    _lapActs = acts;
+    _lapFacing = facing;
   }
 
   /// Por dónde de la ronda va en el segundo [u] de una ronda con [stays]:
   /// en qué tramo, si andando o parado, y cuánto lleva de eso.
-  (int, bool, double) _where(double u, List<double> stays) {
+  (int, bool, double) _where(
+    double u,
+    List<double> stays,
+    List<(double, double)> stops,
+  ) {
     var acc = 0.0;
-    final n = _stops.length;
+    final n = stops.length;
     for (var i = 0; i < n; i++) {
-      final a = _stops[i], b = _stops[(i + 1) % n];
+      final a = stops[i], b = stops[(i + 1) % n];
       final walk =
           math.sqrt(math.pow(b.$1 - a.$1, 2) + math.pow(b.$2 - a.$2, 2)) / pace;
       if (u < acc + walk) return (i, true, walk <= 0 ? 1 : (u - acc) / walk);
@@ -322,11 +441,17 @@ class Townsfolk {
 
   /// Lo contrario: en qué segundo de una ronda con [stays] se está en ese
   /// punto.
-  double _uOf(int i, bool walking, double k, List<double> stays) {
+  double _uOf(
+    int i,
+    bool walking,
+    double k,
+    List<double> stays,
+    List<(double, double)> stops,
+  ) {
     var acc = 0.0;
-    final n = _stops.length;
+    final n = stops.length;
     for (var j = 0; j < n; j++) {
-      final a = _stops[j], b = _stops[(j + 1) % n];
+      final a = stops[j], b = stops[(j + 1) % n];
       final walk =
           math.sqrt(math.pow(b.$1 - a.$1, 2) + math.pow(b.$2 - a.$2, 2)) / pace;
       if (j == i && walking) return acc + walk * k;
@@ -354,19 +479,46 @@ class Townsfolk {
   /// punto. Lo mismo al dejar de seguirla.
   void spotlight(double t, {required bool on}) {
     if (on == spotlit) return;
-    final antes = on ? _stay : _spotStay;
-    final despues = on ? _spotStay : _stay;
-    final (i, walking, k) = _where(_uAt(t), antes);
-    final target = _uOf(i, walking, k, despues);
     if (on) {
+      // Sigue por donde va en esta vuelta: los mismos sitios en los que
+      // estaba, con el horario de cuando la siguen.
+      final lap = _lapAt(t);
+      _lapFor(lap);
+      final (i, walking, k) = _where(_uAt(t), _lapStay, _lapStops);
+      _spotLap = lap;
+      _spotStops = _lapStops;
+      _spotActs = _lapActs;
+      _spotFacing = _lapFacing;
+      _spotMemo.clear();
+      _spotPeriodMemo = null;
+      final target = _uOf(i, walking, k, _spotStay, _spotStops!);
       _spot = target - t;
     } else {
+      final (i, walking, k) = _where(_uAt(t), _spotStay, _spotStops ?? _stops);
+      final lap = _spotLap ?? 0;
       _spot = null;
+      _spotStops = null;
+      _spotActs = null;
+      _spotFacing = null;
+      _spotLap = null;
+      _spotMemo.clear();
+      _spotPeriodMemo = null;
+      _lapFor(lap);
+      final target = _uOf(i, walking, k, _lapStay, _lapStops);
+      // Y la ronda de siempre sigue en esa misma vuelta, que es la que tiene
+      // los sitios en los que estaba.
       final nace = debut;
       final base = nace == null ? t + hash01(seed, 7) * period : t - nace;
-      _shift = target - base;
+      _shift = target + lap * period - base;
     }
   }
+
+  /// Los sitios de la vuelta en la que se la empezó a seguir: siguiéndola,
+  /// la ronda es ésa, con más cosas en cada parada.
+  int? _spotLap;
+  List<(double, double)>? _spotStops;
+  List<Doing?>? _spotActs;
+  List<double>? _spotFacing;
 
   /// Qué hace la persona seguida en la parada [i], a los [held] segundos de
   /// haberse puesto: va cambiando cada [_spotEach] segundos entre las cosas
@@ -544,13 +696,17 @@ class Townsfolk {
       _resumeAtDoor(prueba.end);
     }
     final spot = _spot != null;
-    final stays = spot ? _spotStay : _stay;
+    if (!spot) _lapFor(_lapAt(t));
+    final stays = spot ? _spotStay : _lapStay;
+    final stops = spot ? (_spotStops ?? _stops) : _lapStops;
+    final acts = spot ? (_spotActs ?? _act) : _lapActs;
+    final facings = spot ? (_spotFacing ?? _facing) : _lapFacing;
     final u = _uAt(t);
     var acc = 0.0;
     var walked = hash01(seed, 8) * 40; // para que no pisen todos a la vez
-    final n = _stops.length;
+    final n = stops.length;
     for (var i = 0; i < n; i++) {
-      final from = _stops[i], to = _stops[(i + 1) % n];
+      final from = stops[i], to = stops[(i + 1) % n];
       final dx = to.$1 - from.$1, dz = to.$2 - from.$2;
       final d = math.sqrt(dx * dx + dz * dz);
       final walk = d / pace;
@@ -594,8 +750,8 @@ class Townsfolk {
             ? Doing.idle
             : spot
             ? _spotAct((i + 1) % n, held - settle)
-            : _act[(i + 1) % n];
-        final look = _facing[(i + 1) % n];
+            : acts[(i + 1) % n];
+        final look = facings[(i + 1) % n];
         // La cabeza se va yendo a mirar alrededor, y cuánto depende de en qué
         // ande: quien pica piedra no levanta la vista y quien no hace nada la
         // levanta todo el rato.
