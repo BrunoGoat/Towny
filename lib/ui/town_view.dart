@@ -754,7 +754,9 @@ class _TownViewState extends State<TownView>
       }
     }
     _idleFor += dt;
-    if (_idleFor > 5.0) {
+    // En la cámara libre el pueblo no se da vueltas solo: uno lo está
+    // recorriendo, y que el suelo se le gire debajo es perder el sitio.
+    if (_idleFor > 5.0 && !_free) {
       // Eases in over a couple of seconds so it never starts with a jolt.
       final k = clampD((_idleFor - 5.0) / 2.5, 0, 1);
       _cam.yawTarget += dt * 0.05 * k;
@@ -1313,7 +1315,19 @@ class _TownViewState extends State<TownView>
   void _landed() {
     _setAloft(false);
     _asked = false;
+    _free = false;
   }
+
+  /// **Cámara libre**: se entra moviéndose con dos dedos, y se sale con los
+  /// botones de encuadrar —el pueblo, la siguiente pieza— o siguiendo a
+  /// alguien.
+  ///
+  /// La de siempre gira alrededor de un punto fijo: el centro del pueblo o
+  /// la pieza que toca. Está bien para mirar eso, y no para recorrer el
+  /// pueblo, que es lo que se quiere cuando uno empieza a arrastrar: ahí el
+  /// punto alrededor del cual se gira es el que uno se llevó con los dedos,
+  /// y el pueblo no se da vueltas solo mientras se lo recorre.
+  bool _free = false;
 
   // -------------------------------------------------------------- gestures
 
@@ -1343,7 +1357,19 @@ class _TownViewState extends State<TownView>
       final f = d.scale / (_lastScale == 0 ? 1 : _lastScale);
       _lastScale = d.scale;
       if (f.isFinite && f > 0) _zoomBy(1 / f);
-      _travelByDrag(d.focalPointDelta);
+      // Dos dedos llevan el suelo con ellos, hacia cualquier lado —no sólo a
+      // lo largo de una línea, como cuando la app era un muro recto—, y
+      // girarlos gira la vista. Moverse así es pasar a la cámara libre.
+      final giro = d.rotation - _lastRotation;
+      _lastRotation = d.rotation;
+      if (giro.abs() > 1e-4) {
+        _cam.yawTarget -= giro;
+        _cam.follow = false;
+      }
+      if (d.focalPointDelta.distanceSquared > 0.5) {
+        _panByDrag(d.focalPointDelta);
+        _free = true;
+      }
       if (f > 1) _diveIn(d.localFocalPoint);
     } else {
       final dx = d.focalPointDelta.dx;
@@ -1415,10 +1441,14 @@ class _TownViewState extends State<TownView>
     final hondo = metro / math.max(0.25, math.sin(_cam.pitch));
     var x = _cam.travelTarget - delta.dx * metro * rx + delta.dy * hondo * fx;
     var z = _cam.focusZTarget - delta.dx * metro * rz + delta.dy * hondo * fz;
-    final lejos = math.sqrt(x * x + z * z), tope = _valleyFar + 20;
+    // En el valle, sin salirse del valle; en un pueblo, sin salirse del
+    // pueblo y un poco de prado alrededor: recorrerlo es recorrerlo a él.
+    final (ox, oz) = _aloft ? (0.0, 0.0) : (_town.cx, _town.cz);
+    final tope = _aloft ? _valleyFar + 20 : _town.radius + 10;
+    final lejos = math.sqrt((x - ox) * (x - ox) + (z - oz) * (z - oz));
     if (lejos > tope) {
-      x *= tope / lejos;
-      z *= tope / lejos;
+      x = ox + (x - ox) * tope / lejos;
+      z = oz + (z - oz) * tope / lejos;
     }
     _cam.travelTarget = x;
     _cam.focusZTarget = z;
@@ -1435,22 +1465,6 @@ class _TownViewState extends State<TownView>
     _touched();
     _cam.orbitBy(-e.delta.dx * 0.0062, e.delta.dy * 0.0048);
     _cam.follow = false;
-  }
-
-  /// Two-finger drag walks the camera along the wall, in whatever screen
-  /// direction the wall happens to run right now.
-  void _travelByDrag(Offset delta) {
-    _stopFollowing();
-    final size = context.size;
-    if (size == null) return;
-    final p = _cam.projector(size.width, size.height, _time);
-    final ax = p.right.x;
-    final ay = -p.up.x;
-    final len = math.sqrt(ax * ax + ay * ay);
-    if (len < 0.02) return;
-    final along = (delta.dx * ax + delta.dy * ay) / len;
-    final worldPerPixel = _cam.distance / (p.focal * len);
-    _cam.travelBy(-along * worldPerPixel);
   }
 
   // ------------------------------------------------------------ un vecino
@@ -1476,6 +1490,7 @@ class _TownViewState extends State<TownView>
     _stopFollowing();
     _following = (town, home);
     _cam.follow = false;
+    _free = false;
     // Cerca, y desde arriba como quien la sigue por encima de los tejados.
     // A la altura de los ojos se la ve mejor, pero en un pueblo apretado lo
     // que hay entre la cámara y una persona es casi siempre una pared: se
