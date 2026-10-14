@@ -270,20 +270,6 @@ class _SettingsSheetState extends State<SettingsSheet> {
               title: tr('EL TABLÓN', 'THE NOTICE BOARD'),
               icon: Icons.push_pin_outlined,
               children: [
-                Text(
-                  tr(
-                    'Las letras del tablón ya no se eligen: tus cuentas van todas de '
-                        'la misma mano y cada bando sale con la del vecino que lo '
-                        'colgó. Un tablón de plaza se lee así, no con una letra que se '
-                        'elige en un menú.',
-                    "The board's handwriting isn't chosen any more: your tallies are "
-                        'all in the same hand, and each notice comes in the hand of the '
-                        'neighbour who pinned it. That is how a town board reads, not '
-                        'in a font picked from a menu.',
-                  ),
-                  style: _nota(t),
-                ),
-                const SizedBox(height: 12),
                 _Row(
                   theme: t,
                   icon: Icons.auto_stories_outlined,

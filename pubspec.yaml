@@ -90,23 +90,10 @@ flutter:
       fonts:
         - asset: assets/fonts/RobotoSlab.ttf
 
-    # Las letras de los papeles del tablón. Se eligen en los ajustes, y están
-    # aquí y no traídas de internet porque un tablón tiene que poder leerse en
-    # un tren sin cobertura.
-    - family: Caveat
-      fonts:
-        - asset: assets/fonts/Caveat.ttf
-    - family: Kalam
-      fonts:
-        - asset: assets/fonts/Kalam.ttf
-        - asset: assets/fonts/Kalam-Bold.ttf
-          weight: 700
-    - family: PatrickHand
-      fonts:
-        - asset: assets/fonts/PatrickHand.ttf
-    - family: ShadowsIntoLight
-      fonts:
-        - asset: assets/fonts/ShadowsIntoLight.ttf
+    # Las letras de los papeles del tablón, aquí y no traídas de internet
+    # porque un tablón tiene que poder leerse en un tren sin cobertura.
+    # Arquitecta es la de las notas sobre vos; las demás, las manos de los
+    # vecinos.
     - family: ArchitectsDaughter
       fonts:
         - asset: assets/fonts/ArchitectsDaughter.ttf
@@ -115,23 +102,13 @@ flutter:
         - asset: assets/fonts/AmaticSC.ttf
         - asset: assets/fonts/AmaticSC-Bold.ttf
           weight: 700
-    - family: IMFellEnglish
-      fonts:
-        - asset: assets/fonts/IMFellEnglish.ttf
+
+    # Y la de los títulos de la primera vez.
     - family: EBGaramond
       fonts:
         - asset: assets/fonts/EBGaramond.ttf
-    - family: SpecialElite
-      fonts:
-        - asset: assets/fonts/SpecialElite.ttf
-    - family: CourierPrime
-      fonts:
-        - asset: assets/fonts/CourierPrime.ttf
-        - asset: assets/fonts/CourierPrime-Bold.ttf
-          weight: 700
 
-
-    # Las manos del pueblo: catorce letras desprolijas más, todas libres.
+    # Más manos del pueblo, todas libres.
     - family: GloriaHallelujah
       fonts:
         - asset: assets/fonts/GloriaHallelujah.ttf
@@ -141,27 +118,12 @@ flutter:
     - family: JustAnotherHand
       fonts:
         - asset: assets/fonts/JustAnotherHand.ttf
-    - family: ReenieBeanie
-      fonts:
-        - asset: assets/fonts/ReenieBeanie.ttf
-    - family: NothingYouCouldDo
-      fonts:
-        - asset: assets/fonts/NothingYouCouldDo.ttf
-    - family: ComingSoon
-      fonts:
-        - asset: assets/fonts/ComingSoon.ttf
     - family: Schoolbell
       fonts:
         - asset: assets/fonts/Schoolbell.ttf
-    - family: WalterTurncoat
-      fonts:
-        - asset: assets/fonts/WalterTurncoat.ttf
     - family: CoveredByYourGrace
       fonts:
         - asset: assets/fonts/CoveredByYourGrace.ttf
-    - family: CraftyGirls
-      fonts:
-        - asset: assets/fonts/CraftyGirls.ttf
     - family: SueEllenFrancisco
       fonts:
         - asset: assets/fonts/SueEllenFrancisco.ttf
@@ -171,10 +133,6 @@ flutter:
     - family: PermanentMarker
       fonts:
         - asset: assets/fonts/PermanentMarker.ttf
-    - family: Zeyada
-      fonts:
-        - asset: assets/fonts/Zeyada.ttf
-
 
   # To add assets to your application, add an assets section, like this:
   # assets:

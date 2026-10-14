@@ -84,31 +84,14 @@ enum NoteFont {
     mano: true,
   ),
 
-  // Y las demás, que siguen estando para elegirlas a mano.
-  turncoat('WalterTurncoat', 'WalterTurncoat.ttf', 'Turncoat', 0.95),
-  reenie('ReenieBeanie', 'ReenieBeanie.ttf', 'Reenie', 1.33),
-  nada('NothingYouCouldDo', 'NothingYouCouldDo.ttf', 'Nada', 0.95),
-  pronto('ComingSoon', 'ComingSoon.ttf', 'Pronto', 1.02),
-  manitas('CraftyGirls', 'CraftyGirls.ttf', 'Manitas', 0.91),
-  zeyada('Zeyada', 'Zeyada.ttf', 'Zeyada', 1.33),
-  caveat('Caveat', 'Caveat.ttf', 'Caveat', 1.41),
-  kalam('Kalam', 'Kalam.ttf', 'Kalam', 1.09),
-  patrick('PatrickHand', 'PatrickHand.ttf', 'Patrick', 1.31),
-  sombras('ShadowsIntoLight', 'ShadowsIntoLight.ttf', 'Sombras', 1.25),
+  // La de las notas que el pueblo escribe de vos. Ya no hay otras que
+  // elegir: las que se probaban a mano se fueron con el selector.
   arquitecta(
     'ArchitectsDaughter',
     'ArchitectsDaughter.ttf',
     'Arquitecta',
     1.01,
-  ),
-
-  // -------------------------------------------------- de imprenta vieja
-  fell('IMFellEnglish', 'IMFellEnglish.ttf', 'Fell', 1.17),
-  garamond('EBGaramond', 'EBGaramond.ttf', 'Garamond', 1.26),
-
-  // ------------------------------------------------- de máquina de escribir
-  elite('SpecialElite', 'SpecialElite.ttf', 'Elite', 0.91),
-  courier('CourierPrime', 'CourierPrime.ttf', 'Courier', 0.79);
+  );
 
   const NoteFont(
     this.family,
