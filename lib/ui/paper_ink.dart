@@ -92,7 +92,13 @@ class PaperInk {
   /// cabe sale recortado con puntos suspensivos, y con un catálogo que crece a
   /// mano no hay manera de verlo a ojo.
   static const double saidSize = 15.5, becauseSize = 10.5;
-  static const int saidLines = 4, becauseLines = 4;
+  static const int saidLines = 4;
+
+  /// Los renglones de debajo del titular. Eran cuatro, y una nota que pedía
+  /// cinco no se partía en cinco: se encogía entera hasta que la frase
+  /// entrara en cuatro, y salía a un cuarto de su tamaño con el papel medio
+  /// vacío. Lo que de verdad limita es el alto del papel.
+  static const int becauseLines = 10;
 
   /// Y el de corrido, que es todo el papel para una sola frase.
   static const double plainSize = 13, plainLines = 8;
@@ -132,7 +138,10 @@ class PaperInk {
     // empiece el día» acababa en «…» con media hoja en blanco debajo.
     _layAt(1);
     shrunk = 1;
-    if (_cabe) return;
+    if (_cabe) {
+      _grow();
+      return;
+    }
 
     var lo = 0.0, hi = 1.0;
     for (var i = 0; i < 8; i++) {
@@ -149,6 +158,42 @@ class PaperInk {
     _layAt(lo);
     shrunk = lo;
   }
+
+  /// **Y si sobra papel, se escribe más grande.** Una nota que es sólo texto
+  /// —sin gráfico debajo— y corta dejaba media hoja en blanco con la letra
+  /// enana arriba: la de bienvenida del tablón, la del plan. Un cartel de
+  /// plaza se escribe del tamaño del papel. Se busca igual que al encoger,
+  /// por mitades, hasta casi el doble.
+  ///
+  /// Sólo esas: un bando del pueblo o una nota tuya ya se escriben de
+  /// corrido con todo el papel, y una nota con gráfico necesita el sitio
+  /// para el gráfico.
+  void _grow() {
+    if (corrido || notice.bars.isNotEmpty) return;
+    var lo = 1.0, hi = maxGrow;
+    _layAt(hi);
+    if (_cabe) {
+      grown = hi;
+      return;
+    }
+    for (var i = 0; i < 8; i++) {
+      final k = (lo + hi) / 2;
+      _layAt(k);
+      if (_cabe) {
+        lo = k;
+      } else {
+        hi = k;
+      }
+    }
+    _layAt(lo);
+    grown = lo;
+  }
+
+  /// Hasta cuánto se agranda una nota de sólo texto que tiene sitio.
+  static const double maxGrow = 1.9;
+
+  /// Cuánto se agrandó: 1 es que se quedó como estaba.
+  double grown = 1;
 
   /// Cuánto hubo que encoger el texto para que entrara: 1 es que entró tal
   /// cual. Sirve para saber si el deslizador del tamaño todavía hace algo o si
