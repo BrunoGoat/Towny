@@ -361,7 +361,31 @@ y de cerca para cada actividad desde 24 ángulos; ninguno falla.
 
 ---
 
-## 9. Decisiones abiertas
+## 9. El consejero
+
+El viejo de la barba que anda por la plaza (`Townsfolk.sage`), su banco, y lo
+que sabe (`lib/data/advice.dart`, `lib/model/advice_book.dart`). Ya están el
+personaje, el banco, los consejos escritos y la libreta que los va ganando;
+falta la pantalla, que la define el autor.
+
+**Criterio:** un consejo entra sólo si al autor le sirvió en su propia vida.
+Ninguno está aprobado todavía (`approvedAdvice` está vacía).
+
+- [ ] Aprobar los consejos uno por uno: cuáles quedan, cuáles se reescriben y
+  cuáles faltan.
+- [ ] La pantalla del consejero: el botón debajo del tablón, la pregunta de
+  sembrar o arrancar, el consejo del día y la libreta (todo lo ganado, lo más
+  nuevo arriba).
+- [ ] **Cómo se muestra un consejo:** arriba el dicho del viejo, grande y
+  oscuro (`Advice.say`); abajo la explicación, más chica y en gris
+  (`Advice.mean`). La explicación aparece **un segundo después** que el
+  dicho: primero se lee la frase sola, como si te la dijera, y después llega
+  la aclaración.
+- [ ] Tocar al viejo en la plaza: hoy no hace nada.
+
+---
+
+## 10. Decisiones abiertas
 
 - **¿Los cobertizos y graneros siguen trayendo vecinos?** Hoy los traen todas
   las casas, y los hitos no traen ninguno. El padrón no se reescribe nunca, así
@@ -384,7 +408,7 @@ y de cerca para cada actividad desde 24 ángulos; ninguno falla.
 
 ---
 
-## 10. Ideas congeladas
+## 11. Ideas congeladas
 
 No se tocan hasta terminar todo lo de arriba. Quedan anotadas para que no se
 pierdan:
