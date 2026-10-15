@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
@@ -16,97 +15,44 @@ import '../model/advice_book.dart';
 import '../model/store.dart';
 import 'style.dart';
 
-/// Cómo se visten las tarjetas y lo que dice el viejo. Tres pruebas, para
-/// elegir mirándolas.
-enum SageLook {
-  /// Hojitas de pergamino como las del tablón, un poco torcidas, con letra a
-  /// mano; lo que dice, en un globo de papel.
-  paper,
-
-  /// Vidrio esmerilado claro y letra de libro, oscura.
-  glass,
-
-  /// Un solo pergamino con los dichos uno debajo del otro, como un libro de
-  /// sabio; lo que dice, en un globo de papel.
-  scroll,
-}
-
-/// Todo lo que cambia de un estilo a otro, en un solo sitio.
+/// Cómo se visten las tarjetas y lo que dice el viejo: papel, como las hojas
+/// del tablón — el mismo pergamino con su filete y la misma letra a mano, cada
+/// hoja un poco torcida. Lo que dice él, en un globo de papel con la colita
+/// hacia su boca. Se probaron también vidrio claro y un pergamino enrollado;
+/// quedó éste porque es el que pertenece al pueblo.
 class _Estilo {
-  const _Estilo(this.look);
-  final SageLook look;
+  const _Estilo();
 
-  Color get tinta => switch (look) {
-    SageLook.paper => const Color(0xFF3B2F22),
-    SageLook.glass => const Color(0xFF2B2722),
-    SageLook.scroll => const Color(0xFF3A2C1C),
-  };
+  Color get tinta => const Color(0xFF3B2F22);
 
   /// La explicación, en gris.
-  Color get gris => switch (look) {
-    SageLook.paper => const Color(0xFF3B2F22).withValues(alpha: 0.62),
-    SageLook.glass => const Color(0xFF6B655C),
-    SageLook.scroll => const Color(0xFF3A2C1C).withValues(alpha: 0.60),
-  };
+  Color get gris => const Color(0xFF3B2F22).withValues(alpha: 0.62);
 
-  Color get papel => switch (look) {
-    SageLook.paper => const Color(0xFFEFE4C6),
-    SageLook.glass => Colors.white.withValues(alpha: 0.80),
-    SageLook.scroll => const Color(0xFFEBDCB3),
-  };
+  Color get papel => const Color(0xFFEFE4C6);
 
-  /// El globo de lo que dice: de papel en los dos de papel.
-  Color get globo => switch (look) {
-    SageLook.glass => Colors.white.withValues(alpha: 0.86),
-    _ => const Color(0xFFF6EEDA),
-  };
+  /// El globo de lo que dice, un papel más claro.
+  Color get globo => const Color(0xFFF6EEDA);
 
-  TextStyle dicho(double size) => switch (look) {
-    SageLook.paper => TextStyle(
-      fontFamily: 'ArchitectsDaughter',
-      fontSize: size * 0.95,
-      height: 1.3,
-      color: tinta,
-      fontWeight: FontWeight.w600,
-    ),
-    SageLook.glass => TextStyle(
-      fontFamily: 'EBGaramond',
-      fontSize: size * 1.06,
-      height: 1.28,
-      color: tinta,
-      fontWeight: FontWeight.w500,
-    ),
-    SageLook.scroll => TextStyle(
-      fontFamily: 'EBGaramond',
-      fontSize: size * 1.06,
-      height: 1.3,
-      fontStyle: FontStyle.italic,
-      color: tinta,
-    ),
-  };
+  TextStyle dicho(double size) => TextStyle(
+    fontFamily: 'ArchitectsDaughter',
+    fontSize: size * 0.95,
+    height: 1.3,
+    color: tinta,
+    fontWeight: FontWeight.w600,
+  );
 
-  TextStyle habla(double size) => switch (look) {
-    SageLook.glass => TextStyle(
-      fontFamily: 'EBGaramond',
-      fontSize: size,
-      height: 1.35,
-      color: tinta,
-    ),
-    _ => TextStyle(
-      fontFamily: 'EBGaramond',
-      fontSize: size,
-      height: 1.35,
-      color: tinta,
-    ),
-  };
+  TextStyle habla(double size) => TextStyle(
+    fontFamily: 'EBGaramond',
+    fontSize: size,
+    height: 1.35,
+    color: tinta,
+  );
 
   TextStyle get explica => TextStyle(color: gris, fontSize: 15.5, height: 1.5);
 
   List<BoxShadow> get sombra => [
     BoxShadow(
-      color: Colors.black.withValues(
-        alpha: look == SageLook.glass ? 0.12 : 0.26,
-      ),
+      color: Colors.black.withValues(alpha: 0.26),
       blurRadius: 14,
       offset: const Offset(0, 6),
     ),
@@ -132,10 +78,6 @@ class SageScreen extends StatefulWidget {
   final Store store;
   final UiTheme theme;
 
-  /// El estilo. Una variable y no una constante, para poder comparar los tres
-  /// en capturas; cuando se elija uno, los otros se van.
-  static SageLook look = SageLook.paper;
-
   static Route<void> route({required Store store, required UiTheme theme}) =>
       PageRouteBuilder<void>(
         opaque: false,
@@ -156,7 +98,7 @@ class SageScreen extends StatefulWidget {
 
 class _SageScreenState extends State<SageScreen> {
   final AdviceBook _libro = AdviceBook.instance;
-  final _Estilo _e = _Estilo(SageScreen.look);
+  final _Estilo _e = const _Estilo();
 
   /// Lo que no se había mirado al entrar: lleva su marca mientras se está
   /// acá, aunque entrar ya lo dé por visto.
@@ -282,7 +224,7 @@ class _SageScreenState extends State<SageScreen> {
   }
 }
 
-/// Un fondo del estilo: papel con su filete, vidrio claro o pergamino.
+/// Una hoja de papel, con su filete por dentro como las del tablón.
 class _Fondo extends StatelessWidget {
   const _Fondo({
     required this.e,
@@ -295,39 +237,20 @@ class _Fondo extends StatelessWidget {
   final EdgeInsets padding;
 
   @override
-  Widget build(BuildContext context) {
-    final r = e.look == SageLook.glass ? 22.0 : 3.0;
-    Widget caja = Container(
-      padding: padding,
+  Widget build(BuildContext context) => Container(
+    padding: padding,
+    decoration: BoxDecoration(
+      color: e.papel,
+      borderRadius: BorderRadius.circular(3),
+      boxShadow: e.sombra,
+    ),
+    child: DecoratedBox(
       decoration: BoxDecoration(
-        color: e.papel,
-        borderRadius: BorderRadius.circular(r),
-        boxShadow: e.sombra,
-        border: e.look == SageLook.glass
-            ? Border.all(color: Colors.white.withValues(alpha: 0.9))
-            : null,
+        border: Border.all(color: e.tinta.withValues(alpha: 0.16)),
       ),
-      child: e.look == SageLook.paper
-          // El filete de dentro, como las hojas del tablón.
-          ? DecoratedBox(
-              decoration: BoxDecoration(
-                border: Border.all(color: e.tinta.withValues(alpha: 0.16)),
-              ),
-              child: Padding(padding: const EdgeInsets.all(8), child: child),
-            )
-          : child,
-    );
-    if (e.look == SageLook.glass) {
-      caja = ClipRRect(
-        borderRadius: BorderRadius.circular(r),
-        child: BackdropFilter(
-          filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-          child: caja,
-        ),
-      );
-    }
-    return caja;
-  }
+      child: Padding(padding: const EdgeInsets.all(8), child: child),
+    ),
+  );
 }
 
 /// El botón redondo de cerrar.
@@ -352,8 +275,7 @@ class _Redondo extends StatelessWidget {
   );
 }
 
-/// Lo que te dijo, el más nuevo arriba: cada cosa en su hoja, o todas en un
-/// mismo pergamino.
+/// Lo que te dijo, el más nuevo arriba, cada cosa en su hoja.
 class _Lista extends StatelessWidget {
   const _Lista({
     required this.e,
@@ -380,81 +302,34 @@ class _Lista extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (dichos.isEmpty) return const SizedBox.shrink();
-    final Widget lista;
-    if (e.look == SageLook.scroll) {
-      lista = SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(18, 14, 18, 10),
-        child: _Pergamino(
-          e: e,
-          child: Column(
-            children: [
-              for (var i = 0; i < dichos.length; i++) ...[
-                if (i > 0)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    child: Text(
-                      '~  ·  ~',
-                      style: TextStyle(color: e.tinta.withValues(alpha: 0.35)),
-                    ),
-                  ),
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => onTap(dichos[i].$1),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            dichos[i].$1.say,
-                            textAlign: TextAlign.center,
-                            style: e.dicho(18),
-                          ),
-                        ),
-                        if (nuevos.contains(dichos[i].$1.id)) _marca(),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      );
-    } else {
-      lista = ListView.separated(
-        padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
-        itemCount: dichos.length,
-        separatorBuilder: (_, _) =>
-            SizedBox(height: e.look == SageLook.paper ? 14 : 10),
-        itemBuilder: (context, i) {
-          final (a, _) = dichos[i];
-          // Las hojas, un poco torcidas cada una para su lado, como
-          // clavadas a mano.
-          final giro = e.look == SageLook.paper
-              ? ((a.id.hashCode % 7) - 3) * 0.0045
-              : 0.0;
-          return Transform.rotate(
-            angle: giro,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => onTap(a),
-              child: _Fondo(
-                e: e,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(child: Text(a.say, style: e.dicho(18))),
-                    if (nuevos.contains(a.id)) _marca(),
-                  ],
-                ),
+    final lista = ListView.separated(
+      padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
+      itemCount: dichos.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 14),
+      itemBuilder: (context, i) {
+        final (a, _) = dichos[i];
+        // Las hojas, un poco torcidas cada una para su lado, como
+        // clavadas a mano.
+        final giro = ((a.id.hashCode % 7) - 3) * 0.0045;
+        return Transform.rotate(
+          angle: giro,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => onTap(a),
+            child: _Fondo(
+              e: e,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: Text(a.say, style: e.dicho(18))),
+                  if (nuevos.contains(a.id)) _marca(),
+                ],
               ),
             ),
-          );
-        },
-      );
-    }
+          ),
+        );
+      },
+    );
     return ShaderMask(
       // Lo de arriba se funde en lugar de cortarse en seco.
       shaderCallback: (r) => const LinearGradient(
@@ -465,53 +340,6 @@ class _Lista extends StatelessWidget {
       ).createShader(r),
       blendMode: BlendMode.dstIn,
       child: lista,
-    );
-  }
-}
-
-/// Un pergamino: el papel, más oscuro en los bordes, y los dos rollos.
-class _Pergamino extends StatelessWidget {
-  const _Pergamino({required this.e, required this.child});
-  final _Estilo e;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    Widget rollo() => Container(
-      height: 16,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        gradient: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFFCDB07A), Color(0xFF9C7A46), Color(0xFFB8965E)],
-        ),
-        boxShadow: e.sombra,
-      ),
-    );
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        rollo(),
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 8),
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [
-                Color(0xFFD9C18C),
-                Color(0xFFEBDCB3),
-                Color(0xFFEBDCB3),
-                Color(0xFFD9C18C),
-              ],
-              stops: [0, 0.12, 0.88, 1],
-            ),
-            boxShadow: e.sombra,
-          ),
-          child: child,
-        ),
-        rollo(),
-      ],
     );
   }
 }
@@ -538,7 +366,7 @@ class _GloboPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final r = e.look == SageLook.glass ? 20.0 : 14.0;
+    const r = 14.0;
     final cuerpo = RRect.fromRectAndRadius(
       Offset.zero & size,
       Radius.circular(r),
@@ -557,7 +385,7 @@ class _GloboPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_GloboPainter old) => old.e.look != e.look;
+  bool shouldRepaint(_GloboPainter old) => false;
 }
 
 /// El viejo abajo a la izquierda, grande, y lo que dice a su derecha.
@@ -731,13 +559,11 @@ class _DetalleState extends State<_Detalle> {
         child: Center(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 22),
-            child: e.look == SageLook.scroll
-                ? _Pergamino(e: e, child: contenido)
-                : _Fondo(
-                    e: e,
-                    padding: const EdgeInsets.fromLTRB(26, 26, 26, 28),
-                    child: contenido,
-                  ),
+            child: _Fondo(
+              e: e,
+              padding: const EdgeInsets.fromLTRB(26, 26, 26, 28),
+              child: contenido,
+            ),
           ),
         ),
       ),
