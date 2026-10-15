@@ -870,8 +870,6 @@ class TownLayout {
   /// How close together the plots are laid here.
   final double plotPitch;
 
-  double get blockPitch => plotPitch * 3.6;
-
   /// El claro de la plaza: dentro de este radio no se levanta nada.
   ///
   /// El tablón es lo más importante que hay en el pueblo y también lo más
@@ -884,6 +882,73 @@ class TownLayout {
   /// es del tamaño de la gente que la cruza y del mueble que hay en medio, no
   /// de lo apretado que esté el caserío. Todas las regiones tienen la misma.
   static const double plazaReach = 2.55;
+
+  /// Los caminos de tierra: uno por obra empezada, de su puerta hacia la
+  /// plaza.
+  ///
+  /// No van todos derechos a la plaza, que sería una rueda de radios. Cada
+  /// obra busca lo más cerca que tenga entre la plaza y las obras de antes
+  /// que estén más adentro que ella, y tira su camino hasta ahí: si la vecina
+  /// de al lado ya tiene camino, se une al suyo. Así crecen como ramas, igual
+  /// que en un pueblo de verdad, donde nadie abre un camino nuevo si tiene
+  /// uno a veinte pasos. Todos acaban, de rama en rama, en la plaza.
+  ///
+  /// Se hacen en orden de obra y cada uno mira sólo a los de antes, así que
+  /// un camino trazado no cambia nunca porque llegue otra casa. Un poco
+  /// curvos, cada uno a su manera y siempre igual: un camino de tierra lo
+  /// pisa la gente, y la gente no camina con regla.
+  ///
+  /// En metros, medidos en el valle.
+  late final List<List<(double, double)>> paths = _trazarCaminos();
+
+  List<List<(double, double)>> _trazarCaminos() {
+    if (solo) return const [];
+    final out = <List<(double, double)>>[];
+    final hechos = <TownBuilding>[];
+    for (final b in buildings) {
+      if (b.placedPieces <= 0) continue;
+      final dx = b.cx - cx, dz = b.cz - cz;
+      final lejos = math.sqrt(dx * dx + dz * dz);
+      if (lejos < 1e-6) continue;
+      // Hasta el borde de la plaza, por derecho.
+      var tx = cx + dx / lejos * plazaReach * 0.97;
+      var tz = cz + dz / lejos * plazaReach * 0.97;
+      var mejor = (lejos - plazaReach) * 0.85;
+      // O hasta una de antes que esté más adentro y más a mano.
+      for (final k in hechos) {
+        final kx = k.cx - cx, kz = k.cz - cz;
+        if (math.sqrt(kx * kx + kz * kz) > lejos - 1.0) continue;
+        final ex = k.cx - b.cx, ez = k.cz - b.cz;
+        final d = math.sqrt(ex * ex + ez * ez);
+        if (d < mejor) {
+          mejor = d;
+          tx = k.cx;
+          tz = k.cz;
+        }
+      }
+      hechos.add(b);
+      // La curva: el medio se aparta un poco hacia un lado.
+      final ax = b.cx, az = b.cz;
+      final lx = tx - ax, lz = tz - az;
+      final largo = math.sqrt(lx * lx + lz * lz);
+      if (largo < 0.3) continue;
+      final sesgo = hashRange(-0.22, 0.22, b.seed, 0xCA41) * largo;
+      final mx = (ax + tx) / 2 - lz / largo * sesgo;
+      final mz = (az + tz) / 2 + lx / largo * sesgo;
+      final tramos = math.max(3, (largo / 0.6).ceil());
+      out.add([
+        for (var i = 0; i <= tramos; i++)
+          () {
+            final t = i / tramos, u = 1 - t;
+            return (
+              u * u * ax + 2 * u * t * mx + t * t * tx,
+              u * u * az + 2 * u * t * mz + t * t * tz,
+            );
+          }(),
+      ]);
+    }
+    return out;
+  }
 
   void _build() {
     final want = placed + 1;
@@ -954,87 +1019,142 @@ class TownLayout {
     }
   }
 
-  /// The plots, nearest the centre first.
+  /// Los solares, de la plaza hacia afuera.
   ///
-  /// A square grid of blocks with streets between them, taken in order of
-  /// distance from the middle with a little jitter so the edge of the town is
-  /// ragged rather than a circle drawn with a compass. Buildings claim them in
-  /// order and a landmark keeps its neighbours at arm's length, so a castle is
-  /// never wearing somebody's cottage. Because a plot is chosen looking only at
-  /// what is already standing, nothing built earlier ever has to move.
+  /// **Sueltos, y no en manzanas.** Eran una rejilla de manzanas de tres por
+  /// tres con calles entre ellas, y un pueblo de cien piezas se leía como un
+  /// barrio de ciudad: casas pegadas en fila, todas mirando igual, con el
+  /// prado reducido a pasillos. Un pueblo de campo no es eso. Ahora el suelo
+  /// se parte en casillas de un metro, cada una con un punto sorteado dentro,
+  /// y cada edificio se queda con el punto libre más cercano a la plaza —con
+  /// algo de azar en la cuenta, para que el borde no sea un círculo— que deje
+  /// aire de sobra con todos los demás. No hay filas porque no hay rejilla
+  /// que se vea: los puntos caen donde caen.
+  ///
+  /// El aire es la huella de cada uno más un hueco que depende de la comarca:
+  /// las de parcelas anchas dejan más prado entre casa y casa.
+  ///
+  /// Un solar se elige mirando sólo lo que ya está en pie, así que nada de lo
+  /// construido tiene que moverse cuando llega lo siguiente. Y las casillas no
+  /// dependen de cuántos edificios haya: el alcance sale de cuántos hay, pero
+  /// con margen de sobra, y lo que añade un alcance mayor son casillas de más
+  /// afuera, que nadie de antes llegó a mirar.
   List<(double, double)> _plots(List<Works> works) {
-    final rings = math.max(3, (math.sqrt(works.length) / 2).ceil() + 3);
-    final all = <(double, double, double)>[];
-    for (var bx = -rings; bx <= rings; bx++) {
-      for (var bz = -rings; bz <= rings; bz++) {
-        for (var px = 0; px < 3; px++) {
-          for (var pz = 0; pz < 3; pz++) {
-            final x = bx * blockPitch + px * plotPitch + plotPitch / 2;
-            final z = bz * blockPitch + pz * plotPitch + plotPitch / 2;
-            final key =
-                math.sqrt(x * x + z * z) +
-                hashRange(0, 2.2, hash32(bx + 991, bz + 991, px, pz), seed);
-            all.add((x, z, key));
-          }
+    const celda = 1.0;
+    final hueco = plotPitch * 0.6;
+    final alcance = 12 + math.sqrt(works.length) * (2.6 + hueco) * 1.3;
+    final n = (alcance / celda).ceil();
+    final lado = 2 * n + 1;
+    // Una casilla por punto: [donde] dice qué punto cayó en cada casilla, o
+    // -1, y es lo que deja descartar de una vez los que rodean a una casa.
+    final donde = List<int>.filled(lado * lado, -1);
+    final xs = <double>[], zs = <double>[], keys = <double>[];
+    for (var i = -n; i <= n; i++) {
+      for (var j = -n; j <= n; j++) {
+        final h = hash32(i + 4099, j + 4099, 0x501a, seed);
+        final x = (i + hash01(h, 1)) * celda;
+        final z = (j + hash01(h, 2)) * celda;
+        final d = math.sqrt(x * x + z * z);
+        if (d > alcance) continue;
+        final c = (i + n) * lado + (j + n);
+        donde[c] = xs.length;
+        xs.add(x);
+        zs.add(z);
+        keys.add(d + hashRange(0, 3.4, h, 3));
+      }
+    }
+    final orden = List<int>.generate(xs.length, (i) => i)
+      ..sort((a, b) {
+        final c = keys[a].compareTo(keys[b]);
+        if (c != 0) return c;
+        final d = xs[a].compareTo(xs[b]);
+        return d != 0 ? d : zs[a].compareTo(zs[b]);
+      });
+
+    final muerto = List<bool>.filled(xs.length, false);
+    // Lo más chico que puede pedir un edificio: con eso, un punto demasiado
+    // cerca de una casa para lo más chico lo está para todo, y se tira para
+    // siempre. Sin esto, cada casa nueva volvía a mirar —y a descartar— los
+    // mismos cientos de puntos: un pueblo de mil ochocientas piezas tardaba
+    // cuatro segundos en hacer su plano.
+    final chico = 1.3 * character.spread;
+    void descartar(double x, double z, double r) {
+      final radio = (chico + r) * 0.72 + hueco;
+      final ci = (x / celda).floor(), cj = (z / celda).floor();
+      final m = (radio / celda).ceil() + 1;
+      for (var i = ci - m; i <= ci + m; i++) {
+        if (i < -n || i > n) continue;
+        for (var j = cj - m; j <= cj + m; j++) {
+          if (j < -n || j > n) continue;
+          final k = donde[(i + n) * lado + (j + n)];
+          if (k < 0) continue;
+          final dx = xs[k] - x, dz = zs[k] - z;
+          if (dx * dx + dz * dz < radio * radio) muerto[k] = true;
         }
       }
     }
-    all.sort((a, b) {
-      final c = a.$3.compareTo(b.$3);
-      if (c != 0) return c;
-      final d = a.$1.compareTo(b.$1);
-      return d != 0 ? d : a.$2.compareTo(b.$2);
-    });
 
-    final used = List<bool>.filled(all.length, false);
     final out = <(double, double)>[];
     final reaches = <double>[];
+    // Los edificios puestos, por cajas del tamaño del aire más grande que
+    // puede pedir uno contra otro.
+    final caja = (6.4 * character.spread) * 2 * 0.72 + hueco;
+    final cajas = <int, List<int>>{};
     var from = 0;
     for (var b = 0; b < works.length; b++) {
       // Stretched wider on the ground, a building needs more ground. The
       // plot has to know what the mason is going to do to it.
       final r = (works[b].landmark?.room ?? 1.3) * character.spread;
       var placedIt = false;
-      for (var i = from; i < all.length; i++) {
-        if (used[i]) continue;
-        final x = all[i].$1, z = all[i].$2;
+      for (var o = from; o < orden.length; o++) {
+        final i = orden[o];
+        if (muerto[i]) continue;
+        final x = xs[i], z = zs[i];
         // Fuera de la plaza, y con la huella entera: lo que tiene que quedar
-        // despejado no es el punto del solar sino lo que se levanta encima.
+        // despejado no es el punto del solar sino lo que se levanta encima,
+        // y un poco de prado alrededor de la plaza para que se lea como plaza.
         // (x, z) van medidos desde el centro del pueblo, que es donde está
-        // la plaza: esta rejilla se monta en el origen y el pueblo entero se
+        // la plaza: esto se monta en el origen y el pueblo entero se
         // traslada después.
-        if (math.sqrt(x * x + z * z) - r * 0.72 < plazaReach) continue;
+        if (math.sqrt(x * x + z * z) - r * 0.72 < plazaReach + hueco * 0.6) {
+          continue;
+        }
+        // Sólo los vecinos de las nueve cajas de alrededor: nadie pide más
+        // aire que una caja.
         var ok = true;
-        for (var k = 0; k < out.length; k++) {
-          final dx = x - out[k].$1, dz = z - out[k].$2;
-          if (dx.abs() > 14 || dz.abs() > 14) continue;
-          final need = (r + reaches[k]) * 0.72;
-          if (dx * dx + dz * dz < need * need) {
-            ok = false;
-            break;
+        final bi = (x / caja).floor(), bj = (z / caja).floor();
+        for (var di = -1; di <= 1 && ok; di++) {
+          for (var dj = -1; dj <= 1 && ok; dj++) {
+            final hay = cajas[(bi + di) * 100003 + (bj + dj)];
+            if (hay == null) continue;
+            for (final k in hay) {
+              final dx = x - out[k].$1, dz = z - out[k].$2;
+              final need = (r + reaches[k]) * 0.72 + hueco;
+              if (dx * dx + dz * dz < need * need) {
+                ok = false;
+                break;
+              }
+            }
           }
         }
         if (!ok) continue;
-        used[i] = true;
+        muerto[i] = true;
+        cajas.putIfAbsent(bi * 100003 + bj, () => []).add(out.length);
         out.add((x, z));
         reaches.add(r);
+        descartar(x, z, r);
         placedIt = true;
-        while (from < all.length && used[from]) {
+        while (from < orden.length && muerto[orden[from]]) {
           from++;
         }
         break;
       }
-      // The grid ran out, which only happens for a town far larger than any
-      // that will ever be built. Better a crowded corner than no plot at all.
+      // No quedó sitio, que sólo pasa en un pueblo mucho más grande que
+      // cualquiera que se vaya a levantar. Mejor una esquina apretada que
+      // ningún solar.
       if (!placedIt) {
-        out.add(
-          all[out.length % all.length].$1 == 0
-              ? (0.0, 0.0)
-              : (
-                  all[out.length % all.length].$1,
-                  all[out.length % all.length].$2,
-                ),
-        );
+        final i = orden[(orden.length - 1 - b) % orden.length];
+        out.add((xs[i], zs[i]));
         reaches.add(r);
       }
     }

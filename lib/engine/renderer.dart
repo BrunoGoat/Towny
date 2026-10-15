@@ -289,6 +289,11 @@ class TownPainter extends CustomPainter {
         ];
       }
     }
+    // Los caminos de tierra, lo primero sobre la hierba: las sombras caen
+    // encima de ellos y las casas los tapan donde llegan a su puerta.
+    for (final e in scene.towns) {
+      if (e.placed > 0) _drawTownPaths(canvas, p, e.layout);
+    }
     if (scene.cinematic) {
       drawCastShadows(canvas, p, scene.palette, [
         for (var i = 0; i < scene.towns.length; i++)
@@ -458,6 +463,58 @@ class TownPainter extends CustomPainter {
   // --------------------------------------------------------------- stones
 
   /// The lanes between the blocks, and the shadow each building sits in.
+  /// Los caminos de tierra de [TownLayout.paths], pintados sobre la hierba.
+  ///
+  /// Cada uno es una cinta en el suelo y no una raya en la pantalla: así se
+  /// estrecha con la distancia como se estrecha todo, y de lejos se pierde en
+  /// vez de quedarse del mismo grosor que de cerca.
+  void _drawTownPaths(Canvas canvas, Projector p, TownLayout town) {
+    final rutas = town.paths;
+    if (rutas.isEmpty) return;
+    final pal = scene.palette;
+    // La tierra, del color del prado que la rodea —que es lo que cambia con
+    // la hora— tirando a pardo.
+    final tierra = Color.lerp(pal.ground, const Color(0xFF9A7A52), 0.55)!;
+    final borde = tierra.withValues(alpha: 0.45);
+    final ancho = 0.2 * town.character.spread;
+    final relleno = Paint()..color = tierra;
+    final orilla = Paint()
+      ..color = borde
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+    for (final ruta in rutas) {
+      // De lejos no: una cinta de medio píxel es ruido.
+      final c = p.project(V3(ruta.first.$1, 0, ruta.first.$2));
+      if (c == null || p.focal / c.depth * ancho * 2 < 0.7) continue;
+      final izq = <Offset>[], der = <Offset>[];
+      var roto = false;
+      for (var i = 0; i < ruta.length; i++) {
+        final a = ruta[i == 0 ? 0 : i - 1],
+            b = ruta[i == ruta.length - 1 ? i : i + 1];
+        var nx = -(b.$2 - a.$2), nz = b.$1 - a.$1;
+        final l = math.sqrt(nx * nx + nz * nz);
+        if (l < 1e-9) continue;
+        nx /= l;
+        nz /= l;
+        // Más ancho donde arranca, que es la puerta, y más fino al unirse.
+        final w = ancho * (1.15 - 0.3 * i / (ruta.length - 1));
+        final (x, z) = ruta[i];
+        final pi = p.project(V3(x + nx * w, 0.004, z + nz * w));
+        final pd = p.project(V3(x - nx * w, 0.004, z - nz * w));
+        if (pi == null || pd == null) {
+          roto = true;
+          break;
+        }
+        izq.add(Offset(pi.x, pi.y));
+        der.add(Offset(pd.x, pd.y));
+      }
+      if (roto || izq.length < 2) continue;
+      final cinta = Path()..addPolygon([...izq, ...der.reversed], true);
+      canvas.drawPath(cinta, relleno);
+      canvas.drawPath(cinta, orilla);
+    }
+  }
+
   void _drawTownGround(
     Canvas canvas,
     Projector p,
@@ -1296,8 +1353,7 @@ class TownPainter extends CustomPainter {
           e,
           pal,
           water: false,
-          moving:
-              _sombraMovil[w] ?? [..._casterDe(gente), ..._casterDe(agua)],
+          moving: _sombraMovil[w] ?? [..._casterDe(gente), ..._casterDe(agua)],
         ),
         ...gente,
       ];
@@ -1698,7 +1754,9 @@ class TownPainter extends CustomPainter {
     return hecha;
   }
 
-  static final Expando<((int, bool, double, double, double, double), List<Facet>)>
+  static final Expando<
+    ((int, bool, double, double, double, double), List<Facet>)
+  >
   _quietas = Expando();
 
   /// Lo que va por el árbol con la gente sin ser gente: el agua de la fuente
