@@ -935,7 +935,9 @@ class TownLayout {
       final sesgo = hashRange(-0.22, 0.22, b.seed, 0xCA41) * largo;
       final mx = (ax + tx) / 2 - lz / largo * sesgo;
       final mz = (az + tz) / 2 + lx / largo * sesgo;
-      final tramos = math.max(3, (largo / 0.6).ceil());
+      // Un punto cada treinta centímetros: es lo que deja que el pintor le
+      // muerda los bordes sin que se vean los tramos.
+      final tramos = math.max(4, (largo / 0.3).ceil());
       out.add([
         for (var i = 0; i <= tramos; i++)
           () {

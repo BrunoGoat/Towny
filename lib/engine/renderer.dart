@@ -493,6 +493,21 @@ class TownPainter extends CustomPainter {
       if (c == null || p.focal / c.depth * ancho * 2 < 0.7) continue;
       final izq = <Offset>[], der = <Offset>[];
       var roto = false;
+      // **Con los bordes comidos.** Una cinta de ancho fijo es una línea
+      // dibujada con regla, y un camino de tierra no lo dibuja nadie: lo
+      // pisa la gente, y se ensancha donde se paran, se angosta donde el
+      // pasto le gana, y cada orilla tiene sus mordidas. Tres cosas, todas
+      // sacadas de la posición de cada punto, así que el camino es siempre
+      // el mismo y no titila:
+      //  - el ancho respira despacio a lo largo del camino;
+      //  - cada orilla tiene su propio diente, punto a punto;
+      //  - y el medio serpentea un poco de lado a lado.
+      final semilla = hash32(
+        (ruta.first.$1 * 97).round(),
+        (ruta.first.$2 * 97).round(),
+        0xCA41,
+      );
+      final fase = hash01(semilla, 1) * 6.28;
       for (var i = 0; i < ruta.length; i++) {
         final a = ruta[i == 0 ? 0 : i - 1],
             b = ruta[i == ruta.length - 1 ? i : i + 1];
@@ -502,10 +517,19 @@ class TownPainter extends CustomPainter {
         nx /= l;
         nz /= l;
         // Más ancho donde arranca, que es la puerta, y más fino al unirse.
-        final w = ancho * (1.15 - 0.3 * i / (ruta.length - 1));
-        final (x, z) = ruta[i];
-        final pi = p.project(V3(x + nx * w, 0.004, z + nz * w));
-        final pd = p.project(V3(x - nx * w, 0.004, z - nz * w));
+        final w =
+            ancho *
+            (1.15 - 0.3 * i / (ruta.length - 1)) *
+            (1 + 0.22 * math.sin(i * 0.55 + fase));
+        final (x0, z0) = ruta[i];
+        final punta = i == 0 || i == ruta.length - 1;
+        final lado = punta ? 0.0 : ancho * 0.35 * math.sin(i * 0.37 + fase * 2);
+        final x = x0 + nx * lado, z = z0 + nz * lado;
+        final h = hash32((x0 * 211).round(), (z0 * 211).round(), semilla);
+        final wi = w * (punta ? 1 : hashRange(0.72, 1.18, h, 1));
+        final wd = w * (punta ? 1 : hashRange(0.72, 1.18, h, 2));
+        final pi = p.project(V3(x + nx * wi, 0.004, z + nz * wi));
+        final pd = p.project(V3(x - nx * wd, 0.004, z - nz * wd));
         if (pi == null || pd == null) {
           roto = true;
           break;
