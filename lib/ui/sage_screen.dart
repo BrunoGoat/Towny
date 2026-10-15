@@ -13,6 +13,7 @@ import '../fx/sensory.dart';
 import '../l10n/lang.dart';
 import '../model/advice_book.dart';
 import '../model/store.dart';
+import 'sage_scroll.dart';
 import 'style.dart';
 
 /// Cómo se visten las tarjetas y lo que dice el viejo: papel, como las hojas
@@ -77,6 +78,10 @@ class SageScreen extends StatefulWidget {
 
   final Store store;
   final UiTheme theme;
+
+  /// Cuál de los diez rollos (ver [SageScroll]). Una variable para poder
+  /// compararlos en capturas; cuando se elija uno, se fija.
+  static int rollo = 0;
 
   static Route<void> route({required Store store, required UiTheme theme}) =>
       PageRouteBuilder<void>(
@@ -177,14 +182,52 @@ class _SageScreenState extends State<SageScreen> {
                   alignment: Alignment.centerRight,
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(8, 4, 10, 0),
-                    child: _Redondo(
-                      e: e,
-                      onTap: () => Navigator.of(context).maybePop(),
-                      child: Icon(
-                        Icons.close_rounded,
-                        size: 20,
-                        color: e.tinta,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // DEV: para probar los diez rollos en la app. Tocar
+                        // pasa al siguiente; mantener vuelve al anterior. Se
+                        // va cuando se elija uno.
+                        GestureDetector(
+                          onTap: () => setState(
+                            () =>
+                                SageScreen.rollo = (SageScreen.rollo + 1) % 10,
+                          ),
+                          onLongPress: () => setState(
+                            () =>
+                                SageScreen.rollo = (SageScreen.rollo + 9) % 10,
+                          ),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 9,
+                            ),
+                            decoration: BoxDecoration(
+                              color: e.globo,
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: e.sombra,
+                            ),
+                            child: Text(
+                              'Rollo ${SageScreen.rollo + 1}/10  ›',
+                              style: TextStyle(
+                                color: e.tinta,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        _Redondo(
+                          e: e,
+                          onTap: () => Navigator.of(context).maybePop(),
+                          child: Icon(
+                            Icons.close_rounded,
+                            size: 20,
+                            color: e.tinta,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -305,23 +348,27 @@ class _Lista extends StatelessWidget {
     final lista = ListView.separated(
       padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
       itemCount: dichos.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 14),
+      separatorBuilder: (_, _) => const SizedBox(height: 24),
       itemBuilder: (context, i) {
         final (a, _) = dichos[i];
         // Las hojas, un poco torcidas cada una para su lado, como
         // clavadas a mano.
-        final giro = ((a.id.hashCode % 7) - 3) * 0.0045;
-        return Transform.rotate(
-          angle: giro,
+        return Center(
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () => onTap(a),
-            child: _Fondo(
-              e: e,
+            child: SageScroll(
+              variant: SageScreen.rollo,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(child: Text(a.say, style: e.dicho(18))),
+                  Expanded(
+                    child: Text(
+                      a.say,
+                      textAlign: TextAlign.center,
+                      style: e.habla(18).copyWith(fontStyle: FontStyle.italic),
+                    ),
+                  ),
                   if (nuevos.contains(a.id)) _marca(),
                 ],
               ),
