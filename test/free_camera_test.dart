@@ -95,4 +95,56 @@ void main() {
     await esperar(tester, 12);
     expect(mando.aim.yaw, greaterThan(antes));
   });
+
+  Future<void> pellizco(WidgetTester tester) async {
+    // Separar los dedos con la mano un poco torcida: unos seis grados de giro
+    // repartidos por el gesto, que es lo que pasa al pellizcar de verdad.
+    final a = await tester.startGesture(const Offset(170, 430), pointer: 1);
+    final b = await tester.startGesture(const Offset(220, 410), pointer: 2);
+    for (var i = 0; i < 12; i++) {
+      await a.moveBy(const Offset(-6, 3));
+      await b.moveBy(const Offset(6, -4));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await a.up();
+    await b.up();
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+
+  testWidgets('pellizcar acerca sin girar, en el pueblo y en el valle', (
+    tester,
+  ) async {
+    final mando = await pueblo(tester);
+    await dosDedos(tester, const Offset(10, 10));
+    var antes = mando.aim.yaw;
+    await pellizco(tester);
+    expect(mando.aim.yaw, closeTo(antes, 1e-9));
+    mando.frameValley();
+    await esperar(tester, 2);
+    antes = mando.aim.yaw;
+    await pellizco(tester);
+    expect(mando.aim.yaw, closeTo(antes, 1e-9));
+  });
+
+  testWidgets('girar los dedos sí gira', (tester) async {
+    final mando = await pueblo(tester);
+    await dosDedos(tester, const Offset(10, 10));
+    final antes = mando.aim.yaw;
+    final a = await tester.startGesture(const Offset(150, 420), pointer: 1);
+    final b = await tester.startGesture(const Offset(240, 420), pointer: 2);
+    for (var i = 1; i <= 24; i++) {
+      final ang = i * 0.06;
+      await a.moveTo(
+        Offset(195 - 45 * math.cos(ang), 420 - 45 * math.sin(ang)),
+      );
+      await b.moveTo(
+        Offset(195 + 45 * math.cos(ang), 420 + 45 * math.sin(ang)),
+      );
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await a.up();
+    await b.up();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect((mando.aim.yaw - antes).abs(), greaterThan(0.3));
+  });
 }

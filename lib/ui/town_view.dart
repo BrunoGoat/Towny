@@ -1350,7 +1350,66 @@ class _TownViewState extends State<TownView>
   void _onScaleStart(ScaleStartDetails d) {
     _lastScale = 1;
     _lastRotation = 0;
+    _two = _Two.undecided;
+    _twoSeen = _Two.undecided;
+    _twoMoved = 0;
     _touched();
+  }
+
+  /// Qué está haciendo este gesto de dos dedos. Ver [_twoFingers].
+  _Two _two = _Two.undecided;
+
+  /// Cuánto se corrieron los dos dedos juntos desde que empezó el gesto.
+  double _twoMoved = 0;
+
+  /// Lo que pareció el gesto en el paso anterior, mientras no se decidió.
+  _Two _twoSeen = _Two.undecided;
+
+  /// Lo que pide un gesto de dos dedos, decidido una sola vez por gesto.
+  ///
+  /// Antes se aplicaba todo a la vez —acercar, girar e inclinar—, y nadie
+  /// pellizca sin girar un poco la mano: acercarse era también darse la
+  /// vuelta. Ahora el gesto es lo primero que pase de su umbral: pellizcar
+  /// acerca y nada más; girar los dedos gira (y deja acercar, que girando se
+  /// abren solos); correrlos juntos mueve. Un giro bien hecho en mitad de un
+  /// pellizco —más de un cuarto de vuelta de muñeca— sí pasa a girar.
+  ({double zoom, double turn, Offset move}) _twoFingers(ScaleUpdateDetails d) {
+    _twoMoved += d.focalPointDelta.distance;
+    final escala = d.scale <= 0 ? 0.0 : math.log(d.scale).abs();
+    if (_two == _Two.undecided) {
+      // Los dedos llegan de a uno: entre que se mueve el primero y el
+      // segundo, correr la mano parece un pellizco o un giro por un
+      // instante. Así que pellizcar y girar tienen que verse dos veces
+      // seguidas; correrlos juntos se ve en lo que suma.
+      final pide = escala > 0.06
+          ? _Two.zoom
+          : (d.rotation.abs() > 0.25 ? _Two.turn : _Two.undecided);
+      if (pide != _Two.undecided && pide == _twoSeen) {
+        _two = pide;
+      } else if (_twoMoved > 18) {
+        _two = _Two.move;
+      }
+      _twoSeen = pide;
+      // Lo de antes de decidirse no se aplica: así no salta nada.
+      _lastScale = d.scale;
+      _lastRotation = d.rotation;
+      return (zoom: 1, turn: 0, move: Offset.zero);
+    }
+    if (_two == _Two.zoom && (d.rotation - _lastRotation).abs() > 0.45) {
+      _two = _Two.turn;
+      _lastRotation = d.rotation;
+    }
+    var f = d.scale / (_lastScale == 0 ? 1 : _lastScale);
+    _lastScale = d.scale;
+    if (!f.isFinite || f <= 0 || _two == _Two.move) f = 1;
+    var giro = d.rotation - _lastRotation;
+    _lastRotation = d.rotation;
+    if (_two != _Two.turn) giro = 0;
+    return (
+      zoom: f,
+      turn: giro,
+      move: _two == _Two.move ? d.focalPointDelta : Offset.zero,
+    );
   }
 
   void _onScaleUpdate(ScaleUpdateDetails d) {
@@ -1366,23 +1425,20 @@ class _TownViewState extends State<TownView>
       return;
     }
     if (d.pointerCount >= 2) {
-      final f = d.scale / (_lastScale == 0 ? 1 : _lastScale);
-      _lastScale = d.scale;
-      if (f.isFinite && f > 0) _zoomBy(1 / f);
+      final g = _twoFingers(d);
+      if (g.zoom != 1) _zoomBy(1 / g.zoom);
       // Dos dedos llevan el suelo con ellos, hacia cualquier lado —no sólo a
       // lo largo de una línea, como cuando la app era un muro recto—, y
       // girarlos gira la vista. Moverse así es pasar a la cámara libre.
-      final giro = d.rotation - _lastRotation;
-      _lastRotation = d.rotation;
-      if (giro.abs() > 1e-4) {
-        _cam.yawTarget -= giro;
+      if (g.turn.abs() > 1e-4) {
+        _cam.yawTarget -= g.turn;
         _cam.follow = false;
       }
-      if (d.focalPointDelta.distanceSquared > 0.5) {
-        _panByDrag(d.focalPointDelta, d.localFocalPoint);
+      if (g.move.distanceSquared > 0.5) {
+        _panByDrag(g.move, d.localFocalPoint);
         _free = true;
       }
-      if (f > 1) _diveIn(d.localFocalPoint);
+      if (g.zoom > 1) _diveIn(d.localFocalPoint);
     } else {
       final dx = d.focalPointDelta.dx;
       final dy = d.focalPointDelta.dy;
@@ -1410,14 +1466,11 @@ class _TownViewState extends State<TownView>
     if (_rightDrag) return;
     final teclado = HardwareKeyboard.instance;
     if (d.pointerCount >= 2) {
-      final f = d.scale / (_lastScale == 0 ? 1 : _lastScale);
-      _lastScale = d.scale;
-      if (f.isFinite && f > 0) _zoomToward(1 / f, d.localFocalPoint);
-      final giro = d.rotation - _lastRotation;
-      _lastRotation = d.rotation;
-      _cam.orbitBy(-giro, d.focalPointDelta.dy * 0.0048);
+      final g = _twoFingers(d);
+      if (g.zoom != 1) _zoomToward(1 / g.zoom, d.localFocalPoint);
+      _cam.orbitBy(-g.turn, g.move.dy * 0.0048);
       _cam.follow = false;
-      if (f > 1) _diveIn(d.localFocalPoint);
+      if (g.zoom > 1) _diveIn(d.localFocalPoint);
     } else if (teclado.isShiftPressed || teclado.isControlPressed) {
       _cam.orbitBy(
         -d.focalPointDelta.dx * 0.0062,
@@ -1826,3 +1879,6 @@ class _TownViewState extends State<TownView>
     );
   }
 }
+
+/// Lo que hace un gesto de dos dedos: todavía nada, acercar, girar o mover.
+enum _Two { undecided, zoom, turn, move }
