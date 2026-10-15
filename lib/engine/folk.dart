@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 
+import '../core/math3.dart';
 import '../core/rng.dart';
 import '../data/character.dart';
 import '../data/doings.dart';
@@ -110,49 +111,94 @@ class Townsfolk {
           stay[(i + 1) % stops.length];
     }
     return Townsfolk._(
-      sageHome,
-      s,
-      'Consejero',
-      null,
-      stops,
-      stay,
-      facing,
-      acts,
-      period,
-      sage: true,
-    )..debut = _sageAnchor[_sageKey(layout)];
+        sageHome,
+        s,
+        'Consejero',
+        null,
+        stops,
+        stay,
+        facing,
+        acts,
+        period,
+        sage: true,
+      )
+      ..debut = _sageAnchor[_sageKey(layout)]?.$1
+      .._greetAt = _sageAnchor[_sageKey(layout)]?.$2;
   }
 
-  /// Desde cuándo cuenta su ronda el consejero de cada valle, si se le puso
-  /// en hora (ver [seatNow]). Aparte del consejero, porque el consejero se
-  /// rehace cada vez que el pueblo cambia de forma, y la hora tiene que
-  /// sobrevivirle.
-  static final Map<String, double> _sageAnchor = {};
+  /// Desde cuándo cuenta su ronda el consejero de cada valle, y cuándo llegó
+  /// con la fundación, si se le puso en hora (ver [arriveNow]). Aparte del
+  /// consejero, porque el consejero se rehace cada vez que el pueblo cambia
+  /// de forma, y la hora tiene que sobrevivirle.
+  static final Map<String, (double, double)> _sageAnchor = {};
   static String _sageKey(TownLayout l) => '${l.cx},${l.cz},${l.seed}';
 
-  /// Pone al consejero sentado en el banco en el segundo [t]: es como lo deja
-  /// la fundación, que lo trae del cielo sentado en él. A partir de ahí sigue
-  /// su ronda como siempre, sin saltar de sitio.
-  void seatNow(TownLayout layout, double t) {
+  /// Cuándo aterrizó con el banco, si fue en esta sesión: a partir de ahí,
+  /// durante [greetLength] segundos, se levanta y saluda.
+  double? _greetAt;
+
+  /// Lo que dura la llegada: un segundo más sentado, levantarse dando un
+  /// paso al frente, y el saludo.
+  static const double greetLength = 5.6;
+  static const double _sigueSentado = 1.0, _levanta = 0.7;
+
+  /// El consejero acaba de caer del cielo sentado en el banco, en el segundo
+  /// [t]: se queda un momento, se levanta, saluda a quien lo está mirando y
+  /// sigue su ronda desde el paso de delante del banco, sin saltar de sitio.
+  void arriveNow(TownLayout layout, double t) {
     if (!sage) return;
+    final banco = _act.indexOf(Doing.bench);
+    if (banco < 0) return;
+    final frente = (banco + 1) % _stops.length;
+    // Cuándo sale de su ronda del paso de delante del banco.
     var acc = 0.0;
-    final n = _stops.length;
-    for (var i = 0; i < n; i++) {
-      final from = _stops[i], to = _stops[(i + 1) % n];
+    for (var i = 0; i < _stops.length; i++) {
+      final from = _stops[i], to = _stops[(i + 1) % _stops.length];
       acc +=
           math.sqrt(
             math.pow(to.$1 - from.$1, 2) + math.pow(to.$2 - from.$2, 2),
           ) /
           pace;
-      final stay = _stay[(i + 1) % n];
-      if (_act[(i + 1) % n] == Doing.bench) {
-        acc += math.min(2.4, stay * 0.15);
-        break;
-      }
-      acc += stay;
+      acc += _stay[(i + 1) % _stops.length];
+      if ((i + 1) % _stops.length == frente) break;
     }
-    debut = t - acc - 0.01;
-    _sageAnchor[_sageKey(layout)] = debut!;
+    _greetAt = t;
+    debut = t + greetLength - acc;
+    _sageAnchor[_sageKey(layout)] = (debut!, t);
+  }
+
+  /// Dónde está y qué hace mientras llega, [s] segundos después de
+  /// aterrizar.
+  FolkAt _llegando(double s) {
+    final banco = _act.indexOf(Doing.bench);
+    final frente = (banco + 1) % _stops.length;
+    final b = _stops[banco], f = _stops[frente];
+    final mira = _facing[banco];
+    if (s < _sigueSentado) {
+      return FolkAt(b.$1, b.$2, mira, 0, false, Doing.bench, 5 + s);
+    }
+    if (s < _sigueSentado + _levanta) {
+      // Se levanta: un paso al frente, del banco a donde se para.
+      final k = smoothstep(0, 1, (s - _sigueSentado) / _levanta);
+      return FolkAt(
+        lerpD(b.$1, f.$1, k),
+        lerpD(b.$2, f.$2, k),
+        mira,
+        0,
+        false,
+        Doing.idle,
+        s,
+      );
+    }
+    return FolkAt(
+      f.$1,
+      f.$2,
+      mira,
+      0,
+      false,
+      Doing.greet,
+      s - _sigueSentado - _levanta,
+    );
   }
 
   /// Para el consejero: cuánto hace que se sentó en el banco en esta vuelta
@@ -838,6 +884,10 @@ class Townsfolk {
   /// ronda da la vuelta sola, así que esto vale para cualquier [t] por grande
   /// que sea.
   FolkAt at(double t) {
+    final llega = _greetAt;
+    if (llega != null && t >= llega && t < llega + greetLength) {
+      return _llegando(t - llega);
+    }
     final prueba = _trial;
     if (prueba != null) {
       final en = prueba.at(t, seed);

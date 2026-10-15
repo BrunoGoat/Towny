@@ -332,7 +332,8 @@ class TouchMap {
       owner == board ||
       owner == sky ||
       owner == sign ||
-      owner == folk;
+      owner == folk ||
+      owner == sage;
 
   /// Qué se toca en [pos]: lo que se ve bajo el dedo y, si eso no se puede
   /// tocar, lo tocable que se vea más cerca a menos de [reach] píxeles. Un

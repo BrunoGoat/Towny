@@ -1558,9 +1558,9 @@ class TownPainter extends CustomPainter {
             scene.time + math.max(0.0, Townsfolk.settleIn - scene.newbornAge);
       }
       // El consejero de un pueblo recién fundado llega sentado en el banco,
-      // que es como cae con la plaza; desde ahí sigue su ronda.
+      // que es como cae; se levanta, saluda, y desde ahí sigue su ronda.
       if (who.sage && take == 0 && who.debut == null) {
-        who.seatNow(e.layout, scene.time);
+        who.arriveNow(e.layout, scene.time);
       }
       final nace = who.debut;
       if (nace != null && scene.time < nace) continue;
@@ -1603,7 +1603,23 @@ class TownPainter extends CustomPainter {
 
       final donde = folkWhere(who, scene.time, dentro);
       if (donde == null) continue;
-      final at = donde.at;
+      var at = donde.at;
+      if (at.act == Doing.greet) {
+        // Saluda a quien lo mira: se gira hacia la cámara, venga de donde
+        // venga.
+        final mira = math.atan2(p.eye.x - at.x, p.eye.z - at.z);
+        var d = (mira - at.heading) % (2 * math.pi);
+        if (d > math.pi) d -= 2 * math.pi;
+        at = FolkAt(
+          at.x,
+          at.z,
+          at.heading + d * smoothstep(0, 0.6, at.phase),
+          at.gait,
+          at.moving,
+          at.act,
+          at.phase,
+        );
+      }
       final hunde = donde.sink;
       final screen = p.project(V3(at.x, talla * 0.6, at.z));
       if (screen == null) continue;

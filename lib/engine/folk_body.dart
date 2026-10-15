@@ -1708,31 +1708,38 @@ void _sabio(
     box(-0.060, y + 0.230, 0.128, 0.060, y + 0.335, 0.180, cano, 0.98);
   }
   if (detail > 0.4) {
-    // El bastón, a su derecha y más alto que la mano. Andando va y viene con
-    // el paso; parado, apoyado; sentado, entre las rodillas y el banco.
+    // El bastón, a su derecha, flotando a su lado: aquí nadie tiene brazos
+    // ni manos. Andando va y viene con el paso; parado, apoyado; sentado,
+    // entre las rodillas y el banco.
     final vaiven = at.moving ? 0.07 * math.sin(at.gait * 0.5) : 0.0;
-    final mano = sentado
+    var arriba = sentado
         ? (-0.230, y + 0.500, 0.300)
         : (-0.250, y + 0.560, 0.190 + vaiven * 0.3);
-    final pie = sentado ? (-0.250, 0.0, 0.420) : (-0.275, 0.0, 0.250 + vaiven);
-    link(mano, pie, 0.024, 0xFF6B5236, 0.95);
+    var pie = sentado ? (-0.250, 0.0, 0.420) : (-0.275, 0.0, 0.250 + vaiven);
+    if (at.act == Doing.greet) {
+      // Saluda con el bastón: se levanta solo del suelo, sube al costado de
+      // la cabeza y la punta va y viene, como una mano en alto.
+      final alza = smoothstep(0, 0.45, at.phase);
+      final ida = math.sin(at.phase * 8.0) * alza;
+      (double, double, double) mezcla(
+        (double, double, double) a,
+        (double, double, double) b,
+      ) => (
+        lerpD(a.$1, b.$1, alza),
+        lerpD(a.$2, b.$2, alza),
+        lerpD(a.$3, b.$3, alza),
+      );
+      arriba = mezcla(arriba, (-0.34 + 0.22 * ida, y + 1.30, 0.14));
+      pie = mezcla(pie, (-0.30 + 0.03 * ida, y + 0.50, 0.12));
+    }
+    link(arriba, pie, 0.024, 0xFF6B5236, 0.95);
+    // Y el puño, curvo, arriba.
     link(
-      (mano.$1, mano.$2 - 0.02, mano.$3),
-      (mano.$1, mano.$2 + 0.10, mano.$3 + 0.01),
+      (arriba.$1, arriba.$2 - 0.02, arriba.$3),
+      (arriba.$1, arriba.$2 + 0.10, arriba.$3 + 0.01),
       0.030,
       0xFF5A4430,
       0.95,
-    );
-    // Y la mano que lo agarra.
-    box(
-      mano.$1 - 0.035,
-      mano.$2 - 0.045,
-      mano.$3 - 0.035,
-      mano.$1 + 0.035,
-      mano.$2 + 0.015,
-      mano.$3 + 0.035,
-      piel,
-      1.0,
     );
   }
   if (feast != null && detail > 0.25) {

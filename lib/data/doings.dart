@@ -258,6 +258,17 @@ class Doing {
     seated: true,
   );
 
+  /// El consejero, saludando: de pie, con la mano en alto que va y viene.
+  /// Sólo al llegar con la fundación, como [bench], fuera de [all].
+  static const Doing greet = Doing(
+    'saludar',
+    'saluda',
+    where: Where.square,
+    weight: 0,
+    bob: 0.006,
+    rate: 2.2,
+  );
+
   static const List<Doing> all = [
     // ------------------------------------------------------ en su propia puerta
     Doing(

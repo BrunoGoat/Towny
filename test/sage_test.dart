@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:towny/core/math3.dart';
 import 'package:towny/data/character.dart';
 import 'package:towny/data/doings.dart';
 import 'package:towny/data/folknames.dart';
@@ -107,7 +108,17 @@ void main() {
           }
         }
         expect(comoVecino, isFalse);
-        if (sabio) visto++;
+        if (sabio) {
+          visto++;
+          // Y un dedo sobre él lo encuentra: lo que se toca pasa por
+          // [TouchMap.hitAt], que sólo devuelve lo que se puede tocar.
+          final p = cam.projector(393, 852, t);
+          final talla = TownPainter.folkHeight(l.character);
+          final s = p.project(V3(at.x, Plaza.lawnTop + talla * 0.45, at.z))!;
+          final k = hits.hitAt(Offset(s.x, s.y));
+          expect(k, greaterThanOrEqualTo(0), reason: 'el dedo no lo encuentra');
+          expect(hits.faceOwner[k], TouchMap.sage);
+        }
       }
       expect(visto, greaterThan(0), reason: 'nunca se lo pudo tocar');
     });
