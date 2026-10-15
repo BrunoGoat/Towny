@@ -113,16 +113,16 @@ String _cuando(DateTime at) {
 
 /// Las hojas que explican el tablón, una por cosa.
 ///
-/// Antes era una sola, y lo decía todo junto: qué es, que se toca para leer,
-/// que se pueden clavar notas. Una hoja con cinco instrucciones se lee como
-/// un reglamento y se olvida entera; cinco hojas con una cada una se leen
-/// como un tablón, que además es justo lo que enseñan a usar. La primera
-/// presenta el tablón, la última avisa de que se van.
+/// Antes era una sola, y lo decía todo junto: una hoja con cinco
+/// instrucciones se lee como un reglamento y se olvida entera. Después fueron
+/// nueve, una por cosa, y eran demasiadas: llenaban el tablón entero de
+/// instrucciones. Son cuatro, cada una con lo que va junto: qué es el tablón,
+/// cómo se mira, cómo se clava lo tuyo y cómo se mueve.
 ///
 /// En orden de lectura, y el orden importa: los huecos van de arriba abajo y
 /// de izquierda a derecha, y al entrar sólo se ve la primera columna entera.
 /// Ahí van la que presenta el tablón y la que dice que se corre a los lados,
-/// que es lo que hace falta saber para ver todas las demás.
+/// que es lo que hace falta saber para ver las demás.
 ///
 /// Se despegan solas en cuanto llega la primera nota con un dato tuyo.
 List<Notice> guideNotices(Habit h) {
@@ -133,69 +133,35 @@ List<Notice> guideNotices(Habit h) {
       'Este es el tablón de anuncios de ${h.name}.',
       'This is the notice board for ${h.name}.',
       'Acá el pueblo va clavando lo que aprende de vos y te brinda '
-          'información para ayudarte. Mientras todavía no sabe nada, estas '
-          'hojas te cuentan cómo se usa.',
+          'información para ayudarte. Cuando aprenda algo, estas hojas se '
+          'despegan solas.',
       'Here the town pins what it learns about you and gives you '
-          'information to help you. While it still knows nothing, these '
-          'sheets show you how it works.',
+          'information to help you. Once it learns something, these sheets '
+          'come down on their own.',
     ),
     hoja(
       'Deslizá el dedo de costado para recorrer el tablón.',
       'Slide your finger sideways to move along the board.',
-      'Las hojas se clavan de izquierda a derecha, y no siempre entran todas '
-          'en la pantalla.',
-      'Sheets are pinned from left to right, and they don\'t always all fit '
-          'on the screen.',
-    ),
-    hoja(
-      'Tocá una hoja para leerla de cerca.',
-      'Tap a sheet to read it up close.',
-      'Para devolverla a su lugar, tocá otra vez.',
-      'Tap again to put it back.',
-    ),
-    hoja(
-      'Mantené el dedo sobre una hoja para despegarla.',
-      'Hold your finger on a sheet to unpin it.',
-      'Sin soltarla, llevala a otro hueco. El tablón se acuerda de dónde la '
-          'dejaste, y así se ve también desde la plaza.',
-      'Without letting go, carry it to another spot. The board remembers '
-          'where you left it, and that is how it looks from the square too.',
+      'Tocá una hoja para leerla de cerca, y otra vez para devolverla. Las '
+          'nuevas llevan una marca hasta que las leés.',
+      'Tap a sheet to read it up close, and again to put it back. New ones '
+          'carry a mark until you read them.',
     ),
     hoja(
       'Vos también podés clavar tus notas.',
       'You can pin your own notes too.',
-      'Con «Clavar una nota», abajo. Van en un papel más claro y con tu letra, '
-          'y entran hasta $myNoticeCap a la vez.',
-      'With “Pin a note”, at the bottom. They go on lighter paper in your own '
-          'hand, and up to $myNoticeCap fit at once.',
+      'Con «Clavar una nota», abajo. Para quitar una, abrila y tocá '
+          '«Quitarla».',
+      'With “Pin a note”, at the bottom. To remove one, open it and tap '
+          '“Remove it”.',
     ),
     hoja(
-      'Para quitar una nota tuya, abrila.',
-      'To remove one of your notes, open it.',
-      'Al leerla de cerca aparece «Quitarla», abajo.',
-      'Up close, “Remove it” appears at the bottom.',
-    ),
-    hoja(
-      'Lo nuevo lleva una marca.',
-      'New things carry a mark.',
-      'Se apaga cuando leés la hoja de cerca: así sabés qué cambió desde la '
-          'última vez.',
-      'It goes out once you read the sheet up close, so you know what '
-          'changed since last time.',
-    ),
-    hoja(
-      'Para volver al pueblo, tocá el cielo o el pasto.',
-      'To go back to the town, tap the sky or the grass.',
-      'O juntá dos dedos sobre el tablón.',
-      'Or pinch the board with two fingers.',
-    ),
-    hoja(
-      'Estas hojas se van solas.',
-      'These sheets leave on their own.',
-      'Cuando el pueblo aprenda algo de vos, se despegan y le dejan el lugar a '
-          'lo que averiguó.',
-      'Once the town learns something about you, they come down and make room '
-          'for what it found out.',
+      'Mantené el dedo sobre una hoja para moverla.',
+      'Hold your finger on a sheet to move it.',
+      'Llevala a otro hueco y soltala. Para volver al pueblo, tocá el cielo o '
+          'el pasto.',
+      'Carry it to another spot and let go. To go back to the town, tap the '
+          'sky or the grass.',
     ),
   ];
 }

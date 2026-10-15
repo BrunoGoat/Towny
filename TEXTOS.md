@@ -22,11 +22,11 @@ nombres de fuente (`PermanentMarker.ttf`), la hoja de pruebas y los comentarios.
 | Nombres de la gente | 87 | 87 | no: nombres propios |
 | Lo que hace la gente | 21 | 21 | sí |
 | Símbolos de hábito | 72 | 72 | sí |
-| La interfaz | 489 | 489 | sí |
+| La interfaz | 464 | 464 | sí |
 | Notificaciones | 9 | 9 | sí |
 | Widget de Android | 6 | 6 | sí |
 
-**854 entradas**, que son unas 972 frases sueltas.
+**829 entradas**, que son unas 947 frases sueltas.
 
 
 
@@ -894,147 +894,122 @@ Los encabezados de las secciones del tablón.
 - **U366** · `Este es el tablón de anuncios de ${h.name}.`  <sub>board.dart:133 · hoja</sub>
 - **U367** · `This is the notice board for ${h.name}.`  <sub>board.dart:134 · hoja</sub>
 - **U368** · `Acá el pueblo va clavando lo que aprende de vos y te brinda `  <sub>board.dart:135 · hoja</sub>
-- **U369** · `información para ayudarte. Mientras todavía no sabe nada, estas `  <sub>board.dart:136 · hoja</sub>
-- **U370** · `hojas te cuentan cómo se usa.`  <sub>board.dart:137 · hoja</sub>
+- **U369** · `información para ayudarte. Cuando aprenda algo, estas hojas se `  <sub>board.dart:136 · hoja</sub>
+- **U370** · `despegan solas.`  <sub>board.dart:137 · hoja</sub>
 - **U371** · `Here the town pins what it learns about you and gives you `  <sub>board.dart:138 · hoja</sub>
-- **U372** · `information to help you. While it still knows nothing, these `  <sub>board.dart:139 · hoja</sub>
-- **U373** · `sheets show you how it works.`  <sub>board.dart:140 · hoja</sub>
+- **U372** · `information to help you. Once it learns something, these sheets `  <sub>board.dart:139 · hoja</sub>
+- **U373** · `come down on their own.`  <sub>board.dart:140 · hoja</sub>
 - **U374** · `Deslizá el dedo de costado para recorrer el tablón.`  <sub>board.dart:143 · hoja</sub>
 - **U375** · `Slide your finger sideways to move along the board.`  <sub>board.dart:144 · hoja</sub>
-- **U376** · `Las hojas se clavan de izquierda a derecha, y no siempre entran todas `  <sub>board.dart:145 · hoja</sub>
-- **U377** · `en la pantalla.`  <sub>board.dart:146 · hoja</sub>
-- **U378** · `Sheets are pinned from left to right, and they don\'t always all fit `  <sub>board.dart:147 · hoja</sub>
-- **U379** · `on the screen.`  <sub>board.dart:148 · hoja</sub>
-- **U380** · `Tocá una hoja para leerla de cerca.`  <sub>board.dart:151 · hoja</sub>
-- **U381** · `Tap a sheet to read it up close.`  <sub>board.dart:152 · hoja</sub>
-- **U382** · `Para devolverla a su lugar, tocá otra vez.`  <sub>board.dart:153 · hoja</sub>
-- **U383** · `Tap again to put it back.`  <sub>board.dart:154 · hoja</sub>
-- **U384** · `Mantené el dedo sobre una hoja para despegarla.`  <sub>board.dart:157 · hoja</sub>
-- **U385** · `Hold your finger on a sheet to unpin it.`  <sub>board.dart:158 · hoja</sub>
-- **U386** · `Sin soltarla, llevala a otro hueco. El tablón se acuerda de dónde la `  <sub>board.dart:159 · hoja</sub>
-- **U387** · `dejaste, y así se ve también desde la plaza.`  <sub>board.dart:160 · hoja</sub>
-- **U388** · `Without letting go, carry it to another spot. The board remembers `  <sub>board.dart:161 · hoja</sub>
-- **U389** · `where you left it, and that is how it looks from the square too.`  <sub>board.dart:162 · hoja</sub>
-- **U390** · `Vos también podés clavar tus notas.`  <sub>board.dart:165 · hoja</sub>
-- **U391** · `You can pin your own notes too.`  <sub>board.dart:166 · hoja</sub>
-- **U392** · `Con «Clavar una nota», abajo. Van en un papel más claro y con tu letra, `  <sub>board.dart:167 · hoja</sub>
-- **U393** · `y entran hasta $myNoticeCap a la vez.`  <sub>board.dart:168 · hoja</sub>
-- **U394** · `With “Pin a note”, at the bottom. They go on lighter paper in your own `  <sub>board.dart:169 · hoja</sub>
-- **U395** · `hand, and up to $myNoticeCap fit at once.`  <sub>board.dart:170 · hoja</sub>
-- **U396** · `Para quitar una nota tuya, abrila.`  <sub>board.dart:173 · hoja</sub>
-- **U397** · `To remove one of your notes, open it.`  <sub>board.dart:174 · hoja</sub>
-- **U398** · `Al leerla de cerca aparece «Quitarla», abajo.`  <sub>board.dart:175 · hoja</sub>
-- **U399** · `Up close, “Remove it” appears at the bottom.`  <sub>board.dart:176 · hoja</sub>
-- **U400** · `Lo nuevo lleva una marca.`  <sub>board.dart:179 · hoja</sub>
-- **U401** · `New things carry a mark.`  <sub>board.dart:180 · hoja</sub>
-- **U402** · `Se apaga cuando leés la hoja de cerca: así sabés qué cambió desde la `  <sub>board.dart:181 · hoja</sub>
-- **U403** · `última vez.`  <sub>board.dart:182 · hoja</sub>
-- **U404** · `It goes out once you read the sheet up close, so you know what `  <sub>board.dart:183 · hoja</sub>
-- **U405** · `changed since last time.`  <sub>board.dart:184 · hoja</sub>
-- **U406** · `Para volver al pueblo, tocá el cielo o el pasto.`  <sub>board.dart:187 · hoja</sub>
-- **U407** · `To go back to the town, tap the sky or the grass.`  <sub>board.dart:188 · hoja</sub>
-- **U408** · `O juntá dos dedos sobre el tablón.`  <sub>board.dart:189 · hoja</sub>
-- **U409** · `Or pinch the board with two fingers.`  <sub>board.dart:190 · hoja</sub>
-- **U410** · `Estas hojas se van solas.`  <sub>board.dart:193 · hoja</sub>
-- **U411** · `These sheets leave on their own.`  <sub>board.dart:194 · hoja</sub>
-- **U412** · `Cuando el pueblo aprenda algo de vos, se despegan y le dejan el lugar a `  <sub>board.dart:195 · hoja</sub>
-- **U413** · `lo que averiguó.`  <sub>board.dart:196 · hoja</sub>
-- **U414** · `Once the town learns something about you, they come down and make room `  <sub>board.dart:197 · hoja</sub>
-- **U415** · `for what it found out.`  <sub>board.dart:198 · hoja</sub>
+- **U376** · `Tocá una hoja para leerla de cerca, y otra vez para devolverla. Las `  <sub>board.dart:145 · hoja</sub>
+- **U377** · `nuevas llevan una marca hasta que las leés.`  <sub>board.dart:146 · hoja</sub>
+- **U378** · `Tap a sheet to read it up close, and again to put it back. New ones `  <sub>board.dart:147 · hoja</sub>
+- **U379** · `carry a mark until you read them.`  <sub>board.dart:148 · hoja</sub>
+- **U380** · `Vos también podés clavar tus notas.`  <sub>board.dart:151 · hoja</sub>
+- **U381** · `You can pin your own notes too.`  <sub>board.dart:152 · hoja</sub>
+- **U382** · `Con «Clavar una nota», abajo. Para quitar una, abrila y tocá `  <sub>board.dart:153 · hoja</sub>
+- **U383** · `With “Pin a note”, at the bottom. To remove one, open it and tap `  <sub>board.dart:155 · hoja</sub>
+- **U384** · `“Remove it”.`  <sub>board.dart:156 · hoja</sub>
+- **U385** · `Mantené el dedo sobre una hoja para moverla.`  <sub>board.dart:159 · hoja</sub>
+- **U386** · `Hold your finger on a sheet to move it.`  <sub>board.dart:160 · hoja</sub>
+- **U387** · `Llevala a otro hueco y soltala. Para volver al pueblo, tocá el cielo o `  <sub>board.dart:161 · hoja</sub>
+- **U388** · `el pasto.`  <sub>board.dart:162 · hoja</sub>
+- **U389** · `Carry it to another spot and let go. To go back to the town, tap the `  <sub>board.dart:163 · hoja</sub>
+- **U390** · `sky or the grass.`  <sub>board.dart:164 · hoja</sub>
 
 ### Los sonidos
 
 Los nombres de cada sonido, que se leen en la lista de ajustes de sonido.
 
-- **U416** · `Poner una pieza`  <sub>sensory.dart:52 · Sensory</sub>
-- **U417** · `Toque`  <sub>sensory.dart:53 · Sensory</sub>
-- **U418** · `Reparar`  <sub>sensory.dart:54 · Sensory</sub>
-- **U419** · `Obra terminada`  <sub>sensory.dart:55 · Sensory</sub>
-- **U420** · `Hito del pueblo`  <sub>sensory.dart:56 · Sensory</sub>
-- **U421** · `Estrella fugaz`  <sub>sensory.dart:57 · Sensory</sub>
-- **U422** · `Constelación`  <sub>sensory.dart:58 · Sensory</sub>
+- **U391** · `Poner una pieza`  <sub>sensory.dart:52 · Sensory</sub>
+- **U392** · `Toque`  <sub>sensory.dart:53 · Sensory</sub>
+- **U393** · `Reparar`  <sub>sensory.dart:54 · Sensory</sub>
+- **U394** · `Obra terminada`  <sub>sensory.dart:55 · Sensory</sub>
+- **U395** · `Hito del pueblo`  <sub>sensory.dart:56 · Sensory</sub>
+- **U396** · `Estrella fugaz`  <sub>sensory.dart:57 · Sensory</sub>
+- **U397** · `Constelación`  <sub>sensory.dart:58 · Sensory</sub>
 
 ### Las músicas
 
 El nombre de cada pieza de música y de qué está hecha.
 
-- **U423** · `Tarde`  <sub>tunes.dart:48 · tunes</sub>
-- **U424** · `Rhodes, bajo redondo y campanitas. Fa mayor, setenta y dos.`  <sub>tunes.dart:49 · tunes</sub>
-- **U425** · `Sendero`  <sub>tunes.dart:59 · tunes</sub>
-- **U426** · `Cuerda de nailon y flauta de madera. Sol mayor, sesenta y seis.`  <sub>tunes.dart:60 · tunes</sub>
+- **U398** · `Tarde`  <sub>tunes.dart:48 · tunes</sub>
+- **U399** · `Rhodes, bajo redondo y campanitas. Fa mayor, setenta y dos.`  <sub>tunes.dart:49 · tunes</sub>
+- **U400** · `Sendero`  <sub>tunes.dart:59 · tunes</sub>
+- **U401** · `Cuerda de nailon y flauta de madera. Sol mayor, sesenta y seis.`  <sub>tunes.dart:60 · tunes</sub>
 
 ### Las estaciones
 
 Invierno, primavera, verano y otoño, en ajustes y en el tablón.
 
-- **U427** · `Invierno`  <sub>season.dart:158 · Season._daysInYear</sub>
-- **U428** · `Primavera`  <sub>season.dart:159 · Season._daysInYear</sub>
-- **U429** · `Verano`  <sub>season.dart:160 · Season._daysInYear</sub>
-- **U430** · `Otoño`  <sub>season.dart:161 · Season._daysInYear</sub>
+- **U402** · `Invierno`  <sub>season.dart:158 · Season._daysInYear</sub>
+- **U403** · `Primavera`  <sub>season.dart:159 · Season._daysInYear</sub>
+- **U404** · `Verano`  <sub>season.dart:160 · Season._daysInYear</sub>
+- **U405** · `Otoño`  <sub>season.dart:161 · Season._daysInYear</sub>
 
 ### Sueltas
 
 Frases que no caen en ninguna pantalla concreta.
 
-- **U431** · `versión simple`  <sub>renderer.dart:2230 · TownPainter._colourOf</sub>
-- **U432** · `todos los días`  <sub>cadence.dart:164 · cadenceSaid</sub>
-- **U433** · `cada dos días`  <sub>cadence.dart:165 · cadenceSaid</sub>
-- **U434** · `una vez por semana`  <sub>cadence.dart:166 · cadenceSaid</sub>
-- **U435** · `cada dos semanas`  <sub>cadence.dart:167 · cadenceSaid</sub>
-- **U436** · `${perWeek.round()} veces por semana`  <sub>cadence.dart:169 · cadenceSaid</sub>
-- **U437** · `Voy a ${lowerName(name.trim().isEmpty ? 'hacerlo' : name)}`  <sub>pledge.dart:56 · vowLine</sub>
-- **U438** · `$que, ${placeSaid(sitio!)}.`  <sub>pledge.dart:57 · vowLine</sub>
-- **U439** · `$que ${hourSaid(hour)}, ${placeSaid(sitio)}.`  <sub>pledge.dart:59 · vowLine</sub>
-- **U440** · `a medianoche`  <sub>pledge.dart:72 · hourSaid</sub>
-- **U441** · `a la 1 de la madrugada`  <sub>pledge.dart:73 · hourSaid</sub>
-- **U442** · `al mediodía`  <sub>pledge.dart:74 · hourSaid</sub>
-- **U443** · `a las $h de la madrugada`  <sub>pledge.dart:75 · hourSaid</sub>
-- **U444** · `a las $h de la mañana`  <sub>pledge.dart:76 · hourSaid</sub>
-- **U445** · `a las $h de la tarde`  <sub>pledge.dart:77 · hourSaid</sub>
-- **U446** · `a las $h de la noche`  <sub>pledge.dart:78 · hourSaid</sub>
-- **U447** · `después `  <sub>pledge.dart:99 · placeSaid</sub>
-- **U448** · `nada más `  <sub>pledge.dart:102 · placeSaid</sub>
-- **U449** · `Este pueblo es de $quien.`  <sub>pledge.dart:241 · identitySaid</sub>
-- **U450** · `todos los días`  <sub>pledge.dart:400 · rhythmSaid</sub>
-- **U451** · `un día por semana`  <sub>pledge.dart:401 · rhythmSaid</sub>
-- **U452** · `$perWeek días de cada siete`  <sub>pledge.dart:402 · rhythmSaid</sub>
-- **U453** · `no hay nada en ningún lado`  <sub>merge.dart:61 · SyncPlan.toString</sub>
-- **U454** · `la nube está vacía`  <sub>merge.dart:63 · SyncPlan.toString</sub>
-- **U455** · `el teléfono está vacío y la nube no`  <sub>merge.dart:72 · SyncPlan.toString</sub>
-- **U456** · `nada cambió desde la última`  <sub>merge.dart:84 · SyncPlan.toString</sub>
-- **U457** · `sólo cambió el teléfono`  <sub>merge.dart:87 · SyncPlan.toString</sub>
-- **U458** · `sólo cambió la nube`  <sub>merge.dart:90 · SyncPlan.toString</sub>
-- **U459** · `cambiaron los dos y el teléfono es lo más reciente`  <sub>merge.dart:99 · SyncPlan.toString</sub>
-- **U460** · `cambiaron los dos y la nube es lo más reciente`  <sub>merge.dart:105 · SyncPlan.toString</sub>
-- **U461** · `Contanos más de tu hábito`  <sub>cadence_sheet.dart:52 · CadenceIntro.build</sub>
-- **U462** · `Ya pasó una semana. Con una pregunta, el pueblo entiende `  <sub>cadence_sheet.dart:62 · CadenceIntro.build</sub>
-- **U463** · `tu ritmo y no se preocupa de más.`  <sub>cadence_sheet.dart:63 · CadenceIntro.build</sub>
-- **U464** · `Ahora no`  <sub>cadence_sheet.dart:87 · CadenceIntro.build</sub>
-- **U465** · `Continuar`  <sub>cadence_sheet.dart:94 · CadenceIntro.build</sub>
-- **U466** · `día`  <sub>cadence_sheet.dart:186 · _CadenceSheetState.build</sub>
-- **U467** · `días`  <sub>cadence_sheet.dart:186 · _CadenceSheetState.build</sub>
-- **U468** · `TU RITMO`  <sub>cadence_sheet.dart:215 · _CadenceSheetState.build</sub>
-- **U469** · `CADA CUÁNTO`  <sub>cadence_sheet.dart:216 · _CadenceSheetState.build</sub>
-- **U470** · `En $dias $ds pusiste $piezas $pz.`  <sub>cadence_sheet.dart:223 · _CadenceSheetState.build</sub>
-- **U471** · `¿Cada cuánto va ${h.name}?`  <sub>cadence_sheet.dart:227 · _CadenceSheetState.build</sub>
-- **U472** · `¿Cada cuánto va ${h.name}? Viene marcado lo que se ve.`  <sub>cadence_sheet.dart:236 · _CadenceSheetState.build</sub>
-- **U473** · `No es una meta. Es para que el pueblo sepa cuándo un `  <sub>cadence_sheet.dart:241 · _CadenceSheetState.build</sub>
-- **U474** · `hueco es un hueco.`  <sub>cadence_sheet.dart:242 · _CadenceSheetState.build</sub>
-- **U475** · `Todos los días`  <sub>cadence_sheet.dart:257 · _CadenceSheetState.build</sub>
-- **U476** · `Un día sin pieza ya es un hueco.`  <sub>cadence_sheet.dart:259 · _CadenceSheetState.build</sub>
-- **U477** · `Algunos días por semana`  <sub>cadence_sheet.dart:268 · _CadenceSheetState.build</sub>
-- **U478** · `Los que toquen, sin día fijo.`  <sub>cadence_sheet.dart:270 · _CadenceSheetState.build</sub>
-- **U479** · `Cada dos días`  <sub>cadence_sheet.dart:289 · _CadenceSheetState.build</sub>
-- **U480** · `Un día sí y otro no.`  <sub>cadence_sheet.dart:290 · _CadenceSheetState.build</sub>
-- **U481** · `Una vez por semana`  <sub>cadence_sheet.dart:297 · _CadenceSheetState.build</sub>
-- **U482** · `Un día fijo, o el que se pueda.`  <sub>cadence_sheet.dart:299 · _CadenceSheetState.build</sub>
-- **U483** · `Cada dos semanas`  <sub>cadence_sheet.dart:308 · _CadenceSheetState.build</sub>
-- **U484** · `De vez en cuando, pero sin perderlo.`  <sub>cadence_sheet.dart:310 · _CadenceSheetState.build</sub>
-- **U485** · `Se cambia cuando quieras en la hoja del hábito.`  <sub>cadence_sheet.dart:332 · _CadenceSheetState.build</sub>
-- **U486** · `$n por semana`  <sub>cadence_sheet.dart:549 · _Count.build</sub>
-- **U487** · `en la cama`  <sub>plan_picker.dart:239 · _PlanSheetState.build</sub>
-- **U488** · `Elegí la hora y escribí el sitio.`  <sub>plan_picker.dart:254 · _PlanSheetState.build</sub>
-- **U489** · `DARLO POR HECHO`  <sub>plan_picker.dart:276 · _PlanSheetState.build</sub>
+- **U406** · `versión simple`  <sub>renderer.dart:2230 · TownPainter._colourOf</sub>
+- **U407** · `todos los días`  <sub>cadence.dart:164 · cadenceSaid</sub>
+- **U408** · `cada dos días`  <sub>cadence.dart:165 · cadenceSaid</sub>
+- **U409** · `una vez por semana`  <sub>cadence.dart:166 · cadenceSaid</sub>
+- **U410** · `cada dos semanas`  <sub>cadence.dart:167 · cadenceSaid</sub>
+- **U411** · `${perWeek.round()} veces por semana`  <sub>cadence.dart:169 · cadenceSaid</sub>
+- **U412** · `Voy a ${lowerName(name.trim().isEmpty ? 'hacerlo' : name)}`  <sub>pledge.dart:56 · vowLine</sub>
+- **U413** · `$que, ${placeSaid(sitio!)}.`  <sub>pledge.dart:57 · vowLine</sub>
+- **U414** · `$que ${hourSaid(hour)}, ${placeSaid(sitio)}.`  <sub>pledge.dart:59 · vowLine</sub>
+- **U415** · `a medianoche`  <sub>pledge.dart:72 · hourSaid</sub>
+- **U416** · `a la 1 de la madrugada`  <sub>pledge.dart:73 · hourSaid</sub>
+- **U417** · `al mediodía`  <sub>pledge.dart:74 · hourSaid</sub>
+- **U418** · `a las $h de la madrugada`  <sub>pledge.dart:75 · hourSaid</sub>
+- **U419** · `a las $h de la mañana`  <sub>pledge.dart:76 · hourSaid</sub>
+- **U420** · `a las $h de la tarde`  <sub>pledge.dart:77 · hourSaid</sub>
+- **U421** · `a las $h de la noche`  <sub>pledge.dart:78 · hourSaid</sub>
+- **U422** · `después `  <sub>pledge.dart:99 · placeSaid</sub>
+- **U423** · `nada más `  <sub>pledge.dart:102 · placeSaid</sub>
+- **U424** · `Este pueblo es de $quien.`  <sub>pledge.dart:241 · identitySaid</sub>
+- **U425** · `todos los días`  <sub>pledge.dart:400 · rhythmSaid</sub>
+- **U426** · `un día por semana`  <sub>pledge.dart:401 · rhythmSaid</sub>
+- **U427** · `$perWeek días de cada siete`  <sub>pledge.dart:402 · rhythmSaid</sub>
+- **U428** · `no hay nada en ningún lado`  <sub>merge.dart:61 · SyncPlan.toString</sub>
+- **U429** · `la nube está vacía`  <sub>merge.dart:63 · SyncPlan.toString</sub>
+- **U430** · `el teléfono está vacío y la nube no`  <sub>merge.dart:72 · SyncPlan.toString</sub>
+- **U431** · `nada cambió desde la última`  <sub>merge.dart:84 · SyncPlan.toString</sub>
+- **U432** · `sólo cambió el teléfono`  <sub>merge.dart:87 · SyncPlan.toString</sub>
+- **U433** · `sólo cambió la nube`  <sub>merge.dart:90 · SyncPlan.toString</sub>
+- **U434** · `cambiaron los dos y el teléfono es lo más reciente`  <sub>merge.dart:99 · SyncPlan.toString</sub>
+- **U435** · `cambiaron los dos y la nube es lo más reciente`  <sub>merge.dart:105 · SyncPlan.toString</sub>
+- **U436** · `Contanos más de tu hábito`  <sub>cadence_sheet.dart:52 · CadenceIntro.build</sub>
+- **U437** · `Ya pasó una semana. Con una pregunta, el pueblo entiende `  <sub>cadence_sheet.dart:62 · CadenceIntro.build</sub>
+- **U438** · `tu ritmo y no se preocupa de más.`  <sub>cadence_sheet.dart:63 · CadenceIntro.build</sub>
+- **U439** · `Ahora no`  <sub>cadence_sheet.dart:87 · CadenceIntro.build</sub>
+- **U440** · `Continuar`  <sub>cadence_sheet.dart:94 · CadenceIntro.build</sub>
+- **U441** · `día`  <sub>cadence_sheet.dart:186 · _CadenceSheetState.build</sub>
+- **U442** · `días`  <sub>cadence_sheet.dart:186 · _CadenceSheetState.build</sub>
+- **U443** · `TU RITMO`  <sub>cadence_sheet.dart:215 · _CadenceSheetState.build</sub>
+- **U444** · `CADA CUÁNTO`  <sub>cadence_sheet.dart:216 · _CadenceSheetState.build</sub>
+- **U445** · `En $dias $ds pusiste $piezas $pz.`  <sub>cadence_sheet.dart:223 · _CadenceSheetState.build</sub>
+- **U446** · `¿Cada cuánto va ${h.name}?`  <sub>cadence_sheet.dart:227 · _CadenceSheetState.build</sub>
+- **U447** · `¿Cada cuánto va ${h.name}? Viene marcado lo que se ve.`  <sub>cadence_sheet.dart:236 · _CadenceSheetState.build</sub>
+- **U448** · `No es una meta. Es para que el pueblo sepa cuándo un `  <sub>cadence_sheet.dart:241 · _CadenceSheetState.build</sub>
+- **U449** · `hueco es un hueco.`  <sub>cadence_sheet.dart:242 · _CadenceSheetState.build</sub>
+- **U450** · `Todos los días`  <sub>cadence_sheet.dart:257 · _CadenceSheetState.build</sub>
+- **U451** · `Un día sin pieza ya es un hueco.`  <sub>cadence_sheet.dart:259 · _CadenceSheetState.build</sub>
+- **U452** · `Algunos días por semana`  <sub>cadence_sheet.dart:268 · _CadenceSheetState.build</sub>
+- **U453** · `Los que toquen, sin día fijo.`  <sub>cadence_sheet.dart:270 · _CadenceSheetState.build</sub>
+- **U454** · `Cada dos días`  <sub>cadence_sheet.dart:289 · _CadenceSheetState.build</sub>
+- **U455** · `Un día sí y otro no.`  <sub>cadence_sheet.dart:290 · _CadenceSheetState.build</sub>
+- **U456** · `Una vez por semana`  <sub>cadence_sheet.dart:297 · _CadenceSheetState.build</sub>
+- **U457** · `Un día fijo, o el que se pueda.`  <sub>cadence_sheet.dart:299 · _CadenceSheetState.build</sub>
+- **U458** · `Cada dos semanas`  <sub>cadence_sheet.dart:308 · _CadenceSheetState.build</sub>
+- **U459** · `De vez en cuando, pero sin perderlo.`  <sub>cadence_sheet.dart:310 · _CadenceSheetState.build</sub>
+- **U460** · `Se cambia cuando quieras en la hoja del hábito.`  <sub>cadence_sheet.dart:332 · _CadenceSheetState.build</sub>
+- **U461** · `$n por semana`  <sub>cadence_sheet.dart:549 · _Count.build</sub>
+- **U462** · `en la cama`  <sub>plan_picker.dart:239 · _PlanSheetState.build</sub>
+- **U463** · `Elegí la hora y escribí el sitio.`  <sub>plan_picker.dart:254 · _PlanSheetState.build</sub>
+- **U464** · `DARLO POR HECHO`  <sub>plan_picker.dart:276 · _PlanSheetState.build</sub>
 
 ## Las notificaciones (9)
 
