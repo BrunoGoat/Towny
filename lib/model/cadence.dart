@@ -183,9 +183,9 @@ String cadenceSaid(double perWeek) => switch (perWeek) {
 /// una o dos veces por semana, porque dos piezas en dos semanas no demuestran
 /// nada de nadie.
 ///
-/// Y lo que pasa de tu ritmo en una semana no cuenta para la siguiente. Quien
-/// va una vez por semana y pone tres piezas un domingo lleva una semana, no
-/// tres: lo que se demuestra es que se sostiene, no que se puede apretar.
+/// Y lo que pasa de tu ritmo en siete días seguidos no cuenta. Quien va una
+/// vez por semana y pone tres piezas un domingo lleva una semana, no tres: lo
+/// que se demuestra es que se sostiene, no que se puede apretar.
 class UnlockGoal {
   const UnlockGoal({
     required this.perWeek,
@@ -233,23 +233,35 @@ class UnlockGoal {
     final window = f >= 3 ? 14 : 28;
     final need = (share * f * window / 7 - 1e-9).ceil();
     final today = dayStart(now);
-    final on = <int>{
-      for (final p in h.pieces)
-        if (!dayStart(p.placedAt).isAfter(today)) dayKey(dayStart(p.placedAt)),
-    };
-    var have = 0;
-    // Semanas de siete días hacia atrás desde hoy, y en cada una como mucho tu
-    // ritmo. Para quien va a diario esto es contar los días, igual que antes.
-    for (var w = 0; w < window ~/ 7; w++) {
-      var semana = 0;
-      for (var i = 0; i < 7; i++) {
-        // Por el calendario y no por horas: un día con cambio de hora no
-        // mide veinticuatro.
-        final d = DateTime(today.year, today.month, today.day - w * 7 - i);
-        if (on.contains(dayKey(d))) semana++;
-      }
-      have += math.min(semana, f.ceil());
+    final desde = DateTime(today.year, today.month, today.day - window + 1);
+    // Los días con pieza dentro de la ventana, de más viejo a más nuevo.
+    final dias = <DateTime>[];
+    final vistos = <int>{};
+    for (final p in h.pieces) {
+      final d = dayStart(p.placedAt);
+      if (d.isBefore(desde) || d.isAfter(today)) continue;
+      if (vistos.add(dayKey(d))) dias.add(d);
     }
+    dias.sort();
+    // **Como mucho tu ritmo en cualquier tramo de siete días, y no en semanas
+    // contadas desde hoy.** Se contaba por semanas hacia atrás desde hoy, y
+    // como el corte entre semana y semana se corría cada día, las mismas
+    // piezas podían quedar mejor repartidas mañana que hoy: la puerta se abría
+    // al cambiar de día sin haber puesto nada. Así no depende de dónde caen
+    // los cortes: se quedan los días que se pueden quedar sin pasarse del
+    // ritmo en ninguna semana —de más viejo a más nuevo, que es la manera de
+    // quedarse con más—, y la cuenta sólo sube al poner una pieza. Con los
+    // días que pasan, como mucho baja.
+    final tope = f.ceil();
+    final quedan = <DateTime>[];
+    for (final d in dias) {
+      var enSemana = 0;
+      for (final q in quedan) {
+        if (daysBetween(q, d) < 7) enSemana++;
+      }
+      if (enSemana < tope) quedan.add(d);
+    }
+    final have = quedan.length;
     return UnlockGoal(
       perWeek: f,
       window: window,

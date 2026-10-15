@@ -131,6 +131,49 @@ void main() {
   });
 
   group('el candado, contra tu ritmo', () {
+    test('sin poner piezas, pasar el día no abre la puerta', () {
+      // Lo que se vio en el teléfono: un día no abría, y al siguiente sí, con
+      // las mismas piezas. Se contaba por semanas desde hoy, y al correrse el
+      // corte las mismas piezas quedaban mejor repartidas. Ahora, con los días
+      // que pasan, lo que se lleva sólo puede bajar.
+      final hoy = DateTime(2026, 5, 20, 12);
+      var semilla = 7;
+      int azar(int n) {
+        semilla = (semilla * 1103515245 + 12345) & 0x7fffffff;
+        return semilla % n;
+      }
+
+      for (var caso = 0; caso < 400; caso++) {
+        final ritmo = [2, 3, 4, 5, 6, 7][azar(6)];
+        final dias = <int>{for (var k = 0; k < 4 + azar(14); k++) 1 + azar(27)};
+        final h = _habit(now: hoy, age: 40, on: dias, perWeek: ritmo);
+        var antes = UnlockGoal.of(h, at: hoy).have;
+        for (var d = 1; d <= 10; d++) {
+          final luego = DateTime(hoy.year, hoy.month, hoy.day + d, 12);
+          final ahora = UnlockGoal.of(h, at: luego).have;
+          expect(
+            ahora,
+            lessThanOrEqualTo(antes),
+            reason: 'ritmo $ritmo, días $dias: subió solo al pasar $d días',
+          );
+          antes = ahora;
+        }
+      }
+    });
+
+    test('cinco por semana: seis días seguidos y uno antes no son siete', () {
+      // El caso concreto: seis días en la última semana —uno más que tu
+      // ritmo— y uno la anterior. Al día siguiente, contando por semanas
+      // desde hoy, el corte caía entre medio de los seis y salían siete.
+      final hoy = DateTime(2026, 5, 20, 12);
+      final h = _habit(now: hoy, on: [0, 1, 2, 3, 4, 5, 8], perWeek: 5);
+      final g = UnlockGoal.of(h, at: hoy);
+      expect(g.need, 7);
+      expect(g.met, isFalse);
+      final manana = DateTime(2026, 5, 21, 12);
+      expect(UnlockGoal.of(h, at: manana).met, isFalse);
+    });
+
     test('todos los días es la regla de siempre: diez de catorce', () {
       final g = UnlockGoal.of(
         _habit(now: now, on: [0, 1, 2, 4, 5, 7, 8, 9, 11, 13], perWeek: 7),
