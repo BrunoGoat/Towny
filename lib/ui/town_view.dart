@@ -61,6 +61,17 @@ class TownViewController {
     z: _state?._cam.focusZTarget ?? 0.0,
   );
 
+  /// Dónde cae en pantalla el punto del suelo ([x], [z]), con la cámara
+  /// como va a quedar. Para que un test pueda poner el dedo sobre un pueblo.
+  @visibleForTesting
+  Offset? screenOf(double x, double z) {
+    final st = _state;
+    final size = st?.context.size;
+    if (st == null || size == null) return null;
+    final at = st._aimed(size).project(V3(x, 0, z));
+    return at == null ? null : Offset(at.x, at.y);
+  }
+
   void place() => _state?.placePiece();
 
   /// 0..1 while the place button is being held. The wall answers by lighting
@@ -1081,8 +1092,11 @@ class _TownViewState extends State<TownView>
       );
       if (d + e.layout.radius > far) far = d + e.layout.radius;
     }
-    _cam.travelTarget = 0;
-    _cam.focusZTarget = 0;
+    // Se gira alrededor del pueblo del que se viene, no del centro del valle:
+    // el centro es el primer pueblo, y salir del segundo para encontrarse
+    // girando alrededor del primero es perder el sitio.
+    _cam.travelTarget = _town.cx;
+    _cam.focusZTarget = _town.cz;
     _cam.focusYTarget = 2.0;
     _cam.wallLength = far * 2;
     _tellCameraTheWorld();
@@ -1090,17 +1104,11 @@ class _TownViewState extends State<TownView>
     // the point of the valley is that it is a place.
     _cam.pitchTarget = 0.40;
 
-    // Salís por encima del pueblo del que venís.
-    //
-    // Antes no: el foco va al centro del anillo —tiene que ir, es el único
-    // sitio desde el que caben los seis— y el giro se quedaba donde estuviera,
-    // así que uno acababa mirando desde donde mirara siempre. Y como el pueblo
-    // uno está justo en ese centro, lo que se veía era siempre él.
-    //
-    // Lo que se mueve es el giro, no el foco: el ojo se pone en la dirección
-    // en la que está tu pueblo, así que subís desde el tuyo y mirás al valle
-    // por encima de él. El del medio no tiene dirección, y desde ése el giro
-    // se queda como esté.
+    // Salís por encima del pueblo del que venís, y es alrededor de él que se
+    // gira: el ojo se pone en la dirección en la que está tu pueblo, mirando
+    // hacia el medio del valle, así que tu pueblo queda delante y los demás
+    // detrás. El del medio no tiene dirección, y desde ése el giro se queda
+    // como esté.
     final propio = math.sqrt(_town.cx * _town.cx + _town.cz * _town.cz);
     if (propio > 1) {
       _cam.yawTarget += angleDelta(
@@ -1182,7 +1190,11 @@ class _TownViewState extends State<TownView>
     if (_cam.distanceTarget > _valleyAt * _diveAt) return;
     final size = context.size;
     if (size == null || size.isEmpty || _entries.isEmpty) return;
-    final p = _cam.projector(size.width, size.height, _time);
+    // Mirando el valle entero, que es lo que se tenía delante al empezar a
+    // acercarse: el acercar va hacia el medio, así que con la cámara ya
+    // encima el pueblo que estaba bajo los dedos se ha ido hacia el borde,
+    // y el más cercano a ellos sería siempre el del medio.
+    final p = _aimed(size, distance: _valleyAt);
     var mejor = -1;
     var cerca = double.infinity;
     for (var i = 0; i < _entries.length; i++) {
@@ -1228,6 +1240,8 @@ class _TownViewState extends State<TownView>
       }
     }
     final prueba = OrbitCamera()
+      ..travel = _cam.travelTarget
+      ..focusZ = _cam.focusZTarget
       ..focusY = 2.0
       ..yaw = _cam.yawTarget
       ..pitch = 0.40;
@@ -1515,14 +1529,14 @@ class _TownViewState extends State<TownView>
   /// La cámara como va a quedar —la de los objetivos, no la que todavía va
   /// planeando hacia ellos—: los gestos se miden sobre ésa, para que dos
   /// gestos seguidos no se pisen.
-  Projector _aimed(Size size) {
+  Projector _aimed(Size size, {double? distance}) {
     final c = OrbitCamera()
       ..travel = _cam.travelTarget
       ..focusZ = _cam.focusZTarget
       ..focusY = _cam.focusYTarget
       ..yaw = _cam.yawTarget
       ..pitch = _cam.pitchTarget
-      ..distance = _cam.distanceTarget;
+      ..distance = distance ?? _cam.distanceTarget;
     return c.projector(size.width, size.height, 0);
   }
 

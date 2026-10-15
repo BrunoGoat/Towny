@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:towny/engine/palette.dart';
 import 'package:towny/model/appearance.dart';
+import 'package:towny/model/habit.dart';
 import 'package:towny/model/store.dart';
 import 'package:towny/ui/style.dart';
 import 'package:towny/ui/town_view.dart';
@@ -64,24 +65,25 @@ void main() {
 
   // La rueda del ratón, que en la web es el zoom. El pellizco va por el mismo
   // camino.
-  Future<void> rueda(WidgetTester tester, int veces) async {
-    const centro = Offset(195, 422);
+  Future<void> rueda(
+    WidgetTester tester,
+    int veces, {
+    Offset centro = const Offset(195, 422),
+  }) async {
     for (var i = 0; i < veces; i++) {
       await tester.sendEventToBinding(
-        const PointerScrollEvent(
-          position: centro,
-          scrollDelta: Offset(0, -100),
-        ),
+        PointerScrollEvent(position: centro, scrollDelta: Offset(0, -100)),
       );
       await tester.pump(const Duration(milliseconds: 16));
     }
   }
 
   testWidgets('acercarse mucho entra al pueblo de debajo', (tester) async {
-    // El pueblo uno está en el centro del valle, y estando en el otro, ir
-    // hacia el centro es ir hacia él.
+    // Estando en el segundo, con la rueda encima del primero.
     final v = await valle(tester, activo: 1);
-    await rueda(tester, 16);
+    final (cx, cz) = Habit.centreOf(0);
+    final encima = v.mando.screenOf(cx, cz)!;
+    await rueda(tester, 16, centro: encima);
     expect(v.tocados, [0]);
     expect(v.mando.aloft, isFalse);
     expect(v.mando.aloftNow.value, isFalse);
@@ -117,6 +119,20 @@ void main() {
     expect(v.mando.distanceTarget, greaterThan(antes));
     expect(v.mando.aloft, isTrue);
   });
+
+  for (final activo in [0, 1]) {
+    testWidgets(
+      'el valle gira alrededor del pueblo del que se sale ($activo)',
+      (tester) async {
+        // Antes giraba siempre alrededor del centro, que es el primer pueblo:
+        // saliendo del segundo, uno se encontraba girando alrededor de otro.
+        final v = await valle(tester, activo: activo);
+        final (cx, cz) = Habit.centreOf(activo);
+        expect(v.mando.aim.x, closeTo(cx, 1e-6));
+        expect(v.mando.aim.z, closeTo(cz, 1e-6));
+      },
+    );
+  }
 
   testWidgets('en el valle, un dedo gira alrededor, como en el pueblo', (
     tester,
