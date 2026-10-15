@@ -263,6 +263,7 @@ class _BoardSceneState extends State<BoardScene>
     final dt = ((now - _last).inMicroseconds / 1e6).clamp(0.0, 0.05);
     _last = now;
     if (dt <= 0) return;
+    _alBorde(dt);
     _cam.step(dt);
     final quiere = _m.held ? 1.0 : 0.0;
     _m.openK += (quiere - _m.openK) * (1 - math.exp(-dt * 9.0));
@@ -318,6 +319,8 @@ class _BoardSceneState extends State<BoardScene>
         ((_m.grab != null ? 1.0 : 0.0) - _m.grabK).abs() < 1e-3 &&
         _m.leaves <= 0 &&
         _m.hint <= 0 &&
+        // Con una nota en la mano puede tener que correrse solo hacia un filo.
+        _m.grab == null &&
         // La nota que espera sitio tiembla: mientras está, no se para.
         widget.pending == null;
   }
@@ -326,6 +329,49 @@ class _BoardSceneState extends State<BoardScene>
     if (!_ticker.isActive) {
       _last = Duration.zero;
       _ticker.start();
+    }
+  }
+
+  /// Dónde está el dedo que lleva una nota del tablón a otro hueco.
+  Offset? _dedo;
+
+  /// **Con una nota en la mano, cerca de un filo, el tablón se corre solo.**
+  ///
+  /// Si no, los huecos que quedan fuera del cuadro no se podrían alcanzar
+  /// sin soltar la nota. Se corre mientras el dedo esté ahí, aunque no se
+  /// mueva —antes sólo se corría con cada movimiento, y había que menear el
+  /// dedo contra el borde—, y más rápido cuanto más pegado al filo. Vale
+  /// igual para mover una nota clavada que para clavar una nueva.
+  void _alBorde(double dt) {
+    final enMano = _m.grab != null;
+    final dedo = enMano ? _dedo : _pendAt;
+    if (dedo == null || _size.width <= 0) return;
+    final borde = _size.width * 0.16;
+    var empuje = 0.0;
+    if (dedo.dx < borde) {
+      empuje = -(1 - dedo.dx / borde);
+    } else if (dedo.dx > _size.width - borde) {
+      empuje = (dedo.dx - (_size.width - borde)) / borde;
+    }
+    if (empuje == 0) return;
+    empuje = clampD(empuje, -1, 1);
+    final tope = widget.plan.panLimit(_size, _cam.distanceTarget);
+    final antes = _cam.travelTarget;
+    _cam.travelTarget = clampD(
+      _cam.travelTarget + empuje * empuje.abs() * _cam.distance * 0.9 * dt,
+      -tope,
+      tope,
+    );
+    if (_cam.travelTarget == antes) return;
+    // Y el hueco al que apunta cambia con lo que se corrió.
+    if (enMano) {
+      _hover(_nearestSlot(dedo));
+    } else {
+      final k = _huecoCerca(dedo);
+      if (k != _m.placeOver) {
+        _m.placeOver = k;
+        if (k >= 0) Sensory.instance.tick();
+      }
     }
   }
 
@@ -488,6 +534,7 @@ class _BoardSceneState extends State<BoardScene>
   }
 
   void _soltar() {
+    _dedo = null;
     final i = _m.grab;
     if (i == null) return;
     final slot = _m.over;
@@ -603,9 +650,14 @@ class _BoardSceneState extends State<BoardScene>
           // arrastrar sin más: arrastrar ya es correr el tablón a los lados, y
           // un tablón que se mueve o mueve un papel según dónde empezó el dedo
           // es un tablón en el que no se puede confiar.
-          onLongPressStart: (d) => _levantar(d.localPosition),
-          onLongPressMoveUpdate: (d) =>
-              _m.grab == null ? null : _hover(_nearestSlot(d.localPosition)),
+          onLongPressStart: (d) {
+            _dedo = d.localPosition;
+            _levantar(d.localPosition);
+          },
+          onLongPressMoveUpdate: (d) {
+            _dedo = d.localPosition;
+            if (_m.grab != null) _hover(_nearestSlot(d.localPosition));
+          },
           onLongPressEnd: (_) => _soltar(),
           onLongPressCancel: _soltar,
           child: CustomPaint(
@@ -726,14 +778,7 @@ class _BoardSceneState extends State<BoardScene>
       _m.placeOver = k;
       if (k >= 0) Sensory.instance.tick();
     }
-    // Cerca de un filo, el tablón se corre solo: si no, los huecos que
-    // quedan fuera del cuadro no se podrían alcanzar con la nota en la mano.
-    final borde = _size.width * 0.12;
-    final paso = _cam.distance * 0.012;
-    if (centro.dx < borde) _cam.travelTarget -= paso;
-    if (centro.dx > _size.width - borde) _cam.travelTarget += paso;
-    final tope = widget.plan.panLimit(_size, _cam.distanceTarget);
-    _cam.travelTarget = clampD(_cam.travelTarget, -tope, tope);
+    // Cerca de un filo el tablón se corre solo: ver [_alBorde].
     _wake();
   }
 

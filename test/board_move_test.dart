@@ -239,6 +239,103 @@ void main() {
       // dejarlo caer antes de acabar o el arnés se queja de un reloj pendiente.
       await tester.pump(const Duration(milliseconds: 400));
     });
+
+    testWidgets(
+      'con un papel en la mano, cerca del filo el tablón se corre solo',
+      (tester) async {
+        const size = Size(390, 844);
+        tester.view.physicalSize = size * 2;
+        tester.view.devicePixelRatio = 2;
+        addTearDown(tester.view.reset);
+
+        // Mantener un papel, llevarlo al filo derecho, quedarse ahí [quieto] y
+        // soltar. Devuelve cuán a la derecha del tablón quedó el papel movido,
+        // o nulo si ningún arrastre levantó uno.
+        Future<double?> llevar(Duration quieto) async {
+          SharedPreferences.setMockInitialValues({});
+          BoardSlots.instance.forget();
+          await BoardSlots.instance.load();
+          await Appearance.instance.load();
+          final store = Store();
+          await store.load();
+          store.renameHabit(0, name: 'Entrenar', symbol: 'pesa');
+          store.debugFill(120);
+          final h = store.habit;
+          store.pinNote(h, 'Una nota mía');
+          store.pinNote(h, 'Y otra');
+          final hay = boardNotices(h, valley: store.habits);
+          final quienes = [for (final n in hay) noticeId(n)];
+          BoardSlots.instance.assign(h.id, hay, slots: BoardPlan.capacity);
+          for (var i = 0; i < quienes.length && i < 3; i++) {
+            BoardSlots.instance.place(h.id, quienes, i, i);
+          }
+          await tester.pumpWidget(const SizedBox());
+          await tester.pumpWidget(
+            MediaQuery(
+              data: const MediaQueryData(size: size),
+              child: MaterialApp(
+                debugShowCheckedModeBanner: false,
+                home: NoticeBoardScreen(
+                  valley: store.habits,
+                  habit: h,
+                  theme: UiTheme(Palette.forMoment(13)),
+                  store: store,
+                ),
+              ),
+            ),
+          );
+          for (var i = 0; i < 40; i++) {
+            await tester.pump(const Duration(milliseconds: 50));
+          }
+          final said = boardNotices(h, valley: store.habits);
+          List<int?> donde() => [
+            for (final n in said) BoardSlots.instance.slotOf(h.id, noticeId(n)),
+          ];
+          final antes = donde();
+          for (var fy = 0.25; fy <= 0.8; fy += 0.07) {
+            for (var fx = 0.15; fx <= 0.6; fx += 0.15) {
+              final g = await tester.startGesture(
+                Offset(size.width * fx, size.height * fy),
+              );
+              await tester.pump(
+                kLongPressTimeout + const Duration(milliseconds: 80),
+              );
+              await g.moveTo(Offset(size.width * 0.97, size.height * 0.4));
+              // Quieto contra el filo, de a pasos: el dedo no se mueve.
+              var t = Duration.zero;
+              while (t < quieto) {
+                await tester.pump(const Duration(milliseconds: 50));
+                t += const Duration(milliseconds: 50);
+              }
+              await tester.pump(const Duration(milliseconds: 50));
+              await g.up();
+              await tester.pump(const Duration(milliseconds: 400));
+              final ahora = donde();
+              for (var i = 0; i < ahora.length; i++) {
+                if (ahora[i] != antes[i] && ahora[i] != null) {
+                  // El que se movió: el que tenía otro sitio y no le tocó por
+                  // cambio con otro.
+                  if (!antes.contains(ahora[i]) || i < 3) {
+                    return BoardPlan.spotOf(ahora[i]!, 0).$1;
+                  }
+                }
+              }
+            }
+          }
+          return null;
+        }
+
+        final rapido = await llevar(Duration.zero);
+        final quieto = await llevar(const Duration(milliseconds: 2500));
+        expect(rapido, isNotNull, reason: 'ningún arrastre levantó un papel');
+        expect(quieto, isNotNull);
+        expect(
+          quieto!,
+          greaterThan(rapido!),
+          reason: 'quedarse en el filo no corrió el tablón',
+        );
+      },
+    );
   });
   group('escribir una nota', () {
     testWidgets('se escribe en un papel y se clava donde se suelta', (
