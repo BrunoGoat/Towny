@@ -20,6 +20,11 @@ void main() {
       }
     });
 
+    test('uno por valle: sólo en el primer pueblo, el del medio', () {
+      final otro = TownLayout(120, TownCharacter.all[0], cx: 124, seed: 3);
+      expect(folkOf(otro, 120).where((v) => v.sage), isEmpty);
+    });
+
     test('anda por la plaza, fuera de la fuente y lejos del tablón', () {
       final l = TownLayout(120, TownCharacter.all[2], seed: 9);
       final v = folkOf(l, 120).firstWhere((v) => v.sage);

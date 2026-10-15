@@ -6,6 +6,7 @@ import '../data/landmarks.dart';
 import '../engine/palette.dart';
 import '../fx/sensory.dart';
 import '../l10n/lang.dart';
+import '../model/advice_book.dart';
 import '../model/appearance.dart';
 import '../model/board.dart';
 import '../model/board_seen.dart';
@@ -27,6 +28,8 @@ import 'home_chrome.dart';
 import 'notice_board.dart';
 import 'overlays.dart';
 import 'rest_sheet.dart';
+import 'sage_glyph.dart';
+import 'sage_screen.dart';
 import 'settings_sheet.dart';
 import 'style.dart';
 import 'town_sign.dart';
@@ -260,6 +263,14 @@ class _HomeScreenState extends State<HomeScreen>
   /// dibujo y no se usa para nada, porque las ocho suenan igual.
   void _wishOn(String id) => Sensory.instance.star();
 
+  /// El consejero, desde el botón.
+  void _openSage() {
+    Sensory.instance.tick();
+    Navigator.of(
+      context,
+    ).push(SageScreen.route(store: widget.store, theme: _theme));
+  }
+
   /// El tablón de este pueblo, desde el botón.
   void _readOwnBoard() {
     final store = widget.store;
@@ -451,6 +462,22 @@ class _HomeScreenState extends State<HomeScreen>
                   // naranja de mediodía es una mancha que no es de aquí.
                   dot: _news ? t.accent : null,
                   onTap: _readOwnBoard,
+                ),
+                // El consejero, debajo del tablón. El punto: tiene algo
+                // nuevo que decirte.
+                ListenableBuilder(
+                  listenable: AdviceBook.instance,
+                  builder: (_, _) => GhostButton(
+                    glyph: (c) => SageGlyph(color: c, shadows: t.halo),
+                    theme: t,
+                    tooltip: tr('El consejero', 'The advisor'),
+                    dot:
+                        AdviceBook.instance.unseen() > 0 ||
+                            AdviceBook.instance.goalOf(store.habit.id) == null
+                        ? t.accent
+                        : null,
+                    onTap: _openSage,
+                  ),
                 ),
               ],
             ),

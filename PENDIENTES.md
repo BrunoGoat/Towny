@@ -363,24 +363,26 @@ y de cerca para cada actividad desde 24 ángulos; ninguno falla.
 
 ## 9. El consejero
 
-El viejo de la barba que anda por la plaza (`Townsfolk.sage`), su banco, y lo
-que sabe (`lib/data/advice.dart`, `lib/model/advice_book.dart`). Ya están el
-personaje, el banco, los consejos escritos y la libreta que los va ganando;
-falta la pantalla, que la define el autor.
+El viejo de la barba que anda por la plaza del primer pueblo
+(`Townsfolk.sage`), su banco, lo que sabe (`lib/data/advice.dart`), la
+libreta que lo va ganando (`lib/model/advice_book.dart`) y su pantalla
+(`lib/ui/sage_screen.dart`, el botón debajo del tablón).
 
-**Criterio:** un consejo entra sólo si al autor le sirvió en su propia vida.
-Ninguno está aprobado todavía (`approvedAdvice` está vacía).
+**Criterio:** un consejo queda sólo si al autor le sirvió en su propia vida.
+Por ahora entran todos, para probarlos; se van sacando los que no.
 
-- [ ] Aprobar los consejos uno por uno: cuáles quedan, cuáles se reescriben y
+- [ ] Revisar los consejos uno por uno: cuáles quedan, cuáles se reescriben y
   cuáles faltan.
-- [ ] La pantalla del consejero: el botón debajo del tablón, la pregunta de
-  sembrar o arrancar, el consejo del día y la libreta (todo lo ganado, lo más
-  nuevo arriba).
-- [ ] **Cómo se muestra un consejo:** arriba el dicho del viejo, grande y
-  oscuro (`Advice.say`); abajo la explicación, más chica y en gris
-  (`Advice.mean`). La explicación aparece **un segundo después** que el
-  dicho: primero se lee la frase sola, como si te la dijera, y después llega
-  la aclaración.
+- [ ] La pantalla: el viejo en 3D abajo a la izquierda, lo que dice a su
+  derecha, encima cada consejo en su tarjeta (sólo el dicho), y el valle
+  detrás.
+- [ ] El detalle de un consejo: el dicho grande y la explicación en gris,
+  que aparece **un segundo después** — primero se lee la frase sola, como si
+  te la dijera, y después llega la aclaración.
+- [ ] Cómo elige el consejo del día: manda el hábito que más te cuesta (el
+  más nuevo y el que menos días tuvo en las dos últimas semanas), y lo que
+  le acaba de pasar (si ayer faltaste, que no sean dos; si viene costando,
+  más chico y más fácil).
 - [ ] Tocar al viejo en la plaza: hoy no hace nada.
 
 ---

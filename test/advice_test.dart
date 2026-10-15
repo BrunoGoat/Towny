@@ -101,10 +101,13 @@ void main() {
         libro.visit([h], now: DateTime(2026, 3, 1, 22), approved: todos),
         isEmpty,
       );
-      final d2 = libro.visit([h], now: DateTime(2026, 3, 15), approved: todos);
+      final d2 = libro.visit([h], now: DateTime(2026, 3, 2), approved: todos);
       expect(d2.single.id, camino[1]);
+      // Dos semanas sin entrar: uno, no catorce.
+      final d3 = libro.visit([h], now: DateTime(2026, 3, 16), approved: todos);
+      expect(d3.where((a) => a.event == null), hasLength(1));
       final hay = libro.unlocked(approved: todos);
-      expect(hay.first.$1.id, camino[1]);
+      expect(hay, hasLength(3));
       expect(hay.last.$1.id, camino[0]);
     });
 
@@ -130,18 +133,52 @@ void main() {
       expect(d1.single.id, pathFor(AdviceGoal.quit).first);
     });
 
-    test('con pueblos de los dos, uno y uno', () {
-      final a = _pueblo('Leer', DateTime(2026, 3, 1));
-      final b = _pueblo('Fumar', DateTime(2026, 3, 1, 1));
+    test('manda el hábito que más cuesta: el nuevo, si el viejo anda', () {
+      final hoy = DateTime(2026, 4, 1, 21);
+      // Leer, desde hace un mes, casi todos los días.
+      final a = _pueblo(
+        'Leer',
+        DateTime(2026, 3, 1),
+        dias: [for (var d = 0; d < 31; d++) DateTime(2026, 3, 1 + d, 20)],
+      );
+      // Fumar, desde ayer.
+      final b = _pueblo('Fumar', DateTime(2026, 3, 31));
       libro
         ..setGoal(a.id, AdviceGoal.start)
         ..setGoal(b.id, AdviceGoal.quit);
-      final camino = libro.pathOf([a, b]);
-      expect(camino.take(2), [
-        pathFor(AdviceGoal.start).first,
+      expect(libro.focusOf([a, b], now: hoy)?.id, 'Fumar');
+      expect(
+        libro.pathOf([a, b], now: hoy).first,
         pathFor(AdviceGoal.quit).first,
-      ]);
-      expect(camino.toSet().length, camino.length);
+      );
+    });
+
+    test('si ayer faltaste, primero que no sean dos', () {
+      final hoy = DateTime(2026, 3, 10, 21);
+      final h = _pueblo(
+        'Leer',
+        DateTime(2026, 3, 1),
+        dias: [for (var d = 0; d < 8; d++) DateTime(2026, 3, 1 + d, 20)],
+      );
+      libro.setGoal(h.id, AdviceGoal.start);
+      expect(momentOf(h, hoy), AdviceMoment.missedYesterday);
+      expect(libro.pathOf([h], now: hoy).first, 'nodosveces');
+    });
+
+    test('si viene costando, más chico', () {
+      final hoy = DateTime(2026, 3, 15, 21);
+      final h = _pueblo(
+        'Leer',
+        DateTime(2026, 3, 1),
+        dias: [
+          DateTime(2026, 3, 2),
+          DateTime(2026, 3, 9),
+          DateTime(2026, 3, 15),
+        ],
+      );
+      libro.setGoal(h.id, AdviceGoal.start);
+      expect(momentOf(h, hoy), AdviceMoment.struggling);
+      expect(libro.pathOf([h], now: hoy).first, 'chico');
     });
 
     test('el segundo pueblo oye lo que le toca según lo que busca', () {

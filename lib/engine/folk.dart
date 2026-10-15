@@ -1217,7 +1217,7 @@ List<Townsfolk> _folkOf(
     casas.add(b);
   }
   // El consejero está en la plaza desde que se funda, haya casas o no.
-  if (casas.isEmpty) return [Townsfolk.sage(layout)];
+  if (casas.isEmpty) return [if (hasSage(layout)) Townsfolk.sage(layout)];
 
   // A dónde va la gente. Pocos sitios y compartidos, que es lo que hace que se
   // encuentren: con un destino para cada uno, un pueblo de cuarenta vecinos
@@ -1367,9 +1367,18 @@ List<Townsfolk> _folkOf(
         .._h = h,
     );
   }
-  out.add(Townsfolk.sage(layout));
+  if (hasSage(layout)) out.add(Townsfolk.sage(layout));
   return out;
 }
+
+/// Si en la plaza de [layout] vive el consejero.
+///
+/// Uno solo por valle, en el primer pueblo, que es el del medio del valle (el
+/// hueco cero, ver `Habit.centreOf`). Es el mismo viejo para todos tus
+/// pueblos —los consejos son tuyos, no de cada pueblo—, y vive donde
+/// empezaste.
+bool hasSage(TownLayout layout) =>
+    !layout.solo && layout.cx == 0 && layout.cz == 0;
 
 /// Lo que mide una persona hecha, en un pueblo de esta región.
 ///

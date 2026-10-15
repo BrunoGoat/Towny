@@ -127,16 +127,16 @@ class SageLines {
 
   /// Lo que dice después de cada una.
   static String get afterStart => tr(
-    'Una semilla. Bien. Las semillas no se apuran, y vos tampoco. Volvé '
-        'mañana: cada día te voy a decir una cosa.',
-    'A seed. Good. Seeds don’t hurry, and neither will you. Come back '
-        'tomorrow: each day I’ll tell you one thing.',
+    'Una semilla. Bien. Las semillas no se apuran, y vos tampoco. Cada día '
+        'te voy a decir una cosa. La de hoy es ésta.',
+    'A seed. Good. Seeds don’t hurry, and neither will you. Each day I’ll '
+        'tell you one thing. Today’s is this.',
   );
   static String get afterQuit => tr(
     'Una raíz. Las raíces no salen de un tirón: se aflojan de a poco. Vamos '
-        'a aflojarla. Volvé mañana.',
+        'a aflojarla, de a una cosa por día. La de hoy es ésta.',
     'A root. Roots don’t come out in one pull: they loosen little by little. '
-        'We’ll loosen it. Come back tomorrow.',
+        'We’ll loosen it, one thing a day. Today’s is this.',
   );
 
   /// Cuando ya dijo lo de hoy y se le vuelve a hablar.
@@ -823,10 +823,15 @@ const List<Advice> eventAdvice = [
 ///
 /// **Ninguno entra por estar escrito acá.** Lo de arriba es el borrador
 /// entero; lo que se le da a la gente es sólo lo que pasó la prueba de quien
-/// hace la app, en su propia vida. Para que uno entre, va su id en esta
-/// lista; para sacarlo, se lo saca. Lo que alguien ya ganó y después se saca
-/// de acá deja de verse en su libreta.
-const Set<String> approvedAdvice = {};
+/// hace la app, en su propia vida. Para sacar uno, se lo saca de acá; lo que
+/// alguien ya ganó y después se saca deja de verse en su libreta.
+///
+/// **Por ahora entran todos**, para poder probarlos en la app; el autor va
+/// sacando los que no le sirvieron. Cuando quede la lista, se escribe a mano
+/// con los que quedaron.
+final Set<String> approvedAdvice = {
+  for (final a in [...dailyAdvice, ...eventAdvice]) a.id,
+};
 
 /// Todos, por su nombre.
 final Map<String, Advice> adviceById = {
