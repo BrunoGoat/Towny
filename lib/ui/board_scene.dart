@@ -119,7 +119,14 @@ class BoardScene extends StatefulWidget {
     this.placeable = const {},
     this.onPlace,
     this.onEditPending,
+    this.lookAt,
   });
+
+  /// Entrar mirando ese hueco, de frente y sin el paseo de llegada: es lo que
+  /// se ve al clavar una nota tuya, que rehace la escena. Sin esto, la nota
+  /// recién clavada se quedaba fuera del cuadro y el tablón volvía a llegar
+  /// desde un lado, como si acabaras de abrirlo.
+  final int? lookAt;
 
   /// La nota tuya recién escrita que todavía no tiene sitio. Espera abajo del
   /// tablón, temblando, hasta que se la lleva a uno de los huecos verdes.
@@ -237,8 +244,8 @@ class _BoardSceneState extends State<BoardScene>
       // Se llega de lado y la cámara se endereza sola: es lo único que hace
       // en tres dimensiones por su cuenta, y es lo que dice de una vez que
       // esto es un sitio y no una lámina. A partir de ahí no vuelve a girar.
-      ..yaw = 0.62
-      ..pitch = 0.26
+      ..yaw = widget.lookAt == null ? 0.62 : 0
+      ..pitch = widget.lookAt == null ? 0.26 : 0
       ..distance = 9.0
       ..yawTarget = 0
       ..pitchTarget = 0;
@@ -546,6 +553,18 @@ class _BoardSceneState extends State<BoardScene>
               _cam.distanceTarget,
             );
             _cam.travel = _cam.travelTarget;
+            final mira = widget.lookAt;
+            if (mira != null) {
+              final tope = widget.plan.panLimit(size, _cam.distanceTarget);
+              _cam
+                ..distance = _cam.distanceTarget
+                ..travelTarget = clampD(
+                  BoardPlan.spotOf(mira, 0).$1,
+                  -tope,
+                  tope,
+                )
+                ..travel = _cam.travelTarget;
+            }
           }
         }
         // Quitar la nota, sólo mientras hay una tuya descolgada.
@@ -729,6 +748,31 @@ class _BoardSceneState extends State<BoardScene>
     }
   }
 
+  /// Si no se ve ningún hueco verde, correr el tablón hasta el más cercano.
+  ///
+  /// El primer día la guía ocupa la primera columna y la mitad de la
+  /// segunda, que es lo que se ve al entrar: la nota bajaba a esperar y no
+  /// había ningún verde a la vista, sólo una nota temblando y nada que hacer.
+  void _mostrarHueco(Size size) {
+    if (widget.placeable.isEmpty) return;
+    final p = _projector();
+    double? mas;
+    for (final k in widget.placeable) {
+      final (cx, cy) = BoardPlan.spotOf(k, 0);
+      final c = p.cameraOf(V3(cx, cy, BoardPlan.plankDepth));
+      if (c.z <= p.near) continue;
+      final x = p.screenX(c.x, c.z);
+      if (x > size.width * 0.08 && x < size.width * 0.92) return;
+      if (mas == null || (cx - _cam.travel).abs() < (mas - _cam.travel).abs()) {
+        mas = cx;
+      }
+    }
+    if (mas == null) return;
+    final tope = widget.plan.panLimit(_size, _cam.distanceTarget);
+    _cam.travelTarget = clampD(mas, -tope, tope);
+    _wake();
+  }
+
   Widget _esperando(Size size) {
     final n = widget.pending!;
     if (!identical(n, _pendDe)) {
@@ -736,6 +780,7 @@ class _BoardSceneState extends State<BoardScene>
       _pendInk = PaperInk(n);
       _pendDesde = _m.clock;
       _pendAt = null;
+      _mostrarHueco(size);
     }
     final t = _m.clock;
     // Un poco más grande que las clavadas: es la que hay que mirar.

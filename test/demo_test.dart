@@ -826,6 +826,29 @@ void main() {
       expect(hay.first.said, contains('Leer'));
     });
 
+    test('en el segundo pueblo, sólo la que presenta el tablón', () {
+      // El tablón es el mismo en todos: cómo se usa ya se aprendió en el
+      // primero.
+      final primero = nuevo('Leer');
+      final segundo = Habit(
+        id: 'Correr',
+        name: 'Correr',
+        symbol: 'pesa',
+        slot: 1,
+        createdAt: DateTime(2026, 4, 1),
+      );
+      final valle = [primero, segundo];
+      expect(isFirstTown(primero, valle), isTrue);
+      expect(isFirstTown(segundo, valle), isFalse);
+      final cuando = DateTime(2026, 4, 1, 21);
+      final del1 = boardNotices(primero, valley: valle, at: cuando);
+      final del2 = boardNotices(segundo, valley: valle, at: cuando);
+      expect(del1.length, guideNotices(primero).length);
+      expect(del2, hasLength(1));
+      expect(del2.single.said, contains('Correr'));
+      expect(del2.single.because, contains('esta hoja se despega sola'));
+    });
+
     test('se van todas con la primera nota de verdad', () {
       final cuando = DateTime(2026, 3, 12, 21);
       final v = demoValley(cuando);

@@ -140,6 +140,10 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
   /// La nota escrita que espera sitio, o null.
   Notice? _espera;
 
+  /// El hueco donde se acaba de clavar una, para que la escena nueva entre
+  /// mirándolo. Cualquier otra cosa que rehaga la escena lo olvida.
+  int? _mirar;
+
   @override
   void dispose() {
     _titulo.dispose();
@@ -169,20 +173,22 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
     });
   }
 
-  /// Dónde puede ir: en cualquier hueco menos encima de otra tuya.
+  /// Dónde puede ir: en cualquier hueco menos encima de otra tuya o de una
+  /// de la guía.
   ///
-  /// También encima de una del pueblo, que se despega de ahí y se vuelve a
-  /// clavar en un hueco libre —o se queda fuera, si ya no cabe—. Sólo los
-  /// libres no alcanzaba: el primer día la guía ocupa nueve de los diez, y el
-  /// único verde quedaba fuera de la pantalla.
+  /// Encima de una de las que el pueblo averiguó sí: se despega de ahí y se
+  /// vuelve a clavar en un hueco libre —o se queda fuera, si ya no cabe—. La
+  /// guía no se tapa: es lo que explica el tablón mientras no hay nada más.
   Set<int> _dondeCabe() {
-    final mias = {
+    final tapadas = {
       for (var i = 0; i < _said.length && i < _slots.length; i++)
-        if (_said[i].kind == NoticeKind.mine) _slots[i],
+        if (_said[i].kind == NoticeKind.mine ||
+            _said[i].kind == NoticeKind.guia)
+          _slots[i],
     };
     return {
       for (var k = 0; k < NoticeBoard.capacity; k++)
-        if (!mias.contains(k)) k,
+        if (!tapadas.contains(k)) k,
     };
   }
 
@@ -197,6 +203,7 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
     _debajo.clear();
     setState(() {
       _espera = null;
+      _mirar = slot;
       _plan = _real();
       // Rehace las hojas: maquetar es caro y no se hace al pintar, así que la
       // escena necesita una llave nueva para enterarse de que hay un papel más.
@@ -258,6 +265,7 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
       place: dicho.$2,
     );
     setState(() {
+      _mirar = null;
       _plan = _real();
       _roll++;
     });
@@ -327,7 +335,10 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
     Sensory.instance.tick();
     final semilla = ++_roll * 7919 + DateTime.now().millisecondsSinceEpoch;
     final reales = boardNotices(widget.habit, valley: widget.valley);
-    final guia = guideNotices(widget.habit);
+    final guia = guideNotices(
+      widget.habit,
+      firstTown: isFirstTown(widget.habit, widget.valley),
+    );
     final said = <Notice>[];
     final huecos = <int>[];
     final libres = [for (var i = 0; i < NoticeBoard.capacity; i++) i];
@@ -369,6 +380,7 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
                 // La clave rehace las hojas en cada tirada del dado: maquetar
                 // es caro y no puede hacerse al pintar.
                 key: ValueKey(_roll),
+                lookAt: _mirar,
                 plan: _plan,
                 habit: widget.habit,
                 palette: widget.theme.palette,
@@ -398,6 +410,7 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
                         Sensory.instance.tick();
                         widget.store!.unpinNote(widget.habit, said);
                         setState(() {
+                          _mirar = null;
                           _plan = _real();
                           _roll++;
                         });

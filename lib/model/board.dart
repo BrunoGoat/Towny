@@ -52,7 +52,10 @@ List<Notice> boardNotices(
     // tablón. Se van todas juntas con la primera nota de verdad, aunque ya
     // hayas clavado alguna tuya: lo que explican es lo que el pueblo va a
     // escribir.
-    ...(said.isEmpty ? guideNotices(h) : said).take(cabe),
+    ...(said.isEmpty
+            ? guideNotices(h, firstTown: isFirstTown(h, valley))
+            : said)
+        .take(cabe),
   ];
 }
 
@@ -111,6 +114,11 @@ String _cuando(DateTime at) {
   );
 }
 
+/// Si [h] es el primer pueblo que se fundó del valle: ninguno de los demás
+/// es más viejo que él. Sin valle que mirar, se da por primero.
+bool isFirstTown(Habit h, List<Habit> valley) =>
+    !valley.any((o) => o.id != h.id && o.createdAt.isBefore(h.createdAt));
+
 /// Las hojas que explican el tablón, una por cosa.
 ///
 /// Antes era una sola, y lo decía todo junto: una hoja con cinco
@@ -125,20 +133,27 @@ String _cuando(DateTime at) {
 /// que es lo que hace falta saber para ver las demás.
 ///
 /// Se despegan solas en cuanto llega la primera nota con un dato tuyo.
-List<Notice> guideNotices(Habit h) {
+///
+/// Las cuatro, sólo en el primer pueblo ([firstTown]). En los que vienen
+/// después ya se sabe cómo se usa un tablón —es el mismo— y queda nada más
+/// la que lo presenta.
+List<Notice> guideNotices(Habit h, {bool firstTown = true}) {
   Notice hoja(String es, String en, String esY, String enY) =>
       Notice(NoticeKind.guia, tr(es, en), tr(esY, enY));
+  final despega = firstTown
+      ? ('estas hojas se despegan solas', 'these sheets come down on their own')
+      : ('esta hoja se despega sola', 'this sheet comes down on its own');
+  final presenta = hoja(
+    'Este es el tablón de anuncios de ${h.name}.',
+    'This is the notice board for ${h.name}.',
+    'Acá el pueblo va clavando lo que aprende de vos y te brinda '
+        'información para ayudarte. Cuando aprenda algo, ${despega.$1}.',
+    'Here the town pins what it learns about you and gives you '
+        'information to help you. Once it learns something, ${despega.$2}.',
+  );
+  if (!firstTown) return [presenta];
   return [
-    hoja(
-      'Este es el tablón de anuncios de ${h.name}.',
-      'This is the notice board for ${h.name}.',
-      'Acá el pueblo va clavando lo que aprende de vos y te brinda '
-          'información para ayudarte. Cuando aprenda algo, estas hojas se '
-          'despegan solas.',
-      'Here the town pins what it learns about you and gives you '
-          'information to help you. Once it learns something, these sheets '
-          'come down on their own.',
-    ),
+    presenta,
     hoja(
       'Deslizá el dedo de costado para recorrer el tablón.',
       'Slide your finger sideways to move along the board.',
