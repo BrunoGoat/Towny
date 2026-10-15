@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import '../core/math3.dart';
 import '../core/rng.dart';
 import '../data/character.dart';
+import '../data/doings.dart';
 import '../fx/effects.dart';
 import 'backdrop.dart';
 import 'bsp.dart';
@@ -263,7 +264,10 @@ class TownPainter extends CustomPainter {
       for (var i = 0; i < scene.towns.length; i++) {
         final e = scene.towns[i];
         final take = math.min(e.placed, e.layout.pieces.length);
-        if (take > 0 && RenderDebug.instance.folk) {
+        // Con cero piezas también, si ya se fundó: el consejero está en la
+        // plaza desde el primer día.
+        final fundado = take > 0 || (e.founded && scene.founding >= 1.0);
+        if (fundado && RenderDebug.instance.folk) {
           _folkNow[i] = _folkOut(
             p,
             e,
@@ -1553,6 +1557,11 @@ class TownPainter extends CustomPainter {
         who.debut =
             scene.time + math.max(0.0, Townsfolk.settleIn - scene.newbornAge);
       }
+      // El consejero de un pueblo recién fundado llega sentado en el banco,
+      // que es como cae con la plaza; desde ahí sigue su ronda.
+      if (who.sage && take == 0 && who.debut == null) {
+        who.seatNow(e.layout, scene.time);
+      }
       final nace = who.debut;
       if (nace != null && scene.time < nace) continue;
       // Descartar **antes** de calcular dónde anda.
@@ -1992,11 +2001,28 @@ class TownPainter extends CustomPainter {
       ),
       FoundingShow.liftAt(t, FoundingShow.plazaAt),
     );
-    // El banco cae con la plaza: es parte de ella.
+    // El banco cae con la plaza: es parte de ella. Y con el consejero
+    // sentado, si es el pueblo donde vive.
     caer(
       PlazaBench.solidsAt(l.cx, l.cz),
       FoundingShow.liftAt(t, FoundingShow.plazaAt),
     );
+    if (hasSage(l)) {
+      final sabio = folkOf(l, 0).where((v) => v.sage).firstOrNull;
+      if (sabio != null) {
+        final bx = PlazaBench.xAt(l.cx), bz = PlazaBench.zAt(l.cz);
+        caer(
+          folkSolids(
+            sabio,
+            FolkAt(bx, bz, PlazaBench.turn, 0, false, Doing.bench, 0),
+            folkHeight(l.character),
+            lift: Plaza.floorAt(bx, bz, l.cx, l.cz, TownLayout.plazaReach),
+            eye: p.eye,
+          ),
+          FoundingShow.liftAt(t, FoundingShow.plazaAt),
+        );
+      }
+    }
     caer(
       NoticeBoard.solidsAt(l.cx, l.cz, sheets: l.notices),
       FoundingShow.liftAt(t, FoundingShow.boardAt),

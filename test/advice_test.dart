@@ -273,6 +273,20 @@ void main() {
       expect(otra.town, 'Correr | a la mañana');
     });
 
+    test('se presenta una sola vez', () async {
+      expect(libro.met, isFalse);
+      libro.meet();
+      await libro.flush();
+      libro.forget();
+      expect(libro.met, isFalse);
+      await libro.load();
+      expect(libro.met, isTrue);
+      // Y quien ya le había contestado algo lo conoce de antes.
+      libro.forget();
+      libro.setGoal('Leer', AdviceGoal.start);
+      expect(libro.met, isTrue);
+    });
+
     test('lo que contestaste y lo ganado sobreviven a cerrar la app', () async {
       final h = _pueblo('Leer', DateTime(2026, 3, 1));
       libro.setGoal(h.id, AdviceGoal.quit);

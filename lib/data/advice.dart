@@ -27,10 +27,10 @@ import '../l10n/lang.dart';
 
 /// Lo que se busca con un hábito.
 enum AdviceGoal {
-  /// Sembrar algo nuevo: empezar a leer, a correr, a dormir temprano.
+  /// Empezar un buen hábito: leer, correr, dormir temprano.
   start,
 
-  /// Arrancar algo que creció torcido: dejar de fumar, de mirar el teléfono
+  /// Dejar un mal hábito: fumar, mirar el teléfono
   /// en la cama.
   quit,
 }
@@ -105,38 +105,67 @@ class Advice {
 class SageLines {
   SageLines._();
 
-  /// La primera vez, antes de nada.
-  static String get hello => tr(
-    'Te esperaba. No hay prisa: aquí nadie corre, ni siquiera el agua.',
-    'I was waiting for you. Don’t hurry: nobody runs here, not even the '
-        'water.',
+  /// La primera vez que se le habla: se presenta, de a un globo por vez,
+  /// antes de preguntar nada. Como el guía de los juegos que te reciben.
+  static List<String> get intro => [
+    tr(
+      'Te doy la bienvenida al valle. Pasa, pasa… aquí nadie corre, ni '
+          'siquiera el agua.',
+      'Welcome to the valley. Come in, come in… nobody runs here, not even '
+          'the water.',
+    ),
+    tr(
+      'Soy el consejero. Llevo en esta plaza más años que sus piedras, '
+          'mirando cómo crecen los pueblos.',
+      'I am the advisor. I have sat in this square longer than its stones, '
+          'watching towns grow.',
+    ),
+    tr(
+      'Vengo a ayudarte a conseguir lo que te propongas: a empezar lo bueno '
+          'y a dejar lo que hace daño. Una palabra cada día, cuando estés '
+          'listo para oírla.',
+      'I am here to help you reach what you set out to do: to start what is '
+          'good and to leave what harms you. One word each day, when you are '
+          'ready to hear it.',
+    ),
+  ];
+
+  /// La pregunta, una vez por pueblo: qué se quiere hacer con este hábito.
+  /// Directa, sin metáforas: empezar o dejar.
+  static String get question => tr(
+    'Primero, dime: con este pueblo, ¿quieres empezar un buen hábito, o '
+        'dejar uno malo?',
+    'First, tell me: with this town, do you want to start a good habit, or '
+        'leave a bad one?',
   );
 
-  /// La pregunta, una vez por pueblo.
-  static String get question => tr(
-    'Antes de hablar, una pregunta. Este pueblo… ¿nace para sembrar algo '
-        'nuevo, o para arrancar algo que creció torcido?',
-    'Before I speak, tell me one thing. This town… is it for planting '
-        'something new, or for pulling up something that grew crooked?',
+  /// La misma, en un pueblo nuevo, a quien ya lo conoce.
+  static String get questionAgain => tr(
+    'Un pueblo nuevo… Dime: aquí, ¿quieres empezar un buen hábito, o dejar '
+        'uno malo?',
+    'A new town… Tell me: here, do you want to start a good habit, or leave '
+        'a bad one?',
   );
 
   /// Las dos respuestas.
   static String get answerStart =>
-      tr('Sembrar algo nuevo', 'Plant something new');
-  static String get answerQuit => tr('Arrancar algo', 'Pull something up');
+      tr('Empezar un buen hábito', 'Start a good habit');
+  static String get answerQuit =>
+      tr('Dejar un mal hábito', 'Leave a bad habit');
 
   /// Lo que dice después de cada una.
   static String get afterStart => tr(
-    'Una semilla. Bien. Las semillas no tienen prisa, y quien las siembra '
-        'tampoco debería. Cada día traerá una palabra.',
-    'A seed. Good. Seeds don’t hurry, and neither should whoever sows them. '
-        'Each day will bring a word.',
+    'Un buen hábito es una semilla. Las semillas no tienen prisa, y quien '
+        'las siembra tampoco debería. Cada día traerá una palabra para que '
+        'crezca.',
+    'A good habit is a seed. Seeds don’t hurry, and neither should whoever '
+        'sows them. Each day will bring a word to help it grow.',
   );
   static String get afterQuit => tr(
-    'Una raíz. Las raíces no salen de un tirón: se aflojan poco a poco. Cada '
-        'día traerá una palabra para aflojarla.',
-    'A root. Roots don’t come out in one pull: they loosen little by little. '
-        'Each day will bring a word to loosen it.',
+    'Un mal hábito es una raíz torcida. No sale de un tirón: se afloja poco '
+        'a poco. Cada día traerá una palabra para aflojarla.',
+    'A bad habit is a crooked root. It doesn’t come out in one pull: it '
+        'loosens little by little. Each day will bring a word to loosen it.',
   );
 
   /// Cuando ya dijo lo de hoy y se le vuelve a hablar.

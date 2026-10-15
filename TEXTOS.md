@@ -988,20 +988,20 @@ Invierno, primavera, verano y otoño, en ajustes y en el tablón.
 
 Frases que no caen en ninguna pantalla concreta.
 
-- **U442** · `versión simple`  <sub>renderer.dart:2391 · TownPainter._colourOf</sub>
-- **U443** · `el pueblo`  <sub>advice_book.dart:457 · AdviceReason.AdviceReason</sub>
-- **U444** · `Porque $el no hubo pieza en $t.`  <sub>advice_book.dart:465 · AdviceReason.AdviceReason</sub>
-- **U445** · `Porque a $t le están faltando piezas estos días.`  <sub>advice_book.dart:469 · AdviceReason.AdviceReason</sub>
-- **U446** · `Porque $el se puso la primera pieza de $t.`  <sub>advice_book.dart:477 · AdviceReason.AdviceReason</sub>
-- **U447** · `Porque $el se fundó $t, el segundo pueblo del valle.`  <sub>advice_book.dart:481 · AdviceReason.AdviceReason</sub>
-- **U448** · `Porque $el se fundó $t, el tercer pueblo del valle.`  <sub>advice_book.dart:485 · AdviceReason.AdviceReason</sub>
-- **U449** · `Porque $el $t cumplió siete días con pieza.`  <sub>advice_book.dart:489 · AdviceReason.AdviceReason</sub>
-- **U450** · `Porque $el $t cumplió treinta días con pieza.`  <sub>advice_book.dart:493 · AdviceReason.AdviceReason</sub>
-- **U451** · `Porque $el se volvió a $t, tras $n días de silencio.`  <sub>advice_book.dart:501 · AdviceReason.AdviceReason</sub>
-- **U452** · `Porque en el tablón de $t quedó escrito cuándo o dónde.`  <sub>advice_book.dart:505 · AdviceReason.AdviceReason</sub>
-- **U453** · `Porque en el tablón de $t se clavó una nota propia.`  <sub>advice_book.dart:509 · AdviceReason.AdviceReason</sub>
-- **U454** · `Porque $el $t se echó a dormir un tiempo.`  <sub>advice_book.dart:513 · AdviceReason.AdviceReason</sub>
-- **U455** · `Porque $el $t llegó a cien piezas.`  <sub>advice_book.dart:517 · AdviceReason.AdviceReason</sub>
+- **U442** · `versión simple`  <sub>renderer.dart:2417 · TownPainter._colourOf</sub>
+- **U443** · `el pueblo`  <sub>advice_book.dart:477 · AdviceReason.AdviceReason</sub>
+- **U444** · `Porque $el no hubo pieza en $t.`  <sub>advice_book.dart:485 · AdviceReason.AdviceReason</sub>
+- **U445** · `Porque a $t le están faltando piezas estos días.`  <sub>advice_book.dart:489 · AdviceReason.AdviceReason</sub>
+- **U446** · `Porque $el se puso la primera pieza de $t.`  <sub>advice_book.dart:497 · AdviceReason.AdviceReason</sub>
+- **U447** · `Porque $el se fundó $t, el segundo pueblo del valle.`  <sub>advice_book.dart:501 · AdviceReason.AdviceReason</sub>
+- **U448** · `Porque $el se fundó $t, el tercer pueblo del valle.`  <sub>advice_book.dart:505 · AdviceReason.AdviceReason</sub>
+- **U449** · `Porque $el $t cumplió siete días con pieza.`  <sub>advice_book.dart:509 · AdviceReason.AdviceReason</sub>
+- **U450** · `Porque $el $t cumplió treinta días con pieza.`  <sub>advice_book.dart:513 · AdviceReason.AdviceReason</sub>
+- **U451** · `Porque $el se volvió a $t, tras $n días de silencio.`  <sub>advice_book.dart:521 · AdviceReason.AdviceReason</sub>
+- **U452** · `Porque en el tablón de $t quedó escrito cuándo o dónde.`  <sub>advice_book.dart:525 · AdviceReason.AdviceReason</sub>
+- **U453** · `Porque en el tablón de $t se clavó una nota propia.`  <sub>advice_book.dart:529 · AdviceReason.AdviceReason</sub>
+- **U454** · `Porque $el $t se echó a dormir un tiempo.`  <sub>advice_book.dart:533 · AdviceReason.AdviceReason</sub>
+- **U455** · `Porque $el $t llegó a cien piezas.`  <sub>advice_book.dart:537 · AdviceReason.AdviceReason</sub>
 - **U456** · `todos los días`  <sub>cadence.dart:164 · cadenceSaid</sub>
 - **U457** · `cada dos días`  <sub>cadence.dart:165 · cadenceSaid</sub>
 - **U458** · `una vez por semana`  <sub>cadence.dart:166 · cadenceSaid</sub>

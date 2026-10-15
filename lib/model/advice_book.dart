@@ -46,6 +46,22 @@ class AdviceBook extends ChangeNotifier {
   /// Pueblo -> lo que se busca con él.
   final Map<String, AdviceGoal> _goals = {};
 
+  /// Si ya se presentó: la presentación es una vez en la vida.
+  bool _met = false;
+  static const String _metKey = 'consejero_conocido_v1';
+
+  /// Si ya se presentó. Quien ya le había contestado algo lo conoce, aunque
+  /// sea de antes de que se presentara.
+  bool get met => _met || _goals.isNotEmpty;
+
+  /// Ya se presentó.
+  void meet() {
+    if (_met) return;
+    _met = true;
+    unawaited(flush());
+    notifyListeners();
+  }
+
   /// Los que ya se miraron, para el punto del botón.
   final Set<String> _seen = {};
   static const String _seenKey = 'consejero_visto_v1';
@@ -55,6 +71,7 @@ class AdviceBook extends ChangeNotifier {
     _why.clear();
     _goals.clear();
     _seen.clear();
+    _met = false;
     try {
       final prefs = await SharedPreferences.getInstance();
       for (final row in prefs.getStringList(_key) ?? const <String>[]) {
@@ -71,6 +88,7 @@ class AdviceBook extends ChangeNotifier {
         }
       }
       _seen.addAll(prefs.getStringList(_seenKey) ?? const <String>[]);
+      _met = prefs.getBool(_metKey) ?? false;
       for (final row in prefs.getStringList(_goalKey) ?? const <String>[]) {
         final a = row.indexOf(_sep);
         if (a <= 0) continue;
@@ -287,6 +305,7 @@ class AdviceBook extends ChangeNotifier {
           ].join('|'),
       ]);
       await prefs.setStringList(_seenKey, _seen.toList());
+      await prefs.setBool(_metKey, _met);
       await prefs.setStringList(_goalKey, [
         for (final MapEntry(key: town, value: g) in _goals.entries)
           '$town$_sep${g.name}',
@@ -296,6 +315,7 @@ class AdviceBook extends ChangeNotifier {
 
   /// Para los tests: la libreta en blanco.
   void forget() {
+    _met = false;
     _got.clear();
     _why.clear();
     _goals.clear();

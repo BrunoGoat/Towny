@@ -120,7 +120,39 @@ class Townsfolk {
       acts,
       period,
       sage: true,
-    );
+    )..debut = _sageAnchor[_sageKey(layout)];
+  }
+
+  /// Desde cuándo cuenta su ronda el consejero de cada valle, si se le puso
+  /// en hora (ver [seatNow]). Aparte del consejero, porque el consejero se
+  /// rehace cada vez que el pueblo cambia de forma, y la hora tiene que
+  /// sobrevivirle.
+  static final Map<String, double> _sageAnchor = {};
+  static String _sageKey(TownLayout l) => '${l.cx},${l.cz},${l.seed}';
+
+  /// Pone al consejero sentado en el banco en el segundo [t]: es como lo deja
+  /// la fundación, que lo trae del cielo sentado en él. A partir de ahí sigue
+  /// su ronda como siempre, sin saltar de sitio.
+  void seatNow(TownLayout layout, double t) {
+    if (!sage) return;
+    var acc = 0.0;
+    final n = _stops.length;
+    for (var i = 0; i < n; i++) {
+      final from = _stops[i], to = _stops[(i + 1) % n];
+      acc +=
+          math.sqrt(
+            math.pow(to.$1 - from.$1, 2) + math.pow(to.$2 - from.$2, 2),
+          ) /
+          pace;
+      final stay = _stay[(i + 1) % n];
+      if (_act[(i + 1) % n] == Doing.bench) {
+        acc += math.min(2.4, stay * 0.15);
+        break;
+      }
+      acc += stay;
+    }
+    debut = t - acc - 0.01;
+    _sageAnchor[_sageKey(layout)] = debut!;
   }
 
   /// Para el consejero: cuánto hace que se sentó en el banco en esta vuelta

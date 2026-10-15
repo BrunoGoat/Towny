@@ -123,6 +123,13 @@ class _SageScreenState extends State<SageScreen> {
   /// Lo que dijo al contestar algo, si se acaba de contestar.
   String? _respuesta;
 
+  /// Por qué globo de la presentación va, la primera vez.
+  int _paso = 0;
+
+  /// Si se presentó en esta visita: entonces la pregunta es la de siempre,
+  /// y no la de «un pueblo nuevo…».
+  bool _sePresento = false;
+
   /// Si se le dijo que todavía no: no vuelve a preguntar mientras se esté
   /// acá. Lo que tenía para dar sigue esperando.
   bool _espera = false;
@@ -200,19 +207,35 @@ class _SageScreenState extends State<SageScreen> {
     // consejos no van en el globo: van en su rollo.
     final String dice;
     var respuestas = <(String, VoidCallback)>[];
-    if (pregunta) {
-      dice = leidos.isEmpty && pendientes.isEmpty
-          ? '${SageLines.hello}\n\n${SageLines.question}'
-          : SageLines.question;
+    VoidCallback? sigue;
+    final intro = SageLines.intro;
+    if (!_libro.met && _paso < intro.length) {
+      // La primera vez se presenta, de a un globo, antes de preguntar nada.
+      dice = intro[_paso];
+      sigue = () => setState(() {
+        _paso++;
+        _sePresento = true;
+        if (_paso >= intro.length) _libro.meet();
+      });
+    } else if (pregunta) {
+      dice = _sePresento || !_libro.met
+          ? SageLines.question
+          : SageLines.questionAgain;
       respuestas = [
         (SageLines.answerStart, () => _contestar(AdviceGoal.start)),
         (SageLines.answerQuit, () => _contestar(AdviceGoal.quit)),
       ];
+    } else if (_respuesta != null &&
+        pendientes.isNotEmpty &&
+        !_espera &&
+        _abierto == null) {
+      // Lo que contesta, en su globo; y al tocarlo, la pregunta del día.
+      dice = _respuesta!;
+      sigue = () => setState(() => _respuesta = null);
     } else if (pendientes.isNotEmpty && !_espera && _abierto == null) {
-      final listo = leidos.isEmpty || _libro.today() == pendientes.first
+      dice = leidos.isEmpty || _libro.today() == pendientes.first
           ? SageLines.ready
           : SageLines.readyOther;
-      dice = _respuesta == null ? listo : '${_respuesta!}\n\n$listo';
       respuestas = [
         (SageLines.yes, () => _dar(pendientes.first)),
         (SageLines.notNow, _todaviaNo),
@@ -270,6 +293,7 @@ class _SageScreenState extends State<SageScreen> {
                     e: e,
                     dice: _abierto != null && _dando ? '' : dice,
                     respuestas: _abierto != null ? const [] : respuestas,
+                    onNext: _abierto != null ? null : sigue,
                   ),
                 ),
               ],
@@ -457,10 +481,18 @@ class _GloboPainter extends CustomPainter {
 
 /// El viejo abajo a la izquierda, grande, y lo que dice a su derecha.
 class _Habla extends StatelessWidget {
-  const _Habla({required this.e, required this.dice, required this.respuestas});
+  const _Habla({
+    required this.e,
+    required this.dice,
+    required this.respuestas,
+    this.onNext,
+  });
 
   final _Estilo e;
   final String dice;
+
+  /// Si lo que dice sigue en otro globo: tocar éste pasa al siguiente.
+  final VoidCallback? onNext;
 
   /// Lo que se le puede contestar, en hojitas debajo del globo.
   final List<(String, VoidCallback)> respuestas;
@@ -513,12 +545,15 @@ class _Habla extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (dice.isNotEmpty)
-                    _Globo(
+                    _Dicho(
                       e: e,
-                      child: Text(dice, style: e.habla(17)),
+                      texto: dice,
+                      onNext: onNext,
+                      respuestas: [
+                        for (final (i, (texto, hacer)) in respuestas.indexed)
+                          respuesta(texto, hacer, i.isEven ? -0.012 : 0.010),
+                      ],
                     ),
-                  for (final (i, (texto, hacer)) in respuestas.indexed)
-                    respuesta(texto, hacer, i.isEven ? -0.012 : 0.010),
                 ],
               ),
             ),
@@ -527,6 +562,182 @@ class _Habla extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Lo que dice, en su globo, escrito de a poco —como habla: una letra tras
+/// otra— y con las respuestas debajo cuando termina. Tocar el globo mientras
+/// escribe lo termina de una vez; tocarlo terminado pasa al siguiente, si lo
+/// hay ([onNext]).
+class _Dicho extends StatefulWidget {
+  const _Dicho({
+    required this.e,
+    required this.texto,
+    required this.respuestas,
+    this.onNext,
+  });
+
+  final _Estilo e;
+  final String texto;
+  final List<Widget> respuestas;
+  final VoidCallback? onNext;
+
+  @override
+  State<_Dicho> createState() => _DichoState();
+}
+
+class _DichoState extends State<_Dicho> with SingleTickerProviderStateMixin {
+  /// Cuántas letras por segundo: rápido para no hacer esperar, despacio
+  /// para que se sienta que habla.
+  static const double _letras = 48;
+
+  late AnimationController _escribe = _nuevo();
+
+  AnimationController _nuevo() => AnimationController(
+    vsync: this,
+    duration: Duration(
+      milliseconds: (widget.texto.length / _letras * 1000).round().clamp(
+        200,
+        6000,
+      ),
+    ),
+  )..forward();
+
+  @override
+  void didUpdateWidget(_Dicho old) {
+    super.didUpdateWidget(old);
+    if (old.texto != widget.texto) {
+      _escribe.dispose();
+      _escribe = _nuevo();
+    }
+  }
+
+  @override
+  void dispose() {
+    _escribe.dispose();
+    super.dispose();
+  }
+
+  void _toca() {
+    if (_escribe.isAnimating) {
+      _escribe.value = 1;
+      return;
+    }
+    final sigue = widget.onNext;
+    if (sigue != null) {
+      Sensory.instance.tick();
+      sigue();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final e = widget.e;
+    return AnimatedBuilder(
+      animation: _escribe,
+      builder: (context, _) {
+        final listo = _escribe.value >= 1;
+        final n = (widget.texto.length * _escribe.value).round();
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _toca,
+              child: _Globo(
+                e: e,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    // Lo que falta escribir está, pero transparente: el
+                    // globo tiene desde el principio el tamaño final y no
+                    // crece a tirones.
+                    Text.rich(
+                      TextSpan(
+                        style: e.habla(17),
+                        children: [
+                          TextSpan(text: widget.texto.substring(0, n)),
+                          TextSpan(
+                            text: widget.texto.substring(n),
+                            style: const TextStyle(color: Colors.transparent),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (widget.onNext != null)
+                      AnimatedOpacity(
+                        opacity: listo ? 1 : 0,
+                        duration: const Duration(milliseconds: 250),
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: _Puntos(color: e.gris),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            if (listo) ...widget.respuestas,
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// Que hay más: tres puntos que aparecen de a uno y vuelven a empezar,
+/// como quien todavía tiene algo que decir. Sin palabras, que valen en
+/// cualquier idioma.
+class _Puntos extends StatefulWidget {
+  const _Puntos({required this.color});
+  final Color color;
+
+  @override
+  State<_Puntos> createState() => _PuntosState();
+}
+
+class _PuntosState extends State<_Puntos> with SingleTickerProviderStateMixin {
+  late final AnimationController _ciclo = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1500),
+  )..repeat();
+
+  @override
+  void dispose() {
+    _ciclo.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: _ciclo,
+    builder: (context, _) {
+      final t = _ciclo.value;
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (var i = 0; i < 3; i++)
+            Container(
+              width: 6,
+              height: 6,
+              margin: const EdgeInsets.only(left: 5),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                // Cada uno se enciende a su turno y quedan los tres hasta
+                // que el ciclo vuelve a empezar.
+                color: widget.color.withValues(
+                  alpha:
+                      widget.color.a *
+                      smoothstep(0.12 + i * 0.22, 0.22 + i * 0.22, t) *
+                      (1 - smoothstep(0.86, 0.98, t)),
+                ),
+              ),
+            ),
+        ],
+      );
+    },
+  );
 }
 
 /// Un consejo de cerca, en su rollo: el dicho, y debajo, un segundo
