@@ -297,6 +297,19 @@ void main() {
       expect(dice.bars.length, 4);
       expect(dice.ticks.length, 4);
       expect(dice.ticks.every((t) => t.isNotEmpty), isTrue);
+      // Ni antes del tercer día del pueblo, aunque haya dos piezas.
+      expect(
+        ahead(
+          _habit('Casa', [
+            for (var k = 0; k < 3; k++)
+              DateTime(_now.year, _now.month, _now.day - 1, 9 + k),
+          ]),
+          'Casa',
+          10,
+          _now,
+        ),
+        isNull,
+      );
       // Y con una sola pieza todavía no dice nada.
       expect(
         ahead(

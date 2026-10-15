@@ -117,6 +117,9 @@ Notice? ahead(
   final porDias = ventana <= 28;
   if (!predice) {
     if (!simple) return null;
+    // Desde el tercer día del pueblo: antes, «llevás dos en un día» no es
+    // nada que contar todavía.
+    if (daysBetween(nace, today) < 2) return null;
     final dias = <int>{
       for (final p in h.pieces)
         if (!dayStart(p.placedAt).isBefore(desde)) dayKey(p.placedAt),
