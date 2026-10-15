@@ -384,9 +384,8 @@ Por ahora entran todos, para probarlos; se van sacando los que no.
   le acaba de pasar (si ayer faltaste, que no sean dos; si viene costando,
   más chico y más fácil).
 - [ ] Tocar al viejo en la plaza abre el consejero.
-- [ ] Elegir uno de los diez rollos (`lib/ui/sage_scroll.dart`, el botón
-  «Rollo N/10» de la pantalla) y hacerle la animación de abrirse al tocarlo.
-  Después, quitar el botón y los otros nueve.
+- [x] El rollo: el de bambú (`lib/ui/sage_scroll.dart`), y el detalle es el
+  mismo rollo, grande, que se desenrolla al tocarlo.
 - [ ] Las palomas (`lib/engine/pigeons.dart`): mirarlas en el teléfono. Bajan
   una vuelta de cada tres que se sienta en el banco, de día.
 

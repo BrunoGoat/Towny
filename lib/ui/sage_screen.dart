@@ -79,10 +79,6 @@ class SageScreen extends StatefulWidget {
   final Store store;
   final UiTheme theme;
 
-  /// Cuál de los diez rollos (ver [SageScroll]). Una variable para poder
-  /// compararlos en capturas; cuando se elija uno, se fija.
-  static int rollo = 0;
-
   static Route<void> route({required Store store, required UiTheme theme}) =>
       PageRouteBuilder<void>(
         opaque: false,
@@ -182,52 +178,14 @@ class _SageScreenState extends State<SageScreen> {
                   alignment: Alignment.centerRight,
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(8, 4, 10, 0),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // DEV: para probar los diez rollos en la app. Tocar
-                        // pasa al siguiente; mantener vuelve al anterior. Se
-                        // va cuando se elija uno.
-                        GestureDetector(
-                          onTap: () => setState(
-                            () =>
-                                SageScreen.rollo = (SageScreen.rollo + 1) % 10,
-                          ),
-                          onLongPress: () => setState(
-                            () =>
-                                SageScreen.rollo = (SageScreen.rollo + 9) % 10,
-                          ),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 9,
-                            ),
-                            decoration: BoxDecoration(
-                              color: e.globo,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: e.sombra,
-                            ),
-                            child: Text(
-                              'Rollo ${SageScreen.rollo + 1}/10  ›',
-                              style: TextStyle(
-                                color: e.tinta,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        _Redondo(
-                          e: e,
-                          onTap: () => Navigator.of(context).maybePop(),
-                          child: Icon(
-                            Icons.close_rounded,
-                            size: 20,
-                            color: e.tinta,
-                          ),
-                        ),
-                      ],
+                    child: _Redondo(
+                      e: e,
+                      onTap: () => Navigator.of(context).maybePop(),
+                      child: Icon(
+                        Icons.close_rounded,
+                        size: 20,
+                        color: e.tinta,
+                      ),
                     ),
                   ),
                 ),
@@ -358,7 +316,6 @@ class _Lista extends StatelessWidget {
             behavior: HitTestBehavior.opaque,
             onTap: () => onTap(a),
             child: SageScroll(
-              variant: SageScreen.rollo,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -562,10 +519,16 @@ class _Detalle extends StatefulWidget {
 class _DetalleState extends State<_Detalle> {
   bool _explica = false;
 
+  /// Lo que tarda en desenrollarse, y lo que asoma cerrado antes.
+  static const _abre = Duration(milliseconds: 900);
+  static const double _asoma = 0.18;
+
   @override
   void initState() {
     super.initState();
-    Future<void>.delayed(const Duration(seconds: 1), () {
+    // La explicación llega un segundo después de que se pueda leer el
+    // dicho, que es cuando el rollo terminó de abrirse.
+    Future<void>.delayed(_abre + const Duration(seconds: 1), () {
       if (mounted) setState(() => _explica = true);
     });
   }
@@ -575,42 +538,63 @@ class _DetalleState extends State<_Detalle> {
     final e = widget.e;
     final contenido = Column(
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(widget.consejo.say, style: e.dicho(25)),
-        const SizedBox(height: 18),
+        Text(
+          widget.consejo.say,
+          textAlign: TextAlign.center,
+          style: e.habla(25).copyWith(fontStyle: FontStyle.italic),
+        ),
+        const SizedBox(height: 14),
+        Text(
+          '~  ·  ~',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: e.gris, fontSize: 14),
+        ),
+        const SizedBox(height: 14),
         AnimatedOpacity(
           opacity: _explica ? 1 : 0,
           duration: const Duration(milliseconds: 700),
           curve: Curves.easeOut,
-          child: Text(widget.consejo.mean, style: e.explica),
+          child: Text(
+            widget.consejo.mean,
+            textAlign: TextAlign.center,
+            style: e.explica,
+          ),
         ),
       ],
     );
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: widget.onClose,
+      // Llega cerrado, como está en la lista, y se desenrolla desde el
+      // medio: las dos cuerdas se separan y lo escrito va apareciendo.
       child: TweenAnimationBuilder<double>(
         tween: Tween(begin: 0, end: 1),
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOutCubic,
-        builder: (context, a, child) => ColoredBox(
-          color: Colors.black.withValues(alpha: 0.30 * a),
-          child: Opacity(
-            opacity: a,
-            child: Transform.scale(scale: 0.94 + 0.06 * a, child: child),
-          ),
-        ),
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 22),
-            child: _Fondo(
-              e: e,
-              padding: const EdgeInsets.fromLTRB(26, 26, 26, 28),
-              child: contenido,
+        duration: _abre,
+        builder: (context, a, child) {
+          final llega = Curves.easeOut.transform((a / _asoma).clamp(0, 1));
+          final abre = Curves.easeInOutCubic.transform(
+            ((a - _asoma) / (1 - _asoma)).clamp(0, 1),
+          );
+          return ColoredBox(
+            color: Colors.black.withValues(alpha: 0.30 * llega),
+            child: Center(
+              child: Opacity(
+                opacity: llega,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: SageScroll(
+                    open: abre,
+                    padding: const EdgeInsets.fromLTRB(36, 34, 36, 34),
+                    child: child!,
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
+          );
+        },
+        child: contenido,
       ),
     );
   }

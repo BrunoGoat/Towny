@@ -368,6 +368,9 @@ void fountainBirds(
   }
 }
 
+/// Lo que engorda una paloma: de ancho y de alto. Ver [birdFaces].
+const double _ancha = 1.45, _alta = 1.18;
+
 /// Un pájaro hecho de cajitas: cuerpo, pecho, cabeza, pico, cola y dos alas.
 List<Facet> birdFaces(BirdVisit v, V3 eye) {
   final (cuerpo, pecho, alas, cabeza, pico) = _plumas[v.kind];
@@ -383,6 +386,7 @@ List<Facet> birdFaces(BirdVisit v, V3 eye) {
   final cuello = vuela ? 0.0 : v.pitch;
   final agacha = vuela ? 0.0 : v.crouch;
   final cadera = (0.0, 1.0 - agacha);
+  final gorda = v.kind == 1 || v.kind >= 3;
   const nuca = (1.15, 2.2), rabadilla = (-1.3, 1.9);
 
   (double, double) gira(double x, double y, (double, double) o, double a) {
@@ -419,6 +423,15 @@ List<Facet> birdFaces(BirdVisit v, V3 eye) {
       final c = math.cos(a), sn = math.sin(a);
       y = 2.4 + dy * c + dz * lado * sn;
       z = lado * 0.55 + dz * c - dy * lado * sn;
+    }
+    if (gorda && (parte == 1 || parte == 4)) {
+      // Una paloma es un pájaro con barriga: el cuerpo, más ancho y más
+      // alto alrededor de su medio, y las alas pegadas a él. La cabeza no:
+      // chica sobre un cuerpo gordo es lo que la hace paloma. Lo que sale
+      // más allá del lomo —las alas abiertas en vuelo— sólo se corre lo
+      // que engordó el cuerpo.
+      z = z.abs() <= 0.9 ? z * _ancha : z + (_ancha - 1) * 0.9 * z.sign;
+      y = 1.6 + (y - 1.6) * _alta;
     }
     y -= agacha;
     (x, y) = gira(x, y, cadera, tronco);
