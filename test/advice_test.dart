@@ -217,6 +217,62 @@ void main() {
       expect(hay, isNot(contains(AdviceEvent.month)));
     });
 
+    test('lo que se gana por algo dice por qué, con el día y el pueblo', () {
+      final dias = [
+        for (var d = 0; d < 7; d++) DateTime(2026, 3, 1 + d, 20),
+        DateTime(2026, 3, 9, 20),
+        DateTime(2026, 3, 20, 20),
+      ];
+      final h = _pueblo('Leer', DateTime(2026, 3, 1), dias: dias);
+      libro.setGoal(h.id, AdviceGoal.start);
+      libro.visit([h], now: DateTime(2026, 3, 21), approved: todos);
+      String? porque(String id) => libro.reasonOf(adviceById[id]!)?.text;
+      expect(porque('ev_primera'), contains('1/3'));
+      expect(porque('ev_primera'), contains('Leer'));
+      // El día sin pieza fue el 8, entre el 7 y el 9.
+      expect(porque('ev_falta'), contains('8/3'));
+      // Volvió el 20, después de diez días sin nada.
+      expect(porque('ev_vuelta'), contains('20/3'));
+      expect(porque('ev_vuelta'), contains('10'));
+      // El del camino de todos los días no es por algo que pasó: si dice por
+      // qué, es por cómo viene el pueblo (acá, que le está costando).
+      final delDia = libro
+          .unlocked(approved: todos)
+          .map((g) => g.$1)
+          .firstWhere((a) => a.event == null);
+      expect(libro.reasonOf(delDia)?.event, isNull);
+      expect(libro.reasonOf(delDia)?.text ?? '', isNot(contains('null')));
+    });
+
+    test('lo ganado no está en la lista hasta que se lee', () async {
+      final h = _pueblo('Leer', DateTime(2026, 3, 1));
+      libro.setGoal(h.id, AdviceGoal.start);
+      libro.visit([h], now: DateTime(2026, 3, 1), approved: todos);
+      expect(libro.pending(approved: todos), hasLength(1));
+      expect(libro.read(approved: todos), isEmpty);
+      expect(libro.unseen(approved: todos), 1);
+      libro.markRead(libro.pending(approved: todos).first);
+      expect(libro.pending(approved: todos), isEmpty);
+      expect(libro.read(approved: todos), hasLength(1));
+      // Y el motivo y lo leído sobreviven a cerrar la app.
+      await libro.flush();
+      libro.forget();
+      await libro.load();
+      expect(libro.read(approved: todos), hasLength(1));
+    });
+
+    test('el motivo se guarda y se lee igual', () {
+      final r = AdviceReason(
+        event: AdviceEvent.comeback,
+        town: 'Correr | a la mañana',
+        when: DateTime(2026, 5, 4),
+        n: 6,
+      );
+      final otra = AdviceReason.decode(r.encode())!;
+      expect(otra.text, r.text);
+      expect(otra.town, 'Correr | a la mañana');
+    });
+
     test('lo que contestaste y lo ganado sobreviven a cerrar la app', () async {
       final h = _pueblo('Leer', DateTime(2026, 3, 1));
       libro.setGoal(h.id, AdviceGoal.quit);

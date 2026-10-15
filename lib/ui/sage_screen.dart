@@ -10,7 +10,6 @@ import '../engine/folk.dart';
 import '../engine/folk_body.dart';
 import '../engine/town.dart';
 import '../fx/sensory.dart';
-import '../l10n/lang.dart';
 import '../model/advice_book.dart';
 import '../model/store.dart';
 import 'sage_scroll.dart';
@@ -49,7 +48,23 @@ class _Estilo {
     color: tinta,
   );
 
-  TextStyle get explica => TextStyle(color: gris, fontSize: 15.5, height: 1.5);
+  /// Lo que quiere decir: en la letra de los libros viejos, derecha y no
+  /// cursiva —la cursiva es del dicho—, en tinta más clara.
+  TextStyle get explica => TextStyle(
+    fontFamily: 'EBGaramond',
+    color: gris,
+    fontSize: 17.5,
+    height: 1.4,
+  );
+
+  /// Por qué lo dijo: más chico, en cursiva, como una nota al margen.
+  TextStyle get motivo => TextStyle(
+    fontFamily: 'EBGaramond',
+    fontStyle: FontStyle.italic,
+    color: tinta.withValues(alpha: 0.5),
+    fontSize: 15,
+    height: 1.35,
+  );
 
   List<BoxShadow> get sombra => [
     BoxShadow(
@@ -101,60 +116,109 @@ class _SageScreenState extends State<SageScreen> {
   final AdviceBook _libro = AdviceBook.instance;
   final _Estilo _e = const _Estilo();
 
-  /// Lo que no se había mirado al entrar: lleva su marca mientras se está
-  /// acá, aunque entrar ya lo dé por visto.
-  late final Set<String> _nuevos = {
-    for (final (a, _) in _libro.unlocked())
-      if (_libro.isNew(a)) a.id,
-  };
+  /// Dónde está la lista, para que el rollo leído vuele hasta ella.
+  final GlobalKey _lista = GlobalKey();
+  final ScrollController _desliza = ScrollController();
 
-  /// Lo que dijo al contestar la pregunta, si se acaba de contestar.
+  /// Lo que dijo al contestar algo, si se acaba de contestar.
   String? _respuesta;
 
-  /// El consejo que se está mirando de cerca, o nulo.
+  /// Si se le dijo que todavía no: no vuelve a preguntar mientras se esté
+  /// acá. Lo que tenía para dar sigue esperando.
+  bool _espera = false;
+
+  /// El consejo que se está mirando de cerca, o nulo; y si es uno que se
+  /// está dando ahora, que al cerrarse va a la lista.
   Advice? _abierto;
+  bool _dando = false;
 
   @override
-  void initState() {
-    super.initState();
-    _libro.markAllSeen();
+  void dispose() {
+    _desliza.dispose();
+    super.dispose();
   }
 
   void _contestar(AdviceGoal g) {
     Sensory.instance.tick();
     final store = widget.store;
     _libro.setGoal(store.habit.id, g);
-    final hoy = _libro.visit(store.habits);
+    _libro.visit(store.habits);
     setState(() {
-      _nuevos.addAll(hoy.map((a) => a.id));
       _respuesta = g == AdviceGoal.start
           ? SageLines.afterStart
           : SageLines.afterQuit;
     });
-    _libro.markAllSeen();
+  }
+
+  /// Sí: el rollo de lo que tenía para dar.
+  void _dar(Advice a) {
+    Sensory.instance.tick();
+    setState(() {
+      _abierto = a;
+      _dando = true;
+      _respuesta = null;
+    });
+  }
+
+  void _todaviaNo() {
+    Sensory.instance.tick();
+    setState(() {
+      _espera = true;
+      _respuesta = SageLines.notYet;
+    });
   }
 
   void _abrir(Advice a) {
     Sensory.instance.tick();
-    setState(() => _abierto = a);
+    setState(() {
+      _abierto = a;
+      _dando = false;
+    });
+  }
+
+  /// Adónde va el rollo leído: arriba de la lista, donde va a quedar.
+  Rect? _destino() {
+    final caja = _lista.currentContext?.findRenderObject() as RenderBox?;
+    if (caja == null || !caja.hasSize) return null;
+    if (_desliza.hasClients) _desliza.jumpTo(0);
+    final arriba = caja.localToGlobal(Offset.zero);
+    return Rect.fromLTWH(
+      arriba.dx + _Lista.margen.left,
+      arriba.dy + _Lista.margen.top,
+      caja.size.width - _Lista.margen.horizontal,
+      SageScroll.closed,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final e = _e;
     final pregunta = _libro.goalOf(widget.store.habit.id) == null;
-    final todo = _libro.unlocked();
-    final hoy = _libro.today();
-    // Lo que dice ahora, en el globo.
+    final leidos = _libro.read();
+    final pendientes = _libro.pending();
+    // Lo que dice ahora, en el globo, y lo que se le puede contestar. Los
+    // consejos no van en el globo: van en su rollo.
     final String dice;
+    var respuestas = <(String, VoidCallback)>[];
     if (pregunta) {
-      dice = todo.isEmpty
+      dice = leidos.isEmpty && pendientes.isEmpty
           ? '${SageLines.hello}\n\n${SageLines.question}'
           : SageLines.question;
+      respuestas = [
+        (SageLines.answerStart, () => _contestar(AdviceGoal.start)),
+        (SageLines.answerQuit, () => _contestar(AdviceGoal.quit)),
+      ];
+    } else if (pendientes.isNotEmpty && !_espera && _abierto == null) {
+      final listo = leidos.isEmpty || _libro.today() == pendientes.first
+          ? SageLines.ready
+          : SageLines.readyOther;
+      dice = _respuesta == null ? listo : '${_respuesta!}\n\n$listo';
+      respuestas = [
+        (SageLines.yes, () => _dar(pendientes.first)),
+        (SageLines.notNow, _todaviaNo),
+      ];
     } else if (_respuesta != null) {
-      dice = hoy == null ? _respuesta! : '${_respuesta!}\n\n«${hoy.say}»';
-    } else if (hoy != null) {
-      dice = '«${hoy.say}»';
+      dice = _respuesta!;
     } else {
       dice = SageLines.nothingNew;
     }
@@ -190,21 +254,22 @@ class _SageScreenState extends State<SageScreen> {
                   ),
                 ),
                 Expanded(
-                  child: _Lista(
-                    e: e,
-                    dichos: todo,
-                    nuevos: _nuevos,
-                    onTap: _abrir,
+                  child: KeyedSubtree(
+                    key: _lista,
+                    child: _Lista(
+                      e: e,
+                      dichos: leidos,
+                      controller: _desliza,
+                      onTap: _abrir,
+                    ),
                   ),
                 ),
                 SizedBox(
                   height: math.min(360, alto * 0.42),
                   child: _Habla(
                     e: e,
-                    dice: dice,
-                    pregunta: pregunta,
-                    onAnswer: _contestar,
-                    onTap: !pregunta && hoy != null ? () => _abrir(hoy) : null,
+                    dice: _abierto != null && _dando ? '' : dice,
+                    respuestas: _abierto != null ? const [] : respuestas,
                   ),
                 ),
               ],
@@ -216,7 +281,13 @@ class _SageScreenState extends State<SageScreen> {
                 key: ValueKey(_abierto!.id),
                 e: e,
                 consejo: _abierto!,
-                onClose: () => setState(() => _abierto = null),
+                motivo: _libro.reasonOf(_abierto!)?.text,
+                destino: _dando ? _destino : null,
+                onClosed: () => setState(() {
+                  if (_dando) _libro.markRead(_abierto!);
+                  _abierto = null;
+                  _dando = false;
+                }),
               ),
             ),
         ],
@@ -276,61 +347,53 @@ class _Redondo extends StatelessWidget {
   );
 }
 
-/// Lo que te dijo, el más nuevo arriba, cada cosa en su hoja.
+/// Lo que ya dijo y se leyó, el más nuevo arriba, cada cosa en su rollo.
 class _Lista extends StatelessWidget {
   const _Lista({
     required this.e,
     required this.dichos,
-    required this.nuevos,
+    required this.controller,
     required this.onTap,
   });
 
   final _Estilo e;
   final List<(Advice, DateTime)> dichos;
-  final Set<String> nuevos;
+  final ScrollController controller;
   final void Function(Advice) onTap;
 
-  Widget _marca() => Container(
-    width: 8,
-    height: 8,
-    margin: const EdgeInsets.only(left: 10, top: 6),
-    decoration: const BoxDecoration(
-      color: Color(0xFFC8742E),
-      shape: BoxShape.circle,
-    ),
-  );
+  /// El margen de la lista: el rollo que llega volando va a este hueco.
+  static const EdgeInsets margen = EdgeInsets.fromLTRB(18, 14, 18, 14);
 
   @override
   Widget build(BuildContext context) {
-    if (dichos.isEmpty) return const SizedBox.shrink();
+    if (dichos.isEmpty) return const SizedBox.expand();
     final lista = ListView.separated(
-      padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
+      controller: controller,
+      padding: margen,
       itemCount: dichos.length,
       separatorBuilder: (_, _) => const SizedBox(height: 24),
       itemBuilder: (context, i) {
         final (a, _) = dichos[i];
-        // Las hojas, un poco torcidas cada una para su lado, como
-        // clavadas a mano.
-        return Center(
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => onTap(a),
-            child: SageScroll(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      a.say,
-                      textAlign: TextAlign.center,
-                      style: e.habla(18).copyWith(fontStyle: FontStyle.italic),
-                    ),
-                  ),
-                  if (nuevos.contains(a.id)) _marca(),
-                ],
-              ),
-            ),
-          ),
+        final texto = Text(
+          a.say,
+          textAlign: TextAlign.center,
+          style: e.habla(18).copyWith(fontStyle: FontStyle.italic),
+        );
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => onTap(a),
+          // El de arriba se desenrolla al llegar: es el rollo que acaba de
+          // aterrizar ahí, o el último que se dio.
+          child: i == 0
+              ? TweenAnimationBuilder<double>(
+                  key: ValueKey(a.id),
+                  tween: Tween(begin: 0, end: 1),
+                  duration: const Duration(milliseconds: 420),
+                  curve: Curves.easeOutCubic,
+                  builder: (_, t, child) => SageScroll(open: t, child: child!),
+                  child: texto,
+                )
+              : SageScroll(child: texto),
         );
       },
     );
@@ -394,19 +457,13 @@ class _GloboPainter extends CustomPainter {
 
 /// El viejo abajo a la izquierda, grande, y lo que dice a su derecha.
 class _Habla extends StatelessWidget {
-  const _Habla({
-    required this.e,
-    required this.dice,
-    required this.pregunta,
-    required this.onAnswer,
-    this.onTap,
-  });
+  const _Habla({required this.e, required this.dice, required this.respuestas});
 
   final _Estilo e;
   final String dice;
-  final bool pregunta;
-  final void Function(AdviceGoal) onAnswer;
-  final VoidCallback? onTap;
+
+  /// Lo que se le puede contestar, en hojitas debajo del globo.
+  final List<(String, VoidCallback)> respuestas;
 
   @override
   Widget build(BuildContext context) {
@@ -414,13 +471,13 @@ class _Habla extends StatelessWidget {
     // y la misma letra que lo que te dice, un poco torcidas cada una para su
     // lado. Eran pastillas redondas con letra de sistema, y se leían como
     // botones de otra app pegados encima.
-    Widget respuesta(String texto, AdviceGoal g, double giro) => Padding(
+    Widget respuesta(String texto, VoidCallback hacer, double giro) => Padding(
       padding: const EdgeInsets.only(top: 10),
       child: Transform.rotate(
         angle: giro,
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: () => onAnswer(g),
+          onTap: hacer,
           child: _Fondo(
             e: e,
             padding: const EdgeInsets.all(5),
@@ -455,35 +512,13 @@ class _Habla extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: onTap,
-                    child: _Globo(
+                  if (dice.isNotEmpty)
+                    _Globo(
                       e: e,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(dice, style: e.habla(17)),
-                          if (onTap != null)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8),
-                              child: Text(
-                                tr(
-                                  'Tocá para que te lo explique',
-                                  'Tap to hear what he means',
-                                ),
-                                style: e.dicho(13).copyWith(color: e.gris),
-                              ),
-                            ),
-                        ],
-                      ),
+                      child: Text(dice, style: e.habla(17)),
                     ),
-                  ),
-                  if (pregunta) ...[
-                    respuesta(SageLines.answerStart, AdviceGoal.start, -0.012),
-                    respuesta(SageLines.answerQuit, AdviceGoal.quit, 0.010),
-                  ],
+                  for (final (i, (texto, hacer)) in respuestas.indexed)
+                    respuesta(texto, hacer, i.isEven ? -0.012 : 0.010),
                 ],
               ),
             ),
@@ -494,48 +529,98 @@ class _Habla extends StatelessWidget {
   }
 }
 
-/// Un consejo de cerca: el dicho, y debajo, un segundo después, lo que
-/// quiere decir, en gris.
+/// Un consejo de cerca, en su rollo: el dicho, y debajo, un segundo
+/// después, lo que quiere decir, y por qué lo dijo si fue por algo.
 ///
 /// El segundo de espera es a propósito: primero se lee la frase sola, como si
-/// te la dijera, y después llega la aclaración. Juntas de entrada, el ojo se
+/// la dijera él, y después llega la aclaración. Juntas de entrada, el ojo se
 /// va a la explicación y el dicho se pierde.
+///
+/// Llega cerrado y se desenrolla. Al cerrarlo se vuelve a enrollar, y si es
+/// uno que se está dando ahora ([destino]), vuela así, cerrado, hasta el
+/// hueco de arriba de la lista, que es donde se queda.
 class _Detalle extends StatefulWidget {
   const _Detalle({
     super.key,
     required this.e,
     required this.consejo,
-    required this.onClose,
+    required this.onClosed,
+    this.motivo,
+    this.destino,
   });
 
   final _Estilo e;
   final Advice consejo;
-  final VoidCallback onClose;
+  final String? motivo;
+
+  /// Adónde vuela al cerrarse, en coordenadas de la pantalla; nulo si se
+  /// enrolla y se va sin más.
+  final Rect? Function()? destino;
+  final VoidCallback onClosed;
 
   @override
   State<_Detalle> createState() => _DetalleState();
 }
 
-class _DetalleState extends State<_Detalle> {
+class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
   bool _explica = false;
 
-  /// Lo que tarda en desenrollarse, y lo que asoma cerrado antes.
-  static const _abre = Duration(milliseconds: 900);
+  /// Lo que asoma cerrado antes de desenrollarse.
   static const double _asoma = 0.18;
+
+  late final AnimationController _abre = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 900),
+  )..forward();
+  late final AnimationController _vuela = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 620),
+  );
+  bool _cerrando = false;
+  Rect? _hasta;
 
   @override
   void initState() {
     super.initState();
     // La explicación llega un segundo después de que se pueda leer el
     // dicho, que es cuando el rollo terminó de abrirse.
-    Future<void>.delayed(_abre + const Duration(seconds: 1), () {
+    Future<void>.delayed(const Duration(milliseconds: 1900), () {
       if (mounted) setState(() => _explica = true);
     });
   }
 
   @override
+  void dispose() {
+    _abre.dispose();
+    _vuela.dispose();
+    super.dispose();
+  }
+
+  Future<void> _cerrar() async {
+    if (_cerrando) return;
+    _cerrando = true;
+    Sensory.instance.tick();
+    // Se enrolla: hasta la tira con sus dos cuerdas juntas.
+    await _abre.animateTo(
+      _asoma,
+      duration: const Duration(milliseconds: 520),
+      curve: Curves.easeInOutCubic,
+    );
+    if (!mounted) return;
+    final d = widget.destino?.call();
+    final caja = context.findRenderObject() as RenderBox?;
+    if (d != null && caja != null) {
+      final arriba = caja.globalToLocal(d.topLeft);
+      _hasta = arriba & d.size;
+      await _vuela.forward();
+    }
+    if (mounted) widget.onClosed();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final e = widget.e;
+    final motivo = widget.motivo;
     final contenido = Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -556,45 +641,78 @@ class _DetalleState extends State<_Detalle> {
           opacity: _explica ? 1 : 0,
           duration: const Duration(milliseconds: 700),
           curve: Curves.easeOut,
-          child: Text(
-            widget.consejo.mean,
-            textAlign: TextAlign.center,
-            style: e.explica,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                widget.consejo.mean,
+                textAlign: TextAlign.center,
+                style: e.explica,
+              ),
+              if (motivo != null && motivo.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Text(motivo, textAlign: TextAlign.center, style: e.motivo),
+              ],
+            ],
           ),
         ),
       ],
     );
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: widget.onClose,
-      // Llega cerrado, como está en la lista, y se desenrolla desde el
-      // medio: las dos cuerdas se separan y lo escrito va apareciendo.
-      child: TweenAnimationBuilder<double>(
-        tween: Tween(begin: 0, end: 1),
-        duration: _abre,
-        builder: (context, a, child) {
-          final llega = Curves.easeOut.transform((a / _asoma).clamp(0, 1));
+      onTap: _cerrar,
+      child: AnimatedBuilder(
+        animation: Listenable.merge([_abre, _vuela]),
+        builder: (context, _) {
+          final a = _abre.value;
+          final v = Curves.easeInOutCubic.transform(_vuela.value);
+          // Al llegar asoma y se desenrolla; al irse, el velo se aclara
+          // mientras vuela, pero el rollo no se desvanece: se va.
+          final llega = _cerrando
+              ? 1.0
+              : Curves.easeOut.transform((a / _asoma).clamp(0, 1));
           final abre = Curves.easeInOutCubic.transform(
             ((a - _asoma) / (1 - _asoma)).clamp(0, 1),
           );
+          final velo = _cerrando ? 1 - v : llega;
           return ColoredBox(
-            color: Colors.black.withValues(alpha: 0.30 * llega),
-            child: Center(
-              child: Opacity(
-                opacity: llega,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: SageScroll(
-                    open: abre,
-                    padding: const EdgeInsets.fromLTRB(36, 34, 36, 34),
-                    child: child!,
-                  ),
-                ),
-              ),
+            color: Colors.black.withValues(alpha: 0.30 * velo),
+            child: LayoutBuilder(
+              builder: (context, box) {
+                final hasta = _hasta;
+                if (hasta == null || v == 0) {
+                  return Center(
+                    child: Opacity(
+                      opacity: llega,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: SageScroll(
+                          open: abre,
+                          padding: const EdgeInsets.fromLTRB(36, 34, 36, 34),
+                          child: contenido,
+                        ),
+                      ),
+                    ),
+                  );
+                }
+                final desde = Rect.fromCenter(
+                  center: box.biggest.center(Offset.zero),
+                  width: box.maxWidth - 32,
+                  height: SageScroll.closed,
+                );
+                final r = Rect.lerp(desde, hasta, v)!;
+                return Stack(
+                  children: [
+                    Positioned.fromRect(
+                      rect: r,
+                      child: const SageScroll(open: 0, child: SizedBox()),
+                    ),
+                  ],
+                );
+              },
             ),
           );
         },
-        child: contenido,
       ),
     );
   }

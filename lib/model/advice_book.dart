@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/advice.dart';
+import '../l10n/lang.dart';
 import 'habit.dart';
 import 'piece.dart';
 
@@ -39,6 +40,9 @@ class AdviceBook extends ChangeNotifier {
   /// Lo ganado, en el orden en que se ganó: id y momento.
   final List<(String, DateTime)> _got = [];
 
+  /// Por qué se ganó cada uno, cuando fue por algo que pasó.
+  final Map<String, AdviceReason> _why = {};
+
   /// Pueblo -> lo que se busca con él.
   final Map<String, AdviceGoal> _goals = {};
 
@@ -48,17 +52,23 @@ class AdviceBook extends ChangeNotifier {
 
   Future<void> load() async {
     _got.clear();
+    _why.clear();
     _goals.clear();
     _seen.clear();
     try {
       final prefs = await SharedPreferences.getInstance();
       for (final row in prefs.getStringList(_key) ?? const <String>[]) {
-        final b = row.lastIndexOf('|');
-        if (b <= 0) continue;
-        final id = row.substring(0, b);
-        final ms = int.tryParse(row.substring(b + 1));
+        // id|momento, y detrás, si lo hay, el motivo.
+        final partes = row.split('|');
+        if (partes.length < 2) continue;
+        final id = partes[0];
+        final ms = int.tryParse(partes[1]);
         if (ms == null || !adviceById.containsKey(id)) continue;
         _got.add((id, DateTime.fromMillisecondsSinceEpoch(ms)));
+        if (partes.length >= 3) {
+          final r = AdviceReason.decode(partes[2]);
+          if (r != null) _why[id] = r;
+        }
       }
       _seen.addAll(prefs.getStringList(_seenKey) ?? const <String>[]);
       for (final row in prefs.getStringList(_goalKey) ?? const <String>[]) {
@@ -94,26 +104,37 @@ class AdviceBook extends ChangeNotifier {
     ];
   }
 
-  /// Cuántos de los ganados no se miraron todavía: es el punto del botón.
-  int unseen({Set<String>? approved}) => [
-    for (final (a, _) in unlocked(approved: approved))
-      if (!_seen.contains(a.id)) a,
-  ].length;
+  /// Lo ganado y ya leído, del más nuevo al más viejo: lo que se ve en la
+  /// lista del consejero. Un consejo no entra en la lista hasta que se lee.
+  List<(Advice, DateTime)> read({Set<String>? approved}) => [
+    for (final g in unlocked(approved: approved))
+      if (_seen.contains(g.$1.id)) g,
+  ];
 
-  /// Si ése no se miró todavía.
+  /// Lo ganado que todavía no se leyó, en el orden en que se ganó: lo que el
+  /// viejo tiene para dar.
+  List<Advice> pending({Set<String>? approved}) => [
+    for (final (a, _) in unlocked(approved: approved).reversed)
+      if (!_seen.contains(a.id)) a,
+  ];
+
+  /// Cuántos hay para dar: es el punto del botón.
+  int unseen({Set<String>? approved}) => pending(approved: approved).length;
+
+  /// Si ése no se leyó todavía.
   bool isNew(Advice a) => !_seen.contains(a.id);
 
-  /// Abrir al consejero es ver lo que tiene: se apaga el punto.
-  void markAllSeen() {
-    var cambio = false;
-    for (final (id, _) in _got) {
-      if (_seen.add(id)) cambio = true;
-    }
-    if (cambio) {
+  /// Ya se leyó: pasa a la lista.
+  void markRead(Advice a) {
+    if (_seen.add(a.id)) {
       unawaited(flush());
       notifyListeners();
     }
   }
+
+  /// Por qué se ganó, si fue por algo que pasó; nulo si es uno del camino de
+  /// todos los días sin más.
+  AdviceReason? reasonOf(Advice a) => _why[a.id];
 
   /// El de hoy: lo último que se ganó, si fue hoy.
   Advice? today({DateTime? now, Set<String>? approved}) {
@@ -152,16 +173,7 @@ class AdviceBook extends ChangeNotifier {
       }
     }
 
-    final momento = momentOf(foco, at);
-    if (momento == AdviceMoment.missedYesterday) {
-      sumar(['nodosveces', 'nojuzgar', 'q_recaida', 'diamalo']);
-    } else if (momento == AdviceMoment.struggling) {
-      sumar(
-        busca == AdviceGoal.start
-            ? ['chico', 'diamalo', 'estorbos', 'dosminutos', 'ambiente']
-            : ['q_dificil', 'reemplazo', 'q_sed', 'diamalo', 'q_ola'],
-      );
-    }
+    sumar(momentAdvice(momentOf(foco, at), busca));
     sumar(pathFor(busca));
     // Y los de lo que buscan los demás, por si éste se agota.
     for (final h in habits) {
@@ -211,19 +223,20 @@ class AdviceBook extends ChangeNotifier {
     if (camino.isEmpty) return const [];
     final ya = {for (final (id, _) in _got) id};
     final nuevos = <Advice>[];
-    void ganar(Advice a) {
+    void ganar(Advice a, [AdviceReason? por]) {
       if (!ok.contains(a.id) || !ya.add(a.id)) return;
       _got.add((a.id, at));
+      if (por != null) _why[a.id] = por;
       nuevos.add(a);
     }
 
     // Lo que pasó va antes que el del día: es lo más oportuno, y así el del
     // día queda arriba como el último ganado.
-    for (final (evento, busca) in eventsOf(habits, _goals)) {
+    for (final r in reasonsOf(habits, _goals)) {
       for (final a in eventAdvice) {
-        if (a.event != evento) continue;
-        if (a.goal != null && a.goal != busca) continue;
-        ganar(a);
+        if (a.event != r.event) continue;
+        if (a.goal != null && a.goal != r.goal) continue;
+        ganar(a, r);
       }
     }
     final hoy = dayKey(at);
@@ -231,9 +244,27 @@ class AdviceBook extends ChangeNotifier {
       (g) => dayKey(g.$2) == hoy && adviceById[g.$1]!.event == null,
     );
     if (!yaHoy) {
+      // Si lo que sale primero es por lo que le está pasando al pueblo que
+      // más cuesta, también se dice por qué.
+      final foco = focusOf(habits, now: at);
+      final momento = foco == null ? AdviceMoment.steady : momentOf(foco, at);
+      final porMomento = foco == null || momento == AdviceMoment.steady
+          ? const <String>{}
+          : momentAdvice(momento, _goals[foco.id]!).toSet();
       for (final id in camino) {
         if (ya.contains(id) || !ok.contains(id)) continue;
-        ganar(adviceById[id]!);
+        ganar(
+          adviceById[id]!,
+          porMomento.contains(id)
+              ? AdviceReason(
+                  moment: momento,
+                  town: foco!.name,
+                  when: momento == AdviceMoment.missedYesterday
+                      ? dayStart(at).subtract(const Duration(days: 1))
+                      : null,
+                )
+              : null,
+        );
         break;
       }
     }
@@ -248,7 +279,12 @@ class AdviceBook extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setStringList(_key, [
-        for (final (id, at) in _got) '$id|${at.millisecondsSinceEpoch}',
+        for (final (id, at) in _got)
+          [
+            id,
+            '${at.millisecondsSinceEpoch}',
+            if (_why[id] != null) _why[id]!.encode(),
+          ].join('|'),
       ]);
       await prefs.setStringList(_seenKey, _seen.toList());
       await prefs.setStringList(_goalKey, [
@@ -261,39 +297,91 @@ class AdviceBook extends ChangeNotifier {
   /// Para los tests: la libreta en blanco.
   void forget() {
     _got.clear();
+    _why.clear();
     _goals.clear();
     _seen.clear();
   }
 }
 
+/// Los consejos que se adelantan en el camino por lo que le está pasando a
+/// un pueblo: si ayer faltó, que no sean dos y sin culpa; si viene costando
+/// hace días, hacerlo más chico y más fácil.
+List<String> momentAdvice(AdviceMoment m, AdviceGoal busca) => switch (m) {
+  AdviceMoment.missedYesterday => [
+    'nodosveces',
+    'nojuzgar',
+    'q_recaida',
+    'diamalo',
+  ],
+  AdviceMoment.struggling =>
+    busca == AdviceGoal.start
+        ? ['chico', 'diamalo', 'estorbos', 'dosminutos', 'ambiente']
+        : ['q_dificil', 'reemplazo', 'q_sed', 'diamalo', 'q_ola'],
+  AdviceMoment.steady => const [],
+};
+
 /// Lo que ya pasó en el valle, de lo que gana consejos: cada cosa, con lo
-/// que busca el pueblo en que pasó (nulo si ese pueblo no contestó).
+/// que busca el pueblo en que pasó (nulo si ese pueblo no contestó). Ver
+/// [reasonsOf], que dice además dónde y cuándo.
+Set<(AdviceEvent, AdviceGoal?)> eventsOf(
+  List<Habit> habits, [
+  Map<String, AdviceGoal> goals = const {},
+]) => {for (final r in reasonsOf(habits, goals)) (r.event!, r.goal)};
+
+/// Lo que ya pasó en el valle, de lo que gana consejos, con en qué pueblo y
+/// cuándo: es lo que el viejo dice debajo de cada consejo que ganó por algo.
+/// De cada cosa, la última vez que pasó en cada pueblo.
 ///
 /// Sale de lo que está guardado y nada más —las piezas con su fecha, los
 /// pueblos, las notas, las pausas—, así que no hace falta apuntar nada aparte
 /// para enterarse: quien ya tenía dos pueblos cuando apareció el consejero
 /// lo oye la primera vez que entra.
-Set<(AdviceEvent, AdviceGoal?)> eventsOf(
+List<AdviceReason> reasonsOf(
   List<Habit> habits, [
   Map<String, AdviceGoal> goals = const {},
 ]) {
-  final out = <(AdviceEvent, AdviceGoal?)>{};
+  final out = <AdviceReason>[];
   // El segundo y el tercero que se fundaron, con lo que busca cada uno.
   final orden = [...habits]..sort((a, b) => a.createdAt.compareTo(b.createdAt));
-  if (orden.length >= 2) {
-    out.add((AdviceEvent.secondTown, goals[orden[1].id]));
+  for (final (k, e) in [
+    (1, AdviceEvent.secondTown),
+    (2, AdviceEvent.thirdTown),
+  ]) {
+    if (orden.length <= k) continue;
+    final h = orden[k];
+    out.add(
+      AdviceReason(
+        event: e,
+        goal: goals[h.id],
+        town: h.name,
+        when: h.createdAt,
+      ),
+    );
   }
-  if (orden.length >= 3) out.add((AdviceEvent.thirdTown, goals[orden[2].id]));
   for (final h in habits) {
     final busca = goals[h.id];
-    void pasa(AdviceEvent e) => out.add((e, busca));
-    if (h.total > 0) pasa(AdviceEvent.firstPiece);
-    if (h.total >= 100) pasa(AdviceEvent.hundred);
+    void pasa(AdviceEvent e, {DateTime? when, int n = 0}) => out.add(
+      AdviceReason(event: e, goal: busca, town: h.name, when: when, n: n),
+    );
+    if (h.total > 0) {
+      pasa(
+        AdviceEvent.firstPiece,
+        when: h.pieces.isEmpty ? null : h.pieces.first.placedAt,
+      );
+    }
+    if (h.total >= 100) {
+      pasa(
+        AdviceEvent.hundred,
+        when: h.pieces.length >= 100 ? h.pieces[99].placedAt : null,
+      );
+    }
     if (h.vowHour != null || (h.vowPlace?.trim().isNotEmpty ?? false)) {
       pasa(AdviceEvent.plan);
     }
     if (h.notes.isNotEmpty) pasa(AdviceEvent.ownNote);
-    if (h.rests.isNotEmpty) pasa(AdviceEvent.rested);
+    if (h.rests.isNotEmpty) {
+      pasa(AdviceEvent.rested, when: Rest.parse(h.rests.last)?.from);
+    }
     // Los días con pieza, en orden, y los huecos entre ellos.
     final dias = <DateTime>[];
     var ultimo = -1;
@@ -303,20 +391,158 @@ Set<(AdviceEvent, AdviceGoal?)> eventsOf(
       ultimo = k;
       dias.add(dayStart(p.placedAt));
     }
-    final distintos = {for (final d in dias) dayKey(d)}.length;
-    if (distintos >= 7) pasa(AdviceEvent.week);
-    if (distintos >= 30) pasa(AdviceEvent.month);
+    final distintos = <int>[];
+    final vistos = <int>{};
+    for (final d in dias) {
+      if (vistos.add(dayKey(d))) distintos.add(dayKey(d));
+    }
+    DateTime? diaN(int n) {
+      if (distintos.length < n) return null;
+      final k = distintos[n - 1];
+      return DateTime(k ~/ 10000, (k ~/ 100) % 100, k % 100);
+    }
+
+    if (distintos.length >= 7) pasa(AdviceEvent.week, when: diaN(7));
+    if (distintos.length >= 30) pasa(AdviceEvent.month, when: diaN(30));
+    DateTime? falto, volvio;
+    var tras = 0;
     for (var i = 1; i < dias.length; i++) {
       final hueco = daysBetween(dias[i - 1], dias[i]);
+      final siguiente = dias[i - 1].add(const Duration(days: 1));
       // Un día sin nada entre dos con algo, y no en una pausa: dormir el
       // pueblo es decidirlo, no saltearse un día.
-      if (hueco == 2 && !h.restedOn(dias[i - 1].add(const Duration(days: 1)))) {
-        pasa(AdviceEvent.missedDay);
+      if (hueco == 2 && !h.restedOn(siguiente)) falto = siguiente;
+      if (hueco >= 4) {
+        volvio = dias[i];
+        tras = hueco - 1;
       }
-      if (hueco >= 4) pasa(AdviceEvent.comeback);
     }
+    if (falto != null) pasa(AdviceEvent.missedDay, when: falto);
+    if (volvio != null) pasa(AdviceEvent.comeback, when: volvio, n: tras);
   }
   return out;
+}
+
+/// Por qué el viejo dijo un consejo: lo que pasó, en qué pueblo y cuándo.
+///
+/// Se guarda con el consejo al ganarlo, y no se vuelve a calcular: lo que
+/// dice es lo que pasó entonces, aunque después el pueblo cambie de nombre.
+class AdviceReason {
+  const AdviceReason({
+    this.event,
+    this.moment,
+    this.goal,
+    required this.town,
+    this.when,
+    this.n = 0,
+  });
+
+  /// Lo que pasó, si fue algo que pasó.
+  final AdviceEvent? event;
+
+  /// Lo que le estaba pasando, si es uno del camino adelantado por eso.
+  final AdviceMoment? moment;
+
+  /// Lo que busca el pueblo; no se guarda, sólo sirve para elegir.
+  final AdviceGoal? goal;
+
+  final String town;
+  final DateTime? when;
+
+  /// Un número que acompaña: cuántos días de silencio, en una vuelta.
+  final int n;
+
+  /// Dicho por el viejo, debajo del consejo.
+  String get text {
+    final t = town.trim().isEmpty ? tr('el pueblo', 'the town') : town.trim();
+    final w = when;
+    final dia = w == null ? '' : '${w.day}/${w.month}';
+    final el = w == null ? '' : tr('el $dia ', 'on $dia ');
+    final m = moment;
+    if (m != null) {
+      return (switch (m) {
+        AdviceMoment.missedYesterday => tr(
+          'Porque $el no hubo pieza en $t.',
+          'Because ${el}there was no piece in $t.',
+        ),
+        AdviceMoment.struggling => tr(
+          'Porque a $t le están faltando piezas estos días.',
+          'Because $t has been missing pieces these days.',
+        ),
+        AdviceMoment.steady => '',
+      }).replaceAll('  ', ' ');
+    }
+    return (switch (event!) {
+      AdviceEvent.firstPiece => tr(
+        'Porque $el se puso la primera pieza de $t.',
+        'Because ${el}the first piece of $t was laid.',
+      ),
+      AdviceEvent.secondTown => tr(
+        'Porque $el se fundó $t, el segundo pueblo del valle.',
+        'Because $el$t was founded, the second town in the valley.',
+      ),
+      AdviceEvent.thirdTown => tr(
+        'Porque $el se fundó $t, el tercer pueblo del valle.',
+        'Because $el$t was founded, the third town in the valley.',
+      ),
+      AdviceEvent.week => tr(
+        'Porque $el $t cumplió siete días con pieza.',
+        'Because $el$t reached seven days with a piece.',
+      ),
+      AdviceEvent.month => tr(
+        'Porque $el $t cumplió treinta días con pieza.',
+        'Because $el$t reached thirty days with a piece.',
+      ),
+      AdviceEvent.missedDay => tr(
+        'Porque $el no hubo pieza en $t.',
+        'Because ${el}there was no piece in $t.',
+      ),
+      AdviceEvent.comeback => tr(
+        'Porque $el se volvió a $t, tras $n días de silencio.',
+        'Because ${el}someone came back to $t, after $n days of silence.',
+      ),
+      AdviceEvent.plan => tr(
+        'Porque en el tablón de $t quedó escrito cuándo o dónde.',
+        'Because the board of $t now says when or where.',
+      ),
+      AdviceEvent.ownNote => tr(
+        'Porque en el tablón de $t se clavó una nota propia.',
+        'Because a note of your own was pinned on the board of $t.',
+      ),
+      AdviceEvent.rested => tr(
+        'Porque $el $t se echó a dormir un tiempo.',
+        'Because $el$t lay down to sleep for a while.',
+      ),
+      AdviceEvent.hundred => tr(
+        'Porque $el $t llegó a cien piezas.',
+        'Because $el$t reached a hundred pieces.',
+      ),
+    }).replaceAll('  ', ' ');
+  }
+
+  String encode() => [
+    event?.name ?? '',
+    moment?.name ?? '',
+    Uri.encodeComponent(town),
+    '${when?.millisecondsSinceEpoch ?? ''}',
+    '$n',
+  ].join('\u0002');
+
+  static AdviceReason? decode(String s) {
+    final p = s.split('\u0002');
+    if (p.length < 5) return null;
+    final e = AdviceEvent.values.where((e) => e.name == p[0]);
+    final m = AdviceMoment.values.where((m) => m.name == p[1]);
+    if (e.isEmpty && m.isEmpty) return null;
+    final ms = int.tryParse(p[3]);
+    return AdviceReason(
+      event: e.isEmpty ? null : e.first,
+      moment: m.isEmpty ? null : m.first,
+      town: Uri.decodeComponent(p[2]),
+      when: ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms),
+      n: int.tryParse(p[4]) ?? 0,
+    );
+  }
 }
 
 /// Cuánto te está costando un hábito ahora mismo, de 0 a 1.
