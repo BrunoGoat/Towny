@@ -257,15 +257,17 @@ class FoundingShow {
   /// Una caída con su rebote dura casi un segundo, y el tablón se suelta
   /// pasado el primer cuarto: lo que sobra al final es aire para que el golpe
   /// se asiente antes de que el pueblo arranque.
-  static const double seconds = 2.1;
+  static const double seconds = 2.6;
 
   /// Cuándo se suelta cada una, en el reloj de 0 a 1.
   ///
   /// Primero el enlosado, que es lo que dice dónde está el centro; después el
   /// tablón, que es lo que el pueblo va a decir de vos. Se solapan a propósito:
   /// el tablón se suelta mientras el enlosado está acabando de asentarse, y así
-  /// son dos golpes seguidos y no dos cosas esperando turno.
-  static const double plazaAt = 0.0, boardAt = 0.28;
+  /// son dos golpes seguidos y no dos cosas esperando turno. Y el último, por
+  /// separado, el banco con el consejero sentado: llega él, ya con la plaza
+  /// puesta.
+  static const double plazaAt = 0.0, boardAt = 0.23, benchAt = 0.46;
 
   /// Desde qué altura caen. La misma que una pieza cualquiera.
   static const double drop = 2.3;
@@ -275,6 +277,7 @@ class FoundingShow {
 
   static double get plazaLands => landing(plazaAt);
   static double get boardLands => landing(boardAt);
+  static double get benchLands => landing(benchAt);
 
   /// A qué altura sobre su sitio está, en el momento [t] del reloj, lo que se
   /// soltó en [at]. Nulo mientras todavía no se soltó: entonces no se dibuja,

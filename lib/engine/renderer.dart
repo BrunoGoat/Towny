@@ -2001,11 +2001,11 @@ class TownPainter extends CustomPainter {
       ),
       FoundingShow.liftAt(t, FoundingShow.plazaAt),
     );
-    // El banco cae con la plaza: es parte de ella. Y con el consejero
-    // sentado, si es el pueblo donde vive.
+    // El banco cae por su cuenta, el último, como el tablón: y con el
+    // consejero sentado, si es el pueblo donde vive.
     caer(
       PlazaBench.solidsAt(l.cx, l.cz),
-      FoundingShow.liftAt(t, FoundingShow.plazaAt),
+      FoundingShow.liftAt(t, FoundingShow.benchAt),
     );
     if (hasSage(l)) {
       final sabio = folkOf(l, 0).where((v) => v.sage).firstOrNull;
@@ -2019,7 +2019,7 @@ class TownPainter extends CustomPainter {
             lift: Plaza.floorAt(bx, bz, l.cx, l.cz, TownLayout.plazaReach),
             eye: p.eye,
           ),
-          FoundingShow.liftAt(t, FoundingShow.plazaAt),
+          FoundingShow.liftAt(t, FoundingShow.benchAt),
         );
       }
     }
@@ -2033,10 +2033,13 @@ class TownPainter extends CustomPainter {
     // pinta el camino de siempre.
     final plaza = FoundingShow.liftAt(t, FoundingShow.plazaAt);
     final tablon = FoundingShow.liftAt(t, FoundingShow.boardAt);
+    final banco = FoundingShow.liftAt(t, FoundingShow.benchAt);
     if (plaza != null &&
         plaza.abs() < 1e-4 &&
         tablon != null &&
-        tablon.abs() < 1e-4) {
+        tablon.abs() < 1e-4 &&
+        banco != null &&
+        banco.abs() < 1e-4) {
       for (final r in _plazaRiders(p, e, pal)) {
         caras.add(r.f);
       }

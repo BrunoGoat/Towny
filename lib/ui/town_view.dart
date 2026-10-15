@@ -877,8 +877,8 @@ class _TownViewState extends State<TownView>
   /// en este fotograma, y no si ya pasó: a sesenta por segundo, «ya pasó» es
   /// un golpe por fotograma durante el resto de la caída.
   ///
-  /// El enlosado golpea como un sillar y el tablón menos, porque pesa menos y
-  /// porque viene detrás: dos temblores de los grandes seguidos marean. El del enlosado levanta polvo en todo su ancho, que
+  /// El enlosado golpea como un sillar, el tablón menos y el banco menos
+  /// todavía, porque pesan menos y vienen detrás: dos temblores de los grandes seguidos marean. El del enlosado levanta polvo en todo su ancho, que
   /// es lo que hace que se lea como una plaza entera posándose y no como una
   /// tapa.
   void _plazaCae(double antes, double ahora) {
@@ -891,6 +891,13 @@ class _TownViewState extends State<TownView>
         NoticeBoard.zAt(l.cz),
         0.8,
         0.8,
+      ),
+      (
+        FoundingShow.benchLands,
+        PlazaBench.xAt(l.cx),
+        PlazaBench.zAt(l.cz),
+        0.7,
+        0.7,
       ),
     ]) {
       if (antes >= cuando || ahora < cuando) continue;
