@@ -83,8 +83,16 @@ class Townsfolk {
     final p375 = arco(375 + giro(3), radio(3));
     final p435 = arco(435 + giro(4), radio(4));
     final frente = arco(315, 1.25);
-    final banco = (PlazaBench.xAt(cx), PlazaBench.zAt(cz));
+    // El asiento, y el paso de delante del banco, que es donde se para al
+    // llegar y al irse: de pie en el sitio del asiento quedaba con medio
+    // cuerpo atravesando el banco.
     final mirarBanco = PlazaBench.turn;
+    final asiento = (PlazaBench.xAt(cx), PlazaBench.zAt(cz));
+    const delante = PlazaBench.depth + 0.16;
+    final banco = (
+      asiento.$1 + math.sin(mirarBanco) * delante,
+      asiento.$2 + math.cos(mirarBanco) * delante,
+    );
     // (sitio, cuánto se queda, hacia dónde mira, qué hace)
     final ronda = <((double, double), double, double, Doing)>[
       (p195, hashRange(4, 8, s, 61), haciaFuente(p195), Doing.idle),
@@ -123,7 +131,8 @@ class Townsfolk {
         sage: true,
       )
       ..debut = _sageAnchor[_sageKey(layout)]?.$1
-      .._greetAt = _sageAnchor[_sageKey(layout)]?.$2;
+      .._greetAt = _sageAnchor[_sageKey(layout)]?.$2
+      .._asiento = asiento;
   }
 
   /// Desde cuándo cuenta su ronda el consejero de cada valle, y cuándo llegó
@@ -132,6 +141,10 @@ class Townsfolk {
   /// de forma, y la hora tiene que sobrevivirle.
   static final Map<String, (double, double)> _sageAnchor = {};
   static String _sageKey(TownLayout l) => '${l.cx},${l.cz},${l.seed}';
+
+  /// Dónde se sienta: el asiento del banco. La parada de la ronda está un
+  /// paso por delante; sólo sentado se corre hasta aquí.
+  (double, double)? _asiento;
 
   /// Cuándo aterrizó con el banco, si fue en esta sesión: a partir de ahí,
   /// durante [greetLength] segundos, se levanta y saluda.
@@ -175,10 +188,11 @@ class Townsfolk {
     final b = _stops[banco], f = _stops[frente];
     final mira = _facing[banco];
     if (s < _sigueSentado) {
+      // Sentado: [at] lo corre al asiento.
       return FolkAt(b.$1, b.$2, mira, 0, false, Doing.bench, 5 + s);
     }
     if (s < _sigueSentado + _levanta) {
-      // Se levanta: un paso al frente, del banco a donde se para.
+      // Se levanta delante del banco, no dentro, y da un paso al frente.
       final k = smoothstep(0, 1, (s - _sigueSentado) / _levanta);
       return FolkAt(
         lerpD(b.$1, f.$1, k),
@@ -884,6 +898,16 @@ class Townsfolk {
   /// ronda da la vuelta sola, así que esto vale para cualquier [t] por grande
   /// que sea.
   FolkAt at(double t) {
+    final r = _at(t);
+    // Sentado en el banco, en el asiento; de pie, la parada está delante.
+    final a = _asiento;
+    if (a != null && r.act == Doing.bench) {
+      return FolkAt(a.$1, a.$2, r.heading, r.gait, r.moving, r.act, r.phase);
+    }
+    return r;
+  }
+
+  FolkAt _at(double t) {
     final llega = _greetAt;
     if (llega != null && t >= llega && t < llega + greetLength) {
       return _llegando(t - llega);

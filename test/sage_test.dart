@@ -61,6 +61,41 @@ void main() {
       }
     });
 
+    test('de pie nunca está dentro del banco', () {
+      // Se paraba en el sitio del asiento, y al llegar, al irse y al
+      // levantarse después de caer con la fundación quedaba con medio cuerpo
+      // atravesando el banco.
+      final l = TownLayout(60, TownCharacter.all.first, seed: 7);
+      final v = folkOf(l, 60).firstWhere((v) => v.sage);
+      final bx = PlazaBench.xAt(l.cx), bz = PlazaBench.zAt(l.cz);
+      final fx = math.sin(PlazaBench.turn), fz = math.cos(PlazaBench.turn);
+      bool dentro(FolkAt a) {
+        final dx = a.x - bx, dz = a.z - bz;
+        final hondo = dx * fx + dz * fz; // hacia delante del banco
+        final largo = dx * fz - dz * fx; // a lo largo del banco
+        return largo.abs() < PlazaBench.half + 0.05 &&
+            hondo.abs() < PlazaBench.depth + 0.08;
+      }
+
+      var sentado = 0;
+      for (var t = 0.0; t < v.period * 2; t += 0.25) {
+        final a = v.at(t);
+        if (a.act == Doing.bench) {
+          sentado++;
+          continue;
+        }
+        expect(dentro(a), isFalse, reason: 'de pie en el banco a los $t s');
+      }
+      expect(sentado, greaterThan(0), reason: 'nunca se sentó');
+      // Y al llegar con la fundación: sentado, se levanta, saluda.
+      v.arriveNow(l, 1000);
+      for (var s = 0.0; s < Townsfolk.greetLength + 2; s += 0.1) {
+        final a = v.at(1000 + s);
+        if (a.act == Doing.bench) continue;
+        expect(dentro(a), isFalse, reason: 'al levantarse, a los $s s');
+      }
+    });
+
     test('de noche no se va: no tiene casa', () {
       final l = TownLayout(120, TownCharacter.all[0], seed: 4);
       final gente = folkOf(l, 120);
