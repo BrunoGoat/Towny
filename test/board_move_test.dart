@@ -241,7 +241,9 @@ void main() {
     });
   });
   group('escribir una nota', () {
-    testWidgets('pide una línea y nada más', (tester) async {
+    testWidgets('se escribe en un papel y se clava donde se suelta', (
+      tester,
+    ) async {
       SharedPreferences.setMockInitialValues({});
       BoardSlots.instance.forget();
       await BoardSlots.instance.load();
@@ -276,29 +278,62 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
 
-      // Un renglón y la palabra que lo clava. Lo que ya no está: el rótulo, el
-      // párrafo de tres líneas explicando de qué iba el papel, y el contador
-      // puesto desde el primer carácter.
-      expect(find.byType(TextField), findsOneWidget);
-      expect(find.text('CLAVARLA'), findsOneWidget);
-      expect(find.text('UNA NOTA TUYA'), findsNothing);
-      expect(find.textContaining('papel limpio'), findsNothing);
-      expect(find.text('0/90'), findsNothing);
+      // Un papel en blanco: un título y un renglón debajo, y nada más. Ni la
+      // tarjeta de antes ni la palabra que lo clavaba.
+      expect(find.byType(TextField), findsNWidgets(2));
+      expect(find.text('CLAVARLA'), findsNothing);
+      expect(find.text('Clavar una nota'), findsNothing);
 
-      // Y no clava nada mientras no haya nada escrito.
-      await tester.tap(find.text('CLAVARLA'));
+      // Tocar fuera sin haber escrito nada no clava nada.
+      await tester.tapAt(const Offset(20, 60));
       await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byType(TextField), findsNothing);
       expect(store.habit.notes, isEmpty, reason: 'clavó un papel en blanco');
+      expect(find.text('LLEVALA A UN HUECO VERDE'), findsNothing);
 
-      await tester.enterText(find.byType(TextField), 'Zapatillas en la puerta');
-      await tester.pump();
-      await tester.tap(find.text('CLAVARLA'));
+      await tester.tap(find.text('Clavar una nota'));
       await tester.pump(const Duration(milliseconds: 400));
-      // Se guardan con la hora delante, así que se busca lo que dicen.
+      await tester.enterText(find.byType(TextField).first, 'Zapatillas');
+      await tester.enterText(find.byType(TextField).last, 'en la puerta');
+      await tester.pump();
+      // Tocar fuera: baja a esperar sitio, todavía sin clavar.
+      await tester.tapAt(const Offset(20, 60));
+      for (var i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      expect(store.habit.notes, isEmpty, reason: 'se clavó antes de ponerla');
+      final aviso = find.text('LLEVALA A UN HUECO VERDE');
+      expect(aviso, findsOneWidget);
+
+      // Y se clava donde se suelta, en un hueco verde. Dónde cae cada uno en
+      // pantalla lo decide la escena, así que se prueba por la rejilla.
+      final desde = tester.getCenter(aviso) + const Offset(0, 70);
+      var clavada = false;
+      for (var fy = 0.3; fy <= 0.75 && !clavada; fy += 0.08) {
+        for (var fx = 0.15; fx <= 0.85 && !clavada; fx += 0.14) {
+          final g = await tester.startGesture(desde);
+          await tester.pump(const Duration(milliseconds: 30));
+          final hasta = Offset(size.width * fx, size.height * fy);
+          for (var j = 1; j <= 6; j++) {
+            await g.moveTo(Offset.lerp(desde, hasta, j / 6)!);
+            await tester.pump(const Duration(milliseconds: 16));
+          }
+          await g.up();
+          await tester.pump(const Duration(milliseconds: 100));
+          clavada = store.habit.notes.isNotEmpty;
+        }
+      }
+      expect(clavada, isTrue, reason: 'no hubo hueco verde donde soltarla');
+      expect(store.habit.notes.single, endsWith('|Zapatillas\nen la puerta'));
+      final mia = myNotices(store.habit).single;
+      expect(mia.said, 'Zapatillas');
+      expect(mia.because, 'en la puerta');
+      // Y quedó en el hueco donde se soltó, guardado.
       expect(
-        store.habit.notes.where((n) => n.endsWith('Zapatillas en la puerta')),
-        hasLength(1),
+        BoardSlots.instance.slotOf(store.habit.id, noticeId(mia)),
+        isNotNull,
       );
+      expect(find.text('LLEVALA A UN HUECO VERDE'), findsNothing);
       await tester.pump(const Duration(milliseconds: 400));
     });
   });

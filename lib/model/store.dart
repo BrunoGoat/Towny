@@ -12,10 +12,12 @@ import '../engine/town.dart';
 import '../l10n/lang.dart';
 import 'appearance.dart';
 import 'arrival.dart';
+import 'board.dart';
 import 'cadence.dart';
 import 'census.dart';
 import 'changes.dart';
 import 'habit.dart';
+import 'notice.dart';
 import 'nudge.dart';
 import 'piece.dart';
 import 'pledge.dart';
@@ -219,12 +221,22 @@ class Store extends ChangeNotifier {
   /// La más nueva arriba, que es como queda en un tablón de verdad. Se guarda
   /// entera aunque no quepa clavada: las que sobran del tope vuelven a asomar
   /// en cuanto se quita una.
-  void pinNote(Habit h, String text) {
-    final t = text.trim();
-    if (t.isEmpty) return;
+  ///
+  /// Con título y, si se quiere, un renglón debajo. Van en la misma línea
+  /// guardada, separados por un salto: `milisegundos|título\nrenglón`. Lo
+  /// que se clavó antes de que hubiera renglón es sólo `milisegundos|título`,
+  /// y se sigue leyendo igual. Si sólo hay renglón, ése es el título.
+  ///
+  /// Devuelve lo que se clavó, para poder decir en qué hueco va; null si no
+  /// había nada escrito.
+  Notice? pinNote(Habit h, String title, {String subtitle = ''}) {
+    String llano(String s) => s.replaceAll('\n', ' ').trim();
+    var t = llano(title), y = llano(subtitle);
+    if (t.isEmpty) (t, y) = (y, '');
+    if (t.isEmpty) return null;
     h.notes.insert(
       0,
-      '${DateTime.now().millisecondsSinceEpoch}|${t.replaceAll('\n', ' ')}',
+      '${DateTime.now().millisecondsSinceEpoch}|$t${y.isEmpty ? '' : '\n$y'}',
     );
     // Un tope generoso y lejos de la vista, para que esto no crezca sin fin en
     // una copia de seguridad. Cincuenta notas tuyas son muchísimas más de las
@@ -234,6 +246,7 @@ class Store extends ChangeNotifier {
     }
     _save();
     notifyListeners();
+    return myNotices(h).first;
   }
 
   /// Quita una de las tuyas: la que dice exactamente eso y se clavó ese día.
@@ -244,7 +257,12 @@ class Store extends ChangeNotifier {
     final antes = h.notes.length;
     h.notes.removeWhere((line) {
       final corte = line.indexOf('|');
-      return corte > 0 && line.substring(corte + 1).trim() == said.trim();
+      if (corte <= 0) return false;
+      // Por el título: es lo que se ve, y lo que dice la hoja descolgada.
+      final cuerpo = line.substring(corte + 1);
+      final salto = cuerpo.indexOf('\n');
+      final titulo = salto < 0 ? cuerpo : cuerpo.substring(0, salto);
+      return titulo.trim() == said.trim();
     });
     if (h.notes.length == antes) return;
     _save();

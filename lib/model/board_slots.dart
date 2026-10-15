@@ -128,6 +128,19 @@ class BoardSlots extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Clavar el papel [id] en el hueco [slot], elegido a mano: el de una nota
+  /// tuya recién escrita, que se pone donde la soltaste.
+  ///
+  /// Lo que hubiera en ese hueco se despega de él y se vuelve a sortear la
+  /// próxima vez que se reparta el tablón, o se queda fuera si ya no cabe.
+  void put(String townId, String id, int slot) {
+    final pre = '$townId/';
+    _where.removeWhere((k, v) => v == slot && k.startsWith(pre));
+    _where['$pre$id'] = slot;
+    _keep();
+    notifyListeners();
+  }
+
   /// En qué hueco está ahora mismo ese papel, si es que está en alguno.
   int? slotOf(String townId, String id) => _where['$townId/$id'];
 
@@ -203,8 +216,14 @@ class BoardSlots extends ChangeNotifier {
 /// tablón son varias de la misma clase, así que se llaman por lo que dicen.
 /// Con `g2` y no `g`: la guía cambió de orden, y quien ya la había visto
 /// tenía guardados los huecos del orden viejo.
-String noticeId(Notice n) =>
-    n.kind == NoticeKind.guia ? 'g2${stableHash(n.said)}' : n.kind.name;
+///
+/// Las tuyas también: son hasta cuatro de la misma clase, y cada una va en el
+/// hueco donde la pusiste.
+String noticeId(Notice n) => switch (n.kind) {
+  NoticeKind.guia => 'g2${stableHash(n.said)}',
+  NoticeKind.mine => 'm${stableHash(n.said)}',
+  _ => n.kind.name,
+};
 
 /// Un número a partir de un texto, igual en cualquier aparato y en cualquier
 /// arranque. `String.hashCode` no sirve: no promete ser el mismo dos veces, y

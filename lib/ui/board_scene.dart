@@ -75,6 +75,11 @@ class BoardMotion {
   /// marcando el hueco del que salió el papel mientras el papel ya iba por
   /// otro, porque uno lo leía en vivo y el otro copiado.
   int over = -1;
+
+  /// Los huecos donde se puede clavar la nota que espera abajo, y sobre cuál
+  /// está ahora. Vacío cuando no hay ninguna esperando.
+  Set<int> place = const {};
+  int placeOver = -1;
 }
 
 /// El tablón de la plaza, de cerca y en tres dimensiones.
@@ -110,7 +115,24 @@ class BoardScene extends StatefulWidget {
     this.offer,
     this.letra = 0,
     this.motion,
+    this.pending,
+    this.placeable = const {},
+    this.onPlace,
+    this.onEditPending,
   });
+
+  /// La nota tuya recién escrita que todavía no tiene sitio. Espera abajo del
+  /// tablón, temblando, hasta que se la lleva a uno de los huecos verdes.
+  final Notice? pending;
+
+  /// Dónde se puede clavar [pending].
+  final Set<int> placeable;
+
+  /// Clavarla en ese hueco.
+  final void Function(int slot)? onPlace;
+
+  /// Tocarla mientras espera: volver a escribirla.
+  final VoidCallback? onEditPending;
 
   /// Quitar del tablón una nota tuya, por lo que dice. Nulo cuando el tablón
   /// es de sólo lectura — el de mentira de los ajustes.
@@ -179,6 +201,9 @@ class _BoardSceneState extends State<BoardScene>
   @override
   void didUpdateWidget(BoardScene old) {
     super.didUpdateWidget(old);
+    // La nota que espera sitio tiembla, y una escena quieta tiene el reloj
+    // parado: sin despertarla, aparecía en el medio y ahí se quedaba.
+    if (!identical(old.pending, widget.pending)) _wake();
     if (!identical(old.plan, widget.plan) || old.letra != widget.letra) {
       _ink = _entintar();
       _m.open = null;
@@ -285,7 +310,9 @@ class _BoardSceneState extends State<BoardScene>
         ((_m.held ? 1.0 : 0.0) - _m.openK).abs() < 1e-3 &&
         ((_m.grab != null ? 1.0 : 0.0) - _m.grabK).abs() < 1e-3 &&
         _m.leaves <= 0 &&
-        _m.hint <= 0;
+        _m.hint <= 0 &&
+        // La nota que espera sitio tiembla: mientras está, no se para.
+        widget.pending == null;
   }
 
   void _wake() {
@@ -547,7 +574,8 @@ class _BoardSceneState extends State<BoardScene>
         final hacer = quitar != null || leyendo == null
             ? null
             : widget.offer?.call(leyendo);
-        return GestureDetector(
+        _m.place = widget.pending == null ? const {} : widget.placeable;
+        final escena = GestureDetector(
           behavior: HitTestBehavior.opaque,
           onScaleUpdate: _drag,
           onTapUp: (d) => _tap(d.localPosition),
@@ -604,9 +632,240 @@ class _BoardSceneState extends State<BoardScene>
                   ),
           ),
         );
+        if (widget.pending == null) return escena;
+        return Stack(
+          children: [
+            Positioned.fill(child: escena),
+            Positioned.fill(
+              child: ValueListenableBuilder<int>(
+                valueListenable: _frame,
+                builder: (context, _, _) => _esperando(size),
+              ),
+            ),
+          ],
+        );
       },
     );
   }
+
+  // ------------------------------------------------- la nota que espera sitio
+
+  /// La tinta de la nota que espera, maquetada una vez.
+  PaperInk? _pendInk;
+  Notice? _pendDe;
+
+  /// Dónde está su centro mientras la lleva el dedo, y desde qué punto de ella
+  /// se agarró. Null es que está quieta, esperando abajo.
+  Offset? _pendAt;
+  Offset _pendAgarre = Offset.zero;
+
+  /// Cuándo apareció, en el reloj de la escena: llega desde donde se escribió,
+  /// grande y en el medio, y baja a su sitio.
+  double _pendDesde = 0;
+
+  /// El ancho en pantalla de un papel clavado, a la distancia de ahora.
+  double _anchoPapel() {
+    final p = _projector();
+    final c = p.cameraOf(
+      V3(_cam.travel, widget.plan.midY, BoardPlan.plankDepth),
+    );
+    if (c.z <= p.near) return 120;
+    return p.focal * BoardPlan.paperW * 2 / c.z;
+  }
+
+  /// Dónde espera: abajo y en el medio, encima de la madera del pie.
+  Offset _pendReposo(Size size, double h) {
+    final abajo = MediaQuery.of(context).padding.bottom;
+    return Offset(size.width / 2, size.height - abajo - 34 - h / 2);
+  }
+
+  /// El hueco verde más cercano a [at], si está lo bastante cerca como para
+  /// que soltar ahí quiera decir ese hueco; -1 si no.
+  int _huecoCerca(Offset at) {
+    final p = _projector();
+    final ancho = _anchoPapel();
+    var mejor = -1;
+    var cerca = double.infinity;
+    for (final k in widget.placeable) {
+      final (cx, cy) = BoardPlan.spotOf(k, 0);
+      final c = p.cameraOf(V3(cx, cy, BoardPlan.plankDepth));
+      if (c.z <= p.near) continue;
+      final d =
+          (Offset(p.screenX(c.x, c.z), p.screenY(c.y, c.z)) - at).distance;
+      if (d < cerca) {
+        cerca = d;
+        mejor = k;
+      }
+    }
+    return cerca < ancho * 0.9 ? mejor : -1;
+  }
+
+  void _pendMueve(Offset centro) {
+    _pendAt = centro;
+    final k = _huecoCerca(centro);
+    if (k != _m.placeOver) {
+      _m.placeOver = k;
+      if (k >= 0) Sensory.instance.tick();
+    }
+    // Cerca de un filo, el tablón se corre solo: si no, los huecos que
+    // quedan fuera del cuadro no se podrían alcanzar con la nota en la mano.
+    final borde = _size.width * 0.12;
+    final paso = _cam.distance * 0.012;
+    if (centro.dx < borde) _cam.travelTarget -= paso;
+    if (centro.dx > _size.width - borde) _cam.travelTarget += paso;
+    final tope = widget.plan.panLimit(_size, _cam.distanceTarget);
+    _cam.travelTarget = clampD(_cam.travelTarget, -tope, tope);
+    _wake();
+  }
+
+  void _pendSuelta() {
+    final k = _m.placeOver;
+    _pendAt = null;
+    _m.placeOver = -1;
+    _wake();
+    if (k >= 0) {
+      Sensory.instance.press();
+      widget.onPlace?.call(k);
+    }
+  }
+
+  Widget _esperando(Size size) {
+    final n = widget.pending!;
+    if (!identical(n, _pendDe)) {
+      _pendDe = n;
+      _pendInk = PaperInk(n);
+      _pendDesde = _m.clock;
+      _pendAt = null;
+    }
+    final t = _m.clock;
+    // Un poco más grande que las clavadas: es la que hay que mirar.
+    final w = clampD(_anchoPapel() * 1.2, 150, size.width * 0.62);
+    final h = w * PaperInk.box.height / PaperInk.box.width;
+    final reposo = _pendReposo(size, h);
+    // Llega desde el medio de la pantalla, del tamaño al que se escribió, y
+    // baja a esperar.
+    final llega = Curves.easeOutBack.transform(
+      clampD((t - _pendDesde) / 0.55, 0, 1),
+    );
+    final grande = math.min(size.width - 16, 460.0);
+    final enMano = _pendAt != null;
+    final centro =
+        _pendAt ?? Offset.lerp(size.center(Offset.zero), reposo, llega)!;
+    final ancho = enMano ? w * 0.92 : grande + (w - grande) * llega;
+    // Quieta, tiembla: un vaivén que va y viene, y cada tanto un sacudón,
+    // como un papel que no sabe dónde ponerse. En la mano, quieta.
+    final sacude = math.max(0.0, math.sin(t * 1.9) - 0.82) * 5.5;
+    final giro = enMano
+        ? 0.0
+        : llega *
+              (0.035 * math.sin(t * 4.2) + 0.05 * sacude * math.sin(t * 31));
+    final sube = enMano ? 0.0 : llega * 3.0 * math.sin(t * 2.6);
+    final alto = ancho * PaperInk.box.height / PaperInk.box.width;
+    final aviso = enMano ? 0.0 : clampD((t - _pendDesde - 0.5) / 0.4, 0, 1);
+    return Stack(
+      children: [
+        // La palabra que dice qué hacer, encima de la nota.
+        Positioned(
+          left: 0,
+          right: 0,
+          top: centro.dy - alto / 2 - 34 + sube,
+          child: IgnorePointer(
+            child: Opacity(
+              opacity: aviso,
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.55),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    widget.placeable.isEmpty
+                        ? tr('NO QUEDA SITIO', 'NO ROOM LEFT')
+                        : tr(
+                            'LLEVALA A UN HUECO VERDE',
+                            'TAKE IT TO A GREEN SPOT',
+                          ),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: const Color(0xFFF3EEE3).withValues(alpha: 0.95),
+                      fontSize: 11.5,
+                      letterSpacing: 2.4,
+                      fontWeight: FontWeight.w600,
+                      shadows: const [
+                        Shadow(color: Color(0xCC000000), blurRadius: 12),
+                        Shadow(color: Color(0x99000000), blurRadius: 26),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          left: centro.dx - ancho / 2,
+          top: centro.dy - alto / 2 + sube,
+          width: ancho,
+          height: alto,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: widget.onEditPending,
+            onPanStart: (d) {
+              _m.hint = 0;
+              final aqui = centro;
+              _pendAgarre = d.globalPosition - aqui;
+              _pendMueve(aqui);
+            },
+            onPanUpdate: (d) => _pendMueve(d.globalPosition - _pendAgarre),
+            onPanEnd: (_) => _pendSuelta(),
+            onPanCancel: _pendSuelta,
+            child: Transform.rotate(
+              angle: giro,
+              child: CustomPaint(
+                painter: _PendingPainter(
+                  _pendInk!,
+                  lifted: enMano || llega < 1,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// La nota que espera sitio: papel tuyo, su tinta, y la sombra de algo que no
+/// está clavado a nada.
+class _PendingPainter extends CustomPainter {
+  _PendingPainter(this.ink, {required this.lifted});
+
+  final PaperInk ink;
+  final bool lifted;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final r = Offset.zero & size;
+    canvas.drawRect(
+      r.shift(Offset(3, lifted ? 12 : 7)),
+      Paint()
+        ..color = Colors.black.withValues(alpha: lifted ? 0.34 : 0.28)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, lifted ? 10 : 6),
+    );
+    canvas.drawRect(r, Paint()..color = BoardPlan.minePaper);
+    canvas.save();
+    canvas.scale(size.width / PaperInk.box.width);
+    ink.paint(canvas, 1);
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_PendingPainter old) =>
+      !identical(old.ink, ink) || old.lifted != lifted;
 }
 
 /// Lo que se puede hacer con la nota que se está leyendo: quitarla del tablón,
@@ -728,6 +987,7 @@ class BoardPainter extends CustomPainter {
     _plank(canvas, p);
     _roof(canvas, p);
     _papers(canvas, p, size);
+    _huecosVerdes(canvas, p);
     if (fugaz != null) {
       StarDraw.land(canvas, size, apunta, fugaz, palette.starAlpha);
     }
@@ -1049,6 +1309,45 @@ class BoardPainter extends CustomPainter {
       ink[i].paint(canvas, detail);
       canvas.restore();
       _unreadMark(canvas, i, quad);
+    }
+  }
+
+  /// Dónde se puede clavar la nota que espera abajo: cada hueco, en verde.
+  ///
+  /// Encima de los papeles y no debajo: cuando el tablón está lleno, los
+  /// huecos que se ofrecen son los de papeles que se pueden despegar, y un
+  /// verde por debajo de ellos no se vería. Late despacio, para que se lea
+  /// como «acá» y no como parte del tablón; el hueco sobre el que está la nota
+  /// se enciende entero.
+  void _huecosVerdes(Canvas canvas, Projector p) {
+    if (motion.place.isEmpty) return;
+    const verde = Color(0xFF5FCB6E);
+    final pulso = 0.5 + 0.5 * math.sin(motion.clock * 3.4);
+    for (final k in motion.place) {
+      final (cx, cy) = BoardPlan.spotOf(k, 0);
+      const w = BoardPlan.paperW, h = BoardPlan.paperH;
+      const z = BoardPaper.rest + 0.003;
+      final quad = projectQuad(p, [
+        V3(cx - w, cy + h, z),
+        V3(cx + w, cy + h, z),
+        V3(cx + w, cy - h, z),
+        V3(cx - w, cy - h, z),
+      ]);
+      if (quad == null) continue;
+      final path = _path(quad);
+      final aqui = k == motion.placeOver;
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = verde.withValues(alpha: aqui ? 0.55 : 0.16 + 0.12 * pulso),
+      );
+      canvas.drawPath(
+        path,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = aqui ? 3.5 : 2
+          ..color = verde.withValues(alpha: aqui ? 1 : 0.6 + 0.3 * pulso),
+      );
     }
   }
 

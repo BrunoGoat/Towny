@@ -66,8 +66,9 @@ const int myNoticeCap = 4;
 
 /// Lo que clavaste vos, de lo más nuevo a lo más viejo.
 ///
-/// El formato de cada renglón es `milisegundos|texto`, y uno roto se salta en
-/// vez de tirar el tablón abajo.
+/// El formato de cada renglón es `milisegundos|título`, o
+/// `milisegundos|título\nrenglón` si lleva algo debajo, y uno roto se salta
+/// en vez de tirar el tablón abajo.
 List<Notice> myNotices(Habit h) {
   final out = <Notice>[];
   for (final line in h.notes) {
@@ -75,14 +76,19 @@ List<Notice> myNotices(Habit h) {
     final corte = line.indexOf('|');
     if (corte <= 0) continue;
     final millis = int.tryParse(line.substring(0, corte));
-    final texto = line.substring(corte + 1).trim();
+    final cuerpo = line.substring(corte + 1);
+    final salto = cuerpo.indexOf('\n');
+    final texto = (salto < 0 ? cuerpo : cuerpo.substring(0, salto)).trim();
+    final debajo = salto < 0 ? '' : cuerpo.substring(salto + 1).trim();
     if (millis == null || texto.isEmpty) continue;
+    final cuando = _cuando(DateTime.fromMillisecondsSinceEpoch(millis));
+    // Con renglón debajo se escribe como las del pueblo —titular, raya y
+    // renglón—, y el día va en [Notice.more], que es lo que le dice al papel
+    // que no la escriba de corrido. Sin renglón, de corrido y con el día.
     out.add(
-      Notice(
-        NoticeKind.mine,
-        texto,
-        _cuando(DateTime.fromMillisecondsSinceEpoch(millis)),
-      ),
+      debajo.isEmpty
+          ? Notice(NoticeKind.mine, texto, cuando)
+          : Notice(NoticeKind.mine, texto, debajo, more: cuando),
     );
   }
   return out;

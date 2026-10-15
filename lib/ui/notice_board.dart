@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -15,6 +16,8 @@ import '../model/notice.dart';
 import '../model/pledge.dart';
 import '../model/store.dart';
 import 'board_scene.dart';
+import 'note_font.dart';
+import 'paper_ink.dart';
 import 'plan_picker.dart';
 import 'style.dart';
 
@@ -49,8 +52,8 @@ class NoticeBoardScreen extends StatefulWidget {
   ///
   /// Sólo para el tablón de mentira de los ajustes. Es lo que hace falta para
   /// probar una letra y un cuerpo de verdad: con las notas de siempre uno mira
-  /// diez papeles y se queda tranquilo, y el que se sale por el borde es el
-  /// bando número trescientos doce, que no ha visto nunca.
+  /// diez papeles y se queda tranquilo, y el que se sale por el borde es uno
+  /// que no ha visto nunca.
   final bool dice;
 
   /// Con almacén se pueden clavar y quitar notas tuyas; sin él, el tablón es
@@ -121,18 +124,79 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
     _plan = _real();
   }
 
-  /// Clavar una nota tuya.
-  Future<void> _clavar() async {
+  // ----------------------------------------------------- clavar una nota tuya
+  //
+  // En tres tiempos, y los tres sobre el tablón. Se escribe en un papel en
+  // blanco, del tamaño de una nota descolgada: el mismo papel que se va a
+  // clavar, y no una tarjeta que sube desde abajo. Al tocar fuera, el papel
+  // baja y se queda esperando al pie del tablón, temblando, con los huecos
+  // donde puede ir pintados de verde. Y se clava donde lo suelta el dedo.
+
+  /// Si se está escribiendo.
+  bool _escribe = false;
+  final TextEditingController _titulo = TextEditingController();
+  final TextEditingController _debajo = TextEditingController();
+
+  /// La nota escrita que espera sitio, o null.
+  Notice? _espera;
+
+  @override
+  void dispose() {
+    _titulo.dispose();
+    _debajo.dispose();
+    super.dispose();
+  }
+
+  void _clavar() {
     Sensory.instance.tick();
-    final text = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => _WriteSheet(theme: widget.theme),
-    );
-    if (text == null || !mounted) return;
-    widget.store!.pinNote(widget.habit, text);
+    setState(() => _escribe = true);
+  }
+
+  /// Tocar fuera del papel: si hay algo escrito, baja a esperar sitio; si no,
+  /// no se clava nada.
+  void _dejarDeEscribir() {
+    FocusManager.instance.primaryFocus?.unfocus();
+    var t = _titulo.text.replaceAll('\n', ' ').trim();
+    var y = _debajo.text.replaceAll('\n', ' ').trim();
+    if (t.isEmpty) (t, y) = (y, '');
     setState(() {
+      _escribe = false;
+      _espera = t.isEmpty
+          ? null
+          : (y.isEmpty
+                ? Notice(NoticeKind.mine, t, '')
+                : Notice(NoticeKind.mine, t, y, more: ''));
+    });
+  }
+
+  /// Dónde puede ir: en cualquier hueco menos encima de otra tuya.
+  ///
+  /// También encima de una del pueblo, que se despega de ahí y se vuelve a
+  /// clavar en un hueco libre —o se queda fuera, si ya no cabe—. Sólo los
+  /// libres no alcanzaba: el primer día la guía ocupa nueve de los diez, y el
+  /// único verde quedaba fuera de la pantalla.
+  Set<int> _dondeCabe() {
+    final mias = {
+      for (var i = 0; i < _said.length && i < _slots.length; i++)
+        if (_said[i].kind == NoticeKind.mine) _slots[i],
+    };
+    return {
+      for (var k = 0; k < NoticeBoard.capacity; k++)
+        if (!mias.contains(k)) k,
+    };
+  }
+
+  void _clavarEn(int slot) {
+    final n = widget.store!.pinNote(
+      widget.habit,
+      _titulo.text,
+      subtitle: _debajo.text,
+    );
+    if (n != null) BoardSlots.instance.put(widget.habit.id, noticeId(n), slot);
+    _titulo.clear();
+    _debajo.clear();
+    setState(() {
+      _espera = null;
       _plan = _real();
       // Rehace las hojas: maquetar es caro y no se hace al pintar, así que la
       // escena necesita una llave nueva para enterarse de que hay un papel más.
@@ -318,6 +382,16 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
                 // Y lo que se puede hacer con la nota descolgada: escribir el
                 // plan, firmar la regla.
                 offer: _offer,
+                pending: _espera,
+                placeable: _espera == null ? const {} : _dondeCabe(),
+                onPlace: _clavarEn,
+                onEditPending: () {
+                  Sensory.instance.tick();
+                  setState(() {
+                    _espera = null;
+                    _escribe = true;
+                  });
+                },
                 onUnpin: widget.store == null
                     ? null
                     : (said) {
@@ -345,7 +419,7 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
                   ),
                 ),
               ),
-            if (widget.store != null)
+            if (widget.store != null && !_escribe && _espera == null)
               SafeArea(
                 child: Align(
                   alignment: Alignment.bottomCenter,
@@ -353,6 +427,14 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
                     padding: const EdgeInsets.only(bottom: 14),
                     child: _PinButton(theme: widget.theme, onTap: _clavar),
                   ),
+                ),
+              ),
+            if (_escribe)
+              Positioned.fill(
+                child: _BlankPaper(
+                  title: _titulo,
+                  below: _debajo,
+                  onDone: _dejarDeEscribir,
                 ),
               ),
           ],
@@ -408,164 +490,152 @@ class _PinButton extends StatelessWidget {
   }
 }
 
-/// Dónde se escribe.
+/// Dónde se escribe: un papel en blanco, del tamaño de una nota descolgada.
 ///
-/// Una línea y poco más. Lo que se clava en un tablón es un recordatorio o una
-/// promesa, no una entrada de diario.
+/// Era una tarjeta que subía desde abajo con un renglón y la palabra que lo
+/// clavaba, y se veía como lo que era: un formulario pegado encima del
+/// tablón. Ahora se escribe en el papel mismo, con tu letra, y lo que se ve
+/// al escribir es lo que se va a clavar. Un titular y, si se quiere, un
+/// renglón debajo, separados por la misma raya que las notas del pueblo.
 ///
-/// **Minimalista quiere decir que no hay nada que leer antes de escribir.**
-/// Había un rótulo, un párrafo explicando de qué iba el papel, una caja con su
-/// marco y su contador, y un botón ámbar del ancho de la pantalla: cinco cosas
-/// para pedir una línea. Ahora hay un renglón y, debajo, la palabra que lo
-/// clava. Lo que hacía el párrafo —decir que la nota va en papel tuyo y con tu
-/// letra— lo dice mejor el propio tablón en cuanto se clava la primera.
-class _WriteSheet extends StatefulWidget {
-  const _WriteSheet({required this.theme});
+/// No hay botón de clavar: se toca fuera del papel, como para devolver una
+/// nota descolgada. Sólo que ésta no tiene sitio todavía, y baja a esperar
+/// uno.
+class _BlankPaper extends StatefulWidget {
+  const _BlankPaper({
+    required this.title,
+    required this.below,
+    required this.onDone,
+  });
 
-  final UiTheme theme;
+  final TextEditingController title, below;
+  final VoidCallback onDone;
 
   @override
-  State<_WriteSheet> createState() => _WriteSheetState();
+  State<_BlankPaper> createState() => _BlankPaperState();
 }
 
-class _WriteSheetState extends State<_WriteSheet> {
-  final TextEditingController _c = TextEditingController();
-
-  /// Lo más largo que puede ser una nota. El papel del tablón no da para más,
-  /// y una nota que no cabe en su papel no es una nota corta mal contada: es
-  /// otra cosa.
-  static const int _tope = 90;
-
-  @override
-  void initState() {
-    super.initState();
-    _c.addListener(() => setState(() {}));
-  }
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
-
-  void _clavar() {
-    final texto = _c.text.trim();
-    if (texto.isEmpty) return;
-    Navigator.of(context).pop(texto);
-  }
+class _BlankPaperState extends State<_BlankPaper> {
+  /// Lo más largo de cada parte. El papel del tablón no da para más, y una
+  /// nota que no cabe en su papel no es una nota corta mal contada: es otra
+  /// cosa.
+  static const int _topeTitulo = 70, _topeDebajo = 110;
 
   @override
   Widget build(BuildContext context) {
-    final t = widget.theme;
-    final velo = SheetInk.of(t);
-    final hay = _c.text.trim().isNotEmpty;
-    // Lo que queda, y sólo cuando queda poco. Un contador puesto siempre
-    // convierte escribir una línea en rellenar un formulario.
-    final queda = _tope - _c.text.characters.length;
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        child: BackdropFilter(
-          filter: ui.ImageFilter.blur(sigmaX: velo.bruma, sigmaY: velo.bruma),
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(24, 14, 24, 14),
-            decoration: BoxDecoration(
-              color: velo.tinte.withValues(alpha: velo.tapa),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(28),
+    final mq = MediaQuery.of(context);
+    final ancho = math.min(mq.size.width - 16, 460.0);
+    final alto = ancho * PaperInk.box.height / PaperInk.box.width;
+    final k = ancho / PaperInk.box.width;
+    final letra = NoteFont.rotulador;
+    TextStyle estilo(double size, double alpha, FontWeight w) => TextStyle(
+      fontFamily: letra.family,
+      fontSize: size * k * letra.scale,
+      height: PaperInk.lineHeight,
+      fontWeight: w,
+      color: BoardPlan.ink.withValues(alpha: alpha),
+    );
+    final grande = estilo(23, 1, FontWeight.w700);
+    final chica = estilo(15, 0.74, FontWeight.w400);
+    InputDecoration pista(String texto, TextStyle s) => InputDecoration(
+      isDense: true,
+      contentPadding: EdgeInsets.zero,
+      counterText: '',
+      border: InputBorder.none,
+      hintText: texto,
+      hintStyle: s.copyWith(color: BoardPlan.ink.withValues(alpha: 0.28)),
+    );
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: widget.onDone,
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0, end: 1),
+        duration: const Duration(milliseconds: 320),
+        curve: Curves.easeOutCubic,
+        builder: (context, a, child) => ColoredBox(
+          color: Colors.black.withValues(alpha: 0.5 * a),
+          child: Padding(
+            padding: EdgeInsets.only(bottom: mq.viewInsets.bottom),
+            child: Center(
+              child: Opacity(
+                opacity: a,
+                child: Transform.scale(scale: 0.82 + 0.18 * a, child: child),
               ),
-              border: Border(top: BorderSide(color: velo.canto)),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Center(
-                  child: Container(
-                    width: 38,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: velo.cuerpo.withValues(alpha: 0.22),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
+          ),
+        ),
+        // El papel se traga sus propios toques: tocar dentro es escribir.
+        child: GestureDetector(
+          onTap: () {},
+          child: Container(
+            width: ancho,
+            height: alto,
+            decoration: const BoxDecoration(
+              color: BoardPlan.minePaper,
+              boxShadow: [
+                BoxShadow(
+                  color: Color(0x66000000),
+                  blurRadius: 24,
+                  offset: Offset(0, 10),
                 ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _c,
-                  autofocus: true,
-                  maxLength: _tope,
-                  maxLines: 3,
-                  minLines: 1,
-                  textCapitalization: TextCapitalization.sentences,
-                  textInputAction: TextInputAction.done,
-                  style: t.body.copyWith(
-                    fontSize: 17,
-                    height: 1.3,
-                    color: velo.cuerpo,
-                  ),
-                  cursorColor: t.accent,
-                  decoration: InputDecoration(
-                    // Sin marco, sin relleno y sin contador: la caja de texto
-                    // no tiene por qué parecer una caja.
-                    isDense: true,
-                    contentPadding: EdgeInsets.zero,
-                    counterText: '',
-                    border: InputBorder.none,
-                    hintText: tr(
-                      'Lo que quieras acordarte de mirar acá.',
-                      'Whatever you want to remember to look at here.',
-                    ),
-                    hintStyle: t.body.copyWith(
-                      fontSize: 17,
-                      height: 1.3,
-                      color: velo.cuerpo.withValues(alpha: 0.38),
-                    ),
-                  ),
-                  onSubmitted: (_) => _clavar(),
-                ),
-                const SizedBox(height: 10),
-                Container(height: 1, color: velo.canto),
-                Row(
+              ],
+            ),
+            child: Container(
+              margin: EdgeInsets.all(9 * k),
+              padding: EdgeInsets.fromLTRB(
+                (PaperInk.pad - 9) * k,
+                (PaperInk.pad - 5) * k,
+                (PaperInk.pad - 9) * k,
+                (PaperInk.pad - 9) * k,
+              ),
+              decoration: BoxDecoration(
+                border: Border.all(color: BoardPlan.ink.withValues(alpha: 0.2)),
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    if (queda <= 20)
-                      Text(
-                        '$queda',
-                        style: t.bodySoft.copyWith(
-                          fontSize: 12,
-                          color: queda <= 0 ? t.accent : velo.tenue,
-                        ),
+                    TextField(
+                      controller: widget.title,
+                      autofocus: true,
+                      maxLength: _topeTitulo,
+                      minLines: 1,
+                      maxLines: 3,
+                      textCapitalization: TextCapitalization.sentences,
+                      textInputAction: TextInputAction.next,
+                      style: grande,
+                      cursorColor: BoardPlan.ink,
+                      decoration: pista(tr('Un título', 'A title'), grande),
+                      onSubmitted: (_) => FocusScope.of(context).nextFocus(),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8 * k),
+                      child: Container(
+                        height: 1,
+                        color: BoardPlan.ink.withValues(alpha: 0.28),
                       ),
-                    const Spacer(),
-                    // La acción, en una palabra y en ámbar. Apagada mientras no
-                    // hay nada que clavar, en vez de escondida: un botón que
-                    // aparece de golpe al escribir la primera letra es un botón
-                    // que se mueve debajo del dedo.
-                    GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: hay ? _clavar : null,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 14,
+                    ),
+                    TextField(
+                      controller: widget.below,
+                      maxLength: _topeDebajo,
+                      minLines: 1,
+                      maxLines: 4,
+                      textCapitalization: TextCapitalization.sentences,
+                      textInputAction: TextInputAction.done,
+                      style: chica,
+                      cursorColor: BoardPlan.ink,
+                      decoration: pista(
+                        tr(
+                          'Y debajo, si querés, algo más',
+                          'And below, if you like, a bit more',
                         ),
-                        child: Text(
-                          tr('CLAVARLA', 'PIN IT'),
-                          style: TextStyle(
-                            color: hay ? t.accent : velo.tenue,
-                            fontSize: 11.5,
-                            letterSpacing: 2.4,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        chica,
                       ),
+                      onSubmitted: (_) => widget.onDone(),
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
           ),
         ),

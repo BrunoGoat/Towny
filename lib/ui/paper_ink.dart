@@ -52,7 +52,11 @@ class PaperInk {
   /// cuentas de las que lo sacó: ahí la raya separa dos cosas que de verdad
   /// son distintas. «Comprar cal» no es una afirmación con su prueba debajo. Lo que va en el sitio de las cuentas es desde cuándo está
   /// clavada, que se lee al descolgarla y no desde el tablón.
-  bool get corrido => notice.kind == NoticeKind.mine;
+  ///
+  /// Salvo que le hayas escrito un renglón debajo: entonces tiene titular y
+  /// algo más, y se escribe como las otras. Ésas llevan el día en
+  /// [Notice.more] — ver `myNotices`.
+  bool get corrido => notice.kind == NoticeKind.mine && notice.more == null;
 
   /// El rectángulo en el que se maqueta. Su proporción es la de la hoja
   /// ([BoardPlan.paperW] contra [BoardPlan.paperH]), o el texto saldría
