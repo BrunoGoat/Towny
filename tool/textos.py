@@ -5,7 +5,7 @@
     flutter test tool/textos_test.dart   # vuelca el catálogo a /tmp/towny
     python3 tool/textos.py               # arma TEXTOS.md
 
-La mitad de los textos son listas de Dart —las obras, los bandos, las
+La mitad de los textos son listas de Dart —las obras y las
 comarcas— y ésas las escribe el test, que las importa de verdad. La otra
 mitad son frases sueltas dentro de las pantallas, y ésas salen de leer el
 código: se busca cada literal, se descartan los que no ve nadie
@@ -173,13 +173,13 @@ A('')
 A('Sacado del código, no escrito a mano: si mañana cambia una frase, se vuelve')
 A('a generar y ya está.')
 A('')
-A('**Cómo leerlo.** Cada entrada lleva un código —`O12`, `B305`, `U77`— para que')
-A('puedas decir «fuera B14, B92» sin copiar la frase. Debajo de cada bloque')
+A('**Cómo leerlo.** Cada entrada lleva un código —`O12`, `C30`, `U77`— para que')
+A('puedas decir «fuera O14, U92» sin copiar la frase. Debajo de cada bloque')
 A('está *cuándo lo ve* quien usa la app, y cada línea de interfaz dice además')
 A('en qué archivo y en qué renglón vive, por si querés mirarla en su sitio.')
 A('')
 A('Lo que **no** está: los identificadores internos (`pozo`, `libro`), los')
-A('nombres de fuente (`RockSalt.ttf`), la hoja de pruebas y los comentarios.')
+A('nombres de fuente (`PermanentMarker.ttf`), la hoja de pruebas y los comentarios.')
 A('')
 RESUMEN = len(out)
 A('')
@@ -224,12 +224,6 @@ MUNDO = [
   'descripción y, debajo, para qué clase de hábito pega. Después el nombre vuelve a salir en el expositor y '
   'en el de la gente. Las líneas sangradas son cómo llama esa comarca a cada '
   'clase de casa.'),
- ('BANDOS DEL TABLÓN (436)', 'B', 'Los bandos del tablón (436)',
-  'Los papeles clavados en el tablón de la plaza: un titular y un renglón '
-  'debajo. Cambian cada día y salen de la fecha, así que cada día hay un par '
-  'distinto. Ninguno habla de vos — eso lo dice el tablón por su cuenta, en el '
-  'bloque «lo que el tablón dice de vos». **Es el bloque más grande de la app '
-  'y el más fácil de recortar.**'),
 ]
 def _seccion(clave):
     # Por el nombre y no por la cuenta entre paréntesis: la cuenta la escribe
@@ -411,7 +405,7 @@ bloque(f'El widget de Android ({len(w) + 1})',
 texto = '\n'.join(out)
 cuenta = lambda p: len(re.findall(rf'^- \*\*{p}\d+\*\*', texto, re.M))
 FRASES = (cuenta("O")*2 + cuenta("C") + cuenta("M")*3 + 42
-          + cuenta("B")*2 + cuenta("T") + 87 + cuenta("G")
+          + cuenta("T") + 87 + cuenta("G")
           + cuenta("S") + cuenta("U") + cuenta("N") + cuenta("W"))
 tabla = ['## Resumen\n',
  '| Bloque | Entradas | Frases | ¿Se traduce? |',
@@ -419,7 +413,6 @@ tabla = ['## Resumen\n',
  f'| Obras del catálogo | {cuenta("O")} | {cuenta("O")*2} | sí |',
  f'| Casas corrientes | {cuenta("C")} | {cuenta("C")} | sí |',
  f'| Comarcas | {cuenta("M")} | {cuenta("M")*3} + 42 | sí |',
- f'| Bandos del tablón | {cuenta("B")} | {cuenta("B")*2} | sí — el grueso |',
  f'| Lo que el tablón dice de vos | {cuenta("T")} | {cuenta("T")} | sí |',
  f'| Nombres de la gente | 87 | 87 | no: nombres propios |',
  f'| Lo que hace la gente | {cuenta("G")} | {cuenta("G")} | sí |',
@@ -428,9 +421,8 @@ tabla = ['## Resumen\n',
  f'| Notificaciones | {cuenta("N")} | {cuenta("N")} | sí |',
  f'| Widget de Android | {cuenta("W")} | {cuenta("W")} | sí |',
  '',
- f'**{sum(cuenta(x) for x in "OCMBTGSUNW") + 87} entradas**, que son unas '
- f'{FRASES} frases sueltas. Sin los bandos se quedan en '
- f'unas {FRASES - cuenta("B")*2}.',
+ f'**{sum(cuenta(x) for x in "OCMTGSUNW") + 87} entradas**, que son unas '
+ f'{FRASES} frases sueltas.',
  '']
 out[RESUMEN:RESUMEN] = tabla
 open('TEXTOS.md','w').write('\n'.join(out) + '\n')

@@ -139,10 +139,7 @@ class BoardSeen {
 /// siempre y dejaría de querer decir nada: de ésas se avisa cuando aparecen, y
 /// una sola vez.
 ///
-/// Los bandos del pueblo no avisan: una cabra perdida no es información sobre
-/// vos, y son cuatrocientos treinta y seis rotando todos los días.
 String seenKey(Notice n) => switch (n.kind) {
-  NoticeKind.pueblo => '',
   NoticeKind.ahead || NoticeKind.life => n.kind.name,
   _ => '${n.kind.name}|${n.said}',
 };

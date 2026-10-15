@@ -3,7 +3,6 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 import '../core/rng.dart';
-import '../data/bandos.dart';
 import '../engine/board_plan.dart';
 import '../engine/solids.dart';
 import '../fx/sensory.dart';
@@ -221,7 +220,7 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
     huecos[i] = slot;
 
     // En el tablón de mentira de los ajustes no hay nada que guardar: sus
-    // notas son bandos sacados al azar y su pueblo no existe. El gesto se
+    // notas están sacadas al azar y su pueblo no existe. El gesto se
     // prueba igual, y eso es justo para lo que está ese tablón.
     if (widget.store != null) {
       BoardSlots.instance.place(
@@ -254,19 +253,17 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
     );
   }
 
-  /// Un tablón lleno de lo que haya: las notas del pueblo mezcladas con bandos
-  /// sacados al azar de los cuatrocientos treinta y seis.
+  /// Un tablón lleno de lo que haya: las notas del pueblo mezcladas con las
+  /// hojas que explican el tablón.
   ///
   /// Los huecos también van al azar y no por la tabla de siempre: lo que se
   /// prueba con esto es si el texto cabe, y para eso hace falta que salgan los
-  /// largos, los cortos y los raros, no los diez de siempre.
+  /// largos, los cortos y los raros, no los de siempre.
   void _tirar() {
     Sensory.instance.tick();
     final semilla = ++_roll * 7919 + DateTime.now().millisecondsSinceEpoch;
-    final reales = boardNotices(
-      widget.habit,
-      valley: widget.valley,
-    ).where((n) => n.kind != NoticeKind.pueblo).toList();
+    final reales = boardNotices(widget.habit, valley: widget.valley);
+    final guia = guideNotices(widget.habit);
     final said = <Notice>[];
     final huecos = <int>[];
     final libres = [for (var i = 0; i < NoticeBoard.capacity; i++) i];
@@ -277,14 +274,13 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
       libres[j] = t;
     }
     for (var i = 0; i < NoticeBoard.capacity; i++) {
-      // Una de cada tres de las de verdad, cuando las haya, y el resto bandos.
-      final real = reales.isNotEmpty && hash01(semilla, i, 1) < 0.35;
-      if (real) {
-        said.add(reales[hashInt(reales.length, semilla, i, 2)]);
-      } else {
-        final (dice, y) = bandos[hashInt(bandos.length, semilla, i, 3)];
-        said.add(Notice(NoticeKind.pueblo, dice, y));
-      }
+      // La mitad de las de verdad, cuando las haya, y el resto de la guía.
+      final real = reales.isNotEmpty && hash01(semilla, i, 1) < 0.5;
+      said.add(
+        real
+            ? reales[hashInt(reales.length, semilla, i, 2)]
+            : guia[hashInt(guia.length, semilla, i, 3)],
+      );
       huecos.add(libres[i]);
     }
     setState(() {

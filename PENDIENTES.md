@@ -266,9 +266,6 @@ Se regenera con `flutter test tool/textos_test.dart` seguido de
 - La versión inglesa dice lo mismo y no una traducción literal.
 
 **Pendiente:**
-- [ ] **Bandos del tablón**: 436 en castellano y 436 en inglés
-  (`lib/data/bandos.dart`). Marcar los malos para borrar. No hace falta que
-  queden todos.
 - [ ] **Descripciones de los 60 hitos**: reescritas para que inspiren y sin
   humor. Falta que alguien las apruebe.
 - [ ] **Nombres y oficios de la gente** (`lib/data/folknames.dart`): que los

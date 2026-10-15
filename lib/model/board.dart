@@ -1,7 +1,5 @@
 import 'dart:math' as math;
 
-import '../core/rng.dart';
-import '../data/gossip.dart';
 import '../engine/board_plan.dart';
 import '../engine/town.dart';
 import '../l10n/lang.dart';
@@ -17,17 +15,20 @@ import 'piece.dart';
 /// tablón de lejos tendría cuatro papeles y el de cerca seis, y la única
 /// manera de enterarse sería acercarse y contar.
 ///
-/// Primero lo que el pueblo sabe de vos, y detrás lo que el pueblo tiene
-/// clavado por su cuenta. Nunca al revés: un bando sobre una cabra perdida no
-/// puede ser lo primero que se lee de tu propio tablón. Y si de vos no sabe
-/// nada todavía, se dice que está vacío y se clavan unos cuantos bandos más,
-/// que es lo que tendría un tablón de plaza el primer día.
+/// Primero lo tuyo, y detrás lo que el pueblo sabe de vos. Y si de vos no
+/// sabe nada todavía, las hojas que explican el tablón ([guideNotices]).
+///
+/// Nada más. Antes el pueblo clavaba también sus bandos —una cabra perdida,
+/// un baile el sábado—, dos a cuatro cada día, y eran la mitad de las hojas:
+/// enseñaban que no hacía falta leer el tablón, que es lo contrario de para
+/// lo que existe. Un tablón con dos hojas dice «todavía te estoy conociendo»,
+/// y eso también es verdad.
+///
 List<Notice> boardNotices(
   Habit h, {
   List<Habit> valley = const [],
   DateTime? at,
 }) {
-  final now = at ?? DateTime.now();
   final work = TownPlan.of(
     h.place,
     seed: h.townSeed,
@@ -39,37 +40,19 @@ List<Notice> boardNotices(
     left: work?.$2 ?? 0,
     at: at,
   );
-  // Cuántos bandos toca clavar hoy: entre dos y cuatro, sorteado por la fecha
-  // y por el pueblo. Que sea distinto cada día es lo que hace que el tablón
-  // tenga días con más vida del pueblo y días con menos.
-  final quiere = 2 + hashInt(3, dayKey(dayStart(now)), h.slot, 61);
-  // Pero lo que el pueblo sabe de vos va primero y no se recorta nunca: si hay
-  // ocho notas de verdad, caben dos bandos y se clavan dos. Un bando sobre una
-  // cabra no puede dejar fuera lo que el tablón averiguó.
-  // Y delante de todo, lo tuyo. Es tu tablón: lo que clavaste vos no lo puede
-  // dejar fuera ni una nota del pueblo ni un bando sobre una cabra.
-  //
-  // Y el tablón tiene un tope de hojas: si entre lo tuyo y lo que averiguó no
-  // caben, lo que se recorta es lo del pueblo, que seguirá ahí mañana. Una
-  // nota que clavaste y no aparece es un tablón roto.
+  // Delante de todo, lo tuyo. Es tu tablón: lo que clavaste vos no lo puede
+  // dejar fuera ninguna otra hoja. Si no cabe todo, lo que se recorta es lo
+  // del pueblo, que seguirá ahí mañana. Una nota que clavaste y no aparece es
+  // un tablón roto.
   final mias = myNotices(h);
-  // Mientras el pueblo no sepa nada de vos, la hoja de bienvenida que explica
-  // el tablón. Se va sola con la primera nota de verdad, aunque ya hayas
-  // clavado alguna tuya: lo que explica es lo que el pueblo va a escribir.
-  final vacio = said.isEmpty;
-  final paraNotas = math.max(
-    0,
-    BoardPlan.capacity - mias.length - (vacio ? 1 : 0),
-  );
-  final suyas = said.take(paraNotas).toList();
-  final hueco =
-      BoardPlan.capacity - mias.length - suyas.length - (vacio ? 1 : 0);
-  final cuantos = quiere.clamp(0, math.max(0, hueco)).toInt();
+  final cabe = math.max(0, BoardPlan.capacity - mias.length);
   return [
     ...mias,
-    if (vacio) emptyNotice(h),
-    ...suyas,
-    ...villageNotices(now, town: h.slot, count: cuantos),
+    // Mientras el pueblo no sepa nada de vos, las hojas que explican el
+    // tablón. Se van todas juntas con la primera nota de verdad, aunque ya
+    // hayas clavado alguna tuya: lo que explican es lo que el pueblo va a
+    // escribir.
+    ...(said.isEmpty ? guideNotices(h) : said).take(cabe),
   ];
 }
 
@@ -122,28 +105,86 @@ String _cuando(DateTime at) {
   );
 }
 
-/// La hoja que se clava cuando de vos no se sabe nada: la que presenta el
-/// tablón.
+/// Las hojas que explican el tablón, una por cosa.
 ///
-/// Antes decía que el tablón estaba vacío, que es verdad pero no ayuda: el
-/// primer día uno no sabe qué es esto ni qué va a aparecer acá. Así que la
-/// primera hoja lo cuenta, como lo contaría un cartel en una plaza nueva, y
-/// se despega sola en cuanto llega la primera nota con un dato tuyo.
-Notice emptyNotice(Habit h) {
-  return Notice(
-    NoticeKind.life,
-    tr(
+/// Antes era una sola, y lo decía todo junto: qué es, que se toca para leer,
+/// que se pueden clavar notas. Una hoja con cinco instrucciones se lee como
+/// un reglamento y se olvida entera; cinco hojas con una cada una se leen
+/// como un tablón, que además es justo lo que enseñan a usar. La primera
+/// presenta el tablón, la última avisa de que se van.
+///
+/// Se despegan solas en cuanto llega la primera nota con un dato tuyo.
+List<Notice> guideNotices(Habit h) {
+  Notice hoja(String es, String en, String esY, String enY) =>
+      Notice(NoticeKind.guia, tr(es, en), tr(esY, enY));
+  return [
+    hoja(
       'Este es el tablón de anuncios de ${h.name}.',
       'This is the notice board for ${h.name}.',
-    ),
-    tr(
       'Acá el pueblo va clavando lo que aprende de vos y te brinda '
-          'información para ayudarte. También, los vecinos dejan sus '
-          'anuncios, y vos podés clavar los tuyos. Tocá una hoja para leerla '
-          'de cerca.',
+          'información para ayudarte. Mientras todavía no sabe nada, estas '
+          'hojas te cuentan cómo se usa.',
       'Here the town pins what it learns about you and gives you '
-          'information to help you. The neighbours also leave their notices, '
-          'and you can pin your own. Tap a sheet to read it up close.',
+          'information to help you. While it still knows nothing, these '
+          'sheets show you how it works.',
     ),
-  );
+    hoja(
+      'Tocá una hoja para leerla de cerca.',
+      'Tap a sheet to read it up close.',
+      'Para devolverla a su lugar, tocá otra vez.',
+      'Tap again to put it back.',
+    ),
+    hoja(
+      'Deslizá el dedo de costado para recorrer el tablón.',
+      'Slide your finger sideways to move along the board.',
+      'Las hojas se clavan de izquierda a derecha, y no siempre entran todas '
+          'en la pantalla.',
+      'Sheets are pinned from left to right, and they don\'t always all fit '
+          'on the screen.',
+    ),
+    hoja(
+      'Mantené el dedo sobre una hoja para despegarla.',
+      'Hold your finger on a sheet to unpin it.',
+      'Sin soltarla, llevala a otro hueco. El tablón se acuerda de dónde la '
+          'dejaste, y así se ve también desde la plaza.',
+      'Without letting go, carry it to another spot. The board remembers '
+          'where you left it, and that is how it looks from the square too.',
+    ),
+    hoja(
+      'Vos también podés clavar tus notas.',
+      'You can pin your own notes too.',
+      'Con «Clavar una nota», abajo. Van en un papel más claro y con tu letra, '
+          'y entran hasta $myNoticeCap a la vez.',
+      'With “Pin a note”, at the bottom. They go on lighter paper in your own '
+          'hand, and up to $myNoticeCap fit at once.',
+    ),
+    hoja(
+      'Para quitar una nota tuya, abrila.',
+      'To remove one of your notes, open it.',
+      'Al leerla de cerca aparece «Quitarla», abajo.',
+      'Up close, “Remove it” appears at the bottom.',
+    ),
+    hoja(
+      'Lo nuevo lleva una marca.',
+      'New things carry a mark.',
+      'Se apaga cuando leés la hoja de cerca: así sabés qué cambió desde la '
+          'última vez.',
+      'It goes out once you read the sheet up close, so you know what '
+          'changed since last time.',
+    ),
+    hoja(
+      'Para volver al pueblo, tocá el cielo o el pasto.',
+      'To go back to the town, tap the sky or the grass.',
+      'O juntá dos dedos sobre el tablón.',
+      'Or pinch the board with two fingers.',
+    ),
+    hoja(
+      'Estas hojas se van solas.',
+      'These sheets leave on their own.',
+      'Cuando el pueblo aprenda algo de vos, se despegan y le dejan el lugar a '
+          'lo que averiguó.',
+      'Once the town learns something about you, they come down and make room '
+          'for what it found out.',
+    ),
+  ];
 }

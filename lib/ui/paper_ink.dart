@@ -26,34 +26,17 @@ import 'note_font.dart';
 /// el titular espaciado con su raya debajo, y tinta parda.
 class PaperInk {
   PaperInk(this.notice, {NoteFont? font, double? scale})
-    : font = _resolve(
-        notice,
-        font ??
-            NoteFont.porNombre(switch (notice.kind) {
-              NoticeKind.pueblo => Appearance.villageFont,
-              // La tuya siempre la misma, y no una de las de «varias manos»:
-              // todo lo que clavás lo escribe la misma persona, que sos vos.
-              NoticeKind.mine => NoteFont.rotulador.name,
-              _ => Appearance.noteFont,
-            }) ??
-            NoteFont.sistema,
-      ),
-      scale =
-          scale ??
-          (notice.kind == NoticeKind.pueblo
-              ? Appearance.villageScale
-              : Appearance.noteScale) {
+    : font =
+          font ??
+          NoteFont.porNombre(switch (notice.kind) {
+            // Todo lo que clavás lo escribe la misma persona, que sos vos.
+            NoticeKind.mine => NoteFont.rotulador.name,
+            _ => Appearance.noteFont,
+          }) ??
+          NoteFont.sistema,
+      scale = scale ?? Appearance.noteScale {
     _lay();
   }
-
-  /// «Varias manos» no es una letra: es que a cada papel le toque la suya.
-  ///
-  /// Un tablón de plaza lo escriben veinte vecinos, y con una sola letra para
-  /// todo se lee como veinte copias de la misma nota. La mano sale del nombre
-  /// del papel, igual que su hueco y su inclinación, así que la de la cabra
-  /// está siempre escrita por la misma persona.
-  static NoteFont _resolve(Notice n, NoteFont pedida) =>
-      pedida == NoteFont.varias ? NoteFont.handFor(n) : pedida;
 
   final Notice notice;
 
@@ -63,20 +46,13 @@ class PaperInk {
   final NoteFont font;
   final double scale;
 
-  /// Un bando del pueblo se lee de corrido y no como un titular con su
-  /// remate.
+  /// Una nota tuya se lee de corrido y no como un titular con su remate.
   ///
-  /// «Se perdió una cabra» y «atiende por Nube» no son una afirmación y su
-  /// prueba: son una sola frase que alguien escribió en un papel y partió en
-  /// dos porque cabía mejor. Las notas del tablón sí son lo otro —lo que el
-  /// pueblo dice de vos, y debajo las cuentas de las que lo sacó— y ahí la
-  /// raya separa dos cosas que de verdad son distintas.
-  ///
-  /// Y una nota tuya también: «comprar cal» no es una afirmación con su
-  /// prueba debajo. Lo que va en el sitio de las cuentas es desde cuándo está
+  /// Las notas del tablón son lo que el pueblo dice de vos, y debajo las
+  /// cuentas de las que lo sacó: ahí la raya separa dos cosas que de verdad
+  /// son distintas. «Comprar cal» no es una afirmación con su prueba debajo. Lo que va en el sitio de las cuentas es desde cuándo está
   /// clavada, que se lee al descolgarla y no desde el tablón.
-  bool get corrido =>
-      notice.kind == NoticeKind.pueblo || notice.kind == NoticeKind.mine;
+  bool get corrido => notice.kind == NoticeKind.mine;
 
   /// El rectángulo en el que se maqueta. Su proporción es la de la hoja
   /// ([BoardPlan.paperW] contra [BoardPlan.paperH]), o el texto saldría
@@ -86,11 +62,10 @@ class PaperInk {
 
   /// Cómo se maqueta, en un solo sitio.
   ///
-  /// Público porque hay un test que mide si a los cientos de bandos escritos a
-  /// mano les cabe lo que dicen, y para que esa medida signifique algo tiene
-  /// que hacerse con estos números y no con unos parecidos. Un bando que no
-  /// cabe sale recortado con puntos suspensivos, y con un catálogo que crece a
-  /// mano no hay manera de verlo a ojo.
+  /// Público porque hay un test que mide si a las notas escritas a mano les
+  /// cabe lo que dicen, y para que esa medida signifique algo tiene que
+  /// hacerse con estos números y no con unos parecidos. Una nota que no cabe
+  /// sale recortada con puntos suspensivos.
   static const double saidSize = 15.5, becauseSize = 10.5;
   static const int saidLines = 4;
 
@@ -115,10 +90,9 @@ class PaperInk {
   void _lay() {
     // Se maqueta, y si no entra se busca el tamaño más grande que sí entre.
     //
-    // Hace falta desde que la letra y el cuerpo los elige quien usa la app:
-    // una manuscrita de caja alta al máximo del deslizador puede pedir el
-    // triple de sitio que la de fábrica, y sin esto la mitad de los bandos
-    // saldrían cortados con puntos suspensivos. Un papel de un tablón se
+    // Una nota larga en una letra manuscrita puede pedir mucho más sitio
+    // que el que hay, y sin esto saldría cortada con puntos suspensivos. Un
+    // papel de un tablón se
     // escribe más chico cuando hay mucho que decir, que es exactamente esto.
     //
     // Se busca por mitades y no bajando a ojo. Bajar a ojo se pasa de largo
@@ -165,8 +139,7 @@ class PaperInk {
   /// plaza se escribe del tamaño del papel. Se busca igual que al encoger,
   /// por mitades, hasta casi el doble.
   ///
-  /// Sólo esas: un bando del pueblo o una nota tuya ya se escriben de
-  /// corrido con todo el papel, y una nota con gráfico necesita el sitio
+  /// Sólo esas: una nota tuya ya se escribe de corrido con todo el papel, y una nota con gráfico necesita el sitio
   /// para el gráfico.
   void _grow() {
     if (corrido || notice.bars.isNotEmpty) return;

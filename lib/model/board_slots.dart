@@ -36,8 +36,8 @@ class BoardSlots extends ChangeNotifier {
 
   /// Cuántas filas se guardan como mucho.
   ///
-  /// Con ocho notas posibles y treinta y seis bandos, un valle de seis pueblos
-  /// no llega ni de lejos. El tope está para que un fallo que invente claves
+  /// Con una docena de notas posibles por pueblo, un valle de seis no llega
+  /// ni de lejos. El tope está para que un fallo que invente claves
   /// no crezca sin fin, no porque se espere alcanzarlo.
   static const int _cap = 400;
 
@@ -75,7 +75,13 @@ class BoardSlots extends ChangeNotifier {
     var nuevo = false;
     for (var i = 0; i < said.length && i < slots; i++) {
       if (out[i] >= 0) continue;
-      final hueco = _free(ids[i], taken, slots);
+      // Las hojas de la guía, en orden de lectura: se leen una detrás de
+      // otra, y la que presenta el tablón tiene que ser la primera que se ve
+      // al entrar. Los huecos ya van así —de arriba abajo y de izquierda a
+      // derecha—, así que es el primero libre. Lo demás, sorteado.
+      final hueco = said[i].kind == NoticeKind.guia
+          ? _first(taken, slots)
+          : _free(ids[i], taken, slots);
       out[i] = hueco;
       taken.add(hueco);
       _where[ids[i]] = hueco;
@@ -131,6 +137,13 @@ class BoardSlots extends ChangeNotifier {
   /// paso que no divide al número de huecos: así se recorren todos y no se
   /// amontonan a la derecha del primer intento, que es lo que pasa cuando se
   /// prueba de uno en uno.
+  static int _first(Set<int> taken, int slots) {
+    for (var at = 0; at < slots; at++) {
+      if (!taken.contains(at)) return at;
+    }
+    return 0;
+  }
+
   static int _free(String id, Set<int> taken, int slots) {
     final semilla = stableHash(id);
     final paso = _steps[hashInt(_steps.length, semilla, 1)];
@@ -186,11 +199,10 @@ class BoardSlots extends ChangeNotifier {
 ///
 /// Las notas de verdad se llaman por su clase, porque hay como mucho una de
 /// cada: la del horario es *la* del horario, diga hoy las siete y mañana las
-/// ocho, y mueve su texto sin moverse de la pared. Los bandos del pueblo no
-/// tienen clase propia —son treinta y seis— así que se llaman por lo que
-/// dicen, y por eso el bando de la cabra vuelve siempre al mismo sitio.
+/// ocho, y mueve su texto sin moverse de la pared. Las hojas que explican el
+/// tablón son varias de la misma clase, así que se llaman por lo que dicen.
 String noticeId(Notice n) =>
-    n.kind == NoticeKind.pueblo ? 'v${stableHash(n.said)}' : n.kind.name;
+    n.kind == NoticeKind.guia ? 'g${stableHash(n.said)}' : n.kind.name;
 
 /// Un número a partir de un texto, igual en cualquier aparato y en cualquier
 /// arranque. `String.hashCode` no sirve: no promete ser el mismo dos veces, y

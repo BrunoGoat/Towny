@@ -6,7 +6,7 @@
 /// sitio— y con las dos versiones juntas se ve de un vistazo si dicen lo mismo,
 /// y no hay clave que inventar ni que se quede huérfana.
 ///
-/// Los catálogos largos —las obras, los bandos, los símbolos— son otra cosa:
+/// Los catálogos largos —las obras, los símbolos— son otra cosa:
 /// listas de cientos de frases que viven en `lib/data`. Ésos tienen su
 /// versión inglesa en un archivo al lado (`lib/l10n/en_*.dart`), con la misma
 /// forma, y un test que comprueba que no falte ninguna.

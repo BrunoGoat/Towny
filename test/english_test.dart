@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:towny/data/bandos.dart';
 import 'package:towny/data/character.dart';
 import 'package:towny/data/demo.dart';
 import 'package:towny/data/doings.dart';
 import 'package:towny/data/folknames.dart';
-import 'package:towny/data/gossip.dart';
 import 'package:towny/data/landmarks.dart';
 import 'package:towny/data/symbols.dart';
 import 'package:towny/engine/palette.dart';
@@ -107,21 +105,6 @@ void main() {
       }
     });
 
-    test('todos los bandos, en el mismo orden', () {
-      final ingles = bandos;
-      lang = Lang.es;
-      final castellano = bandos;
-      lang = Lang.en;
-      expect(ingles.length, castellano.length);
-      for (var i = 0; i < ingles.length; i++) {
-        _sinCastellano(ingles[i].$1, 'el bando $i');
-        _sinCastellano(ingles[i].$2, 'el renglón del bando $i');
-      }
-      for (final n in villageNotices(DateTime(2026, 3, 1), town: 0)) {
-        _sinCastellano('${n.said} ${n.because}', 'el tablón de hoy');
-      }
-    });
-
     test('lo que hace la gente, sus apodos y las casas', () {
       for (final d in Doing.all) {
         _sinCastellano(d.name, 'lo que hace ${d.id}');
@@ -151,7 +134,7 @@ void main() {
             underway: landmarks.first.name,
             left: 4,
           ),
-          emptyNotice(h),
+          ...guideNotices(h),
         ];
         expect(notas.length, greaterThan(3), reason: h.name);
         for (final n in notas) {

@@ -31,8 +31,8 @@ String _line(String said, {int daysAgo = 0}) =>
 void main() {
   group('las notas tuyas', () {
     test('lo que clavás va lo primero del tablón', () {
-      // Es tu tablón: ni una nota del pueblo ni un bando sobre una cabra
-      // pueden dejar fuera lo que pusiste vos.
+      // Es tu tablón: ni una nota del pueblo ni una hoja de la guía pueden
+      // dejar fuera lo que pusiste vos.
       final h = _habit(notes: [_line('Comprar cal')]);
       final said = boardNotices(h);
       expect(said.first.kind, NoticeKind.mine);
@@ -82,20 +82,15 @@ void main() {
   });
 
   group('se distinguen de las demás', () {
-    test('papel distinto de las del pueblo y de las del tablón', () {
-      // Tres clases, tres papeles. Si dos coincidieran, el tablón dejaría de
-      // decir quién habla en cada hoja.
-      final tonos = {
-        BoardPlan.minePaper,
-        BoardPlan.villagePaper,
-        ...BoardPlan.debugPapers,
-      };
-      expect(tonos.length, 2 + BoardPlan.debugPapers.length);
+    test('papel distinto de las del tablón', () {
+      // Si coincidieran, el tablón dejaría de decir quién habla en cada hoja.
+      final tonos = {BoardPlan.minePaper, ...BoardPlan.debugPapers};
+      expect(tonos.length, 1 + BoardPlan.debugPapers.length);
     });
 
     test('y el papel tuyo es el más claro de todos', () {
       double luz(c) => c.r * 0.3 + c.g * 0.59 + c.b * 0.11;
-      for (final otro in [BoardPlan.villagePaper, ...BoardPlan.debugPapers]) {
+      for (final otro in BoardPlan.debugPapers) {
         expect(luz(BoardPlan.minePaper), greaterThan(luz(otro)));
       }
     });

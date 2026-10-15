@@ -269,7 +269,7 @@ python3 tool/textos.py                    # escribe TEXTOS.md con todo lo que se
 
 `TEXTOS.md` es el inventario de **todas las frases que ve quien usa la app**,
 con el sitio del que sale cada una. Se genera, no se escribe: la mitad la
-vuelca el test —el catálogo de obras, los bandos, las comarcas, que son listas
+vuelca el test —el catálogo de obras y las comarcas, que son listas
 de Dart y leerlas con una expresión regular es adivinar— y la otra mitad sale
 de rastrear los literales de cada pantalla. Es lo que hay que mirar antes de
 tocar una palabra. Lista el castellano, que es el original: la versión inglesa
@@ -331,7 +331,7 @@ comprueba que las columnas de Dart y las del SQL son las mismas.
 
 **Los dos idiomas.** La app habla castellano e inglés. Las frases sueltas van
 escritas en su sitio con las dos versiones juntas —`tr('Fundar mi pueblo',
-'Found my town')`, de `l10n/lang.dart`—; los catálogos largos —obras, bandos,
+'Found my town')`, de `l10n/lang.dart`—; los catálogos largos —obras,
 comarcas, marcas— tienen su versión inglesa al lado en `l10n/en_*.dart`, por id
 o en el mismo orden, y `test/english_test.dart` falla si falta una o si al abrir
 las pantallas en inglés se cuela una palabra en castellano. Sin idioma elegido

@@ -17,9 +17,9 @@ import 'package:towny/ui/notice_board.dart';
 import 'package:towny/ui/style.dart';
 import 'package:towny/ui/town_view.dart';
 
-/// Unas cuantas notas del pueblo, que son las que se llaman por lo que dicen.
+/// Unas cuantas hojas de la guía, que son las que se llaman por lo que dicen.
 List<Notice> _said(int n) => [
-  for (var i = 0; i < n; i++) Notice(NoticeKind.pueblo, 'bando $i', ''),
+  for (var i = 0; i < n; i++) Notice(NoticeKind.guia, 'hoja $i', ''),
 ];
 
 Future<BoardSlots> _tabla() async {

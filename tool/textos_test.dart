@@ -1,14 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:towny/data/bandos.dart';
 import 'package:towny/data/character.dart';
 import 'package:towny/data/landmarks.dart';
 import 'package:towny/engine/town.dart';
 
 /// La mitad del inventario de textos que no se puede sacar leyendo el código.
 ///
-/// El catálogo de obras, los bandos y las comarcas son listas de Dart con
+/// El catálogo de obras y las comarcas son listas de Dart con
 /// tuplas y mapas dentro: leerlos con una expresión regular es adivinar. Esto
 /// los importa de verdad y los escribe tal cual los ve la app.
 ///
@@ -33,11 +32,6 @@ void main() {
       b.writeln('- ${c.region} · ${c.blurb}');
       b.writeln('    ${c.suits}');
       c.houseNames?.forEach((k, v) => b.writeln('    [${k.name}] $v'));
-    }
-    b.writeln('\n## BANDOS DEL TABLÓN (${bandos.length})');
-    for (final x in bandos) {
-      b.writeln('- ${x.$1}');
-      b.writeln('    ${x.$2}');
     }
     Directory('/tmp/towny').createSync(recursive: true);
     File('/tmp/towny/datos.md').writeAsStringSync(b.toString());

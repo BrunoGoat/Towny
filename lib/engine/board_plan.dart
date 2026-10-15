@@ -63,7 +63,7 @@ class BoardPlan {
   /// más tenía que decir el pueblo, menos se leía.
   ///
   /// Diez es lo que cabe llenarlo: ocho es todo lo que [noticesFor] llega a
-  /// saber de alguien, y dos son los bandos del pueblo.
+  /// saber de alguien, y sobra para las tuyas.
   ///
   /// La rejilla es la del modelo de la plaza y no una suya: si fueran dos
   /// números, el tablón de lejos tendría huecos donde el de cerca no, y la
@@ -201,7 +201,6 @@ class BoardPlan {
               (hash01(semilla, 26) < 0.5 ? -1 : 1) *
               (0.03 + hash01(semilla, 24) * 0.085),
           paper: switch (said[i].kind) {
-            NoticeKind.pueblo => villagePaper,
             NoticeKind.mine => minePaper,
             _ => _papers[hashInt(_papers.length, semilla, 25)],
           },
@@ -230,12 +229,8 @@ class BoardPlan {
     Color(0xFFF0E5C9),
   ];
 
-  /// El de los papeles del pueblo: el más viejo de los tres, para que un bando
-  /// sobre una cabra no se confunda con lo que el tablón sabe de vos.
-  static const Color villagePaper = Color(0xFFD8C8A2);
-
   /// Los tres de siempre, para que un test pueda exigir que ninguno de ellos
-  /// se confunda con el del pueblo ni con el tuyo.
+  /// se confunda con el tuyo.
   @visibleForTesting
   static List<Color> get debugPapers => _papers;
 
@@ -243,8 +238,7 @@ class BoardPlan {
   ///
   /// Recién clavada y sin envejecer, porque es lo que es — la escribiste vos,
   /// hoy o la semana pasada, no lleva ahí desde que se fundó el pueblo. Es el
-  /// tono el que hace el trabajo: entre tres pergaminos viejos y un bando más
-  /// viejo todavía, una hoja blanca se ve desde la otra punta de la plaza.
+  /// tono el que hace el trabajo: entre tres pergaminos viejos, una hoja blanca se ve desde la otra punta de la plaza.
   static const Color minePaper = Color(0xFFF7F1E2);
 
   /// Los colores del modelo de la plaza, sin tocar.

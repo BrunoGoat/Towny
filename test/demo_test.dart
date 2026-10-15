@@ -8,9 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:towny/core/math3.dart';
 import 'package:towny/core/rng.dart';
-import 'package:towny/data/bandos.dart';
 import 'package:towny/data/demo.dart';
-import 'package:towny/data/gossip.dart';
 import 'package:towny/engine/backdrop.dart';
 import 'package:towny/engine/board_plan.dart';
 import 'package:towny/engine/camera.dart';
@@ -119,12 +117,12 @@ void main() {
         for (final h in valle)
           for (final n in tablon(h)) n.kind,
       };
-      // Todas menos tres. Dos no salen de acá: una cabra perdida no es algo
-      // que se sepa de nadie, y una nota tuya no la deduce el pueblo — la
+      // Todas menos tres. Dos no salen de acá: las hojas que explican el
+      // tablón no son algo que se sepa de nadie, y una nota tuya no la deduce el pueblo — la
       // escribís vos. Y la del horario está tapada a propósito por el plan,
       // que es lo que comprueba la prueba de abajo.
       for (final quiere in NoticeKind.values) {
-        if (quiere == NoticeKind.pueblo ||
+        if (quiere == NoticeKind.guia ||
             quiere == NoticeKind.mine ||
             quiere == NoticeKind.hour) {
           continue;
@@ -238,7 +236,7 @@ void main() {
       final lleno = BoardPlan.of(
         [
           for (var i = 0; i < BoardPlan.capacity; i++)
-            Notice(NoticeKind.pueblo, 'nota \$i', 'porque sí'),
+            Notice(NoticeKind.guia, 'nota \$i', 'porque sí'),
         ],
         slots: [7, 2, 9, 0, 5, 3, 8, 1, 6, 4],
       );
@@ -428,7 +426,7 @@ void main() {
     test('mide siempre lo mismo, y las hojas también', () {
       const size = Size(400, 860);
       BoardPlan conN(int n) => BoardPlan.of([
-        for (var i = 0; i < n; i++) Notice(NoticeKind.pueblo, 'x\$i', 'y'),
+        for (var i = 0; i < n; i++) Notice(NoticeKind.guia, 'x\$i', 'y'),
       ], slots: _enFila(n));
       final uno = conN(1);
       for (final n in [1, 2, 5, 9, 10]) {
@@ -458,7 +456,7 @@ void main() {
 
     test('con pocas notas la madera se queda vacía a la derecha', () {
       final p = BoardPlan.of([
-        for (var i = 0; i < 2; i++) Notice(NoticeKind.pueblo, 'x\$i', 'y'),
+        for (var i = 0; i < 2; i++) Notice(NoticeKind.guia, 'x\$i', 'y'),
       ], slots: _enFila(2));
       expect(p.papers.length, 2);
       // Las dos en la primera columna, una arriba y otra abajo, y todo lo demás
@@ -493,7 +491,7 @@ void main() {
       final huecos = [7, 1, 8, 6, 5, 0, 4, 3, 9, 2];
       final notas = [
         for (var i = 0; i < huecos.length; i++)
-          Notice(NoticeKind.pueblo, 'nota $i', 'porque sí'),
+          Notice(NoticeKind.guia, 'nota $i', 'porque sí'),
       ];
       final cerca = BoardPlan.of(notas, slots: huecos);
       // Medidos en las coordenadas del propio tablón y no en las del mundo: el
@@ -545,7 +543,7 @@ void main() {
       final huecos = [for (var i = 0; i < BoardPlan.capacity; i++) i];
       final p = BoardPlan.of([
         for (var i = 0; i < huecos.length; i++)
-          Notice(NoticeKind.pueblo, 'nota $i', 'y'),
+          Notice(NoticeKind.guia, 'nota $i', 'y'),
       ], slots: huecos);
       final grados = [for (final h in p.papers) h.lean * 57.2958];
       for (final g in grados) {
@@ -590,7 +588,7 @@ void main() {
       for (final cuantas in [1, 4, 8, 14]) {
         final p = BoardPlan.of([
           for (var i = 0; i < cuantas; i++)
-            Notice(NoticeKind.pueblo, 'x\$i', 'y'),
+            Notice(NoticeKind.guia, 'x\$i', 'y'),
         ], slots: _enFila(cuantas));
         final hueco = 2 * (p.halfWidth - 0.1) / BoardPlan.headHeight;
         expect(
@@ -804,184 +802,62 @@ void main() {
     });
   });
 
-  // Los bandos del pueblo: lo que hay clavado cuando el tablón no habla de vos.
-  group('los bandos del pueblo', () {
-    test('cambian cada día y no se repiten dentro del mismo', () {
-      final vistos = <String>{};
-      for (var d = 0; d < 60; d++) {
-        final dia = DateTime(2026, 3, 1).add(Duration(days: d));
-        final hoy = villageNotices(dia, town: 0, count: 3);
-        expect(hoy.length, 3);
-        expect(
-          {for (final n in hoy) n.said}.length,
-          3,
-          reason:
-              'el ${dia.day}/${dia.month} el pueblo clavó dos veces lo mismo',
-        );
-        for (final n in hoy) {
-          expect(n.kind, NoticeKind.pueblo);
-          // Un bando no puede fingir que sabe algo de nadie: ni barras ni
-          // párrafo de pruebas, que es lo que llevan las notas de verdad.
-          expect(n.bars, isEmpty);
-          expect(n.more, isNull);
-        }
-        vistos.add(hoy.map((n) => n.said).join('|'));
-      }
-      // En dos meses el pueblo tiene que tener vida propia, no un cartel fijo.
-      expect(vistos.length, greaterThan(40));
+  // Las hojas que explican el tablón, mientras el pueblo no sabe nada de vos.
+  group('las hojas que explican el tablón', () {
+    Habit nuevo(String nombre) => Habit(
+      id: nombre,
+      name: nombre,
+      symbol: 'libro',
+      slot: 0,
+      createdAt: DateTime(2026, 3, 12),
+    );
+
+    test('un tablón nuevo tiene sólo ésas, y nada de vecinos', () {
+      final h = nuevo('Leer');
+      final hay = boardNotices(h, at: DateTime(2026, 3, 12, 21));
+      expect(hay, isNotEmpty);
+      expect(
+        hay.map((n) => n.kind).toSet(),
+        {NoticeKind.guia},
+        reason: 'en un tablón recién fundado hay algo que no es la guía',
+      );
+      expect(hay.length, guideNotices(h).length);
+      // La primera presenta el tablón, con el nombre del hábito.
+      expect(hay.first.said, contains('Leer'));
     });
 
-    test('el mismo día clava siempre lo mismo', () {
-      final a = villageNotices(DateTime(2026, 5, 4, 9), town: 2);
-      final b = villageNotices(DateTime(2026, 5, 4, 23), town: 2);
-      expect(a.map((n) => n.said).toList(), b.map((n) => n.said).toList());
+    test('se van todas con la primera nota de verdad', () {
+      final cuando = DateTime(2026, 3, 12, 21);
+      final v = demoValley(cuando);
+      final hay = boardNotices(v.first, valley: v, at: cuando);
+      expect(hay, isNotEmpty);
       expect(
-        villageNotices(
-          DateTime(2026, 5, 5),
-          town: 2,
-        ).map((n) => n.said).toList(),
-        isNot(a.map((n) => n.said).toList()),
+        hay.where((n) => n.kind == NoticeKind.guia),
+        isEmpty,
+        reason: 'el pueblo ya sabe cosas y la guía sigue clavada',
       );
     });
 
-    test('a dos pueblos nunca les toca el mismo el mismo día', () {
-      // Seis pueblos enseñando la misma cabra perdida no son seis pueblos, son
-      // seis copias de una pantalla.
-      for (var d = 0; d < 90; d++) {
-        final dia = DateTime(2026, 1, 1).add(Duration(days: d));
-        final todos = <String>[];
-        for (var town = 0; town < Habit.maxSlots; town++) {
-          todos.addAll(
-            villageNotices(dia, town: town, count: 3).map((n) => n.said),
-          );
-        }
-        expect(
-          todos.toSet().length,
-          todos.length,
-          reason: 'el ${dia.day}/${dia.month} dos pueblos clavaron lo mismo',
-        );
-      }
+    test('cada una con su sitio propio en el tablón', () {
+      // Son varias de la misma clase: si se llamaran por la clase, todas
+      // querrían el mismo hueco.
+      final ids = guideNotices(nuevo('Leer')).map(noticeId).toList();
+      expect(ids.toSet().length, ids.length);
+      final dichas = guideNotices(nuevo('Leer')).map((n) => n.said).toList();
+      expect(dichas.toSet().length, dichas.length);
     });
 
-    test('pero de un día para otro sí se repiten, que es lo normal', () {
-      // Lo que no puede repetirse es entre pueblos el mismo día. Con los días
-      // sí: un tablón de plaza vuelve a sacar el bando de la cabra, y en
-      // cuatro meses tiene que haber sacado casi todos.
-      final vistos = <String>{};
-      var total = 0;
-      for (var d = 0; d < 120; d++) {
-        final hoy = villageNotices(
-          DateTime(2026, 1, 1).add(Duration(days: d)),
-          town: 0,
-        );
-        total += hoy.length;
-        vistos.addAll(hoy.map((n) => n.said));
+    test('caben con las tuyas: lo tuyo va primero y no se recorta', () {
+      final h = nuevo('Leer');
+      for (var i = 0; i < myNoticeCap; i++) {
+        h.notes.add('${DateTime(2026, 3, 12).millisecondsSinceEpoch}|nota $i');
       }
+      final hay = boardNotices(h, at: DateTime(2026, 3, 12, 21));
+      expect(hay.length, lessThanOrEqualTo(BoardPlan.capacity));
       expect(
-        total,
-        greaterThan(vistos.length),
-        reason:
-            'en cuatro meses no se repitió ninguno, que sería un reparto '
-            'y no una baraja',
+        hay.take(myNoticeCap).every((n) => n.kind == NoticeKind.mine),
+        isTrue,
       );
-      expect(
-        vistos.length,
-        greaterThan(total ~/ 2),
-        reason: 'el pueblo se quedó girando sobre cuatro bandos',
-      );
-    });
-
-    test('y con los años acaba sacándolos casi todos', () {
-      // La baraja es del día entero, así que a la larga el catálogo se recorre
-      // solo. Si un bando no saliera nunca, sobra del archivo.
-      final vistos = <String>{};
-      for (var d = 0; d < 2000; d++) {
-        vistos.addAll(
-          villageNotices(
-            DateTime(2026, 1, 1).add(Duration(days: d)),
-            town: 3,
-          ).map((n) => n.said),
-        );
-      }
-      expect(vistos.length, greaterThan((villageNoticeCount * 0.85).round()));
-    });
-
-    test('hay bastantes como para que no canse', () {
-      expect(villageNoticeCount, greaterThanOrEqualTo(400));
-    });
-
-    test('y ninguno repetido ni vacío', () {
-      final titulares = <String>{};
-      for (final (dice, y) in bandos) {
-        expect(dice.trim(), isNotEmpty);
-        expect(y.trim(), isNotEmpty);
-        expect(
-          titulares.add(dice),
-          isTrue,
-          reason: 'el bando «$dice» está dos veces en el catálogo',
-        );
-      }
-    });
-
-    test('«varias manos» reparte manos distintas y siempre las mismas', () {
-      // Un tablón de plaza lo escriben veinte vecinos. Con una sola letra se
-      // lee como veinte copias de la misma nota.
-      final manos = <String, String>{};
-      for (final (dice, y) in bandos) {
-        final n = Notice(NoticeKind.pueblo, dice, y);
-        final f = NoteFont.handFor(n);
-        expect(f.mano, isTrue);
-        manos[dice] = f.name;
-        // Y la misma nota, la misma mano, siempre: la de la cabra la escribe
-        // siempre la misma persona.
-        expect(NoteFont.handFor(n).name, f.name);
-      }
-      // Todas las manos disponibles salen, y ninguna se lleva el tablón.
-      final cuenta = <String, int>{};
-      for (final m in manos.values) {
-        cuenta[m] = (cuenta[m] ?? 0) + 1;
-      }
-      expect(cuenta.length, NoteFont.manos.length);
-      final mayor = cuenta.values.reduce((a, b) => a > b ? a : b);
-      expect(
-        mayor,
-        lessThan(bandos.length ~/ 3),
-        reason: 'una sola mano escribió un tercio del pueblo',
-      );
-    });
-
-    testWidgets('y salen de varias manos aunque haya una letra guardada', (
-      tester,
-    ) async {
-      // Esto es lo que se vio en el teléfono, y lo que el test de al lado no
-      // podía cazar porque preguntaba directamente por el reparto: el reparto
-      // estaba bien. Lo que estaba mal era que nadie lo llamaba. Las letras
-      // dejaron de elegirse pero el valor viejo se quedó en el disco, así que
-      // a quien hubiera probado una le salía el tablón entero de esa mano.
-      SharedPreferences.setMockInitialValues({
-        'pueblo_sound_v1': <String>['villageFont=amatic', 'noteFont=sal'],
-      });
-      await Appearance.instance.load();
-
-      final manos = <String>{};
-      for (final (dice, y) in bandos.take(60)) {
-        manos.add(PaperInk(Notice(NoticeKind.pueblo, dice, y)).font.name);
-      }
-      expect(manos, isNot(contains('varias')));
-      expect(
-        manos.length,
-        greaterThan(5),
-        reason: 'sesenta bandos salieron de $manos',
-      );
-
-      // Y las notas de estadísticas, todas de la misma: Arquitecta.
-      final propias = <String>{};
-      for (final k in [NoticeKind.hour, NoticeKind.week, NoticeKind.comeback]) {
-        propias.add(
-          PaperInk(Notice(k, 'Un titular', 'y su renglón')).font.name,
-        );
-      }
-      expect(propias, {'arquitecta'});
     });
 
     testWidgets('y a las notas de estadísticas les cabe también el gráfico', (
@@ -1012,7 +888,7 @@ void main() {
         final cuando = DateTime(2026, 3, 12, 21).add(Duration(days: d));
         final v = demoValley(cuando);
         for (final n in boardNotices(v.first, valley: v, at: cuando)) {
-          if (n.kind == NoticeKind.pueblo || n.bars.isEmpty) continue;
+          if (n.kind == NoticeKind.guia || n.bars.isEmpty) continue;
           final tinta = PaperInk(n);
           final pide = n.ticks.isEmpty
               ? PaperInk.chartHeight
@@ -1038,109 +914,15 @@ void main() {
       }
     });
 
-    testWidgets('las nueve manos escriben del mismo tamaño', (tester) async {
-      // Esto es lo que faltaba, y lo que dejó a «Otra mano» escribiendo en
-      // chiquito durante tres builds. La medida de cada letra está para que
-      // elegir una no sea elegir un tamaño, pero nadie comprobaba que lo
-      // consiguiera: se podía poner cualquier número y sólo se veía en el
-      // teléfono. Con 0,98, «Otra mano» ocupaba menos de la mitad del renglón
-      // que las demás, o sea una nota casi vacía con dos líneas chiquitas.
-      //
-      // Se mide el ancho porque es lo que decide cuánto papel llena el texto,
-      // que es lo que uno ve. La altura de la tinta varía más entre letras
-      // escritas a mano y no hay nada que corregir ahí: una letra con las
-      // astas largas es así.
-      await tester.runAsync(() async {
-        for (final f in NoteFont.manos) {
-          final bytes = await File('assets/fonts/${f.asset}').readAsBytes();
-          await (FontLoader(
-            f.family!,
-          )..addFont(Future.value(bytes.buffer.asByteData()))).load();
-        }
-      });
-      const frase =
-          'Esta noche habrá hoguera en la colina. Los mayores dicen '
-          'que es una vieja tradición.';
-      double anchoDe(NoteFont f) => (TextPainter(
-        text: TextSpan(
-          text: frase,
-          style: TextStyle(
-            fontFamily: f.family,
-            fontSize: 13 * f.scale * Appearance.villageScale,
-          ),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout()).width;
-
-      final ref = anchoDe(NoteFont.sal);
-      for (final f in NoteFont.manos) {
-        final k = anchoDe(f) / ref;
-        expect(
-          k,
-          closeTo(1, 0.12),
-          reason:
-              '${f.label} llena el ${(k * 100).round()}% del renglón que llena '
-              'Sal: con la misma nota escribe de otro tamaño',
-        );
-      }
-    });
-
-    testWidgets('y el cuerpo que se reparte no encoge ninguno de más', (
-      tester,
-    ) async {
-      // El cuerpo es uno y está elegido, y funciona como tope: tan grande como
-      // quepa, sin pasar de ahí. Encoger no es un fallo —es lo que hace que un
-      // bando largo siga entrando en su papel, igual que a mano uno aprieta la
-      // letra cuando ve que no llega—, pero sí lo es encoger tanto que el
-      // papel se lea de otro tamaño que el de al lado.
-      await tester.runAsync(() async {
-        for (final f in NoteFont.values) {
-          final family = f.family, asset = f.asset;
-          if (family == null || asset == null) continue;
-          final bytes = await File('assets/fonts/$asset').readAsBytes();
-          await (FontLoader(
-            family,
-          )..addFont(Future.value(bytes.buffer.asByteData()))).load();
-        }
-      });
-      var peor = 1.0;
-      var quien = '';
-      var encogidos = 0;
-      for (final f in NoteFont.manos) {
-        for (final (dice, y) in bandos) {
-          final k = PaperInk(
-            Notice(NoticeKind.pueblo, dice, y),
-            font: f,
-            scale: Appearance.villageScale,
-          ).shrunk;
-          if (k < 1) encogidos++;
-          if (k < peor) {
-            peor = k;
-            quien = '${f.label} · $dice';
-          }
-        }
-      }
-      expect(
-        peor,
-        greaterThan(0.6),
-        reason:
-            'encogen $encogidos de ${NoteFont.manos.length * bandos.length} y '
-            'el peor baja al ${peor.toStringAsFixed(2)} en $quien',
-      );
-    });
-
     testWidgets('y a todos les cabe, con cualquier letra y cualquier cuerpo', (
       tester,
     ) async {
       // Esto es el dado del tablón de mentira, pero hecho a máquina y entero:
-      // las diez letras, los cuatro cuerpos y los cuatrocientos treinta y seis
-      // bandos, más las notas de verdad de un pueblo con historia. A mano uno
-      // tira el dado diez veces, ve diez papeles y se queda tranquilo; el que
-      // se sale es el bando número trescientos doce con la letra que nadie
-      // probó.
+      // todas las letras, varios cuerpos, las hojas de la guía y las notas de
+      // verdad de un pueblo con historia.
       //
       // En un test de Flutter no hay fuentes hasta que se cargan, así que se
-      // cargan las diez del repositorio. La del sistema se queda fuera: ahí es
+      // cargan las del repositorio. La del sistema se queda fuera: ahí es
       // la de los tests, que pinta cada letra como un cuadrado y no se parece
       // a ninguna de verdad.
       await tester.runAsync(() async {
@@ -1162,19 +944,10 @@ void main() {
       );
       final todas = <Notice>[
         ...reales,
-        for (final (dice, y) in bandos) Notice(NoticeKind.pueblo, dice, y),
-        // Y la de bienvenida del primer día, que es la más larga de todas,
-        // con un nombre de hábito largo.
+        // Y la guía del primer día, con un nombre de hábito largo y uno corto:
+        // la de bienvenida lleva el nombre dentro.
         for (final nombre in ['Leer', 'Practicar el violonchelo'])
-          emptyNotice(
-            Habit(
-              id: nombre,
-              name: nombre,
-              symbol: 'libro',
-              slot: 0,
-              createdAt: DateTime(2026, 3, 12),
-            ),
-          ),
+          ...guideNotices(nuevo(nombre)),
       ];
       for (final f in NoteFont.values) {
         if (f.family == null) continue;
@@ -1183,7 +956,6 @@ void main() {
         for (final cuerpo in [
           0.8,
           Appearance.noteScale,
-          Appearance.villageScale,
           2.2,
         ]) {
           for (final n in todas) {
@@ -1214,20 +986,26 @@ void main() {
     });
 
     List<Notice> notas(List<String> textos) => [
-      for (final t in textos) Notice(NoticeKind.pueblo, t, 'porque sí'),
+      for (final t in textos) Notice(NoticeKind.guia, t, 'porque sí'),
     ];
 
     test('reparte sin repetir hueco y sin dejarlas en fila', () {
-      final said = notas([for (var i = 0; i < 10; i++) 'nota $i']);
+      // Las notas de verdad, una de cada clase: ésas van sorteadas.
+      final said = [
+        for (final k in NoticeKind.values)
+          if (k != NoticeKind.guia && k != NoticeKind.mine)
+            Notice(k, 'nota ${k.name}', 'porque sí'),
+      ].take(NoticeBoard.capacity).toList();
+      final n = said.length;
       final huecos = BoardSlots.instance.assign(
         'pueblo',
         said,
         slots: NoticeBoard.capacity,
       );
-      expect(huecos.length, 10);
+      expect(huecos.length, n);
       expect(
         huecos.toSet().length,
-        10,
+        n,
         reason: 'dos papeles en el mismo hueco',
       );
       for (final h in huecos) {
@@ -1235,9 +1013,21 @@ void main() {
       }
       expect(
         huecos,
-        isNot([for (var i = 0; i < 10; i++) i]),
+        isNot([for (var i = 0; i < n; i++) i]),
         reason: 'los clavó en fila, que es lo que no se quería',
       );
+    });
+
+    test('la guía, en cambio, en orden de lectura', () {
+      // Se leen una detrás de otra, y la que presenta el tablón es la primera
+      // que se ve al entrar.
+      final said = notas([for (var i = 0; i < 6; i++) 'hoja $i']);
+      final huecos = BoardSlots.instance.assign(
+        'pueblo',
+        said,
+        slots: NoticeBoard.capacity,
+      );
+      expect(huecos, [for (var i = 0; i < 6; i++) i]);
     });
 
     test('lo que ya estaba clavado no se mueve al cambiar lo demás', () {
@@ -1329,11 +1119,11 @@ void main() {
         noticeId(const Notice(NoticeKind.hour, 'a las 7', 'x')),
         noticeId(const Notice(NoticeKind.hour, 'a las 8', 'y')),
       );
-      // Los bandos sí se llaman por lo que dicen, porque no tienen clase
-      // propia: son treinta y seis con la misma.
+      // Las hojas de la guía sí se llaman por lo que dicen, porque son varias
+      // de la misma clase.
       expect(
-        noticeId(const Notice(NoticeKind.pueblo, 'la cabra', 'x')),
-        isNot(noticeId(const Notice(NoticeKind.pueblo, 'el ganso', 'x'))),
+        noticeId(const Notice(NoticeKind.guia, 'tocá una hoja', 'x')),
+        isNot(noticeId(const Notice(NoticeKind.guia, 'clavá las tuyas', 'x'))),
       );
     });
   });

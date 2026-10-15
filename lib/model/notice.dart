@@ -1,7 +1,7 @@
 /// Un papel clavado en el tablón, y de qué clase es.
 ///
 /// Sólo el tipo. Lo escribe `findings.dart` y lo leen once ficheros más —el
-/// tablón, el papel, la letra manuscrita, los bandos del pueblo, lo que ya se
+/// tablón, el papel, la letra manuscrita, las hojas que lo explican, lo que ya se
 /// ha leído—, y hasta ahora todos ellos importaban las mil cien líneas de
 /// detectores para poder nombrarlo. Ninguno de los once necesita saber cómo se
 /// averigua a qué hora del día ponés tus piezas; todos necesitan saber qué
@@ -39,11 +39,11 @@ enum NoticeKind {
   /// How long this has been going on.
   life,
 
-  /// Lo que el pueblo clava cuando no está hablando de vos: una cabra
-  /// perdida, un baile el sábado. No sale de [noticesFor] —esto es lo que se
-  /// sabe de alguien, y una cabra no se sabe de nadie— sino de
-  /// `data/gossip.dart`, y lo pone el tablón.
-  pueblo,
+  /// Lo que el tablón cuenta de sí mismo mientras el pueblo no sabe nada de
+  /// vos: qué es, y qué se puede hacer con él. Una hoja por cosa, y se
+  /// despegan todas juntas con la primera nota de verdad. No sale de
+  /// [noticesFor] —esto no se sabe de nadie— sino de `model/board.dart`.
+  guia,
 
   /// Lo que clavás vos.
   ///

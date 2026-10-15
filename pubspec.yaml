@@ -92,44 +92,16 @@ flutter:
 
     # Las letras de los papeles del tablón, aquí y no traídas de internet
     # porque un tablón tiene que poder leerse en un tren sin cobertura.
-    # Arquitecta es la de las notas sobre vos; las demás, las manos de los
-    # vecinos.
+    # Arquitecta es la de las notas sobre vos; Rotulador, la de las tuyas.
     - family: ArchitectsDaughter
       fonts:
         - asset: assets/fonts/ArchitectsDaughter.ttf
-    - family: AmaticSC
-      fonts:
-        - asset: assets/fonts/AmaticSC.ttf
-        - asset: assets/fonts/AmaticSC-Bold.ttf
-          weight: 700
 
     # Y la de los títulos de la primera vez.
     - family: EBGaramond
       fonts:
         - asset: assets/fonts/EBGaramond.ttf
 
-    # Más manos del pueblo, todas libres.
-    - family: GloriaHallelujah
-      fonts:
-        - asset: assets/fonts/GloriaHallelujah.ttf
-    - family: RockSalt
-      fonts:
-        - asset: assets/fonts/RockSalt.ttf
-    - family: JustAnotherHand
-      fonts:
-        - asset: assets/fonts/JustAnotherHand.ttf
-    - family: Schoolbell
-      fonts:
-        - asset: assets/fonts/Schoolbell.ttf
-    - family: CoveredByYourGrace
-      fonts:
-        - asset: assets/fonts/CoveredByYourGrace.ttf
-    - family: SueEllenFrancisco
-      fonts:
-        - asset: assets/fonts/SueEllenFrancisco.ttf
-    - family: AnnieUseYourTelescope
-      fonts:
-        - asset: assets/fonts/AnnieUseYourTelescope.ttf
     - family: PermanentMarker
       fonts:
         - asset: assets/fonts/PermanentMarker.ttf

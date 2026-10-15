@@ -211,19 +211,14 @@ class Appearance extends ChangeNotifier {
   ///
   /// Ya no son ajustes y por eso ya no se guardan. El día que dejaron de
   /// elegirse, los valores viejos siguieron en el disco de quien los hubiera
-  /// tocado: había gente —yo el primero, probándolas— con una letra fija
-  /// guardada para los bandos, así que el tablón entero le salía de una sola
-  /// mano y el reparto entre las nueve no se veía nunca. Una preferencia que
-  /// no se puede cambiar no es una preferencia: es una constante con un sitio
-  /// donde quedarse desactualizada.
+  /// tocado, y les seguía saliendo aunque ya no la pudieran cambiar. Una
+  /// preferencia que no se puede cambiar no es una preferencia: es una
+  /// constante con un sitio donde quedarse desactualizada.
   ///
-  /// Lo que quedó elegido tras probarlas una a una en el tablón: las notas en
-  /// Arquitecta a media altura del deslizador, y los bandos repartidos entre
-  /// las nueve manos, casi arriba del todo.
+  /// Lo que quedó elegido tras probarlas una a una en el tablón: Arquitecta, a
+  /// media altura del deslizador.
   static const String noteFont = 'arquitecta';
-  static const String villageFont = 'varias';
   static const double noteScale = 1.5;
-  static const double villageScale = 2.06;
 
   // --------------------------------------------------------------- el sonido
 
@@ -427,9 +422,8 @@ class Appearance extends ChangeNotifier {
         // Las cuatro de la letra ya no se eligen, así que ya no se guardan.
         // Se leen para tirarlas: al sacarlas de `visto`, la próxima escritura
         // no las vuelve a poner y el disco se limpia solo. Hace falta hacerlo
-        // y no ignorarlas sin más, porque quien hubiera probado letras tenía
-        // una guardada para los bandos y le salía el tablón entero de una
-        // sola mano.
+        // y no ignorarlas sin más, porque quien hubiera probado letras seguía
+        // viendo la suya.
         case 'noteFont':
         case 'villageFont':
         case 'noteScale':

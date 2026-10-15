@@ -3,13 +3,13 @@
 Sacado del código, no escrito a mano: si mañana cambia una frase, se vuelve
 a generar y ya está.
 
-**Cómo leerlo.** Cada entrada lleva un código —`O12`, `B305`, `U77`— para que
-puedas decir «fuera B14, B92» sin copiar la frase. Debajo de cada bloque
+**Cómo leerlo.** Cada entrada lleva un código —`O12`, `C30`, `U77`— para que
+puedas decir «fuera O14, U92» sin copiar la frase. Debajo de cada bloque
 está *cuándo lo ve* quien usa la app, y cada línea de interfaz dice además
 en qué archivo y en qué renglón vive, por si querés mirarla en su sitio.
 
 Lo que **no** está: los identificadores internos (`pozo`, `libro`), los
-nombres de fuente (`RockSalt.ttf`), la hoja de pruebas y los comentarios.
+nombres de fuente (`PermanentMarker.ttf`), la hoja de pruebas y los comentarios.
 
 ## Resumen
 
@@ -18,16 +18,15 @@ nombres de fuente (`RockSalt.ttf`), la hoja de pruebas y los comentarios.
 | Obras del catálogo | 60 | 120 | sí |
 | Casas corrientes | 7 | 7 | sí |
 | Comarcas | 8 | 24 + 42 | sí |
-| Bandos del tablón | 436 | 872 | sí — el grueso |
 | Lo que el tablón dice de vos | 95 | 95 | sí |
 | Nombres de la gente | 87 | 87 | no: nombres propios |
 | Lo que hace la gente | 21 | 21 | sí |
 | Símbolos de hábito | 72 | 72 | sí |
-| La interfaz | 431 | 431 | sí |
+| La interfaz | 487 | 487 | sí |
 | Notificaciones | 9 | 9 | sí |
 | Widget de Android | 6 | 6 | sí |
 
-**1232 entradas**, que son unas 1786 frases sueltas. Sin los bandos se quedan en unas 914.
+**852 entradas**, que son unas 970 frases sueltas.
 
 
 
@@ -188,883 +187,6 @@ nombres de fuente (`RockSalt.ttf`), la hoja de pruebas y los comentarios.
     Para los vínculos: llamar a la familia, escribirle a un amigo, salir más, tener paciencia con los demás.
 - **M8** · Alfar · De artesanos: talleres y hornos, barro cocido y tejados rojos.
     Para lo creativo: dibujar, tocar música, escribir, fotografiar, lo que se hace con las manos.
-
-## Los bandos del tablón (436)
-
-> **Cuándo se ve.** Los papeles clavados en el tablón de la plaza: un titular y un renglón debajo. Cambian cada día y salen de la fecha, así que cada día hay un par distinto. Ninguno habla de vos — eso lo dice el tablón por su cuenta, en el bloque «lo que el tablón dice de vos». **Es el bloque más grande de la app y el más fácil de recortar.**
-
-- **B1** · Se perdió una cabra.
-    Atiende por Nube. Recompensa: media hogaza.
-- **B2** · El herrero busca aprendiz.
-    No hace falta saber nada. Sí hace falta madrugar.
-- **B3** · Baile en la plaza el sábado.
-    Traé tu jarra. El laúd lo pone el pueblo.
-- **B4** · Alguien se llevó la escalera del pozo.
-    No preguntamos para qué. Devolvela y ya está.
-- **B5** · El molinero jura que la piedra canta de noche.
-    Nadie más la oyó. El molinero insiste.
-- **B6** · Se venden nabos.
-    Muchos nabos. Demasiados nabos.
-- **B7** · Se busca quien sepa leer.
-    Hay una carta desde hace tres semanas y nadie se anima.
-- **B8** · El puente aguanta.
-    Lo dice el que lo construyó, que es el mismo que cobra por cruzarlo.
-- **B9** · Perdida: una bota. Sólo una.
-    La izquierda. Quien la encuentre que no pregunte nada.
-- **B10** · El panadero se levanta antes que vos.
-    Lo dice él. Nadie ha ido a comprobarlo.
-- **B11** · Cuidado con el ganso del corral tercero.
-    Ya van cuatro. El ganso sigue suelto.
-- **B12** · Se alquila el granero para lo que sea.
-    Preguntá por Tomás. Tomás no pregunta.
-- **B13** · Hoy no hay pescado.
-    Ni mañana, probablemente. El río anda raro.
-- **B14** · Aviso: la campana se toca a las seis.
-    Si suena a otra hora, no es la campana.
-- **B15** · El boticario tiene un remedio nuevo.
-    Para qué, no lo dice. Que sea sorpresa.
-- **B16** · Se cambian huevos por clavos.
-    Cinco por uno. No es negociable y ya lo hemos discutido.
-- **B17** · Alguien está moviendo los mojones del camino.
-    Sabemos quién es. Que pare.
-- **B18** · El pozo está más hondo que el año pasado.
-    O la cuerda es más corta. Se acepta cualquier explicación.
-- **B19** · Clases de tiro con arco los martes.
-    Traé tu arco. Y tu propio blanco, después de lo del martes pasado.
-- **B20** · La posada tiene camas libres.
-    Tres. Bueno, dos: en una duerme el perro y no hay quien lo saque.
-- **B21** · Se busca al que afinó el laúd.
-    No para agradecérselo.
-- **B22** · El cantero terminó la escalera.
-    Sube a ninguna parte, pero es una escalera preciosa.
-- **B23** · Aviso del tejador: no subas al tejado.
-    Da igual el motivo. No subas al tejado.
-- **B24** · Se perdió un gato negro.
-    O se fue. Con los gatos nunca se sabe cuál de las dos.
-- **B25** · Mercado el primer domingo.
-    Como todos los meses desde que hay pueblo. Nadie sabe por qué se avisa.
-- **B26** · El pastor dice que vio algo en el monte.
-    El pastor dice muchas cosas. Ésta la dijo dos veces.
-- **B27** · Se necesitan manos para la siega.
-    Se paga en trigo, en cerveza, o en no deberle nada a nadie.
-- **B28** · Encontrada: una llave.
-    Pequeña, de bronce. No abre nada de por acá, que ya lo probamos todo.
-- **B29** · El carpintero no acepta más encargos hasta la primavera.
-    Ni aunque insistas. Ni aunque seas de la familia.
-- **B30** · Hoy hace un día bueno.
-    No es un aviso. Es que hacía falta clavar algo alegre.
-- **B31** · Se ruega no dar de comer al cuervo.
-    Está gordo, está insoportable, y ahora se cree el dueño de la plaza.
-- **B32** · El herrador tiene la fragua fría hasta el jueves.
-    Se fue a una boda. Volverá peor.
-- **B33** · Aviso: la fuente sabe raro.
-    Hervila. O no la bebas. O bebela y ya nos contás.
-- **B34** · Se busca dueño para un burro.
-    Muy bueno. Muy terco. Las dos cosas al mismo tiempo.
-- **B35** · Quien dejó una nota aquí anoche, que vuelva.
-    No se entiende la letra y parece importante.
-- **B36** · Recordatorio: la muralla no se apoya sola.
-    Bueno, ésta sí. Pero no os acostumbréis.
-- **B37** · Se busca una oveja gris.
-    Responde por Blanca, lo cual no ayuda demasiado.
-- **B38** · El campanero pide que no tiren piedras a la campana.
-    La campana ya tiene bastante con lo suyo.
-- **B39** · Hay miel nueva en la tienda.
-    No pregunten de qué flores. El apicultor se puso nervioso.
-- **B40** · Se encontró un sombrero en la plaza.
-    Es grande, elegante y huele a establo.
-- **B41** · El río ha bajado mucho.
-    Los pescadores dicen que no es buena señal.
-- **B42** · La posada busca mozo.
-    Se requiere paciencia, fuerza y saber contar hasta tres.
-- **B43** · No dejar herramientas junto al pozo.
-    La última acabó abajo y ahora tenemos dos problemas.
-- **B44** · El alcalde convoca reunión al anochecer.
-    Dice que es importante. No quiso decir por qué.
-- **B45** · Se venden huevos frescos.
-    Si alguno rompe un huevo, se lo queda.
-- **B46** · El tejedor terminó una manta enorme.
-    Nadie sabe para quién era.
-- **B47** · La cabra del herrero volvió.
-    Nadie sabe dónde estuvo. Ella tampoco parece dispuesta a explicarlo.
-- **B48** · Se busca aprendiz de carpintero.
-    Saber distinguir un martillo de un hacha sería un buen comienzo.
-- **B49** · No cruzar el bosque después de la puesta del sol.
-    No por las criaturas. Por el barro.
-- **B50** · La cosecha de cebollas ha sido excelente.
-    Demasiado excelente, según el cocinero.
-- **B51** · Alguien dejó flores en la puerta de la iglesia.
-    Nadie admite haberlas puesto.
-- **B52** · La panadera vuelve a vender bollos de miel.
-    Esta vez ha prometido no quemarlos.
-- **B53** · Se necesita un burro para transportar leña.
-    El burro también puede opinar, pero no suele hacerlo.
-- **B54** · El cazador perdió su arco.
-    Lo dejó en algún sitio entre aquí y allí.
-- **B55** · La fuente vuelve a funcionar.
-    No preguntéis qué había atascándola.
-- **B56** · Se encontró una moneda en el camino.
-    Es demasiado vieja para saber de quién era.
-- **B57** · El carnicero cierra temprano hoy.
-    Tiene una cita. No quiso especificar con quién.
-- **B58** · Se ruega cerrar las gallinas por la noche.
-    Las últimas tres noches alguien las dejó salir.
-- **B59** · Hay trabajo descargando sacos en el molino.
-    Se paga al terminar, si todavía podéis mover los brazos.
-- **B60** · El médico pide que no le lleven más gallinas.
-    Ya tiene suficientes.
-- **B61** · El pozo está limpio.
-    Por fin podemos decirlo sin mentir.
-- **B62** · Se perdió una cuchara de plata.
-    No es exactamente de plata, pero el dueño insiste.
-- **B63** · La señora del molino busca a su gato.
-    Es negro, gordo y probablemente no quiera volver.
-- **B64** · El herrero arregla herraduras hoy.
-    Las espadas tendrán que esperar.
-- **B65** · Se encontraron huellas grandes junto al río.
-    Probablemente de un ciervo. Probablemente.
-- **B66** · El molino estará cerrado mañana.
-    La rueda necesita descanso. El molinero también.
-- **B67** · Se venden zanahorias.
-    Son pequeñas, pero tienen carácter.
-- **B68** · La plaza necesita barrer.
-    Si alguien encuentra una moneda mientras lo hace, que recuerde quién puso el aviso.
-- **B69** · El pastor vuelve del monte al mediodía.
-    Dice que trae noticias.
-- **B70** · Hay una nueva posadera.
-    Su sopa es excelente. Su humor, menos.
-- **B71** · No tocar la campana fuera de horario.
-    Ya tuvimos suficiente alarma por un gato.
-- **B72** · Se busca dueño de un caballo marrón.
-    El caballo parece bastante seguro de que tiene dueño.
-- **B73** · El río trae ramas de lugares desconocidos.
-    El agua sigue bajando desde las montañas.
-- **B74** · Se necesita quien repare tres carretas.
-    Dos tienen ruedas y una tiene esperanza.
-- **B75** · El alcalde perdió las llaves.
-    Dice que fue un accidente. Las perdió por tercera vez.
-- **B76** · El mercado será más pequeño este domingo.
-    Los comerciantes también necesitan dormir alguna vez.
-- **B77** · Se encontró un anillo junto al puente.
-    No parece barato.
-- **B78** · El viejo Olegario vuelve a contar su historia.
-    Dice que esta vez nadie le creerá. Tiene razón.
-- **B79** · El carpintero vende mesas.
-    Son sólidas, pesadas y prácticamente imposibles de mover.
-- **B80** · El granero necesita techo nuevo.
-    El actual tiene una relación complicada con la lluvia.
-- **B81** · La campana sonó sola anoche.
-    El campanero asegura que no fue él.
-- **B82** · Se buscan manos para recoger manzanas.
-    Traed las vuestras.
-- **B83** · El río tiene peces otra vez.
-    Los pescadores ya están discutiendo quién los vio primero.
-- **B84** · Hay una carta para alguien del pueblo.
-    Lleva aquí tanto tiempo que ya parece parte del mobiliario.
-- **B85** · Se perdió un pañuelo rojo.
-    Tiene bordadas las iniciales de alguien que no quiere decir cuáles.
-- **B86** · La herrería permanecerá cerrada hasta el lunes.
-    El herrero se tomó el fin de semana muy en serio.
-- **B87** · Se encontró un perro en la plaza.
-    Él parece creer que vive aquí.
-- **B88** · El panadero pide que no golpeen la puerta antes del amanecer.
-    Sobre todo si no van a comprar pan.
-- **B89** · Hay una vaca en el huerto.
-    El dueño tiene hasta el mediodía para reconocerla.
-- **B90** · La cosecha de trigo empieza mañana.
-    Quien falte tendrá que escuchar al capataz durante horas.
-- **B91** · La fuente sabe mejor después de hervirla.
-    Nadie sabe por qué.
-- **B92** · El alcalde compró una nueva capa.
-    La anterior no era tan vieja como él decía.
-- **B93** · Se necesitan velas para la iglesia.
-    También sirven para quienes tienen cosas que hacer después de oscurecer.
-- **B94** · Un cuervo lleva días siguiendo al cartero.
-    El cartero dice que no le debe nada.
-- **B95** · Se alquila una habitación.
-    Da al patio y escucha perfectamente los gallos.
-- **B96** · El granjero busca un espantapájaros.
-    Los cuervos ya se acostumbraron al anterior.
-- **B97** · Se encontró una pala en el cementerio.
-    Nadie recuerda haberla dejado allí.
-- **B98** · El río amaneció cubierto de niebla.
-    Los pescadores esperarán un poco antes de salir.
-- **B99** · La taberna sirve estofado.
-    Hoy sí contiene carne.
-- **B100** · El herrero busca carbón.
-    Paga bien y pregunta poco.
-- **B101** · Se perdió una cesta de huevos.
-    El ladrón tuvo que ser muy cuidadoso.
-- **B102** · El puente necesita reparaciones.
-    Aguanta, pero cada vez suena más convencido de lo contrario.
-- **B103** · Se venden botas usadas.
-    Sólo tienen dos dueños anteriores. Que sepamos.
-- **B104** · El boticario prepara un remedio nuevo.
-    Dice que esta vez no explota.
-- **B105** · La iglesia necesita limpiar las ventanas.
-    Desde dentro se ve menos de lo que debería.
-- **B106** · Alguien ha dejado un saco de harina en la plaza.
-    Nadie quiere admitir que lo olvidó.
-- **B107** · El pastor cuenta una oveja menos.
-    La oveja, por su parte, parece contar al pastor menos.
-- **B108** · Se buscan voluntarios para reparar la muralla.
-    No hace falta experiencia. La muralla tampoco tiene mucha.
-- **B109** · La posada perdió una llave.
-    Si aparece en vuestra habitación, no preguntéis cómo llegó.
-- **B110** · Se encontró una caja cerrada junto al río.
-    Está vacía. Creemos.
-- **B111** · El mercado tendrá manzanas del sur.
-    Son caras, pero vienen de muy lejos y eso parece importante.
-- **B112** · El granjero ofrece leche fresca.
-    Fresca de verdad. La vaca sigue enfadada.
-- **B113** · No dejar comida en la plaza.
-    El cuervo ya tiene suficiente poder.
-- **B114** · Se buscan músicos para el sábado.
-    Si sabéis tocar algo, ya sois mejores que los últimos.
-- **B115** · El tejador arreglará los tejados mañana.
-    Entrad las gallinas antes.
-- **B116** · Se encontró una hebilla de hierro.
-    No parece pertenecer a ninguna ropa del pueblo.
-- **B117** · El molino hace un ruido nuevo.
-    El molinero dice que es normal. No parece convencido.
-- **B118** · La señora Marta vende mermelada.
-    La de ciruela está especialmente buena.
-- **B119** · Se necesita alguien que sepa nadar.
-    No preguntéis todavía para qué.
-- **B120** · La campana tiene una grieta.
-    Aun así, suena mejor que el campanero.
-- **B121** · El cazador vuelve mañana.
-    Espera traer carne, si los ciervos colaboran.
-- **B122** · Se busca una mula para el camino del norte.
-    Que sea obediente sería un cambio agradable.
-- **B123** · El pozo vuelve a tener cuerda.
-    Esta vez está atada a algo.
-- **B124** · Se encontró una carta en la posada.
-    Está escrita en un idioma que nadie reconoce.
-- **B125** · La panadería cierra los martes.
-    El martes pasado alguien compró todo el pan y el pueblo todavía habla de ello.
-- **B126** · El herrador tiene turno libre el jueves.
-    Reservad antes de que el caballo se canse de esperar.
-- **B127** · Se vende madera seca.
-    La mojada también estaba a la venta, pero no funcionó.
-- **B128** · El río trae peces pequeños.
-    El pescador dice que pronto vendrán los grandes.
-- **B129** · El alcalde pide silencio mañana al amanecer.
-    Tiene previsto anunciar algo.
-- **B130** · Se busca quien haya visto una carreta azul.
-    No era azul ayer.
-- **B131** · El granero estará cerrado esta noche.
-    Hay que contar el trigo.
-- **B132** · El pastor encontró una moneda antigua.
-    Ahora todos quieren encontrar otra.
-- **B133** · Se necesita un nuevo cubo para el pozo.
-    El anterior decidió descansar en el fondo.
-- **B134** · La posada tiene sopa caliente.
-    No preguntéis qué hora es; siempre está caliente.
-- **B135** · Se encontró una espada rota cerca del camino.
-    No hay sangre alrededor.
-- **B136** · El carpintero terminó el ataúd.
-    Esperemos que tarde mucho en necesitarse.
-- **B137** · El pueblo tendrá visita mañana.
-    El alcalde ha pedido que nadie haga preguntas raras.
-- **B138** · Se buscan voluntarios para apagar el horno de la panadería.
-    El panadero dice que es urgente.
-- **B139** · El río está creciendo.
-    Los pescadores han recogido sus cosas.
-- **B140** · Se vende lana recién esquilada.
-    La oveja ya se ha olvidado del asunto.
-- **B141** · Alguien ha estado dejando piedras en el camino.
-    Nadie sabe por qué.
-- **B142** · El molinero necesita ayuda con la rueda.
-    Dice que pesa poco. No le creáis.
-- **B143** · La taberna tiene música esta noche.
-    El músico sólo conoce tres canciones.
-- **B144** · Se perdió un candil.
-    Si lo encontráis de noche, probablemente lo veáis.
-- **B145** · La fuente está fría incluso al mediodía.
-    Siempre lo estuvo, pero hoy alguien se dio cuenta.
-- **B146** · El boticario compra hierbas raras.
-    Mejor no preguntarle para qué.
-- **B147** · Se encontró un guante en la plaza.
-    El otro apareció en el molino.
-- **B148** · La cosecha de cebada empieza el viernes.
-    El que no quiera trabajar puede empezar a buscar excusas hoy.
-- **B149** · El alcalde ha prohibido correr por la plaza.
-    Preguntad al niño que rompió la fuente.
-- **B150** · Se busca una gallina especialmente grande.
-    No está perdida. Sólo necesitamos saber de quién es.
-- **B151** · El puente ha sido reforzado.
-    Esta vez el carpintero vino con planos.
-- **B152** · El herrero tiene una espada abandonada.
-    Nadie ha venido a reclamarla.
-- **B153** · El pastor oyó campanas en el bosque.
-    No hay campanas en el bosque.
-- **B154** · Se necesitan sacos para la cosecha.
-    Los viejos tienen agujeros y los nuevos cuestan demasiado.
-- **B155** · La posada acepta reservas para el sábado.
-    El perro ocupa una cama, como siempre.
-- **B156** · Se encontró un reloj que no funciona.
-    Marca siempre la misma hora.
-- **B157** · El río vuelve a sonar fuerte por la noche.
-    Los que viven cerca dicen que es normal.
-- **B158** · El panadero necesita harina.
-    Mucha. Demasiada, según el almacén.
-- **B159** · Se vende una carreta.
-    Tiene una rueda nueva y tres que todavía aguantan.
-- **B160** · El alcalde pide que nadie toque la estatua.
-    Especialmente nadie que diga "sólo estaba mirando".
-- **B161** · Se perdió un libro.
-    Tiene más páginas de las que alguien del pueblo ha leído en su vida.
-- **B162** · El cementerio necesita flores.
-    Alguien se llevó las últimas.
-- **B163** · El cazador encontró huellas enormes.
-    Dice que eran de oso. El resto dice que eran de oso porque no quiere discutir.
-- **B164** · Se buscan recolectores de setas.
-    El boticario paga mejor por las que no mata a nadie.
-- **B165** · La taberna necesita barriles vacíos.
-    No tardarán mucho en volver a estar llenos.
-- **B166** · El herrador se ausentará dos días.
-    Su aprendiz dice que sabe hacerlo. Su caballo no está tan seguro.
-- **B167** · La campana volvió a sonar a medianoche.
-    El campanero insiste en que esta vez tampoco fue él.
-- **B168** · Se encontró una bolsa de monedas.
-    Hay menos cada vez que alguien la cuenta.
-- **B169** · El granjero busca ayuda con el establo.
-    Lleva semanas posponiéndolo.
-- **B170** · La plaza tendrá mercado mañana.
-    Traed lo que tengáis y fingid que vale mucho.
-- **B171** · Se venden conejos.
-    Vivos, por supuesto. Los otros no tuvieron tanta suerte.
-- **B172** · El río se ha llevado parte de la orilla.
-    La orilla nueva queda bastante fea.
-- **B173** · La iglesia busca un nuevo campanero.
-    Se valorará no tener miedo a las alturas.
-- **B174** · El carpintero encontró termitas.
-    Ahora todos miran sus casas con preocupación.
-- **B175** · Se perdió una llave grande.
-    El dueño sabe qué abre. Dice que no importa.
-- **B176** · La panadera pide que devuelvan sus bandejas.
-    Algunas llevan meses viajando por el pueblo.
-- **B177** · Hay una nueva señal en el camino.
-    Nadie recuerda haberla puesto.
-- **B178** · Se necesitan leñadores.
-    El invierno no espera a nadie.
-- **B179** · El pastor ofrece lana.
-    No acepta ovejas a cambio.
-- **B180** · La posada tiene habitación libre.
-    Sólo una. Y está al lado de la cocina.
-- **B181** · El molino comprará trigo mañana.
-    Siempre que no venga mojado.
-- **B182** · Se encontró una bota junto al río.
-    De nuevo, sólo una.
-- **B183** · El herrero ha terminado una armadura.
-    No sabemos para quién.
-- **B184** · Se busca quien haya visto al alcalde ayer.
-    Él dice que estaba aquí. Nadie lo vio.
-- **B185** · El boticario pide frascos vacíos.
-    No pregunta de dónde vienen.
-- **B186** · La fuente está rodeada de flores nuevas.
-    Alguien las planta de noche.
-- **B187** · Se venden manzanas rojas.
-    Algunas tienen marcas de dientes.
-- **B188** · El granjero ha perdido tres gallinas.
-    Sospecha del zorro. El zorro no ha sido interrogado.
-- **B189** · La muralla necesita piedras.
-    Las que faltan siguen sin aparecer.
-- **B190** · Se encontró una flauta en el bosque.
-    Suena mal incluso cuando nadie la toca.
-- **B191** · El alcalde anuncia una nueva norma.
-    No dejar carros en medio de la plaza.
-- **B192** · La posada ofrece cama y desayuno.
-    El desayuno depende de si queda comida.
-- **B193** · El cazador vende pieles.
-    Dice que no preguntéis de qué animal son.
-- **B194** · Se busca aprendiz de herrero.
-    Las primeras semanas consisten principalmente en no quemarse.
-- **B195** · El río está demasiado silencioso.
-    Los pescadores prefieren cuando hace ruido.
-- **B196** · La panadería tendrá pan negro mañana.
-    No está quemado. Esta vez.
-- **B197** · Se encontró un collar en el camino.
-    Parece caro y nadie del pueblo reconoce el símbolo.
-- **B198** · El molinero ha cerrado una puerta.
-    Dice que siempre estuvo ahí. No es verdad.
-- **B199** · Se necesitan manos para reparar el granero.
-    Traed guantes si tenéis.
-- **B200** · El cementerio tiene una tumba nueva.
-    Nadie parece saber para quién es.
-- **B201** · El herrero busca una pieza de hierro muy concreta.
-    Dice que sabrá reconocerla cuando la vea.
-- **B202** · La campana no sonará esta tarde.
-    El campanero tiene fiebre.
-- **B203** · Se vende queso fresco.
-    Muy fresco. Demasiado, según algunos.
-- **B204** · El pastor perdió un perro.
-    El perro volvió solo. El pastor todavía no.
-- **B205** · La plaza tendrá música el domingo.
-    Esta vez han contratado a dos músicos.
-- **B206** · Se encontraron huellas alrededor del granero.
-    Ninguna entra. Todas salen.
-- **B207** · La posada necesita leña.
-    Mucha. El invierno ha decidido quedarse.
-- **B208** · El alcalde busca a alguien que sepa leer mapas.
-    Preferiblemente antes de partir.
-- **B209** · Se perdió una cesta de manzanas.
-    La cesta apareció vacía.
-- **B210** · El carpintero vende una puerta.
-    Tiene bisagras nuevas y no tiene casa.
-- **B211** · La fuente amaneció llena de hojas.
-    No hay árboles cerca.
-- **B212** · El boticario compra veneno de serpiente.
-    Dice que es para medicina.
-- **B213** · Se necesita quien limpie la torre.
-    El último voluntario no volvió a ofrecerse.
-- **B214** · El herrador encontró una herradura extraña.
-    No corresponde a ningún caballo conocido.
-- **B215** · El río ha traído un tronco marcado.
-    Tiene símbolos tallados en la corteza.
-- **B216** · La iglesia perdió una vela grande.
-    No sabemos cómo alguien puede perder una vela tan grande.
-- **B217** · Se busca dueño para una cabra muy enfadada.
-    Ella también busca dueño, aparentemente.
-- **B218** · La taberna sirve cerveza nueva.
-    El tabernero dice que es mejor. Nadie se atreve a contradecirlo.
-- **B219** · El granjero encontró monedas en su campo.
-    Lleva tres días cavando.
-- **B220** · Se reparará el camino del norte.
-    Primero habrá que encontrar dónde empieza.
-- **B221** · El alcalde pide que no se alimenten los cuervos.
-    Ya son demasiados y lo saben.
-- **B222** · Se encontró una campana pequeña en el bosque.
-    No tiene badajo.
-- **B223** · La panadera busca a quien dejó una nota en su horno.
-    No era una receta.
-- **B224** · El molino necesita una nueva cuerda.
-    La anterior desapareció durante la noche.
-- **B225** · Se venden flores del valle.
-    Algunas sólo abren después del anochecer.
-- **B226** · El cazador recomienda no acercarse al pantano.
-    No explica por qué.
-- **B227** · El pastor dice haber visto luces en la colina.
-    Esta vez no estaba borracho.
-- **B228** · La posada tiene un huésped que nadie conoce.
-    Paga por adelantado y no habla mucho.
-- **B229** · Se encontró una bolsa de semillas junto a la muralla.
-    Nadie sabe qué crecen.
-- **B230** · El herrero escuchó golpes bajo su taller.
-    Ha decidido no investigar hasta mañana.
-- **B231** · El río trae agua turbia desde el norte.
-    Conviene esperar antes de beber.
-- **B232** · El alcalde ordena cerrar las puertas al anochecer.
-    Dice que es por seguridad.
-- **B233** · Se encontró una carta sin remitente.
-    Sólo tiene escrito el nombre del pueblo.
-- **B234** · El cuervo volvió a robar una cuchara.
-    Ya tiene cinco.
-- **B235** · Alguien dejó una vela encendida junto al cementerio.
-    Se apagó sola antes del amanecer.
-- **B236** · Aviso: si encontráis algo extraño en el camino, no lo llevéis a la plaza.
-    Ya no tenemos sitio.
-- **B237** · Hoy se casa la hija del panadero.
-    La boda será en la plaza. El pan, en cambio, se sirve donde siempre.
-- **B238** · El alcalde ha pedido prestado un caballo.
-    Todavía no ha encontrado al caballo ni al que se lo prestó.
-- **B239** · Hay luna llena esta noche.
-    Las ventanas de la posada ya están cerradas por si acaso.
-- **B240** · El pequeño Emil encontró una rana dorada.
-    Ahora lleva dos días intentando encontrar otra.
-- **B241** · La señora Greta cumple ochenta años.
-    Ha pedido que nadie mencione el número.
-- **B242** · El músico de la plaza toca gratis hoy.
-    Dice que tiene una deuda con alguien.
-- **B243** · El perro del cartero aprendió a abrir puertas.
-    El cartero considera que esto es una habilidad peligrosa.
-- **B244** · Llegó un mercader de tierras lejanas.
-    Vende especias que hacen estornudar hasta a los caballos.
-- **B245** · Se ha visto un arcoíris sobre el bosque.
-    Los niños dicen que termina detrás de la colina.
-- **B246** · La posada está preparando una fiesta.
-    El posadero lleva tres días diciendo que "todavía falta algo".
-- **B247** · El viejo Tomás cuenta que de joven cruzó las montañas.
-    Su nieta dice que nunca salió del pueblo.
-- **B248** · Una gallina puso un huevo azul.
-    El sacerdote ha sido consultado. No supo qué responder.
-- **B249** · Mañana llega el recaudador de impuestos.
-    La plaza amaneció misteriosamente vacía esta mañana.
-- **B250** · Hay un barco detenido río abajo.
-    No parece tener tripulación.
-- **B251** · El herrero se dejó crecer la barba.
-    Nadie recuerda haberlo visto sin ella.
-- **B252** · Una niña perdió su muñeca en el bosque.
-    La encontraron sentada junto a un árbol.
-- **B253** · Se venden ciruelas negras.
-    La cesta está bajo techo. Nadie explicó por qué.
-- **B254** · Esta noche habrá cuentos en la taberna.
-    El viejo narrador exige una jarra antes de empezar.
-- **B255** · La cosecha será buena este año.
-    Los granjeros llevan semanas diciendo lo mismo, así que debe ser verdad.
-- **B256** · Un desconocido preguntó por el camino viejo.
-    Nadie usa ese camino desde hace años.
-- **B257** · El gato de la posada duerme siempre sobre la misma mesa.
-    Los clientes han aprendido a comer alrededor suyo.
-- **B258** · Se encontró una estatua pequeña en el campo.
-    El dueño de la tierra dice que ayer no estaba allí.
-- **B259** · La hija del herrero quiere aprender a tocar el laúd.
-    El laúd todavía no está de acuerdo.
-- **B260** · El mercado comienza al amanecer.
-    Los primeros en llegar se quedan con los mejores nabos.
-- **B261** · El alcalde ha comprado un mapa nuevo.
-    Lo tiene colgado al revés desde el martes.
-- **B262** · Se necesitan voluntarios para el festival de primavera.
-    Principalmente alguien que sepa dónde guardamos las cosas.
-- **B263** · El río huele a lluvia.
-    Los pescadores juran que eso existe.
-- **B264** · Se ha perdido una carreta roja.
-    Si la veis, avisad. Es bastante difícil de esconder.
-- **B265** · La campana de la iglesia necesita una cuerda nueva.
-    El campanero propone usar la vieja hasta que se rompa.
-- **B266** · El panadero ha empezado a vender tortas con miel.
-    Las primeras doce desaparecieron antes de llegar al mostrador.
-- **B267** · Esta mañana nació un ternero blanco.
-    Todo el mundo fue a verlo. El ternero parecía decepcionado.
-- **B268** · El carpintero está fabricando una mesa enorme.
-    No acepta preguntas sobre cuántas personas piensa sentar.
-- **B269** · Un viajero dejó una carta en la posada.
-    Volverá por ella dentro de un mes.
-- **B270** · Hay niebla sobre las colinas.
-    Los pastores regresaron antes de tiempo.
-- **B271** · La plaza tendrá flores nuevas.
-    Las plantaron los niños y luego discutieron sobre dónde.
-- **B272** · Se busca una persona que sepa contar historias.
-    El pueblo está cansado de la misma historia del lobo.
-- **B273** · El río se congeló esta mañana.
-    Nadie recuerda un invierno tan frío.
-- **B274** · La taberna ha comprado una mesa nueva.
-    Ya tiene nombre: Gertrudis.
-- **B275** · Un cuervo ha aprendido a imitar al campanero.
-    El campanero no está contento.
-- **B276** · La hija del molinero se marcha a la ciudad.
-    Su madre ha preparado comida para el viaje. Para tres semanas.
-- **B277** · Hay un nuevo banco en la plaza.
-    Nadie sabe quién lo hizo.
-- **B278** · Se encontró una cesta llena de peras junto al camino.
-    El pueblo entero espera a que alguien venga a reclamarlas.
-- **B279** · El herrero busca un ayudante.
-    El puesto incluye fuego, humo y una cantidad razonable de golpes.
-- **B280** · Hoy se reparte sopa gratis.
-    Traed vuestro propio cuenco.
-- **B281** · Un hombre asegura haber visto un lobo blanco.
-    El pueblo le cree porque esta vez estaba acompañado.
-- **B282** · La fuente está decorada con cintas.
-    Alguien se casa. O alguien quiere que pensemos eso.
-- **B283** · La cosecha de uvas comienza mañana.
-    Los niños ya han empezado antes.
-- **B284** · Se encontró un zapato en la chimenea de la posada.
-    Nadie sabe cómo llegó hasta allí.
-- **B285** · El médico recomienda descansar.
-    Él mismo lleva tres noches sin hacerlo.
-- **B286** · El cartero perdió una carta.
-    La carta llegó igual. El cartero no sabe cómo.
-- **B287** · Hoy toca limpiar la plaza.
-    Quien encuentre algo interesante puede quedárselo. Quien encuentre una rata, que avise.
-- **B288** · El mercado trae telas del este.
-    Son tan finas que algunos miran a través de ellas para comprobarlo.
-- **B289** · El granjero Jacobo compró una vaca nueva.
-    Es enorme y tiene muy malas opiniones sobre todo el mundo.
-- **B290** · La campana de la iglesia está desafinada.
-    Nadie sabía que una campana podía estarlo.
-- **B291** · Se busca alguien para cuidar el huerto durante el viaje.
-    El espantapájaros no cuenta como persona.
-- **B292** · El río ha dejado piedras lisas en la orilla.
-    Los niños se las están llevando todas.
-- **B293** · Hay una nueva receta en la taberna.
-    El cocinero la llama "estofado sorpresa". La sorpresa cambia cada día.
-- **B294** · Una mujer preguntó por el camino hacia el norte.
-    Luego siguió hacia el sur.
-- **B295** · La torre estará cerrada durante la tarde.
-    Se han encontrado abejas dentro.
-- **B296** · El viejo molino tiene una ventana rota.
-    Nadie oyó el golpe.
-- **B297** · Se celebra el día del pueblo el próximo domingo.
-    Habrá música, comida y un discurso demasiado largo.
-- **B298** · El pastor perdió una oveja durante la tormenta.
-    La oveja volvió antes que él.
-- **B299** · El herrero fabricó un cuchillo magnífico.
-    Ahora intenta recordar quién se lo encargó.
-- **B300** · Se busca dueño para una capa verde.
-    Está colgada en la posada desde el invierno.
-- **B301** · Hay manzanas suficientes para todos.
-    Eso dicen hasta que llega el primero con una carretilla.
-- **B302** · El alcalde ha prohibido las carreras de gallinas.
-    La última terminó en la casa del sacerdote.
-- **B303** · Una niña ofrece dibujos a cambio de pan.
-    Algunos son sorprendentemente buenos.
-- **B304** · La nieve llegó temprano este año.
-    Los niños están encantados. Los adultos ya están haciendo cuentas.
-- **B305** · Se arreglará el tejado de la iglesia.
-    Los trabajos empiezan cuando deje de llover.
-- **B306** · Una familia nueva se instalará junto al río.
-    Traen dos caballos, cinco cajas y un piano.
-- **B307** · El mercado busca un nuevo pregonero.
-    Hace falta alguien capaz de gritar sin quedarse afónico.
-- **B308** · La posada ha recibido un barril de vino extranjero.
-    El posadero lo guarda bajo llave.
-- **B309** · Hay huellas de botas junto al cementerio.
-    Son demasiado pequeñas para pertenecer al sepulturero.
-- **B310** · El río trae hojas amarillas.
-    El otoño está llegando.
-- **B311** · La panadera regalará un bollo a cada niño.
-    El primero que llegue tendrá dos.
-- **B312** · El caballo de la alcaldesa aprendió a abrir el establo.
-    Ahora duerme donde quiere.
-- **B313** · Se busca quien pueda reparar un reloj.
-    Marca las doce desde hace tres días.
-- **B314** · El bosque está lleno de setas.
-    El boticario pide que nadie las toque hasta que él llegue.
-- **B315** · Hoy habrá música junto al pozo.
-    No preguntéis por qué junto al pozo.
-- **B316** · El carpintero terminó una silla para el alcalde.
-    El alcalde todavía prefiere la vieja.
-- **B317** · Un mercader ofrece brújulas.
-    La mitad apunta al norte. La otra mitad apunta con entusiasmo.
-- **B318** · Se encontró una pluma enorme.
-    El cazador no reconoce el ave.
-- **B319** · El sacerdote busca ayuda para ordenar los libros.
-    Hay algunos que llevan décadas sin abrirse.
-- **B320** · El herrero cerrará temprano.
-    Tiene una cita con el barbero.
-- **B321** · Una vaca se ha acostumbrado a la campana.
-    Ahora se acerca cada vez que la oye.
-- **B322** · La taberna necesita músicos para el viernes.
-    Se aceptan músicos y gente que sepa fingir.
-- **B323** · Se venden calabazas.
-    Algunas pesan más que un niño.
-- **B324** · Un viajero dejó una moneda extranjera.
-    El mercader dice que vale poco. El viajero dijo que vale muchísimo.
-- **B325** · El granero está lleno.
-    Por primera vez en años, el granjero sonríe al decirlo.
-- **B326** · La fuente se congeló por completo.
-    Los niños ya han empezado a caminar encima.
-- **B327** · Se busca un nombre para el nuevo caballo del alcalde.
-    El alcalde ha rechazado diecisiete sugerencias.
-- **B328** · El viejo puente tiene musgo nuevo.
-    Los ancianos aseguran que siempre estuvo ahí.
-- **B329** · Una mujer vende perfumes hechos con flores.
-    El de lavanda ya tiene media plaza oliendo a primavera.
-- **B330** · Hoy no habrá pescado.
-    Los peces parecen haberse puesto de acuerdo.
-- **B331** · El herrero tiene una quemadura nueva.
-    Dice que no es grave. Su aprendiz opina distinto.
-- **B332** · Un niño asegura que hay una puerta bajo el río.
-    Ha hecho un dibujo para demostrarlo.
-- **B333** · Se necesitan voluntarios para plantar árboles.
-    Los que los planten podrán presumir de ellos dentro de veinte años.
-- **B334** · El molino funcionará toda la noche.
-    Hay un pedido urgente.
-- **B335** · El alcalde ha perdido su sombrero favorito.
-    Ofrece una recompensa. Bastante generosa para ser un sombrero.
-- **B336** · Se encontró un pequeño nido en la torre.
-    Nadie quiere ser quien lo retire.
-- **B337** · La feria llega dentro de una semana.
-    Ya se escucha a los comerciantes discutir por los puestos.
-- **B338** · El pueblo tiene un nuevo reloj de sol.
-    Funciona perfectamente cuando hay sol.
-- **B339** · La posadera aprendió una canción nueva.
-    Ahora la canta mientras trabaja.
-- **B340** · Se busca una persona para acompañar al mercader hasta el siguiente pueblo.
-    Viaje tranquilo, salvo por el camino.
-- **B341** · La cosecha de calabazas fue extraordinaria.
-    El problema es encontrar dónde ponerlas.
-- **B342** · Una tormenta rompió tres árboles.
-    El carpintero ya está tomando medidas.
-- **B343** · El panadero necesita ayuda esta madrugada.
-    El que quiera dormir puede volver mañana.
-- **B344** · Hay una carta sellada para el alcalde.
-    Lleva el escudo de un lugar que nadie reconoce.
-- **B345** · Se ha visto humo detrás de la colina.
-    Los pastores dicen que viene de una fogata.
-- **B346** · El perro del herrero tiene un nuevo collar.
-    Se lo ganó por perseguir ladrones. O gallinas. Nadie está seguro.
-- **B347** · El cementerio necesita una nueva verja.
-    La anterior decidió tumbarse.
-- **B348** · Se venden velas aromáticas.
-    La de canela hace que la taberna huela a Navidad.
-- **B349** · El río trajo un tronco enorme.
-    El carpintero lleva toda la mañana mirándolo.
-- **B350** · La niña de la casa azul toca el violín.
-    Ya no tan mal como antes.
-- **B351** · El alcalde invita a cenar a los ancianos del pueblo.
-    Nadie sabe qué está tramando.
-- **B352** · Se encontró un saco de harina en medio del camino.
-    La carreta que lo llevaba sigue sin aparecer.
-- **B353** · El molino tiene un visitante nuevo.
-    Lleva sombrero rojo y no habla con nadie.
-- **B354** · Se buscan voluntarios para apagar las luces de la plaza.
-    Una tarea sencilla, dicen.
-- **B355** · La taberna ofrece alojamiento gratis al viajero número cien.
-    Van por noventa y ocho.
-- **B356** · Un niño dejó un dibujo de un dragón en el tablón.
-    Tiene seis patas.
-- **B357** · Se acerca una tormenta desde el oeste.
-    Los granjeros ya están guardando las herramientas.
-- **B358** · La posada recibió una caja de limones.
-    Nadie sabe quién la envió.
-- **B359** · El herrero ha pedido silencio durante una hora.
-    Está intentando recordar algo.
-- **B360** · Se encontró una llave oxidada en el bosque.
-    Parece demasiado grande para una casa.
-- **B361** · El pastor asegura que una oveja sabe su nombre.
-    La oveja no ha confirmado nada.
-- **B362** · Hay una nueva estatua en la plaza.
-    Representa a alguien que nadie recuerda.
-- **B363** · El alcalde dará un discurso mañana.
-    Se recomienda llevar algo para sentarse.
-- **B364** · El panadero ha empezado a levantarse todavía más temprano.
-    El pueblo se niega a competir.
-- **B365** · Se necesita un aprendiz de boticario.
-    Curiosidad obligatoria. Nariz sensible, recomendable.
-- **B366** · El gato negro de la plaza tiene tres casas.
-    Él parece considerar que todas son suyas.
-- **B367** · Se venden semillas de flores del sur.
-    Dicen que florecen incluso con poca luz.
-- **B368** · Un hombre dejó su caballo en la posada.
-    Lleva cuatro días sin volver.
-- **B369** · La campana volvió a sonar de madrugada.
-    Esta vez hubo testigos.
-- **B370** · El puente estará cerrado mañana.
-    Pasará una caravana.
-- **B371** · El río se llevó un barril vacío.
-    El dueño dice que lo necesita de vuelta.
-- **B372** · La plaza está llena de huellas de barro.
-    Anoche no llovió.
-- **B373** · Se busca una flauta perdida.
-    El dueño dice que suena mejor cuando la toca él. Nadie lo ha comprobado.
-- **B374** · El granjero ofrece trabajo por una semana.
-    El pago incluye comida.
-- **B375** · Una familia ha dejado el pueblo.
-    Dejaron flores en la puerta de su casa.
-- **B376** · El boticario necesita frascos pequeños.
-    También acepta grandes, pero no sabe dónde guardarlos.
-- **B377** · La taberna estrenará menú el viernes.
-    El cocinero promete tres platos que no llevan nabo.
-- **B378** · Se ha encontrado una corona de flores en el río.
-    Todavía está fresca.
-- **B379** · El herrero fabricó una campana pequeña.
-    La está probando con bastante entusiasmo.
-- **B380** · La hija del alcalde aprendió a montar.
-    Ahora insiste en cruzar el puente todos los días.
-- **B381** · Hay una reunión de agricultores esta tarde.
-    Tema principal: quién tiene el mejor caballo.
-- **B382** · El carpintero necesita madera de roble.
-    La de pino se está acabando.
-- **B383** · Una anciana ofrece té a los viajeros.
-    Dice que es bueno para recordar sueños.
-- **B384** · El pueblo recibió sal nueva.
-    Ya no tendremos que racionarla.
-- **B385** · Se busca un perro pequeño y blanco.
-    Es más rápido de lo que parece.
-- **B386** · Una tormenta rompió la veleta.
-    Ahora apunta siempre hacia la taberna.
-- **B387** · El mercado tiene queso de cabra.
-    El queso es bueno. La cabra, según dicen, también.
-- **B388** · El río amaneció cubierto de flores.
-    Nadie sabe de dónde vienen.
-- **B389** · Se encontró una moneda enterrada bajo un banco.
-    El banco es nuevo.
-- **B390** · La posada tiene un huésped que duerme de día.
-    Paga puntualmente y nadie quiere molestarlo.
-- **B391** · El sacerdote ha pedido que alguien cuide las velas.
-    Últimamente desaparecen demasiadas.
-- **B392** · El alcalde compró un espejo nuevo.
-    Lleva media hora frente a él.
-- **B393** · Se necesita alguien que sepa herrar mulas.
-    Las mulas del pueblo tienen opiniones fuertes.
-- **B394** · La cosecha de trigo terminó.
-    Esta noche se cena en la plaza.
-- **B395** · Una carreta desconocida pasó por el pueblo al amanecer.
-    No llevaba mercancía.
-- **B396** · El perro de la posada ha aprendido una palabra.
-    Dice "fuera". Sólo cuando llueve.
-- **B397** · Se busca a quien haya dejado una vela en el bosque.
-    Sigue apareciendo encendida.
-- **B398** · La fuente está decorada con monedas.
-    Los niños han empezado a pedir deseos.
-- **B399** · El viejo puente sobrevivió otra primavera.
-    El carpintero también.
-- **B400** · El alcalde ha invitado a un noble.
-    La posadera lleva dos días limpiando.
-- **B401** · Una mujer vende pequeños amuletos.
-    No promete que funcionen. Eso parece tranquilizar a algunos.
-- **B402** · El molinero compró un perro.
-    Lo llamó Molino.
-- **B403** · Se encontró un libro junto al río.
-    Varias páginas hablan del pueblo.
-- **B404** · Hay una luz encendida en la torre.
-    Nadie recuerda haber subido.
-- **B405** · El herrero busca una piedra negra.
-    Dice que la necesita para un trabajo importante.
-- **B406** · El pastor volvió del bosque antes del amanecer.
-    No quiso hablar durante el desayuno.
-- **B407** · La panadería regalará pan duro para los animales.
-    Se aceptan animales grandes, pequeños y hambrientos.
-- **B408** · El pueblo tendrá una nueva fuente.
-    La antigua seguirá allí por si la nueva resulta peor.
-- **B409** · Se encontró una capa en el camino.
-    Está empapada y llena de hojas.
-- **B410** · Un comerciante ofrece mapas del valle.
-    Algunos tienen lugares que no existen.
-- **B411** · La iglesia celebrará una misa al amanecer.
-    Después habrá desayuno.
-- **B412** · El granjero encontró una huella de bota dentro del granero.
-    Él no usa botas.
-- **B413** · La taberna busca un nuevo cocinero.
-    El anterior se fue después de inventar la sopa de cebolla.
-- **B414** · Se venden velas para el invierno.
-    Comprar antes de la primera nevada es una idea bastante buena.
-- **B415** · Una bandada de pájaros llegó al pueblo.
-    Se fueron al cabo de una hora, todos juntos.
-- **B416** · El río está más claro que de costumbre.
-    Los pescadores pueden ver el fondo. Eso no los tranquiliza.
-- **B417** · El alcalde ha declarado día festivo.
-    Nadie sabe qué estamos celebrando, pero nadie piensa protestar.
-- **B418** · Se encontró una pequeña campana en el camino.
-    Suena cuando no hay viento.
-- **B419** · El carpintero ha construido una cama enorme.
-    Dice que es para alguien importante.
-- **B420** · Una niña ofrece flores junto a la fuente.
-    No acepta monedas, sólo historias.
-- **B421** · El mercader de especias volverá el próximo mes.
-    Esta vez traerá canela.
-- **B422** · Se busca al dueño de una carta sin abrir.
-    Lleva un sello de cera azul.
-- **B423** · La posada ha comprado un piano.
-    Nadie del pueblo sabe tocarlo.
-- **B424** · El boticario cultiva una planta nueva.
-    La mantiene lejos de las gallinas.
-- **B425** · Se oyó música en el bosque anoche.
-    Los cazadores regresaron antes de descubrir de dónde venía.
-- **B426** · El herrero ha cerrado su taller.
-    En la puerta hay una nota que dice: "Mañana".
-- **B427** · La plaza amaneció cubierta de nieve.
-    Alguien dibujó una cara enorme antes de que saliera el sol.
-- **B428** · Un viajero dejó una historia escrita en la posada.
-    Nadie sabe si ocurrió aquí.
-- **B429** · El pastor encontró una campana pequeña entre las piedras.
-    Ninguna oveja reconoce su sonido.
-- **B430** · El pueblo tiene nuevo reloj.
-    Va cinco minutos adelantado. El alcalde dice que es para que lleguemos temprano.
-- **B431** · Se busca a alguien que haya visto al zorro rojo.
-    Lleva semanas rondando los corrales.
-- **B432** · El río trajo una botella cerrada.
-    Dentro hay un papel.
-- **B433** · La panadera está haciendo una tarta enorme.
-    No ha querido decir para quién.
-- **B434** · Alguien ha plantado un árbol en mitad de la plaza.
-    El alcalde todavía está decidiendo si enfadarse.
-- **B435** · Esta noche habrá hoguera en la colina.
-    Los mayores dicen que es una vieja tradición.
-- **B436** · El tablón amaneció lleno de notas.
-    Por una vez, ninguna es del alcalde.
 
 ## Los nombres de la gente (49+24+14)
 
@@ -1291,49 +413,49 @@ La pantalla que sale una sola vez, al abrir la app por primera vez: fundar el pr
 
 - **U1** · `Mi hábito`  <sub>first_run.dart:116 · FirstRun.createState</sub>
 - **U2** · `EBGaramond`  <sub>first_run.dart:166 · _Ink.soft</sub>
-- **U3** · `Volver`  <sub>first_run.dart:342 · _FirstRunState.build</sub>
-- **U4** · `Tu pueblo`  <sub>first_run.dart:373 · _FirstRunState.build</sub>
-- **U5** · `El valle se abre`  <sub>first_run.dart:498 · _FirstRunState._welcomeNext</sub>
-- **U6** · `Te ganaste tu ${next.ordinalWord} pueblo.`  <sub>first_run.dart:500 · _FirstRunState._welcomeNext</sub>
-- **U7** · `«${primero.name}» lleva ${primero.pieces} `  <sub>first_run.dart:506 · _FirstRunState._welcomeNext</sub>
-- **U8** · `${primero.pieces == 1 ? 'pieza' : 'piezas'} y ya se `  <sub>first_run.dart:507 · _FirstRunState._welcomeNext</sub>
-- **U9** · `sostiene solo. Eso es lo que abrió esta puerta.`  <sub>first_run.dart:508 · _FirstRunState._welcomeNext</sub>
-- **U10** · `Llevás ${next.pieces} piezas entre tus ${next.towns.length} `  <sub>first_run.dart:514 · _FirstRunState._welcomeNext</sub>
-- **U11** · `pueblos, y se sostienen. Eso es lo que abrió esta puerta.`  <sub>first_run.dart:515 · _FirstRunState._welcomeNext</sub>
-- **U12** · `Un pueblo nuevo es un hábito nuevo, y empieza igual que el `  <sub>first_run.dart:521 · _FirstRunState._welcomeNext</sub>
-- **U13** · `primero: de a una pieza.`  <sub>first_run.dart:522 · _FirstRunState._welcomeNext</sub>
-- **U14** · `Fundar mi ${next.ordinalWord} pueblo`  <sub>first_run.dart:528 · _FirstRunState._welcomeNext</sub>
-- **U15** · `Ahora no`  <sub>first_run.dart:532 · _FirstRunState._welcomeNext</sub>
-- **U16** · `Esto es un valle vacío.`  <sub>first_run.dart:538 · _FirstRunState._welcomeFirst</sub>
-- **U17** · `Cada vez que cumplas, vas a poner una pieza. Las piezas levantan un `  <sub>first_run.dart:541 · _FirstRunState._welcomeFirst</sub>
-- **U18** · `pueblo, y el pueblo es lo que llevás hecho.`  <sub>first_run.dart:542 · _FirstRunState._welcomeFirst</sub>
-- **U19** · `Empecemos por uno.`  <sub>first_run.dart:546 · _FirstRunState._welcomeFirst</sub>
-- **U20** · `Fundar mi pueblo`  <sub>first_run.dart:548 · _FirstRunState._welcomeFirst</sub>
-- **U21** · `Tu hábito`  <sub>first_run.dart:555 · _FirstRunState._askName</sub>
-- **U22** · `¿Qué hábito querés desarrollar?`  <sub>first_run.dart:557 · _FirstRunState._askName</sub>
-- **U23** · `Siguiente`  <sub>first_run.dart:561 · _FirstRunState._askName</sub>
-- **U24** · `Leer, correr, no fumar…`  <sub>first_run.dart:568 · _FirstRunState._askName</sub>
-- **U25** · `¿Qué clase de pueblo?`  <sub>first_run.dart:594 · _FirstRunState._askPlace</sub>
-- **U26** · `Recorrer este pueblo`  <sub>first_run.dart:667 · _FirstRunState._askPlace</sub>
-- **U27** · `El motivo`  <sub>first_run.dart:682 · _FirstRunState._askWhy</sub>
-- **U28** · `¿Para qué querés ese hábito?`  <sub>first_run.dart:683 · _FirstRunState._askWhy</sub>
-- **U29** · `Para que tengas claro por qué lo mantenés.`  <sub>first_run.dart:686 · _FirstRunState._askWhy</sub>
-- **U30** · `para dormir mejor`  <sub>first_run.dart:694 · _FirstRunState._askWhy</sub>
-- **U31** · `Quién sos`  <sub>first_run.dart:713 · _FirstRunState._askWho</sub>
-- **U32** · `¿En quién te convierte tener ese hábito?`  <sub>first_run.dart:715 · _FirstRunState._askWho</sub>
-- **U33** · `Qué buscás ser una vez que consigas el hábito: ¿alguien sabio? `  <sub>first_run.dart:720 · _FirstRunState._askWho</sub>
-- **U34** · `¿Alguien sano? ¿Alguien más inteligente?`  <sub>first_run.dart:721 · _FirstRunState._askWho</sub>
-- **U35** · `Fundar el pueblo`  <sub>first_run.dart:727 · _FirstRunState._askWho</sub>
-- **U36** · `Fundar ${_name.text.trim()}`  <sub>first_run.dart:728 · _FirstRunState._askWho</sub>
-- **U37** · `que lee todos los días`  <sub>first_run.dart:736 · _FirstRunState._askWho</sub>
-- **U38** · `Arrastrá para girar · dos dedos para acercar y mover`  <sub>first_run.dart:1156 · _ExploreBar.build</sub>
-- **U39** · `PUEBLO ${_roman(n)}`  <sub>first_run.dart:1415 · _MilestoneState.build</sub>
-- **U40** · `III`  <sub>first_run.dart:1457 · _MilestoneState._roman</sub>
-- **U41** · `VII`  <sub>first_run.dart:1461 · _MilestoneState._roman</sub>
-- **U42** · `VIII`  <sub>first_run.dart:1462 · _MilestoneState._roman</sub>
-- **U43** · `Towny`  <sub>first_run.dart:1479 · _Wordmark.build</sub>
-- **U44** · `UN PUEBLO PARA CADA HÁBITO`  <sub>first_run.dart:1491 · _Wordmark.build</sub>
-- **U45** · `SE FUNDA`  <sub>first_run.dart:1526 · _FoundingName.build</sub>
+- **U3** · `Volver`  <sub>first_run.dart:352 · _FirstRunState.build</sub>
+- **U4** · `Tu pueblo`  <sub>first_run.dart:383 · _FirstRunState.build</sub>
+- **U5** · `El valle se abre`  <sub>first_run.dart:544 · _FirstRunState._welcomeNext</sub>
+- **U6** · `Te ganaste tu ${next.ordinalWord} pueblo.`  <sub>first_run.dart:546 · _FirstRunState._welcomeNext</sub>
+- **U7** · `«${primero.name}» lleva ${primero.pieces} `  <sub>first_run.dart:552 · _FirstRunState._welcomeNext</sub>
+- **U8** · `${primero.pieces == 1 ? 'pieza' : 'piezas'} y ya se `  <sub>first_run.dart:553 · _FirstRunState._welcomeNext</sub>
+- **U9** · `sostiene solo. Eso es lo que abrió esta puerta.`  <sub>first_run.dart:554 · _FirstRunState._welcomeNext</sub>
+- **U10** · `Llevás ${next.pieces} piezas entre tus ${next.towns.length} `  <sub>first_run.dart:560 · _FirstRunState._welcomeNext</sub>
+- **U11** · `pueblos, y se sostienen. Eso es lo que abrió esta puerta.`  <sub>first_run.dart:561 · _FirstRunState._welcomeNext</sub>
+- **U12** · `Un pueblo nuevo es un hábito nuevo, y empieza igual que el `  <sub>first_run.dart:567 · _FirstRunState._welcomeNext</sub>
+- **U13** · `primero: de a una pieza.`  <sub>first_run.dart:568 · _FirstRunState._welcomeNext</sub>
+- **U14** · `Fundar mi ${next.ordinalWord} pueblo`  <sub>first_run.dart:574 · _FirstRunState._welcomeNext</sub>
+- **U15** · `Ahora no`  <sub>first_run.dart:578 · _FirstRunState._welcomeNext</sub>
+- **U16** · `Esto es un valle vacío.`  <sub>first_run.dart:584 · _FirstRunState._welcomeFirst</sub>
+- **U17** · `Cada vez que cumplas, vas a poner una pieza. Las piezas levantan un `  <sub>first_run.dart:587 · _FirstRunState._welcomeFirst</sub>
+- **U18** · `pueblo, y el pueblo es lo que llevás hecho.`  <sub>first_run.dart:588 · _FirstRunState._welcomeFirst</sub>
+- **U19** · `Empecemos por uno.`  <sub>first_run.dart:592 · _FirstRunState._welcomeFirst</sub>
+- **U20** · `Fundar mi pueblo`  <sub>first_run.dart:594 · _FirstRunState._welcomeFirst</sub>
+- **U21** · `Tu hábito`  <sub>first_run.dart:601 · _FirstRunState._askName</sub>
+- **U22** · `¿Qué hábito querés desarrollar?`  <sub>first_run.dart:603 · _FirstRunState._askName</sub>
+- **U23** · `Siguiente`  <sub>first_run.dart:607 · _FirstRunState._askName</sub>
+- **U24** · `Leer, correr, no fumar…`  <sub>first_run.dart:614 · _FirstRunState._askName</sub>
+- **U25** · `¿Qué clase de pueblo?`  <sub>first_run.dart:640 · _FirstRunState._askPlace</sub>
+- **U26** · `Recorrer este pueblo`  <sub>first_run.dart:713 · _FirstRunState._askPlace</sub>
+- **U27** · `El motivo`  <sub>first_run.dart:728 · _FirstRunState._askWhy</sub>
+- **U28** · `¿Para qué querés ese hábito?`  <sub>first_run.dart:729 · _FirstRunState._askWhy</sub>
+- **U29** · `Para que tengas claro por qué lo mantenés.`  <sub>first_run.dart:732 · _FirstRunState._askWhy</sub>
+- **U30** · `para dormir mejor`  <sub>first_run.dart:740 · _FirstRunState._askWhy</sub>
+- **U31** · `Quién sos`  <sub>first_run.dart:759 · _FirstRunState._askWho</sub>
+- **U32** · `¿En quién te convierte tener ese hábito?`  <sub>first_run.dart:761 · _FirstRunState._askWho</sub>
+- **U33** · `Qué buscás ser una vez que consigas el hábito: ¿alguien sabio? `  <sub>first_run.dart:766 · _FirstRunState._askWho</sub>
+- **U34** · `¿Alguien sano? ¿Alguien más inteligente?`  <sub>first_run.dart:767 · _FirstRunState._askWho</sub>
+- **U35** · `Fundar el pueblo`  <sub>first_run.dart:773 · _FirstRunState._askWho</sub>
+- **U36** · `Fundar ${_name.text.trim()}`  <sub>first_run.dart:774 · _FirstRunState._askWho</sub>
+- **U37** · `que lee todos los días`  <sub>first_run.dart:782 · _FirstRunState._askWho</sub>
+- **U38** · `Arrastrá para girar · dos dedos para acercar y mover`  <sub>first_run.dart:1255 · _ExploreBar.build</sub>
+- **U39** · `PUEBLO ${_roman(n)}`  <sub>first_run.dart:1508 · _MilestoneState.build</sub>
+- **U40** · `III`  <sub>first_run.dart:1550 · _MilestoneState._roman</sub>
+- **U41** · `VII`  <sub>first_run.dart:1554 · _MilestoneState._roman</sub>
+- **U42** · `VIII`  <sub>first_run.dart:1555 · _MilestoneState._roman</sub>
+- **U43** · `Towny`  <sub>first_run.dart:1572 · _Wordmark.build</sub>
+- **U44** · `UN PUEBLO PARA CADA HÁBITO`  <sub>first_run.dart:1584 · _Wordmark.build</sub>
+- **U45** · `SE FUNDA`  <sub>first_run.dart:1619 · _FoundingName.build</sub>
 
 ### La pantalla de inicio
 
@@ -1350,10 +472,10 @@ El pueblo y todo lo que se abre desde él. Estas frases son las de los diálogos
 - **U54** · `prueba: ${d.name}, aquí mismo — no hay sitio para eso en `  <sub>home_screen.dart:696 · _HomeScreenState._pickTryOut</sub>
 - **U55** · `este pueblo`  <sub>home_screen.dart:697 · _HomeScreenState._pickTryOut</sub>
 - **U56** · `Acá seguimos.`  <sub>home_screen.dart:818 · _HomeScreenState._askIfAdrift</sub>
-- **U57** · `Anotado: ${cadenceSaid(n)}.`  <sub>home_screen.dart:860 · _HomeScreenState._askCadence</sub>
-- **U58** · `El pueblo duerme. Volvé cuando puedas: no cuenta ningún día.`  <sub>home_screen.dart:882 · _HomeScreenState._openRest</sub>
-- **U59** · `Probar una actividad`  <sub>home_screen.dart:985 · _TryButton.build</sub>
-- **U60** · `Chronicle`  <sub>home_screen.dart:987 · _TryButton.build</sub>
+- **U57** · `Anotado: ${cadenceSaid(n)}.`  <sub>home_screen.dart:872 · _HomeScreenState._askCadence</sub>
+- **U58** · `El pueblo duerme. Volvé cuando puedas: no cuenta ningún día.`  <sub>home_screen.dart:897 · _HomeScreenState._openRest</sub>
+- **U59** · `Probar una actividad`  <sub>home_screen.dart:1000 · _TryButton.build</sub>
+- **U60** · `Chronicle`  <sub>home_screen.dart:1002 · _TryButton.build</sub>
 
 ### Los rótulos de arriba y del costado
 
@@ -1416,11 +538,11 @@ Carteles y avisos que se pintan dentro de la escena, encima del pueblo.
 - **U95** · `CAM_X`  <sub>town_view.dart:340 · _TownViewState.initState</sub>
 - **U96** · `CAM_Z`  <sub>town_view.dart:341 · _TownViewState.initState</sub>
 - **U97** · `HOUR`  <sub>town_view.dart:590 · _TownViewState._entryFor</sub>
-- **U98** · `${building.name} en pie`  <sub>town_view.dart:954 · _TownViewState._onImpact</sub>
-- **U99** · `El valle abre un segundo solar. Ya podés fundar otro pueblo.`  <sub>town_view.dart:969 · _TownViewState._onImpact</sub>
-- **U100** · `El pueblo despierta antes de tiempo.`  <sub>town_view.dart:1045 · _TownViewState._welcomeBack</sub>
-- **U101** · `Volviste. Está todo donde lo dejaste.`  <sub>town_view.dart:1050 · _TownViewState._welcomeBack</sub>
-- **U102** · `El pueblo te estaba esperando`  <sub>town_view.dart:1053 · _TownViewState._welcomeBack</sub>
+- **U98** · `${building.name} en pie`  <sub>town_view.dart:956 · _TownViewState._onImpact</sub>
+- **U99** · `El valle abre un segundo solar. Ya podés fundar otro pueblo.`  <sub>town_view.dart:971 · _TownViewState._onImpact</sub>
+- **U100** · `El pueblo despierta antes de tiempo.`  <sub>town_view.dart:1047 · _TownViewState._welcomeBack</sub>
+- **U101** · `Volviste. Está todo donde lo dejaste.`  <sub>town_view.dart:1052 · _TownViewState._welcomeBack</sub>
+- **U102** · `El pueblo te estaba esperando`  <sub>town_view.dart:1055 · _TownViewState._welcomeBack</sub>
 
 ### Lo que se dice al terminar algo
 
@@ -1440,12 +562,12 @@ La tarjeta que aparece el día que se remata una obra, con su frase.
 
 Lo que sale al tocar el tablón de la plaza: escribir una nota, borrarla.
 
-- **U112** · `Decir dónde`  <sub>notice_board.dart:163 · _NoticeBoardScreenState._clavar</sub>
-- **U113** · `Cambiarlo`  <sub>notice_board.dart:164 · _NoticeBoardScreenState._clavar</sub>
-- **U114** · `Volver a repartir el tablón`  <sub>notice_board.dart:346 · _NoticeBoardScreenState.build</sub>
-- **U115** · `Clavar una nota`  <sub>notice_board.dart:401 · _PinButton.build</sub>
-- **U116** · `Lo que quieras acordarte de mirar acá.`  <sub>notice_board.dart:523 · _WriteSheetState.build</sub>
-- **U117** · `CLAVARLA`  <sub>notice_board.dart:560 · _WriteSheetState.build</sub>
+- **U112** · `Decir dónde`  <sub>notice_board.dart:162 · _NoticeBoardScreenState._clavar</sub>
+- **U113** · `Cambiarlo`  <sub>notice_board.dart:163 · _NoticeBoardScreenState._clavar</sub>
+- **U114** · `Volver a repartir el tablón`  <sub>notice_board.dart:342 · _NoticeBoardScreenState.build</sub>
+- **U115** · `Clavar una nota`  <sub>notice_board.dart:397 · _PinButton.build</sub>
+- **U116** · `Lo que quieras acordarte de mirar acá.`  <sub>notice_board.dart:519 · _WriteSheetState.build</sub>
+- **U117** · `CLAVARLA`  <sub>notice_board.dart:556 · _WriteSheetState.build</sub>
 
 ### El tablón: mover una nota
 
@@ -1558,7 +680,7 @@ Lo que se lee cuando se abre el sitio para un segundo pueblo en el valle.
 - **U192** · `$intro${g.need} días con pieza de los últimos ${g.window}. `  <sub>unlock_sheet.dart:135 · UnlockSheet._rule</sub>
 - **U193** · `Llevás ${g.have}.`  <sub>unlock_sheet.dart:136 · UnlockSheet._rule</sub>
 - **U194** · `$intro${g.need} días con pieza en las últimas $semanas semanas, `  <sub>unlock_sheet.dart:143 · UnlockSheet._rule</sub>
-- **U195** · `sin contar más de ${g.perWeek} por semana, porque dijiste que va `  <sub>unlock_sheet.dart:144 · UnlockSheet._rule</sub>
+- **U195** · `sin contar más de ${g.cap} por semana, porque dijiste que va `  <sub>unlock_sheet.dart:144 · UnlockSheet._rule</sub>
 - **U196** · `${cadenceSaid(g.perWeek)}. Llevás ${g.have}.`  <sub>unlock_sheet.dart:145 · UnlockSheet._rule</sub>
 
 ### Tus datos
@@ -1630,231 +752,287 @@ Todo lo de la hoja de ajustes: sonido, hora, año, avisos, y los atajos de desar
 - **U254** · `Verano`  <sub>settings_sheet.dart:249 · _SettingsSheetState._body</sub>
 - **U255** · `Otoño`  <sub>settings_sheet.dart:250 · _SettingsSheetState._body</sub>
 - **U256** · `EL TABLÓN`  <sub>settings_sheet.dart:270 · _SettingsSheetState._body</sub>
-- **U257** · `Las letras del tablón ya no se eligen: tus cuentas van todas de `  <sub>settings_sheet.dart:275 · _SettingsSheetState._body</sub>
-- **U258** · `la misma mano y cada bando sale con la del vecino que lo `  <sub>settings_sheet.dart:276 · _SettingsSheetState._body</sub>
-- **U259** · `colgó. Un tablón de plaza se lee así, no con una letra que se `  <sub>settings_sheet.dart:277 · _SettingsSheetState._body</sub>
-- **U260** · `elige en un menú.`  <sub>settings_sheet.dart:278 · _SettingsSheetState._body</sub>
-- **U261** · `Ver el tablón con un pueblo lleno`  <sub>settings_sheet.dart:291 · _SettingsSheetState._body</sub>
-- **U262** · `Un valle de mentira: entrenar durante 300 días. Trae un dado `  <sub>settings_sheet.dart:295 · _SettingsSheetState._body</sub>
-- **U263** · `que vuelve a repartirlo con notas al azar, para ver si el `  <sub>settings_sheet.dart:296 · _SettingsSheetState._body</sub>
-- **U264** · `texto cabe también en las que no salen nunca.`  <sub>settings_sheet.dart:297 · _SettingsSheetState._body</sub>
-- **U265** · `PARA MIRAR`  <sub>settings_sheet.dart:316 · _SettingsSheetState._body</sub>
-- **U266** · `Ver el pueblo a futuro`  <sub>settings_sheet.dart:323 · _SettingsSheetState._body</sub>
-- **U267** · `Cómo se vería con 100, 500 o 5000 piezas.`  <sub>settings_sheet.dart:327 · _SettingsSheetState._body</sub>
-- **U268** · `Ver la tarjeta de elegir`  <sub>settings_sheet.dart:335 · _SettingsSheetState._body</sub>
-- **U269** · `La pregunta que sale al empezar una obra, con dos al azar del `  <sub>settings_sheet.dart:337 · _SettingsSheetState._body</sub>
-- **U270** · `catálogo. Mirar y ya: no elige nada ni toca tu pueblo.`  <sub>settings_sheet.dart:338 · _SettingsSheetState._body</sub>
-- **U271** · `Ver la primera vez otra vez`  <sub>settings_sheet.dart:352 · _SettingsSheetState._body</sub>
-- **U272** · `Abre la pantalla de entrada como si acabaras de instalar la `  <sub>settings_sheet.dart:356 · _SettingsSheetState._body</sub>
-- **U273** · `app. Es sólo para mirar: al terminar vuelve tu valle tal cual.`  <sub>settings_sheet.dart:357 · _SettingsSheetState._body</sub>
-- **U274** · `El expositor`  <sub>settings_sheet.dart:370 · _SettingsSheetState._body</sub>
-- **U275** · `Las ${landmarks.length + BuildingKind.values.length} estructuras `  <sub>settings_sheet.dart:372 · _SettingsSheetState._body</sub>
-- **U276** · `que el pueblo sabe construir.`  <sub>settings_sheet.dart:373 · _SettingsSheetState._body</sub>
-- **U277** · `El expositor de la gente`  <sub>settings_sheet.dart:382 · _SettingsSheetState._body</sub>
-- **U278** · `Las ${Doing.all.length} cosas que hacen los vecinos cuando no `  <sub>settings_sheet.dart:384 · _SettingsSheetState._body</sub>
-- **U279** · `están andando, una a una y de cerca.`  <sub>settings_sheet.dart:385 · _SettingsSheetState._body</sub>
-- **U280** · `IDIOMA · LANGUAGE`  <sub>settings_sheet.dart:399 · _SettingsSheetState._body</sub>
-- **U281** · `Lo elegiste vos.`  <sub>settings_sheet.dart:412 · _SettingsSheetState._body</sub>
-- **U282** · `Sale del idioma del teléfono.`  <sub>settings_sheet.dart:414 · _SettingsSheetState._body</sub>
-- **U283** · `IMAGEN`  <sub>settings_sheet.dart:423 · _SettingsSheetState._body</sub>
-- **U284** · `Calidad máxima`  <sub>settings_sheet.dart:428 · _SettingsSheetState._body</sub>
-- **U285** · `Sombras de verdad que giran con el sol, ventanas que resplandecen, `  <sub>settings_sheet.dart:430 · _SettingsSheetState._body</sub>
-- **U286** · `rayos de luz al amanecer y al atardecer, y color de cine. `  <sub>settings_sheet.dart:431 · _SettingsSheetState._body</sub>
-- **U287** · `Pide bastante más al aparato.`  <sub>settings_sheet.dart:432 · _SettingsSheetState._body</sub>
-- **U288** · `SONIDO`  <sub>settings_sheet.dart:444 · _SettingsSheetState._body</sub>
-- **U289** · `Sonido`  <sub>settings_sheet.dart:449 · _SettingsSheetState._body</sub>
-- **U290** · `El interruptor de todo, música incluida.`  <sub>settings_sheet.dart:451 · _SettingsSheetState._body</sub>
-- **U291** · `Efectos`  <sub>settings_sheet.dart:459 · _SettingsSheetState._body</sub>
-- **U292** · `Lo que suena al poner una pieza.`  <sub>settings_sheet.dart:461 · _SettingsSheetState._body</sub>
-- **U293** · `Música`  <sub>settings_sheet.dart:470 · _SettingsSheetState._body</sub>
-- **U294** · `De fondo, y distinta según la hora del día.`  <sub>settings_sheet.dart:472 · _SettingsSheetState._body</sub>
-- **U295** · `Volumen de la música`  <sub>settings_sheet.dart:482 · _SettingsSheetState._body</sub>
-- **U296** · `Volumen de los efectos`  <sub>settings_sheet.dart:488 · _SettingsSheetState._body</sub>
-- **U297** · `La mitad es como sonaba antes de que hubiera dónde tocarlo, así `  <sub>settings_sheet.dart:497 · _SettingsSheetState._body</sub>
-- **U298** · `que lo que muevas se mide contra algo que ya conocés.`  <sub>settings_sheet.dart:498 · _SettingsSheetState._body</sub>
-- **U299** · `Las estaciones`  <sub>settings_sheet.dart:513 · _SettingsSheetState._body</sub>
-- **U300** · `El valle cambia con el año: verde nuevo en primavera, dorado en `  <sub>settings_sheet.dart:515 · _SettingsSheetState._body</sub>
-- **U301** · `otoño, nieve en los tejados en invierno, y los días más `  <sub>settings_sheet.dart:516 · _SettingsSheetState._body</sub>
-- **U302** · `cortos o más largos según toque.`  <sub>settings_sheet.dart:517 · _SettingsSheetState._body</sub>
-- **U303** · `Estoy en el hemisferio sur`  <sub>settings_sheet.dart:536 · _SettingsSheetState._body</sub>
-- **U304** · `Para que diciembre sea verano y julio invierno. `  <sub>settings_sheet.dart:540 · _SettingsSheetState._body</sub>
-- **U305** · `y con eso hoy es `  <sub>settings_sheet.dart:542 · _SettingsSheetState._body</sub>
-- **U306** · `LO DEMÁS`  <sub>settings_sheet.dart:559 · _SettingsSheetState._body</sub>
-- **U307** · `Que el pueblo te avise`  <sub>settings_sheet.dart:567 · _SettingsSheetState._body</sub>
-- **U308** · `Sólo cuando llevás más de lo tuyo sin poner una pieza, a tu `  <sub>settings_sheet.dart:571 · _SettingsSheetState._body</sub>
-- **U309** · `hora y con tus palabras. Como mucho dos por ausencia.`  <sub>settings_sheet.dart:572 · _SettingsSheetState._body</sub>
-- **U310** · `Vibración`  <sub>settings_sheet.dart:589 · _SettingsSheetState._body</sub>
-- **U311** · `El peso de la pieza al caer.`  <sub>settings_sheet.dart:591 · _SettingsSheetState._body</sub>
-- **U312** · `Tus datos`  <sub>settings_sheet.dart:601 · _SettingsSheetState._body</sub>
-- **U313** · `Copiar tu valle y volver a meterlo.`  <sub>settings_sheet.dart:603 · _SettingsSheetState._body</sub>
-- **U314** · `Ver cómo se hizo`  <sub>settings_sheet.dart:617 · _SettingsSheetState._body</sub>
-- **U315** · `El valle entero, o uno de tus pueblos desde el primer día.`  <sub>settings_sheet.dart:619 · _SettingsSheetState._body</sub>
-- **U316** · `Tu pueblo entero desde el primer día, en un minuto.`  <sub>settings_sheet.dart:630 · _SettingsSheetState._body</sub>
-- **U317** · `¿Borrar todo y empezar de cero?`  <sub>settings_sheet.dart:681 · _empezarDeCero</sub>
-- **U318** · `Se borran todos tus pueblos, sus piezas y lo que clavaste en el `  <sub>settings_sheet.dart:688 · _empezarDeCero</sub>
-- **U319** · `tablón. No se puede deshacer.\n\n`  <sub>settings_sheet.dart:689 · _empezarDeCero</sub>
-- **U320** · `Si querés guardar una copia, sacala antes desde «Tus datos».`  <sub>settings_sheet.dart:690 · _empezarDeCero</sub>
-- **U321** · `Borrar todo`  <sub>settings_sheet.dart:714 · _empezarDeCero</sub>
-- **U322** · `Quitar la última pieza`  <sub>settings_sheet.dart:792 · _Undo.build</sub>
-- **U323** · `Este pueblo todavía no tiene ninguna.`  <sub>settings_sheet.dart:799 · _Undo.build</sub>
-- **U324** · `La ${store.habit.total} de `  <sub>settings_sheet.dart:803 · _Undo.build</sub>
-- **U325** · `${store.habit.name}, puesta el `  <sub>settings_sheet.dart:804 · _Undo.build</sub>
-- **U326** · `¿Quitar la pieza ${store.habit.total}?`  <sub>settings_sheet.dart:832 · _Undo._ask</sub>
-- **U327** · `Vuelve a quedar en ${store.habit.total - 1}.`  <sub>settings_sheet.dart:839 · _Undo._ask</sub>
-- **U328** · `Quitarla`  <sub>settings_sheet.dart:855 · _Undo._ask</sub>
-- **U329** · `Empezar de cero`  <sub>settings_sheet.dart:1248 · _Salidas.build</sub>
-- **U330** · `El valle entero, o uno de tus pueblos`  <sub>settings_sheet.dart:1547 · _WhichReel.build</sub>
-- **U331** · `El valle entero`  <sub>settings_sheet.dart:1561 · _WhichReel.build</sub>
-- **U332** · `Salta de pieza en pieza y de pueblo en pueblo, en el orden `  <sub>settings_sheet.dart:1563 · _WhichReel.build</sub>
-- **U333** · `en que pasaron.`  <sub>settings_sheet.dart:1564 · _WhichReel.build</sub>
-- **U334** · `Sólo este pueblo, con la cámara dando la vuelta a su plaza.`  <sub>settings_sheet.dart:1576 · _WhichReel.build</sub>
+- **U257** · `Ver el tablón con un pueblo lleno`  <sub>settings_sheet.dart:277 · _SettingsSheetState._body</sub>
+- **U258** · `Un valle de mentira: entrenar durante 300 días. Trae un dado `  <sub>settings_sheet.dart:281 · _SettingsSheetState._body</sub>
+- **U259** · `que vuelve a repartirlo con notas al azar, para ver si el `  <sub>settings_sheet.dart:282 · _SettingsSheetState._body</sub>
+- **U260** · `texto cabe también en las que no salen nunca.`  <sub>settings_sheet.dart:283 · _SettingsSheetState._body</sub>
+- **U261** · `PARA MIRAR`  <sub>settings_sheet.dart:302 · _SettingsSheetState._body</sub>
+- **U262** · `Ver el pueblo a futuro`  <sub>settings_sheet.dart:309 · _SettingsSheetState._body</sub>
+- **U263** · `Cómo se vería con 100, 500 o 5000 piezas.`  <sub>settings_sheet.dart:313 · _SettingsSheetState._body</sub>
+- **U264** · `Ver la tarjeta de elegir`  <sub>settings_sheet.dart:321 · _SettingsSheetState._body</sub>
+- **U265** · `La pregunta que sale al empezar una obra, con dos al azar del `  <sub>settings_sheet.dart:323 · _SettingsSheetState._body</sub>
+- **U266** · `catálogo. Mirar y ya: no elige nada ni toca tu pueblo.`  <sub>settings_sheet.dart:324 · _SettingsSheetState._body</sub>
+- **U267** · `Ver la primera vez otra vez`  <sub>settings_sheet.dart:338 · _SettingsSheetState._body</sub>
+- **U268** · `Abre la pantalla de entrada como si acabaras de instalar la `  <sub>settings_sheet.dart:342 · _SettingsSheetState._body</sub>
+- **U269** · `app. Es sólo para mirar: al terminar vuelve tu valle tal cual.`  <sub>settings_sheet.dart:343 · _SettingsSheetState._body</sub>
+- **U270** · `El expositor`  <sub>settings_sheet.dart:356 · _SettingsSheetState._body</sub>
+- **U271** · `Las ${landmarks.length + BuildingKind.values.length} estructuras `  <sub>settings_sheet.dart:358 · _SettingsSheetState._body</sub>
+- **U272** · `que el pueblo sabe construir.`  <sub>settings_sheet.dart:359 · _SettingsSheetState._body</sub>
+- **U273** · `El expositor de la gente`  <sub>settings_sheet.dart:368 · _SettingsSheetState._body</sub>
+- **U274** · `Las ${Doing.all.length} cosas que hacen los vecinos cuando no `  <sub>settings_sheet.dart:370 · _SettingsSheetState._body</sub>
+- **U275** · `están andando, una a una y de cerca.`  <sub>settings_sheet.dart:371 · _SettingsSheetState._body</sub>
+- **U276** · `IDIOMA · LANGUAGE`  <sub>settings_sheet.dart:385 · _SettingsSheetState._body</sub>
+- **U277** · `Lo elegiste vos.`  <sub>settings_sheet.dart:398 · _SettingsSheetState._body</sub>
+- **U278** · `Sale del idioma del teléfono.`  <sub>settings_sheet.dart:400 · _SettingsSheetState._body</sub>
+- **U279** · `IMAGEN`  <sub>settings_sheet.dart:409 · _SettingsSheetState._body</sub>
+- **U280** · `Calidad máxima`  <sub>settings_sheet.dart:414 · _SettingsSheetState._body</sub>
+- **U281** · `Sombras de verdad que giran con el sol, ventanas que resplandecen, `  <sub>settings_sheet.dart:416 · _SettingsSheetState._body</sub>
+- **U282** · `rayos de luz al amanecer y al atardecer, y color de cine. `  <sub>settings_sheet.dart:417 · _SettingsSheetState._body</sub>
+- **U283** · `Pide bastante más al aparato.`  <sub>settings_sheet.dart:418 · _SettingsSheetState._body</sub>
+- **U284** · `SONIDO`  <sub>settings_sheet.dart:430 · _SettingsSheetState._body</sub>
+- **U285** · `Sonido`  <sub>settings_sheet.dart:435 · _SettingsSheetState._body</sub>
+- **U286** · `El interruptor de todo, música incluida.`  <sub>settings_sheet.dart:437 · _SettingsSheetState._body</sub>
+- **U287** · `Efectos`  <sub>settings_sheet.dart:445 · _SettingsSheetState._body</sub>
+- **U288** · `Lo que suena al poner una pieza.`  <sub>settings_sheet.dart:447 · _SettingsSheetState._body</sub>
+- **U289** · `Música`  <sub>settings_sheet.dart:456 · _SettingsSheetState._body</sub>
+- **U290** · `De fondo, y distinta según la hora del día.`  <sub>settings_sheet.dart:458 · _SettingsSheetState._body</sub>
+- **U291** · `Volumen de la música`  <sub>settings_sheet.dart:468 · _SettingsSheetState._body</sub>
+- **U292** · `Volumen de los efectos`  <sub>settings_sheet.dart:474 · _SettingsSheetState._body</sub>
+- **U293** · `La mitad es como sonaba antes de que hubiera dónde tocarlo, así `  <sub>settings_sheet.dart:483 · _SettingsSheetState._body</sub>
+- **U294** · `que lo que muevas se mide contra algo que ya conocés.`  <sub>settings_sheet.dart:484 · _SettingsSheetState._body</sub>
+- **U295** · `Las estaciones`  <sub>settings_sheet.dart:499 · _SettingsSheetState._body</sub>
+- **U296** · `El valle cambia con el año: verde nuevo en primavera, dorado en `  <sub>settings_sheet.dart:501 · _SettingsSheetState._body</sub>
+- **U297** · `otoño, nieve en los tejados en invierno, y los días más `  <sub>settings_sheet.dart:502 · _SettingsSheetState._body</sub>
+- **U298** · `cortos o más largos según toque.`  <sub>settings_sheet.dart:503 · _SettingsSheetState._body</sub>
+- **U299** · `Estoy en el hemisferio sur`  <sub>settings_sheet.dart:522 · _SettingsSheetState._body</sub>
+- **U300** · `Para que diciembre sea verano y julio invierno. `  <sub>settings_sheet.dart:526 · _SettingsSheetState._body</sub>
+- **U301** · `y con eso hoy es `  <sub>settings_sheet.dart:528 · _SettingsSheetState._body</sub>
+- **U302** · `LO DEMÁS`  <sub>settings_sheet.dart:545 · _SettingsSheetState._body</sub>
+- **U303** · `Que el pueblo te avise`  <sub>settings_sheet.dart:553 · _SettingsSheetState._body</sub>
+- **U304** · `Sólo cuando llevás más de lo tuyo sin poner una pieza, a tu `  <sub>settings_sheet.dart:557 · _SettingsSheetState._body</sub>
+- **U305** · `hora y con tus palabras. Como mucho dos por ausencia.`  <sub>settings_sheet.dart:558 · _SettingsSheetState._body</sub>
+- **U306** · `Vibración`  <sub>settings_sheet.dart:575 · _SettingsSheetState._body</sub>
+- **U307** · `El peso de la pieza al caer.`  <sub>settings_sheet.dart:577 · _SettingsSheetState._body</sub>
+- **U308** · `Tus datos`  <sub>settings_sheet.dart:587 · _SettingsSheetState._body</sub>
+- **U309** · `Copiar tu valle y volver a meterlo.`  <sub>settings_sheet.dart:589 · _SettingsSheetState._body</sub>
+- **U310** · `Ver cómo se hizo`  <sub>settings_sheet.dart:603 · _SettingsSheetState._body</sub>
+- **U311** · `El valle entero, o uno de tus pueblos desde el primer día.`  <sub>settings_sheet.dart:605 · _SettingsSheetState._body</sub>
+- **U312** · `Tu pueblo entero desde el primer día, en un minuto.`  <sub>settings_sheet.dart:616 · _SettingsSheetState._body</sub>
+- **U313** · `¿Borrar todo y empezar de cero?`  <sub>settings_sheet.dart:667 · _empezarDeCero</sub>
+- **U314** · `Se borran todos tus pueblos, sus piezas y lo que clavaste en el `  <sub>settings_sheet.dart:674 · _empezarDeCero</sub>
+- **U315** · `tablón. No se puede deshacer.\n\n`  <sub>settings_sheet.dart:675 · _empezarDeCero</sub>
+- **U316** · `Si querés guardar una copia, sacala antes desde «Tus datos».`  <sub>settings_sheet.dart:676 · _empezarDeCero</sub>
+- **U317** · `Borrar todo`  <sub>settings_sheet.dart:700 · _empezarDeCero</sub>
+- **U318** · `Quitar la última pieza`  <sub>settings_sheet.dart:778 · _Undo.build</sub>
+- **U319** · `Este pueblo todavía no tiene ninguna.`  <sub>settings_sheet.dart:785 · _Undo.build</sub>
+- **U320** · `La ${store.habit.total} de `  <sub>settings_sheet.dart:789 · _Undo.build</sub>
+- **U321** · `${store.habit.name}, puesta el `  <sub>settings_sheet.dart:790 · _Undo.build</sub>
+- **U322** · `¿Quitar la pieza ${store.habit.total}?`  <sub>settings_sheet.dart:818 · _Undo._ask</sub>
+- **U323** · `Vuelve a quedar en ${store.habit.total - 1}.`  <sub>settings_sheet.dart:825 · _Undo._ask</sub>
+- **U324** · `Quitarla`  <sub>settings_sheet.dart:841 · _Undo._ask</sub>
+- **U325** · `Empezar de cero`  <sub>settings_sheet.dart:1234 · _Salidas.build</sub>
+- **U326** · `El valle entero, o uno de tus pueblos`  <sub>settings_sheet.dart:1533 · _WhichReel.build</sub>
+- **U327** · `El valle entero`  <sub>settings_sheet.dart:1547 · _WhichReel.build</sub>
+- **U328** · `Salta de pieza en pieza y de pueblo en pueblo, en el orden `  <sub>settings_sheet.dart:1549 · _WhichReel.build</sub>
+- **U329** · `en que pasaron.`  <sub>settings_sheet.dart:1550 · _WhichReel.build</sub>
+- **U330** · `Sólo este pueblo, con la cámara dando la vuelta a su plaza.`  <sub>settings_sheet.dart:1562 · _WhichReel.build</sub>
 
 ### Las letras del tablón
 
 Elegir con qué letra se escriben las notas. Sólo los nombres en castellano se leen; los que parecen ingleses son el nombre técnico de la fuente.
 
-- **U335** · `La de ahora`  <sub>note_font.dart:29 · —</sub>
-- **U336** · `Varias manos`  <sub>note_font.dart:32 · —</sub>
-- **U337** · `Otra mano`  <sub>note_font.dart:82 · —</sub>
+- **U331** · `La de ahora`  <sub>note_font.dart:20 · —</sub>
 
 ### Estilo
 
 Un mensaje de error para quien programa.
 
-- **U338** · `un botón sin nada dentro`  <sub>style.dart:377 · GhostButton.GhostButton</sub>
+- **U332** · `un botón sin nada dentro`  <sub>style.dart:377 · GhostButton.GhostButton</sub>
 
 ### El arranque
 
 El nombre de la app y lo que se ve mientras carga.
 
-- **U339** · `SEED`  <sub>main.dart:247 · _PuebloAppState._boot</sub>
-- **U340** · `IDLE_DAYS`  <sub>main.dart:248 · _PuebloAppState._boot</sub>
-- **U341** · `REGION`  <sub>main.dart:252 · _PuebloAppState._boot</sub>
-- **U342** · `Leer`  <sub>main.dart:259 · _PuebloAppState._boot</sub>
-- **U343** · `VALLEY`  <sub>main.dart:269 · _PuebloAppState._boot</sub>
-- **U344** · `Correr`  <sub>main.dart:275 · _PuebloAppState._boot</sub>
-- **U345** · `Estudiar`  <sub>main.dart:276 · _PuebloAppState._boot</sub>
-- **U346** · `Guitarra`  <sub>main.dart:277 · _PuebloAppState._boot</sub>
-- **U347** · `Nadar`  <sub>main.dart:278 · _PuebloAppState._boot</sub>
-- **U348** · `Pintar`  <sub>main.dart:279 · _PuebloAppState._boot</sub>
-- **U349** · `GALLERY`  <sub>main.dart:330 · _PuebloAppState._boot</sub>
-- **U350** · `Towny`  <sub>main.dart:335 · _PuebloAppState.build</sub>
-- **U351** · `Roboto`  <sub>main.dart:351 · _PuebloAppState.build</sub>
-- **U352** · `EL PUEBLO`  <sub>main.dart:400 · _Opening.build</sub>
+- **U333** · `SEED`  <sub>main.dart:247 · _PuebloAppState._boot</sub>
+- **U334** · `IDLE_DAYS`  <sub>main.dart:248 · _PuebloAppState._boot</sub>
+- **U335** · `REGION`  <sub>main.dart:252 · _PuebloAppState._boot</sub>
+- **U336** · `Leer`  <sub>main.dart:259 · _PuebloAppState._boot</sub>
+- **U337** · `VALLEY`  <sub>main.dart:269 · _PuebloAppState._boot</sub>
+- **U338** · `Correr`  <sub>main.dart:275 · _PuebloAppState._boot</sub>
+- **U339** · `Estudiar`  <sub>main.dart:276 · _PuebloAppState._boot</sub>
+- **U340** · `Guitarra`  <sub>main.dart:277 · _PuebloAppState._boot</sub>
+- **U341** · `Nadar`  <sub>main.dart:278 · _PuebloAppState._boot</sub>
+- **U342** · `Pintar`  <sub>main.dart:279 · _PuebloAppState._boot</sub>
+- **U343** · `GALLERY`  <sub>main.dart:330 · _PuebloAppState._boot</sub>
+- **U344** · `Towny`  <sub>main.dart:335 · _PuebloAppState.build</sub>
+- **U345** · `Roboto`  <sub>main.dart:351 · _PuebloAppState.build</sub>
+- **U346** · `EL PUEBLO`  <sub>main.dart:400 · _Opening.build</sub>
 
 ### Mensajes del guardado
 
 Lo que contesta la app al pegar una copia del valle, y los nombres por defecto de un hábito.
 
-- **U353** · `Sin nombre`  <sub>store.dart:463 · Store.addHabit</sub>
-- **U354** · `Mi hábito`  <sub>store.dart:642 · Store._blankHabit</sub>
-- **U355** · `No hay nada pegado.`  <sub>store.dart:768 · Store.importSave</sub>
-- **U356** · `Eso no es una copia de Towny.`  <sub>store.dart:773 · Store.importSave</sub>
-- **U357** · `A esa copia le falta la lista de pueblos.`  <sub>store.dart:781 · Store.importSave</sub>
-- **U358** · `Esa copia está rota: no pude leer uno de los pueblos.`  <sub>store.dart:792 · Store.importSave</sub>
-- **U359** · `Esa copia no tiene ningún pueblo dentro.`  <sub>store.dart:798 · Store.importSave</sub>
-- **U360** · `Esa copia trae ${read.length} pueblos y el valle tiene sitio `  <sub>store.dart:804 · Store.importSave</sub>
-- **U361** · `para ${Habit.maxSlots}.`  <sub>store.dart:805 · Store.importSave</sub>
-- **U362** · `El pueblo sigue creciendo`  <sub>store.dart:1090 · Store._countOnFor</sub>
-- **U363** · `Una pieza más y ${work.$1} queda en pie`  <sub>store.dart:1095 · Store._countOnFor</sub>
-- **U364** · `${work.$1} · faltan $left`  <sub>store.dart:1098 · Store._countOnFor</sub>
+- **U347** · `Sin nombre`  <sub>store.dart:463 · Store.addHabit</sub>
+- **U348** · `Mi hábito`  <sub>store.dart:642 · Store._blankHabit</sub>
+- **U349** · `No hay nada pegado.`  <sub>store.dart:768 · Store.importSave</sub>
+- **U350** · `Eso no es una copia de Towny.`  <sub>store.dart:773 · Store.importSave</sub>
+- **U351** · `A esa copia le falta la lista de pueblos.`  <sub>store.dart:781 · Store.importSave</sub>
+- **U352** · `Esa copia está rota: no pude leer uno de los pueblos.`  <sub>store.dart:792 · Store.importSave</sub>
+- **U353** · `Esa copia no tiene ningún pueblo dentro.`  <sub>store.dart:798 · Store.importSave</sub>
+- **U354** · `Esa copia trae ${read.length} pueblos y el valle tiene sitio `  <sub>store.dart:804 · Store.importSave</sub>
+- **U355** · `para ${Habit.maxSlots}.`  <sub>store.dart:805 · Store.importSave</sub>
+- **U356** · `El pueblo sigue creciendo`  <sub>store.dart:1090 · Store._countOnFor</sub>
+- **U357** · `Una pieza más y ${work.$1} queda en pie`  <sub>store.dart:1095 · Store._countOnFor</sub>
+- **U358** · `${work.$1} · faltan $left`  <sub>store.dart:1098 · Store._countOnFor</sub>
 
 ### Un hábito sin nombre
 
 El nombre que lleva un hábito si no le pusiste ninguno.
 
-- **U365** · `Mi hábito`  <sub>habit.dart:360 · Habit.fromJson</sub>
+- **U359** · `Mi hábito`  <sub>habit.dart:372 · Habit.fromJson</sub>
 
 ### El tablón por dentro
 
 Los encabezados de las secciones del tablón.
 
-- **U366** · `Clavada hoy.`  <sub>board.dart:111 · _cuando</sub>
-- **U367** · `Clavada ayer.`  <sub>board.dart:112 · _cuando</sub>
-- **U368** · `Clavada hace $dias días.`  <sub>board.dart:114 · _cuando</sub>
-- **U369** · `Clavada hace $meses ${meses == 1 ? 'mes' : 'meses'}.`  <sub>board.dart:118 · tr</sub>
-- **U370** · `El tablón está vacío.`  <sub>board.dart:131 · Notice</sub>
-- **U371** · `Todavía no hay nada que contar. Poné la primera pieza.`  <sub>board.dart:134 · Notice</sub>
-- **U372** · `Llevás $days ${days == 1 ? 'día' : 'días'}. El pueblo prefiere `  <sub>board.dart:138 · Notice</sub>
-- **U373** · `callarse a inventar: cuando tenga bastante para estar seguro `  <sub>board.dart:139 · Notice</sub>
-- **U374** · `de algo, lo escribe acá.`  <sub>board.dart:140 · Notice</sub>
+- **U360** · `Clavada hoy.`  <sub>board.dart:96 · _cuando</sub>
+- **U361** · `Clavada ayer.`  <sub>board.dart:97 · _cuando</sub>
+- **U362** · `Clavada hace $dias días.`  <sub>board.dart:99 · _cuando</sub>
+- **U363** · `Clavada hace $meses ${meses == 1 ? 'mes' : 'meses'}.`  <sub>board.dart:103 · tr</sub>
+- **U364** · `Este es el tablón de anuncios de ${h.name}.`  <sub>board.dart:122 · hoja</sub>
+- **U365** · `This is the notice board for ${h.name}.`  <sub>board.dart:123 · hoja</sub>
+- **U366** · `Acá el pueblo va clavando lo que aprende de vos y te brinda `  <sub>board.dart:124 · hoja</sub>
+- **U367** · `información para ayudarte. Mientras todavía no sabe nada, estas `  <sub>board.dart:125 · hoja</sub>
+- **U368** · `hojas te cuentan cómo se usa.`  <sub>board.dart:126 · hoja</sub>
+- **U369** · `Here the town pins what it learns about you and gives you `  <sub>board.dart:127 · hoja</sub>
+- **U370** · `information to help you. While it still knows nothing, these `  <sub>board.dart:128 · hoja</sub>
+- **U371** · `sheets show you how it works.`  <sub>board.dart:129 · hoja</sub>
+- **U372** · `Tocá una hoja para leerla de cerca.`  <sub>board.dart:132 · hoja</sub>
+- **U373** · `Tap a sheet to read it up close.`  <sub>board.dart:133 · hoja</sub>
+- **U374** · `Para devolverla a su lugar, tocá otra vez.`  <sub>board.dart:134 · hoja</sub>
+- **U375** · `Tap again to put it back.`  <sub>board.dart:135 · hoja</sub>
+- **U376** · `Deslizá el dedo de costado para recorrer el tablón.`  <sub>board.dart:138 · hoja</sub>
+- **U377** · `Slide your finger sideways to move along the board.`  <sub>board.dart:139 · hoja</sub>
+- **U378** · `Las hojas se clavan de izquierda a derecha, y no siempre entran todas `  <sub>board.dart:140 · hoja</sub>
+- **U379** · `en la pantalla.`  <sub>board.dart:141 · hoja</sub>
+- **U380** · `Sheets are pinned from left to right, and they don\'t always all fit `  <sub>board.dart:142 · hoja</sub>
+- **U381** · `on the screen.`  <sub>board.dart:143 · hoja</sub>
+- **U382** · `Mantené el dedo sobre una hoja para despegarla.`  <sub>board.dart:146 · hoja</sub>
+- **U383** · `Hold your finger on a sheet to unpin it.`  <sub>board.dart:147 · hoja</sub>
+- **U384** · `Sin soltarla, llevala a otro hueco. El tablón se acuerda de dónde la `  <sub>board.dart:148 · hoja</sub>
+- **U385** · `dejaste, y así se ve también desde la plaza.`  <sub>board.dart:149 · hoja</sub>
+- **U386** · `Without letting go, carry it to another spot. The board remembers `  <sub>board.dart:150 · hoja</sub>
+- **U387** · `where you left it, and that is how it looks from the square too.`  <sub>board.dart:151 · hoja</sub>
+- **U388** · `Vos también podés clavar tus notas.`  <sub>board.dart:154 · hoja</sub>
+- **U389** · `You can pin your own notes too.`  <sub>board.dart:155 · hoja</sub>
+- **U390** · `Con «Clavar una nota», abajo. Van en un papel más claro y con tu letra, `  <sub>board.dart:156 · hoja</sub>
+- **U391** · `y entran hasta $myNoticeCap a la vez.`  <sub>board.dart:157 · hoja</sub>
+- **U392** · `With “Pin a note”, at the bottom. They go on lighter paper in your own `  <sub>board.dart:158 · hoja</sub>
+- **U393** · `hand, and up to $myNoticeCap fit at once.`  <sub>board.dart:159 · hoja</sub>
+- **U394** · `Para quitar una nota tuya, abrila.`  <sub>board.dart:162 · hoja</sub>
+- **U395** · `To remove one of your notes, open it.`  <sub>board.dart:163 · hoja</sub>
+- **U396** · `Al leerla de cerca aparece «Quitarla», abajo.`  <sub>board.dart:164 · hoja</sub>
+- **U397** · `Up close, “Remove it” appears at the bottom.`  <sub>board.dart:165 · hoja</sub>
+- **U398** · `Lo nuevo lleva una marca.`  <sub>board.dart:168 · hoja</sub>
+- **U399** · `New things carry a mark.`  <sub>board.dart:169 · hoja</sub>
+- **U400** · `Se apaga cuando leés la hoja de cerca: así sabés qué cambió desde la `  <sub>board.dart:170 · hoja</sub>
+- **U401** · `última vez.`  <sub>board.dart:171 · hoja</sub>
+- **U402** · `It goes out once you read the sheet up close, so you know what `  <sub>board.dart:172 · hoja</sub>
+- **U403** · `changed since last time.`  <sub>board.dart:173 · hoja</sub>
+- **U404** · `Para volver al pueblo, tocá el cielo o el pasto.`  <sub>board.dart:176 · hoja</sub>
+- **U405** · `To go back to the town, tap the sky or the grass.`  <sub>board.dart:177 · hoja</sub>
+- **U406** · `O juntá dos dedos sobre el tablón.`  <sub>board.dart:178 · hoja</sub>
+- **U407** · `Or pinch the board with two fingers.`  <sub>board.dart:179 · hoja</sub>
+- **U408** · `Estas hojas se van solas.`  <sub>board.dart:182 · hoja</sub>
+- **U409** · `These sheets leave on their own.`  <sub>board.dart:183 · hoja</sub>
+- **U410** · `Cuando el pueblo aprenda algo de vos, se despegan y le dejan el lugar a `  <sub>board.dart:184 · hoja</sub>
+- **U411** · `lo que averiguó.`  <sub>board.dart:185 · hoja</sub>
+- **U412** · `Once the town learns something about you, they come down and make room `  <sub>board.dart:186 · hoja</sub>
+- **U413** · `for what it found out.`  <sub>board.dart:187 · hoja</sub>
 
 ### Los sonidos
 
 Los nombres de cada sonido, que se leen en la lista de ajustes de sonido.
 
-- **U375** · `Poner una pieza`  <sub>sensory.dart:52 · Sensory</sub>
-- **U376** · `Toque`  <sub>sensory.dart:53 · Sensory</sub>
-- **U377** · `Reparar`  <sub>sensory.dart:54 · Sensory</sub>
-- **U378** · `Obra terminada`  <sub>sensory.dart:55 · Sensory</sub>
-- **U379** · `Hito del pueblo`  <sub>sensory.dart:56 · Sensory</sub>
-- **U380** · `Estrella fugaz`  <sub>sensory.dart:57 · Sensory</sub>
-- **U381** · `Constelación`  <sub>sensory.dart:58 · Sensory</sub>
+- **U414** · `Poner una pieza`  <sub>sensory.dart:52 · Sensory</sub>
+- **U415** · `Toque`  <sub>sensory.dart:53 · Sensory</sub>
+- **U416** · `Reparar`  <sub>sensory.dart:54 · Sensory</sub>
+- **U417** · `Obra terminada`  <sub>sensory.dart:55 · Sensory</sub>
+- **U418** · `Hito del pueblo`  <sub>sensory.dart:56 · Sensory</sub>
+- **U419** · `Estrella fugaz`  <sub>sensory.dart:57 · Sensory</sub>
+- **U420** · `Constelación`  <sub>sensory.dart:58 · Sensory</sub>
 
 ### Las músicas
 
 El nombre de cada pieza de música y de qué está hecha.
 
-- **U382** · `Tarde`  <sub>tunes.dart:48 · tunes</sub>
-- **U383** · `Rhodes, bajo redondo y campanitas. Fa mayor, setenta y dos.`  <sub>tunes.dart:49 · tunes</sub>
-- **U384** · `Sendero`  <sub>tunes.dart:59 · tunes</sub>
-- **U385** · `Cuerda de nailon y flauta de madera. Sol mayor, sesenta y seis.`  <sub>tunes.dart:60 · tunes</sub>
+- **U421** · `Tarde`  <sub>tunes.dart:48 · tunes</sub>
+- **U422** · `Rhodes, bajo redondo y campanitas. Fa mayor, setenta y dos.`  <sub>tunes.dart:49 · tunes</sub>
+- **U423** · `Sendero`  <sub>tunes.dart:59 · tunes</sub>
+- **U424** · `Cuerda de nailon y flauta de madera. Sol mayor, sesenta y seis.`  <sub>tunes.dart:60 · tunes</sub>
 
 ### Las estaciones
 
 Invierno, primavera, verano y otoño, en ajustes y en el tablón.
 
-- **U386** · `Invierno`  <sub>season.dart:158 · Season._daysInYear</sub>
-- **U387** · `Primavera`  <sub>season.dart:159 · Season._daysInYear</sub>
-- **U388** · `Verano`  <sub>season.dart:160 · Season._daysInYear</sub>
-- **U389** · `Otoño`  <sub>season.dart:161 · Season._daysInYear</sub>
+- **U425** · `Invierno`  <sub>season.dart:158 · Season._daysInYear</sub>
+- **U426** · `Primavera`  <sub>season.dart:159 · Season._daysInYear</sub>
+- **U427** · `Verano`  <sub>season.dart:160 · Season._daysInYear</sub>
+- **U428** · `Otoño`  <sub>season.dart:161 · Season._daysInYear</sub>
 
 ### Sueltas
 
 Frases que no caen en ninguna pantalla concreta.
 
-- **U390** · `versión simple`  <sub>renderer.dart:2004 · TownPainter._colourOf</sub>
-- **U391** · `todos los días`  <sub>cadence.dart:117 · cadenceSaid</sub>
-- **U392** · `una vez por semana`  <sub>cadence.dart:118 · cadenceSaid</sub>
-- **U393** · `$perWeek veces por semana`  <sub>cadence.dart:119 · cadenceSaid</sub>
-- **U394** · `Voy a ${lowerName(name.trim().isEmpty ? 'hacerlo' : name)}`  <sub>pledge.dart:56 · vowLine</sub>
-- **U395** · `$que, ${placeSaid(sitio!)}.`  <sub>pledge.dart:57 · vowLine</sub>
-- **U396** · `$que ${hourSaid(hour)}, ${placeSaid(sitio)}.`  <sub>pledge.dart:59 · vowLine</sub>
-- **U397** · `a medianoche`  <sub>pledge.dart:72 · hourSaid</sub>
-- **U398** · `a la 1 de la madrugada`  <sub>pledge.dart:73 · hourSaid</sub>
-- **U399** · `al mediodía`  <sub>pledge.dart:74 · hourSaid</sub>
-- **U400** · `a las $h de la madrugada`  <sub>pledge.dart:75 · hourSaid</sub>
-- **U401** · `a las $h de la mañana`  <sub>pledge.dart:76 · hourSaid</sub>
-- **U402** · `a las $h de la tarde`  <sub>pledge.dart:77 · hourSaid</sub>
-- **U403** · `a las $h de la noche`  <sub>pledge.dart:78 · hourSaid</sub>
-- **U404** · `después `  <sub>pledge.dart:99 · placeSaid</sub>
-- **U405** · `nada más `  <sub>pledge.dart:102 · placeSaid</sub>
-- **U406** · `Este pueblo es de $quien.`  <sub>pledge.dart:241 · identitySaid</sub>
-- **U407** · `todos los días`  <sub>pledge.dart:400 · rhythmSaid</sub>
-- **U408** · `un día por semana`  <sub>pledge.dart:401 · rhythmSaid</sub>
-- **U409** · `$perWeek días de cada siete`  <sub>pledge.dart:402 · rhythmSaid</sub>
-- **U410** · `no hay nada en ningún lado`  <sub>merge.dart:61 · SyncPlan.toString</sub>
-- **U411** · `la nube está vacía`  <sub>merge.dart:63 · SyncPlan.toString</sub>
-- **U412** · `el teléfono está vacío y la nube no`  <sub>merge.dart:72 · SyncPlan.toString</sub>
-- **U413** · `nada cambió desde la última`  <sub>merge.dart:84 · SyncPlan.toString</sub>
-- **U414** · `sólo cambió el teléfono`  <sub>merge.dart:87 · SyncPlan.toString</sub>
-- **U415** · `sólo cambió la nube`  <sub>merge.dart:90 · SyncPlan.toString</sub>
-- **U416** · `cambiaron los dos y el teléfono es lo más reciente`  <sub>merge.dart:99 · SyncPlan.toString</sub>
-- **U417** · `cambiaron los dos y la nube es lo más reciente`  <sub>merge.dart:105 · SyncPlan.toString</sub>
-- **U418** · `LA PRIMERA SEMANA`  <sub>cadence_sheet.dart:76 · _CadenceSheetState.build</sub>
-- **U419** · `CADA CUÁNTO`  <sub>cadence_sheet.dart:77 · _CadenceSheetState.build</sub>
-- **U420** · `Esta semana pusiste $piezas `  <sub>cadence_sheet.dart:84 · _CadenceSheetState.build</sub>
-- **U421** · `¿Cada cuánto va ${h.name}?`  <sub>cadence_sheet.dart:92 · _CadenceSheetState.build</sub>
-- **U422** · `¿${h.name} es de todos los días, o de algunos días por `  <sub>cadence_sheet.dart:101 · _CadenceSheetState.build</sub>
-- **U423** · `semana? Viene marcado lo que se ve.`  <sub>cadence_sheet.dart:102 · _CadenceSheetState.build</sub>
-- **U424** · `No es una meta. Es para que el pueblo sepa cuándo un `  <sub>cadence_sheet.dart:107 · _CadenceSheetState.build</sub>
-- **U425** · `hueco es un hueco.`  <sub>cadence_sheet.dart:108 · _CadenceSheetState.build</sub>
-- **U426** · `Todos los días`  <sub>cadence_sheet.dart:123 · _CadenceSheetState.build</sub>
-- **U427** · `$n por semana`  <sub>cadence_sheet.dart:124 · _CadenceSheetState.build</sub>
-- **U428** · `Se cambia cuando quieras en la hoja del hábito.`  <sub>cadence_sheet.dart:159 · _CadenceSheetState.build</sub>
-- **U429** · `en la cama`  <sub>plan_picker.dart:239 · _PlanSheetState.build</sub>
-- **U430** · `Elegí la hora y escribí el sitio.`  <sub>plan_picker.dart:254 · _PlanSheetState.build</sub>
-- **U431** · `DARLO POR HECHO`  <sub>plan_picker.dart:276 · _PlanSheetState.build</sub>
+- **U429** · `versión simple`  <sub>renderer.dart:2230 · TownPainter._colourOf</sub>
+- **U430** · `todos los días`  <sub>cadence.dart:164 · cadenceSaid</sub>
+- **U431** · `cada dos días`  <sub>cadence.dart:165 · cadenceSaid</sub>
+- **U432** · `una vez por semana`  <sub>cadence.dart:166 · cadenceSaid</sub>
+- **U433** · `cada dos semanas`  <sub>cadence.dart:167 · cadenceSaid</sub>
+- **U434** · `${perWeek.round()} veces por semana`  <sub>cadence.dart:169 · cadenceSaid</sub>
+- **U435** · `Voy a ${lowerName(name.trim().isEmpty ? 'hacerlo' : name)}`  <sub>pledge.dart:56 · vowLine</sub>
+- **U436** · `$que, ${placeSaid(sitio!)}.`  <sub>pledge.dart:57 · vowLine</sub>
+- **U437** · `$que ${hourSaid(hour)}, ${placeSaid(sitio)}.`  <sub>pledge.dart:59 · vowLine</sub>
+- **U438** · `a medianoche`  <sub>pledge.dart:72 · hourSaid</sub>
+- **U439** · `a la 1 de la madrugada`  <sub>pledge.dart:73 · hourSaid</sub>
+- **U440** · `al mediodía`  <sub>pledge.dart:74 · hourSaid</sub>
+- **U441** · `a las $h de la madrugada`  <sub>pledge.dart:75 · hourSaid</sub>
+- **U442** · `a las $h de la mañana`  <sub>pledge.dart:76 · hourSaid</sub>
+- **U443** · `a las $h de la tarde`  <sub>pledge.dart:77 · hourSaid</sub>
+- **U444** · `a las $h de la noche`  <sub>pledge.dart:78 · hourSaid</sub>
+- **U445** · `después `  <sub>pledge.dart:99 · placeSaid</sub>
+- **U446** · `nada más `  <sub>pledge.dart:102 · placeSaid</sub>
+- **U447** · `Este pueblo es de $quien.`  <sub>pledge.dart:241 · identitySaid</sub>
+- **U448** · `todos los días`  <sub>pledge.dart:400 · rhythmSaid</sub>
+- **U449** · `un día por semana`  <sub>pledge.dart:401 · rhythmSaid</sub>
+- **U450** · `$perWeek días de cada siete`  <sub>pledge.dart:402 · rhythmSaid</sub>
+- **U451** · `no hay nada en ningún lado`  <sub>merge.dart:61 · SyncPlan.toString</sub>
+- **U452** · `la nube está vacía`  <sub>merge.dart:63 · SyncPlan.toString</sub>
+- **U453** · `el teléfono está vacío y la nube no`  <sub>merge.dart:72 · SyncPlan.toString</sub>
+- **U454** · `nada cambió desde la última`  <sub>merge.dart:84 · SyncPlan.toString</sub>
+- **U455** · `sólo cambió el teléfono`  <sub>merge.dart:87 · SyncPlan.toString</sub>
+- **U456** · `sólo cambió la nube`  <sub>merge.dart:90 · SyncPlan.toString</sub>
+- **U457** · `cambiaron los dos y el teléfono es lo más reciente`  <sub>merge.dart:99 · SyncPlan.toString</sub>
+- **U458** · `cambiaron los dos y la nube es lo más reciente`  <sub>merge.dart:105 · SyncPlan.toString</sub>
+- **U459** · `Contanos más de tu hábito`  <sub>cadence_sheet.dart:52 · CadenceIntro.build</sub>
+- **U460** · `Ya pasó una semana. Con una pregunta, el pueblo entiende `  <sub>cadence_sheet.dart:62 · CadenceIntro.build</sub>
+- **U461** · `tu ritmo y no se preocupa de más.`  <sub>cadence_sheet.dart:63 · CadenceIntro.build</sub>
+- **U462** · `Ahora no`  <sub>cadence_sheet.dart:87 · CadenceIntro.build</sub>
+- **U463** · `Continuar`  <sub>cadence_sheet.dart:94 · CadenceIntro.build</sub>
+- **U464** · `día`  <sub>cadence_sheet.dart:186 · _CadenceSheetState.build</sub>
+- **U465** · `días`  <sub>cadence_sheet.dart:186 · _CadenceSheetState.build</sub>
+- **U466** · `TU RITMO`  <sub>cadence_sheet.dart:215 · _CadenceSheetState.build</sub>
+- **U467** · `CADA CUÁNTO`  <sub>cadence_sheet.dart:216 · _CadenceSheetState.build</sub>
+- **U468** · `En $dias $ds pusiste $piezas $pz.`  <sub>cadence_sheet.dart:223 · _CadenceSheetState.build</sub>
+- **U469** · `¿Cada cuánto va ${h.name}?`  <sub>cadence_sheet.dart:227 · _CadenceSheetState.build</sub>
+- **U470** · `¿Cada cuánto va ${h.name}? Viene marcado lo que se ve.`  <sub>cadence_sheet.dart:236 · _CadenceSheetState.build</sub>
+- **U471** · `No es una meta. Es para que el pueblo sepa cuándo un `  <sub>cadence_sheet.dart:241 · _CadenceSheetState.build</sub>
+- **U472** · `hueco es un hueco.`  <sub>cadence_sheet.dart:242 · _CadenceSheetState.build</sub>
+- **U473** · `Todos los días`  <sub>cadence_sheet.dart:257 · _CadenceSheetState.build</sub>
+- **U474** · `Un día sin pieza ya es un hueco.`  <sub>cadence_sheet.dart:259 · _CadenceSheetState.build</sub>
+- **U475** · `Algunos días por semana`  <sub>cadence_sheet.dart:268 · _CadenceSheetState.build</sub>
+- **U476** · `Los que toquen, sin día fijo.`  <sub>cadence_sheet.dart:270 · _CadenceSheetState.build</sub>
+- **U477** · `Cada dos días`  <sub>cadence_sheet.dart:289 · _CadenceSheetState.build</sub>
+- **U478** · `Un día sí y otro no.`  <sub>cadence_sheet.dart:290 · _CadenceSheetState.build</sub>
+- **U479** · `Una vez por semana`  <sub>cadence_sheet.dart:297 · _CadenceSheetState.build</sub>
+- **U480** · `Un día fijo, o el que se pueda.`  <sub>cadence_sheet.dart:299 · _CadenceSheetState.build</sub>
+- **U481** · `Cada dos semanas`  <sub>cadence_sheet.dart:308 · _CadenceSheetState.build</sub>
+- **U482** · `De vez en cuando, pero sin perderlo.`  <sub>cadence_sheet.dart:310 · _CadenceSheetState.build</sub>
+- **U483** · `Se cambia cuando quieras en la hoja del hábito.`  <sub>cadence_sheet.dart:332 · _CadenceSheetState.build</sub>
+- **U484** · `$n por semana`  <sub>cadence_sheet.dart:549 · _Count.build</sub>
+- **U485** · `en la cama`  <sub>plan_picker.dart:239 · _PlanSheetState.build</sub>
+- **U486** · `Elegí la hora y escribí el sitio.`  <sub>plan_picker.dart:254 · _PlanSheetState.build</sub>
+- **U487** · `DARLO POR HECHO`  <sub>plan_picker.dart:276 · _PlanSheetState.build</sub>
 
 ## Las notificaciones (9)
 

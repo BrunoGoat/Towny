@@ -36,15 +36,14 @@ void main() {
       expect(BoardSeen.instance.isUnread('p2', una), isTrue);
     });
 
-    test('los bandos del pueblo no avisan de nada', () {
-      // Son cuatrocientos treinta y seis rotando todos los días, y una cabra
-      // perdida no es información sobre vos. Si contaran, el punto estaría
-      // encendido siempre.
-      final bando = _n(NoticeKind.pueblo, 'Se perdió una cabra.');
-      expect(seenKey(bando), isEmpty);
-      expect(BoardSeen.instance.isUnread('p1', bando), isFalse);
-      expect(BoardSeen.instance.unread('p1', [bando]), 0);
-      expect(BoardSeen.instance.markRead('p1', bando), isFalse);
+    test('las hojas de la guía avisan cada una por su lado', () {
+      // Son varias de la misma clase: leer una no apaga las demás.
+      final una = _n(NoticeKind.guia, 'Tocá una hoja para leerla de cerca.');
+      final otra = _n(NoticeKind.guia, 'Lo nuevo lleva una marca.');
+      expect(BoardSeen.instance.isUnread('p1', una), isTrue);
+      BoardSeen.instance.markRead('p1', una);
+      expect(BoardSeen.instance.isUnread('p1', una), isFalse);
+      expect(BoardSeen.instance.isUnread('p1', otra), isTrue);
     });
 
     test('una nota que cambia lo que dice vuelve a ser nueva', () {
