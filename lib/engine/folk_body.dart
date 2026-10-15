@@ -1607,7 +1607,7 @@ const double _banqueta = 0.20;
 /// palmo por delante del cuerpo.
 void _sabio(
   void Function(double, double, double, double, double, double, int, double)
-  box,
+  caja,
   void Function(
     (double, double, double),
     (double, double, double),
@@ -1615,7 +1615,7 @@ void _sabio(
     int,
     double,
   )
-  link,
+  vara,
   FolkAt at,
   int piel,
   double detail,
@@ -1636,6 +1636,52 @@ void _sabio(
   // Sentado pierde las piernas, que se van hacia delante (ver la postura
   // sentada de todos, más arriba): todo lo de arriba baja eso.
   final baja = sentado ? _piernas : 0.0;
+
+  // Saludando no saluda sólo el bastón: saluda él. Se mece hacia el lado del
+  // bastón y vuelve, la cabeza más que los pies —como quien se inclina, con
+  // cajas que no se pueden torcer—, y da un saltito con cada vaivén.
+  final saluda = at.act == Doing.greet;
+  final alzaSaludo = saluda ? smoothstep(0, 0.45, at.phase) : 0.0;
+  final vaivenSaludo = saluda ? math.sin(at.phase * 8.0) * alzaSaludo : 0.0;
+  final saltito = saluda
+      ? 0.02 * math.sin(at.phase * 8.0).abs() * alzaSaludo
+      : 0.0;
+  // Cuánto se corre algo a la altura [yy]: nada en los pies, todo en la
+  // coronilla.
+  double corre(double yy) =>
+      0.08 * vaivenSaludo * clampD((yy - 0.05) / 0.95, 0, 1);
+  void box(
+    double x0,
+    double y0,
+    double z0,
+    double x1,
+    double y1,
+    double z1,
+    int tint,
+    double ao,
+  ) {
+    if (!saluda) return caja(x0, y0, z0, x1, y1, z1, tint, ao);
+    final d = corre((y0 + y1) / 2);
+    caja(x0 + d, y0 + saltito, z0, x1 + d, y1 + saltito, z1, tint, ao);
+  }
+
+  void link(
+    (double, double, double) a,
+    (double, double, double) b,
+    double r,
+    int tint,
+    double ao,
+  ) {
+    if (!saluda) return vara(a, b, r, tint, ao);
+    vara(
+      (a.$1 + corre(a.$2), a.$2 + saltito, a.$3),
+      (b.$1 + corre(b.$2), b.$2 + saltito, b.$3),
+      r,
+      tint,
+      ao,
+    );
+  }
+
   final y = piso + bob - baja; // a lo que se suma la altura de cada parte
   const corva = 0.035; // lo que adelanta la cabeza
 
@@ -1717,10 +1763,10 @@ void _sabio(
         : (-0.250, y + 0.560, 0.190 + vaiven * 0.3);
     var pie = sentado ? (-0.250, 0.0, 0.420) : (-0.275, 0.0, 0.250 + vaiven);
     if (at.act == Doing.greet) {
-      // Saluda con el bastón: se levanta solo del suelo, sube al costado de
-      // la cabeza y la punta va y viene, como una mano en alto.
-      final alza = smoothstep(0, 0.45, at.phase);
-      final ida = math.sin(at.phase * 8.0) * alza;
+      // Saluda con el bastón: lo levanta del suelo y lo alza pegado a su
+      // costado, por encima de la cabeza, y la punta va y viene con él.
+      final alza = alzaSaludo;
+      final ida = vaivenSaludo;
       (double, double, double) mezcla(
         (double, double, double) a,
         (double, double, double) b,
@@ -1729,8 +1775,8 @@ void _sabio(
         lerpD(a.$2, b.$2, alza),
         lerpD(a.$3, b.$3, alza),
       );
-      arriba = mezcla(arriba, (-0.34 + 0.22 * ida, y + 1.30, 0.14));
-      pie = mezcla(pie, (-0.30 + 0.03 * ida, y + 0.50, 0.12));
+      arriba = mezcla(arriba, (-0.30 + 0.20 * ida, y + 1.28, 0.12));
+      pie = mezcla(pie, (-0.25 + 0.03 * ida, y + 0.48, 0.10));
     }
     link(arriba, pie, 0.024, 0xFF6B5236, 0.95);
     // Y el puño, curvo, arriba.
