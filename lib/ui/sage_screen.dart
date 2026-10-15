@@ -82,8 +82,8 @@ class SageScreen extends StatefulWidget {
   static Route<void> route({required Store store, required UiTheme theme}) =>
       PageRouteBuilder<void>(
         opaque: false,
-        // Apenas un velo: el valle se tiene que seguir viendo.
-        barrierColor: Colors.black.withValues(alpha: 0.10),
+        // Un velo, pero que se note: el valle se sigue viendo, más apagado.
+        barrierColor: Colors.black.withValues(alpha: 0.32),
         transitionDuration: const Duration(milliseconds: 360),
         reverseTransitionDuration: const Duration(milliseconds: 220),
         pageBuilder: (_, _, _) => SageScreen(store: store, theme: theme),
