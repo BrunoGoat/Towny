@@ -118,9 +118,12 @@ void main() {
     expect(v.mando.aloft, isTrue);
   });
 
-  testWidgets('en el valle, arrastrar lleva la vista, no la gira', (
+  testWidgets('en el valle, un dedo gira alrededor, como en el pueblo', (
     tester,
   ) async {
+    // Hubo una cámara de mapa —un dedo corría el suelo— y era fácil perderse:
+    // con cualquier gesto uno se pasaba de pueblo. Ahora gira sin moverse de
+    // donde está mirando.
     final v = await valle(tester, activo: 1);
     final antes = v.mando.aim;
     final g = await tester.startGesture(const Offset(195, 500));
@@ -131,27 +134,31 @@ void main() {
     await g.up();
     await tester.pump(const Duration(milliseconds: 400));
     final ahora = v.mando.aim;
-    expect(ahora.yaw, closeTo(antes.yaw, 1e-9));
+    expect((ahora.yaw - antes.yaw).abs(), greaterThan(0.2));
+    expect(ahora.x, closeTo(antes.x, 1e-9));
+    expect(ahora.z, closeTo(antes.z, 1e-9));
+    expect(v.mando.aloft, isTrue);
+  });
+
+  testWidgets('dos dedos lo corren, y no se sale del valle', (tester) async {
+    final v = await valle(tester, activo: 1);
+    final antes = v.mando.aim;
+    final a = await tester.startGesture(const Offset(150, 300), pointer: 1);
+    final b = await tester.startGesture(const Offset(240, 300), pointer: 2);
+    for (var i = 0; i < 200; i++) {
+      await a.moveBy(const Offset(0, 6));
+      await b.moveBy(const Offset(0, 6));
+    }
+    await a.up();
+    await b.up();
+    await tester.pump(const Duration(milliseconds: 100));
+    final ahora = v.mando.aim;
     final corrido = math.sqrt(
       math.pow(ahora.x - antes.x, 2) + math.pow(ahora.z - antes.z, 2),
     );
     expect(corrido, greaterThan(3));
-    expect(v.mando.aloft, isTrue);
-  });
-
-  testWidgets('y no se sale del valle', (tester) async {
-    final v = await valle(tester, activo: 1);
-    final g = await tester.startGesture(const Offset(195, 300));
-    for (var i = 0; i < 200; i++) {
-      await g.moveBy(const Offset(0, 40));
-      await g.moveBy(const Offset(0, -40));
-      await g.moveBy(const Offset(0, 40));
-    }
-    await g.up();
-    await tester.pump(const Duration(milliseconds: 100));
-    final a = v.mando.aim;
     // Dos pueblos: el valle no pasa de unas decenas de metros del centro.
-    expect(math.sqrt(a.x * a.x + a.z * a.z), lessThan(200));
+    expect(math.sqrt(ahora.x * ahora.x + ahora.z * ahora.z), lessThan(200));
   });
 
   testWidgets('con el botón derecho del ratón gira', (tester) async {

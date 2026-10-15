@@ -606,7 +606,14 @@ class Backdrop {
     final span = math.atan(size.width * 0.5 / p.focal) + 0.30;
     const steps = 210;
     final floor = size.height + 40;
-    final look = scene.camera.travel;
+    // Las sierras no dependen de dónde está la cámara. Antes el perfil se
+    // leía alrededor del foco —«caminar por el valle descubre otra sierra»—,
+    // que valía cuando la cámara sólo se corría unos metros a lo largo del
+    // muro. En el valle el foco se corre cien metros con un gesto, y las
+    // cordilleras cambiaban de forma enteras con cualquier toque: se movían
+    // como si estuvieran al lado. Una montaña tan lejos sólo gira con la
+    // cámara.
+    const look = 0.0;
 
     // Where the sun is across the screen, for the light that grazes the tops.
     // A number, not a side: the old code asked «is this slope facing the
@@ -659,9 +666,6 @@ class Backdrop {
         hs.add(h);
         wxs.add(look + dx * layer.radius);
         wzs.add(dz * layer.radius);
-        // El perfil sigue cambiando con el viaje, así que caminar por el valle
-        // descubre otra sierra: eso es paralaje de verdad, y es la única que
-        // una cosa tan lejos tiene derecho a tener.
         final at = skyPoint(
           p,
           th,

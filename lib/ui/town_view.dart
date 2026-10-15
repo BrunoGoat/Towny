@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/services.dart';
 
 import '../core/math3.dart';
 import '../core/rng.dart';
@@ -1420,10 +1419,9 @@ class _TownViewState extends State<TownView>
     if (d.focalPointDelta.distanceSquared > 1 || d.scale != 1) {
       widget.onCameraMoved();
     }
-    if (_aloft) {
-      _freeCamera(d);
-      return;
-    }
+    // El botón derecho ya lo gira [_mouseOrbit]; si además lo moviera el
+    // gesto, el valle se iría de lado mientras gira.
+    if (_rightDrag) return;
     if (d.pointerCount >= 2) {
       final g = _twoFingers(d);
       if (g.zoom != 1) _zoomBy(1 / g.zoom);
@@ -1442,50 +1440,25 @@ class _TownViewState extends State<TownView>
     } else {
       final dx = d.focalPointDelta.dx;
       final dy = d.focalPointDelta.dy;
-      _cam.orbitBy(-dx * 0.0062, dy * 0.0048);
+      // En el valle, más despacio: lo que se ve es casi todo horizonte, y a
+      // la velocidad del pueblo las sierras corrían más que el dedo.
+      final k = _aloft ? _valleyTurn : 1.0;
+      _cam.orbitBy(-dx * 0.0062 * k, dy * 0.0048 * k);
       _cam.follow = false;
     }
   }
 
-  /// En el valle la cámara es libre: se la lleva a cualquier parte.
-  ///
-  /// Antes era la misma que en el pueblo —un dedo giraba alrededor del
-  /// centro, que es donde está el primer pueblo, y dos la corrían en una sola
-  /// dirección—, así que el valle se miraba siempre desde su medio. Ahora es
-  /// como un mapa:
-  ///
-  ///  * **Un dedo, o arrastrar con el ratón**, lleva el suelo con el dedo: lo
-  ///    que estaba debajo sigue debajo. Hacia cualquier lado.
-  ///  * **Dos dedos**: pellizcar acerca y aleja, girarlos gira la vista, y
-  ///    subirlos o bajarlos juntos inclina.
-  ///  * **Con el ratón**, el botón derecho —o arrastrar con Mayúsculas o
-  ///    Control apretados— gira e inclina, que es lo que hacía un dedo antes.
-  void _freeCamera(ScaleUpdateDetails d) {
-    // El botón derecho ya lo gira [_mouseOrbit]; si además corriera la vista,
-    // el valle se iría de lado mientras gira.
-    if (_rightDrag) return;
-    final teclado = HardwareKeyboard.instance;
-    if (d.pointerCount >= 2) {
-      final g = _twoFingers(d);
-      if (g.zoom != 1) _zoomToward(1 / g.zoom, d.localFocalPoint);
-      _cam.orbitBy(-g.turn, g.move.dy * 0.0048);
-      _cam.follow = false;
-      if (g.zoom > 1) _diveIn(d.localFocalPoint);
-    } else if (teclado.isShiftPressed || teclado.isControlPressed) {
-      _cam.orbitBy(
-        -d.focalPointDelta.dx * 0.0062,
-        d.focalPointDelta.dy * 0.0048,
-      );
-      _cam.follow = false;
-    } else {
-      _panByDrag(d.focalPointDelta, d.localFocalPoint);
-    }
-  }
+  /// Cuánto más despacio gira un dedo en el valle que en el pueblo.
+  static const double _valleyTurn = 0.55;
 
-  /// Arrastrar el suelo del valle: el foco se corre al revés que el dedo,
-  /// sobre el suelo y no sobre la pantalla, así que lo que estaba debajo del
-  /// dedo sigue debajo. Sin salirse del valle: más allá de los pueblos no hay
-  /// nada que buscar, y perderse en la nieve es fácil.
+  /// Correr la vista con dos dedos: el foco se corre al revés que los dedos,
+  /// sobre el suelo y no sobre la pantalla, así que lo que estaba debajo
+  /// sigue debajo. Sin salirse del valle ni del pueblo: más allá no hay nada
+  /// que buscar, y perderse en la nieve es fácil.
+  ///
+  /// Un dedo, en el pueblo y en el valle, gira alrededor de lo encuadrado. El
+  /// valle tuvo un tiempo una cámara libre, de mapa —un dedo corría el suelo—,
+  /// y era fácil perderse: se pasaba de pueblo con cualquier gesto.
   void _panByDrag(Offset delta, [Offset? finger]) {
     _stopFollowing();
     final size = context.size;
@@ -1565,23 +1538,6 @@ class _TownViewState extends State<TownView>
     final t = -p.eye.y / dir.y;
     if (t * dir.length > _cam.distanceTarget * 4) return null;
     return (p.eye.x + dir.x * t, p.eye.z + dir.z * t);
-  }
-
-  /// Acercarse o alejarse en el valle hacia donde están los dedos, no hacia
-  /// el medio de la pantalla: entre dos pueblos el medio es prado, y para ir
-  /// a uno había que acercarse a la nada y después arrastrar.
-  void _zoomToward(double factor, Offset focal) {
-    final size = context.size;
-    if (size == null) return;
-    final g = _groundAt(_aimed(size), focal);
-    final antes = _cam.distanceTarget;
-    _zoomBy(factor);
-    if (g == null || antes <= 0) return;
-    final k = 1 - _cam.distanceTarget / antes;
-    _keepInside(
-      _cam.travelTarget + (g.$1 - _cam.travelTarget) * k,
-      _cam.focusZTarget + (g.$2 - _cam.focusZTarget) * k,
-    );
   }
 
   /// El botón derecho del ratón, arrastrando: girar e inclinar el valle. Va
@@ -1855,8 +1811,7 @@ class _TownViewState extends State<TownView>
       onPointerMove: _mouseOrbit,
       onPointerSignal: (e) {
         if (e is PointerScrollEvent) {
-          final f = 1 + e.scrollDelta.dy * 0.0012;
-          _aloft ? _zoomToward(f, e.localPosition) : _zoomBy(f);
+          _zoomBy(1 + e.scrollDelta.dy * 0.0012);
           if (e.scrollDelta.dy < 0) _diveIn(e.localPosition);
         }
       },
