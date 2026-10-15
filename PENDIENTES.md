@@ -270,8 +270,9 @@ Se regenera con `flutter test tool/textos_test.dart` seguido de
   humor. Falta que alguien las apruebe.
 - [ ] **Nombres y oficios de la gente** (`lib/data/folknames.dart`): que los
   oficios tengan sentido con la casa en que viven.
-- [ ] **Lo que dice el tablón sobre tus hábitos**: rachas, obras en marcha y
-  crónica.
+- [ ] **Lo que dice el tablón sobre tus hábitos**: obras en marcha y
+  crónica. Rachas no hay en ningún sitio (comprobado): lo único que las
+  nombra es la hoja de desbloqueo, para decir que no se miden.
 - [ ] **Avisos** (`lib/fx/notifier.dart`): que ninguno pida atención ni
   culpe.
 - [ ] **Interfaz**: hojas, botones, ajustes y la primera vez que se abre.
@@ -313,11 +314,13 @@ Todo lo medido hasta ahora es de una máquina de escritorio. Fotograma:
   segundo, lo que tarda cada uno y el pueblo, y cuántas caras; y llaves para
   apagar sombras, color, resplandor, rayos, gente y agua por separado.
 - [ ] **Medir en el teléfono con ese contador** y atacar lo que pese.
-- [ ] **La notificación tarda unos 282 ms en el peor caso**: el 20 % de las
-  piezas recalculan el pueblo entero para decidir qué decir. Re-medirlo y, si
-  sigue, cortarlo: la notificación sólo necesita saber qué obra está en marcha.
-- [ ] **La cámara que sigue a alguien se mete a veces dentro de un tejado.**
-  Hay que apartarla cuando lo que tiene delante es una pared.
+- [x] **La notificación tardaba unos 282 ms en el peor caso.** Re-medido con
+  un pueblo de 1500 piezas: planear los tres avisos siguientes son 11 ms, y
+  lo que dice de la obra en marcha, 0,4 ms. Ya no hace falta cortar nada.
+- [x] **La cámara que sigue a alguien se metía a veces dentro de un tejado.**
+  Ahora se acerca lo justo para que entre ella y la persona no haya nada
+  (`lib/engine/clear_view.dart`); lo prueba `clear_view_test.dart` en casi
+  tres mil encuadres.
 
 ### El orden de pintado de la gente
 

@@ -11,6 +11,7 @@ import '../data/constellations.dart';
 import '../data/doings.dart';
 import '../data/landmarks.dart';
 import '../engine/camera.dart';
+import '../engine/clear_view.dart';
 import '../engine/folk.dart';
 import '../engine/folk_body.dart';
 import '../engine/palette.dart';
@@ -1486,6 +1487,15 @@ class _TownViewState extends State<TownView>
   /// La persona seguida, para devolverla a su ronda de siempre al soltarla.
   Townsfolk? _spotlit;
 
+  /// A qué distancia se la quiere seguir: la de entrada, o la que se puso con
+  /// los dedos mientras se la seguía. La cámara se acerca de ahí lo que haga
+  /// falta para no meterse en un tejado (ver [clearDistance]).
+  double _followWant = 5.06;
+
+  /// La última distancia que puso el seguir, para darse cuenta de cuándo la
+  /// cambió el dedo.
+  double? _followSet;
+
   /// Se le acerca y lo empieza a seguir.
   void _follow(int town, int home) {
     if (town < 0 || town >= widget.store.habits.length) return;
@@ -1506,7 +1516,8 @@ class _TownViewState extends State<TownView>
     // A la altura de los ojos se la ve mejor, pero en un pueblo apretado lo
     // que hay entre la cámara y una persona es casi siempre una pared: se
     // probó, y lo que se veía era el encalado de la casa de enfrente.
-    _cam.distanceTarget = 5.06;
+    _followWant = 5.06;
+    _followSet = null;
     _cam.pitchTarget = 0.75;
     _aimAtFollowed();
     widget.onFolkTapped?.call(card);
@@ -1560,6 +1571,22 @@ class _TownViewState extends State<TownView>
     _cam.travelTarget = donde.at.x;
     _cam.focusZTarget = donde.at.z;
     _cam.focusYTarget = talla * 0.6;
+    // Sin meterse en un tejado: si entre la persona y donde iría el ojo hay
+    // una casa, la cámara se acerca hasta delante de ella.
+    final puso = _followSet;
+    if (puso != null && (_cam.distanceTarget - puso).abs() > 1e-6) {
+      _followWant = _cam.distanceTarget;
+    }
+    final d = clearDistance(
+      e.layout,
+      e.placed,
+      V3(donde.at.x, talla * 0.6, donde.at.z),
+      _cam.yawTarget,
+      _cam.pitchTarget,
+      _followWant,
+    );
+    _cam.distanceTarget = d;
+    _followSet = d;
     return true;
   }
 
