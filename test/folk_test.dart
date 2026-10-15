@@ -33,7 +33,12 @@ void main() {
     test('una casa terminada, un vecino; ni uno más ni uno menos', () {
       for (final n in [1, 5, 20, 80, 300]) {
         final t = _town(n);
-        expect(folkOf(t, n).length, _finished(t, n), reason: 'con $n piezas');
+        // Más el consejero, que no es de ninguna casa.
+        expect(
+          folkOf(t, n).where((v) => !v.sage).length,
+          _finished(t, n),
+          reason: 'con $n piezas',
+        );
       }
     });
 
@@ -41,7 +46,8 @@ void main() {
       // La primera casa cuesta dos o tres piezas. Hasta que esté pagada
       // entera no vive nadie en ella, porque no hay ella.
       final t = _town(1);
-      expect(folkOf(t, 1), isEmpty);
+      // Nadie más que el consejero, que está en la plaza desde que se funda.
+      expect(folkOf(t, 1).where((v) => !v.sage), isEmpty);
     });
 
     test('nadie sale de una casa a medio pagar', () {
@@ -368,7 +374,7 @@ void main() {
       // mitad del prado sería exactamente el tipo de cosa que convierte un
       // pueblo en un parque de atracciones.
       final t = _town(400);
-      for (final w in folkOf(t, 400)) {
+      for (final w in folkOf(t, 400).where((v) => !v.sage)) {
         final donde = w.debugPath, quehace = w.debugActs;
         final casa = t.buildings[w.home];
         for (var i = 0; i < quehace.length; i++) {

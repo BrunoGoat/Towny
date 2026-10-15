@@ -12,6 +12,7 @@ import 'fx/notifier.dart';
 import 'fx/sensory.dart';
 import 'fx/widget_bridge.dart';
 import 'l10n/lang.dart';
+import 'model/advice_book.dart';
 import 'model/appearance.dart';
 import 'model/arrival.dart';
 import 'model/board_seen.dart';
@@ -97,6 +98,8 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       Sensory.instance.wake();
       _replan();
+      // Volver a la app es entrar: el consejero tiene el consejo del día.
+      AdviceBook.instance.visit(store.habits);
       // Y lo que se haya tocado en la pantalla de inicio mientras tanto.
       _collect();
     } else {
@@ -235,6 +238,9 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
     await BoardSeen.instance.load();
     await LocalChanges.instance.load();
     await store.load();
+    // El consejero: lo que ya se ganó, y el de hoy si todavía no.
+    await AdviceBook.instance.load();
+    AdviceBook.instance.visit(store.habits);
     // Quien ya tenía pueblo no pasa por la pantalla de la primera vez, y no se
     // entera de que existe. Se apunta como pasada y a otra cosa.
     if (!Appearance.instance.onboarded && store.total > 0) {

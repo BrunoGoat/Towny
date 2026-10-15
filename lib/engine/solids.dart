@@ -1606,6 +1606,120 @@ class NoticeBoard {
   }
 }
 
+/// El banco de la plaza: del otro lado de la fuente, frente al tablón, y
+/// mirándola.
+///
+/// Lo puso el consejero, que es el único que se sienta en él a mirar el agua
+/// (ver `Townsfolk.sage`). Madera y nada más: un asiento, cuatro patas y un
+/// respaldo bajo. Se construye mirando a `+z` y se gira al plantarlo, igual
+/// que el tablón.
+class PlazaBench {
+  /// Lo que se aparta del centro de la plaza, en partes de su radio.
+  static const double out = 0.70;
+
+  /// Medio largo del asiento y medio fondo.
+  static const double half = 0.42, depth = 0.13;
+
+  /// A qué altura queda el asiento sobre el césped de la plaza.
+  static const double seat = 0.22;
+
+  static double get offX =>
+      TownLayout.plazaReach * out * math.cos(-math.pi / 4);
+  static double get offZ =>
+      TownLayout.plazaReach * out * math.sin(-math.pi / 4);
+  static double xAt(double cx) => cx + offX;
+  static double zAt(double cz) => cz + offZ;
+
+  /// Hacia dónde mira: a la fuente.
+  static double get turn => math.atan2(-offX, -offZ);
+
+  /// La altura del asiento en el mundo.
+  static double get seatY => Plaza.lawnTop + seat;
+
+  static List<Solid> solidsAt(double cxIn, double czIn) {
+    final cx = xAt(cxIn), cz = zAt(czIn);
+    const madera = 0xFF7A5E40;
+    const oscura = 0xFF5E4630;
+    final y0 = Plaza.lawnTop;
+    Solid caja(
+      double x0,
+      double ya,
+      double z0,
+      double x1,
+      double yb,
+      double z1,
+      int tint,
+      double ao,
+    ) => Solid(
+      -1,
+      boxFaces(
+        cx + x0,
+        ya,
+        cz + z0,
+        cx + x1,
+        yb,
+        cz + z1,
+        Surface.own,
+        ao: ao,
+        tint: tint,
+      ),
+    );
+    const pata = 0.035;
+    return turnedSolids(
+      [
+        for (final x in [-half + 0.06, half - 0.06])
+          for (final z in [-depth + 0.03, depth - 0.03])
+            caja(
+              x - pata,
+              y0,
+              z - pata,
+              x + pata,
+              y0 + seat - 0.035,
+              z + pata,
+              oscura,
+              0.86,
+            ),
+        // El asiento.
+        caja(
+          -half,
+          y0 + seat - 0.035,
+          -depth,
+          half,
+          y0 + seat,
+          depth,
+          madera,
+          1,
+        ),
+        // Los dos postes del respaldo, y la tabla.
+        for (final x in [-half + 0.06, half - 0.06])
+          caja(
+            x - pata,
+            y0 + seat,
+            -depth,
+            x + pata,
+            y0 + seat + 0.24,
+            -depth + 0.045,
+            oscura,
+            0.9,
+          ),
+        caja(
+          -half,
+          y0 + seat + 0.12,
+          -depth - 0.005,
+          half,
+          y0 + seat + 0.24,
+          -depth + 0.035,
+          madera,
+          0.96,
+        ),
+      ],
+      cx,
+      cz,
+      turn,
+    );
+  }
+}
+
 /// La plaza: el claro en el centro del pueblo.
 ///
 /// Existe por un motivo concreto y se ve en cuanto un pueblo pasa de diez

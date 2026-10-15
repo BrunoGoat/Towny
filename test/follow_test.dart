@@ -228,7 +228,8 @@ void main() {
       // lejos no pasa nunca; con la cámara pegada a alguien pasa a menudo, y
       // la persona que se estaba siguiendo desaparecía.
       final l = TownLayout(160, TownCharacter.all.first, seed: 21);
-      final gente = folkOf(l, 160);
+      // El consejero no se toca todavía: no tiene ficha.
+      final gente = folkOf(l, 160).where((v) => !v.sage);
       var probadas = 0;
       for (final who in gente) {
         for (final t in [0.0, 30.0, 80.0, 140.0]) {

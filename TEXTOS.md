@@ -20,13 +20,13 @@ nombres de fuente (`PermanentMarker.ttf`), la hoja de pruebas y los comentarios.
 | Comarcas | 8 | 24 + 42 | sí |
 | Lo que el tablón dice de vos | 95 | 95 | sí |
 | Nombres de la gente | 87 | 87 | no: nombres propios |
-| Lo que hace la gente | 21 | 21 | sí |
+| Lo que hace la gente | 22 | 22 | sí |
 | Símbolos de hábito | 72 | 72 | sí |
 | La interfaz | 466 | 466 | sí |
 | Notificaciones | 9 | 9 | sí |
 | Widget de Android | 6 | 6 | sí |
 
-**831 entradas**, que son unas 949 frases sueltas.
+**832 entradas**, que son unas 950 frases sueltas.
 
 
 
@@ -203,26 +203,27 @@ nombres de fuente (`PermanentMarker.ttf`), la hoja de pruebas y los comentarios.
 > **Cuándo se ve.** Debajo del nombre, en el expositor de la gente: «Mar la tejedora **barre el umbral**». Hay noventa maneras de moverse pero sólo estas seis tienen frase escrita; las demás se nombran solas.
 
 - **G1** · se queda mirando
-- **G2** · barre el umbral
-- **G3** · se sienta en una banqueta
-- **G4** · tiende la ropa
-- **G5** · parte leña
-- **G6** · echa de comer a las gallinas
-- **G7** · toca el laúd
-- **G8** · atiende el puesto
-- **G9** · hace malabares
-- **G10** · toca el tambor
-- **G11** · salta a la comba
-- **G12** · saca agua
-- **G13** · lava la ropa
-- **G14** · echa un barco de papel
-- **G15** · pica piedra
-- **G16** · sierra un madero
-- **G17** · empuja la carretilla
-- **G18** · vuela una cometa
-- **G19** · se tumba a mirar las nubes
-- **G20** · cuida las ovejas
-- **G21** · coge flores
+- **G2** · se sienta en el banco
+- **G3** · barre el umbral
+- **G4** · se sienta en una banqueta
+- **G5** · tiende la ropa
+- **G6** · parte leña
+- **G7** · echa de comer a las gallinas
+- **G8** · toca el laúd
+- **G9** · atiende el puesto
+- **G10** · hace malabares
+- **G11** · toca el tambor
+- **G12** · salta a la comba
+- **G13** · saca agua
+- **G14** · lava la ropa
+- **G15** · echa un barco de papel
+- **G16** · pica piedra
+- **G17** · sierra un madero
+- **G18** · empuja la carretilla
+- **G19** · vuela una cometa
+- **G20** · se tumba a mirar las nubes
+- **G21** · cuida las ovejas
+- **G22** · coge flores
 
 ## Los símbolos de hábito (72)
 
@@ -845,20 +846,20 @@ Un mensaje de error para quien programa.
 
 El nombre de la app y lo que se ve mientras carga.
 
-- **U335** · `SEED`  <sub>main.dart:247 · _PuebloAppState._boot</sub>
-- **U336** · `IDLE_DAYS`  <sub>main.dart:248 · _PuebloAppState._boot</sub>
-- **U337** · `REGION`  <sub>main.dart:252 · _PuebloAppState._boot</sub>
-- **U338** · `Leer`  <sub>main.dart:259 · _PuebloAppState._boot</sub>
-- **U339** · `VALLEY`  <sub>main.dart:269 · _PuebloAppState._boot</sub>
-- **U340** · `Correr`  <sub>main.dart:275 · _PuebloAppState._boot</sub>
-- **U341** · `Estudiar`  <sub>main.dart:276 · _PuebloAppState._boot</sub>
-- **U342** · `Guitarra`  <sub>main.dart:277 · _PuebloAppState._boot</sub>
-- **U343** · `Nadar`  <sub>main.dart:278 · _PuebloAppState._boot</sub>
-- **U344** · `Pintar`  <sub>main.dart:279 · _PuebloAppState._boot</sub>
-- **U345** · `GALLERY`  <sub>main.dart:330 · _PuebloAppState._boot</sub>
-- **U346** · `Towny`  <sub>main.dart:335 · _PuebloAppState.build</sub>
-- **U347** · `Roboto`  <sub>main.dart:351 · _PuebloAppState.build</sub>
-- **U348** · `EL PUEBLO`  <sub>main.dart:400 · _Opening.build</sub>
+- **U335** · `SEED`  <sub>main.dart:253 · _PuebloAppState._boot</sub>
+- **U336** · `IDLE_DAYS`  <sub>main.dart:254 · _PuebloAppState._boot</sub>
+- **U337** · `REGION`  <sub>main.dart:258 · _PuebloAppState._boot</sub>
+- **U338** · `Leer`  <sub>main.dart:265 · _PuebloAppState._boot</sub>
+- **U339** · `VALLEY`  <sub>main.dart:275 · _PuebloAppState._boot</sub>
+- **U340** · `Correr`  <sub>main.dart:281 · _PuebloAppState._boot</sub>
+- **U341** · `Estudiar`  <sub>main.dart:282 · _PuebloAppState._boot</sub>
+- **U342** · `Guitarra`  <sub>main.dart:283 · _PuebloAppState._boot</sub>
+- **U343** · `Nadar`  <sub>main.dart:284 · _PuebloAppState._boot</sub>
+- **U344** · `Pintar`  <sub>main.dart:285 · _PuebloAppState._boot</sub>
+- **U345** · `GALLERY`  <sub>main.dart:336 · _PuebloAppState._boot</sub>
+- **U346** · `Towny`  <sub>main.dart:341 · _PuebloAppState.build</sub>
+- **U347** · `Roboto`  <sub>main.dart:357 · _PuebloAppState.build</sub>
+- **U348** · `EL PUEBLO`  <sub>main.dart:406 · _Opening.build</sub>
 
 ### Mensajes del guardado
 
@@ -953,7 +954,7 @@ Invierno, primavera, verano y otoño, en ajustes y en el tablón.
 
 Frases que no caen en ninguna pantalla concreta.
 
-- **U408** · `versión simple`  <sub>renderer.dart:2230 · TownPainter._colourOf</sub>
+- **U408** · `versión simple`  <sub>renderer.dart:2301 · TownPainter._colourOf</sub>
 - **U409** · `todos los días`  <sub>cadence.dart:164 · cadenceSaid</sub>
 - **U410** · `cada dos días`  <sub>cadence.dart:165 · cadenceSaid</sub>
 - **U411** · `una vez por semana`  <sub>cadence.dart:166 · cadenceSaid</sub>

@@ -40,8 +40,95 @@ class Townsfolk {
     this._stay,
     this._facing,
     this._act,
-    this.period,
-  );
+    this.period, {
+    this.sage = false,
+  });
+
+  /// El consejero: el viejo de la barba y el bastón que anda por la plaza.
+  ///
+  /// No tiene casa, y eso es lo que es: no lo trajo ninguna obra, no vive en
+  /// ningún sitio y no se va a ninguna parte de noche. Está en la plaza desde
+  /// el día que se funda, dando vueltas despacio alrededor de la fuente, y se
+  /// para a mirarla. Lo que sabe está en `data/advice.dart`.
+  ///
+  /// Su paseo es un arco que va y vuelve, y no un círculo: así no pasa nunca
+  /// por delante del tablón, que está en la plaza y es lo que la gente viene
+  /// a mirar. Entre una parada y la siguiente hay a lo sumo una sexta parte de
+  /// vuelta, para que el tramo recto no se meta en el pilón de la fuente.
+  ///
+  /// Anda casi todo el rato —las paradas son de un par de segundos, a mirar—
+  /// y una vez por vuelta se sienta un rato largo en el banco de la plaza
+  /// ([PlazaBench]), mirando el agua.
+  factory Townsfolk.sage(TownLayout layout) {
+    // Un hombre hecho: la barba es suya.
+    var s = hash32(layout.seed, 0x5A6E, 3);
+    for (var k = 0; k < 4096; k++) {
+      if (hash01(s, 12) >= 0.24 && !folkIsWoman(s)) break;
+      s = hash32(s, 0x5A6E, k);
+    }
+    final cx = layout.cx, cz = layout.cz;
+    (double, double) arco(double grados, double r) {
+      final a = grados * math.pi / 180;
+      return (cx + math.cos(a) * r, cz + math.sin(a) * r);
+    }
+
+    double haciaFuente((double, double) p) => math.atan2(cx - p.$1, cz - p.$2);
+    double radio(int i) => hashRange(1.2, 1.45, s, i, 52);
+    double giro(int i) => hashRange(-12, 12, s, i, 51);
+    // El arco, de punta a punta, y el banco en medio con su paso de delante:
+    // se llega al banco de frente, no atravesándolo por la punta.
+    final p195 = arco(195 + giro(0), radio(0));
+    final p255 = arco(255 + giro(1), radio(1));
+    final p375 = arco(375 + giro(3), radio(3));
+    final p435 = arco(435 + giro(4), radio(4));
+    final frente = arco(315, 1.25);
+    final banco = (PlazaBench.xAt(cx), PlazaBench.zAt(cz));
+    final mirarBanco = PlazaBench.turn;
+    // (sitio, cuánto se queda, hacia dónde mira, qué hace)
+    final ronda = <((double, double), double, double, Doing)>[
+      (p195, hashRange(4, 8, s, 61), haciaFuente(p195), Doing.idle),
+      (p255, hashRange(2, 4, s, 62), haciaFuente(p255), Doing.idle),
+      (frente, 0.3, mirarBanco, Doing.idle),
+      (banco, hashRange(24, 40, s, 63), mirarBanco, Doing.bench),
+      (frente, 0.3, mirarBanco, Doing.idle),
+      (p375, hashRange(2, 4, s, 64), haciaFuente(p375) + math.pi, Doing.idle),
+      (p435, hashRange(4, 8, s, 65), haciaFuente(p435), Doing.idle),
+      (p375, hashRange(1, 3, s, 66), haciaFuente(p375), Doing.idle),
+      (frente, 0.5, haciaFuente(frente), Doing.idle),
+      (p255, hashRange(2, 4, s, 67), haciaFuente(p255) + math.pi, Doing.idle),
+    ];
+    final stops = [for (final r in ronda) r.$1];
+    final stay = [for (final r in ronda) r.$2];
+    final facing = [for (final r in ronda) r.$3];
+    final acts = [for (final r in ronda) r.$4];
+    var period = 0.0;
+    for (var i = 0; i < stops.length; i++) {
+      final a = stops[i], b = stops[(i + 1) % stops.length];
+      period +=
+          math.sqrt(math.pow(b.$1 - a.$1, 2) + math.pow(b.$2 - a.$2, 2)) /
+              pace +
+          stay[(i + 1) % stops.length];
+    }
+    return Townsfolk._(
+      sageHome,
+      s,
+      'Consejero',
+      null,
+      stops,
+      stay,
+      facing,
+      acts,
+      period,
+      sage: true,
+    );
+  }
+
+  /// La casa del consejero, que no tiene: un número que no es de ningún
+  /// edificio y que no es tampoco el `-1` del de muestra.
+  static const int sageHome = -2;
+
+  /// Si es el consejero. Ver [Townsfolk.sage].
+  final bool sage;
 
   /// Una persona quieta en el origen, haciendo una cosa y nada más.
   ///
@@ -562,6 +649,9 @@ class Townsfolk {
   /// Dónde está en el segundo [t] con la tarde en [homeward]. Ver
   /// [folkWhere].
   ({FolkAt at, double sink})? _evening(double t, double homeward) {
+    // El consejero no tiene adónde ir: se queda en la plaza, de día y de
+    // noche.
+    if (sage) return (at: at(t), sink: 0.0);
     final first = !_seen;
     _seen = true;
     if (homeward >= _bedtime) {
@@ -742,7 +832,9 @@ class Townsfolk {
         // concreto y empezarlo con dos segundos de nada sería empezarlo mal.
         // Y para quien sigue la cámara, la mitad: está ahí para verla hacer
         // cosas, no para verla llegar.
-        final settle = home < 0 ? 0.0 : math.min(spot ? 1.2 : 2.4, stay * 0.15);
+        final settle = home == -1
+            ? 0.0
+            : math.min(spot ? 1.2 : 2.4, stay * 0.15);
         final metido = held >= settle && held <= stay - settle;
         // Y en el respiro no se queda congelado: respira y mira alrededor, que
         // es [Doing.idle] y es exactamente lo que hace quien acaba de llegar.
@@ -1124,7 +1216,8 @@ List<Townsfolk> _folkOf(
     if (b.firstPiece + b.cost > placed) continue;
     casas.add(b);
   }
-  if (casas.isEmpty) return const [];
+  // El consejero está en la plaza desde que se funda, haya casas o no.
+  if (casas.isEmpty) return [Townsfolk.sage(layout)];
 
   // A dónde va la gente. Pocos sitios y compartidos, que es lo que hace que se
   // encuentren: con un destino para cada uno, un pueblo de cuarenta vecinos
@@ -1274,6 +1367,7 @@ List<Townsfolk> _folkOf(
         .._h = h,
     );
   }
+  out.add(Townsfolk.sage(layout));
   return out;
 }
 
@@ -1630,6 +1724,13 @@ List<(double x0, double z0, double x1, double z1)> _blockers(
       NoticeBoard.zAt(cz),
       NoticeBoard.reach * 0.78,
       NoticeBoard.reach * 0.78,
+    );
+    // Y el banco, por lo mismo que el tablón: girado, su caja entera.
+    estorbo(
+      PlazaBench.xAt(cx),
+      PlazaBench.zAt(cz),
+      PlazaBench.half * 0.8,
+      PlazaBench.half * 0.8,
     );
   }
   return out;

@@ -246,6 +246,18 @@ class Doing {
   /// eso ninguna repite el gesto de otra — quien pica piedra dobla el espinazo
   /// a golpes, quien sierra va de lado, quien saca agua sube y baja el
   /// caldero, y quien vuela una cometa es el único que mira hacia arriba.
+  /// El consejero, sentado en el banco de la plaza mirando el agua. No está
+  /// en [all]: es suyo y de nadie más.
+  static const Doing bench = Doing(
+    'banco',
+    'se sienta en el banco',
+    where: Where.square,
+    weight: 0,
+    bob: 0.003,
+    rate: 0.35,
+    seated: true,
+  );
+
   static const List<Doing> all = [
     // ------------------------------------------------------ en su propia puerta
     Doing(

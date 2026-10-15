@@ -20,6 +20,7 @@ import '../data/doings.dart';
 import '../data/folknames.dart';
 import 'folk.dart';
 import 'solid.dart';
+import 'solids.dart';
 
 /// Lo dentro de casa que está la gente ahora mismo, de cero a uno.
 ///
@@ -423,6 +424,13 @@ List<Solid> folkSolids(
     if (detail > 0.25) {
       box(-0.191, 0.015, 0.44, 0.191, 0.396, 0.545, pelo, 1.0);
     }
+    return out;
+  }
+
+  if (who.sage) {
+    // Sentado, sobre el asiento del banco: la altura del asiento en partes de
+    // lo que mide, que es en lo que va todo aquí.
+    _sabio(box, link, at, piel, detail, bob, sentado ? PlazaBench.seat / h : 0);
     return out;
   }
 
@@ -1573,3 +1581,146 @@ const double _piernas = 0.56 / 3;
 
 /// A qué altura queda el asiento de una banqueta.
 const double _banqueta = 0.20;
+
+/// El consejero: túnica larga, barba blanca hasta el pecho, pelo cano y un
+/// bastón. Ver `Townsfolk.sage`.
+///
+/// Es la misma persona de cajas que todos —cuerpo, cabeza, pelo— con lo que
+/// lo hace él encima, y nada que no se lea de lejos: a doce píxeles, lo que
+/// dice «el viejo sabio» es la mancha blanca que le baja de la cara hasta el
+/// pecho y la raya del bastón al lado. Un sombrero de punta diría «mago», que
+/// es otra cosa.
+///
+/// Anda despacio y apenas despega del suelo —nada de los saltitos de los
+/// demás, que en él serían de un chico— y va un poco encorvado: la cabeza un
+/// palmo por delante del cuerpo.
+void _sabio(
+  void Function(double, double, double, double, double, double, int, double)
+  box,
+  void Function(
+    (double, double, double),
+    (double, double, double),
+    double,
+    int,
+    double,
+  )
+  link,
+  FolkAt at,
+  int piel,
+  double detail,
+  double bob,
+  double asiento,
+) {
+  const tunica = 0xFF4E5670;
+  const ribete = 0xFF3D4459;
+  const cano = 0xFFE8E4DA;
+  final sentado = asiento > 0;
+  // Andando apenas despega; sentado, los pies en el asiento.
+  final piso = sentado
+      ? asiento
+      : at.moving
+      ? 0.014 * math.sin(at.gait).abs()
+      : 0.0;
+  // Sentado pierde las piernas, que se van hacia delante (ver la postura
+  // sentada de todos, más arriba): todo lo de arriba baja eso.
+  final baja = sentado ? _piernas : 0.0;
+  final y = piso + bob - baja; // a lo que se suma la altura de cada parte
+  const corva = 0.035; // lo que adelanta la cabeza
+
+  // La túnica, hasta el suelo y un poco más ancha abajo.
+  box(-0.160, piso, -0.125, 0.160, y + 0.56, 0.125, tunica, 1.0);
+  if (sentado) {
+    // Las piernas hacia delante, sobre el asiento, y la túnica que cae
+    // hasta el suelo por delante del banco.
+    box(
+      -0.160,
+      piso,
+      0.105,
+      0.160,
+      piso + 0.13,
+      0.125 + _piernas,
+      tunica,
+      0.97,
+    );
+    box(
+      -0.150,
+      0.0,
+      0.125 + _piernas - 0.11,
+      0.150,
+      piso,
+      0.125 + _piernas,
+      ribete,
+      0.95,
+    );
+  } else {
+    box(-0.176, piso, -0.136, 0.176, piso + 0.12, 0.136, ribete, 0.96);
+  }
+
+  // La cabeza, adelantada.
+  box(
+    -0.205,
+    y + 0.520,
+    -0.175 + corva,
+    0.205,
+    y + 0.950,
+    0.175 + corva,
+    piel,
+    1.02,
+  );
+  if (detail > 0.25) {
+    // El pelo cano: el gorro de siempre y la nuca, larga, por detrás.
+    box(
+      -0.212,
+      y + 0.830,
+      -0.182 + corva,
+      0.212,
+      y + 0.975,
+      0.182 + corva,
+      cano,
+      1.0,
+    );
+    box(
+      -0.212,
+      y + 0.560,
+      -0.182 + corva,
+      0.212,
+      y + 0.975,
+      -0.060 + corva,
+      cano,
+      0.98,
+    );
+    // La barba: ancha bajo la cara, y cada vez más angosta hasta el pecho.
+    final f = 0.175 + corva;
+    box(-0.175, y + 0.500, f, 0.175, y + 0.705, f + 0.055, cano, 1.0);
+    box(-0.120, y + 0.330, 0.128, 0.120, y + 0.520, 0.200, cano, 0.99);
+    box(-0.060, y + 0.230, 0.128, 0.060, y + 0.335, 0.180, cano, 0.98);
+  }
+  if (detail > 0.4) {
+    // El bastón, a su derecha y más alto que la mano. Andando va y viene con
+    // el paso; parado, apoyado; sentado, entre las rodillas y el banco.
+    final vaiven = at.moving ? 0.07 * math.sin(at.gait * 0.5) : 0.0;
+    final mano = sentado
+        ? (-0.230, y + 0.500, 0.300)
+        : (-0.250, y + 0.560, 0.190 + vaiven * 0.3);
+    final pie = sentado ? (-0.250, 0.0, 0.420) : (-0.275, 0.0, 0.250 + vaiven);
+    link(mano, pie, 0.024, 0xFF6B5236, 0.95);
+    link(
+      (mano.$1, mano.$2 - 0.02, mano.$3),
+      (mano.$1, mano.$2 + 0.10, mano.$3 + 0.01),
+      0.030,
+      0xFF5A4430,
+      0.95,
+    );
+    // Y la mano que lo agarra.
+    box(
+      mano.$1 - 0.035,
+      mano.$2 - 0.045,
+      mano.$3 - 0.035,
+      mano.$1 + 0.035,
+      mano.$2 + 0.015,
+      mano.$3 + 0.035,
+      piel,
+      1.0,
+    );
+  }
+}

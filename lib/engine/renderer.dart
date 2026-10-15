@@ -472,10 +472,15 @@ class TownPainter extends CustomPainter {
     final rutas = town.paths;
     if (rutas.isEmpty) return;
     final pal = scene.palette;
-    // La tierra, del color del prado que la rodea —que es lo que cambia con
-    // la hora— tirando a pardo.
-    final tierra = Color.lerp(pal.ground, const Color(0xFF9A7A52), 0.55)!;
-    final borde = tierra.withValues(alpha: 0.45);
+    // Color miel, pastel: el de los caminos de tierra apisonada de una aldea
+    // de juguete, más claro y cálido que el prado. Algo de la luz del prado
+    // le llega igual, para que de noche no brille.
+    final tierra = Color.lerp(
+      const Color(0xFFD9B678),
+      pal.ground,
+      0.18 + 0.5 * (1 - pal.daylight),
+    )!;
+    final borde = Color.lerp(tierra, const Color(0xFF9C7A46), 0.35)!;
     final ancho = 0.2 * town.character.spread;
     final relleno = Paint()..color = tierra;
     final orilla = Paint()
@@ -1497,10 +1502,11 @@ class TownPainter extends CustomPainter {
   }) {
     if (!scene.folk) return const [];
     final dentro = folkHome(pal.daylight);
-    if (dentro > 0.985) return const [];
     final talla = folkHeight(e.layout.character);
     final out = <_Walker>[];
     for (final who in folkOf(e.layout, take)) {
+      // De noche cerrada todos en casa, menos el consejero, que no tiene.
+      if (dentro > 0.985 && !who.sage) continue;
       // Quien acaba de nacer todavía no ha salido de casa.
       //
       // La casa cuenta como terminada en cuanto su última pieza entra en la
@@ -1679,7 +1685,9 @@ class TownPainter extends CustomPainter {
     if (folk.isEmpty) return const [];
     final out = <Rider>[];
     for (final v in folk) {
-      final tag = TouchMap.folkData(town, v.who.home);
+      // El consejero no se toca todavía: no es vecino de ninguna casa, y
+      // la ficha de un vecino es la de su casa.
+      final tag = v.who.sage ? -1 : TouchMap.folkData(town, v.who.home);
       final solids = folkSolids(
         v.who,
         v.at,
@@ -1892,6 +1900,11 @@ class TownPainter extends CustomPainter {
         grass: l.character.lawn.toARGB32(),
         mata: l.character.order,
       ),
+      FoundingShow.liftAt(t, FoundingShow.plazaAt),
+    );
+    // El banco cae con la plaza: es parte de ella.
+    caer(
+      PlazaBench.solidsAt(l.cx, l.cz),
       FoundingShow.liftAt(t, FoundingShow.plazaAt),
     );
     caer(

@@ -31,7 +31,7 @@ void main() {
     for (final c in TownCharacter.all) {
       for (final placed in [4, 12, 60, 300]) {
         final t = TownLayout(placed, c);
-        final gente = folkOf(t, placed);
+        final gente = folkOf(t, placed).where((v) => !v.sage);
         const dura = 300.0, paso = 0.1;
         for (final w in gente) {
           // De día primero, para que se le haya visto antes de la tarde.
@@ -70,7 +70,7 @@ void main() {
 
   test('no se van todos a la vez', () {
     final t = TownLayout(300, TownCharacter.all.first);
-    final gente = folkOf(t, 300);
+    final gente = folkOf(t, 300).where((v) => !v.sage).toList();
     // A media tarde, unos ya están en casa y otros todavía no.
     for (final w in gente) {
       folkWhere(w, 0, 0);

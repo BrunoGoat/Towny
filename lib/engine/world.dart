@@ -591,6 +591,7 @@ BuiltTown _build(TownLayout layout, int placed, BuiltTown? before) {
         mata: layout.character.order,
       ),
     );
+    furnish(PlazaBench.solidsAt(layout.cx, layout.cz));
     final board = NoticeBoard.solidsAt(
       layout.cx,
       layout.cz,
