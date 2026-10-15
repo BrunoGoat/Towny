@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
@@ -18,6 +17,7 @@ import '../model/store.dart';
 import 'board_scene.dart';
 import 'note_font.dart';
 import 'paper_ink.dart';
+import 'pin_note_button.dart';
 import 'plan_picker.dart';
 import 'style.dart';
 
@@ -40,6 +40,10 @@ class NoticeBoardScreen extends StatefulWidget {
     this.dice = false,
     this.store,
   });
+
+  /// Cuál de los diez botones de clavar (ver [PinNoteButton]). Una variable
+  /// para poder compararlos en la app; cuando se elija uno, se fija.
+  static int pinVariant = 0;
 
   /// Los pueblos del valle, [habit] incluido: de ahí salen las notas que
   /// miran dos hábitos juntos. Pide la lista y no el almacén para que
@@ -435,10 +439,62 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
             if (widget.store != null && !_escribe && _espera == null)
               SafeArea(
                 child: Align(
-                  alignment: Alignment.bottomCenter,
+                  alignment: PinNoteButton.alignmentOf(
+                    NoticeBoardScreen.pinVariant,
+                  ),
                   child: Padding(
-                    padding: const EdgeInsets.only(bottom: 14),
-                    child: _PinButton(theme: widget.theme, onTap: _clavar),
+                    padding: PinNoteButton.paddingOf(
+                      NoticeBoardScreen.pinVariant,
+                    ),
+                    child: PinNoteButton(
+                      variant: NoticeBoardScreen.pinVariant,
+                      onTap: _clavar,
+                    ),
+                  ),
+                ),
+              ),
+            // DEV: para probar los diez botones de clavar en la app. Tocar
+            // pasa al siguiente; mantener vuelve al anterior. Se va cuando se
+            // elija uno.
+            if (widget.store != null && !_escribe && _espera == null)
+              SafeArea(
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 6, 0, 0),
+                    child: GestureDetector(
+                      onTap: () => setState(
+                        () => NoticeBoardScreen.pinVariant =
+                            (NoticeBoardScreen.pinVariant + 1) %
+                            PinNoteButton.count,
+                      ),
+                      onLongPress: () => setState(
+                        () => NoticeBoardScreen.pinVariant =
+                            (NoticeBoardScreen.pinVariant +
+                                PinNoteButton.count -
+                                1) %
+                            PinNoteButton.count,
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 7,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.45),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Text(
+                          'Botón ${NoticeBoardScreen.pinVariant + 1}/'
+                          '${PinNoteButton.count}  ›',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -455,52 +511,6 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
       },
     ),
   );
-}
-
-/// El botón de clavar, abajo y discreto.
-///
-/// Discreto a propósito: el tablón es para leerlo, y lo primero que se hace al
-/// llegar es mirar qué hay clavado. Escribir viene después, y sólo a veces.
-///
-/// Del mismo vidrio que las hojas de la app y no de `Frosted`, que de día es
-/// papel claro: esto va sobre un tablón de madera al sol, y un rectángulo de
-/// papel encima de otro se lee como un fallo de recorte.
-class _PinButton extends StatelessWidget {
-  const _PinButton({required this.theme, required this.onTap});
-
-  final UiTheme theme;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final velo = SheetInk.of(theme);
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(30),
-        child: BackdropFilter(
-          filter: ui.ImageFilter.blur(sigmaX: velo.bruma, sigmaY: velo.bruma),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
-            decoration: BoxDecoration(
-              color: velo.tinte.withValues(alpha: velo.tapa),
-              borderRadius: BorderRadius.circular(30),
-              border: Border.all(color: velo.canto),
-            ),
-            child: Text(
-              tr('Clavar una nota', 'Pin a note'),
-              style: theme.bodySoft.copyWith(
-                fontSize: 13,
-                color: velo.cuerpo,
-                shadows: velo.aliento,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 /// Dónde se escribe: un papel en blanco, del tamaño de una nota descolgada.
