@@ -433,8 +433,16 @@ class Cinema {
 /// Largas al amanecer y al atardecer, cortas a mediodía, y girando con la hora.
 /// De noche las echa la luna, más flojas y azules. La de cada pieza es la
 /// envolvente de sus vértices llevados al suelo a lo largo de la luz —que es
-/// la sombra exacta de un sólido convexo— y todas van en un solo trazado, así
-/// que donde dos se pisan no se oscurece el doble.
+/// la sombra exacta de un sólido convexo—.
+///
+/// **Triángulos en una capa, y no un trazado.** Eran un solo trazado con todas
+/// las sombras dentro —cientos de contornos pisándose— y un desenfoque
+/// encima, para que donde dos se pisan no se oscureciera el doble. Un trazado
+/// así es de lo más caro que se le puede pedir a la tarjeta gráfica, y en el
+/// teléfono encender las sombras hundía los fotogramas. Ahora cada sombra son
+/// unos triángulos, todos van en un solo lote de color macizo, y la
+/// transparencia la pone la capa en la que se pintan: donde dos se pisan sigue
+/// sin oscurecerse el doble, que la capa tiene un solo color por píxel.
 void drawCastShadows(
   Canvas canvas,
   Projector p,
@@ -447,26 +455,62 @@ void drawCastShadows(
       : 0.20 * smoothstep(0.2, 0.8, 1 - pal.daylight);
   if (fuerza < 0.01) return;
   final sombra = Color.lerp(pal.ink, pal.skyTop, dia ? 0.30 : 0.45)!;
-  // Dos trazados: lo macizo, y lo que deja pasar la luz —el agua—, que
-  // oscurece menos. Cada uno en un solo trazado para que donde dos sombras
-  // se pisan no se oscurezca el doble.
+  // Dos capas: lo macizo, y lo que deja pasar la luz —el agua—, que oscurece
+  // menos.
   for (final claro in [false, true]) {
-    final path = castShadowPath(p, pal, towns, translucent: claro);
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = sombra.withValues(alpha: fuerza * (claro ? 0.45 : 1.0))
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.4),
+    final tri = _Triangulos();
+    _castShadows(p, pal, towns, translucent: claro, emit: tri.add);
+    if (tri.n == 0) continue;
+    canvas.saveLayer(
+      tri.bounds.inflate(2),
+      Paint()..color = Color.fromRGBO(0, 0, 0, fuerza * (claro ? 0.45 : 1.0)),
     );
+    canvas.drawVertices(
+      ui.Vertices.raw(ui.VertexMode.triangles, tri.done()),
+      BlendMode.dst,
+      Paint()..color = sombra.withValues(alpha: 1),
+    );
+    canvas.restore();
   }
 }
 
-/// El trazado en pantalla de todas las sombras. Aparte para poder medirlo.
-///
-/// De dos clases de cosas: las piezas, por sus cajas ([shadowPointsOf]), y
-/// todo lo demás que echa sombra ([ShadowCaster]): los muebles que se
-/// archivaron con el pueblo y lo que se pinta este fotograma — la gente, los
-/// pájaros, el agua. Con [translucent], sólo lo que se transparenta.
+/// Los triángulos de todas las sombras de una capa, en abanico desde el
+/// primer vértice de cada una (son convexas).
+class _Triangulos {
+  Float32List _xy = Float32List(4096);
+  int n = 0;
+  double x0 = double.infinity, y0 = double.infinity;
+  double x1 = -double.infinity, y1 = -double.infinity;
+
+  void add(Float64List sx, Float64List sy, int m) {
+    final hacen = (m - 2) * 6;
+    if (n + hacen > _xy.length) {
+      final mas = Float32List(math.max(_xy.length * 2, n + hacen));
+      mas.setRange(0, n, _xy);
+      _xy = mas;
+    }
+    for (var i = 1; i < m - 1; i++) {
+      _xy[n++] = sx[0];
+      _xy[n++] = sy[0];
+      _xy[n++] = sx[i];
+      _xy[n++] = sy[i];
+      _xy[n++] = sx[i + 1];
+      _xy[n++] = sy[i + 1];
+    }
+    for (var i = 0; i < m; i++) {
+      if (sx[i] < x0) x0 = sx[i];
+      if (sx[i] > x1) x1 = sx[i];
+      if (sy[i] < y0) y0 = sy[i];
+      if (sy[i] > y1) y1 = sy[i];
+    }
+  }
+
+  Rect get bounds => Rect.fromLTRB(x0, y0, x1, y1);
+  Float32List done() => Float32List.sublistView(_xy, 0, n);
+}
+
+/// El trazado en pantalla de todas las sombras. Para los tests: lo que se
+/// pinta son los mismos polígonos, en triángulos (ver [drawCastShadows]).
 @visibleForTesting
 Path castShadowPath(
   Projector p,
@@ -474,27 +518,45 @@ Path castShadowPath(
   Iterable<(TownLayout, int, Iterable<ShadowCaster>)> towns, {
   bool translucent = false,
 }) {
+  final path = Path();
+  _castShadows(
+    p,
+    pal,
+    towns,
+    translucent: translucent,
+    emit: (sx, sy, m) {
+      path.moveTo(sx[0], sy[0]);
+      for (var i = 1; i < m; i++) {
+        path.lineTo(sx[i], sy[i]);
+      }
+      path.close();
+    },
+  );
+  return path;
+}
+
+/// Las sombras, polígono a polígono, ya en la pantalla.
+///
+/// De dos clases de cosas: las piezas, por sus cajas ([shadowPointsOf]), y
+/// todo lo demás que echa sombra ([ShadowCaster]): los muebles que se
+/// archivaron con el pueblo y lo que se pinta este fotograma — la gente, los
+/// pájaros, el agua. Con [translucent], sólo lo que se transparenta.
+void _castShadows(
+  Projector p,
+  Palette pal,
+  Iterable<(TownLayout, int, Iterable<ShadowCaster>)> towns, {
+  required bool translucent,
+  required void Function(Float64List sx, Float64List sy, int m) emit,
+}) {
   final l = pal.lightDir;
   final ly = math.max(l.y, 0.10);
   final ox = -l.x / ly, oz = -l.z / ly;
 
-  final path = Path();
   final xs = Float64List(40), zs = Float64List(40);
   for (final (town, take, otros) in towns) {
     if (!translucent) {
-      final n = math.min(take, town.pieces.length);
-      for (var i = 0; i < n; i++) {
-        final pc = town.pieces[i];
-        if (pc.y1 <= 0.02) continue;
-        var m = 0;
-        void at(double x, double y, double z) {
-          xs[m] = x + ox * y;
-          zs[m] = z + oz * y;
-          m++;
-        }
-
-        shadowPointsOf(pc, at);
-        _hullInto(path, p, xs, zs, m);
+      for (final h in _piezasEnSuelo(town, take, ox, oz)) {
+        _proyecta(p, h, emit);
       }
     }
     for (final c in otros) {
@@ -508,37 +570,73 @@ Path castShadowPath(
       // Lo que no se mueve vuelve fotograma tras fotograma con la misma
       // lista: su envolvente en el suelo se guarda mientras el sol no se mueva.
       final hay = _enSuelo[c.pts];
-      final List<(double, double)> pts;
+      Float64List? h;
       if (hay != null && hay.$1 == ox && hay.$2 == oz) {
-        pts = hay.$3;
+        h = hay.$3;
       } else {
-        pts = c.pts.length <= xs.length
+        final pts = c.pts.length <= xs.length
             ? [for (final v in c.pts) (v.x + ox * v.y, v.z + oz * v.y)]
             : convexHull([
                 for (final v in c.pts) (v.x + ox * v.y, v.z + oz * v.y),
               ]);
-        _enSuelo[c.pts] = (ox, oz, pts);
+        if (pts.length <= xs.length) {
+          for (var i = 0; i < pts.length; i++) {
+            xs[i] = pts[i].$1;
+            zs[i] = pts[i].$2;
+          }
+          h = _envolvente(xs, zs, pts.length);
+        }
+        _enSuelo[c.pts] = (ox, oz, h);
       }
-      if (pts.length > xs.length || pts.length < 3) continue;
-      for (var i = 0; i < pts.length; i++) {
-        xs[i] = pts[i].$1;
-        zs[i] = pts[i].$2;
-      }
-      _hullInto(path, p, xs, zs, pts.length);
+      if (h != null) _proyecta(p, h, emit);
     }
   }
-  return path;
 }
 
-final Expando<(double, double, List<(double, double)>)> _enSuelo = Expando();
+final Expando<(double, double, Float64List?)> _enSuelo = Expando();
+
+/// Las sombras de las piezas de un pueblo en el suelo, guardadas: sólo
+/// cambian cuando se mueve el sol o cae una pieza, y rehacer cientos de
+/// envolventes en cada fotograma era la mitad de lo que costaban.
+final Expando<(int, double, double, List<Float64List>)> _piezas = Expando();
+
+List<Float64List> _piezasEnSuelo(
+  TownLayout town,
+  int take,
+  double ox,
+  double oz,
+) {
+  final hay = _piezas[town];
+  if (hay != null && hay.$1 == take && hay.$2 == ox && hay.$3 == oz) {
+    return hay.$4;
+  }
+  final xs = Float64List(40), zs = Float64List(40);
+  final out = <Float64List>[];
+  final n = math.min(take, town.pieces.length);
+  for (var i = 0; i < n; i++) {
+    final pc = town.pieces[i];
+    if (pc.y1 <= 0.02) continue;
+    var m = 0;
+    void at(double x, double y, double z) {
+      xs[m] = x + ox * y;
+      zs[m] = z + oz * y;
+      m++;
+    }
+
+    shadowPointsOf(pc, at);
+    final h = _envolvente(xs, zs, m);
+    if (h != null) out.add(h);
+  }
+  _piezas[town] = (take, ox, oz, out);
+  return out;
+}
 
 final Float64List _hx = Float64List(84), _hz = Float64List(84);
 
-/// La envolvente convexa (cadena monótona) de los puntos del suelo, proyectada
-/// y añadida al trazado. Siempre en el mismo sentido, para que la unión de
-/// todas sea una unión y no se resten.
-void _hullInto(Path path, Projector p, Float64List xs, Float64List zs, int n) {
-  if (n < 3) return;
+/// La envolvente convexa (cadena monótona) de los puntos del suelo, como
+/// x, z, x, z…, siempre en el mismo sentido. Nula si no llega a polígono.
+Float64List? _envolvente(Float64List xs, Float64List zs, int n) {
+  if (n < 3) return null;
   final idx = List<int>.generate(n, (i) => i)
     ..sort((a, b) {
       final c = xs[a].compareTo(xs[b]);
@@ -565,20 +663,36 @@ void _hullInto(Path path, Projector p, Float64List xs, Float64List zs, int n) {
     add(idx[j], lower);
   }
   k--; // el último repite el primero
-  if (k < 3) return;
-  // **Recortada contra el plano de la cámara, no tirada entera.** Si algún
-  // vértice quedaba detrás del ojo, la sombra entera no se pintaba. Al
-  // atardecer las sombras son largas y llegan por detrás de la cámara, así
-  // que desaparecía de golpe la sombra de la casa que se tenía delante, y
-  // volvía —como salida de la nada— al subir la vista un pelo.
-  var m = 0;
+  if (k < 3) return null;
+  final out = Float64List(k * 2);
   for (var i = 0; i < k; i++) {
-    final c = p.cameraOf(V3(_hx[i], 0.005, _hz[i]));
+    out[i * 2] = _hx[i];
+    out[i * 2 + 1] = _hz[i];
+  }
+  return out;
+}
+
+/// Una envolvente del suelo, llevada a la pantalla.
+///
+/// **Recortada contra el plano de la cámara, no tirada entera.** Si algún
+/// vértice quedaba detrás del ojo, la sombra entera no se pintaba. Al
+/// atardecer las sombras son largas y llegan por detrás de la cámara, así
+/// que desaparecía de golpe la sombra de la casa que se tenía delante, y
+/// volvía —como salida de la nada— al subir la vista un pelo.
+void _proyecta(
+  Projector p,
+  Float64List h,
+  void Function(Float64List sx, Float64List sy, int m) emit,
+) {
+  final k = h.length ~/ 2;
+  for (var i = 0; i < k; i++) {
+    final c = p.cameraOf(V3(h[i * 2], 0.005, h[i * 2 + 1]));
     _cx[i] = c.x;
     _cy[i] = c.y;
     _cz[i] = c.z;
   }
   final near = p.near + 0.01;
+  var m = 0;
   for (var i = 0; i < k; i++) {
     final j = (i + 1) % k;
     final aIn = _cz[i] >= near, bIn = _cz[j] >= near;
@@ -597,11 +711,7 @@ void _hullInto(Path path, Projector p, Float64List xs, Float64List zs, int n) {
     }
   }
   if (m < 3) return;
-  path.moveTo(_sx[0], _sy[0]);
-  for (var i = 1; i < m; i++) {
-    path.lineTo(_sx[i], _sy[i]);
-  }
-  path.close();
+  emit(_sx, _sy, m);
 }
 
 final Float64List _sx = Float64List(170), _sy = Float64List(170);
