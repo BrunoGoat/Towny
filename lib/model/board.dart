@@ -113,6 +113,11 @@ String _cuando(DateTime at) {
 /// como un tablón, que además es justo lo que enseñan a usar. La primera
 /// presenta el tablón, la última avisa de que se van.
 ///
+/// En orden de lectura, y el orden importa: los huecos van de arriba abajo y
+/// de izquierda a derecha, y al entrar sólo se ve la primera columna entera.
+/// Ahí van la que presenta el tablón y la que dice que se corre a los lados,
+/// que es lo que hace falta saber para ver todas las demás.
+///
 /// Se despegan solas en cuanto llega la primera nota con un dato tuyo.
 List<Notice> guideNotices(Habit h) {
   Notice hoja(String es, String en, String esY, String enY) =>
@@ -129,18 +134,18 @@ List<Notice> guideNotices(Habit h) {
           'sheets show you how it works.',
     ),
     hoja(
-      'Tocá una hoja para leerla de cerca.',
-      'Tap a sheet to read it up close.',
-      'Para devolverla a su lugar, tocá otra vez.',
-      'Tap again to put it back.',
-    ),
-    hoja(
       'Deslizá el dedo de costado para recorrer el tablón.',
       'Slide your finger sideways to move along the board.',
       'Las hojas se clavan de izquierda a derecha, y no siempre entran todas '
           'en la pantalla.',
       'Sheets are pinned from left to right, and they don\'t always all fit '
           'on the screen.',
+    ),
+    hoja(
+      'Tocá una hoja para leerla de cerca.',
+      'Tap a sheet to read it up close.',
+      'Para devolverla a su lugar, tocá otra vez.',
+      'Tap again to put it back.',
     ),
     hoja(
       'Mantené el dedo sobre una hoja para despegarla.',

@@ -889,56 +889,56 @@ Los encabezados de las secciones del tablón.
 - **U361** · `Clavada ayer.`  <sub>board.dart:97 · _cuando</sub>
 - **U362** · `Clavada hace $dias días.`  <sub>board.dart:99 · _cuando</sub>
 - **U363** · `Clavada hace $meses ${meses == 1 ? 'mes' : 'meses'}.`  <sub>board.dart:103 · tr</sub>
-- **U364** · `Este es el tablón de anuncios de ${h.name}.`  <sub>board.dart:122 · hoja</sub>
-- **U365** · `This is the notice board for ${h.name}.`  <sub>board.dart:123 · hoja</sub>
-- **U366** · `Acá el pueblo va clavando lo que aprende de vos y te brinda `  <sub>board.dart:124 · hoja</sub>
-- **U367** · `información para ayudarte. Mientras todavía no sabe nada, estas `  <sub>board.dart:125 · hoja</sub>
-- **U368** · `hojas te cuentan cómo se usa.`  <sub>board.dart:126 · hoja</sub>
-- **U369** · `Here the town pins what it learns about you and gives you `  <sub>board.dart:127 · hoja</sub>
-- **U370** · `information to help you. While it still knows nothing, these `  <sub>board.dart:128 · hoja</sub>
-- **U371** · `sheets show you how it works.`  <sub>board.dart:129 · hoja</sub>
-- **U372** · `Tocá una hoja para leerla de cerca.`  <sub>board.dart:132 · hoja</sub>
-- **U373** · `Tap a sheet to read it up close.`  <sub>board.dart:133 · hoja</sub>
-- **U374** · `Para devolverla a su lugar, tocá otra vez.`  <sub>board.dart:134 · hoja</sub>
-- **U375** · `Tap again to put it back.`  <sub>board.dart:135 · hoja</sub>
-- **U376** · `Deslizá el dedo de costado para recorrer el tablón.`  <sub>board.dart:138 · hoja</sub>
-- **U377** · `Slide your finger sideways to move along the board.`  <sub>board.dart:139 · hoja</sub>
-- **U378** · `Las hojas se clavan de izquierda a derecha, y no siempre entran todas `  <sub>board.dart:140 · hoja</sub>
-- **U379** · `en la pantalla.`  <sub>board.dart:141 · hoja</sub>
-- **U380** · `Sheets are pinned from left to right, and they don\'t always all fit `  <sub>board.dart:142 · hoja</sub>
-- **U381** · `on the screen.`  <sub>board.dart:143 · hoja</sub>
-- **U382** · `Mantené el dedo sobre una hoja para despegarla.`  <sub>board.dart:146 · hoja</sub>
-- **U383** · `Hold your finger on a sheet to unpin it.`  <sub>board.dart:147 · hoja</sub>
-- **U384** · `Sin soltarla, llevala a otro hueco. El tablón se acuerda de dónde la `  <sub>board.dart:148 · hoja</sub>
-- **U385** · `dejaste, y así se ve también desde la plaza.`  <sub>board.dart:149 · hoja</sub>
-- **U386** · `Without letting go, carry it to another spot. The board remembers `  <sub>board.dart:150 · hoja</sub>
-- **U387** · `where you left it, and that is how it looks from the square too.`  <sub>board.dart:151 · hoja</sub>
-- **U388** · `Vos también podés clavar tus notas.`  <sub>board.dart:154 · hoja</sub>
-- **U389** · `You can pin your own notes too.`  <sub>board.dart:155 · hoja</sub>
-- **U390** · `Con «Clavar una nota», abajo. Van en un papel más claro y con tu letra, `  <sub>board.dart:156 · hoja</sub>
-- **U391** · `y entran hasta $myNoticeCap a la vez.`  <sub>board.dart:157 · hoja</sub>
-- **U392** · `With “Pin a note”, at the bottom. They go on lighter paper in your own `  <sub>board.dart:158 · hoja</sub>
-- **U393** · `hand, and up to $myNoticeCap fit at once.`  <sub>board.dart:159 · hoja</sub>
-- **U394** · `Para quitar una nota tuya, abrila.`  <sub>board.dart:162 · hoja</sub>
-- **U395** · `To remove one of your notes, open it.`  <sub>board.dart:163 · hoja</sub>
-- **U396** · `Al leerla de cerca aparece «Quitarla», abajo.`  <sub>board.dart:164 · hoja</sub>
-- **U397** · `Up close, “Remove it” appears at the bottom.`  <sub>board.dart:165 · hoja</sub>
-- **U398** · `Lo nuevo lleva una marca.`  <sub>board.dart:168 · hoja</sub>
-- **U399** · `New things carry a mark.`  <sub>board.dart:169 · hoja</sub>
-- **U400** · `Se apaga cuando leés la hoja de cerca: así sabés qué cambió desde la `  <sub>board.dart:170 · hoja</sub>
-- **U401** · `última vez.`  <sub>board.dart:171 · hoja</sub>
-- **U402** · `It goes out once you read the sheet up close, so you know what `  <sub>board.dart:172 · hoja</sub>
-- **U403** · `changed since last time.`  <sub>board.dart:173 · hoja</sub>
-- **U404** · `Para volver al pueblo, tocá el cielo o el pasto.`  <sub>board.dart:176 · hoja</sub>
-- **U405** · `To go back to the town, tap the sky or the grass.`  <sub>board.dart:177 · hoja</sub>
-- **U406** · `O juntá dos dedos sobre el tablón.`  <sub>board.dart:178 · hoja</sub>
-- **U407** · `Or pinch the board with two fingers.`  <sub>board.dart:179 · hoja</sub>
-- **U408** · `Estas hojas se van solas.`  <sub>board.dart:182 · hoja</sub>
-- **U409** · `These sheets leave on their own.`  <sub>board.dart:183 · hoja</sub>
-- **U410** · `Cuando el pueblo aprenda algo de vos, se despegan y le dejan el lugar a `  <sub>board.dart:184 · hoja</sub>
-- **U411** · `lo que averiguó.`  <sub>board.dart:185 · hoja</sub>
-- **U412** · `Once the town learns something about you, they come down and make room `  <sub>board.dart:186 · hoja</sub>
-- **U413** · `for what it found out.`  <sub>board.dart:187 · hoja</sub>
+- **U364** · `Este es el tablón de anuncios de ${h.name}.`  <sub>board.dart:127 · hoja</sub>
+- **U365** · `This is the notice board for ${h.name}.`  <sub>board.dart:128 · hoja</sub>
+- **U366** · `Acá el pueblo va clavando lo que aprende de vos y te brinda `  <sub>board.dart:129 · hoja</sub>
+- **U367** · `información para ayudarte. Mientras todavía no sabe nada, estas `  <sub>board.dart:130 · hoja</sub>
+- **U368** · `hojas te cuentan cómo se usa.`  <sub>board.dart:131 · hoja</sub>
+- **U369** · `Here the town pins what it learns about you and gives you `  <sub>board.dart:132 · hoja</sub>
+- **U370** · `information to help you. While it still knows nothing, these `  <sub>board.dart:133 · hoja</sub>
+- **U371** · `sheets show you how it works.`  <sub>board.dart:134 · hoja</sub>
+- **U372** · `Deslizá el dedo de costado para recorrer el tablón.`  <sub>board.dart:137 · hoja</sub>
+- **U373** · `Slide your finger sideways to move along the board.`  <sub>board.dart:138 · hoja</sub>
+- **U374** · `Las hojas se clavan de izquierda a derecha, y no siempre entran todas `  <sub>board.dart:139 · hoja</sub>
+- **U375** · `en la pantalla.`  <sub>board.dart:140 · hoja</sub>
+- **U376** · `Sheets are pinned from left to right, and they don\'t always all fit `  <sub>board.dart:141 · hoja</sub>
+- **U377** · `on the screen.`  <sub>board.dart:142 · hoja</sub>
+- **U378** · `Tocá una hoja para leerla de cerca.`  <sub>board.dart:145 · hoja</sub>
+- **U379** · `Tap a sheet to read it up close.`  <sub>board.dart:146 · hoja</sub>
+- **U380** · `Para devolverla a su lugar, tocá otra vez.`  <sub>board.dart:147 · hoja</sub>
+- **U381** · `Tap again to put it back.`  <sub>board.dart:148 · hoja</sub>
+- **U382** · `Mantené el dedo sobre una hoja para despegarla.`  <sub>board.dart:151 · hoja</sub>
+- **U383** · `Hold your finger on a sheet to unpin it.`  <sub>board.dart:152 · hoja</sub>
+- **U384** · `Sin soltarla, llevala a otro hueco. El tablón se acuerda de dónde la `  <sub>board.dart:153 · hoja</sub>
+- **U385** · `dejaste, y así se ve también desde la plaza.`  <sub>board.dart:154 · hoja</sub>
+- **U386** · `Without letting go, carry it to another spot. The board remembers `  <sub>board.dart:155 · hoja</sub>
+- **U387** · `where you left it, and that is how it looks from the square too.`  <sub>board.dart:156 · hoja</sub>
+- **U388** · `Vos también podés clavar tus notas.`  <sub>board.dart:159 · hoja</sub>
+- **U389** · `You can pin your own notes too.`  <sub>board.dart:160 · hoja</sub>
+- **U390** · `Con «Clavar una nota», abajo. Van en un papel más claro y con tu letra, `  <sub>board.dart:161 · hoja</sub>
+- **U391** · `y entran hasta $myNoticeCap a la vez.`  <sub>board.dart:162 · hoja</sub>
+- **U392** · `With “Pin a note”, at the bottom. They go on lighter paper in your own `  <sub>board.dart:163 · hoja</sub>
+- **U393** · `hand, and up to $myNoticeCap fit at once.`  <sub>board.dart:164 · hoja</sub>
+- **U394** · `Para quitar una nota tuya, abrila.`  <sub>board.dart:167 · hoja</sub>
+- **U395** · `To remove one of your notes, open it.`  <sub>board.dart:168 · hoja</sub>
+- **U396** · `Al leerla de cerca aparece «Quitarla», abajo.`  <sub>board.dart:169 · hoja</sub>
+- **U397** · `Up close, “Remove it” appears at the bottom.`  <sub>board.dart:170 · hoja</sub>
+- **U398** · `Lo nuevo lleva una marca.`  <sub>board.dart:173 · hoja</sub>
+- **U399** · `New things carry a mark.`  <sub>board.dart:174 · hoja</sub>
+- **U400** · `Se apaga cuando leés la hoja de cerca: así sabés qué cambió desde la `  <sub>board.dart:175 · hoja</sub>
+- **U401** · `última vez.`  <sub>board.dart:176 · hoja</sub>
+- **U402** · `It goes out once you read the sheet up close, so you know what `  <sub>board.dart:177 · hoja</sub>
+- **U403** · `changed since last time.`  <sub>board.dart:178 · hoja</sub>
+- **U404** · `Para volver al pueblo, tocá el cielo o el pasto.`  <sub>board.dart:181 · hoja</sub>
+- **U405** · `To go back to the town, tap the sky or the grass.`  <sub>board.dart:182 · hoja</sub>
+- **U406** · `O juntá dos dedos sobre el tablón.`  <sub>board.dart:183 · hoja</sub>
+- **U407** · `Or pinch the board with two fingers.`  <sub>board.dart:184 · hoja</sub>
+- **U408** · `Estas hojas se van solas.`  <sub>board.dart:187 · hoja</sub>
+- **U409** · `These sheets leave on their own.`  <sub>board.dart:188 · hoja</sub>
+- **U410** · `Cuando el pueblo aprenda algo de vos, se despegan y le dejan el lugar a `  <sub>board.dart:189 · hoja</sub>
+- **U411** · `lo que averiguó.`  <sub>board.dart:190 · hoja</sub>
+- **U412** · `Once the town learns something about you, they come down and make room `  <sub>board.dart:191 · hoja</sub>
+- **U413** · `for what it found out.`  <sub>board.dart:192 · hoja</sub>
 
 ### Los sonidos
 

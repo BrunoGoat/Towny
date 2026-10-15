@@ -201,8 +201,10 @@ class BoardSlots extends ChangeNotifier {
 /// cada: la del horario es *la* del horario, diga hoy las siete y mañana las
 /// ocho, y mueve su texto sin moverse de la pared. Las hojas que explican el
 /// tablón son varias de la misma clase, así que se llaman por lo que dicen.
+/// Con `g2` y no `g`: la guía cambió de orden, y quien ya la había visto
+/// tenía guardados los huecos del orden viejo.
 String noticeId(Notice n) =>
-    n.kind == NoticeKind.guia ? 'g${stableHash(n.said)}' : n.kind.name;
+    n.kind == NoticeKind.guia ? 'g2${stableHash(n.said)}' : n.kind.name;
 
 /// Un número a partir de un texto, igual en cualquier aparato y en cualquier
 /// arranque. `String.hashCode` no sirve: no promete ser el mismo dos veces, y
