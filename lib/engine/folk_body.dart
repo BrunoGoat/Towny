@@ -1736,27 +1736,17 @@ void _sabio(
     );
   }
   if (feast != null && detail > 0.25) {
-    // Dando de comer a las palomas (ver `pigeons.dart`): el otro brazo, la
-    // manga de la túnica hasta la mano, y el pan en el regazo.
-    final (hx, hy, hz) = feast.hand;
-    final mano = (hx, piso + hy, hz);
-    link((0.150, y + 0.470, 0.030), mano, 0.045, tunica, 0.97);
-    box(
-      mano.$1 - 0.035,
-      mano.$2 - 0.035,
-      mano.$3 - 0.035,
-      mano.$1 + 0.035,
-      mano.$2 + 0.035,
-      mano.$3 + 0.035,
-      piel,
-      1.0,
-    );
+    // Dando de comer a las palomas (ver `pigeons.dart`). Sin brazos, como
+    // todos: el pan sale solo de la túnica y se le queda en el regazo, y
+    // cada miga se despega sola del pan, sube y sale volando hacia ellas.
+    final (hx, hy, hz) = feast.afloat;
+    final flota = (hx, piso + hy, hz);
     if (feast.bread > 0) {
       // Un pan alargado, de corteza tostada, que se va acortando.
       final largo = 0.075 * (0.35 + 0.65 * feast.bread);
-      final (bx, by, bz) = feast.breadInHand
-          ? (mano.$1 - 0.03, mano.$2 - 0.01, mano.$3 + 0.03)
-          : (0.0, piso + 0.13 + 0.032, 0.24);
+      final (bx, by, bz) = feast.breadAfloat
+          ? flota
+          : (_panEnRegazo.$1, piso + _panEnRegazo.$2, _panEnRegazo.$3);
       box(
         bx - largo,
         by - 0.032,
@@ -1779,17 +1769,22 @@ void _sabio(
         1.02,
       );
     }
-    if (feast.pinch) {
+    if (feast.crumb) {
+      // El pellizco de pan, que va solo por el aire.
       box(
-        mano.$1 - 0.014,
-        mano.$2 + 0.030,
-        mano.$3 + 0.020,
-        mano.$1 + 0.014,
-        mano.$2 + 0.054,
-        mano.$3 + 0.044,
+        flota.$1 - 0.020,
+        flota.$2 - 0.020,
+        flota.$3 - 0.020,
+        flota.$1 + 0.020,
+        flota.$2 + 0.020,
+        flota.$3 + 0.020,
         0xFFE9D3A4,
         1.02,
       );
     }
   }
 }
+
+/// Dónde queda el pan en el regazo, con la altura sobre el asiento. Es
+/// [feastBreadRest], que es donde lo deja `pigeons.dart`.
+const _panEnRegazo = feastBreadRest;

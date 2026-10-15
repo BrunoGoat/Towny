@@ -1728,7 +1728,8 @@ class TownPainter extends CustomPainter {
             )
           : null;
       // Las migas, lo primero: están en el suelo, y lo que anda por encima
-      // las tapa.
+      // las tapa. Ni ellas ni las palomas son de nadie: tocarlas no abre al
+      // consejero.
       if (feast != null) {
         for (final m in feast.crumbs) {
           const r = 0.010;
@@ -1744,7 +1745,7 @@ class TownPainter extends CustomPainter {
           )) {
             final a = f.v.first;
             if ((p.eye - a).dot(f.n) <= 0) continue;
-            out.add(Rider(f..piece = -1, out.length, tag));
+            out.add(Rider(f..piece = -1, out.length, -1));
           }
         }
       }
@@ -1759,7 +1760,7 @@ class TownPainter extends CustomPainter {
       void palomasHasta(double lejos) {
         for (; pj < palomas.length && palomas[pj].$1 >= lejos; pj++) {
           for (final f in birdFaces(palomas[pj].$2, p.eye)) {
-            out.add(Rider(f, out.length, tag));
+            out.add(Rider(f, out.length, -1));
           }
         }
       }

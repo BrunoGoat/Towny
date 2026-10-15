@@ -1,13 +1,14 @@
 /// Las palomas del consejero.
 ///
 /// Cada mucho, cuando el viejo se sienta en el banco de la plaza, bajan unas
-/// palomas. Se posan delante, se le arriman y se quedan mirándolo; él se mete
-/// la mano en la túnica, saca un pan, lo deja en el regazo y empieza a tirarles
-/// migas: pellizca, echa el brazo atrás y suelta el puñado con un golpe de
-/// muñeca. Cada puñado son tres miguitas que caen juntas, y la paloma que antes
+/// palomas. Se posan delante, se le arriman y se quedan mirándolo. Entonces
+/// un pan sale solo de su túnica y se le acomoda en el regazo —aquí nadie
+/// tiene brazos, y las cosas se mueven solas— y del pan se van despegando
+/// migas: sube un pellizco, toma impulso y sale volando hacia las palomas.
+/// Cada puñado son tres miguitas que caen juntas, y la paloma que antes
 /// llega va andando —con ese cabeceo de paloma, la cabeza adelante y el cuerpo
 /// detrás— y se las come de tres picotazos. Cuando el pan se acaba él se
-/// sacude las manos, las palomas se quedan un poco picoteando el suelo por si
+/// queda mirándolas, las palomas se quedan un poco picoteando el suelo por si
 /// queda algo, y se van.
 ///
 /// Como los pájaros de la fuente, todo sale de la hora: no hay estado, hay un
@@ -26,36 +27,37 @@ import 'fountain_birds.dart';
 import 'solids.dart';
 import 'town.dart';
 
-/// Lo que tiene el viejo en las manos mientras da de comer.
+/// El pan del viejo mientras da de comer, que se mueve solo.
 ///
-/// Las medidas, como todo en una persona, en partes de lo que mide; la altura
-/// de la mano, contada desde el asiento.
+/// Las medidas, como todo en una persona, en partes de lo que mide; las
+/// alturas, contadas desde el asiento.
 class FeastPose {
   const FeastPose({
     required this.bread,
-    required this.hand,
-    this.breadInHand = false,
-    this.pinch = false,
+    required this.afloat,
+    this.breadAfloat = false,
+    this.crumb = false,
   });
 
   /// Lo que queda del pan, de uno a cero. Cero es que ya no hay.
   final double bread;
 
-  /// Dónde está la mano que tira: `(x, y, z)` con `y` sobre el asiento.
-  final (double, double, double) hand;
+  /// Dónde va lo que flota —el pan saliendo de la túnica, o la miga camino
+  /// de las palomas—: `(x, y, z)` con `y` sobre el asiento.
+  final (double, double, double) afloat;
 
-  /// Si el pan va en la mano —sacándolo de la túnica— y no en el regazo.
-  final bool breadInHand;
+  /// Si el pan va por el aire —saliendo de la túnica— y no en el regazo.
+  final bool breadAfloat;
 
-  /// Si lleva una miga entre los dedos, camino de tirarla.
-  final bool pinch;
+  /// Si hay una miga por el aire, despegada del pan y sin soltar aún.
+  final bool crumb;
 }
 
 /// Todo lo de un momento de la comida: el viejo, las migas y las palomas.
 class Feast {
   const Feast(this.pose, this.crumbs, this.pigeons);
 
-  /// Nulo cuando el viejo no tiene nada en las manos.
+  /// Nulo cuando el viejo no tiene pan.
   final FeastPose? pose;
 
   /// Las migas, en el suelo y en el aire.
@@ -66,13 +68,16 @@ class Feast {
 /// Las veces que bajan: una vuelta de cada tres, más o menos.
 const double _cadaCuanto = 0.34;
 
-/// Cuándo se mete la mano en la túnica, cuándo tiene el pan en el regazo y
+/// Cuándo sale el pan de la túnica, cuándo lo tiene en el regazo y
 /// cuándo tira el primer puñado, en segundos desde que se sentó.
 const double _saca = 5.0, _enRegazo = 6.6, _primero = 7.4;
 
-/// Lo que dura un tiro entero —pellizcar, echar atrás, soltar y volver—, en
-/// qué punto de él suelta, y lo que vuela una miga.
-const double _tiro = 1.1, _suelta = 0.64, _vuelo = 0.52;
+/// Dónde queda el pan en el regazo, con la altura sobre el asiento.
+const feastBreadRest = (0.0, 0.162, 0.24);
+
+/// Lo que tarda una miga desde que se despega del pan hasta que sale
+/// disparada, y lo que vuela.
+const double _suelta = 0.64, _vuelo = 0.52;
 
 /// Lo que dura un picotazo, lo que tarda en bajar una paloma, y a qué paso
 /// anda.
@@ -81,10 +86,10 @@ const double _pico = 0.42, _baja = 3.4, _paso = 0.24;
 /// Lo que dura un paso de paloma: el cabeceo va con él.
 const double _zancada = 0.19;
 
-/// Las manos del viejo, quietas y de tiro. Ver [FeastPose.hand].
-const _regazo = (0.12, 0.15, 0.26),
-    _bolsillo = (0.19, 0.30, 0.02),
-    _pellizco = (0.04, 0.18, 0.26),
+/// Por dónde va lo que flota. Ver [FeastPose.afloat].
+const _bolsillo = (0.19, 0.30, 0.02),
+    _alto = (0.12, 0.42, 0.14),
+    _pellizco = (0.06, 0.20, 0.25),
     _atras = (0.20, 0.50, 0.16),
     _alante = (0.13, 0.40, 0.62);
 
@@ -123,7 +128,7 @@ const int _quieta = 0, _anda = 1, _pica = 2;
 
 /// La comida del viejo en el segundo [time], o nulo si ahora no hay.
 ///
-/// [h] es lo que mide el viejo, que es en lo que van sus manos; [day], si es
+/// [h] es lo que mide el viejo, que es en lo que va su pan; [day], si es
 /// de día: de noche las palomas duermen.
 Feast? sageFeast(
   Townsfolk sage,
@@ -178,8 +183,8 @@ Feast? sageFeast(
 
   double vuela(int j) => _vuelo + 0.05 * j;
 
-  // De dónde sale cada puñado: de la mano, en el momento de soltarlo.
-  V3 manoEn(double cuando) {
+  // De dónde sale cada puñado: de donde iba flotando al soltarse.
+  V3 sueltaEn(double cuando) {
     final at = sage.at(time - p + cuando);
     final c = math.cos(at.heading), sn = math.sin(at.heading);
     final (x, y, z) = _alante;
@@ -349,13 +354,13 @@ Feast? sageFeast(
   for (var k = 0; k < tiros; k++) {
     final suelta = cuando[k] + _suelta;
     if (p < suelta) break;
-    final desde = manoEn(suelta);
+    final desde = sueltaEn(suelta);
     for (var j = 0; j < 3; j++) {
       final g = miga(k, j);
       final e = (p - suelta - 0.03 * j) / vuela(j);
       if (e < 0) continue;
       if (e < 1) {
-        // Una parábola: sale con la mano, sube un poco y cae.
+        // Una parábola: sale disparada, sube un poco y cae.
         final a = desde * (1 - e) + g * e;
         migas.add(V3(a.x, a.y + 4 * e * (1 - e) * 0.10, a.z));
       } else if (p < comida[k][j]) {
@@ -364,61 +369,53 @@ Feast? sageFeast(
     }
   }
 
-  // Y las manos del viejo.
+  // Y el pan del viejo, que se mueve solo.
   FeastPose? pose;
   if (p >= _saca && p <= sits) {
-    var mano = _regazo;
-    var pan = 1.0, enMano = false, pellizca = false;
-    if (p < _saca + 0.7) {
-      mano = _entre(_regazo, _bolsillo, (p - _saca) / 0.7);
-      pan = 0;
-    } else if (p < _enRegazo) {
-      mano = _entre(
-        _bolsillo,
-        _regazo,
-        (p - _saca - 0.7) / (_enRegazo - _saca - 0.7),
-      );
-      enMano = true;
+    var flota = _bolsillo;
+    var pan = 1.0, panFlota = false, miga = false;
+    if (p < _enRegazo) {
+      // Sale de la túnica, sube un palmo y baja despacio a su regazo,
+      // meciéndose un poco, como algo que alguien lleva con cuidado.
+      final t = (p - _saca) / (_enRegazo - _saca);
+      flota = t < 0.45
+          ? _entre(_bolsillo, _alto, t / 0.45)
+          : _entre(_alto, feastBreadRest, (t - 0.45) / 0.55);
+      final mece = math.sin(t * math.pi * 2) * math.sin(t * math.pi);
+      flota = (flota.$1 + 0.02 * mece, flota.$2, flota.$3);
+      panFlota = true;
     } else {
       var hechos = 0;
       for (var k = 0; k < tiros; k++) {
         final u = p - cuando[k];
-        if (u >= 0.25) hechos++;
-        if (u < 0 || u >= _tiro) continue;
-        if (u < 0.25) {
-          mano = _entre(_regazo, _pellizco, u / 0.25);
-        } else if (u < 0.55) {
-          mano = _entre(_pellizco, _atras, (u - 0.25) / 0.30);
-          pellizca = true;
-        } else if (u < 0.70) {
-          // El golpe de muñeca: rápido, sin suavizar el arranque.
-          final e = (u - 0.55) / 0.15;
-          mano = (
-            lerpD(_atras.$1, _alante.$1, e),
-            lerpD(_atras.$2, _alante.$2, e),
-            lerpD(_atras.$3, _alante.$3, e),
-          );
-          pellizca = u < _suelta;
+        if (u >= 0) hechos++;
+        if (u < 0 || u >= _suelta) continue;
+        // Una miga se despega sola del pan, sube y se va hacia atrás
+        // tomando impulso, temblando un poco, y sale disparada hacia
+        // las palomas.
+        miga = true;
+        if (u < 0.40) {
+          final e = u / 0.40;
+          final tiembla = 0.010 * math.sin(u * 60) * e;
+          final q = _entre(_pellizco, _atras, e);
+          flota = (q.$1 + tiembla, q.$2, q.$3);
         } else {
-          mano = _entre(_alante, _regazo, (u - 0.70) / 0.40);
+          final e = (u - 0.40) / (_suelta - 0.40);
+          flota = (
+            lerpD(_atras.$1, _alante.$1, e * e),
+            lerpD(_atras.$2, _alante.$2, e * e),
+            lerpD(_atras.$3, _alante.$3, e * e),
+          );
         }
       }
-      // Lo que queda: el último pellizco se lleva el último trozo.
+      // Lo que queda: la última miga se lleva el último trozo.
       pan = hechos >= tiros ? 0 : 1 - hechos / tiros;
-      // Y al acabar, se sacude las manos sobre las rodillas.
-      final sacude = p - (cuando.last + _tiro + 0.3);
-      if (sacude >= 0 && sacude < 0.8) {
-        final a =
-            math.sin(sacude / 0.8 * math.pi * 4) *
-            math.sin(sacude / 0.8 * math.pi);
-        mano = (_regazo.$1 + 0.04 * a, _regazo.$2 + 0.05, _regazo.$3);
-      }
     }
     pose = FeastPose(
       bread: pan,
-      hand: mano,
-      breadInHand: enMano,
-      pinch: pellizca,
+      afloat: flota,
+      breadAfloat: panFlota,
+      crumb: miga,
     );
   }
   return Feast(pose, migas, palomas);
