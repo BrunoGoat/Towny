@@ -1379,7 +1379,7 @@ class _TownViewState extends State<TownView>
         _cam.follow = false;
       }
       if (d.focalPointDelta.distanceSquared > 0.5) {
-        _panByDrag(d.focalPointDelta);
+        _panByDrag(d.focalPointDelta, d.localFocalPoint);
         _free = true;
       }
       if (f > 1) _diveIn(d.localFocalPoint);
@@ -1412,7 +1412,7 @@ class _TownViewState extends State<TownView>
     if (d.pointerCount >= 2) {
       final f = d.scale / (_lastScale == 0 ? 1 : _lastScale);
       _lastScale = d.scale;
-      if (f.isFinite && f > 0) _zoomBy(1 / f);
+      if (f.isFinite && f > 0) _zoomToward(1 / f, d.localFocalPoint);
       final giro = d.rotation - _lastRotation;
       _lastRotation = d.rotation;
       _cam.orbitBy(-giro, d.focalPointDelta.dy * 0.0048);
@@ -1425,7 +1425,7 @@ class _TownViewState extends State<TownView>
       );
       _cam.follow = false;
     } else {
-      _panByDrag(d.focalPointDelta);
+      _panByDrag(d.focalPointDelta, d.localFocalPoint);
     }
   }
 
@@ -1433,26 +1433,45 @@ class _TownViewState extends State<TownView>
   /// sobre el suelo y no sobre la pantalla, así que lo que estaba debajo del
   /// dedo sigue debajo. Sin salirse del valle: más allá de los pueblos no hay
   /// nada que buscar, y perderse en la nieve es fácil.
-  void _panByDrag(Offset delta) {
+  void _panByDrag(Offset delta, [Offset? finger]) {
     _stopFollowing();
     final size = context.size;
     if (size == null) return;
-    final p = _cam.projector(size.width, size.height, _time);
-    // Derecha de la pantalla y hacia el fondo, sobre el suelo.
-    var rx = p.right.x, rz = p.right.z;
-    var fx = p.forward.x, fz = p.forward.z;
-    final rl = math.sqrt(rx * rx + rz * rz), fl = math.sqrt(fx * fx + fz * fz);
-    if (rl < 0.01 || fl < 0.01) return;
-    rx /= rl;
-    rz /= rl;
-    fx /= fl;
-    fz /= fl;
-    // Cuánto suelo hay en un píxel, en el foco. Hacia el fondo se estira
-    // con la inclinación: mirado de canto, un píxel es más suelo.
-    final metro = _cam.distance / p.focal;
-    final hondo = metro / math.max(0.25, math.sin(_cam.pitch));
-    var x = _cam.travelTarget - delta.dx * metro * rx + delta.dy * hondo * fx;
-    var z = _cam.focusZTarget - delta.dx * metro * rz + delta.dy * hondo * fz;
+    final p = _aimed(size);
+    // Lo que estaba debajo del dedo sigue debajo: se busca el punto del suelo
+    // que tenía antes y el que tiene ahora, y el foco se corre lo que hay
+    // entre los dos. Antes se calculaba con lo que mide un píxel en el medio
+    // de la pantalla, y en el valle —mirado de canto, con los pueblos lejos
+    // del medio— el suelo corría el doble que el dedo y uno se pasaba de
+    // pueblo con cualquier gesto.
+    final dedo = finger ?? size.center(Offset.zero);
+    final antes = _groundAt(p, dedo - delta), ahora = _groundAt(p, dedo);
+    double x, z;
+    if (antes != null && ahora != null) {
+      x = _cam.travelTarget + antes.$1 - ahora.$1;
+      z = _cam.focusZTarget + antes.$2 - ahora.$2;
+    } else {
+      // Con el dedo en el cielo no hay suelo debajo: se corre como antes,
+      // con lo que mide un píxel en el foco.
+      var rx = p.right.x, rz = p.right.z;
+      var fx = p.forward.x, fz = p.forward.z;
+      final rl = math.sqrt(rx * rx + rz * rz),
+          fl = math.sqrt(fx * fx + fz * fz);
+      if (rl < 0.01 || fl < 0.01) return;
+      rx /= rl;
+      rz /= rl;
+      fx /= fl;
+      fz /= fl;
+      final metro = _cam.distanceTarget / p.focal;
+      final hondo = metro / math.max(0.25, math.sin(_cam.pitchTarget));
+      x = _cam.travelTarget - delta.dx * metro * rx + delta.dy * hondo * fx;
+      z = _cam.focusZTarget - delta.dx * metro * rz + delta.dy * hondo * fz;
+    }
+    _keepInside(x, z);
+  }
+
+  /// Lleva el foco a ([x], [z]) sin salirse de donde se puede estar.
+  void _keepInside(double x, double z) {
     // En el valle, sin salirse del valle; en un pueblo, sin salirse del
     // pueblo y un poco de prado alrededor: recorrerlo es recorrerlo a él.
     final (ox, oz) = _aloft ? (0.0, 0.0) : (_town.cx, _town.cz);
@@ -1465,6 +1484,51 @@ class _TownViewState extends State<TownView>
     _cam.travelTarget = x;
     _cam.focusZTarget = z;
     _cam.follow = false;
+  }
+
+  /// La cámara como va a quedar —la de los objetivos, no la que todavía va
+  /// planeando hacia ellos—: los gestos se miden sobre ésa, para que dos
+  /// gestos seguidos no se pisen.
+  Projector _aimed(Size size) {
+    final c = OrbitCamera()
+      ..travel = _cam.travelTarget
+      ..focusZ = _cam.focusZTarget
+      ..focusY = _cam.focusYTarget
+      ..yaw = _cam.yawTarget
+      ..pitch = _cam.pitchTarget
+      ..distance = _cam.distanceTarget;
+    return c.projector(size.width, size.height, 0);
+  }
+
+  /// El punto del suelo que se ve en [s] de la pantalla, o nulo si ahí hay
+  /// cielo. Lo de muy cerca del horizonte tampoco cuenta: un píxel allá es
+  /// medio valle, y arrastrar desde ahí lanzaba la vista a la otra punta.
+  (double, double)? _groundAt(Projector p, Offset s) {
+    final dir =
+        p.forward +
+        p.right * ((s.dx - p.cx) / p.focal) -
+        p.up * ((s.dy - p.cy) / p.focal);
+    if (dir.y > -1e-3) return null;
+    final t = -p.eye.y / dir.y;
+    if (t * dir.length > _cam.distanceTarget * 4) return null;
+    return (p.eye.x + dir.x * t, p.eye.z + dir.z * t);
+  }
+
+  /// Acercarse o alejarse en el valle hacia donde están los dedos, no hacia
+  /// el medio de la pantalla: entre dos pueblos el medio es prado, y para ir
+  /// a uno había que acercarse a la nada y después arrastrar.
+  void _zoomToward(double factor, Offset focal) {
+    final size = context.size;
+    if (size == null) return;
+    final g = _groundAt(_aimed(size), focal);
+    final antes = _cam.distanceTarget;
+    _zoomBy(factor);
+    if (g == null || antes <= 0) return;
+    final k = 1 - _cam.distanceTarget / antes;
+    _keepInside(
+      _cam.travelTarget + (g.$1 - _cam.travelTarget) * k,
+      _cam.focusZTarget + (g.$2 - _cam.focusZTarget) * k,
+    );
   }
 
   /// El botón derecho del ratón, arrastrando: girar e inclinar el valle. Va
@@ -1738,7 +1802,8 @@ class _TownViewState extends State<TownView>
       onPointerMove: _mouseOrbit,
       onPointerSignal: (e) {
         if (e is PointerScrollEvent) {
-          _zoomBy(1 + e.scrollDelta.dy * 0.0012);
+          final f = 1 + e.scrollDelta.dy * 0.0012;
+          _aloft ? _zoomToward(f, e.localPosition) : _zoomBy(f);
           if (e.scrollDelta.dy < 0) _diveIn(e.localPosition);
         }
       },
