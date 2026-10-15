@@ -313,13 +313,15 @@ class AdviceBook extends ChangeNotifier {
     } catch (_) {}
   }
 
-  /// Para los tests: la libreta en blanco.
+  /// La libreta en blanco: para los tests, y para empezar de cero. Hay que
+  /// llamar a [flush] después para que lo borrado no vuelva al abrir la app.
   void forget() {
     _met = false;
     _got.clear();
     _why.clear();
     _goals.clear();
     _seen.clear();
+    notifyListeners();
   }
 }
 

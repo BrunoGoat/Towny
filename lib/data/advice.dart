@@ -256,6 +256,29 @@ const List<Advice> dailyAdvice = [
     goal: AdviceGoal.start,
   ),
   Advice(
+    'noche',
+    'La buena mañana se siembra la noche anterior.',
+    'Si es de mañana, déjalo todo listo antes de dormir: la ropa a la vista, '
+        'el agua servida, el camino despejado. Que al despertar no haya nada '
+        'que buscar ni nada que decidir.',
+    'A good morning is sown the night before.',
+    'If it happens in the morning, have everything ready before you sleep: '
+        'clothes in sight, water poured, the way clear. When you wake there '
+        'should be nothing to look for and nothing to decide.',
+    goal: AdviceGoal.start,
+  ),
+  Advice(
+    'quiendecide',
+    'Que decida quien traza el camino, no quien tropieza en él.',
+    'Decide en calma, el día antes, qué harás y cuándo. Quien despierta con '
+        'sueño no debe pensar ni elegir: solo seguir el plan que dejó tu mejor '
+        'versión.',
+    'Let the one who draws the path decide, not the one who stumbles on it.',
+    'Decide calmly, the day before, what you will do and when. Whoever wakes '
+        'up sleepy should not think or choose: only follow the plan your best '
+        'self left behind.',
+  ),
+  Advice(
     'estorbos',
     'Cada piedra en el camino es una excusa sentada, esperando.',
     'Quita pasos: si entre tú y el hábito hay tres, que quede uno.',
@@ -597,6 +620,8 @@ List<String> pathFor(AdviceGoal goal) => switch (goal) {
     'dosminutos',
     'nodosveces',
     'preparar',
+    'noche',
+    'quiendecide',
     'estorbos',
     'gusto',
     'diamalo',
@@ -636,6 +661,7 @@ List<String> pathFor(AdviceGoal goal) => switch (goal) {
     'q_ola',
     'q_primeros',
     'q_dificil',
+    'quiendecide',
     'nodosveces',
     'q_identidad',
     'q_lugares',

@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:towny/model/board.dart';
 import 'package:towny/model/findings.dart';
 import 'package:towny/model/habit.dart';
+import 'package:towny/model/notice.dart';
 import 'package:towny/model/piece.dart';
 
 final _now = DateTime(2026, 3, 1, 20, 0);
@@ -51,9 +52,14 @@ void main() {
     // about yourself on four days of evidence is a town that will tell you
     // anything, and then none of it is worth reading.
     test('a habit with almost no history is left alone', () {
+      // Lo único que se dice con tan poco es lo que pasó —cuántas piezas y
+      // qué días—, sin sacar de ahí ninguna conclusión ni ninguna fecha.
       for (final n in [0, 1, 3, 8]) {
         final said = noticesFor(_daily('Leer', n), at: _now);
-        expect(said, isEmpty, reason: '$n días ya decían algo');
+        for (final x in said) {
+          expect(x.kind, NoticeKind.ahead, reason: '$n días ya decían algo');
+          expect(x.said, isNot(contains('queda en pie')));
+        }
       }
     });
 
@@ -272,7 +278,45 @@ void main() {
     });
 
     test('a town with nothing under way promises nothing', () {
-      expect(ahead(_daily('Leer', 90), null, 0, _now), isNull);
+      // Cuenta lo que pasó, pero no promete ninguna fecha.
+      final dice = ahead(_daily('Leer', 90), null, 0, _now);
+      expect(dice?.said ?? '', isNot(contains('queda en pie')));
+    });
+
+    test('con menos de ocho piezas cuenta lo que pasó y no predice', () {
+      final cuando = <DateTime>[
+        for (final (atras, cuantas) in [(3, 1), (1, 2)])
+          for (var k = 0; k < cuantas; k++)
+            DateTime(_now.year, _now.month, _now.day - atras, 8 + k),
+      ];
+      final dice = ahead(_habit('Casa', cuando), 'Casa', 10, _now)!;
+      expect(dice.said, contains('Llevás 3 piezas en 4 días'));
+      expect(dice.said, isNot(contains('queda en pie')));
+      expect(dice.because, contains('2 días distintos'));
+      // Una barra por día, y debajo de cada una, qué día fue.
+      expect(dice.bars.length, 4);
+      expect(dice.ticks.length, 4);
+      expect(dice.ticks.every((t) => t.isNotEmpty), isTrue);
+      // Y con una sola pieza todavía no dice nada.
+      expect(
+        ahead(
+          _habit('Casa', [DateTime(_now.year, _now.month, _now.day, 9)]),
+          'Casa',
+          10,
+          _now,
+        ),
+        isNull,
+      );
+    });
+
+    test('desde la octava, encima, la fecha', () {
+      final cuando = <DateTime>[
+        for (var d = 0; d < 8; d++)
+          DateTime(_now.year, _now.month, _now.day - d, 9),
+      ];
+      final dice = ahead(_habit('Casa', cuando), 'Casa', 10, _now)!;
+      expect(dice.said, contains('queda en pie'));
+      expect(dice.ticks.length, dice.bars.length);
     });
 
     test('el ritmo se mide desde que hay pueblo, no sobre treinta días', () {

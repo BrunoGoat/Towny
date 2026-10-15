@@ -32,7 +32,10 @@ List<Notice> noticesFor(
   // — and those two in that order, because "un fallo se lleva al siguiente"
   // read on its own is worth much less than read next to "y volvés a los dos
   // días".
-  add(ahead(h, underway, left, now));
+  // La que predice va arriba; la que sólo cuenta lo que pasó, al final —en
+  // la primera semana es la única, y después no le quita el sitio a nadie—.
+  final predice = ahead(h, underway, left, now, simple: false);
+  add(predice);
   // El título, que o está ganado o no existe. Cuando aparece va arriba del
   // todo, porque es la noticia más grande que un pueblo puede dar de vos.
   add(whoYouAre(h, now));
@@ -46,6 +49,7 @@ List<Notice> noticesFor(
   add(relapse(h, now));
   add(comeback(h));
   add(lifetime(h, now));
+  if (predice == null) add(ahead(h, underway, left, now));
   return out;
 }
 
@@ -64,8 +68,13 @@ List<Notice> noticesFor(
 /// que le faltaban tres quedaba en pie dentro de diez días en vez de dentro
 /// de dos. Cuanto más nuevo el pueblo, peor la cuenta, que es justo cuando
 /// más se mira.
-Notice? ahead(Habit h, String? what, int left, DateTime now) {
-  if (what == null || left <= 0) return null;
+Notice? ahead(
+  Habit h,
+  String? what,
+  int left,
+  DateTime now, {
+  bool simple = true,
+}) {
   final today = dayStart(now);
 
   // Desde cuándo hay hábito. Lo antes de las dos cosas: normalmente el día que
@@ -84,7 +93,12 @@ Notice? ahead(Habit h, String? what, int left, DateTime now) {
   for (final p in h.pieces) {
     if (!dayStart(p.placedAt).isBefore(desde)) recent++;
   }
-  if (recent < 8) return null;
+  // **Dos versiones.** Con pocas piezas no se predice nada —una fecha sacada
+  // de tres piezas es inventarla—, pero sí se cuenta lo que pasó: cuántas, y
+  // qué días, con sus barras. Así el tablón dice algo desde la primera
+  // semana. Desde la octava, encima, la fecha.
+  if (recent < 2) return null;
+  final predice = recent >= 8 && what != null && left > 0;
 
   // Los días dormidos no cuentan para el ritmo. Con ellos dentro, pausar dos
   // semanas te deja el pueblo terminándose un mes más tarde por haber tenido
@@ -100,6 +114,40 @@ Notice? ahead(Habit h, String? what, int left, DateTime now) {
   // y una tarde entera de golpe no promete el pueblo para mañana. El reparto
   // es sólo para la cuenta: los días que se cuentan son los que hubo, porque
   // decir «llevás ocho en tres días» el primer día sería inventarse dos.
+  final porDias = ventana <= 28;
+  if (!predice) {
+    if (!simple) return null;
+    final dias = <int>{
+      for (final p in h.pieces)
+        if (!dayStart(p.placedAt).isBefore(desde)) dayKey(p.placedAt),
+    }.length;
+    return Notice(
+      NoticeKind.ahead,
+      tr(
+        'Llevás $recent ${_pieces(recent)} en '
+            '${ventana == 1 ? 'un día' : '$ventana días'}.',
+        'You have placed $recent ${_pieces(recent)} in '
+            '${ventana == 1 ? 'one day' : '$ventana days'}.',
+      ),
+      tr(
+        dias == 1
+            ? 'Todas el mismo día.'
+            : 'En $dias días distintos: las barras dicen cuáles.',
+        dias == 1
+            ? 'All on the same day.'
+            : 'On $dias different days: the bars say which.',
+      ),
+      bars: porDias ? dailyOf(h, desde, today) : weeksOf(h, now, 12),
+      ticks: porDias ? _dayTicks(desde, today) : const [],
+      mark: porDias ? daysBetween(desde, today) : 11,
+      more: tr(
+        'Cuando haya unas cuantas más, el pueblo va a poder decir cuándo '
+            'termina lo que está levantando. Antes no: sería adivinar.',
+        'With a few more, the town will be able to say when what it is '
+            'building is done. Not before: that would be guessing.',
+      ),
+    );
+  }
   final perDay = recent / math.max(3, ventana);
   final days = (left / perDay).ceil();
   if (days > 400) return null; // too far off to mean anything
@@ -108,8 +156,7 @@ Notice? ahead(Habit h, String? what, int left, DateTime now) {
   // Las barras enseñan lo mismo que usó la cuenta. Con doce semanas en un
   // pueblo de cuatro días, once salían vacías y la que sobrevivía se llevaba
   // las nueve piezas: el dibujo decía «todo de una vez» cuando habían sido
-  // cuatro días seguidos.
-  final porDias = ventana <= 28;
+  // cuatro días seguidos. (Ver [porDias], arriba.)
   return Notice(
     NoticeKind.ahead,
     days <= 1
@@ -130,6 +177,8 @@ Notice? ahead(Habit h, String? what, int left, DateTime now) {
           '${ventana == 1 ? 'one day' : '$ventana days'}.',
     ),
     bars: porDias ? dailyOf(h, desde, today) : weeksOf(h, now, 12),
+    // Y debajo de cada barra, qué día fue.
+    ticks: porDias ? _dayTicks(desde, today) : const [],
     mark: porDias ? daysBetween(desde, today) : 11,
     more: porDias
         ? tr(
@@ -336,6 +385,23 @@ List<double> _clockBars(Habit h) {
     if (c > top) top = c;
   }
   return [for (final c in byHour) c / top];
+}
+
+/// Los pies de una barra por día: con dos semanas o menos, la inicial de
+/// cada día de la semana; con más no caben, y va la fecha cada siete.
+List<String> _dayTicks(DateTime desde, DateTime hasta) {
+  final n = daysBetween(desde, hasta) + 1;
+  final iniciales = inEnglish
+      ? const ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+      : const ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+  return [
+    for (var i = 0; i < n; i++)
+      () {
+        final d = shiftDays(desde, i);
+        if (n <= 14) return iniciales[d.weekday - 1];
+        return (n - 1 - i) % 7 == 0 ? '${d.day}/${d.month}' : '';
+      }(),
+  ];
 }
 
 /// Los pies del reloj: sólo las cuatro que orientan.

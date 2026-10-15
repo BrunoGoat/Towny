@@ -41,10 +41,6 @@ class NoticeBoardScreen extends StatefulWidget {
     this.store,
   });
 
-  /// Cuál de los diez botones de clavar (ver [PinNoteButton]). Una variable
-  /// para poder compararlos en la app; cuando se elija uno, se fija.
-  static int pinVariant = 0;
-
   /// Los pueblos del valle, [habit] incluido: de ahí salen las notas que
   /// miran dos hábitos juntos. Pide la lista y no el almacén para que
   /// se le pueda enseñar un valle inventado sin tocar el de verdad.
@@ -436,65 +432,14 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
                   ),
                 ),
               ),
+            // Una hoja en blanco abajo a la derecha, separada del canto.
             if (widget.store != null && !_escribe && _espera == null)
               SafeArea(
                 child: Align(
-                  alignment: PinNoteButton.alignmentOf(
-                    NoticeBoardScreen.pinVariant,
-                  ),
+                  alignment: Alignment.bottomRight,
                   child: Padding(
-                    padding: PinNoteButton.paddingOf(
-                      NoticeBoardScreen.pinVariant,
-                    ),
-                    child: PinNoteButton(
-                      variant: NoticeBoardScreen.pinVariant,
-                      onTap: _clavar,
-                    ),
-                  ),
-                ),
-              ),
-            // DEV: para probar los diez botones de clavar en la app. Tocar
-            // pasa al siguiente; mantener vuelve al anterior. Se va cuando se
-            // elija uno.
-            if (widget.store != null && !_escribe && _espera == null)
-              SafeArea(
-                child: Align(
-                  alignment: Alignment.topLeft,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(10, 6, 0, 0),
-                    child: GestureDetector(
-                      onTap: () => setState(
-                        () => NoticeBoardScreen.pinVariant =
-                            (NoticeBoardScreen.pinVariant + 1) %
-                            PinNoteButton.count,
-                      ),
-                      onLongPress: () => setState(
-                        () => NoticeBoardScreen.pinVariant =
-                            (NoticeBoardScreen.pinVariant +
-                                PinNoteButton.count -
-                                1) %
-                            PinNoteButton.count,
-                      ),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 7,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.45),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Text(
-                          'Botón ${NoticeBoardScreen.pinVariant + 1}/'
-                          '${PinNoteButton.count}  ›',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
+                    padding: const EdgeInsets.fromLTRB(0, 0, 20, 20),
+                    child: PinNoteButton(onTap: _clavar),
                   ),
                 ),
               ),

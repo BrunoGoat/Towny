@@ -14,6 +14,7 @@ import 'package:towny/model/board_slots.dart';
 import 'package:towny/model/notice.dart';
 import 'package:towny/model/store.dart';
 import 'package:towny/ui/notice_board.dart';
+import 'package:towny/ui/pin_note_button.dart';
 import 'package:towny/ui/style.dart';
 import 'package:towny/ui/town_view.dart';
 
@@ -371,7 +372,7 @@ void main() {
       );
       await tester.pump(const Duration(milliseconds: 400));
 
-      await tester.tap(find.text('Clavar una nota'));
+      await tester.tap(find.byType(PinNoteButton));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
 
@@ -379,7 +380,7 @@ void main() {
       // tarjeta de antes ni la palabra que lo clavaba.
       expect(find.byType(TextField), findsNWidgets(2));
       expect(find.text('CLAVARLA'), findsNothing);
-      expect(find.text('Clavar una nota'), findsNothing);
+      expect(find.byType(PinNoteButton), findsNothing);
 
       // Tocar fuera sin haber escrito nada no clava nada.
       await tester.tapAt(const Offset(20, 60));
@@ -388,7 +389,7 @@ void main() {
       expect(store.habit.notes, isEmpty, reason: 'clavó un papel en blanco');
       expect(find.text('LLEVALA A UN HUECO VERDE'), findsNothing);
 
-      await tester.tap(find.text('Clavar una nota'));
+      await tester.tap(find.byType(PinNoteButton));
       await tester.pump(const Duration(milliseconds: 400));
       await tester.enterText(find.byType(TextField).first, 'Zapatillas');
       await tester.enterText(find.byType(TextField).last, 'en la puerta');

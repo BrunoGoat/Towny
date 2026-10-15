@@ -14,6 +14,7 @@ import '../engine/town.dart';
 import '../fx/notifier.dart';
 import '../fx/sensory.dart';
 import '../l10n/lang.dart';
+import '../model/advice_book.dart';
 import '../model/appearance.dart';
 import '../model/board_seen.dart';
 import '../model/board_slots.dart';
@@ -783,6 +784,11 @@ void _empezarDeCero(NavigatorState nav, UiTheme t, Store store) {
             await BoardSeen.instance.flush();
             BoardSlots.instance.forget();
             await BoardSlots.instance.flush();
+            // Y la libreta del consejero: un valle en blanco es también un
+            // viejo que no te conoce. Sin esto, los consejos que ya habías
+            // leído seguían en su lista al fundar el primer pueblo otra vez.
+            AdviceBook.instance.forget();
+            await AdviceBook.instance.flush();
             await Appearance.instance.forgetOnboarded();
             if (nav.mounted) nav.pop();
           },
