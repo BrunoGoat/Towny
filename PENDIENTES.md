@@ -275,8 +275,8 @@ Se regenera con `flutter test tool/textos_test.dart` seguido de
 - [ ] **Avisos** (`lib/fx/notifier.dart`): que ninguno pida atención ni
   culpe.
 - [ ] **Interfaz**: hojas, botones, ajustes y la primera vez que se abre.
-- [ ] **Letras del tablón**: hay 24 tipografías de mano
-  (`lib/ui/note_font.dart`). Quitar las que no se lean.
+- [x] **Letras del tablón**: quedan dos (`lib/ui/note_font.dart`), la de las
+  notas del pueblo y la de las tuyas.
 
 **Idiomas:** castellano e inglés están hechos, toda la app. Para un tercero,
 `Lang` en `lib/l10n/lang.dart` y un `en_*.dart` hermano por catálogo. No se
@@ -309,8 +309,10 @@ Todo lo medido hasta ahora es de una máquina de escritorio. Fotograma:
 - de 12,0 a 4,3 ms con 200 piezas;
 - de 40,2 a 14,8 ms con 1500 piezas.
 
-- [ ] **Un contador en Ajustes → Desarrollo**: fotograma medio, caras y
-  presupuesto. Sirve para medir en el teléfono de verdad.
+- [x] **Un contador en Ajustes → Desarrollo → Rendimiento**: fotogramas por
+  segundo, lo que tarda cada uno y el pueblo, y cuántas caras; y llaves para
+  apagar sombras, color, resplandor, rayos, gente y agua por separado.
+- [ ] **Medir en el teléfono con ese contador** y atacar lo que pese.
 - [ ] **La notificación tarda unos 282 ms en el peor caso**: el 20 % de las
   piezas recalculan el pueblo entero para decidir qué decir. Re-medirlo y, si
   sigue, cortarlo: la notificación sólo necesita saber qué obra está en marcha.
@@ -373,17 +375,17 @@ Por ahora entran todos, para probarlos; se van sacando los que no.
 
 - [ ] Revisar los consejos uno por uno: cuáles quedan, cuáles se reescriben y
   cuáles faltan.
-- [ ] La pantalla: el viejo en 3D abajo a la izquierda, lo que dice a su
+- [x] La pantalla: el viejo en 3D abajo a la izquierda, lo que dice a su
   derecha, encima cada consejo en su tarjeta (sólo el dicho), y el valle
   detrás.
-- [ ] El detalle de un consejo: el dicho grande y la explicación en gris,
+- [x] El detalle de un consejo: el dicho grande y la explicación en gris,
   que aparece **un segundo después** — primero se lee la frase sola, como si
   te la dijera, y después llega la aclaración.
-- [ ] Cómo elige el consejo del día: manda el hábito que más te cuesta (el
+- [x] Cómo elige el consejo del día: manda el hábito que más te cuesta (el
   más nuevo y el que menos días tuvo en las dos últimas semanas), y lo que
   le acaba de pasar (si ayer faltaste, que no sean dos; si viene costando,
   más chico y más fácil).
-- [ ] Tocar al viejo en la plaza abre el consejero.
+- [x] Tocar al viejo en la plaza abre el consejero.
 - [x] El rollo: el de bambú (`lib/ui/sage_scroll.dart`), y el detalle es el
   mismo rollo, grande, que se desenrolla al tocarlo.
 - [ ] Las palomas (`lib/engine/pigeons.dart`): mirarlas en el teléfono. Bajan
