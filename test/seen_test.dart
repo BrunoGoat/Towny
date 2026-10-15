@@ -36,6 +36,12 @@ void main() {
       expect(BoardSeen.instance.isUnread('p2', una), isTrue);
     });
 
+    test('las tuyas no avisan nunca', () {
+      final mia = _n(NoticeKind.mine, 'Zapatillas en la puerta');
+      expect(BoardSeen.instance.isUnread('p1', mia), isFalse);
+      expect(BoardSeen.instance.unread('p1', [mia]), 0);
+    });
+
     test('las hojas de la guía avisan cada una por su lado', () {
       // Son varias de la misma clase: leer una no apaga las demás.
       final una = _n(NoticeKind.guia, 'Tocá una hoja para leerla de cerca.');

@@ -139,7 +139,12 @@ class BoardSeen {
 /// siempre y dejaría de querer decir nada: de ésas se avisa cuando aparecen, y
 /// una sola vez.
 ///
+///
+/// Y las tuyas no avisan nunca: las escribiste vos, no hay nada en ellas que
+/// no sepas. Una marca de «nuevo» sobre tu propia nota es el tablón contándote
+/// lo que acabás de decirle.
 String seenKey(Notice n) => switch (n.kind) {
+  NoticeKind.mine => '',
   NoticeKind.ahead || NoticeKind.life => n.kind.name,
   _ => '${n.kind.name}|${n.said}',
 };
