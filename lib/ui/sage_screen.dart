@@ -6,8 +6,10 @@ import '../core/math3.dart';
 import '../data/advice.dart';
 import '../data/character.dart';
 import '../data/doings.dart';
+import '../engine/bsp.dart';
 import '../engine/folk.dart';
 import '../engine/folk_body.dart';
+import '../engine/solid.dart';
 import '../engine/town.dart';
 import '../fx/sensory.dart';
 import '../model/advice_book.dart';
@@ -1049,35 +1051,39 @@ class _FiguraPainter extends CustomPainter {
 
     const luz = V3(-0.45, 0.8, 0.55);
     final l = luz.normalized;
-    for (final s in folkInPaintOrder(solids, ojo)) {
-      for (final f in s.faces) {
-        final c = f.v.fold(V3.zero, (a, v) => a + v) * (1 / f.v.length);
-        if ((c - ojo).dot(f.n) >= 0) continue; // de espaldas
-        final pts = <Offset>[];
-        for (final v in f.v) {
-          final p = proyectar(v);
-          if (p == null) break;
-          pts.add(p);
-        }
-        if (pts.length != f.v.length) continue;
-        final base = Color(f.tint ?? 0xFF888888);
-        final k = (0.62 + 0.42 * math.max(0, f.n.dot(l))) * f.ao;
-        final color = Color.fromARGB(
-          255,
-          (base.r * 255 * k).clamp(0, 255).round(),
-          (base.g * 255 * k).clamp(0, 255).round(),
-          (base.b * 255 * k).clamp(0, 255).round(),
-        );
-        final path = Path()..addPolygon(pts, true);
-        canvas.drawPath(path, Paint()..color = color);
-        canvas.drawPath(
-          path,
-          Paint()
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 0.8
-            ..color = color,
-        );
+    // Cara por cara y no caja por caja: el pelo es una caja que se mete en la
+    // cabeza y cae por detrás, así que su medio queda más lejos que el de la
+    // cabeza, se pintaba antes, y la coronilla le tapaba el pelo — de cerca
+    // el viejo salía calvo. El árbol corta lo que se cruza y lo ordena bien.
+    final caras = <Facet>[];
+    BspTree.build([for (final s in solids) ...s.faces]).paint(ojo, caras.add);
+    for (final f in caras) {
+      final c = f.v.fold(V3.zero, (a, v) => a + v) * (1 / f.v.length);
+      if ((c - ojo).dot(f.n) >= 0) continue; // de espaldas
+      final pts = <Offset>[];
+      for (final v in f.v) {
+        final p = proyectar(v);
+        if (p == null) break;
+        pts.add(p);
       }
+      if (pts.length != f.v.length) continue;
+      final base = Color(f.tint ?? 0xFF888888);
+      final k = (0.62 + 0.42 * math.max(0, f.n.dot(l))) * f.ao;
+      final color = Color.fromARGB(
+        255,
+        (base.r * 255 * k).clamp(0, 255).round(),
+        (base.g * 255 * k).clamp(0, 255).round(),
+        (base.b * 255 * k).clamp(0, 255).round(),
+      );
+      final path = Path()..addPolygon(pts, true);
+      canvas.drawPath(path, Paint()..color = color);
+      canvas.drawPath(
+        path,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.8
+          ..color = color,
+      );
     }
   }
 
