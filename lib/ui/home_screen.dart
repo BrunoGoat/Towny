@@ -360,6 +360,7 @@ class _HomeScreenState extends State<HomeScreen>
                 _announceTown();
               },
               onBoardTapped: _readBoard,
+              onSageTapped: _openSage,
               onWhisper: _showWhisper,
               onPaletteChanged: (p) {
                 final next = UiTheme(p);

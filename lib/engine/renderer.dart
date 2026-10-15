@@ -1709,9 +1709,11 @@ class TownPainter extends CustomPainter {
     if (folk.isEmpty) return const [];
     final out = <Rider>[];
     for (final v in folk) {
-      // El consejero no se toca todavía: no es vecino de ninguna casa, y
-      // la ficha de un vecino es la de su casa.
-      final tag = v.who.sage ? -1 : TouchMap.folkData(town, v.who.home);
+      // El consejero lleva su propia marca: tocarlo abre lo que te tiene que
+      // decir, no la ficha de un vecino.
+      final tag = v.who.sage
+          ? TouchMap.sageTag
+          : TouchMap.folkData(town, v.who.home);
       final solids = folkSolids(
         v.who,
         v.at,
@@ -1861,9 +1863,10 @@ class TownPainter extends CustomPainter {
       final antes = _faceCount;
       _plain(p, r.f, pal, light);
       if (r.tag < 0) continue;
+      final quien = r.tag == TouchMap.sageTag ? TouchMap.sage : TouchMap.folk;
       for (var k = antes; k < _faceCount; k++) {
         _facePool[k]
-          ..owner = TouchMap.folk
+          ..owner = quien
           ..data = r.tag;
       }
     }

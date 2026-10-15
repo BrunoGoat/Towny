@@ -181,12 +181,16 @@ class TownView extends StatefulWidget {
     required this.onWhisper,
     required this.onPaletteChanged,
     this.onFolkTapped,
+    this.onSageTapped,
     this.onFolkLost,
   });
 
   /// Se tocó a un vecino: la cámara se le acerca y lo sigue, y esto dice
   /// quién es para poder contarlo al lado.
   final void Function(FolkCard card)? onFolkTapped;
+
+  /// Se tocó al consejero en la plaza.
+  final VoidCallback? onSageTapped;
 
   /// Se dejó de seguir al vecino: se movió la cámara a mano, se tocó otra
   /// cosa, o se metió en su casa al caer la tarde.
@@ -1580,6 +1584,12 @@ class _TownViewState extends State<TownView>
     if (owner == TouchMap.folk) {
       final (town, home) = TouchMap.folkOf(_hits.regionData[k]);
       _follow(town, home);
+      return;
+    }
+    // El viejo de la plaza: tocarlo es ir a hablar con él.
+    if (owner == TouchMap.sage) {
+      _stopFollowing();
+      widget.onSageTapped?.call();
       return;
     }
     // Tocar cualquier otra cosa es dejar de mirar a quien se seguía.

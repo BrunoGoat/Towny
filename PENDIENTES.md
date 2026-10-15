@@ -383,7 +383,7 @@ Por ahora entran todos, para probarlos; se van sacando los que no.
   más nuevo y el que menos días tuvo en las dos últimas semanas), y lo que
   le acaba de pasar (si ayer faltaste, que no sean dos; si viene costando,
   más chico y más fácil).
-- [ ] Tocar al viejo en la plaza: hoy no hace nada.
+- [ ] Tocar al viejo en la plaza abre el consejero.
 
 ---
 

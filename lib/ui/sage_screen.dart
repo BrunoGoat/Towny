@@ -406,26 +406,21 @@ class _Habla extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget respuesta(String texto, AdviceGoal g) => Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => onAnswer(g),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: e.globo,
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: e.tinta.withValues(alpha: 0.35)),
-            boxShadow: e.sombra,
-          ),
-          child: Text(
-            texto,
-            style: TextStyle(
-              color: e.tinta,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
+    // Las respuestas, como dos hojitas más: el mismo papel, el mismo filete
+    // y la misma letra que lo que te dice, un poco torcidas cada una para su
+    // lado. Eran pastillas redondas con letra de sistema, y se leían como
+    // botones de otra app pegados encima.
+    Widget respuesta(String texto, AdviceGoal g, double giro) => Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Transform.rotate(
+        angle: giro,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => onAnswer(g),
+          child: _Fondo(
+            e: e,
+            padding: const EdgeInsets.all(5),
+            child: Text(texto, style: e.dicho(17)),
           ),
         ),
       ),
@@ -445,7 +440,10 @@ class _Habla extends StatelessWidget {
           Positioned(
             left: box.maxHeight * 0.52,
             right: 14,
-            bottom: 16,
+            // A la altura de su cara, y no a sus pies: el globo sale de su
+            // boca. Pegado abajo, una frase corta quedaba lejos de él, al
+            // nivel del suelo.
+            bottom: box.maxHeight * 0.40,
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 420),
               child: Column(
@@ -471,7 +469,7 @@ class _Habla extends StatelessWidget {
                                   'Tocá para que te lo explique',
                                   'Tap to hear what he means',
                                 ),
-                                style: TextStyle(color: e.gris, fontSize: 12),
+                                style: e.dicho(13).copyWith(color: e.gris),
                               ),
                             ),
                         ],
@@ -479,8 +477,8 @@ class _Habla extends StatelessWidget {
                     ),
                   ),
                   if (pregunta) ...[
-                    respuesta(SageLines.answerStart, AdviceGoal.start),
-                    respuesta(SageLines.answerQuit, AdviceGoal.quit),
+                    respuesta(SageLines.answerStart, AdviceGoal.start, -0.012),
+                    respuesta(SageLines.answerQuit, AdviceGoal.quit, 0.010),
                   ],
                 ],
               ),

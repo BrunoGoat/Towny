@@ -254,6 +254,14 @@ class TouchMap {
   /// Una persona. [regionData] dice cuál: ver [folkData].
   static const int folk = -6;
 
+  /// El consejero, el viejo de la plaza. Tocarlo abre lo que tiene que
+  /// decirte, no la ficha de un vecino: no tiene casa ni oficio.
+  static const int sage = -7;
+
+  /// La marca que lleva en el orden el consejero en lugar de [folkData]: un
+  /// número que no es de ningún pueblo ni de ninguna casa.
+  static const int sageTag = 0x7FFFFFF0;
+
   /// Quién es una persona, en un número: su pueblo y el edificio en el que
   /// vive, que es lo que la distingue de todos los demás.
   static int folkData(int town, int home) => town << 20 | home;
