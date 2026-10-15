@@ -18,6 +18,7 @@ import 'fountain.dart';
 import 'fountain_birds.dart';
 import 'palette.dart';
 import 'pigeons.dart';
+import 'render_debug.dart';
 import 'scene.dart';
 import 'sigils.dart';
 import 'solid.dart';
@@ -183,6 +184,12 @@ class TownPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    final reloj = Stopwatch()..start();
+    _paintTimed(canvas, size);
+    RenderDebug.instance.painted(reloj.elapsedMicroseconds, _faceCount);
+  }
+
+  void _paintTimed(Canvas canvas, Size size) {
     if (!scene.cinematic || size.isEmpty) {
       _paintWorld(canvas, size, overlays: true);
       return;
@@ -256,7 +263,7 @@ class TownPainter extends CustomPainter {
       for (var i = 0; i < scene.towns.length; i++) {
         final e = scene.towns[i];
         final take = math.min(e.placed, e.layout.pieces.length);
-        if (take > 0) {
+        if (take > 0 && RenderDebug.instance.folk) {
           _folkNow[i] = _folkOut(
             p,
             e,
@@ -296,7 +303,7 @@ class TownPainter extends CustomPainter {
     for (final e in scene.towns) {
       if (e.placed > 0) _drawTownPaths(canvas, p, e.layout);
     }
-    if (scene.cinematic) {
+    if (scene.cinematic && RenderDebug.instance.shadows) {
       drawCastShadows(canvas, p, scene.palette, [
         for (var i = 0; i < scene.towns.length; i++)
           // Con la plaza ya en el suelo, aunque no haya nada más: la fuente
@@ -1882,7 +1889,7 @@ class TownPainter extends CustomPainter {
     // mueve que un chorro que desaparece.
     final q = p.cameraOf(V3(l.cx, 0.7, l.cz));
     final px = q.z > p.near ? p.focal / q.z : double.infinity;
-    if (water) {
+    if (water && RenderDebug.instance.water) {
       for (final f in fountainWater(
         l,
         p.eye,

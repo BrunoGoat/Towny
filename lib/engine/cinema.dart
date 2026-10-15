@@ -8,6 +8,7 @@ import 'package:flutter/painting.dart';
 import '../core/math3.dart';
 import 'fountain.dart';
 import 'palette.dart';
+import 'render_debug.dart';
 import 'solid.dart';
 import 'town.dart';
 
@@ -27,7 +28,7 @@ import 'town.dart';
 /// * **El viñeteado y los reflejos de la lente** cuando el sol está en cuadro.
 ///
 /// Todo con lo que el lienzo ya sabe hacer —capas, filtros de color, desenfoque
-/// y una copia del cuadro a un cuarto de tamaño— y nada de sombreadores: así
+/// y capas a un cuarto de tamaño— y nada de sombreadores ni copias del cuadro: así
 /// se ve igual en la web, en el teléfono y en los tests.
 class Cinema {
   Cinema(this.pal, this.p, this.size);
@@ -36,9 +37,9 @@ class Cinema {
   final Projector p;
   final Size size;
 
-  /// A qué tamaño se hace la copia de la que salen el resplandor y los rayos.
-  /// Las dos cosas se desenfocan después, así que un cuarto no se nota y cuesta
-  /// la dieciseisava parte.
+  /// A qué tamaño se hacen el resplandor y los rayos. Las dos cosas se
+  /// desenfocan después, así que un cuarto no se nota y cuesta la dieciseisava
+  /// parte.
   static const double _small = 0.25;
 
   /// Cuánto de hora dorada hay ahora: sol fuera pero bajo.
@@ -64,61 +65,64 @@ class Cinema {
 
   void compose(Canvas canvas, ui.Picture world) {
     final rect = Offset.zero & size;
+    final dbg = RenderDebug.instance;
 
     // El cuadro, corregido de color.
-    canvas.saveLayer(
-      rect,
-      Paint()..colorFilter = ColorFilter.matrix(grade(pal)),
-    );
-    canvas.drawPicture(world);
-    canvas.restore();
-
-    // La copia chica, y de ella el resplandor y los rayos, hechos también en
-    // chico. Lo caro de los dos es desenfocar y repetir el cuadro, y a un
-    // cuarto de lado eso es la dieciseisava parte de píxeles; al ampliarlo
-    // después, como ya está desenfocado, no se nota.
-    final w = math.max(1, (size.width * _small).round());
-    final h = math.max(1, (size.height * _small).round());
-    final chico = Size(w.toDouble(), h.toDouble());
-    final small = _record(w, h, (c) {
-      c
-        ..scale(w / size.width, h / size.height)
-        ..drawPicture(world);
-    });
-    final src = Offset.zero & chico;
-    final luz = Paint()
-      ..blendMode = BlendMode.plus
-      ..filterQuality = FilterQuality.medium;
-
-    final brillo = _record(w, h, (c) => _bloom(c, small));
-    canvas.drawImageRect(brillo, src, rect, luz);
-    brillo.dispose();
-
-    if (_raysWanted) {
-      final rayos = _record(w, h, (c) => _rays(c, small, chico));
-      canvas.drawImageRect(rayos, src, rect, luz);
-      rayos.dispose();
+    if (dbg.grade) {
+      canvas.saveLayer(
+        rect,
+        Paint()..colorFilter = ColorFilter.matrix(grade(pal)),
+      );
+      canvas.drawPicture(world);
+      canvas.restore();
+    } else {
+      canvas.drawPicture(world);
     }
-    small.dispose();
+
+    // El resplandor y los rayos, hechos en chico y ampliados.
+    //
+    // **Sin sacar una imagen del cuadro.** Se hacía con una copia a un cuarto
+    // de tamaño (`toImageSync`), y en la web eso es rasterizar el cuadro entero
+    // en el procesador y leerlo de vuelta: cuatrocientos milisegundos por
+    // fotograma, con un pueblo de ocho piezas. Ahora es una capa: el cuadro
+    // se vuelve a pintar dentro, a un cuarto, con los filtros puestos, y al
+    // cerrarla se amplía ×4. Todo queda en la tarjeta gráfica.
+    if (dbg.bloom) _bloom(canvas, world, rect);
+    if (dbg.rays && _raysWanted) _rays(canvas, world, rect);
 
     _flare(canvas);
     _vignette(canvas, rect);
   }
 
-  /// Pinta en un lienzo de [w]×[h] y lo devuelve hecho imagen.
-  static ui.Image _record(int w, int h, void Function(Canvas) draw) {
-    final rec = ui.PictureRecorder();
-    draw(Canvas(rec, Rect.fromLTWH(0, 0, w.toDouble(), h.toDouble())));
-    final pic = rec.endRecording();
-    final img = pic.toImageSync(w, h);
-    pic.dispose();
-    return img;
+  /// Abre una capa en la que lo que se pinta va a un cuarto de tamaño —un
+  /// dieciseisavo de píxeles— y que al cerrarse se amplía al cuadro entero,
+  /// con [filtro] aplicado antes de ampliar. Devuelve con el lienzo ya
+  /// escalado: lo que se pinte después va en coordenadas del cuadro.
+  void _capaChica(Canvas canvas, Rect rect, ui.ImageFilter filtro) {
+    const k = 1 / _small;
+    final ampliar = ui.ImageFilter.matrix(
+      Float64List.fromList([k, 0, 0, 0, 0, k, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]),
+      filterQuality: FilterQuality.medium,
+    );
+    canvas.saveLayer(
+      rect,
+      Paint()
+        ..blendMode = BlendMode.plus
+        ..imageFilter = ui.ImageFilter.compose(outer: ampliar, inner: filtro),
+    );
+    canvas.save();
+    canvas.scale(_small);
+  }
+
+  void _cierraCapaChica(Canvas canvas) {
+    canvas.restore();
+    canvas.restore();
   }
 
   // ------------------------------------------------------------ resplandor
 
-  /// Sobre el lienzo chico: lo claro, desenfocado a tres radios y sumado.
-  void _bloom(Canvas c, ui.Image small) {
+  /// Lo claro del cuadro, desenfocado a dos radios y sumado.
+  void _bloom(Canvas canvas, ui.Picture world, Rect rect) {
     // De noche brilla casi todo lo encendido; de día sólo lo que deslumbra.
     // Y de noche el umbral no baja: una pared alumbrada por su ventana ya es
     // casi tan clara como la ventana, y si brilla todo no brilla nada.
@@ -130,22 +134,24 @@ class Cinema {
       const Color(0xFFFFD9A0),
       math.max(golden, night * 0.6),
     )!;
-    for (final (sigma, k) in [(5.0, 0.55), (18.0, 0.65), (46.0, 0.5)]) {
+    // Eran tres radios; con dos —uno corto y uno ancho— se ve igual y es un
+    // repintado menos.
+    for (final (sigma, k) in [(8.0, 0.85), (34.0, 0.85)]) {
       final s = sigma * _small;
-      c.drawImage(
-        small,
-        Offset.zero,
-        Paint()
-          ..blendMode = BlendMode.plus
-          ..imageFilter = ui.ImageFilter.compose(
-            outer: ui.ImageFilter.blur(
-              sigmaX: s,
-              sigmaY: s,
-              tileMode: TileMode.decal,
-            ),
-            inner: ColorFilter.matrix(threshold(umbral, fuerza * k, tinte)),
+      _capaChica(
+        canvas,
+        rect,
+        ui.ImageFilter.compose(
+          outer: ui.ImageFilter.blur(
+            sigmaX: s,
+            sigmaY: s,
+            tileMode: TileMode.decal,
           ),
+          inner: ColorFilter.matrix(threshold(umbral, fuerza * k, tinte)),
+        ),
       );
+      canvas.drawPicture(world);
+      _cierraCapaChica(canvas);
     }
   }
 
@@ -165,51 +171,50 @@ class Cinema {
         sol.dy < size.height + lejos * 0.4;
   }
 
-  /// Sobre el lienzo chico: el cuadro repetido catorce veces, cada vez un poco
-  /// más grande alrededor del sol, quedándose sólo con lo claro. Lo que tapa
-  /// el sol —un monte, una torre— sale oscuro en todas las copias, y eso es
-  /// la sombra que corta el rayo.
-  void _rays(Canvas c, ui.Image small, Size chico) {
-    final sol = _light! * _small;
+  /// El cuadro repetido unas cuantas veces, cada vez un poco más grande
+  /// alrededor del sol, quedándose sólo con lo claro. Lo que tapa el sol —un
+  /// monte, una torre— sale oscuro en todas las copias, y eso es la sombra que
+  /// corta el rayo.
+  void _rays(Canvas canvas, ui.Picture world, Rect rect) {
+    final sol = _light!;
     // Con el sol alto los rayos casi no se ven.
     final cuanto = 0.30 + golden * 1.1;
     final luz = Color.lerp(pal.sun, const Color(0xFFFFA650), golden * 0.7)!;
     final umbral = lerpD(0.62, 0.45, golden);
-    final todo = Offset.zero & chico;
-
-    c.saveLayer(
-      todo,
-      Paint()
-        ..imageFilter = ui.ImageFilter.blur(
-          sigmaX: 1,
-          sigmaY: 1,
-          tileMode: TileMode.decal,
-        ),
+    _capaChica(
+      canvas,
+      rect,
+      ui.ImageFilter.blur(sigmaX: 1.5, sigmaY: 1.5, tileMode: TileMode.decal),
     );
-    const pasos = 14;
-    final pinta = Paint()
-      ..blendMode = BlendMode.plus
-      ..filterQuality = FilterQuality.medium;
+    // Eran catorce copias; seis más separadas llegan igual de lejos, y cada
+    // una pesa lo que pesaban las que reemplaza.
+    const pasos = 6, junta = 14 / pasos;
     for (var k = 0; k < pasos; k++) {
-      final s = 1.0 + k * 0.055;
-      final peso = cuanto * 0.16 * math.pow(0.86, k);
-      pinta.colorFilter = ColorFilter.matrix(threshold(umbral, peso, luz));
-      c
-        ..save()
+      final s = 1.0 + k * 0.055 * junta;
+      final peso = cuanto * 0.16 * junta * math.pow(0.86, k * junta);
+      canvas.saveLayer(
+        rect,
+        Paint()
+          ..blendMode = BlendMode.plus
+          ..colorFilter = ColorFilter.matrix(
+            threshold(umbral, peso.toDouble(), luz),
+          ),
+      );
+      canvas
         ..translate(sol.dx, sol.dy)
         ..scale(s)
         ..translate(-sol.dx, -sol.dy)
-        ..drawImage(small, Offset.zero, pinta)
-        ..restore();
+        ..drawPicture(world);
+      canvas.restore();
     }
     // Lo que queda lejos del sol no es un rayo, es el cielo entero brillando.
-    c.drawRect(
-      todo,
+    canvas.drawRect(
+      rect,
       Paint()
         ..blendMode = BlendMode.dstIn
         ..shader = ui.Gradient.radial(
           sol,
-          chico.longestSide * 0.9,
+          size.longestSide * 0.9,
           [
             const Color(0xFFFFFFFF),
             const Color(0x66FFFFFF),
@@ -218,7 +223,7 @@ class Cinema {
           [0.0, 0.35, 1.0],
         ),
     );
-    c.restore();
+    _cierraCapaChica(canvas);
   }
 
   // ------------------------------------------------------------------ lente

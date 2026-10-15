@@ -7,6 +7,7 @@ import '../core/rng.dart';
 import '../data/demo.dart';
 import '../data/doings.dart';
 import '../data/landmarks.dart';
+import '../engine/render_debug.dart';
 import '../engine/season.dart';
 import '../engine/shooting_star.dart';
 import '../engine/town.dart';
@@ -111,6 +112,21 @@ class _SettingsSheetState extends State<SettingsSheet> {
   Widget _body(BuildContext context, UiTheme t) {
     final wants = Appearance.instance;
     final store = widget.store;
+    final dbg = RenderDebug.instance;
+    Widget efecto(
+      String es,
+      String en,
+      String bajaEs,
+      String bajaEn,
+      bool on,
+      void Function(RenderDebug d, bool v) poner,
+    ) => _Switch(
+      theme: t,
+      title: tr(es, en),
+      subtitle: tr(bajaEs, bajaEn),
+      on: on,
+      onChanged: (v) => setState(() => dbg.set((d) => poner(d, v))),
+    );
     final items = widget.dev
         ? <Widget>[
             _Section(
@@ -141,6 +157,80 @@ class _SettingsSheetState extends State<SettingsSheet> {
                   ),
                   on: wants.freeHabits,
                   onChanged: wants.setFreeHabits,
+                ),
+              ],
+            ),
+            _Section(
+              theme: t,
+              title: tr('RENDIMIENTO', 'PERFORMANCE'),
+              icon: Icons.speed_rounded,
+              children: [
+                efecto(
+                  'Contador de fotogramas',
+                  'Frame counter',
+                  'Arriba a la izquierda: fotogramas por segundo, lo que tarda '
+                      'cada uno y cuánto de eso es el pueblo.',
+                  'Top left: frames per second, how long each takes and how '
+                      'much of that is the town.',
+                  dbg.showFps,
+                  (d, v) => d.showFps = v,
+                ),
+                Text(
+                  tr(
+                    'Para encontrar lo que pesa: apagá una cosa por vez y mirá '
+                        'el contador. Al volver a abrir la app se encienden todas.',
+                    'To find what is heavy: turn one thing off at a time and '
+                        'watch the counter. Reopening the app turns them all on.',
+                  ),
+                  style: _nota(t),
+                ),
+                efecto(
+                  'Sombras',
+                  'Shadows',
+                  'Las que echan las casas y la gente con calidad máxima.',
+                  'The ones houses and people cast in maximum quality.',
+                  dbg.shadows,
+                  (d, v) => d.shadows = v,
+                ),
+                efecto(
+                  'Color de cine',
+                  'Cinematic colour',
+                  'La corrección de color por hora.',
+                  'The colour grading by hour.',
+                  dbg.grade,
+                  (d, v) => d.grade = v,
+                ),
+                efecto(
+                  'Resplandor',
+                  'Glow',
+                  'Lo claro sangrando luz: ventanas, sol, nieve.',
+                  'Bright things bleeding light: windows, sun, snow.',
+                  dbg.bloom,
+                  (d, v) => d.bloom = v,
+                ),
+                efecto(
+                  'Rayos de sol',
+                  'Sun rays',
+                  'La luz entre los montes y los tejados.',
+                  'Light between hills and roofs.',
+                  dbg.rays,
+                  (d, v) => d.rays = v,
+                ),
+                efecto(
+                  'Gente',
+                  'People',
+                  'Los vecinos y el consejero.',
+                  'Townsfolk and the sage.',
+                  dbg.folk,
+                  (d, v) => d.folk = v,
+                ),
+                efecto(
+                  'Agua de la fuente',
+                  'Fountain water',
+                  'Los chorros, el velo y las ondas.',
+                  'The jets, the veil and the ripples.',
+                  dbg.water,
+                  (d, v) => d.water = v,
                 ),
               ],
             ),

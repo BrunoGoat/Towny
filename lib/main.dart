@@ -7,6 +7,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'data/character.dart';
 import 'engine/palette.dart';
+import 'engine/render_debug.dart';
 import 'engine/world.dart';
 import 'fx/notifier.dart';
 import 'fx/sensory.dart';
@@ -23,6 +24,7 @@ import 'model/store.dart';
 import 'ui/first_run.dart';
 import 'ui/gallery_screen.dart';
 import 'ui/home_screen.dart';
+import 'ui/perf_overlay.dart';
 import 'ui/reel_screen.dart';
 import 'ui/style.dart';
 import 'ui/town_view.dart';
@@ -360,6 +362,17 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
           brightness: Brightness.light,
         ),
         scaffoldBackgroundColor: const Color(0xFF9FB6D8),
+      ),
+      // El contador de rendimiento, encima de todo, cuando se enciende en
+      // Ajustes → Desarrollo.
+      builder: (context, child) => ListenableBuilder(
+        listenable: RenderDebug.instance,
+        builder: (context, _) => Stack(
+          children: [
+            ?child,
+            if (RenderDebug.instance.showFps) const PerfOverlay(),
+          ],
+        ),
       ),
       // Straight into the exhibition hall, for looking at one recipe without
       // walking through the app to reach it. Off unless compiled in.
