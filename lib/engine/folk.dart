@@ -153,7 +153,7 @@ class Townsfolk {
   /// Lo que dura la llegada: un segundo más sentado, levantarse dando un
   /// paso al frente, y el saludo.
   static const double greetLength = 5.6;
-  static const double _sigueSentado = 1.0, _levanta = 0.7;
+  static const double _sigueSentado = 1.6, _levanta = 0.7;
 
   /// El consejero acaba de caer del cielo sentado en el banco, en el segundo
   /// [t]: se queda un momento, se levanta, saluda a quien lo está mirando y
@@ -188,8 +188,19 @@ class Townsfolk {
     final b = _stops[banco], f = _stops[frente];
     final mira = _facing[banco];
     if (s < _sigueSentado) {
-      // Sentado: [at] lo corre al asiento.
-      return FolkAt(b.$1, b.$2, mira, 0, false, Doing.bench, 5 + s);
+      // Sentado en el asiento, y al final se corre hacia delante para
+      // levantarse delante del banco.
+      final a = _asiento ?? b;
+      final k = smoothstep(_sigueSentado - _corre, _sigueSentado, s);
+      return FolkAt(
+        lerpD(a.$1, b.$1, k),
+        lerpD(a.$2, b.$2, k),
+        mira,
+        0,
+        false,
+        Doing.bench,
+        5 + s,
+      );
     }
     if (s < _sigueSentado + _levanta) {
       // Se levanta delante del banco, no dentro, y da un paso al frente.
@@ -686,7 +697,9 @@ class Townsfolk {
   /// qué punto del camino va ahora y la ronda nueva sigue desde ese mismo
   /// punto. Lo mismo al dejar de seguirla.
   void spotlight(double t, {required bool on}) {
-    if (on == spotlit) return;
+    // Al consejero no se le sigue —tocarlo abre su menú—: su ronda es
+    // siempre la de quedarse en la plaza, sentándose y levantándose del banco.
+    if (sage || on == spotlit) return;
     if (on) {
       // Sigue por donde va en esta vuelta: los mismos sitios en los que
       // estaba, con el horario de cuando la siguen.
@@ -899,13 +912,35 @@ class Townsfolk {
   /// que sea.
   FolkAt at(double t) {
     final r = _at(t);
-    // Sentado en el banco, en el asiento; de pie, la parada está delante.
+    // Sentado en el banco, en el asiento; de pie, la parada está delante. Se
+    // corre de una a otra al sentarse y al levantarse, a paso de andar: de
+    // golpe era un salto de un palmo.
     final a = _asiento;
-    if (a != null && r.act == Doing.bench) {
-      return FolkAt(a.$1, a.$2, r.heading, r.gait, r.moving, r.act, r.phase);
+    final llega = _greetAt;
+    final llegando = llega != null && t >= llega && t < llega + greetLength;
+    if (a != null && r.act == Doing.bench && !llegando) {
+      final i = _act.indexOf(Doing.bench);
+      final stay = _stay[i];
+      final sits = stay - 2 * math.min(2.4, stay * 0.15);
+      final k =
+          smoothstep(0, _corre, r.phase) *
+          (1 - smoothstep(sits - _corre, sits, r.phase));
+      final b = _stops[i];
+      return FolkAt(
+        lerpD(b.$1, a.$1, k),
+        lerpD(b.$2, a.$2, k),
+        r.heading,
+        r.gait,
+        r.moving,
+        r.act,
+        r.phase,
+      );
     }
     return r;
   }
+
+  /// Lo que tarda en correrse del paso de delante del banco al asiento.
+  static const double _corre = 0.7;
 
   FolkAt _at(double t) {
     final llega = _greetAt;

@@ -162,7 +162,8 @@ void main() {
 
     test('cambia de cosa mucho más a menudo que en su ronda de siempre', () {
       final l = TownLayout(160, TownCharacter.all.first, seed: 21);
-      final gente = folkOf(l, 160);
+      // Al consejero no se le sigue: tocarlo abre su menú.
+      final gente = folkOf(l, 160).where((v) => !v.sage).toList();
       var cAntes = 0.0, cAhora = 0.0, qAntes = 0.0, qAhora = 0.0;
       var cosasAntes = 0, cosasAhora = 0;
       for (final who in gente) {
