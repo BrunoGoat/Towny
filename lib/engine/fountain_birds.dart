@@ -79,7 +79,8 @@ class BirdVisit {
   /// Las alas: cero plegadas, y en vuelo, el batir de menos uno a uno.
   final double flap;
 
-  /// Qué pájaro es: gorrión, paloma o petirrojo.
+  /// Qué pájaro es: gorrión, paloma o petirrojo; y las palomas del
+  /// consejero, también la oscura y la clara.
   final int kind;
 
   /// Su tamaño, que no es igual para todos.
@@ -340,6 +341,10 @@ const _plumas = [
   (0xFFA5A8AE, 0xFFB9BCC2, 0xFF8D9097, 0xFF7E838C, 0xFF4A3F3A),
   // Petirrojo: pardo con el pecho naranja.
   (0xFF7D6650, 0xFFD9793F, 0xFF66523F, 0xFF7D6650, 0xFF2E2620),
+  // Paloma oscura, con el cuello tornasolado.
+  (0xFF73767F, 0xFF7E7590, 0xFF60636B, 0xFF586A66, 0xFF3E3A38),
+  // Paloma clara, casi blanca, con las alas manchadas.
+  (0xFFD8D5CE, 0xFFE4E1DA, 0xFFB3AFA6, 0xFFCFCBC4, 0xFFB08A80),
 ];
 
 /// Las caras de los pájaros que andan por la fuente ahora, cada una con su

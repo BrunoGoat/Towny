@@ -15,7 +15,9 @@ import 'cinema.dart';
 import 'folk.dart';
 import 'folk_body.dart';
 import 'fountain.dart';
+import 'fountain_birds.dart';
 import 'palette.dart';
+import 'pigeons.dart';
 import 'scene.dart';
 import 'sigils.dart';
 import 'solid.dart';
@@ -1714,12 +1716,62 @@ class TownPainter extends CustomPainter {
       final tag = v.who.sage
           ? TouchMap.sageTag
           : TouchMap.folkData(town, v.who.home);
+      // El consejero, cada mucho, da de comer a las palomas desde el banco.
+      final pal = scene.palette;
+      final feast = v.who.sage
+          ? sageFeast(
+              v.who,
+              e.layout,
+              scene.time,
+              h: v.size * v.who.build,
+              day: pal.isDaylight && pal.daylight > 0.25,
+            )
+          : null;
+      // Las migas, lo primero: están en el suelo, y lo que anda por encima
+      // las tapa.
+      if (feast != null) {
+        for (final m in feast.crumbs) {
+          const r = 0.010;
+          for (final f in boxFaces(
+            m.x - r,
+            m.y,
+            m.z - r,
+            m.x + r,
+            m.y + r * 1.2,
+            m.z + r,
+            Surface.own,
+            tint: 0xFFE2C68E,
+          )) {
+            final a = f.v.first;
+            if ((p.eye - a).dot(f.n) <= 0) continue;
+            out.add(Rider(f..piece = -1, out.length, tag));
+          }
+        }
+      }
+      // Y las palomas que quedan detrás del viejo, antes que él.
+      final palomas = [
+        if (feast != null)
+          for (final b in feast.pigeons) ((b.at - p.eye).length, b),
+      ]..sort((a, b) => b.$1.compareTo(a.$1));
+      final aqui = V3(v.at.x, v.y0 + v.size * 0.4, v.at.z);
+      final suyo = (aqui - p.eye).length;
+      var pj = 0;
+      void palomasHasta(double lejos) {
+        for (; pj < palomas.length && palomas[pj].$1 >= lejos; pj++) {
+          for (final f in birdFaces(palomas[pj].$2, p.eye)) {
+            out.add(Rider(f, out.length, tag));
+          }
+        }
+      }
+
+      palomasHasta(suyo);
       final solids = folkSolids(
         v.who,
         v.at,
         v.size,
         lift: v.y0,
         eye: p.eye,
+        feast: feast?.pose,
         // Tres escalones y no dos: por debajo de catorce píxeles se van las
         // piernas y las mariposas, y por debajo de ocho se van también los
         // brazos. La cometa no se va nunca — es lo que se ve desde lejos.
@@ -1764,6 +1816,7 @@ class TownPainter extends CustomPainter {
         BspTree.build(caras).paint(p.eye, (f) {
           if (mira(f)) out.add(Rider(f, out.length, tag));
         });
+        palomasHasta(double.negativeInfinity);
         continue;
       }
       for (final solid in folkInPaintOrder(solids, p.eye)) {
@@ -1771,6 +1824,8 @@ class TownPainter extends CustomPainter {
           if (mira(f)) out.add(Rider(f, out.length, tag));
         }
       }
+      // Y las de delante, después.
+      palomasHasta(double.negativeInfinity);
     }
     return out;
   }

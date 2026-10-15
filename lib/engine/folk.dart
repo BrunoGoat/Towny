@@ -89,7 +89,7 @@ class Townsfolk {
       (p195, hashRange(4, 8, s, 61), haciaFuente(p195), Doing.idle),
       (p255, hashRange(2, 4, s, 62), haciaFuente(p255), Doing.idle),
       (frente, 0.3, mirarBanco, Doing.idle),
-      (banco, hashRange(24, 40, s, 63), mirarBanco, Doing.bench),
+      (banco, hashRange(36, 50, s, 63), mirarBanco, Doing.bench),
       (frente, 0.3, mirarBanco, Doing.idle),
       (p375, hashRange(2, 4, s, 64), haciaFuente(p375) + math.pi, Doing.idle),
       (p435, hashRange(4, 8, s, 65), haciaFuente(p435), Doing.idle),
@@ -121,6 +121,35 @@ class Townsfolk {
       period,
       sage: true,
     );
+  }
+
+  /// Para el consejero: cuánto hace que se sentó en el banco en esta vuelta
+  /// de su ronda —desde que se puso, sin el respiro de llegar—, cuánto se
+  /// queda sentado y en qué vuelta va. Negativo si todavía no llegó; nulo si
+  /// no es el consejero. Es el reloj de las palomas (ver `pigeons.dart`).
+  ({double since, double sits, int lap})? benchClock(double t) {
+    if (!sage) return null;
+    final u = _uAt(t);
+    var acc = 0.0;
+    final n = _stops.length;
+    for (var i = 0; i < n; i++) {
+      final from = _stops[i], to = _stops[(i + 1) % n];
+      final d = math.sqrt(
+        math.pow(to.$1 - from.$1, 2) + math.pow(to.$2 - from.$2, 2),
+      );
+      acc += d / pace;
+      final stay = _stay[(i + 1) % n];
+      if (_act[(i + 1) % n] == Doing.bench) {
+        final settle = math.min(2.4, stay * 0.15);
+        return (
+          since: u - acc - settle,
+          sits: stay - 2 * settle,
+          lap: _lapAt(t),
+        );
+      }
+      acc += stay;
+    }
+    return null;
   }
 
   /// La casa del consejero, que no tiene: un número que no es de ningún

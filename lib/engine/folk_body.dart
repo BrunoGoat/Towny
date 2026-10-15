@@ -19,6 +19,7 @@ import '../core/rng.dart';
 import '../data/doings.dart';
 import '../data/folknames.dart';
 import 'folk.dart';
+import 'pigeons.dart';
 import 'solid.dart';
 import 'solids.dart';
 
@@ -148,6 +149,7 @@ List<Solid> folkSolids(
   double detail = 1.0,
   double lift = 0.0,
   V3? eye,
+  FeastPose? feast,
 }) {
   final seed = who.seed;
   // Lo que mide éste. Un crío mide dos tercios de lo que mide su madre, y un
@@ -430,7 +432,16 @@ List<Solid> folkSolids(
   if (who.sage) {
     // Sentado, sobre el asiento del banco: la altura del asiento en partes de
     // lo que mide, que es en lo que va todo aquí.
-    _sabio(box, link, at, piel, detail, bob, sentado ? PlazaBench.seat / h : 0);
+    _sabio(
+      box,
+      link,
+      at,
+      piel,
+      detail,
+      bob,
+      sentado ? PlazaBench.seat / h : 0,
+      sentado ? feast : null,
+    );
     return out;
   }
 
@@ -1610,6 +1621,7 @@ void _sabio(
   double detail,
   double bob,
   double asiento,
+  FeastPose? feast,
 ) {
   const tunica = 0xFF4E5670;
   const ribete = 0xFF3D4459;
@@ -1722,5 +1734,62 @@ void _sabio(
       piel,
       1.0,
     );
+  }
+  if (feast != null && detail > 0.25) {
+    // Dando de comer a las palomas (ver `pigeons.dart`): el otro brazo, la
+    // manga de la túnica hasta la mano, y el pan en el regazo.
+    final (hx, hy, hz) = feast.hand;
+    final mano = (hx, piso + hy, hz);
+    link((0.150, y + 0.470, 0.030), mano, 0.045, tunica, 0.97);
+    box(
+      mano.$1 - 0.035,
+      mano.$2 - 0.035,
+      mano.$3 - 0.035,
+      mano.$1 + 0.035,
+      mano.$2 + 0.035,
+      mano.$3 + 0.035,
+      piel,
+      1.0,
+    );
+    if (feast.bread > 0) {
+      // Un pan alargado, de corteza tostada, que se va acortando.
+      final largo = 0.075 * (0.35 + 0.65 * feast.bread);
+      final (bx, by, bz) = feast.breadInHand
+          ? (mano.$1 - 0.03, mano.$2 - 0.01, mano.$3 + 0.03)
+          : (0.0, piso + 0.13 + 0.032, 0.24);
+      box(
+        bx - largo,
+        by - 0.032,
+        bz - 0.040,
+        bx + largo,
+        by + 0.032,
+        bz + 0.040,
+        0xFFB57B3E,
+        1.0,
+      );
+      // La miga, clara, donde se partió.
+      box(
+        bx + largo - 0.012,
+        by - 0.026,
+        bz - 0.034,
+        bx + largo + 0.004,
+        by + 0.026,
+        bz + 0.034,
+        0xFFE9D3A4,
+        1.02,
+      );
+    }
+    if (feast.pinch) {
+      box(
+        mano.$1 - 0.014,
+        mano.$2 + 0.030,
+        mano.$3 + 0.020,
+        mano.$1 + 0.014,
+        mano.$2 + 0.054,
+        mano.$3 + 0.044,
+        0xFFE9D3A4,
+        1.02,
+      );
+    }
   }
 }

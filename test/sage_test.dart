@@ -5,10 +5,13 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:towny/data/character.dart';
+import 'package:towny/data/doings.dart';
 import 'package:towny/data/folknames.dart';
 import 'package:towny/engine/camera.dart';
 import 'package:towny/engine/folk.dart';
+import 'package:towny/engine/fountain_birds.dart';
 import 'package:towny/engine/palette.dart';
+import 'package:towny/engine/pigeons.dart';
 import 'package:towny/engine/renderer.dart';
 import 'package:towny/engine/scene.dart';
 import 'package:towny/engine/solids.dart';
@@ -107,6 +110,90 @@ void main() {
         if (sabio) visto++;
       }
       expect(visto, greaterThan(0), reason: 'nunca se lo pudo tocar');
+    });
+  });
+
+  group('las palomas del consejero', () {
+    // La primera vuelta en la que da de comer, y desde cuándo.
+    (Townsfolk, TownLayout, double, double) primera() {
+      final l = TownLayout(60, TownCharacter.all[0], seed: 7);
+      final sabio = folkOf(l, 60).firstWhere((v) => v.sage);
+      for (var k = 0; k < 40000; k++) {
+        final c = sabio.benchClock(k * 1.0);
+        if (c == null || c.since < 0 || c.since > 1) continue;
+        if (sageFeast(sabio, l, k * 1.0, h: 0.5) != null) {
+          return (sabio, l, k - c.since, c.sits);
+        }
+      }
+      fail('nunca les da de comer');
+    }
+
+    test('sólo cada mucho, y sólo sentado en el banco', () {
+      final (sabio, l, t0, sits) = primera();
+      expect(sabio.at(t0 + 10).act, Doing.bench);
+      var vueltas = 0, comidas = 0;
+      for (var k = 0; k < 60; k++) {
+        final t = t0 + k * sabio.period + 10;
+        vueltas++;
+        if (sageFeast(sabio, l, t, h: 0.5) != null) comidas++;
+      }
+      expect(comidas, greaterThan(0));
+      expect(comidas, lessThan(vueltas * 0.6));
+      expect(sageFeast(sabio, l, t0 - 20, h: 0.5), isNull);
+      expect(sageFeast(sabio, l, t0 + 10, h: 0.5, day: false), isNull);
+    });
+
+    test(
+      'bajan, se comen todas las migas y se van antes de que se levante',
+      () {
+        final (sabio, l, t0, sits) = primera();
+        var vistas = 0;
+        var hubo = false;
+        for (var s = 0.05; s <= sits; s += 0.1) {
+          final f = sageFeast(sabio, l, t0 + s, h: 0.5)!;
+          if (f.crumbs.isNotEmpty) hubo = true;
+          vistas = math.max(vistas, f.pigeons.length);
+          for (final b in f.pigeons) {
+            expect(
+              b.at.x.isFinite && b.at.y.isFinite && b.at.z.isFinite,
+              isTrue,
+            );
+          }
+        }
+        expect(hubo, isTrue);
+        expect(vistas, inInclusiveRange(3, 5));
+        final fin = sageFeast(sabio, l, t0 + sits, h: 0.5)!;
+        expect(fin.crumbs, isEmpty, reason: 'no quedan migas');
+        expect(fin.pose!.bread, 0, reason: 'ni pan');
+        expect(
+          fin.pigeons.where((b) => b.doing == BirdDoing.perched),
+          isEmpty,
+          reason: 'ya se fueron',
+        );
+      },
+    );
+
+    test('ninguna salta de sitio de un fotograma al siguiente', () {
+      final (sabio, l, t0, sits) = primera();
+      List<BirdVisit> en(double s) =>
+          sageFeast(sabio, l, t0 + s, h: 0.5)!.pigeons;
+      for (var s = 0.5; s < sits; s += 1 / 30) {
+        final a = en(s), b = en(s + 1 / 30);
+        if (a.length != b.length) continue;
+        for (var i = 0; i < a.length; i++) {
+          // En el aire van deprisa; lo que no puede saltar es una paloma
+          // en el suelo, ni al posarse ni al despegar.
+          if (a[i].doing != BirdDoing.perched &&
+              b[i].doing != BirdDoing.perched) {
+            continue;
+          }
+          expect(
+            (a[i].at - b[i].at).length,
+            lessThan(0.05),
+            reason: 'paloma $i en el segundo $s',
+          );
+        }
+      }
     });
   });
 }
