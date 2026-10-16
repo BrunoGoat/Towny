@@ -872,7 +872,11 @@ class TownPainter extends CustomPainter {
   void _findBoards(Projector p, Size size) {
     for (var i = 0; i < scene.towns.length; i++) {
       final e = scene.towns[i];
-      if (e.placed <= 0) continue;
+      // Aunque no tenga ninguna pieza: un pueblo recién fundado ya tiene su
+      // plaza y su tablón. Se saltaban los de cero piezas, de cuando un
+      // pueblo sin piezas no tenía plaza, y el tablón de un segundo pueblo
+      // recién fundado se veía pero no se abría al tocarlo. Si no se pintó,
+      // no hay cara del tablón que tocar, así que esto no abre nada fantasma.
       final l = e.layout;
       // Desde el valle no se tocan los muebles de una plaza.
       //

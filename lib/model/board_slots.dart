@@ -141,6 +141,21 @@ class BoardSlots extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Despegar los papeles [ids] del tablón de [townId]: los de una nota
+  /// tuya que se quitó.
+  ///
+  /// Avisa aunque no hubiera nada que despegar. Lo que importa es que el
+  /// pueblo vuelva a mirar qué papeles hay: el quitado deja de estar en la
+  /// lista, y su tablón de la plaza tiene que dejar de dibujarlo.
+  void take(String townId, Iterable<String> ids) {
+    var hubo = false;
+    for (final id in ids) {
+      hubo = _where.remove('$townId/$id') != null || hubo;
+    }
+    if (hubo) _keep();
+    notifyListeners();
+  }
+
   /// En qué hueco está ahora mismo ese papel, si es que está en alguno.
   int? slotOf(String townId, String id) => _where['$townId/$id'];
 

@@ -211,6 +211,58 @@ void main() {
     }
   });
 
+  test(
+    'el tablón de un pueblo recién fundado, sin piezas, también se toca',
+    () {
+      // El de un segundo pueblo con cero piezas se veía en la plaza pero no se
+      // abría: los tablones de los pueblos sin piezas no se apuntaban, de
+      // cuando un pueblo sin piezas no tenía plaza.
+      final l = TownLayout(0, TownCharacter.all.first, seed: 21);
+      const size = Size(390, 844);
+      var vistos = 0;
+      for (var yaw = 0.0; yaw < 6.3; yaw += 0.3) {
+        final cam = OrbitCamera()
+          ..yaw = yaw
+          ..pitch = 0.3
+          ..focusY = 1.0
+          ..distance = 11
+          ..travel = l.cx
+          ..focusZ = l.cz
+          ..wallLength = l.radius * 2;
+        final hits = TouchMap();
+        TownPainter(
+          TownScene(
+            placed: 0,
+            palette: Palette.forMoment(13),
+            camera: cam,
+            time: 7.3,
+            hourOfDay: 13,
+            effects: EffectSystem(),
+            towns: [
+              TownEntry(layout: l, name: 'L', symbol: 'libro', placed: 0),
+            ],
+            active: 0,
+            labels: false,
+            folk: false,
+          ),
+          hits,
+        ).paint(Canvas(ui.PictureRecorder()), size);
+        final cara = [
+          for (var i = 0; i < hits.faceCount; i++)
+            if (hits.faceOwner[i] == TouchMap.board) i,
+        ];
+        if (cara.isEmpty) continue;
+        vistos++;
+        expect(
+          hits.boards,
+          isNotEmpty,
+          reason: 'girando $yaw el tablón se ve y no se sabe de qué pueblo es',
+        );
+      }
+      expect(vistos, greaterThan(5));
+    },
+  );
+
   test('lo que se ve bajo el dedo es la casa, no el tablón que tapa', () {
     // La escena de la captura: dos piezas, la casa entera entre la cámara y
     // el tablón. Se da la vuelta al pueblo hasta encontrar ese encuadre y ahí

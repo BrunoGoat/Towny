@@ -436,6 +436,118 @@ void main() {
     });
   });
 
+  group('leer una nota tuya', () {
+    /// Un tablón con dos notas tuyas en la primera columna, abierto.
+    Future<Store> tablon(WidgetTester tester) async {
+      SharedPreferences.setMockInitialValues({});
+      BoardSlots.instance.forget();
+      await BoardSlots.instance.load();
+      await Appearance.instance.load();
+      final store = Store();
+      await store.load();
+      store.renameHabit(0, name: 'Entrenar', symbol: 'pesa');
+      store.debugFill(120);
+      final h = store.habit;
+      store.pinNote(h, 'Una nota mía');
+      store.pinNote(h, 'Y otra');
+      final hay = boardNotices(h, valley: store.habits);
+      final quienes = [for (final n in hay) noticeId(n)];
+      BoardSlots.instance.assign(h.id, hay, slots: BoardPlan.capacity);
+      for (var i = 0; i < quienes.length && i < 3; i++) {
+        BoardSlots.instance.place(h.id, quienes, i, i);
+      }
+      const size = Size(390, 844);
+      tester.view.physicalSize = size * 2;
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(size: size),
+          child: MaterialApp(
+            debugShowCheckedModeBanner: false,
+            home: NoticeBoardScreen(
+              valley: store.habits,
+              habit: h,
+              theme: UiTheme(Palette.forMoment(13)),
+              store: store,
+            ),
+          ),
+        ),
+      );
+      for (var i = 0; i < 40; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      return store;
+    }
+
+    /// Toca por la rejilla hasta descolgar una nota tuya. Sólo un toque por
+    /// punto y nada más que dejar pasar el tiempo: lo que se prueba es que
+    /// «quitarla» aparece mientras se lee, sin otro toque.
+    Future<void> abrirUnaMia(WidgetTester tester) async {
+      const size = Size(390, 844);
+      final quitar = find.text('QUITARLA');
+      for (var fy = 0.25; fy <= 0.8; fy += 0.07) {
+        for (var fx = 0.15; fx <= 0.6; fx += 0.15) {
+          await tester.tapAt(Offset(size.width * fx, size.height * fy));
+          for (var i = 0; i < 16; i++) {
+            await tester.pump(const Duration(milliseconds: 50));
+          }
+          if (quitar.evaluate().isNotEmpty) return;
+          // Si se abrió otra, se vuelve a colgar antes de probar el siguiente.
+          await tester.tapAt(Offset(size.width * fx, size.height * fy));
+          for (var i = 0; i < 16; i++) {
+            await tester.pump(const Duration(milliseconds: 50));
+          }
+        }
+      }
+      fail('ningún toque descolgó una nota tuya');
+    }
+
+    bool clavarApagado(WidgetTester tester) => tester
+        .widgetList<IgnorePointer>(
+          find.ancestor(
+            of: find.byType(PinNoteButton),
+            matching: find.byType(IgnorePointer),
+          ),
+        )
+        .any((w) => w.ignoring);
+
+    testWidgets('mientras se lee, quitarla está abajo y clavar está apagado', (
+      tester,
+    ) async {
+      await tablon(tester);
+      expect(find.text('QUITARLA'), findsNothing);
+      expect(clavarApagado(tester), isFalse);
+      await abrirUnaMia(tester);
+      expect(clavarApagado(tester), isTrue);
+      // Y al volver a colgarla se va el botón, y clavar vuelve.
+      await tester.tapAt(const Offset(195, 300));
+      for (var i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      expect(find.text('QUITARLA'), findsNothing);
+      expect(clavarApagado(tester), isFalse);
+      await tester.pump(const Duration(milliseconds: 400));
+    });
+
+    testWidgets('quitarla avisa al pueblo, que la deja de dibujar', (
+      tester,
+    ) async {
+      final store = await tablon(tester);
+      var avisos = 0;
+      void contar() => avisos++;
+      BoardSlots.instance.addListener(contar);
+      addTearDown(() => BoardSlots.instance.removeListener(contar));
+      await abrirUnaMia(tester);
+      final antes = store.habit.notes.length;
+      await tester.tap(find.text('QUITARLA'));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(store.habit.notes.length, antes - 1);
+      expect(avisos, greaterThan(0), reason: 'el pueblo no se enteró');
+      await tester.pump(const Duration(milliseconds: 400));
+    });
+  });
+
   group('y el tablón del valle es el mismo tablón', () {
     // Lo que se veía: cambiabas un papel de hueco en el tablón y al salir al
     // valle seguía donde estaba. El plano del pueblo ya está hecho y guardado,

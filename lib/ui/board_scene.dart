@@ -120,7 +120,14 @@ class BoardScene extends StatefulWidget {
     this.onPlace,
     this.onEditPending,
     this.lookAt,
+    this.reading,
   });
+
+  /// Si hay una nota descolgada y abierta para leer. Lo escribe la escena en
+  /// cada fotograma; quien la usa —el botón de clavar una nota— se apaga
+  /// mientras se lee, que clavar otra encima de la que se está leyendo no
+  /// tiene sentido.
+  final ValueNotifier<bool>? reading;
 
   /// Entrar mirando ese hueco, de frente y sin el paseo de llegada: es lo que
   /// se ve al clavar una nota tuya, que rehace la escena. Sin esto, la nota
@@ -301,6 +308,7 @@ class _BoardSceneState extends State<BoardScene>
     }
     _m.clock += dt;
     if (_m.hint > 0) _m.hint = math.max(0, _m.hint - dt * 0.32);
+    widget.reading?.value = _leyendo != null;
     _frame.value++;
     // Un tablón quieto no tiene por qué pintarse sesenta veces por segundo.
     // Se para solo cuando la cámara llega a donde iba, y lo despierta el
@@ -614,32 +622,6 @@ class _BoardSceneState extends State<BoardScene>
             }
           }
         }
-        // Quitar la nota, sólo mientras hay una tuya descolgada.
-        //
-        // Aquí y no en el tablón: una nota se quita después de leerla, y para
-        // leerla hay que descolgarla. Un botón de quitar al lado de cada papel
-        // clavado sería un tablón con diez cruces encima.
-        final abierta = _m.open;
-        // La nota que está descolgada y bastante abierta para poder leerla.
-        // Todo lo que se ofrece sobre un papel sale de aquí, así que la
-        // condición de «hay una hoja abierta» se escribe una vez.
-        final leyendo =
-            abierta != null &&
-                _m.openK > 0.55 &&
-                abierta < widget.plan.papers.length
-            ? widget.plan.papers[abierta].notice
-            : null;
-        final quitar =
-            widget.onUnpin != null &&
-                leyendo != null &&
-                leyendo.kind == NoticeKind.mine
-            ? leyendo.said
-            : null;
-        // Y si no hay nada que quitar, lo que se pueda hacer con ella. Nunca
-        // las dos cosas a la vez: son la misma palabra en el mismo sitio.
-        final hacer = quitar != null || leyendo == null
-            ? null
-            : widget.offer?.call(leyendo);
         _m.place = widget.pending == null ? const {} : widget.placeable;
         final escena = GestureDetector(
           behavior: HitTestBehavior.opaque,
@@ -682,25 +664,15 @@ class _BoardSceneState extends State<BoardScene>
               },
               repaint: _frame,
             ),
-            child: quitar == null && hacer == null
-                ? null
-                : SafeArea(
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 26),
-                        child: _Unpin(
-                          word: quitar == null
-                              ? hacer!.$1
-                              : tr('Quitarla', 'Remove it'),
-                          onTap: quitar == null
-                              ? hacer!.$2
-                              : () => widget.onUnpin!(quitar),
-                          k: _m.openK,
-                        ),
-                      ),
-                    ),
-                  ),
+            // Se mira en cada fotograma y no al construir: la escena sólo se
+            // reconstruye con un toque, y la hoja se descuelga sola después
+            // del toque. Mirado al construir, el botón aparecía recién con el
+            // toque siguiente —el de volver a colgarla—, que es justo cuando
+            // ya no hacía falta.
+            child: ValueListenableBuilder<int>(
+              valueListenable: _frame,
+              builder: (context, _, _) => _actions(),
+            ),
           ),
         );
         if (widget.pending == null) return escena;
@@ -716,6 +688,53 @@ class _BoardSceneState extends State<BoardScene>
           ],
         );
       },
+    );
+  }
+
+  /// La nota que está descolgada y bastante abierta para poder leerla.
+  /// Todo lo que se ofrece sobre un papel sale de aquí, así que la condición
+  /// de «hay una hoja abierta» se escribe una vez.
+  Notice? get _leyendo {
+    final abierta = _m.open;
+    return abierta != null &&
+            _m.openK > 0.55 &&
+            abierta < widget.plan.papers.length
+        ? widget.plan.papers[abierta].notice
+        : null;
+  }
+
+  /// Lo que se puede hacer con la hoja que se está leyendo: quitarla, si es
+  /// tuya, o lo que ofrezca ella.
+  ///
+  /// Quitar va aquí y no en el tablón: una nota se quita después de leerla, y
+  /// para leerla hay que descolgarla. Un botón de quitar al lado de cada
+  /// papel clavado sería un tablón con diez cruces encima.
+  Widget _actions() {
+    final leyendo = _leyendo;
+    final quitar =
+        widget.onUnpin != null &&
+            leyendo != null &&
+            leyendo.kind == NoticeKind.mine
+        ? leyendo.said
+        : null;
+    // Y si no hay nada que quitar, lo que se pueda hacer con ella. Nunca las
+    // dos cosas a la vez: son la misma palabra en el mismo sitio.
+    final hacer = quitar != null || leyendo == null
+        ? null
+        : widget.offer?.call(leyendo);
+    if (quitar == null && hacer == null) return const SizedBox.shrink();
+    return SafeArea(
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 26),
+          child: _Unpin(
+            word: quitar == null ? hacer!.$1 : tr('Quitarla', 'Remove it'),
+            onTap: quitar == null ? hacer!.$2 : () => widget.onUnpin!(quitar),
+            k: _m.openK,
+          ),
+        ),
+      ),
     );
   }
 

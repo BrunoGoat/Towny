@@ -148,8 +148,13 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
   void dispose() {
     _titulo.dispose();
     _debajo.dispose();
+    _leyendo.dispose();
     super.dispose();
   }
+
+  /// Si hay una nota abierta para leer. Lo escribe la escena; con una abierta
+  /// el botón de clavar se oscurece y no se puede tocar.
+  final ValueNotifier<bool> _leyendo = ValueNotifier(false);
 
   void _clavar() {
     Sensory.instance.tick();
@@ -404,11 +409,21 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
                     _escribe = true;
                   });
                 },
+                reading: _leyendo,
                 onUnpin: widget.store == null
                     ? null
                     : (said) {
                         Sensory.instance.tick();
                         widget.store!.unpinNote(widget.habit, said);
+                        // Y que el pueblo se entere: su tablón de la plaza
+                        // dibuja los papeles que hay, y sin este aviso seguía
+                        // con el quitado puesto hasta volver a abrir la app.
+                        BoardSlots.instance.take(widget.habit.id, [
+                          for (final n in _said)
+                            if (n.kind == NoticeKind.mine &&
+                                n.said.trim() == said.trim())
+                              noticeId(n),
+                        ]);
                         setState(() {
                           _mirar = null;
                           _plan = _real();
@@ -439,7 +454,20 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
                   alignment: Alignment.bottomRight,
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(0, 0, 20, 20),
-                    child: PinNoteButton(onTap: _clavar),
+                    // Con una nota abierta, oscurecido y sin tocarse: clavar
+                    // otra encima de la que se está leyendo no tiene sentido.
+                    child: ValueListenableBuilder<bool>(
+                      valueListenable: _leyendo,
+                      builder: (context, leyendo, boton) => IgnorePointer(
+                        ignoring: leyendo,
+                        child: AnimatedOpacity(
+                          opacity: leyendo ? 0.22 : 1,
+                          duration: const Duration(milliseconds: 220),
+                          child: boton,
+                        ),
+                      ),
+                      child: PinNoteButton(onTap: _clavar),
+                    ),
                   ),
                 ),
               ),
