@@ -134,6 +134,19 @@ void main() {
     );
   }
 
+  testWidgets('y desde los dos se ve el valle igual de lejos', (tester) async {
+    // Saliendo del segundo, los dos pueblos quedaban en fila delante de la
+    // cámara y cabían de cerca: el valle se veía a la mitad de distancia, y
+    // el tope de alejarse también era la mitad.
+    final desde = <double>[];
+    for (final activo in [0, 1]) {
+      final v = await valle(tester, activo: activo);
+      desde.add(v.mando.distanceTarget);
+      await tester.pumpWidget(const SizedBox());
+    }
+    expect(desde[1], closeTo(desde[0], desde[0] * 0.1));
+  });
+
   testWidgets('en el valle, un dedo gira alrededor, como en el pueblo', (
     tester,
   ) async {

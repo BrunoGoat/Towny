@@ -1130,6 +1130,11 @@ class _TownViewState extends State<TownView>
       20,
       OrbitCamera.maxDistance,
     );
+    // Y que la cámara se deje alejar hasta el tope del valle (ver
+    // [_zoomBy]): lo que ella se deja sale de [wallLength], que con el valle
+    // visto desde cualquier lado se quedaba corto y recortaba el alejarse por
+    // dentro del encuadre de llegada.
+    _cam.wallLength = math.max(far * 2, _cam.distanceTarget * _valleyRoom / 2);
     _cam.follow = false;
     _setAloft(true);
     _asked = true;
@@ -1243,13 +1248,27 @@ class _TownViewState extends State<TownView>
         puntos.add(V3(e.layout.cx + dx, 0, e.layout.cz + dz));
       }
     }
-    final prueba = OrbitCamera()
-      ..travel = _cam.travelTarget
-      ..focusZ = _cam.focusZTarget
-      ..focusY = 2.0
-      ..yaw = _cam.yawTarget
-      ..pitch = 0.40;
-    return prueba.distanceToFit(puntos, size.width, size.height);
+    // La que haga falta para que quepan **desde cualquier lado**. Se gira
+    // alrededor del pueblo del que se sale, así que el encuadre no puede
+    // depender de hacia dónde se mira al llegar: medido sólo con el giro de
+    // llegada, saliendo del segundo pueblo los dos quedaban en fila delante
+    // de la cámara, cabían de cerca, y el valle se veía a la mitad de
+    // distancia que saliendo del primero —y el tope de alejarse, que sale de
+    // aquí, también—.
+    var lejos = 0.0;
+    for (var k = 0; k < 8; k++) {
+      final prueba = OrbitCamera()
+        ..travel = _cam.travelTarget
+        ..focusZ = _cam.focusZTarget
+        ..focusY = 2.0
+        ..yaw = _cam.yawTarget + k * math.pi / 4
+        ..pitch = 0.40;
+      lejos = math.max(
+        lejos,
+        prueba.distanceToFit(puntos, size.width, size.height),
+      );
+    }
+    return lejos;
   }
 
   /// The whole of this town, from its own plaza.
