@@ -410,7 +410,8 @@ class _HabitsSheetState extends State<HabitsSheet> {
             shadows: velo.aliento,
           ),
         ),
-        const SizedBox(height: 5),
+        // Sin aire debajo del título: el renglón ya trae el suyo, y así queda
+        // a la altura de lo escrito en la columna de al lado.
         // Cada cuánto va: una línea, y tocarla abre la misma hoja con la que lo
         // preguntó el pueblo la primera semana.
         if (_hasCadence && dicho != null)
@@ -431,13 +432,37 @@ class _HabitsSheetState extends State<HabitsSheet> {
               ),
             );
           }),
-        if (_hasPlan && frase != null)
-          // Abierto el reloj, la frase deja de llevar lápiz: el lápiz dice
-          // «esto se puede tocar», y lo que hay debajo ya lo está diciendo.
-          _tapLine(t, velo, frase, t.accent, () {
-            Sensory.instance.tick();
-            setState(() => _tuning = !_tuning);
-          }, pencil: !_tuning),
+        // La frase va en la columna sólo si no hay cada cuánto: las dos juntas
+        // en media hoja eran cinco renglones, y entonces va debajo, a lo ancho.
+        if (!_cadenceShown && _hasPlan && frase != null)
+          _vowLine(t, velo, frase),
+      ],
+    );
+  }
+
+  /// Si el plan enseña cada cuánto va. Ver [_thePlan].
+  bool get _cadenceShown => _hasCadence && widget.store.habit.perWeek != null;
+
+  /// La frase del plan —a qué hora y en qué sitio—, que abre el reloj.
+  Widget _vowLine(UiTheme t, SheetInk velo, String frase) =>
+      // Abierto el reloj, la frase deja de llevar lápiz: el lápiz dice «esto
+      // se puede tocar», y lo que hay debajo ya lo está diciendo.
+      _tapLine(t, velo, frase, t.accent, () {
+        Sensory.instance.tick();
+        setState(() => _tuning = !_tuning);
+      }, pencil: !_tuning);
+
+  /// El reloj y el sitio del plan, plegados debajo de la frase. Van aparte de
+  /// [_thePlan] porque no caben en su columna: el reloj necesita el ancho
+  /// entero de la hoja.
+  Widget _planTuner(UiTheme t, SheetInk velo) {
+    final h = widget.store.habit;
+    final nombre = _name.text.trim().isEmpty ? h.name : _name.text;
+    final frase = vowLine(nombre, _hour, _spot.text);
+    return Column(
+      children: [
+        if (_cadenceShown && _hasPlan && frase != null)
+          _vowLine(t, velo, frase),
         if (_hasPlan)
           AnimatedSize(
             duration: const Duration(milliseconds: 190),
@@ -541,42 +566,60 @@ class _HabitsSheetState extends State<HabitsSheet> {
   ///
   /// Todas opcionales y en letra floja: quien viene a fundar un pueblo no tiene
   /// que rellenar un formulario, y un campo vacío no le quita nada a nadie.
-  Widget _theLines(UiTheme t, SheetInk velo) => Column(
-    children: [
-      _softLine(
-        t,
-        velo,
-        _why,
-        tr('PARA QUÉ', 'WHY'),
-        tr(
-          'para tener más energía durante el día',
-          'to have more energy during the day',
-        ),
+  Widget _theLines(UiTheme t, SheetInk velo) {
+    final porQue = _softLine(
+      t,
+      velo,
+      _why,
+      tr('PARA QUÉ', 'WHY'),
+      tr(
+        'para tener más energía durante el día',
+        'to have more energy during the day',
       ),
-      const SizedBox(height: 8),
-      _softLine(
-        t,
-        velo,
-        _identity,
-        tr('EN QUIÉN TE CONVIERTE', 'WHO IT MAKES YOU'),
-        tr('que lee todos los días', 'who reads every day'),
-        prefix: identityPrefix,
-      ),
-      if (_hasFloor) ...[
-        const SizedBox(height: 8),
+    );
+    final plan = _hasCadence || _hasPlan;
+    return Column(
+      children: [
+        // El para qué y el plan, uno al lado del otro: son dos renglones
+        // cortos cada uno, y uno debajo del otro hacían la hoja el doble de
+        // alta con la mitad de cada línea vacía.
+        if (plan)
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: porQue),
+              const SizedBox(width: 20),
+              Expanded(child: _thePlan(t, velo)),
+            ],
+          )
+        else
+          porQue,
+        if (plan) _planTuner(t, velo),
+        const SizedBox(height: 10),
         _softLine(
           t,
           velo,
-          _floor,
-          tr('LO MÍNIMO QUE CUENTA', 'THE LEAST THAT COUNTS'),
-          tr(
-            'abrir el libro y leer una página',
-            'open the book and read a page',
-          ),
+          _identity,
+          tr('EN QUIÉN TE CONVIERTE', 'WHO IT MAKES YOU'),
+          tr('que lee todos los días', 'who reads every day'),
+          prefix: identityPrefix,
         ),
+        if (_hasFloor) ...[
+          const SizedBox(height: 8),
+          _softLine(
+            t,
+            velo,
+            _floor,
+            tr('LO MÍNIMO QUE CUENTA', 'THE LEAST THAT COUNTS'),
+            tr(
+              'abrir el libro y leer una página',
+              'open the book and read a page',
+            ),
+          ),
+        ],
       ],
-    ],
-  );
+    );
+  }
 
   /// Si el plan tiene algo que enseñar: sólo lo que ya se escribió, desde el
   /// tablón o antes de que dejara de preguntarse al fundar.
@@ -607,10 +650,13 @@ class _HabitsSheetState extends State<HabitsSheet> {
     String hint, {
     String? prefix,
   }) {
+    // Lo escrito, en la tinta clara del velo: es lo que dijiste vos, y en
+    // gris se leía como una pista más. La pista sí va apagada.
     final letra = t.bodySoft.copyWith(
-      fontSize: 13,
+      fontSize: 13.5,
       height: 1.35,
-      color: velo.suave,
+      fontWeight: FontWeight.w500,
+      color: velo.cuerpo,
       shadows: velo.aliento,
     );
     TextField campoDe(int renglones) => TextField(
@@ -891,12 +937,6 @@ class _HabitsSheetState extends State<HabitsSheet> {
                     _reelSlot(t, velo),
                     const SizedBox(height: 14),
                     _theLines(t, velo),
-                    if (_hasCadence || _hasPlan) ...[
-                      const SizedBox(height: 12),
-                      _hair(velo),
-                      const SizedBox(height: 10),
-                      _thePlan(t, velo),
-                    ],
                     const SizedBox(height: 12),
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 180),
