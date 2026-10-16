@@ -18,7 +18,7 @@ void main() {
   test('desde el valle, todo pueblo que se ve tiene su nombre', () {
     // Cuando dos carteles se pisaban, el del pueblo de más lejos se ocultaba:
     // con dos pueblos casi en fila, según hacia dónde se girara la cámara el
-    // otro pueblo se quedaba sin nombre. Ahora se corre un renglón.
+    // otro pueblo se quedaba sin nombre. Ahora se pisan y ya.
     const size = Size(390, 844);
     final (cx, cz) = Habit.centreOf(1);
     final uno = TownLayout(8, TownCharacter.all.first, seed: 1);

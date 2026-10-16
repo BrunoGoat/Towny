@@ -971,16 +971,17 @@ class TownPainter extends CustomPainter {
     final pal = scene.palette;
     final dark = darkSky(scene.palette);
 
-    // Nearest first, so a sign never covers one in front of it.
+    // De lejos a cerca: cuando dos carteles se pisan, el del pueblo de
+    // delante queda encima —y es el que se toca, que lo último pintado es lo
+    // que está debajo del dedo—.
     final rows = <(double, int)>[];
     for (var i = 0; i < scene.towns.length; i++) {
       final l = scene.towns[i].layout;
       final dx = l.cx - p.eye.x, dz = l.cz - p.eye.z;
       rows.add((dx * dx + dz * dz, i));
     }
-    rows.sort((a, b) => a.$1.compareTo(b.$1));
+    rows.sort((a, b) => b.$1.compareTo(a.$1));
 
-    final taken = <Rect>[];
     for (final (_, i) in rows) {
       final e = scene.towns[i];
       final l = e.layout;
@@ -995,9 +996,9 @@ class TownPainter extends CustomPainter {
       final top = math.max(l.tallest, 2.0) + 0.8;
       final at = p.project(V3(l.cx, top, l.cz));
       if (at == null) continue;
-      final y0 = at.y - 30;
+      final y = at.y - 30;
       if (at.x < -140 || at.x > size.width + 140) continue;
-      if (y0 < -60 || y0 > size.height + 60) continue;
+      if (y < -60 || y > size.height + 60) continue;
 
       // Signs matter most from far away; up close the town speaks for itself.
       final d = at.depth;
@@ -1040,27 +1041,11 @@ class TownPainter extends CustomPainter {
       // seguía. Un cartel está clavado en su pueblo; si el pueblo se sale, el
       // cartel se sale con él y se corta como se cortaría un cartel de verdad.
       final cx = at.x;
-      // Si pisa a uno más cercano, se corre un renglón —arriba primero, que
-      // es donde queda lo lejano— en vez de desaparecer. Se ocultaba, y con
-      // dos pueblos en fila delante de la cámara el de atrás se quedaba sin
-      // nombre según hacia dónde se mirara.
-      Rect? box;
-      var y = y0;
-      for (final corre in const [0.0, -30.0, 30.0, -60.0, 60.0]) {
-        final prueba = Rect.fromLTWH(
-          cx - content / 2 - 8,
-          y0 + corre - 10,
-          content + 16,
-          32,
-        );
-        if (!taken.any(prueba.overlaps)) {
-          box = prueba;
-          y = y0 + corre;
-          break;
-        }
-      }
-      if (box == null) continue;
-      taken.add(box);
+      // Si pisa a otro, se pisan: cada cartel está clavado en su pueblo y
+      // no se mueve ni se esconde. Se escondía el de más lejos, y con dos
+      // pueblos casi en fila uno se quedaba sin nombre según el giro; correrlo
+      // un renglón lo despegaba de su pueblo.
+      final box = Rect.fromLTWH(cx - content / 2 - 8, y - 10, content + 16, 32);
       // Generous: a sign is small and a thumb is not.
       hits.addRect(box.inflate(10), TouchMap.sign, data: i);
 
