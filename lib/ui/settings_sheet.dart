@@ -272,11 +272,11 @@ class _SettingsSheetState extends State<SettingsSheet> {
                   title: tr('Tirar una estrella fugaz', 'Send a shooting star'),
                   subtitle: tr(
                     'Sale ya mismo, sin esperar. Dura cinco segundos, cruza por donde '
-                        'estés mirando y de noche pasa una cada cuatro minutos y medio '
+                        'estés mirando y de noche pasa una cada unos dieciocho minutos '
                         'de media.',
                     'It goes right now, no waiting. It lasts five seconds, crosses '
-                        "wherever you're looking, and at night one passes every four "
-                        'and a half minutes on average.',
+                        "wherever you're looking, and at night one passes about every "
+                        'eighteen minutes on average.',
                   ),
                   // Cierra los ajustes primero. Sin eso la fugaz cruzaba por detrás de
                   // esta misma hoja durante los cinco segundos que dura, que es la

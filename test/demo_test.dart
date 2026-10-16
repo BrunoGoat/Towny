@@ -976,11 +976,7 @@ void main() {
         if (f.family == null) continue;
         // Los dos cuerpos que se reparten de verdad, y uno por encima: si
         // alguien los sube, esto sigue avisando antes de que se salga.
-        for (final cuerpo in [
-          0.8,
-          Appearance.noteScale,
-          2.2,
-        ]) {
+        for (final cuerpo in [0.8, Appearance.noteScale, 2.2]) {
           for (final n in todas) {
             expect(
               PaperInk(n, font: f, scale: cuerpo).overflows,
@@ -1026,11 +1022,7 @@ void main() {
         slots: NoticeBoard.capacity,
       );
       expect(huecos.length, n);
-      expect(
-        huecos.toSet().length,
-        n,
-        reason: 'dos papeles en el mismo hueco',
-      );
+      expect(huecos.toSet().length, n, reason: 'dos papeles en el mismo hueco');
       for (final h in huecos) {
         expect(h, inInclusiveRange(0, NoticeBoard.capacity - 1));
       }
@@ -1294,9 +1286,12 @@ void _fugaz() {
     });
 
     test('la cuenta de cada cuánto se ve una es la que se dice', () {
-      // Lo que dicen los ajustes: una cada cuatro minutos y medio. Si se cambia
-      // la probabilidad o la ventana, esto lo canta.
-      expect(ShootingStar.minutesBetween(0.34), closeTo(4.4, 0.2));
+      // Lo que dicen los ajustes: una cada unos dieciocho minutos. Si se
+      // cambia la probabilidad o la ventana, esto lo canta.
+      expect(
+        ShootingStar.minutesBetween(ShootingStar.chance),
+        closeTo(17.6, 0.5),
+      );
     });
 
     test('dura cinco segundos, y su luz se apaga después que ella', () {
@@ -1369,7 +1364,7 @@ void _fugaz() {
       const horas = 3.0;
       var ventanas = 0;
       for (var e = 0; e < horas * 3600 / ShootingStar.window; e++) {
-        if (hash01(e, 401) <= 0.34) ventanas++;
+        if (hash01(e, 401) <= ShootingStar.chance) ventanas++;
       }
       final vistas = <int>{};
       for (var t = 0.0; t < horas * 3600; t += 0.25) {

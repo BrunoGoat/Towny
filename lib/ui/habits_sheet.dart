@@ -606,23 +606,23 @@ class _HabitsSheetState extends State<HabitsSheet> {
     final titulos = (ancho * 0.21).clamp(70.0, 92.0);
     Widget fila(String label, Widget valor) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
+      // Título y respuesta centrados el uno con el otro: un título de dos
+      // renglones —EN QUIÉN TE CONVIERTE— con la respuesta arriba de todo
+      // dejaba la respuesta colgando de la primera mitad.
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           SizedBox(
             width: titulos,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                label,
-                textAlign: TextAlign.right,
-                style: t.label.copyWith(
-                  fontSize: 9,
-                  height: 1.5,
-                  letterSpacing: 1.4,
-                  color: velo.suave,
-                  shadows: velo.aliento,
-                ),
+            child: Text(
+              label,
+              textAlign: TextAlign.right,
+              style: t.label.copyWith(
+                fontSize: 9,
+                height: 1.5,
+                letterSpacing: 1.4,
+                color: velo.suave,
+                shadows: velo.aliento,
               ),
             ),
           ),
@@ -644,23 +644,18 @@ class _HabitsSheetState extends State<HabitsSheet> {
         children: [
           fila(
             tr('PARA QUÉ', 'WHY'),
-            Transform.translate(
-              // La letra de libro es más alta: sube un poco para que su
-              // primer renglón quede a la altura del título.
-              offset: const Offset(0, -3),
-              child: _why(
-                t,
-                velo,
-                start: true,
-                label: false,
-                style: TextStyle(
-                  fontFamily: 'EBGaramond',
-                  fontStyle: FontStyle.italic,
-                  fontSize: 18,
-                  height: 1.25,
-                  color: t.accent,
-                  shadows: velo.aliento,
-                ),
+            _why(
+              t,
+              velo,
+              start: true,
+              label: false,
+              style: TextStyle(
+                fontFamily: 'EBGaramond',
+                fontStyle: FontStyle.italic,
+                fontSize: 18,
+                height: 1.25,
+                color: t.accent,
+                shadows: velo.aliento,
               ),
             ),
           ),
@@ -668,14 +663,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
             tr('EN QUIÉN TE CONVIERTE', 'WHO IT MAKES YOU'),
             _who(t, velo, start: true, label: false),
           ),
-          if (plan.isNotEmpty)
-            fila(
-              tr('EL PLAN', 'THE PLAN'),
-              Transform.translate(
-                offset: const Offset(0, -4),
-                child: plan.first,
-              ),
-            ),
+          if (plan.isNotEmpty) fila(tr('EL PLAN', 'THE PLAN'), plan.first),
           if (_hasFloor)
             fila(
               tr('LO MÍNIMO QUE CUENTA', 'THE LEAST THAT COUNTS'),

@@ -143,6 +143,14 @@ class ShootingStar {
   /// rara mientras todavía se ve el campo.
   static const double fromHour = 20.0, toHour = 5.0;
 
+  /// Qué parte de las ventanas traen una en el pueblo: una cada unos
+  /// dieciocho minutos de noche. Era el cuádruple, una cada cuatro minutos y
+  /// medio, y tantas dejaban de ser algo que pasa para ser parte del cielo.
+  static const double chance = 0.085;
+
+  /// Y en el tablón, que se mira menos rato y de más cerca: algo más.
+  static const double boardChance = 0.1375;
+
   static bool nightEnough(double hour) => hour >= fromHour || hour < toHour;
 
   /// Hasta cuándo hay una pedida a mano. Para el botón de probarlo: esperar
@@ -201,7 +209,7 @@ class ShootingStar {
     double time,
     double hour,
     SkyView view, {
-    double chance = 0.34,
+    double chance = ShootingStar.chance,
   }) {
     final pedida = forcedUntil;
     if (pedida != null) {

@@ -1064,7 +1064,7 @@ class BoardPainter extends CustomPainter {
       motion.clock,
       hourOfDay,
       SkyView.of(p, size.width, size.height),
-      chance: 0.55,
+      chance: ShootingStar.boardChance,
     );
     Offset? apunta(double az, double el) => skyPoint(p, az, el, minDen: 0.08);
     _sky(canvas, size, horizon);
