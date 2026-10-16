@@ -45,7 +45,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
   late final TextEditingController _name;
 
   /// Para qué es esto, y qué es lo más chico que cuenta. Las dos opcionales.
-  late final TextEditingController _why;
+  late final TextEditingController _whyText;
   late final TextEditingController _floor;
 
   /// En quién te convierte, y el plan: a qué hora y en qué sitio. También
@@ -83,7 +83,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
     super.initState();
     final h = widget.store.habit;
     _name = TextEditingController(text: h.name);
-    _why = TextEditingController(text: h.why ?? '');
+    _whyText = TextEditingController(text: h.why ?? '');
     _floor = TextEditingController(text: h.floor ?? '');
     // Sin el «alguien» del principio, que va fijo delante del campo.
     _identity = TextEditingController(text: identityTail(h.identity));
@@ -96,7 +96,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
   @override
   void dispose() {
     _name.dispose();
-    _why.dispose();
+    _whyText.dispose();
     _floor.dispose();
     _identity.dispose();
     _spot.dispose();
@@ -199,7 +199,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
   void _keep() {
     final store = widget.store;
     store.renameHabit(store.active, name: _name.text, symbol: _symbol);
-    store.describeHabit(store.active, why: _why.text, floor: _floor.text);
+    store.describeHabit(store.active, why: _whyText.text, floor: _floor.text);
     store.pledgeHabit(
       store.active,
       hour: _hour,
@@ -374,86 +374,54 @@ class _HabitsSheetState extends State<HabitsSheet> {
     color: velo.cuerpo.withValues(alpha: 0.16),
   );
 
-  /// El plan entero en un sitio: cada cuánto, a qué hora y en qué sitio.
-  ///
-  /// Eran dos bloques con dos títulos —CADA CUÁNTO y EL PLAN— y son una sola
-  /// cosa: un plan es cada cuánto, cuándo y dónde. Separados costaban dos
-  /// títulos, dos aires y la sensación de estar bajando por un formulario con
-  /// secciones; juntos son dos renglones debajo de un título.
-  ///
-  /// Y van **plegados**. El reloj de veinticuatro horas más el renglón del
-  /// sitio ocupaban doscientos píxeles de hoja para decir lo mismo que ya dice
-  /// la frase de debajo, que es la que está escrita en ámbar porque es lo que
-  /// dijiste vos. Así que la frase se queda a la vista y el reloj se abre al
-  /// tocarla: lo que se lee todas las veces ocupa sitio, y lo que se cambia una
-  /// vez al año se abre cuando se va a cambiar.
-  ///
-  /// Va debajo de las líneas y no encima porque no es una de ellas: las tres de
-  /// arriba se escriben una vez y se leen años después, y ésta se cambia. Un
-  /// plan es de cuando se escribió, y el día en que la vida se mueve de sitio
-  /// —otro trabajo, otro horario, un hijo— lo que hay que hacer con el viejo es
-  /// cambiarlo, no cumplirlo.
-  Widget _thePlan(UiTheme t, SheetInk velo) {
+  /// Los renglones del plan: cada cuánto, y a qué hora y en qué sitio.
+  List<Widget> _planBits(UiTheme t, SheetInk velo, {bool start = false}) {
     final store = widget.store;
     final h = store.habit;
     final nombre = _name.text.trim().isEmpty ? h.name : _name.text;
     final frase = vowLine(nombre, _hour, _spot.text);
     final dicho = h.perWeek;
-    return Column(
-      children: [
-        Text(
-          tr('EL PLAN', 'THE PLAN'),
-          style: t.label.copyWith(
-            fontSize: 9,
-            letterSpacing: 1.8,
-            color: velo.suave,
-            shadows: velo.aliento,
-          ),
-        ),
-        // Sin aire debajo del título: el renglón ya trae el suyo, y así queda
-        // a la altura de lo escrito en la columna de al lado.
-        // Cada cuánto va: una línea, y tocarla abre la misma hoja con la que lo
-        // preguntó el pueblo la primera semana.
-        if (_hasCadence && dicho != null)
-          _tapLine(t, velo, cadenceSaid(dicho), t.accent, () {
+    return [
+      // Cada cuánto va: una línea, y tocarla abre la misma hoja con la que lo
+      // preguntó el pueblo la primera semana.
+      if (_hasCadence && dicho != null)
+        _tapLine(t, velo, cadenceSaid(dicho), t.accent, () {
+          Sensory.instance.tick();
+          showModalBottomSheet<void>(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (_) => CadenceSheet(
+              habit: h,
+              theme: t,
+              first: false,
+              onPick: (n) {
+                store.setCadence(h, n);
+                if (mounted) setState(() {});
+              },
+            ),
+          );
+        }, start: start),
+      if (_hasPlan && frase != null)
+        // Abierto el reloj, la frase deja de llevar lápiz: el lápiz dice «esto
+        // se puede tocar», y lo que hay debajo ya lo está diciendo.
+        _tapLine(
+          t,
+          velo,
+          frase,
+          t.accent,
+          () {
             Sensory.instance.tick();
-            showModalBottomSheet<void>(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (_) => CadenceSheet(
-                habit: h,
-                theme: t,
-                first: false,
-                onPick: (n) {
-                  store.setCadence(h, n);
-                  if (mounted) setState(() {});
-                },
-              ),
-            );
-          }),
-        // La frase va en la columna sólo si no hay cada cuánto: las dos juntas
-        // en media hoja eran cinco renglones, y entonces va debajo, a lo ancho.
-        if (!_cadenceShown && _hasPlan && frase != null)
-          _vowLine(t, velo, frase),
-      ],
-    );
+            setState(() => _tuning = !_tuning);
+          },
+          pencil: !_tuning,
+          start: start,
+        ),
+    ];
   }
 
-  /// Si el plan enseña cada cuánto va. Ver [_thePlan].
-  bool get _cadenceShown => _hasCadence && widget.store.habit.perWeek != null;
-
-  /// La frase del plan —a qué hora y en qué sitio—, que abre el reloj.
-  Widget _vowLine(UiTheme t, SheetInk velo, String frase) =>
-      // Abierto el reloj, la frase deja de llevar lápiz: el lápiz dice «esto
-      // se puede tocar», y lo que hay debajo ya lo está diciendo.
-      _tapLine(t, velo, frase, t.accent, () {
-        Sensory.instance.tick();
-        setState(() => _tuning = !_tuning);
-      }, pencil: !_tuning);
-
   /// El reloj y el sitio del plan, plegados debajo de la frase. Van aparte de
-  /// [_thePlan] porque no caben en su columna: el reloj necesita el ancho
+  /// la ficha porque no caben en su columna: el reloj necesita el ancho
   /// entero de la hoja.
   Widget _planTuner(UiTheme t, SheetInk velo) {
     final h = widget.store.habit;
@@ -461,8 +429,6 @@ class _HabitsSheetState extends State<HabitsSheet> {
     final frase = vowLine(nombre, _hour, _spot.text);
     return Column(
       children: [
-        if (_cadenceShown && _hasPlan && frase != null)
-          _vowLine(t, velo, frase),
         if (_hasPlan)
           AnimatedSize(
             duration: const Duration(milliseconds: 190),
@@ -519,6 +485,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
     Color color,
     VoidCallback onTap, {
     bool pencil = true,
+    bool start = false,
   }) {
     final estilo = t.bodySoft.copyWith(
       fontSize: 13,
@@ -549,7 +516,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
                   ]
                 : null,
           ),
-          textAlign: TextAlign.center,
+          textAlign: start ? TextAlign.start : TextAlign.center,
         ),
       ),
     );
@@ -566,58 +533,161 @@ class _HabitsSheetState extends State<HabitsSheet> {
   ///
   /// Todas opcionales y en letra floja: quien viene a fundar un pueblo no tiene
   /// que rellenar un formulario, y un campo vacío no le quita nada a nadie.
-  Widget _theLines(UiTheme t, SheetInk velo) {
-    final porQue = _softLine(
-      t,
-      velo,
-      _why,
-      tr('PARA QUÉ', 'WHY'),
-      tr(
-        'para tener más energía durante el día',
-        'to have more energy during the day',
-      ),
-    );
-    final plan = _hasCadence || _hasPlan;
-    return Column(
-      children: [
-        // El para qué y el plan, uno al lado del otro: son dos renglones
-        // cortos cada uno, y uno debajo del otro hacían la hoja el doble de
-        // alta con la mitad de cada línea vacía.
-        if (plan)
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: porQue),
-              const SizedBox(width: 20),
-              Expanded(child: _thePlan(t, velo)),
-            ],
-          )
-        else
-          porQue,
-        if (plan) _planTuner(t, velo),
-        const SizedBox(height: 10),
-        _softLine(
-          t,
-          velo,
-          _identity,
-          tr('EN QUIÉN TE CONVIERTE', 'WHO IT MAKES YOU'),
-          tr('que lee todos los días', 'who reads every day'),
-          prefix: identityPrefix,
-        ),
-        if (_hasFloor) ...[
-          const SizedBox(height: 8),
-          _softLine(
-            t,
-            velo,
-            _floor,
-            tr('LO MÍNIMO QUE CUENTA', 'THE LEAST THAT COUNTS'),
-            tr(
-              'abrir el libro y leer una página',
-              'open the book and read a page',
+  Widget _theLines(UiTheme t, SheetInk velo) => _card(t, velo);
+
+  Widget _why(
+    UiTheme t,
+    SheetInk velo, {
+    bool start = false,
+    bool label = true,
+    TextStyle? style,
+  }) => _softLine(
+    t,
+    velo,
+    _whyText,
+    tr('PARA QUÉ', 'WHY'),
+    tr(
+      'para tener más energía durante el día',
+      'to have more energy during the day',
+    ),
+    start: start,
+    showLabel: label,
+    style: style,
+  );
+
+  Widget _who(
+    UiTheme t,
+    SheetInk velo, {
+    bool start = false,
+    bool label = true,
+  }) => _softLine(
+    t,
+    velo,
+    _identity,
+    tr('EN QUIÉN TE CONVIERTE', 'WHO IT MAKES YOU'),
+    tr('que lee todos los días', 'who reads every day'),
+    prefix: identityPrefix,
+    start: start,
+    showLabel: label,
+  );
+
+  Widget _least(
+    UiTheme t,
+    SheetInk velo, {
+    bool start = false,
+    bool label = true,
+  }) => _softLine(
+    t,
+    velo,
+    _floor,
+    tr('LO MÍNIMO QUE CUENTA', 'THE LEAST THAT COUNTS'),
+    tr('abrir el libro y leer una página', 'open the book and read a page'),
+    start: start,
+    showLabel: label,
+  );
+
+  bool get _planShown => _hasCadence || _hasPlan;
+
+  /// La ficha: el título a la izquierda y lo escrito a la derecha, renglón
+  /// por renglón, como una ficha de registro.
+  ///
+  /// Antes iba todo centrado y apilado —título, respuesta, título,
+  /// respuesta— y la hoja era el doble de alta con la mitad de cada renglón
+  /// vacío. Así cada cosa ocupa un renglón y se lee de un vistazo.
+  ///
+  /// El para qué va en letra de libro, más grande y en el color de la
+  /// marca: es la razón de todo el pueblo, y la hoja tiene que decir eso
+  /// antes que nada.
+  Widget _card(UiTheme t, SheetInk velo) {
+    // La columna de los títulos, más angosta en un teléfono chico: lo que
+    // importa es lo escrito, y con noventa píxeles fijos a la izquierda en una
+    // pantalla de trescientos veinte cada respuesta se partía en cuatro.
+    final ancho = MediaQuery.sizeOf(context).width;
+    final titulos = (ancho * 0.21).clamp(70.0, 92.0);
+    Widget fila(String label, Widget valor) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: titulos,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                label,
+                textAlign: TextAlign.right,
+                style: t.label.copyWith(
+                  fontSize: 9,
+                  height: 1.5,
+                  letterSpacing: 1.4,
+                  color: velo.suave,
+                  shadows: velo.aliento,
+                ),
+              ),
             ),
           ),
+          const SizedBox(width: 12),
+          Expanded(child: valor),
         ],
-      ],
+      ),
+    );
+    final cadencia = _hasCadence && widget.store.habit.perWeek != null;
+    final todo = _planBits(t, velo);
+    // El primero, en la ficha y alineado a la izquierda; la frase, centrada.
+    final plan = [
+      if (todo.isNotEmpty) _planBits(t, velo, start: true).first,
+      if (cadencia && todo.length > 1) todo[1],
+    ];
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 360),
+      child: Column(
+        children: [
+          fila(
+            tr('PARA QUÉ', 'WHY'),
+            Transform.translate(
+              // La letra de libro es más alta: sube un poco para que su
+              // primer renglón quede a la altura del título.
+              offset: const Offset(0, -3),
+              child: _why(
+                t,
+                velo,
+                start: true,
+                label: false,
+                style: TextStyle(
+                  fontFamily: 'EBGaramond',
+                  fontStyle: FontStyle.italic,
+                  fontSize: 18,
+                  height: 1.25,
+                  color: t.accent,
+                  shadows: velo.aliento,
+                ),
+              ),
+            ),
+          ),
+          fila(
+            tr('EN QUIÉN TE CONVIERTE', 'WHO IT MAKES YOU'),
+            _who(t, velo, start: true, label: false),
+          ),
+          if (plan.isNotEmpty)
+            fila(
+              tr('EL PLAN', 'THE PLAN'),
+              Transform.translate(
+                offset: const Offset(0, -4),
+                child: plan.first,
+              ),
+            ),
+          if (_hasFloor)
+            fila(
+              tr('LO MÍNIMO QUE CUENTA', 'THE LEAST THAT COUNTS'),
+              _least(t, velo, start: true, label: false),
+            ),
+          // La frase de hora y sitio, si hay también cada cuánto, va debajo de
+          // la ficha y a lo ancho: es una frase entera, y en la columna de la
+          // derecha de un teléfono chico se partía en cuatro renglones.
+          if (plan.length > 1) plan[1],
+          if (_planShown) _planTuner(t, velo),
+        ],
+      ),
     );
   }
 
@@ -649,16 +719,21 @@ class _HabitsSheetState extends State<HabitsSheet> {
     String label,
     String hint, {
     String? prefix,
+    bool start = false,
+    bool showLabel = true,
+    TextStyle? style,
   }) {
     // Lo escrito, en la tinta clara del velo: es lo que dijiste vos, y en
     // gris se leía como una pista más. La pista sí va apagada.
-    final letra = t.bodySoft.copyWith(
-      fontSize: 13.5,
-      height: 1.35,
-      fontWeight: FontWeight.w500,
-      color: velo.cuerpo,
-      shadows: velo.aliento,
-    );
+    final letra =
+        style ??
+        t.bodySoft.copyWith(
+          fontSize: 13.5,
+          height: 1.35,
+          fontWeight: FontWeight.w500,
+          color: velo.cuerpo,
+          shadows: velo.aliento,
+        );
     TextField campoDe(int renglones) => TextField(
       controller: c,
       // Se repinta además de guardarse: la frase del plan se va escribiendo
@@ -668,14 +743,17 @@ class _HabitsSheetState extends State<HabitsSheet> {
         setState(() {});
         _keep();
       },
-      textAlign: prefix == null ? TextAlign.center : TextAlign.start,
+      textAlign: prefix == null && !start ? TextAlign.center : TextAlign.start,
       textCapitalization: TextCapitalization.none,
       maxLength: 70,
       maxLines: renglones,
       minLines: 1,
       style: letra,
       decoration: InputDecoration(
-        hintText: hint,
+        // Sólo con el campo vacío: aunque no se vea, la pista cuenta para el
+        // alto del campo, y una pista de dos renglones dejaba un hueco debajo
+        // de una respuesta de uno.
+        hintText: c.text.isEmpty ? hint : null,
         hintStyle: letra.copyWith(color: velo.cuerpo.withValues(alpha: 0.34)),
         counterText: '',
         isDense: true,
@@ -684,19 +762,24 @@ class _HabitsSheetState extends State<HabitsSheet> {
       ),
     );
     return Column(
+      crossAxisAlignment: start
+          ? CrossAxisAlignment.start
+          : CrossAxisAlignment.center,
       children: [
-        Text(
-          label,
-          style: t.label.copyWith(
-            fontSize: 9,
-            letterSpacing: 1.8,
-            color: velo.suave,
-            shadows: velo.aliento,
+        if (showLabel) ...[
+          Text(
+            label,
+            style: t.label.copyWith(
+              fontSize: 9,
+              letterSpacing: 1.8,
+              color: velo.suave,
+              shadows: velo.aliento,
+            ),
           ),
-        ),
-        const SizedBox(height: 3),
+          const SizedBox(height: 3),
+        ],
         if (prefix == null)
-          campoDe(2)
+          campoDe(3)
         else
           // Una palabra fija delante, que no se borra: la frase empieza ahí y
           // lo que se escribe es el resto. Las dos cosas juntas y centradas,
@@ -723,14 +806,16 @@ class _HabitsSheetState extends State<HabitsSheet> {
               // hueco debajo que no tenía ningún otro renglón de la hoja.
               final enUno = escrito + 14 <= cabe;
               return Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: start
+                    ? MainAxisAlignment.start
+                    : MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(prefix, style: delante),
                   const SizedBox(width: 4),
                   SizedBox(
                     width: math.min(escrito + 14, cabe),
-                    child: campoDe(enUno ? 1 : 2),
+                    child: campoDe(enUno ? 1 : 3),
                   ),
                 ],
               );
