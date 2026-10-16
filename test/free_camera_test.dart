@@ -147,4 +147,38 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
     expect((mando.aim.yaw - antes).abs(), greaterThan(0.3));
   });
+
+  /// Alejar como se aleja de verdad: cerrando los dedos despacio, temblando
+  /// de lado a lado y con la mano corriéndose.
+  Future<void> alejar(WidgetTester tester) async {
+    final a = await tester.startGesture(const Offset(120, 420), pointer: 1);
+    final b = await tester.startGesture(const Offset(290, 230), pointer: 2);
+    for (var i = 0; i < 30; i++) {
+      final lado = i.isEven ? 1.0 : -1.0;
+      // Y la mano entera bajando un poco mientras tanto: el medio de los
+      // dedos se corre más deprisa de lo que se cierran.
+      await a.moveBy(Offset(lado, 8));
+      await b.moveBy(Offset(-3 - lado, 10));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await a.up();
+    await b.up();
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+
+  testWidgets('alejar con dos dedos aleja, en el pueblo y en el valle', (
+    tester,
+  ) async {
+    final mando = await pueblo(tester);
+    var antes = mando.distanceTarget;
+    await alejar(tester);
+    expect(mando.distanceTarget, greaterThan(antes * 1.4));
+    mando.frameValley();
+    await esperar(tester, 2);
+    // Acercarse un poco primero: el valle llega en su tope de alejarse.
+    mando.debugZoom(0.5);
+    antes = mando.distanceTarget;
+    await alejar(tester);
+    expect(mando.distanceTarget, greaterThan(antes * 1.4));
+  });
 }
