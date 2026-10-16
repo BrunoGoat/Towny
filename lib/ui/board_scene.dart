@@ -449,6 +449,17 @@ class _BoardSceneState extends State<BoardScene>
   void _tap(Offset at) {
     if (_m.leaves > 0) return;
     _wake();
+    // Con una nota esperando sitio, tocar un hueco verde la clava ahí: lo
+    // mismo que llevarla con el dedo, para quien no sabe que se arrastra o
+    // no quiere arrastrar.
+    if (widget.pending != null && !_m.held) {
+      final k = _huecoBajo(at);
+      if (k >= 0) {
+        Sensory.instance.press();
+        widget.onPlace?.call(k);
+        return;
+      }
+    }
     // Con una nota sujeta, lo único que hace un toque es devolverla. Aunque
     // caiga encima de otra: cambiar de una a otra sin pasar por el tablón se
     // saltaba las dos animaciones y parecía un corte de película.
@@ -788,6 +799,25 @@ class _BoardSceneState extends State<BoardScene>
       }
     }
     return cerca < ancho * 0.9 ? mejor : -1;
+  }
+
+  /// El hueco verde que hay debajo de [at], o -1. El rectángulo entero, el
+  /// mismo que se pinta en verde: es lo que se ve y lo que se toca.
+  int _huecoBajo(Offset at) {
+    final p = _projector();
+    for (final k in widget.placeable) {
+      final (cx, cy) = BoardPlan.spotOf(k, 0);
+      const w = BoardPlan.paperW, h = BoardPlan.paperH;
+      const z = BoardPaper.rest + 0.003;
+      final quad = projectQuad(p, [
+        V3(cx - w, cy + h, z),
+        V3(cx + w, cy + h, z),
+        V3(cx + w, cy - h, z),
+        V3(cx - w, cy - h, z),
+      ]);
+      if (quad != null && insideQuad(quad, at)) return k;
+    }
+    return -1;
   }
 
   void _pendMueve(Offset centro) {

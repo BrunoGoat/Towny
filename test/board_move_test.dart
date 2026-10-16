@@ -11,6 +11,7 @@ import 'package:towny/engine/world.dart';
 import 'package:towny/model/appearance.dart';
 import 'package:towny/model/board.dart';
 import 'package:towny/model/board_slots.dart';
+import 'package:towny/model/habit.dart';
 import 'package:towny/model/notice.dart';
 import 'package:towny/model/store.dart';
 import 'package:towny/ui/notice_board.dart';
@@ -433,6 +434,84 @@ void main() {
       );
       expect(find.text('LLEVALA A UN HUECO VERDE'), findsNothing);
       await tester.pump(const Duration(milliseconds: 400));
+    });
+  });
+
+  group('clavar con un toque', () {
+    testWidgets('tocar un hueco verde clava ahí la nota que espera', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({});
+      BoardSlots.instance.forget();
+      await BoardSlots.instance.load();
+      await Appearance.instance.load();
+      final store = Store();
+      await store.load();
+      store.renameHabit(0, name: 'Entrenar', symbol: 'pesa');
+      store.debugFill(120);
+      const size = Size(390, 844);
+      tester.view.physicalSize = size * 2;
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(size: size),
+          child: MaterialApp(
+            debugShowCheckedModeBanner: false,
+            home: NoticeBoardScreen(
+              valley: store.habits,
+              habit: store.habit,
+              theme: UiTheme(Palette.forMoment(13)),
+              store: store,
+            ),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.tap(find.byType(PinNoteButton));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.enterText(find.byType(TextField).first, 'Leer');
+      await tester.pump();
+      await tester.tapAt(const Offset(20, 60));
+      for (var i = 0; i < 30; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      expect(find.text('LLEVALA A UN HUECO VERDE'), findsOneWidget);
+
+      // Toques sueltos por la rejilla, sin arrastrar, hasta caer en un verde.
+      var clavada = false;
+      for (var fy = 0.3; fy <= 0.7 && !clavada; fy += 0.06) {
+        for (var fx = 0.1; fx <= 0.9 && !clavada; fx += 0.1) {
+          await tester.tapAt(Offset(size.width * fx, size.height * fy));
+          await tester.pump(const Duration(milliseconds: 60));
+          clavada = store.habit.notes.isNotEmpty;
+        }
+      }
+      expect(clavada, isTrue, reason: 'ningún toque clavó la nota');
+      expect(myNotices(store.habit).single.said, 'Leer');
+      await tester.pump(const Duration(milliseconds: 400));
+    });
+
+    test('sólo se ofrecen huecos vacíos mientras queden', () {
+      // Se ofrecía también el hueco de una estadística del pueblo, y un verde
+      // encima de algo escrito se leía como un fallo.
+      final h = Habit(
+        id: 'h',
+        name: 'Leer',
+        symbol: 'libro',
+        slot: 0,
+        createdAt: DateTime(2026, 1, 1),
+      );
+      final said = boardNotices(h, valley: [h]);
+      final huecos = BoardSlots.instance.assign(
+        h.id,
+        said,
+        slots: BoardPlan.capacity,
+      );
+      expect(huecos.length, lessThan(BoardPlan.capacity));
+      final libres = placeableSlots(said, huecos);
+      expect(libres.intersection(huecos.toSet()), isEmpty);
+      expect(libres, isNotEmpty);
     });
   });
 

@@ -178,24 +178,8 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
     });
   }
 
-  /// Dónde puede ir: en cualquier hueco menos encima de otra tuya o de una
-  /// de la guía.
-  ///
-  /// Encima de una de las que el pueblo averiguó sí: se despega de ahí y se
-  /// vuelve a clavar en un hueco libre —o se queda fuera, si ya no cabe—. La
-  /// guía no se tapa: es lo que explica el tablón mientras no hay nada más.
-  Set<int> _dondeCabe() {
-    final tapadas = {
-      for (var i = 0; i < _said.length && i < _slots.length; i++)
-        if (_said[i].kind == NoticeKind.mine ||
-            _said[i].kind == NoticeKind.guia)
-          _slots[i],
-    };
-    return {
-      for (var k = 0; k < NoticeBoard.capacity; k++)
-        if (!tapadas.contains(k)) k,
-    };
-  }
+  /// Dónde puede ir la nota que espera sitio. Ver [placeableSlots].
+  Set<int> _dondeCabe() => placeableSlots(_said, _slots);
 
   void _clavarEn(int slot) {
     final n = widget.store!.pinNote(
@@ -638,4 +622,33 @@ class _BlankPaperState extends State<_BlankPaper> {
       ),
     );
   }
+}
+
+/// Dónde puede ir una nota tuya nueva, con [said] clavadas en [slots]: en
+/// los huecos vacíos.
+///
+/// Sólo si no queda ninguno, también encima de una de las que el pueblo
+/// averiguó —se despega de ahí y se vuelve a clavar en un hueco libre, o se
+/// queda fuera si ya no cabe—. Se ofrecían siempre, y un hueco verde encima
+/// de una estadística se leía como un fallo: «ahí ya hay algo». Encima de
+/// otra tuya o de la guía, nunca: la guía es lo que explica el tablón
+/// mientras no hay nada más.
+Set<int> placeableSlots(List<Notice> said, List<int> slots) {
+  final ocupados = {
+    for (var i = 0; i < said.length && i < slots.length; i++) slots[i],
+  };
+  final libres = {
+    for (var k = 0; k < NoticeBoard.capacity; k++)
+      if (!ocupados.contains(k)) k,
+  };
+  if (libres.isNotEmpty) return libres;
+  final tapadas = {
+    for (var i = 0; i < said.length && i < slots.length; i++)
+      if (said[i].kind == NoticeKind.mine || said[i].kind == NoticeKind.guia)
+        slots[i],
+  };
+  return {
+    for (var k = 0; k < NoticeBoard.capacity; k++)
+      if (!tapadas.contains(k)) k,
+  };
 }
