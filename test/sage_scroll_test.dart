@@ -112,4 +112,49 @@ void main() {
     }
     expect(AdviceBook.instance.read(), hasLength(1));
   });
+
+  testWidgets('el de prueba llega sellado y no cuenta como leído', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.runAsync(() async {
+      await Appearance.instance.load();
+      await Appearance.instance.setSoundOff(true);
+    });
+    AdviceBook.instance.forget();
+    tester.view.physicalSize = const Size(780, 1688);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Center(
+            child: TextButton(
+              onPressed: () => Navigator.of(
+                context,
+              ).push(SageScreen.trial(advice: dailyAdvice.first)),
+              child: const Text('probar'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('probar'));
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(flecha, findsOneWidget);
+    final g = await tirar(tester, 600, 3200);
+    await g.up();
+    for (var i = 0; i < 20; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(flecha, findsNothing);
+    await tester.tapAt(const Offset(195, 420));
+    for (var i = 0; i < 20; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.text('probar'), findsOneWidget);
+    expect(AdviceBook.instance.read(), isEmpty);
+  });
 }

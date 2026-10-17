@@ -97,6 +97,29 @@ class SageScreen extends StatefulWidget {
   final Store store;
   final UiTheme theme;
 
+  /// Para probar desde los ajustes de desarrollo: un consejo cualquiera
+  /// —[advice], o uno al azar— llegando como llega uno nuevo, sellado y para
+  /// abrir tirando. No cuenta como dado ni como leído: al cerrarlo se va y el
+  /// libro queda como estaba.
+  static Route<void> trial({Advice? advice}) {
+    final todos = [...dailyAdvice, ...eventAdvice];
+    final consejo =
+        advice ?? todos[DateTime.now().microsecondsSinceEpoch % todos.length];
+    return PageRouteBuilder<void>(
+      opaque: false,
+      transitionDuration: const Duration(milliseconds: 200),
+      pageBuilder: (context, _, _) => Material(
+        type: MaterialType.transparency,
+        child: _Detalle(
+          e: const _Estilo(),
+          consejo: consejo,
+          sealed: true,
+          onClosed: () => Navigator.of(context).maybePop(),
+        ),
+      ),
+    );
+  }
+
   static Route<void> route({required Store store, required UiTheme theme}) =>
       PageRouteBuilder<void>(
         opaque: false,

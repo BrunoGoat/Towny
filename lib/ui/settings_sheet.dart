@@ -29,6 +29,7 @@ import 'gallery_screen.dart';
 import 'notice_board.dart';
 import 'overlays.dart';
 import 'reel_screen.dart';
+import 'sage_screen.dart';
 import 'style.dart';
 
 /// Qué pueblos tienen historia bastante como para mirarla crecer.
@@ -288,6 +289,36 @@ class _SettingsSheetState extends State<SettingsSheet> {
                     Future<void>.delayed(
                       const Duration(milliseconds: 260),
                       ShootingStar.force,
+                    );
+                  },
+                ),
+              ],
+            ),
+            _Section(
+              theme: t,
+              title: tr('EL CONSEJERO', 'THE ADVISOR'),
+              icon: Icons.history_edu_outlined,
+              children: [
+                _Row(
+                  theme: t,
+                  icon: Icons.history_edu_outlined,
+                  title: tr(
+                    'Abrir un consejo nuevo',
+                    'Open a new piece of advice',
+                  ),
+                  subtitle: tr(
+                    'Uno al azar, sellado, como llega cuando el viejo lo da: '
+                        'para probar abrirlo tirando. No cuenta como leído.',
+                    'A random one, sealed, the way it arrives when the old man '
+                        "gives it: to try pulling it open. It doesn't count as read.",
+                  ),
+                  // Cierra los ajustes primero, como la fugaz: el rollo se
+                  // abre sobre el pueblo y no detrás de esta hoja.
+                  act: (nav) {
+                    nav.pop();
+                    Future<void>.delayed(
+                      const Duration(milliseconds: 260),
+                      () => nav.push(SageScreen.trial()),
                     );
                   },
                 ),
