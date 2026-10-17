@@ -44,50 +44,61 @@ void main() {
     return store;
   }
 
-  final huella = find.byIcon(Icons.fingerprint);
+  final flecha = find.byIcon(Icons.keyboard_double_arrow_down);
 
   testWidgets('llega cerrado, y un toque no lo abre ni lo cierra', (
     tester,
   ) async {
     await consejero(tester);
-    expect(huella, findsOneWidget);
+    expect(flecha, findsOneWidget);
     await tester.tapAt(const Offset(195, 420));
     for (var i = 0; i < 20; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
-    expect(huella, findsOneWidget, reason: 'un toque lo abrió o lo cerró');
+    expect(flecha, findsOneWidget, reason: 'un toque lo abrió o lo cerró');
     expect(AdviceBook.instance.read(), isEmpty);
   });
 
+  /// Arrastrar hacia abajo [px] píxeles en [ms] milisegundos, de a pasos de
+  /// cincuenta —lo más que cuenta un fotograma: con pasos más largos el reloj
+  /// del rollo iría más despacio que el del test—.
+  Future<TestGesture> tirar(WidgetTester tester, double px, int ms) async {
+    final g = await tester.startGesture(const Offset(195, 200));
+    final pasos = ms ~/ 50;
+    for (var i = 0; i < pasos; i++) {
+      await g.moveBy(Offset(0, px / pasos));
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    return g;
+  }
+
   testWidgets('soltarlo a medias lo vuelve a enrollar', (tester) async {
     await consejero(tester);
-    final g = await tester.startGesture(const Offset(195, 420));
-    for (var i = 0; i < 30; i++) {
+    final g = await tirar(tester, 250, 1500);
+    await g.up();
+    for (var i = 0; i < 40; i++) {
       await tester.pump(const Duration(milliseconds: 50));
     }
-    await g.up();
-    for (var i = 0; i < 20; i++) {
-      await tester.pump(const Duration(milliseconds: 100));
-    }
-    expect(huella, findsOneWidget);
+    expect(flecha, findsOneWidget);
   });
 
-  testWidgets('se abre manteniendo el dedo unos segundos, y no antes', (
-    tester,
-  ) async {
+  testWidgets('tirar de golpe no lo abre: hay que ir con él', (tester) async {
     await consejero(tester);
-    final g = await tester.startGesture(const Offset(195, 420));
-    // Un segundo y medio no alcanza. De a cincuenta milisegundos, que es lo
-    // más que cuenta un fotograma: con pasos más largos el reloj del rollo
-    // iría más despacio que el del test.
-    for (var i = 0; i < 30; i++) {
+    final g = await tirar(tester, 600, 300);
+    await g.up();
+    for (var i = 0; i < 40; i++) {
       await tester.pump(const Duration(milliseconds: 50));
     }
-    expect(huella, findsOneWidget, reason: 'se abrió demasiado fácil');
-    for (var i = 0; i < 60; i++) {
+    expect(flecha, findsOneWidget, reason: 'se abrió de un tirón');
+  });
+
+  testWidgets('se abre tirando hacia abajo, despacio', (tester) async {
+    await consejero(tester);
+    final g = await tirar(tester, 600, 3200);
+    for (var i = 0; i < 10; i++) {
       await tester.pump(const Duration(milliseconds: 50));
     }
-    expect(huella, findsNothing, reason: 'no se abrió manteniendo el dedo');
+    expect(flecha, findsNothing, reason: 'no se abrió tirando');
     // Levantar el dedo que lo abrió no lo cierra.
     await g.up();
     for (var i = 0; i < 20; i++) {

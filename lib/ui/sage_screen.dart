@@ -758,9 +758,10 @@ class _PuntosState extends State<_Puntos> with SingleTickerProviderStateMixin {
 /// hueco de arriba de la lista, que es donde se queda.
 ///
 /// **Uno nuevo ([sealed]) no se abre solo: se abre a mano, y cuesta.** Llega
-/// cerrado, temblando, y hay que mantener el dedo encima unos segundos
-/// mientras se desenrolla de a poco, la pantalla tiembla y el teléfono vibra
-/// a golpes; soltar antes lo vuelve a enrollar. Se abría con un toque y se
+/// cerrado, colgando de arriba y temblando, y hay que tirar de él hacia abajo
+/// para desenrollarlo: la cuerda de abajo va con el dedo, con resistencia y a
+/// su ritmo —tirar fuerte no lo abre antes—, la pantalla tiembla y el
+/// teléfono vibra a golpes. Soltarlo antes lo vuelve a enrollar. Se abría con un toque y se
 /// leía de pasada: lo que costó abrir se lee con otra atención. Los que ya se
 /// leyeron se abren solos, como siempre.
 class _Detalle extends StatefulWidget {
@@ -847,6 +848,10 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
   /// Si el dedo está encima.
   bool _apretado = false;
 
+  /// Hasta dónde lo pidió el dedo. El rollo va detrás, a su ritmo: ver
+  /// [_paso].
+  double _pedido = 0;
+
   /// Si el dedo que está encima bajó con el rollo todavía cerrado: al
   /// levantarlo no puede contar como un toque de cerrar.
   bool _bajoCerrado = false;
@@ -854,14 +859,15 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
   /// Cuántos golpes de vibración lleva: uno por cada décimo de rollo.
   int _golpes = 0;
 
-  /// Segundos, para el temblor y el latido de la huella.
+  /// Segundos, para el temblor y la flecha que invita a tirar.
   double _reloj = 0;
   Duration _antes = Duration.zero;
   late final Ticker _tiempo = createTicker(_paso);
 
-  /// Lo que cuesta abrirlo con el dedo encima todo el rato, y lo que tarda en
-  /// volver a enrollarse si se suelta.
-  static const double _cuesta = 3.0, _vuelve = 0.7;
+  /// Lo que hay que arrastrar el dedo, en píxeles, para abrirlo entero sin
+  /// resistencia; lo más rápido que se deja abrir, en rollos por segundo; y
+  /// lo que tarda en volver a enrollarse si se suelta.
+  static const double _recorrido = 330, _ritmo = 0.42, _vuelve = 0.9;
 
   void _paso(Duration ahora) {
     final dt = ((ahora - _antes).inMicroseconds / 1e6).clamp(0.0, 0.05);
@@ -869,11 +875,14 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
     _reloj += dt;
     if (!_sellado) return;
     if (_apretado) {
-      // Cuesta más al principio, como un rollo que lleva mucho cerrado: los
-      // primeros centímetros se resisten y después cede.
-      _tira += dt / _cuesta * (0.55 + 0.9 * _tira);
+      // Va detrás del dedo y nunca más deprisa que [_ritmo]: tirar fuerte no
+      // lo abre antes. Un rollo que lleva mucho cerrado cede de a poco.
+      final falta = _pedido - _tira;
+      _tira += falta.clamp(-dt / _vuelve, dt * _ritmo);
     } else {
+      // Soltado, se vuelve a enrollar.
       _tira -= dt / _vuelve;
+      _pedido = _tira;
     }
     _tira = _tira.clamp(0.0, 1.0);
     final paso = (_tira * 10).floor();
@@ -892,10 +901,23 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
   }
 
   void _baja() {
+    // Un dedo que baja con el rollo ya abierto es uno nuevo: si toca, cierra.
+    // El que lo abrió puede haberse ido arrastrando, sin toque que lo
+    // consuma, y si no se olvidara aquí se comería el toque siguiente.
+    _bajoCerrado = _sellado;
     if (!_sellado) return;
     _apretado = true;
-    _bajoCerrado = true;
+    _pedido = _tira;
     Sensory.instance.press();
+  }
+
+  /// El dedo se mueve: hacia abajo desenrolla, hacia arriba enrolla. Cuesta
+  /// más al principio —los primeros centímetros se resisten— y el dedo no
+  /// puede adelantarse mucho al rollo: tiene que ir con él.
+  void _tirar(double dy) {
+    if (!_sellado || !_apretado) return;
+    final cede = 0.45 + 0.75 * _tira;
+    _pedido = (_pedido + dy / _recorrido * cede).clamp(0.0, _tira + 0.2);
   }
 
   void _sube() => _apretado = false;
@@ -974,6 +996,7 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
     );
     return Listener(
       onPointerDown: (_) => _baja(),
+      onPointerMove: (d) => _tirar(d.delta.dy),
       onPointerUp: (_) => _sube(),
       onPointerCancel: (_) => _sube(),
       child: GestureDetector(
@@ -989,14 +1012,16 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
             final llega = _cerrando
                 ? 1.0
                 : Curves.easeOut.transform((a / _asoma).clamp(0, 1));
+            // Tirando de él, lo abierto es lo que se tiró: sin curva, que el
+            // borde de abajo vaya con el dedo.
             final abre = _sellado
-                ? Curves.easeInOutCubic.transform(_tira)
+                ? _tira
                 : Curves.easeInOutCubic.transform(
                     ((a - _asoma) / (1 - _asoma)).clamp(0, 1),
                   );
             // Cerrado, tiembla apenas; mientras se lo abre, cada vez más.
             final tiembla = _sellado
-                ? (_apretado ? 1.2 + 4.0 * _tira : 0.6 * (1 - _tira))
+                ? (_apretado ? 1.0 + 3.5 * _tira : 0.6 * (1 - _tira))
                 : 0.0;
             final temblor = Offset(
               math.sin(_reloj * 53) * tiembla,
@@ -1008,57 +1033,78 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
               child: LayoutBuilder(
                 builder: (context, box) {
                   final hasta = _hasta;
+                  // El que se abre tirando cuelga de arriba: la cuerda de
+                  // arriba se queda quieta y la de abajo baja con el dedo.
+                  final arriba = box.maxHeight * 0.18;
                   if (hasta == null || v == 0) {
-                    final rollo = Center(
-                      child: Opacity(
-                        opacity: llega,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: SageScroll(
-                            open: abre,
-                            padding: const EdgeInsets.fromLTRB(36, 34, 36, 34),
-                            child: contenido,
-                          ),
+                    final rollo = Opacity(
+                      opacity: llega,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: SageScroll(
+                          open: abre,
+                          fromTop: widget.sealed,
+                          padding: const EdgeInsets.fromLTRB(36, 34, 36, 34),
+                          child: contenido,
                         ),
                       ),
                     );
-                    if (!_sellado) return rollo;
+                    if (!widget.sealed) return Center(child: rollo);
                     return Stack(
                       children: [
-                        Positioned.fill(
-                          child: Transform.translate(
-                            offset: temblor,
-                            child: rollo,
-                          ),
-                        ),
-                        // Una huella que late, y alrededor, lo que lleva
-                        // abierto: dice «mantené el dedo» sin una palabra.
                         Positioned(
                           left: 0,
                           right: 0,
-                          bottom: box.maxHeight * 0.14,
-                          child: Center(
-                            child: Opacity(
-                              opacity: llega * (1 - _tira * 0.6),
-                              child: _Huella(
-                                tira: _tira,
-                                late: _apretado
-                                    ? 1
-                                    : 0.55 +
-                                          0.45 * math.sin(_reloj * 3.2).abs(),
-                                color: e.papel,
-                              ),
+                          top: arriba,
+                          child: Transform.translate(
+                            offset: temblor,
+                            child: Column(
+                              children: [
+                                rollo,
+                                // Debajo de la cuerda de abajo, una flecha
+                                // que baja y vuelve: «tirá de acá», sin una
+                                // palabra. Se va mientras se abre.
+                                if (_sellado)
+                                  Opacity(
+                                    opacity: llega * (1 - _tira).clamp(0, 1),
+                                    child: Transform.translate(
+                                      offset: Offset(
+                                        0,
+                                        _apretado
+                                            ? 0
+                                            : 10 *
+                                                  (0.5 -
+                                                      0.5 *
+                                                          math.cos(
+                                                            _reloj * 3.4,
+                                                          )),
+                                      ),
+                                      child: Icon(
+                                        Icons.keyboard_double_arrow_down,
+                                        size: 34,
+                                        color: e.papel.withValues(alpha: 0.85),
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                         ),
                       ],
                     );
                   }
-                  final desde = Rect.fromCenter(
-                    center: box.biggest.center(Offset.zero),
-                    width: box.maxWidth - 32,
-                    height: SageScroll.closed,
-                  );
+                  final desde = widget.sealed
+                      ? Rect.fromLTWH(
+                          16,
+                          arriba,
+                          box.maxWidth - 32,
+                          SageScroll.closed,
+                        )
+                      : Rect.fromCenter(
+                          center: box.biggest.center(Offset.zero),
+                          width: box.maxWidth - 32,
+                          height: SageScroll.closed,
+                        );
                   final r = Rect.lerp(desde, hasta, v)!;
                   return Stack(
                     children: [
@@ -1076,66 +1122,6 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
       ),
     );
   }
-}
-
-/// La huella del dedo bajo un consejo nuevo, con el anillo de lo que lleva
-/// abierto alrededor.
-class _Huella extends StatelessWidget {
-  const _Huella({required this.tira, required this.late, required this.color});
-
-  final double tira;
-  final double late;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) => SizedBox(
-    width: 74,
-    height: 74,
-    child: CustomPaint(
-      painter: _Anillo(tira, color),
-      child: Center(
-        child: Icon(
-          Icons.fingerprint,
-          size: 40,
-          color: color.withValues(alpha: 0.5 + 0.5 * late),
-        ),
-      ),
-    ),
-  );
-}
-
-class _Anillo extends CustomPainter {
-  _Anillo(this.tira, this.color);
-  final double tira;
-  final Color color;
-
-  @override
-  void paint(Canvas c, Size s) {
-    final r = Rect.fromCircle(center: s.center(Offset.zero), radius: 33);
-    c.drawCircle(
-      r.center,
-      33,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2
-        ..color = color.withValues(alpha: 0.22),
-    );
-    if (tira <= 0) return;
-    c.drawArc(
-      r,
-      -math.pi / 2,
-      math.pi * 2 * tira,
-      false,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 3
-        ..strokeCap = StrokeCap.round
-        ..color = color.withValues(alpha: 0.9),
-    );
-  }
-
-  @override
-  bool shouldRepaint(_Anillo old) => old.tira != tira || old.color != color;
 }
 
 /// El viejo de la plaza, en tres dimensiones: las mismas cajas con las que

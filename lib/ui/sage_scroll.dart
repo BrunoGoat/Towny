@@ -15,11 +15,17 @@ class SageScroll extends StatelessWidget {
     required this.child,
     this.open = 1,
     this.padding = inset,
+    this.fromTop = false,
   });
 
   final Widget child;
   final double open;
   final EdgeInsets padding;
+
+  /// Si se desenrolla hacia abajo, con la cuerda de arriba quieta y lo
+  /// escrito descubriéndose desde arriba —el que se abre tirando de él—, en
+  /// vez de abrirse desde el medio hacia los dos lados.
+  final bool fromTop;
 
   /// Lo que se deja de margen por dentro, para que el texto no pise las
   /// cuerdas ni el borde de la franja.
@@ -35,6 +41,7 @@ class SageScroll extends StatelessWidget {
         ? Padding(padding: padding, child: child)
         : _Abriendo(
             open: open,
+            fromTop: fromTop,
             child: Padding(padding: padding, child: child),
           ),
   );
@@ -42,15 +49,21 @@ class SageScroll extends StatelessWidget {
 
 /// Lo de dentro, recortado a lo que ya se abrió y crecido desde el medio.
 class _Abriendo extends StatelessWidget {
-  const _Abriendo({required this.open, required this.child});
+  const _Abriendo({
+    required this.open,
+    required this.child,
+    this.fromTop = false,
+  });
   final double open;
   final Widget child;
+  final bool fromTop;
 
   @override
   Widget build(BuildContext context) => ClipRect(
     child: ConstrainedBox(
       constraints: const BoxConstraints(minHeight: SageScroll.closed),
       child: Align(
+        alignment: fromTop ? Alignment.topCenter : Alignment.center,
         heightFactor: open.clamp(0.0, 1.0),
         child: Opacity(opacity: Curves.easeIn.transform(open), child: child),
       ),
