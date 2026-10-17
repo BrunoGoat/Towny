@@ -873,31 +873,143 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
     final dt = ((ahora - _antes).inMicroseconds / 1e6).clamp(0.0, 0.05);
     _antes = ahora;
     _reloj += dt;
-    if (!_sellado) return;
-    if (_apretado) {
-      // Va detrás del dedo y nunca más deprisa que [_ritmo]: tirar fuerte no
-      // lo abre antes. Un rollo que lleva mucho cerrado cede de a poco.
-      final falta = _pedido - _tira;
-      _tira += falta.clamp(-dt / _vuelve, dt * _ritmo);
-    } else {
-      // Soltado, se vuelve a enrollar.
-      _tira -= dt / _vuelve;
-      _pedido = _tira;
+    final antes = _tira;
+    if (_sellado) {
+      if (_apretado) {
+        // Va detrás del dedo y nunca más deprisa que [_ritmo]: tirar fuerte
+        // no lo abre antes. Un rollo que lleva mucho cerrado cede de a poco.
+        final falta = _pedido - _tira;
+        _tira += falta.clamp(-dt / _vuelve, dt * _ritmo);
+      } else {
+        // Soltado, se vuelve a enrollar.
+        _tira -= dt / _vuelve;
+        _pedido = _tira;
+      }
+      _tira = _tira.clamp(0.0, 1.0);
+      final paso = (_tira * 10).floor();
+      if (_apretado && paso > _golpes) Sensory.instance.charge(_tira);
+      _golpes = paso;
     }
-    _tira = _tira.clamp(0.0, 1.0);
-    final paso = (_tira * 10).floor();
-    if (_apretado && paso > _golpes) Sensory.instance.charge(_tira);
-    _golpes = paso;
-    if (_tira >= 1) {
-      // Abierto: un golpe, y de ahí en adelante es un consejo abierto más.
+    _efectos(dt, _tira - antes);
+    if (_sellado && _tira >= 1) {
+      // Abierto: un golpe, un estallido de luz, y de ahí en adelante es un
+      // consejo abierto más.
       _sellado = false;
       _apretado = false;
-      _tiempo.stop();
-      Sensory.instance.impact(strength: 0.4);
+      _estallido = 0;
+      _estalla();
+      Sensory.instance.epic();
       _abre.value = 1;
       _luego(const Duration(milliseconds: 1000));
     }
+    // Abierto y sin nada volando, se para.
+    if (!_sellado &&
+        _chispas.isEmpty &&
+        _trozos.isEmpty &&
+        (_estallido ?? 9) > 1.6) {
+      _tiempo.stop();
+    }
     setState(() {});
+  }
+
+  // ------------------------------------------------- lo épico
+
+  /// Dónde está el rollo en pantalla, relativo a la escena: de ahí salen las
+  /// varillas, la luz y las chispas.
+  final GlobalKey _rolloKey = GlobalKey();
+  final GlobalKey _escenaKey = GlobalKey();
+
+  Rect? _rollo() {
+    final r = _rolloKey.currentContext?.findRenderObject() as RenderBox?;
+    final e = _escenaKey.currentContext?.findRenderObject() as RenderBox?;
+    if (r == null || e == null || !r.hasSize || !e.hasSize) return null;
+    final arriba = e.globalToLocal(r.localToGlobal(Offset.zero));
+    return arriba & r.size;
+  }
+
+  /// Si el lacre ya se rompió: al primer tirón.
+  bool _roto = false;
+
+  /// Segundos desde que se abrió del todo, para el estallido; nulo antes.
+  double? _estallido;
+
+  final List<_Chispa> _chispas = [];
+  final List<_Chispa> _trozos = [];
+  final math.Random _azar = math.Random(7);
+
+  void _efectos(double dt, double avanzo) {
+    final r = _rollo();
+    if (_estallido != null) _estallido = _estallido! + dt;
+    if (r != null) {
+      // El lacre salta al primer tirón, en pedazos.
+      if (!_roto && _tira > 0.015) {
+        _roto = true;
+        Sensory.instance.impact(strength: 0.25);
+        final c = Offset(r.center.dx, r.top + SageScroll.closed / 2);
+        for (var i = 0; i < 9; i++) {
+          final a = _azar.nextDouble() * math.pi * 2;
+          final v = 90 + _azar.nextDouble() * 200;
+          _trozos.add(
+            _Chispa(
+              c,
+              Offset(math.cos(a) * v, math.sin(a) * v - 120),
+              0.9 + _azar.nextDouble() * 0.5,
+              3 + _azar.nextDouble() * 4,
+              giro: (_azar.nextDouble() - 0.5) * 18,
+            ),
+          );
+        }
+      }
+      // Mientras se desenrolla, chispas que suben desde la varilla de abajo:
+      // más cuanto más deprisa cede.
+      if (_sellado && _apretado && avanzo > 0) {
+        var n = avanzo * 160 + _azar.nextDouble() * 0.6;
+        while (n >= 1 || _azar.nextDouble() < n) {
+          n -= 1;
+          _chispas.add(
+            _Chispa(
+              Offset(
+                r.left + 12 + _azar.nextDouble() * (r.width - 24),
+                r.bottom - 4,
+              ),
+              Offset(
+                (_azar.nextDouble() - 0.5) * 40,
+                -50 - _azar.nextDouble() * 90,
+              ),
+              0.8 + _azar.nextDouble() * 0.9,
+              1.2 + _azar.nextDouble() * 2.2,
+            ),
+          );
+          if (n <= 0) break;
+        }
+      }
+    }
+    for (final c in _chispas) {
+      c.paso(dt, gravedad: -20, roce: 0.6);
+    }
+    for (final c in _trozos) {
+      c.paso(dt, gravedad: 640, roce: 0.2);
+    }
+    _chispas.removeWhere((c) => c.edad >= c.vida);
+    _trozos.removeWhere((c) => c.edad >= c.vida);
+  }
+
+  /// Abierto del todo: una lluvia de chispas desde el medio del rollo.
+  void _estalla() {
+    final r = _rollo();
+    if (r == null) return;
+    for (var i = 0; i < 60; i++) {
+      final a = _azar.nextDouble() * math.pi * 2;
+      final v = 140 + _azar.nextDouble() * 360;
+      _chispas.add(
+        _Chispa(
+          r.center + Offset(math.cos(a), math.sin(a)) * (r.width * 0.2),
+          Offset(math.cos(a) * v, math.sin(a) * v * 0.7),
+          0.6 + _azar.nextDouble() * 0.9,
+          1.5 + _azar.nextDouble() * 2.5,
+        ),
+      );
+    }
   }
 
   void _baja() {
@@ -1029,7 +1141,10 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
             );
             final velo = _cerrando ? 1 - v : llega;
             return ColoredBox(
-              color: Colors.black.withValues(alpha: 0.30 * velo),
+              // El de un consejo nuevo, más oscuro: es un momento.
+              color: Colors.black.withValues(
+                alpha: (widget.sealed ? 0.62 : 0.30) * velo,
+              ),
               child: LayoutBuilder(
                 builder: (context, box) {
                   final hasta = _hasta;
@@ -1040,8 +1155,13 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
                     final rollo = Opacity(
                       opacity: llega,
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        // El nuevo, más angosto: las varillas con sus
+                        // remates sobresalen del rollo y tienen que caber.
+                        padding: EdgeInsets.symmetric(
+                          horizontal: widget.sealed ? 34 : 16,
+                        ),
                         child: SageScroll(
+                          key: widget.sealed ? _rolloKey : null,
                           open: abre,
                           fromTop: widget.sealed,
                           padding: const EdgeInsets.fromLTRB(36, 34, 36, 34),
@@ -1050,8 +1170,24 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
                       ),
                     );
                     if (!widget.sealed) return Center(child: rollo);
+                    final rect = _rollo();
                     return Stack(
+                      key: _escenaKey,
                       children: [
+                        // Detrás: la luz que sale del rollo.
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            child: CustomPaint(
+                              painter: _Luz(
+                                rect,
+                                _tira,
+                                _apretado,
+                                _estallido,
+                                _reloj,
+                              ),
+                            ),
+                          ),
+                        ),
                         Positioned(
                           left: 0,
                           right: 0,
@@ -1090,14 +1226,29 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
                             ),
                           ),
                         ),
+                        // Delante: las varillas, el lacre, las chispas y el
+                        // fogonazo.
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            child: CustomPaint(
+                              painter: _Frente(
+                                rect?.shift(temblor),
+                                roto: _roto,
+                                chispas: _chispas,
+                                trozos: _trozos,
+                                estallido: _estallido,
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                     );
                   }
                   final desde = widget.sealed
                       ? Rect.fromLTWH(
-                          16,
+                          34,
                           arriba,
-                          box.maxWidth - 32,
+                          box.maxWidth - 68,
                           SageScroll.closed,
                         )
                       : Rect.fromCenter(
@@ -1122,6 +1273,219 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
       ),
     );
   }
+}
+
+/// Una chispa, o un trozo de lacre: algo que vuela un rato y se apaga.
+class _Chispa {
+  _Chispa(this.p, this.v, this.vida, this.tam, {this.giro = 0});
+  Offset p;
+  Offset v;
+  final double vida;
+  final double tam;
+  final double giro;
+  double edad = 0;
+
+  void paso(double dt, {required double gravedad, required double roce}) {
+    edad += dt;
+    v = v * math.max(0, 1 - roce * dt) + Offset(0, gravedad * dt);
+    p += v * dt;
+  }
+
+  /// Cuánto le queda, de uno a cero.
+  double get queda => (1 - edad / vida).clamp(0.0, 1.0);
+}
+
+const Color _oro = Color(0xFFFFD27A);
+
+/// La luz que sale del rollo mientras se abre: un halo dorado detrás que
+/// crece con lo abierto, una raya de luz en la boca por donde se desenrolla,
+/// y al abrirse del todo, el fogonazo.
+class _Luz extends CustomPainter {
+  _Luz(this.rect, this.tira, this.tirando, this.estallido, this.reloj);
+  final Rect? rect;
+  final double tira;
+  final bool tirando;
+  final double? estallido;
+  final double reloj;
+
+  @override
+  void paint(Canvas c, Size s) {
+    final r = rect;
+    if (r == null) return;
+    final late = 0.85 + 0.15 * math.sin(reloj * 2.6);
+    final fuego = estallido == null ? 0.0 : math.max(0.0, 1 - estallido! / 1.2);
+    final halo = (0.10 + 0.45 * tira) * late + 0.5 * fuego;
+    final radio = math.max(r.width * 0.75, r.height * 1.1) * (1 + 0.4 * fuego);
+    c.drawCircle(
+      r.center,
+      radio,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [
+            _oro.withValues(alpha: halo.clamp(0.0, 1.0)),
+            _oro.withValues(alpha: 0),
+          ],
+        ).createShader(Rect.fromCircle(center: r.center, radius: radio)),
+    );
+    // La boca: por donde se está desenrollando sale luz.
+    if (tirando && tira > 0) {
+      final boca = Rect.fromCenter(
+        center: r.bottomCenter,
+        width: r.width * 1.1,
+        height: 46,
+      );
+      c.drawOval(
+        boca,
+        Paint()
+          ..shader = RadialGradient(
+            colors: [
+              const Color(0xFFFFF1C9).withValues(alpha: 0.55 * late),
+              _oro.withValues(alpha: 0),
+            ],
+          ).createShader(boca),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_Luz old) => true;
+}
+
+/// Lo que va delante del rollo: las varillas de madera, el lacre mientras no
+/// se rompa, sus trozos, las chispas y el fogonazo con su onda.
+class _Frente extends CustomPainter {
+  _Frente(
+    this.rect, {
+    required this.roto,
+    required this.chispas,
+    required this.trozos,
+    required this.estallido,
+  });
+  final Rect? rect;
+  final bool roto;
+  final List<_Chispa> chispas;
+  final List<_Chispa> trozos;
+  final double? estallido;
+
+  static const _madera = Color(0xFF5B3A1E);
+  static const _maderaClara = Color(0xFF8A5E33);
+  static const _lacre = Color(0xFF8E1B1B);
+
+  void _varilla(Canvas c, double y, double x0, double x1) {
+    final barra = RRect.fromLTRBR(
+      x0 - 10,
+      y - 5,
+      x1 + 10,
+      y + 5,
+      const Radius.circular(5),
+    );
+    c.drawRRect(
+      barra.shift(const Offset(0, 2)),
+      Paint()..color = Colors.black.withValues(alpha: 0.35),
+    );
+    c.drawRRect(barra, Paint()..color = _madera);
+    c.drawLine(
+      Offset(x0 - 6, y - 2),
+      Offset(x1 + 6, y - 2),
+      Paint()
+        ..color = _maderaClara
+        ..strokeWidth = 1.5,
+    );
+    for (final x in [x0 - 14, x1 + 14]) {
+      c.drawCircle(Offset(x, y), 8, Paint()..color = _madera);
+      c.drawCircle(Offset(x - 2, y - 2), 3, Paint()..color = _maderaClara);
+    }
+  }
+
+  @override
+  void paint(Canvas c, Size s) {
+    final r = rect;
+    if (r != null) {
+      _varilla(c, r.top + 3, r.left + 6, r.right - 6);
+      _varilla(c, r.bottom - 3, r.left + 6, r.right - 6);
+      if (!roto) {
+        // El lacre, sobre la tira cerrada.
+        final o = Offset(r.center.dx, r.top + r.height / 2);
+        c.drawCircle(
+          o + const Offset(0, 2),
+          17,
+          Paint()..color = Colors.black.withValues(alpha: 0.4),
+        );
+        c.drawCircle(o, 17, Paint()..color = _lacre);
+        c.drawCircle(
+          o,
+          12,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.6
+            ..color = const Color(0xFF5E0F0F),
+        );
+        final estrella = Path();
+        for (var i = 0; i < 8; i++) {
+          final a = i * math.pi / 4 - math.pi / 2;
+          final rr = i.isEven ? 7.5 : 3.0;
+          final q = o + Offset(math.cos(a) * rr, math.sin(a) * rr);
+          i == 0 ? estrella.moveTo(q.dx, q.dy) : estrella.lineTo(q.dx, q.dy);
+        }
+        estrella.close();
+        c.drawPath(estrella, Paint()..color = const Color(0xFFB8403A));
+        c.drawCircle(
+          o + const Offset(-6, -6),
+          3.5,
+          Paint()..color = Colors.white.withValues(alpha: 0.25),
+        );
+      }
+    }
+    for (final t in trozos) {
+      final k = t.queda;
+      c.save();
+      c.translate(t.p.dx, t.p.dy);
+      c.rotate(t.giro * t.edad);
+      c.drawPath(
+        Path()
+          ..moveTo(-t.tam, -t.tam * 0.6)
+          ..lineTo(t.tam * 0.9, -t.tam * 0.3)
+          ..lineTo(t.tam * 0.4, t.tam * 0.8)
+          ..close(),
+        Paint()..color = _lacre.withValues(alpha: k),
+      );
+      c.restore();
+    }
+    for (final ch in chispas) {
+      final k = ch.queda;
+      c.drawCircle(
+        ch.p,
+        ch.tam * 2.6,
+        Paint()..color = _oro.withValues(alpha: 0.18 * k),
+      );
+      c.drawCircle(
+        ch.p,
+        ch.tam,
+        Paint()..color = const Color(0xFFFFF4D6).withValues(alpha: k),
+      );
+    }
+    // El fogonazo y su onda.
+    final e = estallido;
+    if (e != null && e < 1.2 && r != null) {
+      final k = 1 - e / 1.2;
+      c.drawRect(
+        Offset.zero & s,
+        Paint()
+          ..color = const Color(0xFFFFF1C9).withValues(alpha: 0.45 * k * k * k),
+      );
+      c.drawCircle(
+        r.center,
+        40 + e * 520,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 6 * k
+          ..color = _oro.withValues(alpha: 0.7 * k),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_Frente old) => true;
 }
 
 /// El viejo de la plaza, en tres dimensiones: las mismas cajas con las que
