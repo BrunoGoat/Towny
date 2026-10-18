@@ -35,8 +35,10 @@ class WidgetBridge {
   @visibleForTesting
   static const MethodChannel channel = MethodChannel('towny/widget');
 
-  /// Cuántos pueblos entran en el valle, que son los que entran en el widget.
-  static const int room = Habit.maxSlots;
+  /// Cuántos pueblos entran en el widget: seis, los que caben en una
+  /// pantalla de inicio. El valle tiene sitio para más; el widget enseña los
+  /// primeros.
+  static const int room = 6;
 
   /// Lo que mide la marca que se manda, en píxeles.
   ///

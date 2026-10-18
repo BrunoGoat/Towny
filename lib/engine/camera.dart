@@ -26,14 +26,16 @@ class OrbitCamera {
   /// nadie se entera.
   static const double townFraming = 60.0;
 
-  /// Far enough back to hold the whole valley in one frame: seis pueblos en un
-  /// anillo de ciento veinticuatro, cada uno con su radio.
+  /// Far enough back to hold the whole valley in one frame: quince pueblos,
+  /// el segundo anillo a doscientos treinta, cada uno con su radio, vistos
+  /// desde cualquier lado y desde el pueblo de más afuera.
   ///
-  /// Subió de seiscientos veinte cuando el anillo pasó de setenta y ocho a
-  /// ciento veinticuatro. Con el tope viejo el valle entero ya no entraba, y
-  /// lo que hacía la cámara era irse al tope y dejar dos pueblos fuera del
+  /// Subió de seiscientos veinte a novecientos ochenta cuando el anillo pasó
+  /// de setenta y ocho a ciento veinticuatro, y de ahí a esto cuando el valle
+  /// pasó de seis pueblos a quince. Con un tope corto el valle entero no
+  /// entra, y lo que hace la cámara es irse al tope y dejar pueblos fuera del
   /// cuadro sin decir nada.
-  static const double maxDistance = 980.0;
+  static const double maxDistance = 2600.0;
 
   /// Where the camera is looking, on the wall axis.
   double travel = 0;

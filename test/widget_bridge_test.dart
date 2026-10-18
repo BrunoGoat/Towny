@@ -146,14 +146,12 @@ void main() {
       expect(fila(espia.dichas.single, 0)['resting'], isTrue);
     });
 
-    test('nunca más filas que solares hay en el valle', () async {
+    test('nunca más filas que las que caben en el widget', () async {
       final espia = espiar();
-      final muchos = [
-        for (var i = 0; i < 9; i++) _habit(id: 'h$i', slot: i % 6),
-      ];
+      final muchos = [for (var i = 0; i < 9; i++) _habit(id: 'h$i', slot: i)];
       await WidgetBridge.fresh().publish(muchos);
       final filas = (espia.dichas.single.arguments as Map)['habits'] as List;
-      expect(filas.length, Habit.maxSlots);
+      expect(filas.length, WidgetBridge.room);
     });
   });
 

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:towny/engine/palette.dart';
+import 'package:towny/model/appearance.dart';
+import 'package:towny/model/habit.dart';
 import 'package:towny/model/store.dart';
 import 'package:towny/ui/habit_bar.dart';
 import 'package:towny/ui/habit_sigil.dart';
@@ -60,13 +62,16 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final store = Store();
     await store.load();
-    for (var i = 1; i < 6; i++) {
+    for (var i = 1; i < Habit.maxSlots; i++) {
       store.addHabit('Hábito $i', 'libro');
     }
-    expect(store.canAddHabit, isFalse, reason: 'seis es el tope');
+    await Appearance.instance.setFreeHabits(true);
+    addTearDown(() => Appearance.instance.setFreeHabits(false));
+    expect(store.canAddHabit, isFalse, reason: 'quince es el tope');
 
     await tester.pumpWidget(await barOf(store));
-    expect(find.byType(HabitSigil), findsNWidgets(6));
+    // La fila rueda: con quince marcas, alguna queda fuera de pantalla.
+    expect(find.byType(HabitSigil, skipOffstage: false), findsWidgets);
   });
 
   testWidgets('el más cerrado se puede tocar: es cómo se sabe qué falta', (

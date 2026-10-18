@@ -1108,7 +1108,7 @@ class _TownViewState extends State<TownView>
     _tellCameraTheWorld();
     // Low enough to keep the sky and the hills in it. Straight down is a map;
     // the point of the valley is that it is a place.
-    _cam.pitchTarget = 0.40;
+    _cam.pitchTarget = _valleyPitch;
 
     // Salís por encima del pueblo del que venís, y es alrededor de él que se
     // gira: el ojo se pone en la dirección en la que está tu pueblo, mirando
@@ -1144,6 +1144,13 @@ class _TownViewState extends State<TownView>
     _valleyFar = far;
     Sensory.instance.tick();
   }
+
+  /// Cuánto se inclina la cámara del valle: bajita con pocos pueblos, para
+  /// que se vean el cielo y los montes; más desde arriba cuantos más hay.
+  /// Con quince y la cámara baja, todos quedaban en una franja estrecha a
+  /// media pantalla, uno detrás de otro y con los nombres encima.
+  double get _valleyPitch =>
+      0.40 + 0.32 * clampD((_entries.length - 6) / 9, 0, 1);
 
   /// A qué distancia quedó la vista del valle. Ver [_diveIn].
   double _valleyAt = 0;
@@ -1259,12 +1266,14 @@ class _TownViewState extends State<TownView>
     // aquí, también—.
     var lejos = 0.0;
     for (var k = 0; k < 8; k++) {
+      // Desde el medio del valle y no desde el pueblo del que se sale: medido
+      // desde uno del anillo de afuera, para que cupieran los del otro lado
+      // había que irse el doble de lejos, y el valle se veía distinto según
+      // de qué pueblo salieras. Así es la misma distancia desde todos.
       final prueba = OrbitCamera()
-        ..travel = _cam.travelTarget
-        ..focusZ = _cam.focusZTarget
         ..focusY = 2.0
         ..yaw = _cam.yawTarget + k * math.pi / 4
-        ..pitch = 0.40;
+        ..pitch = _valleyPitch;
       lejos = math.max(
         lejos,
         prueba.distanceToFit(puntos, size.width, size.height),

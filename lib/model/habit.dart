@@ -293,9 +293,17 @@ class Habit {
 
   DateTime? get lastPlacedAt => pieces.isEmpty ? null : pieces.last.placedAt;
 
-  /// The most towns the valley holds. Six is as many as can be told apart at a
-  /// glance, and a person with seven habits has a different problem.
-  static const int maxSlots = 6;
+  /// Cuántos pueblos caben en el valle: quince. El del medio, cinco
+  /// alrededor y nueve en un anillo de más afuera (ver [centreOf]).
+  ///
+  /// Eran seis, «los que se distinguen de un vistazo». Pero cada pueblo
+  /// nuevo se gana sosteniendo todos los anteriores a la vez, así que el tope
+  /// de verdad lo pone eso y no un número: quien llega a diez está
+  /// sosteniendo nueve, y no hay por qué cerrarle la puerta.
+  static const int maxSlots = 15;
+
+  /// Cuántos solares hay en el primer anillo, alrededor del pueblo del medio.
+  static const int _inner = 5;
 
   /// Where a slot's town stands. Slot zero is the middle of the valley — el
   /// primer hábito es la capital— y los demás lo rodean.
@@ -319,9 +327,21 @@ class Habit {
   /// separa.
   static (double, double) centreOf(int slot) {
     if (slot <= 0) return (0.0, 0.0);
-    const ring = 124.0;
-    final k = (slot - 1) % (maxSlots - 1);
-    final a = -math.pi / 2 + k * 2 * math.pi / (maxSlots - 1);
+    // Los cinco primeros, en el anillo de siempre: los que ya existían no se
+    // mueven de sitio.
+    if (slot <= _inner) {
+      const ring = 124.0;
+      final a = -math.pi / 2 + (slot - 1) * 2 * math.pi / _inner;
+      return (math.cos(a) * ring, math.sin(a) * ring);
+    }
+    // Y los otros nueve, más afuera y corridos medio paso: entre dos
+    // pueblos del primer anillo y no detrás de ninguno, que tapados desde el
+    // medio no se verían. A doscientos treinta caben con holgura aun los
+    // más grandes, que llegan a unos cincuenta de radio.
+    const ring = 230.0;
+    const fuera = maxSlots - 1 - _inner;
+    final k = (slot - 1 - _inner) % fuera;
+    final a = -math.pi / 2 + (k + 0.5) * 2 * math.pi / fuera;
     return (math.cos(a) * ring, math.sin(a) * ring);
   }
 
