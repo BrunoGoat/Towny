@@ -865,7 +865,7 @@ class _RespuestaState extends State<_Respuesta> {
             scale: _apretado ? 0.96 : 1,
             duration: const Duration(milliseconds: 90),
             child: Container(
-              padding: const EdgeInsets.fromLTRB(10, 9, 16, 9),
+              padding: const EdgeInsets.fromLTRB(16, 9, 14, 9),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
@@ -879,32 +879,9 @@ class _RespuestaState extends State<_Respuesta> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // El sello de lacre.
-                  Container(
-                    width: 22,
-                    height: 22,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: const RadialGradient(
-                        center: Alignment(-0.35, -0.35),
-                        colors: [Color(0xFFB23A33), Color(0xFF7E1616)],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.3),
-                          blurRadius: 2,
-                          offset: const Offset(0, 1),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.auto_awesome,
-                      size: 11,
-                      color: Color(0xFFF2C9B8),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
                   Flexible(child: Text(widget.texto, style: e.habla(17))),
+                  const SizedBox(width: 10),
+                  Text('›', style: e.habla(22).copyWith(color: oro, height: 1)),
                 ],
               ),
             ),
