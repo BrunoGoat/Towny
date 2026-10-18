@@ -264,6 +264,7 @@ class _SageScreenState extends State<SageScreen> {
     var respuestas = <(String, VoidCallback)>[];
     VoidCallback? sigue;
     TalkInput? escribe;
+    var sale = false;
     if (!_pidio && _libro.met && !pregunta) {
       _pidio = true;
       _charla = nextTalk(widget.store, _libro);
@@ -309,10 +310,12 @@ class _SageScreenState extends State<SageScreen> {
         (SageLines.yes, () => _dar(pendientes.first)),
         (SageLines.notNow, _todaviaNo),
       ];
-    } else if (_respuesta != null) {
-      dice = _respuesta!;
     } else {
-      dice = SageLines.nothingNew;
+      // Ya no tiene nada más que decir: tocar el globo es despedirse, como
+      // tocar el valle. Era una equis arriba a la derecha.
+      dice = _respuesta ?? SageLines.nothingNew;
+      sigue = () => Navigator.of(context).maybePop();
+      sale = true;
     }
     final alto = MediaQuery.of(context).size.height;
 
@@ -334,21 +337,8 @@ class _SageScreenState extends State<SageScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(22, 6, 10, 0),
-                  child: Row(
-                    children: [
-                      Expanded(child: _Cabecera(cuantos: leidos.length)),
-                      _Redondo(
-                        e: e,
-                        onTap: () => Navigator.of(context).maybePop(),
-                        child: Icon(
-                          Icons.close_rounded,
-                          size: 20,
-                          color: e.tinta,
-                        ),
-                      ),
-                    ],
-                  ),
+                  padding: const EdgeInsets.fromLTRB(22, 6, 22, 0),
+                  child: _Cabecera(cuantos: leidos.length),
                 ),
                 Expanded(
                   child: KeyedSubtree(
@@ -374,6 +364,8 @@ class _SageScreenState extends State<SageScreen> {
                     dice: _abierto != null && _dando ? '' : dice,
                     respuestas: _abierto != null ? const [] : respuestas,
                     onNext: _abierto != null ? null : sigue,
+                    // Los tres puntos dicen que hay más; despedirse no lo es.
+                    more: !sale,
                     escribe: _abierto != null || escribe == null
                         ? null
                         : (
@@ -602,28 +594,6 @@ class _AmbientePainter extends CustomPainter {
   bool shouldRepaint(_AmbientePainter old) => old.t != t;
 }
 
-/// El botón redondo de cerrar.
-class _Redondo extends StatelessWidget {
-  const _Redondo({required this.e, required this.child, required this.onTap});
-  final _Estilo e;
-  final Widget child;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    child: Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: e.globo,
-        shape: BoxShape.circle,
-        boxShadow: e.sombra,
-      ),
-      child: child,
-    ),
-  );
-}
-
 /// Lo que ya dijo y se leyó, el más nuevo arriba, cada cosa en su rollo.
 class _Lista extends StatelessWidget {
   const _Lista({
@@ -793,10 +763,15 @@ class _Habla extends StatelessWidget {
     required this.respuestas,
     this.onNext,
     this.escribe,
+    this.more = true,
   });
 
   final _Estilo e;
   final String dice;
+
+  /// Si tocar el globo sigue hablando —y lleva sus tres puntos— o sólo
+  /// despide.
+  final bool more;
 
   /// Si lo que dice sigue en otro globo: tocar éste pasa al siguiente.
   final VoidCallback? onNext;
@@ -872,6 +847,7 @@ class _Habla extends StatelessWidget {
                           e: e,
                           texto: dice,
                           onNext: onNext,
+                          more: more,
                           respuestas: [
                             for (final (i, (texto, hacer))
                                 in respuestas.indexed)
@@ -1161,12 +1137,14 @@ class _Dicho extends StatefulWidget {
     required this.texto,
     required this.respuestas,
     this.onNext,
+    this.more = true,
   });
 
   final _Estilo e;
   final String texto;
   final List<Widget> respuestas;
   final VoidCallback? onNext;
+  final bool more;
 
   @override
   State<_Dicho> createState() => _DichoState();
@@ -1280,7 +1258,7 @@ class _DichoState extends State<_Dicho> with SingleTickerProviderStateMixin {
                         children: _citado(widget.texto, n),
                       ),
                     ),
-                    if (widget.onNext != null)
+                    if (widget.onNext != null && widget.more)
                       AnimatedOpacity(
                         opacity: listo ? 1 : 0,
                         duration: const Duration(milliseconds: 250),

@@ -1198,10 +1198,10 @@ Frases que no caen en ninguna pantalla concreta.
 - **U644** · `DARLO POR HECHO`  <sub>plan_picker.dart:276 · _PlanSheetState.build</sub>
 - **U645** · `ArchitectsDaughter`  <sub>sage_screen.dart:43 · _Estilo.dicho</sub>
 - **U646** · `EBGaramond`  <sub>sage_screen.dart:51 · _Estilo.habla</sub>
-- **U647** · `EL CONSEJERO`  <sub>sage_screen.dart:434 · _Cabecera.build</sub>
-- **U648** · `un dicho guardado`  <sub>sage_screen.dart:459 · _Cabecera.build</sub>
-- **U649** · `$cuantos dichos guardados`  <sub>sage_screen.dart:460 · _Cabecera.build</sub>
-- **U650** · `Ahora no`  <sub>sage_screen.dart:1138 · _EscribeState.build</sub>
+- **U647** · `EL CONSEJERO`  <sub>sage_screen.dart:426 · _Cabecera.build</sub>
+- **U648** · `un dicho guardado`  <sub>sage_screen.dart:451 · _Cabecera.build</sub>
+- **U649** · `$cuantos dichos guardados`  <sub>sage_screen.dart:452 · _Cabecera.build</sub>
+- **U650** · `Ahora no`  <sub>sage_screen.dart:1114 · _EscribeState.build</sub>
 
 ## Las notificaciones (9)
 

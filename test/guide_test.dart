@@ -155,6 +155,46 @@ void main() {
     expect(libro.weeks.length, semanas);
   });
 
+  testWidgets('sin nada que decir, tocar el globo es irse', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    late Store store;
+    await tester.runAsync(() async {
+      await Appearance.instance.load();
+      await Appearance.instance.setSoundOff(true);
+      store = Store();
+      await store.load();
+    });
+    AdviceBook.instance
+      ..forget()
+      ..meet()
+      ..setGoal(store.habit.id, AdviceGoal.start);
+    tester.view.physicalSize = const Size(780, 1688);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (c) => TextButton(
+            onPressed: () => Navigator.of(c).push(
+              SageScreen.route(
+                store: store,
+                theme: UiTheme(Palette.forMoment(13)),
+              ),
+            ),
+            child: const Text('abrir'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('abrir'));
+    await _espera(tester);
+    expect(find.byType(SageScreen), findsOneWidget);
+    expect(find.byIcon(Icons.close_rounded), findsNothing);
+    await _toca(tester, find.text(SageLines.nothingNew));
+    await _espera(tester);
+    expect(find.byType(SageScreen), findsNothing);
+  });
+
   group('en la pantalla', () {
     Future<Store> abrir(WidgetTester tester, Habit Function() hace) async {
       SharedPreferences.setMockInitialValues({});
