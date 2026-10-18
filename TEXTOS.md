@@ -915,22 +915,22 @@ Lo que contesta la app al pegar una copia del valle, y los nombres por defecto d
 
 - **U392** · `Sin nombre`  <sub>store.dart:503 · Store.addHabit</sub>
 - **U393** · `Mi hábito`  <sub>store.dart:682 · Store._blankHabit</sub>
-- **U394** · `No hay nada pegado.`  <sub>store.dart:821 · Store.importSave</sub>
-- **U395** · `Eso no es una copia de Towny.`  <sub>store.dart:826 · Store.importSave</sub>
-- **U396** · `A esa copia le falta la lista de pueblos.`  <sub>store.dart:834 · Store.importSave</sub>
-- **U397** · `Esa copia está rota: no pude leer uno de los pueblos.`  <sub>store.dart:845 · Store.importSave</sub>
-- **U398** · `Esa copia no tiene ningún pueblo dentro.`  <sub>store.dart:851 · Store.importSave</sub>
-- **U399** · `Esa copia trae ${read.length} pueblos y el valle tiene sitio `  <sub>store.dart:857 · Store.importSave</sub>
-- **U400** · `para ${Habit.maxSlots}.`  <sub>store.dart:858 · Store.importSave</sub>
-- **U401** · `El pueblo sigue creciendo`  <sub>store.dart:1143 · Store._countOnFor</sub>
-- **U402** · `Una pieza más y ${work.$1} queda en pie`  <sub>store.dart:1148 · Store._countOnFor</sub>
-- **U403** · `${work.$1} · faltan $left`  <sub>store.dart:1151 · Store._countOnFor</sub>
+- **U394** · `No hay nada pegado.`  <sub>store.dart:822 · Store.importSave</sub>
+- **U395** · `Eso no es una copia de Towny.`  <sub>store.dart:827 · Store.importSave</sub>
+- **U396** · `A esa copia le falta la lista de pueblos.`  <sub>store.dart:835 · Store.importSave</sub>
+- **U397** · `Esa copia está rota: no pude leer uno de los pueblos.`  <sub>store.dart:846 · Store.importSave</sub>
+- **U398** · `Esa copia no tiene ningún pueblo dentro.`  <sub>store.dart:852 · Store.importSave</sub>
+- **U399** · `Esa copia trae ${read.length} pueblos y el valle tiene sitio `  <sub>store.dart:858 · Store.importSave</sub>
+- **U400** · `para ${Habit.maxSlots}.`  <sub>store.dart:859 · Store.importSave</sub>
+- **U401** · `El pueblo sigue creciendo`  <sub>store.dart:1144 · Store._countOnFor</sub>
+- **U402** · `Una pieza más y ${work.$1} queda en pie`  <sub>store.dart:1149 · Store._countOnFor</sub>
+- **U403** · `${work.$1} · faltan $left`  <sub>store.dart:1152 · Store._countOnFor</sub>
 
 ### Un hábito sin nombre
 
 El nombre que lleva un hábito si no le pusiste ninguno.
 
-- **U404** · `Mi hábito`  <sub>habit.dart:372 · Habit.fromJson</sub>
+- **U404** · `Mi hábito`  <sub>habit.dart:392 · Habit.fromJson</sub>
 
 ### El tablón por dentro
 
@@ -1002,7 +1002,7 @@ Invierno, primavera, verano y otoño, en ajustes y en el tablón.
 
 Frases que no caen en ninguna pantalla concreta.
 
-- **U451** · `versión simple`  <sub>renderer.dart:2443 · TownPainter._colourOf</sub>
+- **U451** · `versión simple`  <sub>renderer.dart:2445 · TownPainter._colourOf</sub>
 - **U452** · `el pueblo`  <sub>advice_book.dart:479 · AdviceReason.AdviceReason</sub>
 - **U453** · `Porque $el no hubo pieza en $t.`  <sub>advice_book.dart:487 · AdviceReason.AdviceReason</sub>
 - **U454** · `Porque a $t le están faltando piezas estos días.`  <sub>advice_book.dart:491 · AdviceReason.AdviceReason</sub>

@@ -361,6 +361,18 @@ const List<Advice> dailyAdvice = [
     goal: AdviceGoal.quit,
   ),
   Advice(
+    'sustituir',
+    'La oscuridad no se echa a empujones: se enciende una vela.',
+    'Un mal hábito no se arranca: se le quita el sitio. No pelees contra él; '
+        'pon algo mejor en su lugar, una y otra vez, hasta que el viejo ya no '
+        'encuentre dónde sentarse.',
+    'Darkness isn’t pushed out of a room: you light a candle.',
+    'A bad habit can’t be torn out: it can only lose its seat. Don’t fight '
+        'it; put something better in its place, again and again, until the '
+        'old one finds nowhere left to sit.',
+    goal: AdviceGoal.quit,
+  ),
+  Advice(
     'reemplazo',
     'El hueco que deja una raíz se llena de algo. Que seas tú quien elija de qué.',
     'Decide qué harás en su lugar cuando llegue el momento: un vaso de agua, una vuelta a la manzana, cinco respiraciones.',
@@ -656,6 +668,7 @@ List<String> pathFor(AdviceGoal goal) => switch (goal) {
   ],
   AdviceGoal.quit => const [
     'q_disparador',
+    'sustituir',
     'reemplazo',
     'q_invisible',
     'q_ola',
