@@ -10,6 +10,7 @@ import '../l10n/lang.dart';
 import '../model/cadence.dart';
 import '../model/habit.dart';
 import '../model/pledge.dart';
+import '../model/sage_talk.dart';
 import '../model/store.dart';
 import 'cadence_sheet.dart';
 import 'habit_sigil.dart';
@@ -55,6 +56,11 @@ class _HabitsSheetState extends State<HabitsSheet> {
   late final TextEditingController _identity;
   late final TextEditingController _spot;
   int? _hour;
+
+  /// El plan de «cuando pase esto, voy a hacer aquello», si el consejero ya
+  /// lo ayudó a escribir.
+  late final TextEditingController _planIf;
+  late final TextEditingController _planThen;
   late String _symbol;
 
   /// The marks are only worth the room when somebody is actually choosing
@@ -88,6 +94,8 @@ class _HabitsSheetState extends State<HabitsSheet> {
     // Sin el «alguien» del principio, que va fijo delante del campo.
     _identity = TextEditingController(text: identityTail(h.identity));
     _spot = TextEditingController(text: h.vowPlace ?? '');
+    _planIf = TextEditingController(text: h.planIf ?? '');
+    _planThen = TextEditingController(text: h.planThen ?? '');
     _hour = h.vowHour;
     _symbol = h.symbol;
     _picking = false;
@@ -100,6 +108,8 @@ class _HabitsSheetState extends State<HabitsSheet> {
     _floor.dispose();
     _identity.dispose();
     _spot.dispose();
+    _planIf.dispose();
+    _planThen.dispose();
     _reel.dispose();
     super.dispose();
   }
@@ -210,6 +220,9 @@ class _HabitsSheetState extends State<HabitsSheet> {
       // Vacío borra; nulo sería «no la toques».
       identity: identityWhole(_identity.text) ?? '',
     );
+    if (_hasIfPlan) {
+      store.planHabit(store.habit, when: _planIf.text, then: _planThen.text);
+    }
   }
 
   // ---------------------------------------------------------------- piezas
@@ -661,8 +674,40 @@ class _HabitsSheetState extends State<HabitsSheet> {
           ),
           fila(
             tr('EN QUIÉN TE CONVIERTE', 'WHO IT MAKES YOU'),
-            _who(t, velo, start: true, label: false),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _who(t, velo, start: true, label: false),
+                _votes(t, velo),
+              ],
+            ),
           ),
+          if (_hasIfPlan) ...[
+            fila(
+              tr('CUANDO', 'WHEN'),
+              _softLine(
+                t,
+                velo,
+                _planIf,
+                '',
+                tr('termine de cenar', 'I finish dinner'),
+                start: true,
+                showLabel: false,
+              ),
+            ),
+            fila(
+              tr('VOY A', 'I WILL'),
+              _softLine(
+                t,
+                velo,
+                _planThen,
+                '',
+                tr('leer una página', 'read one page'),
+                start: true,
+                showLabel: false,
+              ),
+            ),
+          ],
           if (plan.isNotEmpty) fila(tr('EL PLAN', 'THE PLAN'), plan.first),
           if (_hasFloor)
             fila(
@@ -689,6 +734,33 @@ class _HabitsSheetState extends State<HabitsSheet> {
   /// el campo en el que se está escribiendo.
   late final bool _hasPlan =
       widget.store.habit.vowHour != null || widget.store.habit.vowPlace != null;
+
+  /// El plan de «cuando… voy a…», igual: sólo si ya se escribió, que lo
+  /// propone el consejero el día que hace falta.
+  late final bool _hasIfPlan =
+      widget.store.habit.planIf != null || widget.store.habit.planThen != null;
+
+  /// Los votos por la persona que dice que querés ser: una pieza, un voto,
+  /// desde que se escribió la frase. Sólo con la frase escrita y algún voto.
+  Widget _votes(UiTheme t, SheetInk velo) {
+    final h = widget.store.habit;
+    final n = identityVotes(h);
+    if (identityWanted(h) == null || n == 0) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Text(
+        n == 1
+            ? tr('un voto por esta persona', 'one vote for this person')
+            : tr('$n votos por esta persona', '$n votes for this person'),
+        style: t.bodySoft.copyWith(
+          fontSize: 11.5,
+          fontStyle: FontStyle.italic,
+          color: t.accent.withValues(alpha: 0.9),
+          shadows: velo.aliento,
+        ),
+      ),
+    );
+  }
 
   /// Lo mínimo que cuenta, igual que el plan: sólo si ya se escribió. Un
   /// renglón vacío más en la hoja es un formulario más largo, y esto lo

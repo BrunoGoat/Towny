@@ -22,6 +22,7 @@ import 'nudge.dart';
 import 'piece.dart';
 import 'pledge.dart';
 import 'rhythm.dart';
+import 'stumble.dart';
 
 /// What happened when a piece was laid. Drives the celebration.
 class PlaceResult {
@@ -628,8 +629,60 @@ class Store extends ChangeNotifier {
     }
     if (identity != null) {
       final t = identity.trim();
-      h.identity = t.isEmpty ? null : t;
+      final nueva = t.isEmpty ? null : t;
+      // Una frase que aparece vale desde hoy: es lo que el consejero mira
+      // para preguntar, de vez en cuando, si sigue siendo la tuya. Corregir
+      // una letra no la hace nueva —ni le quita los votos—; cambiarla de
+      // verdad se hace cuando el viejo pregunta.
+      if (nueva == null) {
+        h.identityAt = null;
+      } else if (h.identity == null) {
+        h.identityAt = DateTime.now();
+      }
+      h.identity = nueva;
     }
+    _save();
+    notifyListeners();
+  }
+
+  /// Que la frase de en quién te convierte sigue siendo la tuya —o la nueva,
+  /// si cambió—. Desde hoy vale de nuevo, y el consejero tarda otro tanto en
+  /// volver a preguntar.
+  void confirmIdentity(Habit h, {String? identity}) {
+    final t = identity?.trim();
+    if (t != null && t.isNotEmpty) h.identity = t;
+    h.identityAt = DateTime.now();
+    _save();
+    notifyListeners();
+  }
+
+  /// El plan de «cuando pase esto, voy a hacer aquello». Vacío borra esa
+  /// mitad; nulo no la toca.
+  void planHabit(Habit h, {String? when, String? then}) {
+    if (when != null) {
+      final t = when.trim();
+      h.planIf = t.isEmpty ? null : t;
+    }
+    if (then != null) {
+      final t = then.trim();
+      h.planThen = t.isEmpty ? null : t;
+    }
+    _save();
+    notifyListeners();
+  }
+
+  /// Lo mínimo que cuenta, dicho desde el consejero.
+  void setFloor(Habit h, String floor) {
+    final t = floor.trim();
+    h.floor = t.isEmpty ? null : t;
+    _save();
+    notifyListeners();
+  }
+
+  /// Qué se interpuso el [day] en que el pueblo salió de tu ritmo. Ver
+  /// `model/stumble.dart`.
+  void stumbled(Habit h, DateTime day, Stumble cause) {
+    h.stumbles.add(StumbleEntry(day, cause).encode());
     _save();
     notifyListeners();
   }

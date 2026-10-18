@@ -16,6 +16,7 @@ import '../engine/town.dart';
 import '../fx/sensory.dart';
 import '../l10n/lang.dart';
 import '../model/advice_book.dart';
+import '../model/sage_talk.dart';
 import '../model/store.dart';
 import 'sage_scroll.dart';
 import 'style.dart';
@@ -94,10 +95,19 @@ class _Estilo {
 /// La primera vez pregunta antes de hablar: si este pueblo es para sembrar
 /// algo nuevo o para arrancar algo. Sin esa respuesta no sabe qué decir.
 class SageScreen extends StatefulWidget {
-  const SageScreen({super.key, required this.store, required this.theme});
+  const SageScreen({
+    super.key,
+    required this.store,
+    required this.theme,
+    this.talk,
+  });
 
   final Store store;
   final UiTheme theme;
+
+  /// Una charla para empezar, en vez de la que toque: para probarlas desde
+  /// los ajustes de desarrollo.
+  final TalkStep? talk;
 
   /// Para probar desde los ajustes de desarrollo: un consejo cualquiera
   /// —[advice], o uno al azar— llegando como llega uno nuevo, sellado y para
@@ -122,19 +132,23 @@ class SageScreen extends StatefulWidget {
     );
   }
 
-  static Route<void> route({required Store store, required UiTheme theme}) =>
-      PageRouteBuilder<void>(
-        opaque: false,
-        // Un velo, pero que se note: el valle se sigue viendo, más apagado.
-        barrierColor: Colors.black.withValues(alpha: 0.32),
-        transitionDuration: const Duration(milliseconds: 360),
-        reverseTransitionDuration: const Duration(milliseconds: 220),
-        pageBuilder: (_, _, _) => SageScreen(store: store, theme: theme),
-        transitionsBuilder: (_, a, _, child) => FadeTransition(
-          opacity: CurvedAnimation(parent: a, curve: Curves.easeOutCubic),
-          child: child,
-        ),
-      );
+  static Route<void> route({
+    required Store store,
+    required UiTheme theme,
+    TalkStep? talk,
+  }) => PageRouteBuilder<void>(
+    opaque: false,
+    // Un velo, pero que se note: el valle se sigue viendo, más apagado.
+    barrierColor: Colors.black.withValues(alpha: 0.32),
+    transitionDuration: const Duration(milliseconds: 360),
+    reverseTransitionDuration: const Duration(milliseconds: 220),
+    pageBuilder: (_, _, _) =>
+        SageScreen(store: store, theme: theme, talk: talk),
+    transitionsBuilder: (_, a, _, child) => FadeTransition(
+      opacity: CurvedAnimation(parent: a, curve: Curves.easeOutCubic),
+      child: child,
+    ),
+  );
 
   @override
   State<SageScreen> createState() => _SageScreenState();
@@ -166,6 +180,19 @@ class _SageScreenState extends State<SageScreen> {
   /// está dando ahora, que al cerrarse va a la lista.
   Advice? _abierto;
   bool _dando = false;
+
+  /// La charla de esta visita —un tropiezo, la identidad, la semana— por
+  /// el globo en que va; nula si no hay o ya terminó. Se pide una vez, la
+  /// primera vez que el viejo puede hablar de algo que no sea presentarse.
+  late TalkStep? _charla = widget.talk;
+  late bool _pidio = widget.talk != null;
+
+  /// Pasar al globo siguiente de la charla, o terminarla.
+  void _sigue(TalkStep? Function()? paso) {
+    Sensory.instance.tick();
+    final siguiente = paso?.call();
+    setState(() => _charla = siguiente);
+  }
 
   @override
   void dispose() {
@@ -236,6 +263,11 @@ class _SageScreenState extends State<SageScreen> {
     final String dice;
     var respuestas = <(String, VoidCallback)>[];
     VoidCallback? sigue;
+    TalkInput? escribe;
+    if (!_pidio && _libro.met && !pregunta) {
+      _pidio = true;
+      _charla = nextTalk(widget.store, _libro);
+    }
     final intro = SageLines.intro;
     if (!_libro.met && _paso < intro.length) {
       // La primera vez se presenta, de a un globo, antes de preguntar nada.
@@ -253,6 +285,15 @@ class _SageScreenState extends State<SageScreen> {
         (SageLines.answerStart, () => _contestar(AdviceGoal.start)),
         (SageLines.answerQuit, () => _contestar(AdviceGoal.quit)),
       ];
+    } else if (_charla != null && _abierto == null) {
+      // Lo suyo: una charla, de a un globo.
+      final c = _charla!;
+      dice = c.says;
+      respuestas = [for (final o in c.options) (o.label, () => _sigue(o.then))];
+      escribe = c.input;
+      if (c.options.isEmpty && c.input == null) {
+        sigue = () => _sigue(c.next);
+      }
     } else if (_respuesta != null &&
         pendientes.isNotEmpty &&
         !_espera &&
@@ -320,13 +361,26 @@ class _SageScreenState extends State<SageScreen> {
                     ),
                   ),
                 ),
-                SizedBox(
-                  height: math.min(360, alto * 0.42),
+                // Más alto mientras hay charla: trae más respuestas, o un
+                // renglón para escribir, y la lista puede esperar.
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 360),
+                  curve: Curves.easeOutCubic,
+                  height: _charla != null && _abierto == null
+                      ? math.min(470, alto * 0.56)
+                      : math.min(360, alto * 0.42),
                   child: _Habla(
                     e: e,
                     dice: _abierto != null && _dando ? '' : dice,
                     respuestas: _abierto != null ? const [] : respuestas,
                     onNext: _abierto != null ? null : sigue,
+                    escribe: _abierto != null || escribe == null
+                        ? null
+                        : (
+                            escribe,
+                            (texto) => _sigue(() => escribe!.then(texto)),
+                            () => _sigue(escribe!.skip),
+                          ),
                   ),
                 ),
               ],
@@ -738,6 +792,7 @@ class _Habla extends StatelessWidget {
     required this.dice,
     required this.respuestas,
     this.onNext,
+    this.escribe,
   });
 
   final _Estilo e;
@@ -745,6 +800,10 @@ class _Habla extends StatelessWidget {
 
   /// Si lo que dice sigue en otro globo: tocar éste pasa al siguiente.
   final VoidCallback? onNext;
+
+  /// Un renglón para contestar escribiendo: qué se pide, qué hacer con lo
+  /// escrito y qué hacer con «ahora no».
+  final (TalkInput, ValueChanged<String>, VoidCallback)? escribe;
 
   /// Lo que se le puede contestar, en hojitas debajo del globo.
   final List<(String, VoidCallback)> respuestas;
@@ -755,62 +814,94 @@ class _Habla extends StatelessWidget {
     // y la misma letra que lo que te dice, un poco torcidas cada una para su
     // lado. Eran pastillas redondas con letra de sistema, y se leían como
     // botones de otra app pegados encima.
-    Widget respuesta(int i, String texto, VoidCallback hacer) =>
-        _Respuesta(e: e, texto: texto, onTap: hacer, orden: i);
+    // Con muchas, más bajitas: cinco del tamaño de dos no caben debajo del
+    // globo.
+    final compactas = respuestas.length > 3;
+    Widget respuesta(int i, String texto, VoidCallback hacer) => _Respuesta(
+      e: e,
+      texto: texto,
+      onTap: hacer,
+      orden: i,
+      compacta: compactas,
+    );
     return LayoutBuilder(
-      builder: (context, box) => Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // El viejo, de cuerpo entero, ocupando la esquina.
-          Positioned(
-            left: -box.maxHeight * 0.06,
-            bottom: 0,
-            width: box.maxHeight * 0.62,
-            height: box.maxHeight,
-            child: const IgnorePointer(child: SageFigure()),
-          ),
-          Positioned(
-            left: box.maxHeight * 0.52,
-            right: 14,
-            // Colgado de arriba, a la altura de su cara, y quieto: lo que
-            // crece —las respuestas— crece hacia abajo. Iba pegado por abajo,
-            // y al aparecer las respuestas el globo entero saltaba hacia
-            // arriba de golpe.
-            top: box.maxHeight * 0.06,
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 420),
-              // Los dos, el que se va y el que llega, colgados del mismo
-              // sitio: centrados, uno más alto que otro se movía al cambiar.
-              layoutBuilder: (actual, anteriores) => Stack(
-                alignment: Alignment.topLeft,
-                children: [...anteriores, ?actual],
-              ),
-              child: Column(
-                key: ValueKey(dice),
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (dice.isNotEmpty)
-                    _Dicho(
-                      e: e,
-                      texto: dice,
-                      onNext: onNext,
-                      respuestas: [
-                        for (final (i, (texto, hacer)) in respuestas.indexed)
-                          respuesta(i, texto, hacer),
-                      ],
-                    ),
-                ],
+      builder: (context, box) {
+        // El viejo mide lo mismo haya o no charla: lo que crece en una
+        // charla es el sitio de arriba, para el globo y sus respuestas.
+        final alto = math.min(box.maxHeight, 360.0);
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // El viejo, de cuerpo entero, ocupando la esquina.
+            Positioned(
+              left: -alto * 0.06,
+              bottom: 0,
+              width: alto * 0.62,
+              height: alto,
+              child: const IgnorePointer(child: SageFigure()),
+            ),
+            Positioned(
+              left: alto * 0.52,
+              right: 14,
+              // Colgado de arriba, a la altura de su cara, y quieto: lo que
+              // crece —las respuestas— crece hacia abajo. Iba pegado por abajo,
+              // y al aparecer las respuestas el globo entero saltaba hacia
+              // arriba de golpe.
+              top: alto * 0.06,
+              bottom: 0,
+              // Y si no entra —un teléfono chico, la letra grande del
+              // sistema—, se desliza en vez de salirse por abajo.
+              child: SingleChildScrollView(
+                clipBehavior: Clip.none,
+                padding: const EdgeInsets.only(bottom: 16),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 420),
+                  // Los dos, el que se va y el que llega, colgados del mismo
+                  // sitio: centrados, uno más alto que otro se movía al cambiar.
+                  layoutBuilder: (actual, anteriores) => Stack(
+                    alignment: Alignment.topLeft,
+                    children: [...anteriores, ?actual],
+                  ),
+                  child: Column(
+                    key: ValueKey(dice),
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (dice.isNotEmpty)
+                        _Dicho(
+                          e: e,
+                          texto: dice,
+                          onNext: onNext,
+                          respuestas: [
+                            for (final (i, (texto, hacer))
+                                in respuestas.indexed)
+                              respuesta(i, texto, hacer),
+                            if (escribe case (
+                              final pide,
+                              final listo,
+                              final no,
+                            ))
+                              _Escribe(
+                                e: e,
+                                pide: pide,
+                                onDone: listo,
+                                onSkip: pide.skip == null ? null : no,
+                              ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        );
+      },
     );
   }
 }
 
-/// Una respuesta: una tira de papel con su sello de lacre, que entra
+/// Una respuesta: una tira de papel con una flecha dorada al final, que entra
 /// deslizándose cuando el viejo termina de hablar —cada una un poco después
 /// de la anterior— y se hunde un poco al tocarla.
 class _Respuesta extends StatefulWidget {
@@ -819,11 +910,13 @@ class _Respuesta extends StatefulWidget {
     required this.texto,
     required this.onTap,
     required this.orden,
+    this.compacta = false,
   });
   final _Estilo e;
   final String texto;
   final VoidCallback onTap;
   final int orden;
+  final bool compacta;
 
   @override
   State<_Respuesta> createState() => _RespuestaState();
@@ -852,7 +945,7 @@ class _RespuestaState extends State<_Respuesta> {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.only(top: 10),
+        padding: EdgeInsets.only(top: widget.compacta ? 6 : 10),
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTapDown: (_) => setState(() => _apretado = true),
@@ -865,7 +958,12 @@ class _RespuestaState extends State<_Respuesta> {
             scale: _apretado ? 0.96 : 1,
             duration: const Duration(milliseconds: 90),
             child: Container(
-              padding: const EdgeInsets.fromLTRB(16, 9, 14, 9),
+              padding: EdgeInsets.fromLTRB(
+                16,
+                widget.compacta ? 5 : 9,
+                14,
+                widget.compacta ? 5 : 9,
+              ),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
@@ -879,7 +977,12 @@ class _RespuestaState extends State<_Respuesta> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Flexible(child: Text(widget.texto, style: e.habla(17))),
+                  Flexible(
+                    child: Text(
+                      widget.texto,
+                      style: e.habla(widget.compacta ? 16 : 17),
+                    ),
+                  ),
                   const SizedBox(width: 10),
                   Text('›', style: e.habla(22).copyWith(color: oro, height: 1)),
                 ],
@@ -887,6 +990,162 @@ class _RespuestaState extends State<_Respuesta> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Contestar escribiendo: un renglón en el mismo papel que las respuestas,
+/// con su comienzo fijo delante —«Cuando…», «alguien…»— en oro, la flecha
+/// para darlo por dicho, y un «ahora no» debajo, en pequeño.
+class _Escribe extends StatefulWidget {
+  const _Escribe({
+    required this.e,
+    required this.pide,
+    required this.onDone,
+    this.onSkip,
+  });
+
+  final _Estilo e;
+  final TalkInput pide;
+  final ValueChanged<String> onDone;
+  final VoidCallback? onSkip;
+
+  @override
+  State<_Escribe> createState() => _EscribeState();
+}
+
+class _EscribeState extends State<_Escribe> {
+  final TextEditingController _texto = TextEditingController();
+
+  @override
+  void dispose() {
+    _texto.dispose();
+    super.dispose();
+  }
+
+  void _listo() {
+    final t = _texto.text.trim();
+    if (t.isEmpty) return;
+    FocusScope.of(context).unfocus();
+    widget.onDone(t);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final e = widget.e;
+    const oro = Color(0xFFB8964F);
+    final letra = e.habla(17);
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 380),
+      curve: Curves.easeOutCubic,
+      builder: (context, t, child) => Opacity(
+        opacity: t,
+        child: Transform.translate(
+          offset: Offset(14 * (1 - t), 0),
+          child: child,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(top: 10),
+            padding: const EdgeInsets.fromLTRB(14, 8, 6, 8),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [e.globo, const Color(0xFFE6D6AF)],
+              ),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: oro.withValues(alpha: 0.85)),
+              boxShadow: e.sombra,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // El comienzo fijo, aparte y en oro: dentro del campo, el
+                // segundo renglón empezaba corrido debajo de él.
+                if (widget.pide.prefix case final p?)
+                  Container(
+                    constraints: const BoxConstraints(maxWidth: 80),
+                    padding: const EdgeInsets.only(right: 6),
+                    child: Text(
+                      p,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: letra.copyWith(
+                        color: oro,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                Expanded(
+                  child: TextField(
+                    controller: _texto,
+                    autofocus: true,
+                    textAlign: TextAlign.start,
+                    maxLength: 70,
+                    minLines: 1,
+                    maxLines: 3,
+                    style: letra,
+                    cursorColor: oro,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) => _listo(),
+                    onChanged: (_) => setState(() {}),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      counterText: '',
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                      hintText: widget.pide.hint,
+                      hintStyle: letra.copyWith(
+                        color: e.tinta.withValues(alpha: 0.35),
+                      ),
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _listo,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: AnimatedOpacity(
+                      opacity: _texto.text.trim().isEmpty ? 0.35 : 1,
+                      duration: const Duration(milliseconds: 150),
+                      child: Text(
+                        '›',
+                        style: e.habla(26).copyWith(color: oro, height: 1),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (widget.onSkip != null)
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                FocusScope.of(context).unfocus();
+                widget.onSkip!();
+              },
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 4, 4),
+                child: Text(
+                  tr('Ahora no', 'Not now'),
+                  style: e
+                      .habla(15)
+                      .copyWith(
+                        color: e.globo.withValues(alpha: 0.75),
+                        fontStyle: FontStyle.italic,
+                      ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -957,6 +1216,40 @@ class _DichoState extends State<_Dicho> with SingleTickerProviderStateMixin {
     }
   }
 
+  /// Lo que dice, con lo tuyo —lo que va entre «»— en cursiva y morado:
+  /// cuando el viejo te devuelve tus palabras, tienen que verse tuyas. Las
+  /// primeras [n] letras a la vista, y el resto transparente.
+  static List<TextSpan> _citado(String texto, int n) {
+    const tuyo = TextStyle(
+      color: Color(0xFF6B3F8C),
+      fontStyle: FontStyle.italic,
+    );
+    const nada = TextStyle(color: Colors.transparent);
+    final trozos = <(String, bool)>[];
+    var desde = 0;
+    for (final m in RegExp('«[^»]*»').allMatches(texto)) {
+      if (m.start > desde) trozos.add((texto.substring(desde, m.start), false));
+      trozos.add((m.group(0)!, true));
+      desde = m.end;
+    }
+    if (desde < texto.length) trozos.add((texto.substring(desde), false));
+    final spans = <TextSpan>[];
+    var quedan = n;
+    for (final (t, cita) in trozos) {
+      final ve = quedan.clamp(0, t.length);
+      quedan -= ve;
+      if (ve > 0) {
+        spans.add(
+          TextSpan(text: t.substring(0, ve), style: cita ? tuyo : null),
+        );
+      }
+      if (ve < t.length) {
+        spans.add(TextSpan(text: t.substring(ve), style: nada));
+      }
+    }
+    return spans;
+  }
+
   @override
   Widget build(BuildContext context) {
     final e = widget.e;
@@ -984,13 +1277,7 @@ class _DichoState extends State<_Dicho> with SingleTickerProviderStateMixin {
                     Text.rich(
                       TextSpan(
                         style: e.habla(17),
-                        children: [
-                          TextSpan(text: widget.texto.substring(0, n)),
-                          TextSpan(
-                            text: widget.texto.substring(n),
-                            style: const TextStyle(color: Colors.transparent),
-                          ),
-                        ],
+                        children: _citado(widget.texto, n),
                       ),
                     ),
                     if (widget.onNext != null)

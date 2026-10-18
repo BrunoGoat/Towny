@@ -62,6 +62,45 @@ class AdviceBook extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Cuándo fue la última charla de la semana: «¿cómo fue el camino?».
+  /// Nula hasta que se empieza a contar, que es la primera vez que se mira
+  /// si toca ([weekDue]).
+  DateTime? _weekAt;
+  static const String _weekKey = 'consejero_semana_v1';
+
+  /// Lo contestado en cada una, `milisegundos|cómo|qué costó`: para que el
+  /// viejo pueda algún día decir cómo vienen siendo tus semanas.
+  final List<String> _weeks = [];
+  static const String _weeksKey = 'consejero_semanas_v1';
+
+  /// Lo contestado en las charlas de la semana, de la más vieja a la más
+  /// nueva.
+  List<String> get weeks => List.unmodifiable(_weeks);
+
+  /// Si ya toca la charla de la semana: siete días desde la última. La
+  /// primera vez que se pregunta empieza a contar, y no toca todavía —que
+  /// recién lo conocés—.
+  bool weekDue({DateTime? at}) {
+    final now = at ?? DateTime.now();
+    if (!met) return false;
+    final desde = _weekAt;
+    if (desde == null) {
+      _weekAt = now;
+      unawaited(flush());
+      return false;
+    }
+    return daysBetween(desde, now) >= 7;
+  }
+
+  /// Que la charla de la semana se tuvo, con lo que se contestó.
+  void weekDone({DateTime? at, required String how, String cost = ''}) {
+    final now = at ?? DateTime.now();
+    _weekAt = now;
+    _weeks.add('${now.millisecondsSinceEpoch}|$how|$cost');
+    unawaited(flush());
+    notifyListeners();
+  }
+
   /// Los que ya se miraron, para el punto del botón.
   final Set<String> _seen = {};
   static const String _seenKey = 'consejero_visto_v1';
@@ -72,6 +111,8 @@ class AdviceBook extends ChangeNotifier {
     _goals.clear();
     _seen.clear();
     _met = false;
+    _weekAt = null;
+    _weeks.clear();
     try {
       final prefs = await SharedPreferences.getInstance();
       for (final row in prefs.getStringList(_key) ?? const <String>[]) {
@@ -89,6 +130,11 @@ class AdviceBook extends ChangeNotifier {
       }
       _seen.addAll(prefs.getStringList(_seenKey) ?? const <String>[]);
       _met = prefs.getBool(_metKey) ?? false;
+      final semana = prefs.getInt(_weekKey);
+      if (semana != null) {
+        _weekAt = DateTime.fromMillisecondsSinceEpoch(semana);
+      }
+      _weeks.addAll(prefs.getStringList(_weeksKey) ?? const <String>[]);
       for (final row in prefs.getStringList(_goalKey) ?? const <String>[]) {
         final a = row.indexOf(_sep);
         if (a <= 0) continue;
@@ -306,6 +352,12 @@ class AdviceBook extends ChangeNotifier {
       ]);
       await prefs.setStringList(_seenKey, _seen.toList());
       await prefs.setBool(_metKey, _met);
+      if (_weekAt != null) {
+        await prefs.setInt(_weekKey, _weekAt!.millisecondsSinceEpoch);
+      } else {
+        await prefs.remove(_weekKey);
+      }
+      await prefs.setStringList(_weeksKey, _weeks);
       await prefs.setStringList(_goalKey, [
         for (final MapEntry(key: town, value: g) in _goals.entries)
           '$town$_sep${g.name}',
@@ -321,6 +373,8 @@ class AdviceBook extends ChangeNotifier {
     _why.clear();
     _goals.clear();
     _seen.clear();
+    _weekAt = null;
+    _weeks.clear();
     notifyListeners();
   }
 }

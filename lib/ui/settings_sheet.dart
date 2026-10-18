@@ -20,6 +20,7 @@ import '../model/board_seen.dart';
 import '../model/board_slots.dart';
 import '../model/piece.dart';
 import '../model/reel.dart';
+import '../model/sage_talk.dart';
 import '../model/store.dart';
 import 'backup_sheet.dart';
 import 'choice_sheet.dart';
@@ -322,6 +323,55 @@ class _SettingsSheetState extends State<SettingsSheet> {
                     );
                   },
                 ),
+                for (final (kind, titulo, sub) in [
+                  (
+                    TalkKind.stumble,
+                    tr('Charla de un tropiezo', 'A stumble talk'),
+                    tr(
+                      'Como si ayer este pueblo se hubiera quedado sin '
+                          'piedra. Lo que contestes se guarda.',
+                      'As if this town had got no stone yesterday. What you '
+                          'answer is kept.',
+                    ),
+                  ),
+                  (
+                    TalkKind.identity,
+                    tr('Repasar la identidad', 'Review the identity'),
+                    tr(
+                      'La pregunta de si todavía es quien querés ser, con sus '
+                          'votos.',
+                      'The question of whether it is still who you want to be, '
+                          'with its votes.',
+                    ),
+                  ),
+                  (
+                    TalkKind.week,
+                    tr('Charla de la semana', 'The weekly talk'),
+                    tr(
+                      'Cómo fue el camino, qué costó y qué ajustamos.',
+                      'How the road went, what was hard and what to adjust.',
+                    ),
+                  ),
+                ])
+                  _Row(
+                    theme: t,
+                    icon: Icons.forum_outlined,
+                    title: titulo,
+                    subtitle: sub,
+                    act: (nav) {
+                      nav.pop();
+                      Future<void>.delayed(
+                        const Duration(milliseconds: 260),
+                        () => nav.push(
+                          SageScreen.route(
+                            store: store,
+                            theme: t,
+                            talk: trialTalk(kind, store, AdviceBook.instance),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
               ],
             ),
             _Section(

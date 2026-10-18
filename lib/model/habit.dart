@@ -27,6 +27,9 @@ class Habit {
     this.vowPlace,
     this.identity,
     this.identityWonAt,
+    this.identityAt,
+    this.planIf,
+    this.planThen,
     this.afterId,
     this.perWeek,
     this.cadenceAskedAt,
@@ -39,12 +42,14 @@ class Habit {
     List<String>? folk,
     List<String>? notes,
     List<String>? rests,
+    List<String>? stumbles,
   }) : character = character ?? TownCharacter.forSlot(slot).order,
        pieces = pieces ?? [],
        chronicle = chronicle ?? [],
        folk = folk ?? [],
        notes = notes ?? [],
-       rests = rests ?? [];
+       rests = rests ?? [],
+       stumbles = stumbles ?? [];
 
   /// Never reused and never changed: it is what a saved town is filed under.
   final String id;
@@ -72,8 +77,9 @@ class Habit {
   /// cualquier premio.
   ///
   /// Por eso no se enseña en un día bueno. Está en la hoja del hábito para
-  /// quien vaya a buscarlo, y sale solo en los dos momentos en que sirve: al
-  /// volver de un hueco largo y cuando el pueblo pregunta si seguimos.
+  /// quien vaya a buscarlo, y sale solo en los momentos en que sirve: al
+  /// volver de un hueco largo, cuando el pueblo pregunta si seguimos, y
+  /// cuando el consejero habla de un tropiezo.
   String? why;
 
   /// Qué es lo más chico que todavía cuenta como una pieza.
@@ -131,6 +137,37 @@ class Habit {
   /// evita lo peor que podía pasarle a esto: que la frase apareciera y
   /// desapareciera sola según cómo hubiera ido la última semana.
   DateTime? identityWonAt;
+
+  /// Desde cuándo vale la frase de [identity]: el día que se escribió o que
+  /// se volvió a confirmar. Nulo en lo de antes, y entonces vale desde que se
+  /// fundó.
+  ///
+  /// Es lo que hace que el consejero pregunte, de vez en cuando, si todavía
+  /// es la persona que querés ser: la gente cambia, y una frase escrita hace
+  /// un año puede ser de otro.
+  DateTime? identityAt;
+
+  /// El plan de «cuando pase esto, voy a hacer aquello», en dos mitades.
+  ///
+  /// La hora y el sitio son un plan para lo que se quiere empezar; esto sirve
+  /// también para lo que se quiere dejar, que no tiene hora: tiene un
+  /// disparador —«cuando me aburra en el sillón»— y algo que va en su lugar
+  /// —«salgo a caminar diez minutos»—. Un mal hábito no se arranca, se
+  /// sustituye, y esto es por qué cosa.
+  ///
+  /// Lo propone el consejero cuando hace falta —un olvido, una tentación— y
+  /// se cambia después en la hoja del hábito.
+  String? planIf;
+  String? planThen;
+
+  /// Los tropiezos: los días en que el pueblo se quedó sin piedra fuera de
+  /// tu ritmo, y qué se interpuso, `milisegundos|causa`. Ver
+  /// `model/stumble.dart`.
+  ///
+  /// Se guarda la causa y no el día suelto porque lo que sirve es el
+  /// patrón: a la tercera vez el consejero puede decir que tus caídas
+  /// vienen casi siempre del cansancio, o que caen en lunes.
+  final List<String> stumbles;
 
   /// Detrás de qué otro hábito iba éste, en las copias que lo traen.
   ///
@@ -362,6 +399,10 @@ class Habit {
     if (vowPlace != null && vowPlace!.isNotEmpty) 'vp': vowPlace,
     if (identity != null && identity!.isNotEmpty) 'qn': identity,
     if (identityWonAt != null) 'iw': identityWonAt!.millisecondsSinceEpoch,
+    if (identityAt != null) 'ia': identityAt!.millisecondsSinceEpoch,
+    if (planIf != null && planIf!.isNotEmpty) 'pi': planIf,
+    if (planThen != null && planThen!.isNotEmpty) 'pt': planThen,
+    if (stumbles.isNotEmpty) 'tr': stumbles,
     if (afterId != null && afterId!.isNotEmpty) 'af': afterId,
     // Entero cuando es entero: así lo lee igual una copia de antes, y el
     // archivo no cambia de forma al ir y volver.
@@ -420,6 +461,12 @@ class Habit {
       identityWonAt: (j['iw'] as num?) == null
           ? null
           : DateTime.fromMillisecondsSinceEpoch((j['iw'] as num).toInt()),
+      identityAt: (j['ia'] as num?) == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch((j['ia'] as num).toInt()),
+      planIf: (j['pi'] as String?)?.trim(),
+      planThen: (j['pt'] as String?)?.trim(),
+      stumbles: [for (final e in (j['tr'] as List?) ?? []) e.toString()],
       afterId: (j['af'] as String?)?.trim(),
       // Una frecuencia fuera de la semana —un archivo tocado a mano— se lee
       // como que no se dijo.

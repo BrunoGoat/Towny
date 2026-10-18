@@ -14,6 +14,7 @@ import '../model/cadence.dart';
 import '../model/census.dart';
 import '../model/habit.dart';
 import '../model/piece.dart';
+import '../model/sage_talk.dart';
 import '../model/store.dart';
 import '../model/works_log.dart';
 import 'adrift_sheet.dart';
@@ -466,15 +467,19 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
                 // El consejero, debajo del tablón. El punto: tiene algo
                 // nuevo que decirte.
+                // También cuando tiene algo que hablar: un tropiezo, la
+                // identidad, la semana.
                 ListenableBuilder(
-                  listenable: AdviceBook.instance,
+                  listenable: Listenable.merge([AdviceBook.instance, store]),
                   builder: (_, _) => GhostButton(
                     glyph: (c) => SageGlyph(color: c, shadows: t.halo),
                     theme: t,
                     tooltip: tr('El consejero', 'The advisor'),
                     dot:
                         AdviceBook.instance.unseen() > 0 ||
-                            AdviceBook.instance.goalOf(store.habit.id) == null
+                            AdviceBook.instance.goalOf(store.habit.id) ==
+                                null ||
+                            talkDue(store, AdviceBook.instance)
                         ? t.accent
                         : null,
                     onTap: _openSage,
