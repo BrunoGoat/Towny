@@ -609,6 +609,44 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
     });
 
+    testWidgets('editarla la reescribe en el mismo hueco y el mismo día', (
+      tester,
+    ) async {
+      final store = await tablon(tester);
+      await abrirUnaMia(tester);
+      expect(find.text('EDITARLA'), findsOneWidget);
+      await tester.tap(find.text('EDITARLA'));
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      // El papel en blanco, con lo que decía.
+      final campo = find.byType(TextField).first;
+      final antes = tester.widget<TextField>(campo).controller!.text;
+      expect(['Una nota mía', 'Y otra'], contains(antes));
+      final h = store.habit;
+      final linea = h.notes.firstWhere((l) => l.endsWith('|$antes'));
+      final dia = linea.substring(0, linea.indexOf('|'));
+      final viejo = boardNotices(
+        h,
+        valley: store.habits,
+      ).firstWhere((n) => n.said == antes);
+      final hueco = BoardSlots.instance.slotOf(h.id, noticeId(viejo));
+      await tester.enterText(campo, 'Ya cambiada');
+      // Tocar fuera del papel la guarda.
+      await tester.tapAt(const Offset(195, 20));
+      for (var i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      expect(h.notes, contains('$dia|Ya cambiada'));
+      expect(h.notes.where((l) => l.endsWith('|$antes')), isEmpty);
+      final nueva = boardNotices(
+        h,
+        valley: store.habits,
+      ).firstWhere((n) => n.said == 'Ya cambiada');
+      expect(BoardSlots.instance.slotOf(h.id, noticeId(nueva)), hueco);
+      await tester.pump(const Duration(milliseconds: 400));
+    });
+
     testWidgets('quitarla avisa al pueblo, que la deja de dibujar', (
       tester,
     ) async {

@@ -270,6 +270,36 @@ class Store extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Cambiarle lo escrito a una de las tuyas —la que tiene ese título—,
+  /// sin cambiarle el día en que se clavó ni el sitio en la lista.
+  ///
+  /// Devuelve cómo quedó, para que quien la editó pueda dejarla en el mismo
+  /// hueco; null si no había ninguna así o si se dejó todo en blanco, que no
+  /// es editarla sino otra cosa —para quitarla está [unpinNote]—.
+  Notice? editNote(Habit h, String said, String title, {String subtitle = ''}) {
+    String llano(String s) => s.replaceAll('\n', ' ').trim();
+    var t = llano(title), y = llano(subtitle);
+    if (t.isEmpty) (t, y) = (y, '');
+    if (t.isEmpty) return null;
+    for (var i = 0; i < h.notes.length; i++) {
+      final line = h.notes[i];
+      final corte = line.indexOf('|');
+      if (corte <= 0) continue;
+      final cuerpo = line.substring(corte + 1);
+      final salto = cuerpo.indexOf('\n');
+      final titulo = salto < 0 ? cuerpo : cuerpo.substring(0, salto);
+      if (titulo.trim() != said.trim()) continue;
+      h.notes[i] = '${line.substring(0, corte)}|$t${y.isEmpty ? '' : '\n$y'}';
+      _save();
+      notifyListeners();
+      for (final n in myNotices(h)) {
+        if (n.said == t) return n;
+      }
+      return null;
+    }
+    return null;
+  }
+
   bool _writeUpAll() {
     var moved = false;
     for (final h in habits) {

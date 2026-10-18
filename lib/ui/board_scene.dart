@@ -111,6 +111,7 @@ class BoardScene extends StatefulWidget {
     required this.hourOfDay,
     required this.onLeave,
     this.onUnpin,
+    this.onEdit,
     this.onMove,
     this.offer,
     this.letra = 0,
@@ -151,6 +152,9 @@ class BoardScene extends StatefulWidget {
   /// Quitar del tablón una nota tuya, por lo que dice. Nulo cuando el tablón
   /// es de sólo lectura — el de mentira de los ajustes.
   final void Function(String said)? onUnpin;
+
+  /// Volver a escribir una nota tuya. Nulo en el tablón de sólo lectura.
+  final void Function(Notice said)? onEdit;
 
   /// Lo que se puede hacer con la nota que está descolgada, si se puede hacer
   /// algo: una palabra y lo que pasa al tocarla.
@@ -734,15 +738,45 @@ class _BoardSceneState extends State<BoardScene>
         ? null
         : widget.offer?.call(leyendo);
     if (quitar == null && hacer == null) return const SizedBox.shrink();
+    // Una tuya se puede, además, volver a escribir: las dos palabras juntas,
+    // del mismo estilo y separadas por un punto.
+    final editar = quitar != null && widget.onEdit != null ? leyendo : null;
     return SafeArea(
       child: Align(
         alignment: Alignment.bottomCenter,
         child: Padding(
           padding: const EdgeInsets.only(bottom: 26),
-          child: _Unpin(
-            word: quitar == null ? hacer!.$1 : tr('Quitarla', 'Remove it'),
-            onTap: quitar == null ? hacer!.$2 : () => widget.onUnpin!(quitar),
-            k: _m.openK,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (editar != null) ...[
+                _Unpin(
+                  word: tr('Editarla', 'Edit it'),
+                  onTap: () => widget.onEdit!(editar),
+                  k: _m.openK,
+                ),
+                Opacity(
+                  opacity: ((_m.openK - 0.55) / 0.35).clamp(0.0, 1.0),
+                  child: Text(
+                    '·',
+                    style: TextStyle(
+                      color: const Color(0xFFF3EEE3).withValues(alpha: 0.7),
+                      fontSize: 14,
+                      shadows: const [
+                        Shadow(color: Color(0xCC000000), blurRadius: 12),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              _Unpin(
+                word: quitar == null ? hacer!.$1 : tr('Quitarla', 'Remove it'),
+                onTap: quitar == null
+                    ? hacer!.$2
+                    : () => widget.onUnpin!(quitar),
+                k: _m.openK,
+              ),
+            ],
           ),
         ),
       ),

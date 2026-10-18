@@ -140,6 +140,11 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
   /// La nota escrita que espera sitio, o null.
   Notice? _espera;
 
+  /// La nota tuya que se está volviendo a escribir, o null si lo que se
+  /// escribe es una nueva. Al terminar no baja a esperar sitio: se queda en
+  /// el hueco que tenía.
+  Notice? _editando;
+
   /// El hueco donde se acaba de clavar una, para que la escena nueva entre
   /// mirándolo. Cualquier otra cosa que rehaga la escena lo olvida.
   int? _mirar;
@@ -165,6 +170,11 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
   /// no se clava nada.
   void _dejarDeEscribir() {
     FocusManager.instance.primaryFocus?.unfocus();
+    final vieja = _editando;
+    if (vieja != null) {
+      _guardarEdicion(vieja);
+      return;
+    }
     var t = _titulo.text.replaceAll('\n', ' ').trim();
     var y = _debajo.text.replaceAll('\n', ' ').trim();
     if (t.isEmpty) (t, y) = (y, '');
@@ -175,6 +185,47 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
           : (y.isEmpty
                 ? Notice(NoticeKind.mine, t, '')
                 : Notice(NoticeKind.mine, t, y, more: ''));
+    });
+  }
+
+  /// Volver a escribir una de las tuyas: el mismo papel en blanco, con lo
+  /// que decía.
+  void _editar(Notice n) {
+    Sensory.instance.tick();
+    _titulo.text = n.said;
+    _debajo.text = n.more != null ? n.because : '';
+    setState(() {
+      _editando = n;
+      _escribe = true;
+    });
+  }
+
+  /// Guardar lo vuelto a escribir, en el mismo hueco. Todo en blanco no la
+  /// borra: la deja como estaba —quitarla es otra palabra—.
+  void _guardarEdicion(Notice vieja) {
+    final store = widget.store!;
+    final i = _said.indexWhere(
+      (n) => n.kind == NoticeKind.mine && n.said == vieja.said,
+    );
+    final hueco = i >= 0 && i < _slots.length ? _slots[i] : null;
+    final nueva = store.editNote(
+      widget.habit,
+      vieja.said,
+      _titulo.text,
+      subtitle: _debajo.text,
+    );
+    if (nueva != null && hueco != null) {
+      BoardSlots.instance.take(widget.habit.id, [noticeId(vieja)]);
+      BoardSlots.instance.put(widget.habit.id, noticeId(nueva), hueco);
+    }
+    _titulo.clear();
+    _debajo.clear();
+    setState(() {
+      _editando = null;
+      _escribe = false;
+      _mirar = hueco;
+      _plan = _real();
+      _roll++;
     });
   }
 
@@ -394,6 +445,7 @@ class _NoticeBoardScreenState extends State<NoticeBoardScreen> {
                   });
                 },
                 reading: _leyendo,
+                onEdit: widget.store == null ? null : _editar,
                 onUnpin: widget.store == null
                     ? null
                     : (said) {
