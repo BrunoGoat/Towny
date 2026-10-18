@@ -190,6 +190,40 @@ void main() {
       expect(stumbleDue(store.habit), isNull);
     });
 
+    testWidgets('ese día no tocaba: se corrige el ritmo, sin caída', (
+      tester,
+    ) async {
+      final ahora = DateTime.now();
+      final store = await abrir(tester, () {
+        final h = Habit(
+          id: 'h0',
+          name: 'Nadar',
+          symbol: 'run',
+          slot: 1,
+          createdAt: ahora.subtract(const Duration(days: 20)),
+          perWeek: 7,
+        );
+        for (final (i, d) in [6, 5, 4, 3].indexed) {
+          h.pieces.add(
+            Piece(
+              index: i,
+              placedAt: DateTime(ahora.year, ahora.month, ahora.day - d, 9),
+            ),
+          );
+        }
+        return h;
+      });
+      await _toca(tester, find.text('Ese día no tocaba'));
+      await _espera(tester);
+      expect(find.textContaining('el tropiezo fue mío'), findsOneWidget);
+      await _toca(tester, find.text('5 veces por semana'));
+      await _espera(tester);
+      expect(store.habit.perWeek, 5);
+      expect(stumblesOf(store.habit).single.cause, Stumble.notDue);
+      // Y no entra en los patrones.
+      expect(stumblePattern(store.habits).cause, isNull);
+    });
+
     testWidgets('la identidad: sigue siendo, o cambió', (tester) async {
       final ahora = DateTime.now();
       final store = await abrir(tester, () {

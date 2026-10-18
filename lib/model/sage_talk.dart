@@ -24,6 +24,7 @@ library;
 import '../data/advice.dart';
 import '../l10n/lang.dart';
 import 'advice_book.dart';
+import 'cadence.dart';
 import 'habit.dart';
 import 'piece.dart';
 import 'pledge.dart';
@@ -164,6 +165,12 @@ class _Charla {
         op(tr('Tentación', 'Temptation'), Stumble.tempted),
         op(tr('Desánimo', 'Low spirits'), Stumble.mood),
         op(tr('Otra cosa', 'Something else'), Stumble.other),
+        // Y que no hubo tal tropiezo: el ritmo que suponía el pueblo puede
+        // estar mal, y entonces el que se equivocó no fuiste vos.
+        TalkOption(tr('Ese día no tocaba', 'It was not a day for it'), () {
+          store.stumbled(h, dia, Stumble.notDue);
+          return _noTocaba(h);
+        }),
       ],
     );
   }
@@ -177,6 +184,54 @@ class _Charla {
     }
     return tr('Hace $n días', '$n days ago');
   }
+
+  /// No hubo caída: el que contó mal fue el pueblo. Se ofrece corregir el
+  /// ritmo —sólo hacia más holgado, que es lo que dice esta respuesta—, o
+  /// dejarlo como está si fue un descanso suelto.
+  TalkStep _noTocaba(Habit h) {
+    final ahora = perWeekOf(h, at: now);
+    final mas = [
+      for (final c in cadenceChoices)
+        if (c < ahora - 1e-9) c,
+    ].take(4);
+    return TalkStep(
+      tr(
+        'Entonces el tropiezo fue mío, no tuyo. Para «${h.name}» yo contaba '
+            'con ${cadenceSaid(ahora)}. ¿Cada cuánto va de verdad?',
+        'Then the stumble was mine, not yours. For "${h.name}" I was '
+            'counting on ${cadenceSaid(ahora)}. How often does it really go?',
+      ),
+      options: [
+        for (final c in mas)
+          TalkOption(_mayuscula(cadenceSaid(c)), () {
+            store.setCadence(h, c);
+            return TalkStep(
+              tr(
+                'Así sea: ${cadenceSaid(c)}. Ya no contaré como caída lo que '
+                    'es descanso.',
+                'So be it: ${cadenceSaid(c)}. I will no longer count rest as '
+                    'a fall.',
+              ),
+            );
+          }),
+        TalkOption(
+          tr('Fue un descanso suelto', 'It was a one-off rest'),
+          () => TalkStep(
+            tr(
+              'Entendido. Un descanso elegido no es una caída: el camino '
+                  'también se hace parando.',
+              'Understood. A chosen rest is not a fall: the road is also made '
+                  'by stopping.',
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Con la primera en mayúscula, como las demás respuestas.
+  static String _mayuscula(String t) =>
+      t.isEmpty ? t : t[0].toUpperCase() + t.substring(1);
 
   /// Lo que escribiste, devuelto; y después, lo de la causa.
   TalkStep _tuMotivo(Habit h, Stumble c) {
@@ -268,6 +323,7 @@ class _Charla {
           ],
         );
       case Stumble.other:
+      case Stumble.notDue:
       case Stumble.skipped:
         return TalkStep(
           tr(

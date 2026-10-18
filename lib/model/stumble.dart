@@ -18,9 +18,11 @@ import 'habit.dart';
 import 'piece.dart';
 import 'rhythm.dart';
 
-/// Lo que se interpuso. [skipped] es no haber querido contestar: cuenta como
-/// preguntado, y no entra en los patrones.
-enum Stumble { tired, forgot, tempted, mood, other, skipped }
+/// Lo que se interpuso. [notDue] es que no hubo tropiezo: ese día no tocaba,
+/// y el que se equivocó fue el ritmo que suponía el pueblo. [skipped] es no
+/// haber querido contestar. Los dos cuentan como preguntado, y ninguno entra
+/// en los patrones.
+enum Stumble { tired, forgot, tempted, mood, other, notDue, skipped }
 
 /// Un tropiezo apuntado: el día que el pueblo se quedó sin piedra y la causa.
 class StumbleEntry {
@@ -100,7 +102,7 @@ DateTime? stumbleDue(Habit h, {DateTime? at}) {
   final todos = [
     for (final h in habits)
       for (final s in stumblesOf(h))
-        if (s.cause != Stumble.skipped) s,
+        if (s.cause != Stumble.skipped && s.cause != Stumble.notDue) s,
   ];
   if (todos.length < 3) return (cause: null, weekday: null);
   final causas = <Stumble, int>{};

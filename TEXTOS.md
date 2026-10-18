@@ -22,11 +22,11 @@ nombres de fuente (`PermanentMarker.ttf`), la hoja de pruebas y los comentarios.
 | Nombres de la gente | 87 | 87 | no: nombres propios |
 | Lo que hace la gente | 22 | 22 | sí |
 | Símbolos de hábito | 72 | 72 | sí |
-| La interfaz | 640 | 640 | sí |
+| La interfaz | 648 | 648 | sí |
 | Notificaciones | 9 | 9 | sí |
 | Widget de Android | 6 | 6 | sí |
 
-**1011 entradas**, que son unas 1129 frases sueltas.
+**1019 entradas**, que son unas 1137 frases sueltas.
 
 
 
@@ -1050,148 +1050,156 @@ Frases que no caen en ninguna pantalla concreta.
 - **U496** · `todos los días`  <sub>pledge.dart:400 · rhythmSaid</sub>
 - **U497** · `un día por semana`  <sub>pledge.dart:401 · rhythmSaid</sub>
 - **U498** · `$perWeek días de cada siete`  <sub>pledge.dart:402 · rhythmSaid</sub>
-- **U499** · `$cuando, el pueblo de «${h.name}» se quedó sin piedra. No vengo a `  <sub>sage_talk.dart:155 · _Charla.tropiezo</sub>
-- **U500** · `reprochártelo: todo camino tiene piedras sueltas. ¿Qué se `  <sub>sage_talk.dart:156 · _Charla.tropiezo</sub>
-- **U501** · `Cansancio`  <sub>sage_talk.dart:162 · _Charla.tropiezo</sub>
-- **U502** · `Me olvidé`  <sub>sage_talk.dart:163 · _Charla.tropiezo</sub>
-- **U503** · `Tentación`  <sub>sage_talk.dart:164 · _Charla.tropiezo</sub>
-- **U504** · `Desánimo`  <sub>sage_talk.dart:165 · _Charla.tropiezo</sub>
-- **U505** · `Otra cosa`  <sub>sage_talk.dart:166 · _Charla.tropiezo</sub>
-- **U506** · `Ayer`  <sub>sage_talk.dart:174 · _Charla._diaDicho</sub>
-- **U507** · `Hace $n días`  <sub>sage_talk.dart:178 · _Charla._diaDicho</sub>
-- **U508** · `Hace muy poco`  <sub>sage_talk.dart:187 · _Charla._tuMotivo</sub>
-- **U509** · `$hace escribiste que querías esto «$porque». Esa razón no se ha `  <sub>sage_talk.dart:191 · _Charla._tuMotivo</sub>
-- **U510** · `movido de su sitio.`  <sub>sage_talk.dart:192 · _Charla._tuMotivo</sub>
-- **U511** · `Cuando el cuerpo pesa, basta con poco. Una piedra pequeña `  <sub>sage_talk.dart:208 · _Charla._segunCausa</sub>
-- **U512** · `sigue siendo piedra.`  <sub>sage_talk.dart:209 · _Charla._segunCausa</sub>
-- **U513** · `Los días grises también cuentan. No exijas grandeza: basta `  <sub>sage_talk.dart:214 · _Charla._segunCausa</sub>
-- **U514** · `con no soltar del todo el hilo.`  <sub>sage_talk.dart:215 · _Charla._segunCausa</sub>
-- **U515** · `Decidir lo mínimo`  <sub>sage_talk.dart:229 · _Charla._segunCausa</sub>
-- **U516** · `Ahora no`  <sub>sage_talk.dart:232 · _Charla._segunCausa</sub>
-- **U517** · `Lo que no tiene sitio en el día se pierde por el camino. `  <sub>sage_talk.dart:239 · _Charla._segunCausa</sub>
-- **U518** · `Átalo a algo que ya haces.`  <sub>sage_talk.dart:240 · _Charla._segunCausa</sub>
-- **U519** · `La tentación no se vence a empujones: se le cierra el paso `  <sub>sage_talk.dart:245 · _Charla._segunCausa</sub>
-- **U520** · `antes de que llegue.`  <sub>sage_talk.dart:246 · _Charla._segunCausa</sub>
-- **U521** · `$dice ${tr('Tu plan era: cuando ${h.planIf}, voy a ${h.planThen}.', 'Your plan was: when ${h.planIf}, I will ${h.planThen}.')}`  <sub>sage_talk.dart:253 · _Charla._segunCausa</sub>
-- **U522** · `Cambiar el plan`  <sub>sage_talk.dart:258 · _Charla._segunCausa</sub>
-- **U523** · `Trazar un plan`  <sub>sage_talk.dart:259 · _Charla._segunCausa</sub>
-- **U524** · `Sigue valiendo`  <sub>sage_talk.dart:264 · _Charla._segunCausa</sub>
-- **U525** · `La vida tiene sus propios caminos, y a veces se cruzan con el `  <sub>sage_talk.dart:274 · _Charla._segunCausa</sub>
-- **U526** · `tuyo. No pasa nada.`  <sub>sage_talk.dart:275 · _Charla._segunCausa</sub>
-- **U527** · `Y suelen caer en ${_semana(p.weekday!)}. Ese día, ten el camino `  <sub>sage_talk.dart:291 · _Charla._patron</sub>
-- **U528** · `preparado de antemano.`  <sub>sage_talk.dart:292 · _Charla._patron</sub>
-- **U529** · `He notado que tus tropiezos suelen venir del cansancio. Que lo mínimo `  <sub>sage_talk.dart:304 · _Charla._causaVista</sub>
-- **U530** · `sea de verdad mínimo.`  <sub>sage_talk.dart:305 · _Charla._causaVista</sub>
-- **U531** · `He notado que tus tropiezos suelen venir del olvido. Lo que no tiene `  <sub>sage_talk.dart:310 · _Charla._causaVista</sub>
-- **U532** · `hora ni lugar, no tiene día.`  <sub>sage_talk.dart:311 · _Charla._causaVista</sub>
-- **U533** · `He notado que tus tropiezos suelen venir de la tentación. Fíjate en `  <sub>sage_talk.dart:316 · _Charla._causaVista</sub>
-- **U534** · `qué la despierta.`  <sub>sage_talk.dart:317 · _Charla._causaVista</sub>
-- **U535** · `He notado que tus tropiezos suelen venir del desánimo. Cuando el ánimo `  <sub>sage_talk.dart:322 · _Charla._causaVista</sub>
-- **U536** · `baja, que el paso sea corto.`  <sub>sage_talk.dart:323 · _Charla._causaVista</sub>
-- **U537** · `Y ya volviste a poner piedra. Una caída es un accidente; lo que `  <sub>sage_talk.dart:338 · _Charla._dosVeces</sub>
-- **U538** · `cuenta es levantarse, y eso ya está hecho.`  <sub>sage_talk.dart:339 · _Charla._dosVeces</sub>
-- **U539** · `Una caída es un accidente; dos seguidas, el comienzo de otra `  <sub>sage_talk.dart:344 · _Charla._dosVeces</sub>
-- **U540** · `costumbre. Hoy todavía estás a tiempo.`  <sub>sage_talk.dart:345 · _Charla._dosVeces</sub>
-- **U541** · `Piensa en el momento en que suele llegar. ¿Qué pasa justo `  <sub>sage_talk.dart:361 · _Charla.plan</sub>
-- **U542** · `Busca algo que ya haces cada día, y ata ahí tu hábito. ¿Cuándo `  <sub>sage_talk.dart:367 · _Charla.plan</sub>
-- **U543** · `será?`  <sub>sage_talk.dart:368 · _Charla.plan</sub>
-- **U544** · `Cuando`  <sub>sage_talk.dart:373 · _Charla.plan</sub>
-- **U545** · `me aburra en el sillón`  <sub>sage_talk.dart:375 · _Charla.plan</sub>
-- **U546** · `termine de cenar`  <sub>sage_talk.dart:376 · _Charla.plan</sub>
-- **U547** · `¿Y qué pondrás en su lugar? La oscuridad no se echa a `  <sub>sage_talk.dart:381 · _Charla.plan</sub>
-- **U548** · `empujones: se enciende una vela.`  <sub>sage_talk.dart:382 · _Charla.plan</sub>
-- **U549** · `¿Y qué harás entonces? Que sea pequeño: lo pequeño se `  <sub>sage_talk.dart:387 · _Charla.plan</sub>
-- **U550** · `voy a`  <sub>sage_talk.dart:393 · _Charla.plan</sub>
-- **U551** · `salir a caminar diez minutos`  <sub>sage_talk.dart:395 · _Charla.plan</sub>
-- **U552** · `leer una página`  <sub>sage_talk.dart:396 · _Charla.plan</sub>
-- **U553** · `Cuando ${h.planIf}, voy a ${h.planThen}. Así queda escrito en tu `  <sub>sage_talk.dart:402 · _Charla.plan</sub>
-- **U554** · `ficha. Lo decidido de antemano ya no hay que decidirlo.`  <sub>sage_talk.dart:403 · _Charla.plan</sub>
-- **U555** · `¿Qué es lo más pequeño que todavía cuenta? Para los días en que `  <sub>sage_talk.dart:420 · _Charla.minimoQue</sub>
-- **U556** · `no hay fuerzas.`  <sub>sage_talk.dart:421 · _Charla.minimoQue</sub>
-- **U557** · `abrir el libro y leer una página`  <sub>sage_talk.dart:427 · _Charla.minimoQue</sub>
-- **U558** · `«${h.floor}». Así sea: en los días grises, con eso basta.`  <sub>sage_talk.dart:435 · _Charla.minimoQue</sub>
-- **U559** · `alguien que cumple su palabra`  <sub>sage_talk.dart:449 · _Charla.identidad</sub>
-- **U560** · `Hace poco dijiste que querías ser «$quien».`  <sub>sage_talk.dart:455 · _Charla.identidad</sub>
-- **U561** · `Hace $n días dijiste que querías ser «$quien».`  <sub>sage_talk.dart:459 · _Charla.identidad</sub>
-- **U562** · `Desde entonces has dado un voto por esa persona: cada piedra `  <sub>sage_talk.dart:465 · _Charla.identidad</sub>
-- **U563** · `es uno. ¿Sigue siendo quien quieres ser?`  <sub>sage_talk.dart:466 · _Charla.identidad</sub>
-- **U564** · `Desde entonces has dado $votos votos por esa persona: cada `  <sub>sage_talk.dart:471 · _Charla.identidad</sub>
-- **U565** · `piedra es uno. ¿Sigue siendo quien quieres ser?`  <sub>sage_talk.dart:472 · _Charla.identidad</sub>
-- **U566** · `Sí, sigue siendo`  <sub>sage_talk.dart:477 · _Charla.identidad</sub>
-- **U567** · `Entonces sigue votando. No te conviertes de un salto: te `  <sub>sage_talk.dart:481 · _Charla.identidad</sub>
-- **U568** · `conviertes piedra a piedra.`  <sub>sage_talk.dart:482 · _Charla.identidad</sub>
-- **U569** · `Ha cambiado`  <sub>sage_talk.dart:489 · _Charla.identidad</sub>
-- **U570** · `La gente cambia, y el camino con ella. ¿Quién quieres ser `  <sub>sage_talk.dart:492 · _Charla.identidad</sub>
-- **U571** · `que cuida su cuerpo`  <sub>sage_talk.dart:499 · _Charla.identidad</sub>
-- **U572** · `Así sea: «${identityWanted(h)}». Cada piedra, desde hoy, `  <sub>sage_talk.dart:508 · _Charla.identidad</sub>
-- **U573** · `es un voto por esa persona.`  <sub>sage_talk.dart:509 · _Charla.identidad</sub>
-- **U574** · `Ha pasado una semana desde la última vez. Tus pueblos `  <sub>sage_talk.dart:536 · _Charla.semana</sub>
-- **U575** · `recibieron una piedra. ¿Cómo fue el camino?`  <sub>sage_talk.dart:537 · _Charla.semana</sub>
-- **U576** · `recibieron $piedras piedras. ¿Cómo fue el camino?`  <sub>sage_talk.dart:543 · _Charla.semana</sub>
-- **U577** · `Bien`  <sub>sage_talk.dart:549 · _Charla.semana</sub>
-- **U578** · `Me alegra. Lo que se hace con gusto echa raíces.`  <sub>sage_talk.dart:552 · _Charla.semana</sub>
-- **U579** · `A medias`  <sub>sage_talk.dart:557 · _Charla.semana</sub>
-- **U580** · `A medias también es avanzar. El río no corre recto, y llega.`  <sub>sage_talk.dart:560 · _Charla.semana</sub>
-- **U581** · `Cuesta arriba`  <sub>sage_talk.dart:566 · _Charla.semana</sub>
-- **U582** · `Las cuestas son las que hacen las piernas. Bien hecho en `  <sub>sage_talk.dart:569 · _Charla.semana</sub>
-- **U583** · `¿Qué fue lo que más costó?`  <sub>sage_talk.dart:584 · _Charla._costo</sub>
-- **U584** · `Nada en especial`  <sub>sage_talk.dart:590 · _Charla._costo</sub>
-- **U585** · `Así sea. Dentro de siete días volvemos a mirar el camino.`  <sub>sage_talk.dart:599 · _Charla._ajuste</sub>
-- **U586** · `Achicar lo mínimo`  <sub>sage_talk.dart:604 · _Charla._ajuste</sub>
-- **U587** · `Seguir igual`  <sub>sage_talk.dart:611 · _Charla._ajuste</sub>
-- **U588** · `¿Qué ajustamos en «${h.name}» para la semana que viene?`  <sub>sage_talk.dart:620 · _Charla._ajuste</sub>
-- **U589** · `miércoles`  <sub>sage_talk.dart:631 · _Charla._semana</sub>
-- **U590** · `sábado`  <sub>sage_talk.dart:634 · _Charla._semana</sub>
-- **U591** · `no hay nada en ningún lado`  <sub>merge.dart:61 · SyncPlan.toString</sub>
-- **U592** · `la nube está vacía`  <sub>merge.dart:63 · SyncPlan.toString</sub>
-- **U593** · `el teléfono está vacío y la nube no`  <sub>merge.dart:72 · SyncPlan.toString</sub>
-- **U594** · `nada cambió desde la última`  <sub>merge.dart:84 · SyncPlan.toString</sub>
-- **U595** · `sólo cambió el teléfono`  <sub>merge.dart:87 · SyncPlan.toString</sub>
-- **U596** · `sólo cambió la nube`  <sub>merge.dart:90 · SyncPlan.toString</sub>
-- **U597** · `cambiaron los dos y el teléfono es lo más reciente`  <sub>merge.dart:99 · SyncPlan.toString</sub>
-- **U598** · `cambiaron los dos y la nube es lo más reciente`  <sub>merge.dart:105 · SyncPlan.toString</sub>
-- **U599** · `Contanos más de tu hábito`  <sub>cadence_sheet.dart:52 · CadenceIntro.build</sub>
-- **U600** · `Ya pasó una semana. Con una pregunta, el pueblo entiende `  <sub>cadence_sheet.dart:62 · CadenceIntro.build</sub>
-- **U601** · `tu ritmo y no se preocupa de más.`  <sub>cadence_sheet.dart:63 · CadenceIntro.build</sub>
-- **U602** · `Ahora no`  <sub>cadence_sheet.dart:87 · CadenceIntro.build</sub>
-- **U603** · `Continuar`  <sub>cadence_sheet.dart:94 · CadenceIntro.build</sub>
-- **U604** · `día`  <sub>cadence_sheet.dart:186 · _CadenceSheetState.build</sub>
-- **U605** · `días`  <sub>cadence_sheet.dart:186 · _CadenceSheetState.build</sub>
-- **U606** · `TU RITMO`  <sub>cadence_sheet.dart:215 · _CadenceSheetState.build</sub>
-- **U607** · `CADA CUÁNTO`  <sub>cadence_sheet.dart:216 · _CadenceSheetState.build</sub>
-- **U608** · `En $dias $ds pusiste $piezas $pz.`  <sub>cadence_sheet.dart:223 · _CadenceSheetState.build</sub>
-- **U609** · `¿Cada cuánto va ${h.name}?`  <sub>cadence_sheet.dart:227 · _CadenceSheetState.build</sub>
-- **U610** · `¿Cada cuánto va ${h.name}? Viene marcado lo que se ve.`  <sub>cadence_sheet.dart:236 · _CadenceSheetState.build</sub>
-- **U611** · `No es una meta. Es para que el pueblo sepa cuándo un `  <sub>cadence_sheet.dart:241 · _CadenceSheetState.build</sub>
-- **U612** · `hueco es un hueco.`  <sub>cadence_sheet.dart:242 · _CadenceSheetState.build</sub>
-- **U613** · `Todos los días`  <sub>cadence_sheet.dart:257 · _CadenceSheetState.build</sub>
-- **U614** · `Un día sin pieza ya es un hueco.`  <sub>cadence_sheet.dart:259 · _CadenceSheetState.build</sub>
-- **U615** · `Algunos días por semana`  <sub>cadence_sheet.dart:268 · _CadenceSheetState.build</sub>
-- **U616** · `Los que toquen, sin día fijo.`  <sub>cadence_sheet.dart:270 · _CadenceSheetState.build</sub>
-- **U617** · `Cada dos días`  <sub>cadence_sheet.dart:289 · _CadenceSheetState.build</sub>
-- **U618** · `Un día sí y otro no.`  <sub>cadence_sheet.dart:290 · _CadenceSheetState.build</sub>
-- **U619** · `Una vez por semana`  <sub>cadence_sheet.dart:297 · _CadenceSheetState.build</sub>
-- **U620** · `Un día fijo, o el que se pueda.`  <sub>cadence_sheet.dart:299 · _CadenceSheetState.build</sub>
-- **U621** · `Cada dos semanas`  <sub>cadence_sheet.dart:308 · _CadenceSheetState.build</sub>
-- **U622** · `De vez en cuando, pero sin perderlo.`  <sub>cadence_sheet.dart:310 · _CadenceSheetState.build</sub>
-- **U623** · `Se cambia cuando quieras en la hoja del hábito.`  <sub>cadence_sheet.dart:332 · _CadenceSheetState.build</sub>
-- **U624** · `$n por semana`  <sub>cadence_sheet.dart:549 · _Count.build</sub>
-- **U625** · `0 fps`  <sub>perf_overlay.dart:46 · _PerfOverlayState._resume</sub>
-- **U626** · `cuadro ${arma[n ~/ 2].toStringAsFixed(1)} ms `  <sub>perf_overlay.dart:52 · _PerfOverlayState._resume</sub>
-- **U627** · `(peor ${arma.last.toStringAsFixed(0)})\n`  <sub>perf_overlay.dart:53 · _PerfOverlayState._resume</sub>
-- **U628** · `gpu ${gpu[n ~/ 2].toStringAsFixed(1)} ms`  <sub>perf_overlay.dart:54 · _PerfOverlayState._resume</sub>
-- **U629** · `\npueblo ${p.toStringAsFixed(1)} ms · `  <sub>perf_overlay.dart:60 · _PerfOverlayState._resume</sub>
-- **U630** · `Roboto`  <sub>perf_overlay.dart:93 · _PerfOverlayState.build</sub>
-- **U631** · `Clavar una nota`  <sub>pin_note_button.dart:41 · _PinNoteButtonState.build</sub>
-- **U632** · `en la cama`  <sub>plan_picker.dart:239 · _PlanSheetState.build</sub>
-- **U633** · `Elegí la hora y escribí el sitio.`  <sub>plan_picker.dart:254 · _PlanSheetState.build</sub>
-- **U634** · `DARLO POR HECHO`  <sub>plan_picker.dart:276 · _PlanSheetState.build</sub>
-- **U635** · `ArchitectsDaughter`  <sub>sage_screen.dart:43 · _Estilo.dicho</sub>
-- **U636** · `EBGaramond`  <sub>sage_screen.dart:51 · _Estilo.habla</sub>
-- **U637** · `EL CONSEJERO`  <sub>sage_screen.dart:434 · _Cabecera.build</sub>
-- **U638** · `un dicho guardado`  <sub>sage_screen.dart:459 · _Cabecera.build</sub>
-- **U639** · `$cuantos dichos guardados`  <sub>sage_screen.dart:460 · _Cabecera.build</sub>
-- **U640** · `Ahora no`  <sub>sage_screen.dart:1138 · _EscribeState.build</sub>
+- **U499** · `$cuando, el pueblo de «${h.name}» se quedó sin piedra. No vengo a `  <sub>sage_talk.dart:156 · _Charla.tropiezo</sub>
+- **U500** · `reprochártelo: todo camino tiene piedras sueltas. ¿Qué se `  <sub>sage_talk.dart:157 · _Charla.tropiezo</sub>
+- **U501** · `Cansancio`  <sub>sage_talk.dart:163 · _Charla.tropiezo</sub>
+- **U502** · `Me olvidé`  <sub>sage_talk.dart:164 · _Charla.tropiezo</sub>
+- **U503** · `Tentación`  <sub>sage_talk.dart:165 · _Charla.tropiezo</sub>
+- **U504** · `Desánimo`  <sub>sage_talk.dart:166 · _Charla.tropiezo</sub>
+- **U505** · `Otra cosa`  <sub>sage_talk.dart:167 · _Charla.tropiezo</sub>
+- **U506** · `Ese día no tocaba`  <sub>sage_talk.dart:170 · _Charla.tropiezo</sub>
+- **U507** · `Ayer`  <sub>sage_talk.dart:181 · _Charla._diaDicho</sub>
+- **U508** · `Hace $n días`  <sub>sage_talk.dart:185 · _Charla._diaDicho</sub>
+- **U509** · `Entonces el tropiezo fue mío, no tuyo. Para «${h.name}» yo contaba `  <sub>sage_talk.dart:199 · _Charla._noTocaba</sub>
+- **U510** · `con ${cadenceSaid(ahora)}. ¿Cada cuánto va de verdad?`  <sub>sage_talk.dart:200 · _Charla._noTocaba</sub>
+- **U511** · `Así sea: ${cadenceSaid(c)}. Ya no contaré como caída lo que `  <sub>sage_talk.dart:210 · _Charla._noTocaba</sub>
+- **U512** · `es descanso.`  <sub>sage_talk.dart:211 · _Charla._noTocaba</sub>
+- **U513** · `Fue un descanso suelto`  <sub>sage_talk.dart:218 · _Charla._noTocaba</sub>
+- **U514** · `Entendido. Un descanso elegido no es una caída: el camino `  <sub>sage_talk.dart:221 · _Charla._noTocaba</sub>
+- **U515** · `también se hace parando.`  <sub>sage_talk.dart:222 · _Charla._noTocaba</sub>
+- **U516** · `Hace muy poco`  <sub>sage_talk.dart:238 · _Charla._tuMotivo</sub>
+- **U517** · `$hace escribiste que querías esto «$porque». Esa razón no se ha `  <sub>sage_talk.dart:242 · _Charla._tuMotivo</sub>
+- **U518** · `movido de su sitio.`  <sub>sage_talk.dart:243 · _Charla._tuMotivo</sub>
+- **U519** · `Cuando el cuerpo pesa, basta con poco. Una piedra pequeña `  <sub>sage_talk.dart:259 · _Charla._segunCausa</sub>
+- **U520** · `sigue siendo piedra.`  <sub>sage_talk.dart:260 · _Charla._segunCausa</sub>
+- **U521** · `Los días grises también cuentan. No exijas grandeza: basta `  <sub>sage_talk.dart:265 · _Charla._segunCausa</sub>
+- **U522** · `con no soltar del todo el hilo.`  <sub>sage_talk.dart:266 · _Charla._segunCausa</sub>
+- **U523** · `Decidir lo mínimo`  <sub>sage_talk.dart:280 · _Charla._segunCausa</sub>
+- **U524** · `Ahora no`  <sub>sage_talk.dart:283 · _Charla._segunCausa</sub>
+- **U525** · `Lo que no tiene sitio en el día se pierde por el camino. `  <sub>sage_talk.dart:290 · _Charla._segunCausa</sub>
+- **U526** · `Átalo a algo que ya haces.`  <sub>sage_talk.dart:291 · _Charla._segunCausa</sub>
+- **U527** · `La tentación no se vence a empujones: se le cierra el paso `  <sub>sage_talk.dart:296 · _Charla._segunCausa</sub>
+- **U528** · `antes de que llegue.`  <sub>sage_talk.dart:297 · _Charla._segunCausa</sub>
+- **U529** · `$dice ${tr('Tu plan era: cuando ${h.planIf}, voy a ${h.planThen}.', 'Your plan was: when ${h.planIf}, I will ${h.planThen}.')}`  <sub>sage_talk.dart:304 · _Charla._segunCausa</sub>
+- **U530** · `Cambiar el plan`  <sub>sage_talk.dart:309 · _Charla._segunCausa</sub>
+- **U531** · `Trazar un plan`  <sub>sage_talk.dart:310 · _Charla._segunCausa</sub>
+- **U532** · `Sigue valiendo`  <sub>sage_talk.dart:315 · _Charla._segunCausa</sub>
+- **U533** · `La vida tiene sus propios caminos, y a veces se cruzan con el `  <sub>sage_talk.dart:326 · _Charla._segunCausa</sub>
+- **U534** · `tuyo. No pasa nada.`  <sub>sage_talk.dart:327 · _Charla._segunCausa</sub>
+- **U535** · `Y suelen caer en ${_semana(p.weekday!)}. Ese día, ten el camino `  <sub>sage_talk.dart:343 · _Charla._patron</sub>
+- **U536** · `preparado de antemano.`  <sub>sage_talk.dart:344 · _Charla._patron</sub>
+- **U537** · `He notado que tus tropiezos suelen venir del cansancio. Que lo mínimo `  <sub>sage_talk.dart:356 · _Charla._causaVista</sub>
+- **U538** · `sea de verdad mínimo.`  <sub>sage_talk.dart:357 · _Charla._causaVista</sub>
+- **U539** · `He notado que tus tropiezos suelen venir del olvido. Lo que no tiene `  <sub>sage_talk.dart:362 · _Charla._causaVista</sub>
+- **U540** · `hora ni lugar, no tiene día.`  <sub>sage_talk.dart:363 · _Charla._causaVista</sub>
+- **U541** · `He notado que tus tropiezos suelen venir de la tentación. Fíjate en `  <sub>sage_talk.dart:368 · _Charla._causaVista</sub>
+- **U542** · `qué la despierta.`  <sub>sage_talk.dart:369 · _Charla._causaVista</sub>
+- **U543** · `He notado que tus tropiezos suelen venir del desánimo. Cuando el ánimo `  <sub>sage_talk.dart:374 · _Charla._causaVista</sub>
+- **U544** · `baja, que el paso sea corto.`  <sub>sage_talk.dart:375 · _Charla._causaVista</sub>
+- **U545** · `Y ya volviste a poner piedra. Una caída es un accidente; lo que `  <sub>sage_talk.dart:390 · _Charla._dosVeces</sub>
+- **U546** · `cuenta es levantarse, y eso ya está hecho.`  <sub>sage_talk.dart:391 · _Charla._dosVeces</sub>
+- **U547** · `Una caída es un accidente; dos seguidas, el comienzo de otra `  <sub>sage_talk.dart:396 · _Charla._dosVeces</sub>
+- **U548** · `costumbre. Hoy todavía estás a tiempo.`  <sub>sage_talk.dart:397 · _Charla._dosVeces</sub>
+- **U549** · `Piensa en el momento en que suele llegar. ¿Qué pasa justo `  <sub>sage_talk.dart:413 · _Charla.plan</sub>
+- **U550** · `Busca algo que ya haces cada día, y ata ahí tu hábito. ¿Cuándo `  <sub>sage_talk.dart:419 · _Charla.plan</sub>
+- **U551** · `será?`  <sub>sage_talk.dart:420 · _Charla.plan</sub>
+- **U552** · `Cuando`  <sub>sage_talk.dart:425 · _Charla.plan</sub>
+- **U553** · `me aburra en el sillón`  <sub>sage_talk.dart:427 · _Charla.plan</sub>
+- **U554** · `termine de cenar`  <sub>sage_talk.dart:428 · _Charla.plan</sub>
+- **U555** · `¿Y qué pondrás en su lugar? La oscuridad no se echa a `  <sub>sage_talk.dart:433 · _Charla.plan</sub>
+- **U556** · `empujones: se enciende una vela.`  <sub>sage_talk.dart:434 · _Charla.plan</sub>
+- **U557** · `¿Y qué harás entonces? Que sea pequeño: lo pequeño se `  <sub>sage_talk.dart:439 · _Charla.plan</sub>
+- **U558** · `voy a`  <sub>sage_talk.dart:445 · _Charla.plan</sub>
+- **U559** · `salir a caminar diez minutos`  <sub>sage_talk.dart:447 · _Charla.plan</sub>
+- **U560** · `leer una página`  <sub>sage_talk.dart:448 · _Charla.plan</sub>
+- **U561** · `Cuando ${h.planIf}, voy a ${h.planThen}. Así queda escrito en tu `  <sub>sage_talk.dart:454 · _Charla.plan</sub>
+- **U562** · `ficha. Lo decidido de antemano ya no hay que decidirlo.`  <sub>sage_talk.dart:455 · _Charla.plan</sub>
+- **U563** · `¿Qué es lo más pequeño que todavía cuenta? Para los días en que `  <sub>sage_talk.dart:472 · _Charla.minimoQue</sub>
+- **U564** · `no hay fuerzas.`  <sub>sage_talk.dart:473 · _Charla.minimoQue</sub>
+- **U565** · `abrir el libro y leer una página`  <sub>sage_talk.dart:479 · _Charla.minimoQue</sub>
+- **U566** · `«${h.floor}». Así sea: en los días grises, con eso basta.`  <sub>sage_talk.dart:487 · _Charla.minimoQue</sub>
+- **U567** · `alguien que cumple su palabra`  <sub>sage_talk.dart:501 · _Charla.identidad</sub>
+- **U568** · `Hace poco dijiste que querías ser «$quien».`  <sub>sage_talk.dart:507 · _Charla.identidad</sub>
+- **U569** · `Hace $n días dijiste que querías ser «$quien».`  <sub>sage_talk.dart:511 · _Charla.identidad</sub>
+- **U570** · `Desde entonces has dado un voto por esa persona: cada piedra `  <sub>sage_talk.dart:517 · _Charla.identidad</sub>
+- **U571** · `es uno. ¿Sigue siendo quien quieres ser?`  <sub>sage_talk.dart:518 · _Charla.identidad</sub>
+- **U572** · `Desde entonces has dado $votos votos por esa persona: cada `  <sub>sage_talk.dart:523 · _Charla.identidad</sub>
+- **U573** · `piedra es uno. ¿Sigue siendo quien quieres ser?`  <sub>sage_talk.dart:524 · _Charla.identidad</sub>
+- **U574** · `Sí, sigue siendo`  <sub>sage_talk.dart:529 · _Charla.identidad</sub>
+- **U575** · `Entonces sigue votando. No te conviertes de un salto: te `  <sub>sage_talk.dart:533 · _Charla.identidad</sub>
+- **U576** · `conviertes piedra a piedra.`  <sub>sage_talk.dart:534 · _Charla.identidad</sub>
+- **U577** · `Ha cambiado`  <sub>sage_talk.dart:541 · _Charla.identidad</sub>
+- **U578** · `La gente cambia, y el camino con ella. ¿Quién quieres ser `  <sub>sage_talk.dart:544 · _Charla.identidad</sub>
+- **U579** · `que cuida su cuerpo`  <sub>sage_talk.dart:551 · _Charla.identidad</sub>
+- **U580** · `Así sea: «${identityWanted(h)}». Cada piedra, desde hoy, `  <sub>sage_talk.dart:560 · _Charla.identidad</sub>
+- **U581** · `es un voto por esa persona.`  <sub>sage_talk.dart:561 · _Charla.identidad</sub>
+- **U582** · `Ha pasado una semana desde la última vez. Tus pueblos `  <sub>sage_talk.dart:588 · _Charla.semana</sub>
+- **U583** · `recibieron una piedra. ¿Cómo fue el camino?`  <sub>sage_talk.dart:589 · _Charla.semana</sub>
+- **U584** · `recibieron $piedras piedras. ¿Cómo fue el camino?`  <sub>sage_talk.dart:595 · _Charla.semana</sub>
+- **U585** · `Bien`  <sub>sage_talk.dart:601 · _Charla.semana</sub>
+- **U586** · `Me alegra. Lo que se hace con gusto echa raíces.`  <sub>sage_talk.dart:604 · _Charla.semana</sub>
+- **U587** · `A medias`  <sub>sage_talk.dart:609 · _Charla.semana</sub>
+- **U588** · `A medias también es avanzar. El río no corre recto, y llega.`  <sub>sage_talk.dart:612 · _Charla.semana</sub>
+- **U589** · `Cuesta arriba`  <sub>sage_talk.dart:618 · _Charla.semana</sub>
+- **U590** · `Las cuestas son las que hacen las piernas. Bien hecho en `  <sub>sage_talk.dart:621 · _Charla.semana</sub>
+- **U591** · `¿Qué fue lo que más costó?`  <sub>sage_talk.dart:636 · _Charla._costo</sub>
+- **U592** · `Nada en especial`  <sub>sage_talk.dart:642 · _Charla._costo</sub>
+- **U593** · `Así sea. Dentro de siete días volvemos a mirar el camino.`  <sub>sage_talk.dart:651 · _Charla._ajuste</sub>
+- **U594** · `Achicar lo mínimo`  <sub>sage_talk.dart:656 · _Charla._ajuste</sub>
+- **U595** · `Seguir igual`  <sub>sage_talk.dart:663 · _Charla._ajuste</sub>
+- **U596** · `¿Qué ajustamos en «${h.name}» para la semana que viene?`  <sub>sage_talk.dart:672 · _Charla._ajuste</sub>
+- **U597** · `miércoles`  <sub>sage_talk.dart:683 · _Charla._semana</sub>
+- **U598** · `sábado`  <sub>sage_talk.dart:686 · _Charla._semana</sub>
+- **U599** · `no hay nada en ningún lado`  <sub>merge.dart:61 · SyncPlan.toString</sub>
+- **U600** · `la nube está vacía`  <sub>merge.dart:63 · SyncPlan.toString</sub>
+- **U601** · `el teléfono está vacío y la nube no`  <sub>merge.dart:72 · SyncPlan.toString</sub>
+- **U602** · `nada cambió desde la última`  <sub>merge.dart:84 · SyncPlan.toString</sub>
+- **U603** · `sólo cambió el teléfono`  <sub>merge.dart:87 · SyncPlan.toString</sub>
+- **U604** · `sólo cambió la nube`  <sub>merge.dart:90 · SyncPlan.toString</sub>
+- **U605** · `cambiaron los dos y el teléfono es lo más reciente`  <sub>merge.dart:99 · SyncPlan.toString</sub>
+- **U606** · `cambiaron los dos y la nube es lo más reciente`  <sub>merge.dart:105 · SyncPlan.toString</sub>
+- **U607** · `Contanos más de tu hábito`  <sub>cadence_sheet.dart:52 · CadenceIntro.build</sub>
+- **U608** · `Ya pasó una semana. Con una pregunta, el pueblo entiende `  <sub>cadence_sheet.dart:62 · CadenceIntro.build</sub>
+- **U609** · `tu ritmo y no se preocupa de más.`  <sub>cadence_sheet.dart:63 · CadenceIntro.build</sub>
+- **U610** · `Ahora no`  <sub>cadence_sheet.dart:87 · CadenceIntro.build</sub>
+- **U611** · `Continuar`  <sub>cadence_sheet.dart:94 · CadenceIntro.build</sub>
+- **U612** · `día`  <sub>cadence_sheet.dart:186 · _CadenceSheetState.build</sub>
+- **U613** · `días`  <sub>cadence_sheet.dart:186 · _CadenceSheetState.build</sub>
+- **U614** · `TU RITMO`  <sub>cadence_sheet.dart:215 · _CadenceSheetState.build</sub>
+- **U615** · `CADA CUÁNTO`  <sub>cadence_sheet.dart:216 · _CadenceSheetState.build</sub>
+- **U616** · `En $dias $ds pusiste $piezas $pz.`  <sub>cadence_sheet.dart:223 · _CadenceSheetState.build</sub>
+- **U617** · `¿Cada cuánto va ${h.name}?`  <sub>cadence_sheet.dart:227 · _CadenceSheetState.build</sub>
+- **U618** · `¿Cada cuánto va ${h.name}? Viene marcado lo que se ve.`  <sub>cadence_sheet.dart:236 · _CadenceSheetState.build</sub>
+- **U619** · `No es una meta. Es para que el pueblo sepa cuándo un `  <sub>cadence_sheet.dart:241 · _CadenceSheetState.build</sub>
+- **U620** · `hueco es un hueco.`  <sub>cadence_sheet.dart:242 · _CadenceSheetState.build</sub>
+- **U621** · `Todos los días`  <sub>cadence_sheet.dart:257 · _CadenceSheetState.build</sub>
+- **U622** · `Un día sin pieza ya es un hueco.`  <sub>cadence_sheet.dart:259 · _CadenceSheetState.build</sub>
+- **U623** · `Algunos días por semana`  <sub>cadence_sheet.dart:268 · _CadenceSheetState.build</sub>
+- **U624** · `Los que toquen, sin día fijo.`  <sub>cadence_sheet.dart:270 · _CadenceSheetState.build</sub>
+- **U625** · `Cada dos días`  <sub>cadence_sheet.dart:289 · _CadenceSheetState.build</sub>
+- **U626** · `Un día sí y otro no.`  <sub>cadence_sheet.dart:290 · _CadenceSheetState.build</sub>
+- **U627** · `Una vez por semana`  <sub>cadence_sheet.dart:297 · _CadenceSheetState.build</sub>
+- **U628** · `Un día fijo, o el que se pueda.`  <sub>cadence_sheet.dart:299 · _CadenceSheetState.build</sub>
+- **U629** · `Cada dos semanas`  <sub>cadence_sheet.dart:308 · _CadenceSheetState.build</sub>
+- **U630** · `De vez en cuando, pero sin perderlo.`  <sub>cadence_sheet.dart:310 · _CadenceSheetState.build</sub>
+- **U631** · `Se cambia cuando quieras en la hoja del hábito.`  <sub>cadence_sheet.dart:332 · _CadenceSheetState.build</sub>
+- **U632** · `$n por semana`  <sub>cadence_sheet.dart:549 · _Count.build</sub>
+- **U633** · `0 fps`  <sub>perf_overlay.dart:46 · _PerfOverlayState._resume</sub>
+- **U634** · `cuadro ${arma[n ~/ 2].toStringAsFixed(1)} ms `  <sub>perf_overlay.dart:52 · _PerfOverlayState._resume</sub>
+- **U635** · `(peor ${arma.last.toStringAsFixed(0)})\n`  <sub>perf_overlay.dart:53 · _PerfOverlayState._resume</sub>
+- **U636** · `gpu ${gpu[n ~/ 2].toStringAsFixed(1)} ms`  <sub>perf_overlay.dart:54 · _PerfOverlayState._resume</sub>
+- **U637** · `\npueblo ${p.toStringAsFixed(1)} ms · `  <sub>perf_overlay.dart:60 · _PerfOverlayState._resume</sub>
+- **U638** · `Roboto`  <sub>perf_overlay.dart:93 · _PerfOverlayState.build</sub>
+- **U639** · `Clavar una nota`  <sub>pin_note_button.dart:41 · _PinNoteButtonState.build</sub>
+- **U640** · `en la cama`  <sub>plan_picker.dart:239 · _PlanSheetState.build</sub>
+- **U641** · `Elegí la hora y escribí el sitio.`  <sub>plan_picker.dart:254 · _PlanSheetState.build</sub>
+- **U642** · `DARLO POR HECHO`  <sub>plan_picker.dart:276 · _PlanSheetState.build</sub>
+- **U643** · `ArchitectsDaughter`  <sub>sage_screen.dart:43 · _Estilo.dicho</sub>
+- **U644** · `EBGaramond`  <sub>sage_screen.dart:51 · _Estilo.habla</sub>
+- **U645** · `EL CONSEJERO`  <sub>sage_screen.dart:434 · _Cabecera.build</sub>
+- **U646** · `un dicho guardado`  <sub>sage_screen.dart:459 · _Cabecera.build</sub>
+- **U647** · `$cuantos dichos guardados`  <sub>sage_screen.dart:460 · _Cabecera.build</sub>
+- **U648** · `Ahora no`  <sub>sage_screen.dart:1138 · _EscribeState.build</sub>
 
 ## Las notificaciones (9)
 
