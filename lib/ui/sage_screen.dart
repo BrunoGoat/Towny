@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../core/math3.dart';
+import '../core/rng.dart';
 import '../data/advice.dart';
 import '../data/character.dart';
 import '../data/doings.dart';
@@ -13,6 +14,7 @@ import '../engine/folk_body.dart';
 import '../engine/solid.dart';
 import '../engine/town.dart';
 import '../fx/sensory.dart';
+import '../l10n/lang.dart';
 import '../model/advice_book.dart';
 import '../model/store.dart';
 import 'sage_scroll.dart';
@@ -277,6 +279,9 @@ class _SageScreenState extends State<SageScreen> {
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
+          // Lo de atrás: la penumbra, la luz que sale del viejo y el polvo
+          // dorado que sube despacio.
+          const Positioned.fill(child: IgnorePointer(child: _Ambiente())),
           // Tocar el valle es irse.
           Positioned.fill(
             child: GestureDetector(
@@ -287,19 +292,21 @@ class _SageScreenState extends State<SageScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 4, 10, 0),
-                    child: _Redondo(
-                      e: e,
-                      onTap: () => Navigator.of(context).maybePop(),
-                      child: Icon(
-                        Icons.close_rounded,
-                        size: 20,
-                        color: e.tinta,
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(22, 6, 10, 0),
+                  child: Row(
+                    children: [
+                      Expanded(child: _Cabecera(cuantos: leidos.length)),
+                      _Redondo(
+                        e: e,
+                        onTap: () => Navigator.of(context).maybePop(),
+                        child: Icon(
+                          Icons.close_rounded,
+                          size: 20,
+                          color: e.tinta,
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
                 Expanded(
@@ -347,6 +354,198 @@ class _SageScreenState extends State<SageScreen> {
       ),
     );
   }
+}
+
+/// El nombre de la pantalla, como en la portada de un libro viejo: EL
+/// CONSEJERO en letra de libro, un filete con su estrella, y cuántos dichos
+/// lleva guardados.
+class _Cabecera extends StatelessWidget {
+  const _Cabecera({required this.cuantos});
+  final int cuantos;
+
+  static const Color _oroViejo = Color(0xFFE6CF98);
+
+  @override
+  Widget build(BuildContext context) {
+    final filete = Container(
+      height: 1,
+      width: 26,
+      color: _oroViejo.withValues(alpha: 0.5),
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          tr('EL CONSEJERO', 'THE ADVISOR'),
+          style: const TextStyle(
+            fontFamily: 'EBGaramond',
+            fontSize: 19,
+            letterSpacing: 4.5,
+            color: _oroViejo,
+            shadows: [Shadow(color: Color(0xAA000000), blurRadius: 10)],
+          ),
+        ),
+        const SizedBox(height: 3),
+        Row(
+          children: [
+            filete,
+            const SizedBox(width: 6),
+            Icon(
+              Icons.auto_awesome,
+              size: 10,
+              color: _oroViejo.withValues(alpha: 0.75),
+            ),
+            const SizedBox(width: 6),
+            filete,
+            const SizedBox(width: 10),
+            if (cuantos > 0)
+              Text(
+                cuantos == 1
+                    ? tr('un dicho guardado', 'one saying kept')
+                    : tr('$cuantos dichos guardados', '$cuantos sayings kept'),
+                style: TextStyle(
+                  fontFamily: 'EBGaramond',
+                  fontStyle: FontStyle.italic,
+                  fontSize: 13,
+                  color: _oroViejo.withValues(alpha: 0.7),
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Un rollo de la lista entre sus dos varillas de madera, como el que llega
+/// sellado: los rollos del viejo son todos del mismo taller.
+class _ConVarillas extends StatelessWidget {
+  const _ConVarillas({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) =>
+      CustomPaint(foregroundPainter: const _Varillas(), child: child);
+}
+
+class _Varillas extends CustomPainter {
+  const _Varillas();
+
+  @override
+  void paint(Canvas c, Size s) {
+    if (s.height < 8) return;
+    _Frente.varilla(c, 3, 12, s.width - 12);
+    _Frente.varilla(c, s.height - 3, 12, s.width - 12);
+  }
+
+  @override
+  bool shouldRepaint(_Varillas old) => false;
+}
+
+/// Lo de atrás de la pantalla del viejo: la penumbra, una luz cálida que sale
+/// de donde está él, y motas de polvo dorado subiendo despacio por el aire,
+/// como en un cuarto con una vela. Siempre igual para el mismo instante: las
+/// motas salen de su número, no de un dado.
+class _Ambiente extends StatefulWidget {
+  const _Ambiente();
+
+  @override
+  State<_Ambiente> createState() => _AmbienteState();
+}
+
+class _AmbienteState extends State<_Ambiente>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _reloj = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 120),
+  )..repeat();
+
+  @override
+  void dispose() {
+    _reloj.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: _reloj,
+    builder: (_, _) =>
+        CustomPaint(painter: _AmbientePainter(_reloj.value * 120)),
+  );
+}
+
+class _AmbientePainter extends CustomPainter {
+  _AmbientePainter(this.t);
+  final double t;
+
+  @override
+  void paint(Canvas c, Size s) {
+    final todo = Offset.zero & s;
+    // La penumbra: más oscuro abajo y en los bordes.
+    c.drawRect(
+      todo,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0x55000000), Color(0x22000000), Color(0x88000000)],
+          stops: [0, 0.4, 1],
+        ).createShader(todo),
+    );
+    c.drawRect(
+      todo,
+      Paint()
+        ..shader = RadialGradient(
+          radius: 0.95,
+          colors: const [Color(0x00000000), Color(0x66000000)],
+        ).createShader(todo),
+    );
+    // La luz del viejo: abajo a la izquierda, donde está él, latiendo como
+    // una vela.
+    final late = 0.85 + 0.15 * math.sin(t * 1.3) * math.sin(t * 0.7 + 1);
+    final foco = Offset(s.width * 0.22, s.height * 0.8);
+    final radio = s.width * 0.75;
+    c.drawCircle(
+      foco,
+      radio,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [
+            const Color(0xFFFFC870).withValues(alpha: 0.28 * late),
+            const Color(0x00FFC870),
+          ],
+        ).createShader(Rect.fromCircle(center: foco, radius: radio)),
+    );
+    // El polvo.
+    for (var i = 0; i < 34; i++) {
+      final x0 = hash01(i, 11) * s.width;
+      final v = 9 + hash01(i, 12) * 16;
+      final alto = s.height * 1.15;
+      final y = s.height - ((t * v + hash01(i, 13) * alto) % alto);
+      final x = x0 + math.sin(t * (0.3 + hash01(i, 14) * 0.4) + i) * 14;
+      final brilla = 0.35 + 0.65 * (0.5 + 0.5 * math.sin(t * 1.7 + i * 2.1));
+      final tam = 0.8 + hash01(i, 15) * 1.6;
+      // Más visibles cerca de la luz.
+      final cerca =
+          1 -
+          ((Offset(x, y) - foco).distance / (s.width * 1.3)).clamp(0.0, 1.0);
+      final a = (0.15 + 0.6 * cerca) * brilla;
+      c.drawCircle(
+        Offset(x, y),
+        tam * 2.8,
+        Paint()..color = const Color(0xFFFFD98A).withValues(alpha: 0.10 * a),
+      );
+      c.drawCircle(
+        Offset(x, y),
+        tam,
+        Paint()..color = const Color(0xFFFFEBC2).withValues(alpha: a),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_AmbientePainter old) => old.t != t;
 }
 
 /// Una hoja de papel, con su filete por dentro como las del tablón.
@@ -415,7 +614,9 @@ class _Lista extends StatelessWidget {
   final void Function(Advice) onTap;
 
   /// El margen de la lista: el rollo que llega volando va a este hueco.
-  static const EdgeInsets margen = EdgeInsets.fromLTRB(18, 14, 18, 14);
+  /// Ancho de lado: las varillas sobresalen del rollo con sus remates y
+  /// tienen que caber.
+  static const EdgeInsets margen = EdgeInsets.fromLTRB(32, 14, 32, 14);
 
   @override
   Widget build(BuildContext context) {
@@ -443,10 +644,12 @@ class _Lista extends StatelessWidget {
                   tween: Tween(begin: 0, end: 1),
                   duration: const Duration(milliseconds: 420),
                   curve: Curves.easeOutCubic,
-                  builder: (_, t, child) => SageScroll(open: t, child: child!),
+                  builder: (_, t, child) => _ConVarillas(
+                    child: SageScroll(open: t, child: child!),
+                  ),
                   child: texto,
                 )
-              : SageScroll(child: texto),
+              : _ConVarillas(child: SageScroll(child: texto)),
         );
       },
     );
@@ -1391,6 +1594,21 @@ class _Frente extends CustomPainter {
   static const _madera = Color(0xFF5B3A1E);
   static const _maderaClara = Color(0xFF8A5E33);
   static const _lacre = Color(0xFF8E1B1B);
+
+  /// Una varilla de madera con sus remates, de [x0] a [x1] a la altura [y].
+  /// La usan también los rollos de la lista, para que todos los rollos del
+  /// viejo sean del mismo taller.
+  static void varilla(Canvas c, double y, double x0, double x1) => _Frente(
+    null,
+    piola: 0,
+    tirando: false,
+    tira: 0,
+    reloj: 0,
+    roto: true,
+    chispas: const [],
+    trozos: const [],
+    estallido: null,
+  )._varilla(c, y, x0, x1);
 
   void _varilla(Canvas c, double y, double x0, double x1) {
     final barra = RRect.fromLTRBR(

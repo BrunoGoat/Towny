@@ -22,11 +22,11 @@ nombres de fuente (`PermanentMarker.ttf`), la hoja de pruebas y los comentarios.
 | Nombres de la gente | 87 | 87 | no: nombres propios |
 | Lo que hace la gente | 22 | 22 | sí |
 | Símbolos de hábito | 72 | 72 | sí |
-| La interfaz | 531 | 531 | sí |
+| La interfaz | 534 | 534 | sí |
 | Notificaciones | 9 | 9 | sí |
 | Widget de Android | 6 | 6 | sí |
 
-**902 entradas**, que son unas 1020 frases sueltas.
+**905 entradas**, que son unas 1023 frases sueltas.
 
 
 
@@ -1081,8 +1081,11 @@ Frases que no caen en ninguna pantalla concreta.
 - **U527** · `en la cama`  <sub>plan_picker.dart:239 · _PlanSheetState.build</sub>
 - **U528** · `Elegí la hora y escribí el sitio.`  <sub>plan_picker.dart:254 · _PlanSheetState.build</sub>
 - **U529** · `DARLO POR HECHO`  <sub>plan_picker.dart:276 · _PlanSheetState.build</sub>
-- **U530** · `ArchitectsDaughter`  <sub>sage_screen.dart:40 · _Estilo.dicho</sub>
-- **U531** · `EBGaramond`  <sub>sage_screen.dart:48 · _Estilo.habla</sub>
+- **U530** · `ArchitectsDaughter`  <sub>sage_screen.dart:42 · _Estilo.dicho</sub>
+- **U531** · `EBGaramond`  <sub>sage_screen.dart:50 · _Estilo.habla</sub>
+- **U532** · `EL CONSEJERO`  <sub>sage_screen.dart:380 · _Cabecera.build</sub>
+- **U533** · `un dicho guardado`  <sub>sage_screen.dart:405 · _Cabecera.build</sub>
+- **U534** · `$cuantos dichos guardados`  <sub>sage_screen.dart:406 · _Cabecera.build</sub>
 
 ## Las notificaciones (9)
 
