@@ -1780,7 +1780,10 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
                           ),
                         ),
                       );
-                      final rect = _rollo();
+                      // Dónde está el rollo se mide al pintar, no aquí: aquí
+                      // todavía vale el del fotograma anterior, y mientras
+                      // se desenrolla la varilla de abajo quedaba encima de
+                      // la hoja en vez de debajo.
                       return Stack(
                         key: _escenaKey,
                         children: [
@@ -1789,7 +1792,7 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
                             child: IgnorePointer(
                               child: CustomPaint(
                                 painter: _Luz(
-                                  rect,
+                                  _rollo,
                                   abre,
                                   _apretado,
                                   _estallido,
@@ -1825,7 +1828,7 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
                             child: IgnorePointer(
                               child: CustomPaint(
                                 painter: _Frente(
-                                  rect?.shift(temblor),
+                                  () => _rollo()?.shift(temblor),
                                   piola: _sellado ? llega : 0,
                                   tirando: _apretado,
                                   tira: abre,
@@ -1897,8 +1900,12 @@ const Key sageCordKey = ValueKey('sage-cord');
 /// crece con lo abierto, una raya de luz en la boca por donde se desenrolla,
 /// y al abrirse del todo, el fogonazo.
 class _Luz extends CustomPainter {
-  _Luz(this.rect, this.tira, this.tirando, this.estallido, this.reloj);
-  final Rect? rect;
+  _Luz(this.rectOf, this.tira, this.tirando, this.estallido, this.reloj);
+
+  /// Dónde está el rollo, medido al pintar: ya con el tamaño de este
+  /// fotograma.
+  final Rect? Function() rectOf;
+  Rect? get rect => rectOf();
   final double tira;
   final bool tirando;
   final double? estallido;
@@ -1951,7 +1958,7 @@ class _Luz extends CustomPainter {
 /// se rompa, sus trozos, las chispas y el fogonazo con su onda.
 class _Frente extends CustomPainter {
   _Frente(
-    this.rect, {
+    this.rectOf, {
     required this.piola,
     required this.tirando,
     required this.tira,
@@ -1961,7 +1968,10 @@ class _Frente extends CustomPainter {
     required this.trozos,
     required this.estallido,
   });
-  final Rect? rect;
+
+  /// Dónde está el rollo, medido al pintar —como en [_Luz]—.
+  final Rect? Function() rectOf;
+  Rect? get rect => rectOf();
 
   /// Cuánto se ve la piola: nada una vez abierto.
   final double piola;
@@ -1981,7 +1991,7 @@ class _Frente extends CustomPainter {
   /// La usan también los rollos de la lista, para que todos los rollos del
   /// viejo sean del mismo taller.
   static void varilla(Canvas c, double y, double x0, double x1) => _Frente(
-    null,
+    () => null,
     piola: 0,
     tirando: false,
     tira: 0,
