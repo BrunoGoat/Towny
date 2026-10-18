@@ -44,7 +44,7 @@ void main() {
     return store;
   }
 
-  final flecha = find.byIcon(Icons.keyboard_double_arrow_down);
+  final flecha = find.byKey(sageCordKey);
 
   testWidgets('llega cerrado, y un toque no lo abre ni lo cierra', (
     tester,

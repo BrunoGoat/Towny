@@ -1220,31 +1220,11 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
                             child: Column(
                               children: [
                                 rollo,
-                                // Debajo de la cuerda de abajo, una flecha
-                                // que baja y vuelve: «tirá de acá», sin una
-                                // palabra. Se va mientras se abre.
+                                // El sitio de la piola que cuelga de la
+                                // varilla de abajo. La dibuja [_Frente];
+                                // aquí sólo se le guarda el hueco.
                                 if (_sellado)
-                                  Opacity(
-                                    opacity: llega * (1 - _tira).clamp(0, 1),
-                                    child: Transform.translate(
-                                      offset: Offset(
-                                        0,
-                                        _apretado
-                                            ? 0
-                                            : 10 *
-                                                  (0.5 -
-                                                      0.5 *
-                                                          math.cos(
-                                                            _reloj * 3.4,
-                                                          )),
-                                      ),
-                                      child: Icon(
-                                        Icons.keyboard_double_arrow_down,
-                                        size: 34,
-                                        color: e.papel.withValues(alpha: 0.85),
-                                      ),
-                                    ),
-                                  ),
+                                  const SizedBox(key: sageCordKey, height: 70),
                               ],
                             ),
                           ),
@@ -1256,6 +1236,10 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
                             child: CustomPaint(
                               painter: _Frente(
                                 rect?.shift(temblor),
+                                piola: _sellado ? llega : 0,
+                                tirando: _apretado,
+                                tira: _tira,
+                                reloj: _reloj,
                                 roto: _roto,
                                 chispas: _chispas,
                                 trozos: _trozos,
@@ -1320,6 +1304,10 @@ class _Chispa {
 
 const Color _oro = Color(0xFFFFD27A);
 
+/// El hueco de la piola bajo un consejo nuevo, mientras está sellado. Para
+/// que los tests sepan si sigue cerrado.
+const Key sageCordKey = ValueKey('sage-cord');
+
 /// La luz que sale del rollo mientras se abre: un halo dorado detrás que
 /// crece con lo abierto, una raya de luz en la boca por donde se desenrolla,
 /// y al abrirse del todo, el fogonazo.
@@ -1379,12 +1367,22 @@ class _Luz extends CustomPainter {
 class _Frente extends CustomPainter {
   _Frente(
     this.rect, {
+    required this.piola,
+    required this.tirando,
+    required this.tira,
+    required this.reloj,
     required this.roto,
     required this.chispas,
     required this.trozos,
     required this.estallido,
   });
   final Rect? rect;
+
+  /// Cuánto se ve la piola: nada una vez abierto.
+  final double piola;
+  final bool tirando;
+  final double tira;
+  final double reloj;
   final bool roto;
   final List<_Chispa> chispas;
   final List<_Chispa> trozos;
@@ -1420,10 +1418,76 @@ class _Frente extends CustomPainter {
     }
   }
 
+  /// La piola que cuelga del medio de la varilla de abajo, con su nudo y su
+  /// borla: de donde se tira, aunque tirar valga desde cualquier sitio.
+  ///
+  /// Quieta, se mece y cada tanto da un tironcito hacia abajo, solo, como si
+  /// alguien del otro lado la probara. Tirando, se tensa y se estira.
+  void _piola(Canvas c, Offset desde) {
+    // El tironcito: cada dos segundos y medio, un bajón corto que vuelve.
+    final ciclo = (reloj % 2.5) / 2.5;
+    final tiron = ciclo < 0.18 ? math.sin(ciclo / 0.18 * math.pi) : 0.0;
+    final largo = tirando ? 58.0 + 10 * tira : 46.0 + 9 * tiron;
+    final mece = tirando ? 0.0 : math.sin(reloj * 1.7) * 7 * (1 - tiron * 0.6);
+    final punta = desde + Offset(mece, largo);
+    // Floja, la cuerda hace panza hacia el lado contrario al vaivén; tensa,
+    // va derecha.
+    final panza = tirando ? 0.0 : -mece * 0.6;
+    final medio = Offset(
+      (desde.dx + punta.dx) / 2 + panza,
+      (desde.dy + punta.dy) / 2,
+    );
+    final cuerda = Path()
+      ..moveTo(desde.dx, desde.dy)
+      ..quadraticBezierTo(medio.dx, medio.dy, punta.dx, punta.dy);
+    final a = piola.clamp(0.0, 1.0);
+    c.drawPath(
+      cuerda,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = tirando ? 2.6 : 3.0
+        ..strokeCap = StrokeCap.round
+        ..color = const Color(0xFF6B4A26).withValues(alpha: a),
+    );
+    // El trenzado: rayitas claras a lo largo, que es lo que la hace cuerda
+    // y no un alambre.
+    final metrica = cuerda.computeMetrics().firstOrNull;
+    if (metrica != null) {
+      final raya = Paint()
+        ..strokeWidth = 1.1
+        ..color = const Color(0xFFB08A55).withValues(alpha: a);
+      for (var d = 4.0; d < metrica.length - 2; d += 5) {
+        final t = metrica.getTangentForOffset(d);
+        if (t == null) continue;
+        final n = Offset(-t.vector.dy, t.vector.dx);
+        c.drawLine(
+          t.position - n * 1.4 - t.vector * 1.2,
+          t.position + n * 1.4 + t.vector * 1.2,
+          raya,
+        );
+      }
+    }
+    // El nudo y la borla.
+    c.drawCircle(
+      punta,
+      4.6,
+      Paint()..color = const Color(0xFF5A3A1E).withValues(alpha: a),
+    );
+    final borla = Paint()
+      ..strokeWidth = 1.6
+      ..strokeCap = StrokeCap.round
+      ..color = const Color(0xFF8E1B1B).withValues(alpha: a);
+    for (var k = -2; k <= 2; k++) {
+      final abre = k * 2.4 + (tirando ? 0 : mece * 0.15);
+      c.drawLine(punta + Offset(k * 1.2, 3), punta + Offset(abre, 15), borla);
+    }
+  }
+
   @override
   void paint(Canvas c, Size s) {
     final r = rect;
     if (r != null) {
+      if (piola > 0) _piola(c, Offset(r.center.dx, r.bottom - 1));
       _varilla(c, r.top + 3, r.left + 6, r.right - 6);
       _varilla(c, r.bottom - 3, r.left + 6, r.right - 6);
       if (!roto) {
