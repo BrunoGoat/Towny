@@ -655,10 +655,10 @@ void main() {
       expect(s.canAddHabit, isTrue);
     });
 
-    test('un valle que ya tenía varios pueblos entra abierto', () async {
-      // Lo que pediste: esto no es retrocompatible hacia atrás. Una copia
-      // guardada antes del candado, con más de un pueblo, los conserva todos y
-      // no se le pregunta nada.
+    test('un valle que ya tenía varios pueblos los conserva todos', () async {
+      // Una copia guardada antes del candado, con más de un pueblo, los
+      // conserva todos y no se le pregunta nada. El siguiente, eso sí, se
+      // gana como cualquier otro.
       SharedPreferences.setMockInitialValues({
         'pueblo_state_v1': jsonEncode({
           'v': 1,
@@ -672,8 +672,86 @@ void main() {
       final s = Store();
       await s.load();
       expect(s.habits.length, 2);
-      expect(s.unlocked, isTrue);
+      expect(s.allowed, 2);
+      expect(s.canAddHabit, isFalse, reason: 'el tercero se gana');
+    });
+  });
+
+  group('el tercer pueblo, y los que siguen', () {
+    /// Diez días con pieza en los últimos catorce: lo que sostiene un hábito
+    /// de todos los días.
+    void sostener(Habit h) {
+      final today = dayStart(DateTime.now());
+      for (final offset in [0, 1, 2, 4, 5, 7, 8, 9, 11, 13]) {
+        h.pieces.add(
+          Piece(
+            index: h.pieces.length,
+            placedAt: today.subtract(Duration(days: 13 - offset, hours: -12)),
+          ),
+        );
+      }
+      h.pieces.sort((a, b) => a.placedAt.compareTo(b.placedAt));
+    }
+
+    test('ganar el segundo no abre todos los demás', () async {
+      final s = await freshStore();
+      sostener(s.habit);
+      s.placePiece();
       expect(s.canAddHabit, isTrue);
+      s.addHabit('Correr', 'carrera');
+      // Lo que pasaba: con el segundo ganado se podían fundar los seis.
+      expect(s.habits.length, 2);
+      expect(s.canAddHabit, isFalse, reason: 'el tercero se abrió solo');
+    });
+
+    test('sostener sólo uno de los dos no alcanza', () async {
+      final s = await freshStore();
+      sostener(s.habit);
+      s.placePiece();
+      s.addHabit('Correr', 'carrera');
+      // El primero sigue sostenido; el segundo, recién fundado, no.
+      s.select(0);
+      s.placePiece();
+      expect(s.canAddHabit, isFalse);
+      expect(s.unlockGoal.met, isFalse, reason: 'manda el que va peor');
+    });
+
+    test(
+      'sostener los dos a la vez abre el tercero, y sólo el tercero',
+      () async {
+        final s = await freshStore();
+        sostener(s.habit);
+        s.placePiece();
+        s.addHabit('Correr', 'carrera');
+        sostener(s.habits[1]);
+        s.select(1);
+        s.placePiece();
+        expect(s.allowed, 3);
+        expect(s.canAddHabit, isTrue);
+        s.addHabit('Meditar', 'luna');
+        expect(s.canAddHabit, isFalse, reason: 'el cuarto pide los tres');
+      },
+    );
+
+    test('un pueblo ganado no se pierde por un mes malo', () async {
+      final s = await freshStore();
+      sostener(s.habit);
+      s.placePiece();
+      s.addHabit('Correr', 'carrera');
+      sostener(s.habits[1]);
+      s.select(1);
+      s.placePiece();
+      expect(s.canAddHabit, isTrue);
+      for (final h in s.habits) {
+        h.pieces.clear();
+      }
+      expect(s.unlockGoal.met, isFalse);
+      expect(s.canAddHabit, isTrue);
+      // Y se guarda: al volver a abrir la app sigue ganado.
+      await Future<void>.delayed(Duration.zero);
+      final again = Store();
+      await again.load();
+      expect(again.allowed, 3);
     });
   });
 

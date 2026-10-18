@@ -642,7 +642,8 @@ class _HomeScreenState extends State<HomeScreen>
       _foundNext();
       return;
     }
-    if (widget.store.unlocked) return; // el valle está lleno, y eso no se abre
+    // El valle está lleno, y eso no se abre.
+    if (widget.store.habits.length >= Habit.maxSlots) return;
     Sensory.instance.tick();
     showModalBottomSheet<void>(
       context: context,

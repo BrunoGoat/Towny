@@ -31,6 +31,10 @@ class UnlockSheet extends StatelessWidget {
     final done = goal.have;
     final left = goal.need - done;
     final falla = goal.slack;
+    // Con más de un pueblo, el siguiente pide que se sostengan todos a la
+    // vez: se dice cómo va cada uno, y el que falta es el que manda.
+    final varios = store.habits.length > 1;
+    final siguiente = store.habits.length + 1;
     return Frosted(
       theme: t,
       strong: true,
@@ -52,27 +56,76 @@ class UnlockSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Text(tr('EL SEGUNDO PUEBLO', 'THE SECOND TOWN'), style: t.label),
+            Text(
+              tr(
+                'EL ${townOrdinal(siguiente).$1.toUpperCase()} PUEBLO',
+                'THE ${townOrdinal(siguiente).$2.toUpperCase()} TOWN',
+              ),
+              style: t.label,
+            ),
             const SizedBox(height: 10),
-            Text(
-              left <= 1
-                  ? tr(
-                      'Te falta un día con pieza.',
-                      'You need one more day with a piece.',
-                    )
-                  : tr(
-                      'Te faltan $left días con pieza.',
-                      'You need $left more days with a piece.',
+            if (varios) ...[
+              Text(
+                tr(
+                  'Se abre cuando sostenés los ${store.habits.length} que tenés '
+                      'a la vez, cada uno a su ritmo.',
+                  'It opens when you keep up all ${store.habits.length} you have '
+                      'at once, each at its own pace.',
+                ),
+                style: t.title,
+              ),
+              const SizedBox(height: 14),
+              for (final (h, g) in store.unlockGoals) ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        h.name,
+                        style: t.body.copyWith(fontWeight: FontWeight.w600),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-              style: t.title,
-            ),
-            const SizedBox(height: 6),
-            Text(
-              _rule(goal),
-              style: t.bodySoft.copyWith(fontSize: 12.5, height: 1.4),
-            ),
-            const SizedBox(height: 16),
-            _days(t, done, goal.need),
+                    Text(
+                      g.met
+                          ? tr('se sostiene', 'holding')
+                          : (g.need - g.have <= 1
+                                ? tr('falta 1 día', '1 day left')
+                                : tr(
+                                    'faltan ${g.need - g.have} días',
+                                    '${g.need - g.have} days left',
+                                  )),
+                      style: t.bodySoft.copyWith(
+                        fontSize: 12.5,
+                        color: g.met ? t.accent : null,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                _days(t, g.have, g.need),
+                const SizedBox(height: 12),
+              ],
+            ] else ...[
+              Text(
+                left <= 1
+                    ? tr(
+                        'Te falta un día con pieza.',
+                        'You need one more day with a piece.',
+                      )
+                    : tr(
+                        'Te faltan $left días con pieza.',
+                        'You need $left more days with a piece.',
+                      ),
+                style: t.title,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                _rule(goal),
+                style: t.bodySoft.copyWith(fontSize: 12.5, height: 1.4),
+              ),
+              const SizedBox(height: 16),
+              _days(t, done, goal.need),
+            ],
             const SizedBox(height: 16),
             Text(
               // Lo importante de estas dos frases es que la segunda desarma la
@@ -105,8 +158,8 @@ class UnlockSheet extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               tr(
-                'Y una vez abierta no se cierra nunca, pase lo que pase después.',
-                'And once open it never closes, whatever happens afterwards.',
+                'Y un pueblo ganado no se pierde nunca, pase lo que pase después.',
+                'And a town once earned is never lost, whatever happens afterwards.',
               ),
               style: t.bodySoft.copyWith(
                 fontSize: 12.5,
@@ -173,3 +226,14 @@ class UnlockSheet extends StatelessWidget {
     ],
   );
 }
+
+/// Cómo se dice el pueblo número [n] —el segundo, el tercero—, en castellano
+/// delante de un nombre («tercer pueblo») y en inglés.
+(String, String) townOrdinal(int n) => switch (n) {
+  2 => ('segundo', 'second'),
+  3 => ('tercer', 'third'),
+  4 => ('cuarto', 'fourth'),
+  5 => ('quinto', 'fifth'),
+  6 => ('sexto', 'sixth'),
+  _ => ('siguiente', 'next'),
+};

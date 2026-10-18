@@ -30,6 +30,7 @@ import '../model/census.dart';
 import '../model/habit.dart';
 import '../model/piece.dart';
 import '../model/store.dart';
+import 'unlock_sheet.dart' show townOrdinal;
 
 /// Handle the surrounding UI uses to drive the wall.
 class TownViewController {
@@ -992,10 +993,11 @@ class _TownViewState extends State<TownView>
       Future.delayed(const Duration(milliseconds: 260), () {
         if (mounted) Sensory.instance.milestone();
       });
+      final (es, en) = townOrdinal(widget.store.allowed);
       widget.onWhisper(
         tr(
-          'El valle abre un segundo solar. Ya podés fundar otro pueblo.',
-          'The valley opens a second plot. You can found another town now.',
+          'El valle abre un $es solar. Ya podés fundar otro pueblo.',
+          'The valley opens a $en plot. You can found another town now.',
         ),
       );
     }

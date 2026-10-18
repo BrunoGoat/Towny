@@ -293,60 +293,82 @@ class Store extends ChangeNotifier {
 
   // ------------------------------------------------------------- el candado
 
-  /// Si el valle ya se ganó el derecho a tener más de un pueblo.
+  /// Cuántos pueblos se ganó el valle: uno al empezar, y uno más cada vez que
+  /// **todos** los que tiene se sostienen a la vez.
   ///
-  /// Una vez abierta, la puerta no se vuelve a cerrar nunca. Es lo único que
-  /// hace que un candado sea aceptable en esta app: un mes malo no te puede
-  /// quitar algo que ya habías conseguido, porque entonces el castigo caería
-  /// justo sobre la persona para la que está hecho todo lo demás.
-  bool _unlocked = false;
+  /// El segundo se gana sosteniendo el primero. El tercero, sosteniendo el
+  /// primero y el segundo al mismo tiempo, cada uno a su ritmo; el cuarto, los
+  /// tres. Antes la puerta se abría una vez y quedaba abierta para todos los
+  /// demás: con el segundo pueblo ganado se podían fundar los seis de golpe,
+  /// que es exactamente la lista de deseos que el candado está para evitar.
+  /// Uno se gana el siguiente cuando demostró que puede con los que ya tiene.
+  ///
+  /// Una vez ganado, un solar no se pierde. Es lo único que hace que un
+  /// candado sea aceptable en esta app: un mes malo no te puede quitar algo
+  /// que ya habías conseguido, porque entonces el castigo caería justo sobre
+  /// la persona para la que está hecho todo lo demás.
+  int _earned = 1;
 
-  /// También abierta, sin haberse ganado, si se pidió en ajustes para probar
-  /// ([Appearance.freeHabits]). Eso no escribe nada: apagarlo vuelve a cerrar
-  /// la puerta si el valle sigue teniendo un solo pueblo.
-  bool get unlocked =>
-      _unlocked || habits.length > 1 || Appearance.instance.freeHabits;
+  /// Cuántos pueblos puede tener el valle ahora: los ganados, y nunca menos
+  /// de los que ya tiene. Todos, si se pidió en ajustes para probar
+  /// ([Appearance.freeHabits]); eso no escribe nada, y apagarlo vuelve a
+  /// cerrar la puerta.
+  int get allowed => Appearance.instance.freeHabits
+      ? Habit.maxSlots
+      : math.max(_earned, habits.length);
 
-  /// Cuánto falta para abrir el segundo solar, medido en el hábito que mejor
-  /// va y contra su propio ritmo. Ver [UnlockGoal].
+  /// Si la puerta al pueblo siguiente está abierta: se ganó un solar que
+  /// todavía no tiene pueblo.
+  bool get unlocked => allowed > habits.length;
+
+  /// Lo que pide cada pueblo para abrir el siguiente: su propio ritmo,
+  /// sostenido. Ver [UnlockGoal].
+  List<(Habit, UnlockGoal)> get unlockGoals => [
+    for (final h in habits) (h, UnlockGoal.of(h)),
+  ];
+
+  /// Lo que falta para el siguiente, medido en el pueblo que más lejos está:
+  /// como tienen que sostenerse todos a la vez, el que manda es el que va
+  /// peor. Con un solo pueblo, el de siempre.
   ///
   /// Días con pieza y no piezas: diez en una tarde son una tarde, y lo que
   /// esto pregunta es si la cosa se sostiene.
   UnlockGoal get unlockGoal {
-    UnlockGoal? best;
-    for (final h in habits) {
-      final g = UnlockGoal.of(h);
-      if (best == null || g.progress > best.progress) best = g;
+    UnlockGoal? worst;
+    for (final (_, g) in unlockGoals) {
+      if (worst == null || g.progress < worst.progress) worst = g;
     }
-    return best!;
+    return worst!;
   }
 
-  /// Si lo de hoy abre la puerta, dejarlo escrito.
+  /// Si lo de hoy gana un solar, dejarlo escrito.
   ///
-  /// Se mira al poner una pieza y al cargar, que es cuando puede haber
-  /// cambiado. Escribirlo y no recalcularlo es lo que hace que no se cierre.
+  /// Se mira al poner una pieza, al decir un ritmo y al cargar, que es cuando
+  /// puede haber cambiado. Escribirlo y no recalcularlo es lo que hace que no
+  /// se pierda.
   bool _checkUnlock() {
-    if (_unlocked) return false;
-    if (habits.length > 1 || unlockGoal.met) {
-      _unlocked = true;
-      return true;
+    if (_earned > habits.length) return false;
+    if (habits.length >= Habit.maxSlots) return false;
+    for (final (_, g) in unlockGoals) {
+      if (!g.met) return false;
     }
-    return false;
+    _earned = habits.length + 1;
+    return true;
   }
 
   /// Si se puede fundar otro pueblo ahora mismo.
   ///
   /// Dos condiciones, y son distintas entre sí: el valle tiene sitio, y vos
-  /// demostraste que podés sostener uno. La primera es geometría; la segunda
-  /// es la única cosa que esta app te pide antes de darte algo.
+  /// demostraste que podés sostener los que tenés. La primera es geometría;
+  /// la segunda es la única cosa que esta app te pide antes de darte algo.
   ///
-  /// El segundo pueblo se gana porque sobreestimar cuánto cambio se puede
-  /// sostener es lo que hace casi todo el mundo el primer día: cuando hay
-  /// ganas es facilísimo pensar «ahora sí» y querer arreglar diez cosas a la
-  /// vez, y cada una de ellas cuesta un poco de atención aunque no cueste
-  /// tiempo. Un valle que se abre solo es una lista de deseos; uno que se abre
-  /// cuando lo anterior se sostiene dice otra cosa — primero aprendí a
-  /// mantener una, ahora estoy listo para otra.
+  /// Cada pueblo se gana porque sobreestimar cuánto cambio se puede sostener
+  /// es lo que hace casi todo el mundo: cuando hay ganas es facilísimo pensar
+  /// «ahora sí» y querer arreglar diez cosas a la vez, y cada una de ellas
+  /// cuesta un poco de atención aunque no cueste tiempo. Un valle que se abre
+  /// solo es una lista de deseos; uno que se abre cuando lo anterior se
+  /// sostiene dice otra cosa — puedo con lo que tengo, ahora estoy listo para
+  /// otra.
   bool get canAddHabit => habits.length < Habit.maxSlots && unlocked;
 
   // ------------------------------------------------------------ desenganche
@@ -744,16 +766,30 @@ class Store extends ChangeNotifier {
     // por definición, un valle que ya está del otro lado de la puerta. Se
     // marca abierto y no se le pregunta nada. Nadie pierde un pueblo por una
     // regla que se inventó después de que lo fundara.
-    _unlocked = (j['u'] as bool?) ?? habits.length > 1;
+    _earned = _earnedFrom(j);
     _seenArrival = (j['w'] as num?)?.toInt() ?? 0;
     // `sky` —el cuaderno de constelaciones— se lee y se tira: al no volver a
     // escribirse, el disco se limpia solo en el primer guardado.
   }
 
+  /// Cuántos pueblos se había ganado una copia guardada.
+  ///
+  /// Las de antes guardaban sólo si la puerta del segundo estaba abierta
+  /// (`u`), y las de antes del candado no guardaban nada. En los dos casos
+  /// vale como ganado lo que ya tenía: nadie pierde un pueblo por una regla
+  /// que se inventó después de que lo fundara. Lo que no trae es el solar
+  /// siguiente, que se gana como cualquier otro.
+  int _earnedFrom(Map<String, dynamic> j) {
+    final dicho =
+        (j['u2'] as num?)?.toInt() ?? ((j['u'] as bool?) == true ? 2 : 1);
+    return math.max(dicho, habits.length).clamp(1, Habit.maxSlots);
+  }
+
   Map<String, dynamic> _encode() => {
     'v': 1,
     'a': active,
-    if (_unlocked) 'u': true,
+    // Sólo si dice algo: los pueblos que ya tiene valen siempre como ganados.
+    if (_earned > habits.length) 'u2': _earned,
     if (_seenArrival > 0) 'w': _seenArrival,
     'h': habits.map((h) => h.toJson()).toList(),
   };
@@ -832,7 +868,7 @@ class Store extends ChangeNotifier {
     // Lo mismo que al cargar: una copia con varios pueblos dentro ya está del
     // otro lado de la puerta, la traiga escrito o no. Restaurar una copia no
     // puede devolverte a un valle donde tus propios pueblos no cabrían.
-    _unlocked = (parsed['u'] as bool?) ?? habits.length > 1;
+    _earned = _earnedFrom(parsed);
     _checkUnlock();
     preview = null;
     _writeUpAll();
@@ -1130,7 +1166,7 @@ class Store extends ChangeNotifier {
     active = 0;
     // Un valle en blanco es un valle en blanco: la puerta vuelve a estar
     // cerrada, igual que en un teléfono que nunca abrió la app.
-    _unlocked = false;
+    _earned = 1;
     await _prefs?.remove(_key);
     notifyListeners();
   }

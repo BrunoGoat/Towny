@@ -153,9 +153,9 @@ class _SettingsSheetState extends State<SettingsSheet> {
                   title: tr('Sin límite de hábitos', 'No habit limit'),
                   subtitle: tr(
                     'Fundar pueblos nuevos sin tener que desbloquearlos. Para probar: '
-                        'el segundo pueblo se gana.',
-                    'Found new towns without unlocking them. For testing: the second '
-                        'town is meant to be earned.',
+                        'cada pueblo se gana sosteniendo los que ya hay.',
+                    'Found new towns without unlocking them. For testing: each town '
+                        'is meant to be earned by keeping up the ones you have.',
                   ),
                   on: wants.freeHabits,
                   onChanged: wants.setFreeHabits,
