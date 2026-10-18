@@ -329,9 +329,9 @@ class _SettingsSheetState extends State<SettingsSheet> {
                     tr('Charla de un tropiezo', 'A stumble talk'),
                     tr(
                       'Como si ayer este pueblo se hubiera quedado sin '
-                          'piedra. Lo que contestes se guarda.',
-                      'As if this town had got no stone yesterday. What you '
-                          'answer is kept.',
+                          'piedra. De prueba: no toca tus datos.',
+                      'As if this town had got no stone yesterday. Just a '
+                          'test: your data stays untouched.',
                     ),
                   ),
                   (
@@ -339,17 +339,20 @@ class _SettingsSheetState extends State<SettingsSheet> {
                     tr('Repasar la identidad', 'Review the identity'),
                     tr(
                       'La pregunta de si todavía es quien querés ser, con sus '
-                          'votos.',
+                          'votos. De prueba: no toca tus datos.',
                       'The question of whether it is still who you want to be, '
-                          'with its votes.',
+                          'with its votes. Just a test: your data stays '
+                          'untouched.',
                     ),
                   ),
                   (
                     TalkKind.week,
                     tr('Charla de la semana', 'The weekly talk'),
                     tr(
-                      'Cómo fue el camino, qué costó y qué ajustamos.',
-                      'How the road went, what was hard and what to adjust.',
+                      'Cómo fue el camino, qué costó y qué ajustamos. De '
+                          'prueba: no toca tus datos.',
+                      'How the road went, what was hard and what to adjust. '
+                          'Just a test: your data stays untouched.',
                     ),
                   ),
                 ])

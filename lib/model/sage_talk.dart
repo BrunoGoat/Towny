@@ -108,38 +108,119 @@ TalkStep? nextTalk(Store store, AdviceBook book, {DateTime? at}) {
   if (!book.met) return null;
   for (final h in store.habits) {
     final dia = stumbleDue(h, at: now);
-    if (dia != null) return _Charla(store, book, now).tropiezo(h, dia);
+    if (dia != null) return _Charla.deVerdad(store, book, now).tropiezo(h, dia);
   }
   final quien = identityDue(store.habits, at: now);
-  if (quien != null) return _Charla(store, book, now).identidad(quien);
-  if (book.weekDue(at: now)) return _Charla(store, book, now).semana();
+  if (quien != null) return _Charla.deVerdad(store, book, now).identidad(quien);
+  if (book.weekDue(at: now)) return _Charla.deVerdad(store, book, now).semana();
   return null;
 }
 
 /// Las tres charlas, para probarlas desde los ajustes de desarrollo.
 enum TalkKind { stumble, identity, week }
 
-/// Una charla a la fuerza, sobre el pueblo de delante, toque o no toque. Lo
-/// que se conteste se guarda como si fuera de verdad.
+/// Una charla a la fuerza, sobre el pueblo de delante, toque o no toque.
+///
+/// **De prueba de verdad:** habla sobre copias de tus hábitos, y lo que se
+/// conteste —el tropiezo, el ritmo, el plan, la identidad, la semana— se
+/// queda en esas copias y se pierde al cerrar. Ni el almacén ni la libreta
+/// del consejero se enteran.
 TalkStep trialTalk(TalkKind kind, Store store, AdviceBook book) {
   final now = DateTime.now();
-  final c = _Charla(store, book, now);
+  final copias = [for (final h in store.habits) Habit.fromJson(h.toJson())];
+  final actual = copias[store.habits.indexOf(store.habit)];
+  final c = _Charla(copias, actual, book, now, const _EnCopia());
   return switch (kind) {
     TalkKind.stumble => c.tropiezo(
-      store.habit,
+      actual,
       DateTime(now.year, now.month, now.day - 1),
     ),
-    TalkKind.identity => c.identidad(store.habit),
+    TalkKind.identity => c.identidad(actual),
     TalkKind.week => c.semana(),
   };
 }
 
-class _Charla {
-  _Charla(this.store, this.book, this.now);
+/// Lo que una charla cambia al contestarla. De verdad, va al almacén y a la
+/// libreta; de prueba, sólo a las copias.
+abstract class _Hace {
+  const _Hace();
+  void stumbled(Habit h, DateTime day, Stumble cause);
+  void setCadence(Habit h, double perWeek);
+  void planHabit(Habit h, {required String when, required String then});
+  void setFloor(Habit h, String floor);
+  void confirmIdentity(Habit h, {String? identity});
+  void weekDone(DateTime at, String how, String cost);
+}
 
+class _DeVerdad extends _Hace {
+  const _DeVerdad(this.store, this.book);
   final Store store;
   final AdviceBook book;
+
+  @override
+  void stumbled(Habit h, DateTime day, Stumble cause) =>
+      store.stumbled(h, day, cause);
+  @override
+  void setCadence(Habit h, double perWeek) => store.setCadence(h, perWeek);
+  @override
+  void planHabit(Habit h, {required String when, required String then}) =>
+      store.planHabit(h, when: when, then: then);
+  @override
+  void setFloor(Habit h, String floor) => store.setFloor(h, floor);
+  @override
+  void confirmIdentity(Habit h, {String? identity}) =>
+      store.confirmIdentity(h, identity: identity);
+  @override
+  void weekDone(DateTime at, String how, String cost) =>
+      book.weekDone(at: at, how: how, cost: cost);
+}
+
+/// Lo mismo que hace el almacén, pero en la copia y sin guardar nada: para
+/// que lo que dice el viejo después —«Cuando…, voy a…»— salga igual que de
+/// verdad.
+class _EnCopia extends _Hace {
+  const _EnCopia();
+
+  @override
+  void stumbled(Habit h, DateTime day, Stumble cause) =>
+      h.stumbles.add(StumbleEntry(day, cause).encode());
+  @override
+  void setCadence(Habit h, double perWeek) => h.perWeek = perWeek;
+  @override
+  void planHabit(Habit h, {required String when, required String then}) {
+    h.planIf = when.trim();
+    h.planThen = then.trim();
+  }
+
+  @override
+  void setFloor(Habit h, String floor) => h.floor = floor.trim();
+  @override
+  void confirmIdentity(Habit h, {String? identity}) {
+    if (identity != null && identity.trim().isNotEmpty) {
+      h.identity = identity.trim();
+    }
+    h.identityAt = DateTime.now();
+  }
+
+  @override
+  void weekDone(DateTime at, String how, String cost) {}
+}
+
+class _Charla {
+  _Charla(this.habits, this.actual, this.book, this.now, this.hace);
+
+  _Charla.deVerdad(Store store, this.book, this.now)
+    : habits = store.habits,
+      actual = store.habit,
+      hace = _DeVerdad(store, book);
+
+  /// Los hábitos de los que se habla —los de verdad, o sus copias— y el del
+  /// pueblo de delante.
+  final List<Habit> habits;
+  final Habit actual;
+  final AdviceBook book;
   final DateTime now;
+  final _Hace hace;
 
   AdviceGoal _busca(Habit h) => book.goalOf(h.id) ?? AdviceGoal.start;
 
@@ -148,7 +229,7 @@ class _Charla {
   TalkStep tropiezo(Habit h, DateTime dia) {
     final cuando = _diaDicho(dia);
     TalkOption op(String label, Stumble c) => TalkOption(label, () {
-      store.stumbled(h, dia, c);
+      hace.stumbled(h, dia, c);
       return _tuMotivo(h, c);
     });
     return TalkStep(
@@ -168,7 +249,7 @@ class _Charla {
         // Y que no hubo tal tropiezo: el ritmo que suponía el pueblo puede
         // estar mal, y entonces el que se equivocó no fuiste vos.
         TalkOption(tr('Ese día no tocaba', 'It was not a day for it'), () {
-          store.stumbled(h, dia, Stumble.notDue);
+          hace.stumbled(h, dia, Stumble.notDue);
           return _noTocaba(h);
         }),
       ],
@@ -204,7 +285,7 @@ class _Charla {
       options: [
         for (final c in mas)
           TalkOption(_mayuscula(cadenceSaid(c)), () {
-            store.setCadence(h, c);
+            hace.setCadence(h, c);
             return TalkStep(
               tr(
                 'Así sea: ${cadenceSaid(c)}. Ya no contaré como caída lo que '
@@ -339,7 +420,7 @@ class _Charla {
 
   /// Lo que se repite, si ya se ve; y la regla de no caer dos veces.
   TalkStep _patron(Habit h) {
-    final p = stumblePattern(store.habits);
+    final p = stumblePattern(habits);
     final partes = <String>[
       if (p.cause != null) _causaVista(p.cause!),
       if (p.weekday != null)
@@ -452,7 +533,7 @@ class _Charla {
                 : tr('leer una página', 'read one page'),
             skip: then,
             then: (que) {
-              store.planHabit(h, when: cuando, then: que);
+              hace.planHabit(h, when: cuando, then: que);
               return TalkStep(
                 tr(
                   'Cuando ${h.planIf}, voy a ${h.planThen}. Así queda escrito en tu '
@@ -485,7 +566,7 @@ class _Charla {
       ),
       skip: then,
       then: (texto) {
-        store.setFloor(h, texto);
+        hace.setFloor(h, texto);
         return TalkStep(
           tr(
             '«${h.floor}». Así sea: en los días grises, con eso basta.',
@@ -531,7 +612,7 @@ class _Charla {
               ),
         options: [
           TalkOption(tr('Sí, sigue siendo', 'Yes, it still is'), () {
-            store.confirmIdentity(h);
+            hace.confirmIdentity(h);
             return TalkStep(
               tr(
                 'Entonces sigue votando. No te conviertes de un salto: te '
@@ -554,11 +635,11 @@ class _Charla {
                 prefix: identityPrefix,
                 hint: tr('que cuida su cuerpo', 'who looks after their body'),
                 skip: () {
-                  store.confirmIdentity(h);
+                  hace.confirmIdentity(h);
                   return null;
                 },
                 then: (texto) {
-                  store.confirmIdentity(h, identity: identityWhole(texto));
+                  hace.confirmIdentity(h, identity: identityWhole(texto));
                   return TalkStep(
                     tr(
                       'Así sea: «${identityWanted(h)}». Cada piedra, desde hoy, '
@@ -581,7 +662,7 @@ class _Charla {
   TalkStep semana() {
     final desde = now.subtract(const Duration(days: 7));
     var piedras = 0;
-    for (final h in store.habits) {
+    for (final h in habits) {
       piedras += h.pieces.where((p) => p.placedAt.isAfter(desde)).length;
     }
     TalkOption como(String label, String how, String responde) =>
@@ -633,7 +714,7 @@ class _Charla {
 
   TalkStep _costo(String how) {
     TalkOption op(String label, String cost) => TalkOption(label, () {
-      book.weekDone(at: now, how: how, cost: cost);
+      hace.weekDone(now, how, cost);
       return _ajuste(cost);
     });
     return TalkStep(
@@ -649,7 +730,7 @@ class _Charla {
   }
 
   TalkStep _ajuste(String cost) {
-    final h = store.habit;
+    final h = actual;
     TalkStep? hastaLaProxima() => TalkStep(
       tr(
         'Así sea. Dentro de siete días volvemos a mirar el camino.',

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -112,6 +114,45 @@ void main() {
     expect(identityDue([h], at: hoy), isNull);
     h.identityAt = hoy.subtract(const Duration(days: 31));
     expect(identityDue([h], at: hoy), h);
+  });
+
+  test('las charlas de prueba no tocan los datos de verdad', () async {
+    SharedPreferences.setMockInitialValues({});
+    await Appearance.instance.load();
+    final store = Store();
+    await store.load();
+    store.debugFill(12);
+    store.habit
+      ..why = 'para estar sano'
+      ..identity = 'alguien que corre';
+    final libro = AdviceBook.instance
+      ..forget()
+      ..meet()
+      ..setGoal(store.habit.id, AdviceGoal.quit);
+    final antes = jsonEncode([for (final h in store.habits) h.toJson()]);
+    final semanas = libro.weeks.length;
+    // Todas las ramas: cada respuesta, cada renglón escrito y cada «ahora no».
+    var pasos = 0;
+    void recorre(TalkStep? paso, int hondo) {
+      if (paso == null || hondo > 10) return;
+      pasos++;
+      for (final o in paso.options) {
+        recorre(o.then(), hondo + 1);
+      }
+      final pide = paso.input;
+      if (pide != null) {
+        recorre(pide.then('algo'), hondo + 1);
+        recorre(pide.skip?.call(), hondo + 1);
+      }
+      recorre(paso.next?.call(), hondo + 1);
+    }
+
+    for (final k in TalkKind.values) {
+      recorre(trialTalk(k, store, libro), 0);
+    }
+    expect(pasos, greaterThan(40));
+    expect(jsonEncode([for (final h in store.habits) h.toJson()]), antes);
+    expect(libro.weeks.length, semanas);
   });
 
   group('en la pantalla', () {
