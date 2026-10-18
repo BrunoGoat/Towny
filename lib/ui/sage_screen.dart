@@ -548,35 +548,6 @@ class _AmbientePainter extends CustomPainter {
   bool shouldRepaint(_AmbientePainter old) => old.t != t;
 }
 
-/// Una hoja de papel, con su filete por dentro como las del tablón.
-class _Fondo extends StatelessWidget {
-  const _Fondo({
-    required this.e,
-    required this.child,
-    this.padding = const EdgeInsets.fromLTRB(18, 14, 18, 15),
-  });
-
-  final _Estilo e;
-  final Widget child;
-  final EdgeInsets padding;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: padding,
-    decoration: BoxDecoration(
-      color: e.papel,
-      borderRadius: BorderRadius.circular(3),
-      boxShadow: e.sombra,
-    ),
-    child: DecoratedBox(
-      decoration: BoxDecoration(
-        border: Border.all(color: e.tinta.withValues(alpha: 0.16)),
-      ),
-      child: Padding(padding: const EdgeInsets.all(8), child: child),
-    ),
-  );
-}
-
 /// El botón redondo de cerrar.
 class _Redondo extends StatelessWidget {
   const _Redondo({required this.e, required this.child, required this.onTap});
@@ -694,17 +665,66 @@ class _GloboPainter extends CustomPainter {
       Offset.zero & size,
       Radius.circular(r),
     );
-    // La colita, abajo a la izquierda, apuntando hacia la boca del viejo.
+    // La colita, a la izquierda y arriba, apuntando a la boca del viejo. Va
+    // arriba porque el globo cuelga de arriba: lo de abajo crece con las
+    // respuestas y la cola no puede moverse con ellas.
+    final y = math.min(64.0, size.height - 34);
     final cola = Path()
-      ..moveTo(0, size.height - 46)
-      ..lineTo(-16, size.height - 18)
-      ..lineTo(0, size.height - 24)
+      ..moveTo(0, y - 12)
+      ..lineTo(-17, y + 14)
+      ..lineTo(0, y + 12)
       ..close();
-    final todo = Path()
-      ..addRRect(cuerpo)
-      ..addPath(cola, Offset.zero);
-    canvas.drawShadow(todo, Colors.black.withValues(alpha: 0.4), 6, false);
-    canvas.drawPath(todo, Paint()..color = e.globo);
+    final todo = Path.combine(
+      PathOperation.union,
+      Path()..addRRect(cuerpo),
+      cola,
+    );
+    canvas.drawShadow(todo, Colors.black.withValues(alpha: 0.5), 8, false);
+    // Papel viejo: más claro arriba, tostado abajo.
+    canvas.drawPath(
+      todo,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [e.globo, const Color(0xFFE9DCBB)],
+        ).createShader(Offset.zero & size),
+    );
+    // El canto dorado, y un filete fino por dentro, como en un libro.
+    canvas.drawPath(
+      todo,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.4
+        ..color = const Color(0xFFB8964F).withValues(alpha: 0.9),
+    );
+    canvas.drawRRect(
+      cuerpo.deflate(5),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.8
+        ..color = e.tinta.withValues(alpha: 0.22),
+    );
+    // Un adorno en el medio del filete de arriba.
+    final o = Offset(size.width / 2, 5);
+    canvas.drawRect(
+      Rect.fromCenter(center: o, width: 26, height: 4),
+      Paint()..color = e.globo,
+    );
+    final rombo = Path()
+      ..moveTo(o.dx, o.dy - 3.5)
+      ..lineTo(o.dx + 4, o.dy)
+      ..lineTo(o.dx, o.dy + 3.5)
+      ..lineTo(o.dx - 4, o.dy)
+      ..close();
+    canvas.drawPath(rombo, Paint()..color = const Color(0xFFB8964F));
+    for (final dx in [-9.0, 9.0]) {
+      canvas.drawCircle(
+        o + Offset(dx, 0),
+        1.2,
+        Paint()..color = const Color(0xFFB8964F),
+      );
+    }
   }
 
   @override
@@ -735,21 +755,8 @@ class _Habla extends StatelessWidget {
     // y la misma letra que lo que te dice, un poco torcidas cada una para su
     // lado. Eran pastillas redondas con letra de sistema, y se leían como
     // botones de otra app pegados encima.
-    Widget respuesta(String texto, VoidCallback hacer, double giro) => Padding(
-      padding: const EdgeInsets.only(top: 10),
-      child: Transform.rotate(
-        angle: giro,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: hacer,
-          child: _Fondo(
-            e: e,
-            padding: const EdgeInsets.all(5),
-            child: Text(texto, style: e.dicho(17)),
-          ),
-        ),
-      ),
-    );
+    Widget respuesta(int i, String texto, VoidCallback hacer) =>
+        _Respuesta(e: e, texto: texto, onTap: hacer, orden: i);
     return LayoutBuilder(
       builder: (context, box) => Stack(
         clipBehavior: Clip.none,
@@ -765,12 +772,19 @@ class _Habla extends StatelessWidget {
           Positioned(
             left: box.maxHeight * 0.52,
             right: 14,
-            // A la altura de su cara, y no a sus pies: el globo sale de su
-            // boca. Pegado abajo, una frase corta quedaba lejos de él, al
-            // nivel del suelo.
-            bottom: box.maxHeight * 0.40,
+            // Colgado de arriba, a la altura de su cara, y quieto: lo que
+            // crece —las respuestas— crece hacia abajo. Iba pegado por abajo,
+            // y al aparecer las respuestas el globo entero saltaba hacia
+            // arriba de golpe.
+            top: box.maxHeight * 0.06,
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 420),
+              // Los dos, el que se va y el que llega, colgados del mismo
+              // sitio: centrados, uno más alto que otro se movía al cambiar.
+              layoutBuilder: (actual, anteriores) => Stack(
+                alignment: Alignment.topLeft,
+                children: [...anteriores, ?actual],
+              ),
               child: Column(
                 key: ValueKey(dice),
                 mainAxisSize: MainAxisSize.min,
@@ -783,7 +797,7 @@ class _Habla extends StatelessWidget {
                       onNext: onNext,
                       respuestas: [
                         for (final (i, (texto, hacer)) in respuestas.indexed)
-                          respuesta(texto, hacer, i.isEven ? -0.012 : 0.010),
+                          respuesta(i, texto, hacer),
                       ],
                     ),
                 ],
@@ -791,6 +805,111 @@ class _Habla extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Una respuesta: una tira de papel con su sello de lacre, que entra
+/// deslizándose cuando el viejo termina de hablar —cada una un poco después
+/// de la anterior— y se hunde un poco al tocarla.
+class _Respuesta extends StatefulWidget {
+  const _Respuesta({
+    required this.e,
+    required this.texto,
+    required this.onTap,
+    required this.orden,
+  });
+  final _Estilo e;
+  final String texto;
+  final VoidCallback onTap;
+  final int orden;
+
+  @override
+  State<_Respuesta> createState() => _RespuestaState();
+}
+
+class _RespuestaState extends State<_Respuesta> {
+  bool _apretado = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final e = widget.e;
+    const oro = Color(0xFFB8964F);
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: Duration(milliseconds: 380 + widget.orden * 140),
+      curve: Interval(
+        widget.orden * 140 / (380 + widget.orden * 140),
+        1,
+        curve: Curves.easeOutCubic,
+      ),
+      builder: (context, t, child) => Opacity(
+        opacity: t,
+        child: Transform.translate(
+          offset: Offset(14 * (1 - t), 0),
+          child: child,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.only(top: 10),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapDown: (_) => setState(() => _apretado = true),
+          onTapCancel: () => setState(() => _apretado = false),
+          onTapUp: (_) {
+            setState(() => _apretado = false);
+            widget.onTap();
+          },
+          child: AnimatedScale(
+            scale: _apretado ? 0.96 : 1,
+            duration: const Duration(milliseconds: 90),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(10, 9, 16, 9),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [e.globo, const Color(0xFFE6D6AF)],
+                ),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: oro.withValues(alpha: 0.85)),
+                boxShadow: e.sombra,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // El sello de lacre.
+                  Container(
+                    width: 22,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: const RadialGradient(
+                        center: Alignment(-0.35, -0.35),
+                        colors: [Color(0xFFB23A33), Color(0xFF7E1616)],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.3),
+                          blurRadius: 2,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.auto_awesome,
+                      size: 11,
+                      color: Color(0xFFF2C9B8),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Flexible(child: Text(widget.texto, style: e.habla(17))),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
