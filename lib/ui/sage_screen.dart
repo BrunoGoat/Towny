@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -1403,7 +1404,13 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
       _abre.animateTo(_asoma, duration: const Duration(milliseconds: 420));
       _tiempo.start();
     } else {
-      _abre.forward();
+      // Uno ya leído se abre solo, en la misma escena que uno nuevo —sus
+      // varillas, su luz— pero sin lacre ni esfuerzo; y al terminar de
+      // desenrollarse, un polvo dorado que sube.
+      _abre.forward().then((_) {
+        if (mounted && !_cerrando) _brilla();
+      });
+      _tiempo.start();
       _luego(const Duration(milliseconds: 1900));
     }
   }
@@ -1489,13 +1496,7 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
       _abre.value = 1;
       _luego(const Duration(milliseconds: 1000));
     }
-    // Abierto y sin nada volando, se para.
-    if (!_sellado &&
-        _chispas.isEmpty &&
-        _trozos.isEmpty &&
-        (_estallido ?? 9) > 1.6) {
-      _tiempo.stop();
-    }
+    // Sigue andando mientras está abierto: la luz de detrás respira.
     setState(() {});
   }
 
@@ -1514,8 +1515,8 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
     return arriba & r.size;
   }
 
-  /// Si el lacre ya se rompió: al primer tirón.
-  bool _roto = false;
+  /// Si el lacre ya se rompió: al primer tirón. Uno ya leído no tiene.
+  late bool _roto = !widget.sealed;
 
   /// Segundos desde que se abrió del todo, para el estallido; nulo antes.
   double? _estallido;
@@ -1594,6 +1595,29 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
           Offset(math.cos(a) * v, math.sin(a) * v * 0.7),
           0.6 + _azar.nextDouble() * 0.9,
           1.5 + _azar.nextDouble() * 2.5,
+        ),
+      );
+    }
+  }
+
+  /// Un consejo ya leído, recién desenrollado: polvo dorado que sube despacio
+  /// desde la varilla de abajo. Lo de uno nuevo, en voz baja.
+  void _brilla() {
+    final r = _rollo();
+    if (r == null) return;
+    for (var i = 0; i < 26; i++) {
+      _chispas.add(
+        _Chispa(
+          Offset(
+            r.left + 10 + _azar.nextDouble() * (r.width - 20),
+            r.bottom - 4,
+          ),
+          Offset(
+            (_azar.nextDouble() - 0.5) * 30,
+            -30 - _azar.nextDouble() * 70,
+          ),
+          1.0 + _azar.nextDouble() * 1.2,
+          1.0 + _azar.nextDouble() * 1.8,
         ),
       );
     }
@@ -1727,116 +1751,113 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
               math.cos(_reloj * 47) * tiembla * 0.6,
             );
             final velo = _cerrando ? 1 - v : llega;
-            return ColoredBox(
-              // El de un consejo nuevo, más oscuro: es un momento.
-              color: Colors.black.withValues(
-                alpha: (widget.sealed ? 0.62 : 0.30) * velo,
-              ),
-              child: LayoutBuilder(
-                builder: (context, box) {
-                  final hasta = _hasta;
-                  // El que se abre tirando cuelga de arriba: la cuerda de
-                  // arriba se queda quieta y la de abajo baja con el dedo.
-                  final arriba = box.maxHeight * 0.18;
-                  if (hasta == null || v == 0) {
-                    final rollo = Opacity(
-                      opacity: llega,
-                      child: Padding(
-                        // El nuevo, más angosto: las varillas con sus
-                        // remates sobresalen del rollo y tienen que caber.
-                        padding: EdgeInsets.symmetric(
-                          horizontal: widget.sealed ? 34 : 16,
+            // Lo de detrás, desenfocado: los rollos de la lista asomaban por
+            // debajo del velo y se mezclaban con el que se lee.
+            return BackdropFilter(
+              filter: ui.ImageFilter.blur(sigmaX: 6 * velo, sigmaY: 6 * velo),
+              child: ColoredBox(
+                // El de un consejo nuevo, más oscuro: es un momento.
+                color: Colors.black.withValues(alpha: 0.62 * velo),
+                child: LayoutBuilder(
+                  builder: (context, box) {
+                    final hasta = _hasta;
+                    // El que se abre tirando cuelga de arriba: la cuerda de
+                    // arriba se queda quieta y la de abajo baja con el dedo.
+                    final arriba = box.maxHeight * 0.18;
+                    if (hasta == null || v == 0) {
+                      final rollo = Opacity(
+                        opacity: llega,
+                        child: Padding(
+                          // Angosto: las varillas con sus remates sobresalen
+                          // del rollo y tienen que caber.
+                          padding: const EdgeInsets.symmetric(horizontal: 34),
+                          child: SageScroll(
+                            key: _rolloKey,
+                            open: abre,
+                            fromTop: true,
+                            padding: const EdgeInsets.fromLTRB(36, 34, 36, 34),
+                            child: contenido,
+                          ),
                         ),
-                        child: SageScroll(
-                          key: widget.sealed ? _rolloKey : null,
-                          open: abre,
-                          fromTop: widget.sealed,
-                          padding: const EdgeInsets.fromLTRB(36, 34, 36, 34),
-                          child: contenido,
-                        ),
-                      ),
+                      );
+                      final rect = _rollo();
+                      return Stack(
+                        key: _escenaKey,
+                        children: [
+                          // Detrás: la luz que sale del rollo.
+                          Positioned.fill(
+                            child: IgnorePointer(
+                              child: CustomPaint(
+                                painter: _Luz(
+                                  rect,
+                                  abre,
+                                  _apretado,
+                                  _estallido,
+                                  _reloj,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            top: arriba,
+                            child: Transform.translate(
+                              offset: temblor,
+                              child: Column(
+                                children: [
+                                  rollo,
+                                  // El sitio de la piola que cuelga de la
+                                  // varilla de abajo. La dibuja [_Frente];
+                                  // aquí sólo se le guarda el hueco.
+                                  if (_sellado)
+                                    const SizedBox(
+                                      key: sageCordKey,
+                                      height: 70,
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          // Delante: las varillas, el lacre, las chispas y el
+                          // fogonazo.
+                          Positioned.fill(
+                            child: IgnorePointer(
+                              child: CustomPaint(
+                                painter: _Frente(
+                                  rect?.shift(temblor),
+                                  piola: _sellado ? llega : 0,
+                                  tirando: _apretado,
+                                  tira: abre,
+                                  reloj: _reloj,
+                                  roto: _roto,
+                                  chispas: _chispas,
+                                  trozos: _trozos,
+                                  estallido: _estallido,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                    final desde = Rect.fromLTWH(
+                      34,
+                      arriba,
+                      box.maxWidth - 68,
+                      SageScroll.closed,
                     );
-                    if (!widget.sealed) return Center(child: rollo);
-                    final rect = _rollo();
+                    final r = Rect.lerp(desde, hasta, v)!;
                     return Stack(
-                      key: _escenaKey,
                       children: [
-                        // Detrás: la luz que sale del rollo.
-                        Positioned.fill(
-                          child: IgnorePointer(
-                            child: CustomPaint(
-                              painter: _Luz(
-                                rect,
-                                _tira,
-                                _apretado,
-                                _estallido,
-                                _reloj,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          left: 0,
-                          right: 0,
-                          top: arriba,
-                          child: Transform.translate(
-                            offset: temblor,
-                            child: Column(
-                              children: [
-                                rollo,
-                                // El sitio de la piola que cuelga de la
-                                // varilla de abajo. La dibuja [_Frente];
-                                // aquí sólo se le guarda el hueco.
-                                if (_sellado)
-                                  const SizedBox(key: sageCordKey, height: 70),
-                              ],
-                            ),
-                          ),
-                        ),
-                        // Delante: las varillas, el lacre, las chispas y el
-                        // fogonazo.
-                        Positioned.fill(
-                          child: IgnorePointer(
-                            child: CustomPaint(
-                              painter: _Frente(
-                                rect?.shift(temblor),
-                                piola: _sellado ? llega : 0,
-                                tirando: _apretado,
-                                tira: _tira,
-                                reloj: _reloj,
-                                roto: _roto,
-                                chispas: _chispas,
-                                trozos: _trozos,
-                                estallido: _estallido,
-                              ),
-                            ),
-                          ),
+                        Positioned.fromRect(
+                          rect: r,
+                          child: const SageScroll(open: 0, child: SizedBox()),
                         ),
                       ],
                     );
-                  }
-                  final desde = widget.sealed
-                      ? Rect.fromLTWH(
-                          34,
-                          arriba,
-                          box.maxWidth - 68,
-                          SageScroll.closed,
-                        )
-                      : Rect.fromCenter(
-                          center: box.biggest.center(Offset.zero),
-                          width: box.maxWidth - 32,
-                          height: SageScroll.closed,
-                        );
-                  final r = Rect.lerp(desde, hasta, v)!;
-                  return Stack(
-                    children: [
-                      Positioned.fromRect(
-                        rect: r,
-                        child: const SageScroll(open: 0, child: SizedBox()),
-                      ),
-                    ],
-                  );
-                },
+                  },
+                ),
               ),
             );
           },
