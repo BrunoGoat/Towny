@@ -910,9 +910,13 @@ class TownLayout {
       final dx = b.cx - cx, dz = b.cz - cz;
       final lejos = math.sqrt(dx * dx + dz * dz);
       if (lejos < 1e-6) continue;
-      // Hasta el borde de la plaza, por derecho.
-      var tx = cx + dx / lejos * plazaReach * 0.97;
-      var tz = cz + dz / lejos * plazaReach * 0.97;
+      // Hasta la plaza, por derecho, y **de largo por debajo de ella**: la
+      // losa lo tapa. Terminaba justo en el borde, y como el borde es un
+      // octógono y el camino llega de cualquier lado, entre la punta y el
+      // bordillo quedaba un corte a la vista. Metido medio radio adentro, el
+      // camino se mete bajo la plaza como un camino de verdad.
+      var tx = cx + dx / lejos * plazaReach * 0.6;
+      var tz = cz + dz / lejos * plazaReach * 0.6;
       var mejor = (lejos - plazaReach) * 0.85;
       // O hasta una de antes que esté más adentro y más a mano.
       for (final k in hechos) {

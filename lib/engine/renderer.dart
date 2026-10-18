@@ -529,10 +529,12 @@ class TownPainter extends CustomPainter {
         if (l < 1e-9) continue;
         nx /= l;
         nz /= l;
-        // Más ancho donde arranca, que es la puerta, y más fino al unirse.
+        // Más ancho donde arranca, que es la puerta, y apenas más fino al
+        // llegar: afinado del todo, la punta asomaba en el bordillo de la
+        // plaza como un lápiz.
         final w =
             ancho *
-            (1.15 - 0.3 * i / (ruta.length - 1)) *
+            (1.15 - 0.12 * i / (ruta.length - 1)) *
             (1 + 0.22 * math.sin(i * 0.55 + fase));
         final (x0, z0) = ruta[i];
         final punta = i == 0 || i == ruta.length - 1;
