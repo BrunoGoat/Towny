@@ -739,7 +739,7 @@ class _BoardSceneState extends State<BoardScene>
         : widget.offer?.call(leyendo);
     if (quitar == null && hacer == null) return const SizedBox.shrink();
     // Una tuya se puede, además, volver a escribir: las dos palabras juntas,
-    // del mismo estilo y separadas por un punto.
+    // del mismo estilo y separadas por un punto; editar a la derecha.
     final editar = quitar != null && widget.onEdit != null ? leyendo : null;
     return SafeArea(
       child: Align(
@@ -749,12 +749,14 @@ class _BoardSceneState extends State<BoardScene>
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              _Unpin(
+                word: quitar == null ? hacer!.$1 : tr('Quitarla', 'Remove it'),
+                onTap: quitar == null
+                    ? hacer!.$2
+                    : () => widget.onUnpin!(quitar),
+                k: _m.openK,
+              ),
               if (editar != null) ...[
-                _Unpin(
-                  word: tr('Editarla', 'Edit it'),
-                  onTap: () => widget.onEdit!(editar),
-                  k: _m.openK,
-                ),
                 Opacity(
                   opacity: ((_m.openK - 0.55) / 0.35).clamp(0.0, 1.0),
                   child: Text(
@@ -768,14 +770,12 @@ class _BoardSceneState extends State<BoardScene>
                     ),
                   ),
                 ),
+                _Unpin(
+                  word: tr('Editarla', 'Edit it'),
+                  onTap: () => widget.onEdit!(editar),
+                  k: _m.openK,
+                ),
               ],
-              _Unpin(
-                word: quitar == null ? hacer!.$1 : tr('Quitarla', 'Remove it'),
-                onTap: quitar == null
-                    ? hacer!.$2
-                    : () => widget.onUnpin!(quitar),
-                k: _m.openK,
-              ),
             ],
           ),
         ),
