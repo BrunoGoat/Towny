@@ -1750,8 +1750,9 @@ class TownPainter extends CustomPainter {
     List<_Walker> folk,
     int town,
   ) {
-    if (folk.isEmpty) return const [];
     final out = <Rider>[];
+    _fixtureRiders(p, e, out);
+    if (folk.isEmpty) return out;
     for (final v in folk) {
       // El consejero lleva su propia marca: tocarlo abre lo que te tiene que
       // decir, no la ficha de un vecino.
@@ -1871,6 +1872,55 @@ class TownPainter extends CustomPainter {
       palomasHasta(double.negativeInfinity);
     }
     return out;
+  }
+
+  /// Lo que vive en su sitio del pueblo —el tocón, el tendedero, el puesto,
+  /// el sillar, las gallinas, las ovejas—, haya o no alguien usándolo y a
+  /// cualquier hora. Va con la gente por el árbol, y no es de nadie: tocarlo
+  /// no abre a ningún vecino. Ver [Doing.anchored].
+  void _fixtureRiders(Projector p, TownEntry e, List<Rider> out) {
+    if (!scene.folk || !RenderDebug.instance.folk) return;
+    final l = e.layout;
+    final take = math.min(e.placed, l.pieces.length);
+    if (take <= 0) return;
+    final talla = folkHeight(l.character);
+    for (final f in folkFixtures(l, take)) {
+      final at = p.project(V3(f.x, talla * 0.3, f.z));
+      if (at == null) continue;
+      if (at.x < -80 ||
+          at.y < -80 ||
+          at.x > p.cx * 2 + 80 ||
+          at.y > p.cy * 2 + 80) {
+        continue;
+      }
+      final pixels = p.focal / math.max(at.depth, 0.01) * talla;
+      if (pixels < 2.2) continue;
+      final solids = fixtureSolids(
+        f,
+        talla,
+        scene.time,
+        lift: l.solo
+            ? 0.0
+            : Plaza.floorAt(f.x, f.z, l.cx, l.cz, TownLayout.plazaReach),
+        detail: pixels > 14
+            ? 1.0
+            : pixels > 8
+            ? 0.35
+            : 0.05,
+      );
+      for (final solid in folkInPaintOrder(solids, p.eye)) {
+        for (final face in solid.faces) {
+          final a = face.v.first;
+          if ((p.eye.x - a.x) * face.n.x +
+                  (p.eye.y - a.y) * face.n.y +
+                  (p.eye.z - a.z) * face.n.z <=
+              0) {
+            continue;
+          }
+          out.add(Rider(face, out.length, -1));
+        }
+      }
+    }
   }
 
   /// La sombra sobre la plaza de lo que no se mueve —las piezas y los

@@ -214,9 +214,9 @@ nombres de fuente (`PermanentMarker.ttf`), la hoja de pruebas y los comentarios.
 - **G10** · hace malabares
 - **G11** · toca el tambor
 - **G12** · salta a la comba
-- **G13** · saca agua
-- **G14** · lava la ropa
-- **G15** · echa un barco de papel
+- **G13** · echa un barco de papel
+- **G14** · saca agua
+- **G15** · lava la ropa
 - **G16** · pica piedra
 - **G17** · sierra un madero
 - **G18** · empuja la carretilla
@@ -1017,7 +1017,7 @@ Invierno, primavera, verano y otoño, en ajustes y en el tablón.
 
 Frases que no caen en ninguna pantalla concreta.
 
-- **U467** · `versión simple`  <sub>renderer.dart:2446 · TownPainter._colourOf</sub>
+- **U467** · `versión simple`  <sub>renderer.dart:2496 · TownPainter._colourOf</sub>
 - **U468** · `el pueblo`  <sub>advice_book.dart:533 · AdviceReason.AdviceReason</sub>
 - **U469** · `Porque $el no hubo pieza en $t.`  <sub>advice_book.dart:541 · AdviceReason.AdviceReason</sub>
 - **U470** · `Porque a $t le están faltando piezas estos días.`  <sub>advice_book.dart:545 · AdviceReason.AdviceReason</sub>

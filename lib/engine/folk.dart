@@ -43,7 +43,21 @@ class Townsfolk {
     this._act,
     this.period, {
     this.sage = false,
-  });
+    List<(PropKind?, PropKind?)?>? swapIn,
+    List<(PropKind?, PropKind?)?>? swapOut,
+    List<PropKind?>? carry,
+  }) : _swapIn = swapIn ?? const [],
+       _swapOut = swapOut ?? const [],
+       _carry = carry ?? const [];
+
+  /// Lo que entra a cambiar por su puerta al llegar a cada parada —qué lleva
+  /// al entrar y con qué sale—, y lo mismo al irse. Nulo, nada: casi siempre.
+  /// Sólo en su puerta, y sólo para sacar o guardar lo que se usa fuera
+  /// ([Doing.fetched]).
+  final List<(PropKind?, PropKind?)?> _swapIn, _swapOut;
+
+  /// Lo que lleva en las manos en el tramo que sale de cada punto del camino.
+  final List<PropKind?> _carry;
 
   /// El consejero: el viejo de la barba y el bastón que anda por la plaza.
   ///
@@ -337,6 +351,11 @@ class Townsfolk {
   /// que no son sitios a los que se va.
   final List<Doing?> _act;
 
+  /// El centro de la plaza de su pueblo, donde está la fuente. Nulo en el
+  /// expositor, que no tiene pueblo. Lo mira quien echa un barco de papel,
+  /// para que caiga en el agua del pilón y no en el brocal.
+  (double, double)? plazaCentre;
+
   /// Si es un crío. Más chico, y es el que salta a la comba o corre detrás de
   /// una mariposa — que es lo que hace un crío en un pueblo donde no hay nada
   /// más que hacer.
@@ -401,7 +420,7 @@ class Townsfolk {
     if (p == null && h == null) return roam;
     var x0 = roam.x - roam.r, x1 = roam.x + roam.r;
     var z0 = roam.z - roam.r, z1 = roam.z + roam.r;
-    for (final q in [...?p?.ida, ...?p?.vuelta, ...?h?.path]) {
+    for (final q in [...?p?.puntos, ...?h?.path]) {
       x0 = math.min(x0, q.$1 - 1.2);
       x1 = math.max(x1, q.$1 + 1.2);
       z0 = math.min(z0, q.$2 - 1.2);
@@ -485,12 +504,24 @@ class Townsfolk {
     final suya = (_spotActs ?? _act)[i] ?? Doing.idle;
     final donde = (_spotStops ?? _stops)[i];
     final mira = (_spotFacing ?? _facing)[i];
+    // Donde se trae algo de casa, o se va a dejarlo, se hace eso y nada más.
+    if (suya.fetched ||
+        _swapAt(_swapIn, i) != null ||
+        _swapAt(_swapOut, i) != null) {
+      return [suya];
+    }
+    // Y lo que necesita algo en su sitio —el tocón, el puesto, las ovejas—
+    // o traído de casa, o el agua de la fuente, sólo donde es suyo: en otro
+    // sitio no está.
     return [
       suya,
       for (final d in Doing.all)
         if (d.where == suya.where &&
             d.fits(kid) &&
             d.id != suya.id &&
+            !d.anchored &&
+            !d.fetched &&
+            d.prop != PropKind.boat &&
             _fitsAt(_calles, _h, d, kid, donde, mira))
           d,
     ];
@@ -582,6 +613,15 @@ class Townsfolk {
         // En la orilla no: pescar o lavar es en el borde del agua, y corrido
         // un metro ya no hay agua delante.
         if (suya.where == Where.water) continue;
+        // Ni donde lo que se hace vive en su sitio —el tocón no se mueve—,
+        // ni donde se trae algo de casa, ni asomado a la fuente.
+        if (suya.anchored ||
+            suya.fetched ||
+            suya.prop == PropKind.boat ||
+            _swapAt(_swapIn, i) != null ||
+            _swapAt(_swapOut, i) != null) {
+          continue;
+        }
         final antes = stops[i - 1], despues = stops[(i + 1) % n];
         final anda = largo(antes, stops[i]) + largo(stops[i], despues);
         // A veces, otra cosa de las que se hacen en ese sitio.
@@ -759,6 +799,20 @@ class Townsfolk {
   /// en el expositor, que no tiene pueblo.
   Streets? _calles;
 
+  /// Las mismas calles sin lo que vive en su sitio —el tocón, el puesto, las
+  /// ovejas—: por donde se va si eso deja a alguien encerrado.
+  Streets? _callesSin;
+
+  /// Los quiebros para ir de [a] a [b] rodeando lo construido y lo que vive
+  /// en su sitio; o, si eso lo deja encerrado, rodeando sólo lo construido.
+  List<(double, double)> _ruta((double, double) a, (double, double) b) {
+    final con = _calles;
+    if (con == null) return const [];
+    final r = con.route(a, b);
+    if (r.isNotEmpty || con.clearLine(a, b)) return r;
+    return _callesSin?.route(a, b) ?? r;
+  }
+
   /// Si ya se le vio alguna vez. Quien se ve por primera vez de noche ya
   /// estaba en casa: no se le hace volver de ningún sitio.
   bool _seen = false;
@@ -768,7 +822,7 @@ class Townsfolk {
 
   /// La vuelta a casa de esta tarde, si va de camino: desde cuándo y por
   /// dónde.
-  ({double t0, List<(double, double)> path})? _homing;
+  ({double t0, List<(double, double)> path, PropKind? carry})? _homing;
 
   /// Cuándo salió de casa por la mañana, para verle salir por la puerta.
   double? _outAt;
@@ -804,12 +858,16 @@ class Townsfolk {
         final from = (now.x, now.z);
         h = _homing = (
           t0: t,
-          path: [from, ...?_calles?.route(from, door), door],
+          path: [from, ..._ruta(from, door), door],
+          // Si lleva algo que sacó de casa, se lo lleva a casa.
+          carry: now.carry,
         );
       }
       final s = t - h.t0;
       final walk = _lengthOf(h.path) / pace;
-      if (s < walk) return (at: _walkAlong(h.path, s, seed), sink: 0.0);
+      if (s < walk) {
+        return (at: _walkAlong(h.path, s, seed).carrying(h.carry), sink: 0.0);
+      }
       final into = (s - walk) / _doorway;
       if (into >= 1) {
         _inside = true;
@@ -817,7 +875,13 @@ class Townsfolk {
         return null;
       }
       return (
-        at: FolkAt(door.$1, door.$2, _facing.first, 0, false),
+        at: FolkAt(
+          door.$1,
+          door.$2,
+          _facing.first + math.pi,
+          0,
+          false,
+        ).carrying(h.carry),
         sink: into,
       );
     }
@@ -839,7 +903,8 @@ class Townsfolk {
         sink = 1 - k;
       }
     }
-    return (at: at(t), sink: sink);
+    final ahora = at(t);
+    return (at: ahora, sink: math.max(sink, ahora.sink));
   }
 
   // ---------------------------------------------------------------- prueba
@@ -861,8 +926,13 @@ class Townsfolk {
   ///
   /// Si [site] es nulo lo hace donde está, que es lo que pasa cuando en el
   /// pueblo no hay un sitio de esa clase — un pueblo sin agua no tiene dónde
-  /// echar un barco de papel, y la prueba lo trae a sus pies y se lo lleva al
-  /// terminar.
+  /// pescar, y la prueba lo hace a sus pies.
+  ///
+  /// Lo que se saca de casa ([Doing.fetched]) se saca de casa también en la
+  /// prueba: [porCasa] es el camino hasta su puerta, entra, sale con ello, y
+  /// al terminar lo vuelve a dejar. Y lo que vive en su sitio
+  /// ([Doing.anchored]) va con él sólo si [fixed]: si en el pueblo no hay
+  /// ninguno, la prueba se hace igual, que es para mirarla.
   void tryOut(
     Doing doing,
     double t, {
@@ -870,8 +940,26 @@ class Townsfolk {
     required double facing,
     required List<(double, double)> vuelta,
     double hold = _trialHold,
+    List<(double, double)>? porCasa,
+    bool fixed = false,
   }) {
-    _trial = _Trial(doing, t, ida, facing, hold, vuelta);
+    final item = doing.fetched ? doing.prop : null;
+    final tramos = <_Tramo>[];
+    if (item != null && porCasa != null) {
+      tramos
+        ..add(_Tramo.walk(porCasa, null))
+        ..add(_Tramo.door(porCasa.last, _facing.first, (null, item)));
+    }
+    tramos
+      ..add(_Tramo.walk(ida, item))
+      ..add(
+        _Tramo.stay(ida.last, facing, doing, hold, carry: item, fixed: fixed),
+      )
+      ..add(_Tramo.walk(vuelta, item));
+    if (item != null) {
+      tramos.add(_Tramo.door(vuelta.last, _facing.first, (item, null)));
+    }
+    _trial = _Trial(doing, t, tramos);
   }
 
   /// Le corre el reloj para que en el segundo [t] esté saliendo de su puerta,
@@ -942,6 +1030,12 @@ class Townsfolk {
   /// Lo que tarda en correrse del paso de delante del banco al asiento.
   static const double _corre = 0.7;
 
+  /// Lo que lleva en el tramo que sale del punto [i] del camino.
+  PropKind? _carryAt(int i) => i < _carry.length ? _carry[i] : null;
+
+  (PropKind?, PropKind?)? _swapAt(List<(PropKind?, PropKind?)?> l, int i) =>
+      i < l.length ? l[i] : null;
+
   FolkAt _at(double t) {
     final llega = _greetAt;
     if (llega != null && t >= llega && t < llega + greetLength) {
@@ -972,23 +1066,39 @@ class Townsfolk {
       final walk = d / pace;
       if (u < acc + walk) {
         final k = walk <= 0 ? 1.0 : (u - acc) / walk;
-        return FolkAt(
+        return FolkAt.full(
           from.$1 + dx * k,
           from.$2 + dz * k,
           math.atan2(dx, dz),
           (walked + d * k) / stride * 2 * math.pi,
           true,
-          null,
-          u - acc,
+          phase: u - acc,
+          carry: _carryAt(i),
         );
       }
       acc += walk;
       walked += d;
-      final stay = stays[(i + 1) % n];
+      final j = (i + 1) % n;
+      final stay = stays[j];
       if (u < acc + stay) {
+        var held = u - acc;
+        final to = stops[j];
+        final look = facings[j];
+        // A la puerta a por algo, o a dejarlo: entra, y sale con lo otro.
+        final entra = _swapAt(_swapIn, j), sale = _swapAt(_swapOut, j);
+        if (entra != null && held < _swapLength) {
+          return _enLaPuerta(to, look, held, entra);
+        }
+        if (sale != null && held > stay - _swapLength) {
+          return _enLaPuerta(to, look, held - (stay - _swapLength), sale);
+        }
+        // Lo que queda de la parada, sin las idas a la puerta.
+        final antes = entra != null ? _swapLength : 0.0;
+        final queda = stay - antes - (sale != null ? _swapLength : 0.0);
+        held -= antes;
         // Parado: mirando a donde vino a mirar, con un balanceo lento que es
         // lo que separa a alguien esperando de un poste.
-        final held = u - acc;
+        //
         // Al llegar no se empieza en el acto, y antes de irse ya se terminó.
         //
         // Sin esto, una persona pasaba de andar a estar barriendo entre dos
@@ -1004,16 +1114,17 @@ class Townsfolk {
         // cosas, no para verla llegar.
         final settle = home == -1
             ? 0.0
-            : math.min(spot ? 1.2 : 2.4, stay * 0.15);
-        final metido = held >= settle && held <= stay - settle;
+            : math.min(spot ? 1.2 : 2.4, queda * 0.15);
+        // Y en una parada de un suspiro —la de entrar a dejar algo— no se
+        // pone a nada: un gesto de medio segundo es un parpadeo.
+        final metido = queda >= 6 && held >= settle && held <= queda - settle;
         // Y en el respiro no se queda congelado: respira y mira alrededor, que
         // es [Doing.idle] y es exactamente lo que hace quien acaba de llegar.
         final what = !metido
             ? Doing.idle
             : spot
-            ? _spotAct((i + 1) % n, held - settle)
-            : acts[(i + 1) % n];
-        final look = facings[(i + 1) % n];
+            ? _spotAct(j, held - settle)
+            : acts[j];
         // La cabeza se va yendo a mirar alrededor, y cuánto depende de en qué
         // ande: quien pica piedra no levanta la vista y quien no hace nada la
         // levanta todo el rato.
@@ -1021,16 +1132,22 @@ class Townsfolk {
             math.sin(held * 0.7 + hash01(seed, 9) * 6) *
             0.18 *
             (what?.turn ?? 1.0);
+        // Lo que trae en las manos, mientras no lo esté usando: la banqueta
+        // que acaba de sacar, el barreño con el que llega al agua. Usándolo,
+        // está en el suelo y lo pinta lo que hace.
+        final enMano = entra != null ? entra.$2 : _carryAt(i);
+        final usando = metido && (what?.fetched ?? false);
         // La fase del gesto cuenta desde que se puso a ello y no desde que
         // llegó: si contara desde la llegada, el gesto empezaría por la mitad.
-        return FolkAt(
+        return FolkAt.full(
           to.$1,
           to.$2,
           look + sway,
           0,
           false,
-          what,
-          metido ? held - settle : held,
+          act: what,
+          phase: metido ? held - settle : held,
+          carry: usando ? null : enMano,
         );
       }
       acc += stay;
@@ -1039,6 +1156,11 @@ class Townsfolk {
     return FolkAt(last.$1, last.$2, _facing.first, 0, false, _act.first, 0);
   }
 }
+
+/// Lo que tarda en entrar en casa a por algo —o a dejarlo— y volver a salir:
+/// meterse por la puerta, un momento dentro, y salir.
+const double _swapLength = 2.0;
+const double _puertaEntra = 0.8, _puertaDentro = 0.4;
 
 /// Lo que dura cada cosa que hace la persona a la que sigue la cámara, y lo
 /// que se queda en cada parada.
@@ -1049,50 +1171,131 @@ const double _trialHold = 24.0;
 
 /// Una prueba: ir, hacer una cosa un rato, y volver a casa.
 class _Trial {
-  _Trial(this.doing, this.t0, this.ida, this.facing, this.hold, this.vuelta);
+  _Trial(this.doing, this.t0, this.tramos);
 
   final Doing doing;
   final double t0;
-  final List<(double, double)> ida;
-  final double facing;
-  final double hold;
-  final List<(double, double)> vuelta;
+  final List<_Tramo> tramos;
 
   /// El respiro de antes y de después, como en cualquier parada.
   static const double settle = 1.0;
 
-  late final double _ida = _lengthOf(ida) / Townsfolk.pace;
-  late final double _vuelta = _lengthOf(vuelta) / Townsfolk.pace;
-  late final double _stay = hold + 2 * settle;
-
   /// Cuándo está otra vez en su puerta.
-  double get end => t0 + _ida + _stay + _vuelta;
+  late final double end = t0 + tramos.fold(0.0, (a, s) => a + s.length);
+
+  /// Por dónde pasa, para saber hasta dónde puede llegar ([Townsfolk.reach]).
+  Iterable<(double, double)> get puntos sync* {
+    for (final s in tramos) {
+      yield* s.path ?? [s.at!];
+    }
+  }
 
   /// Dónde está en el segundo [t], o nulo si la prueba ya terminó.
   FolkAt? at(double t, int seed) {
     var s = t - t0;
     if (s < 0) s = 0;
-    if (s < _ida) return _walkAlong(ida, s, seed);
-    s -= _ida;
-    if (s < _stay) {
-      final p = ida.last;
-      final metido = s >= settle && s <= _stay - settle;
-      final what = metido ? doing : Doing.idle;
-      final sway = math.sin(s * 0.7 + hash01(seed, 9) * 6) * 0.18 * what.turn;
-      return FolkAt(
-        p.$1,
-        p.$2,
-        facing + sway,
-        0,
-        false,
-        what,
-        metido ? s - settle : s,
-      );
+    for (final tramo in tramos) {
+      if (s < tramo.length) return tramo.at_(s, seed);
+      s -= tramo.length;
     }
-    s -= _stay;
-    if (s < _vuelta) return _walkAlong(vuelta, s, seed);
     return null;
   }
+}
+
+/// Un trozo de una prueba: andar, quedarse haciéndolo, o entrar en casa a
+/// cambiar lo que se lleva.
+class _Tramo {
+  _Tramo.walk(List<(double, double)> this.path, this.carry)
+    : at = null,
+      facing = 0,
+      doing = null,
+      hold = 0,
+      swap = null,
+      fixed = false;
+
+  _Tramo.stay(
+    (double, double) this.at,
+    this.facing,
+    Doing this.doing,
+    this.hold, {
+    this.carry,
+    this.fixed = false,
+  }) : path = null,
+       swap = null;
+
+  _Tramo.door(
+    (double, double) this.at,
+    this.facing,
+    (PropKind?, PropKind?) this.swap,
+  ) : path = null,
+      doing = null,
+      hold = 0,
+      carry = null,
+      fixed = false;
+
+  final List<(double, double)>? path;
+  final (double, double)? at;
+  final double facing;
+  final Doing? doing;
+  final double hold;
+  final PropKind? carry;
+  final (PropKind?, PropKind?)? swap;
+  final bool fixed;
+
+  late final double length = path != null
+      ? _lengthOf(path!) / Townsfolk.pace
+      : swap != null
+      ? _swapLength
+      : hold + 2 * _Trial.settle;
+
+  FolkAt at_(double s, int seed) {
+    final p = path;
+    if (p != null) return _walkAlong(p, s, seed).carrying(carry);
+    final cambio = swap;
+    if (cambio != null) return _enLaPuerta(at!, facing, s, cambio);
+    final metido = s >= _Trial.settle && s <= length - _Trial.settle;
+    final what = metido ? doing! : Doing.idle;
+    final sway = math.sin(s * 0.7 + hash01(seed, 9) * 6) * 0.18 * what.turn;
+    return FolkAt.full(
+      at!.$1,
+      at!.$2,
+      facing + sway,
+      0,
+      false,
+      act: what,
+      phase: metido ? s - _Trial.settle : s,
+      carry: metido && what.fetched ? null : carry,
+      fixed: fixed,
+    );
+  }
+}
+
+/// Entrando en casa con [swap].$1 y saliendo con [swap].$2, [t] segundos
+/// después de llegar a la puerta [at]. De cara a la casa al entrar y a la
+/// calle al salir, como cualquiera.
+FolkAt _enLaPuerta(
+  (double, double) at,
+  double look,
+  double t,
+  (PropKind?, PropKind?) swap,
+) {
+  const fuera = _swapLength - _puertaEntra - _puertaDentro;
+  final saliendo = t >= _puertaEntra + _puertaDentro;
+  final dentro = t < _puertaEntra
+      ? t / _puertaEntra
+      : !saliendo
+      ? 1.0
+      : 1 - (t - _puertaEntra - _puertaDentro) / fuera;
+  return FolkAt.full(
+    at.$1,
+    at.$2,
+    saliendo ? look : look + math.pi,
+    0,
+    false,
+    act: Doing.idle,
+    sink: dentro.clamp(0.0, 1.0),
+    carry: saliendo ? swap.$2 : swap.$1,
+  );
 }
 
 /// Lo que mide un camino de punto a punto.
@@ -1159,6 +1362,35 @@ bool folkTryOut(
   final desde = (ahora.x, ahora.z);
   (double, double)? sitio;
   var mira = ahora.heading;
+  // Lo que vive en su sitio se hace donde está: va hasta el más cercano.
+  if (doing.anchored) {
+    FolkFixture? mejor;
+    var lejos = double.infinity;
+    for (final f in cache.cosas) {
+      if (f.doing.prop != doing.prop) continue;
+      // Lo de la puerta, en la suya: no se va a partir leña al tocón del
+      // vecino.
+      if (doing.where == Where.door && f.owner != who) continue;
+      final d = math.sqrt(
+        math.pow(f.x - desde.$1, 2) + math.pow(f.z - desde.$2, 2),
+      );
+      if (d < lejos) {
+        lejos = d;
+        mejor = f;
+      }
+    }
+    if (mejor != null) {
+      final aqui = (mejor.x, mejor.z);
+      who.tryOut(
+        doing,
+        t,
+        ida: [desde, ...who._ruta(desde, aqui), aqui],
+        facing: mejor.heading,
+        vuelta: [aqui, ...who._ruta(aqui, who.door), who.door],
+      );
+      return true;
+    }
+  }
   if (doing.where == Where.door) {
     sitio = who.door;
     mira = who._facing.first;
@@ -1212,9 +1444,23 @@ bool folkTryOut(
   // Una prueba se hace siempre, aunque no quepa en ningún sitio: es para
   // mirarla. Pero eso sólo pasa en un pueblo sin un hueco libre.
   if (que == doing) mira = cara;
-  final ida = [desde, ...calles.route(desde, aqui), aqui];
-  final vuelta = [aqui, ...calles.route(aqui, who.door), who.door];
-  who.tryOut(doing, t, ida: ida, facing: mira, vuelta: vuelta);
+  // Lo que se saca de casa, de casa: primero a su puerta a por ello.
+  final porCasa = doing.fetched
+      ? [desde, ...who._ruta(desde, who.door), who.door]
+      : null;
+  final sale = porCasa == null ? desde : who.door;
+  final ida = [sale, ...who._ruta(sale, aqui), aqui];
+  final vuelta = [aqui, ...who._ruta(aqui, who.door), who.door];
+  who.tryOut(
+    doing,
+    t,
+    ida: ida,
+    facing: mira,
+    vuelta: vuelta,
+    porCasa: porCasa,
+    // Si no hay ninguno en el pueblo, lo fijo va con él: es para mirarlo.
+    fixed: doing.anchored,
+  );
   return sitio != null;
 }
 
@@ -1229,8 +1475,53 @@ class FolkAt {
     this.moving, [
     this.act,
     this.phase = 0,
-  ]);
+  ]) : carry = null,
+       sink = 0,
+       fixed = false;
+
+  /// Lo mismo, con lo que lleva en las manos, cuánto se ha metido por su
+  /// puerta y si lo fijo de lo que hace va con él.
+  const FolkAt.full(
+    this.x,
+    this.z,
+    this.heading,
+    this.gait,
+    this.moving, {
+    this.act,
+    this.phase = 0,
+    this.carry,
+    this.sink = 0,
+    this.fixed = false,
+  });
+
+  /// Lo mismo, llevando [what] en las manos (nulo, nada).
+  FolkAt carrying(PropKind? what) => FolkAt.full(
+    x,
+    z,
+    heading,
+    gait,
+    moving,
+    act: act,
+    phase: phase,
+    carry: what,
+    sink: sink,
+    fixed: fixed,
+  );
+
   final double x, z;
+
+  /// Lo que lleva en las manos de un sitio a otro: la banqueta, el barreño o
+  /// la carretilla que sacó de casa ([Doing.fetched]). Nulo, nada.
+  final PropKind? carry;
+
+  /// Cuánto se ha metido por su puerta, de cero a uno: entrando a por algo o
+  /// a guardarlo, de día. De noche lo dice [folkWhere].
+  final double sink;
+
+  /// Si lo que no se lleva encima —el tocón, el puesto, las gallinas— va con
+  /// él y no en su sitio del pueblo. Sólo en una prueba hecha donde no hay
+  /// nada de eso, y en el expositor, que no tiene pueblo.
+  final bool fixed;
 
   /// Hacia dónde mira, en radianes, como el `yaw` de la cámara.
   final double heading;
@@ -1266,9 +1557,33 @@ final Map<
     List<Townsfolk> gente,
     Streets calles,
     Map<int, (double, double, double, double)> huella,
+    List<FolkFixture> cosas,
   })
 >
 _folk = {};
+
+/// Lo que vive en su sitio en [layout]: el tocón de quien parte leña, el
+/// tendedero, el puesto de la plaza, el sillar de la obra, las gallinas, las
+/// ovejas. Ver [Doing.anchored].
+///
+/// Sale de la misma cuenta que la gente, y se guarda con ella: está donde
+/// se pone a usarlo quien lo usa, mirando hacia donde mira él.
+List<FolkFixture> folkFixtures(TownLayout layout, int placed) {
+  folkOf(layout, placed);
+  final key =
+      '${layout.cx},${layout.cz},${layout.character.order},'
+      '${layout.seed},${layout.folk.length}';
+  return _folk[key]?.cosas ?? const [];
+}
+
+/// Una cosa que vive en su sitio del pueblo: de quién es, qué se hace con
+/// ella, dónde está y hacia dónde mira quien la usa.
+class FolkFixture {
+  const FolkFixture(this.owner, this.doing, this.x, this.z, this.heading);
+  final Townsfolk owner;
+  final Doing doing;
+  final double x, z, heading;
+}
 
 /// Dónde está [who] a la hora [time] de la escena, con la tarde cayendo
 /// [homeward] (ver `folkHome`): de cero, de día, a uno, todos en casa.
@@ -1356,28 +1671,37 @@ List<Townsfolk> folkOf(TownLayout layout, int placed) {
       placed: placed,
       mundo: mundo,
       gente: had.gente,
-      calles: calles,
+      calles: had.calles,
       huella: huella,
+      cosas: had.cosas,
     );
     return had.gente;
   }
 
-  final made = _folkOf(layout, placed, calles, huella);
+  final (made, conCosas, cosas) = _folkOf(
+    layout,
+    placed,
+    calles,
+    estorbos,
+    huella,
+  );
   if (_folk.length > 24) _folk.clear();
   _folk[key] = (
     placed: placed,
     mundo: mundo,
     gente: made,
-    calles: calles,
+    calles: conCosas,
     huella: huella,
+    cosas: cosas,
   );
   return made;
 }
 
-List<Townsfolk> _folkOf(
+(List<Townsfolk>, Streets, List<FolkFixture>) _folkOf(
   TownLayout layout,
   int placed,
   Streets calles,
+  List<(double, double, double, double)> estorbos,
   Map<int, (double x0, double z0, double x1, double z1)> huella,
 ) {
   final casas = <TownBuilding>[];
@@ -1387,7 +1711,13 @@ List<Townsfolk> _folkOf(
     casas.add(b);
   }
   // El consejero está en la plaza desde que se funda, haya casas o no.
-  if (casas.isEmpty) return [if (hasSage(layout)) Townsfolk.sage(layout)];
+  if (casas.isEmpty) {
+    return (
+      [if (hasSage(layout)) Townsfolk.sage(layout)],
+      calles,
+      const <FolkFixture>[],
+    );
+  }
 
   // A dónde va la gente. Pocos sitios y compartidos, que es lo que hace que se
   // encuentren: con un destino para cada uno, un pueblo de cuarenta vecinos
@@ -1411,7 +1741,26 @@ List<Townsfolk> _folkOf(
   // plano o con la lista de nombres.
   final padron = _censusOf(layout.folk);
 
-  final out = <Townsfolk>[];
+  // Lo que se decide de cada vecino antes de trazarle el camino: los caminos
+  // se trazan después, cuando ya se sabe dónde queda todo lo que no se mueve.
+  final planes =
+      <
+        ({
+          TownBuilding b,
+          int seed,
+          String name,
+          DateTime? born,
+          bool crio,
+          double h,
+          List<(double, double)> stops,
+          List<double> dwell,
+          List<Doing> doing,
+          List<double> look,
+          int traido,
+        })
+      >[];
+  var hayPuesto = false;
+  final ocupado = <String, PropKind>{};
   for (final b in casas) {
     final apuntado = padron[b.index];
     final seed = apuntado?.$1 ?? folkSeedOf(layout.seed, b.seed, b.index);
@@ -1471,6 +1820,16 @@ List<Townsfolk> _folkOf(
     // Y que quepa lo que va a hacer en cada parada. Ver [_fitsAt].
     final h = folkTalla(layout.character) * Townsfolk.buildOf(seed);
     for (var k = 0; k < stops.length; k++) {
+      // Quien atiende el puesto, de espaldas a la fuente: el puesto mira a
+      // la plaza, que es por donde llega quien compra.
+      if (k > 0 && doing[k].prop == PropKind.stall) {
+        look[k] = math.atan2(stops[k].$1 - layout.cx, stops[k].$2 - layout.cz);
+      }
+      // Quien echa un barco de papel mira al pilón: el sitio de la plaza se
+      // corrió para no pisar la fuente, y de lado no ve el agua.
+      if (doing[k].prop == PropKind.boat) {
+        look[k] = math.atan2(layout.cx - stops[k].$1, layout.cz - stops[k].$2);
+      }
       final (donde, que, mira) = _fitting(
         calles,
         h,
@@ -1487,28 +1846,220 @@ List<Townsfolk> _folkOf(
       look[k] = mira;
     }
 
+    // Y que tenga sentido, no sólo que quepa. Ver [Doing.anchored] y
+    // [Doing.fetched].
+    //
+    // Lo que se saca de casa se saca para una cosa por vuelta, y la primera:
+    // sale con el barreño, lava, vuelve a dejarlo, y sigue. Un segundo
+    // recado de ésos en la misma vuelta se cambia por otra cosa de ese sitio.
+    // Un puesto de mercado hay uno por plaza. Y el barco de papel, sólo
+    // asomado al pilón de la fuente: en cualquier otro sitio de la plaza no
+    // hay agua donde echarlo.
+    // Y lo que vive en su sitio, uno por sitio: dos que se ponen en el mismo
+    // palmo de suelo comparten el tocón o el sillar si hacen lo mismo, y si
+    // no, el segundo hace otra cosa.
+    String sitio((double, double) p) =>
+        '${(p.$1 * 4).round()},${(p.$2 * 4).round()}';
+    if (doing[0].anchored) ocupado[sitio(stops[0])] = doing[0].prop;
+    var traido = -1;
+    for (var k = 1; k < stops.length; k++) {
+      final d = doing[k];
+      final otro = ocupado[sitio(stops[k])];
+      final sobra =
+          (d.anchored && otro != null && otro != d.prop) ||
+          (d.fetched && traido >= 0) ||
+          (d.prop == PropKind.stall && hayPuesto) ||
+          (d.prop == PropKind.boat && !_atFountain(layout, stops[k], look[k]));
+      if (sobra) {
+        final (
+          donde,
+          que,
+          mira,
+        ) = _fitting(calles, h, crio, stops[k], look[k], [
+          for (final o in _byWhere[d.where]!)
+            if (!o.fetched && !o.anchored && o.prop != PropKind.boat) o,
+        ]);
+        stops[k] = donde;
+        doing[k] = que;
+        look[k] = mira;
+        continue;
+      }
+      if (d.fetched) traido = k;
+      if (d.prop == PropKind.stall) hayPuesto = true;
+      if (d.anchored) ocupado[sitio(stops[k])] = d.prop;
+    }
+    // El recado con algo de casa, el primero de la vuelta.
+    if (traido > 1) {
+      void cambia<T>(List<T> l) {
+        final t = l[1];
+        l[1] = l[traido];
+        l[traido] = t;
+      }
+
+      cambia(stops);
+      cambia(dwell);
+      cambia(doing);
+      cambia(look);
+      traido = 1;
+    }
+    planes.add((
+      b: b,
+      seed: seed,
+      name: apuntado?.$2 ?? folkName(seed),
+      born: apuntado?.$3,
+      crio: crio,
+      h: h,
+      stops: stops,
+      dwell: dwell,
+      doing: doing,
+      look: look,
+      traido: traido,
+    ));
+  }
+
+  // Lo que vive en su sitio: el tocón delante de la casa de quien parte
+  // leña, el puesto en la plaza, las gallinas, las ovejas en el prado. Va
+  // donde se pone a hacerlo quien lo usa, mirando hacia donde mira él, y a
+  // partir de aquí es parte del pueblo: los demás lo rodean al pasar.
+  final fijos = <(int plan, int stop)>[];
+  final cajas = <(double, double, double, double)>[];
+  final puestos = <String>{};
+  for (var i = 0; i < planes.length; i++) {
+    final pl = planes[i];
+    for (var k = 0; k < pl.stops.length; k++) {
+      final d = pl.doing[k];
+      if (!d.anchored) continue;
+      // Uno por sitio: el segundo que va al mismo sillar usa ese.
+      final p0 = pl.stops[k];
+      if (!puestos.add('${(p0.$1 * 4).round()},${(p0.$2 * 4).round()}')) {
+        continue;
+      }
+      fijos.add((i, k));
+      final (x0, z0, x1, z1) = _fixedFootprintOf(d, pl.crio);
+      final c = math.cos(pl.look[k]), sn = math.sin(pl.look[k]);
+      final p = pl.stops[k];
+      var ax = double.infinity, az = double.infinity;
+      var bx = -double.infinity, bz = -double.infinity;
+      for (final (x, z) in [(x0, z0), (x1, z0), (x0, z1), (x1, z1)]) {
+        final wx = p.$1 + (x * c + z * sn) * pl.h;
+        final wz = p.$2 + (-x * sn + z * c) * pl.h;
+        ax = math.min(ax, wx);
+        az = math.min(az, wz);
+        bx = math.max(bx, wx);
+        bz = math.max(bz, wz);
+      }
+      cajas.add((ax - 0.08, az - 0.08, bx + 0.08, bz + 0.08));
+    }
+  }
+  final calles2 = cajas.isEmpty
+      ? calles
+      : Streets.of(layout.cx, layout.cz, layout.radius, [
+          ...estorbos,
+          ...cajas,
+        ]);
+
+  final out = <Townsfolk>[];
+  for (final pl in planes) {
+    final stops = pl.stops;
+    // Lo que se trae de casa para el primer recado, si se trae algo.
+    final lleva = pl.traido > 0 ? pl.doing[pl.traido].prop : null;
+    // La banqueta de la puerta: se saca al empezar y se guarda al terminar.
+    final banqueta = pl.doing[0].fetched && pl.dwell[0] > 0
+        ? pl.doing[0].prop
+        : null;
+    // Las paradas en orden, con la vuelta a casa a dejar lo traído justo
+    // después del recado en el que se usó.
+    final orden =
+        <
+          ({
+            (double, double) at,
+            double stay,
+            double look,
+            Doing act,
+            (PropKind?, PropKind?)? entra,
+            (PropKind?, PropKind?)? sale,
+            PropKind? lleva,
+          })
+        >[];
+    for (var k = 0; k < stops.length; k++) {
+      if (k == 0) {
+        final cambia = banqueta != null || lleva != null;
+        orden.add((
+          at: stops[0],
+          // Sin quedarse en casa, lo justo para entrar a por ello.
+          stay: cambia ? math.max(pl.dwell[0], _swapLength + 0.4) : pl.dwell[0],
+          look: pl.look[0],
+          // Si no se queda en casa, lo de casa no se hace: entra y sale.
+          act: pl.dwell[0] > 0 ? pl.doing[0] : Doing.idle,
+          entra: banqueta == null ? null : (null, banqueta),
+          sale: cambia ? (banqueta, lleva) : null,
+          lleva: lleva,
+        ));
+        continue;
+      }
+      orden.add((
+        at: stops[k],
+        stay: pl.dwell[k],
+        look: pl.look[k],
+        act: pl.doing[k],
+        entra: null,
+        sale: null,
+        lleva: k == pl.traido ? lleva : null,
+      ));
+      if (k == pl.traido) {
+        orden.add((
+          at: stops[0],
+          stay: _swapLength + 0.4,
+          look: pl.look[0],
+          act: Doing.idle,
+          entra: (lleva, null),
+          sale: null,
+          lleva: null,
+        ));
+      }
+    }
+
     // El camino de verdad: los recados, y los quiebros para no meterse por
     // dentro de las casas que queden en medio.
     //
     // En casa no se para: entrar por la puerta y volver a salir sería una
-    // persona parpadeando en el umbral, así que la ronda sigue.
+    // persona parpadeando en el umbral, así que la ronda sigue — salvo para
+    // sacar o guardar algo, que es justo entrar y volver a salir.
     final path = <(double, double)>[];
     final stay = <double>[];
     final facing = <double>[];
     final acts = <Doing?>[];
-    for (var i = 0; i < stops.length; i++) {
-      final from = stops[i], to = stops[(i + 1) % stops.length];
-      path.add(from);
-      stay.add(dwell[i]);
-      facing.add(look[i]);
-      acts.add(doing[i]);
-      for (final q in calles.route(from, to)) {
+    final entra = <(PropKind?, PropKind?)?>[];
+    final sale = <(PropKind?, PropKind?)?>[];
+    final carga = <PropKind?>[];
+    for (var i = 0; i < orden.length; i++) {
+      final o = orden[i];
+      final to = orden[(i + 1) % orden.length].at;
+      path.add(o.at);
+      stay.add(o.stay);
+      facing.add(o.look);
+      acts.add(o.act);
+      entra.add(o.entra);
+      sale.add(o.sale);
+      // De aquí al siguiente: lo que sacó al salir, o lo que trae de vuelta.
+      final enMano = o.sale != null ? o.sale!.$2 : o.lleva;
+      carga.add(enMano);
+      // Por donde no haya nada —tampoco lo que vive en su sitio—; y si eso
+      // lo deja encerrado, por donde iba antes de que estuviera.
+      var vuelta = calles2.route(o.at, to);
+      if (vuelta.isEmpty && !calles2.clearLine(o.at, to)) {
+        vuelta = calles.route(o.at, to);
+      }
+      for (final q in vuelta) {
         path.add(q);
         // Un paso del camino no es un sitio al que se va: ni se para en él ni
         // se queda mirando nada.
         stay.add(0);
-        facing.add(look[i]);
+        facing.add(o.look);
         acts.add(null);
+        entra.add(null);
+        sale.add(null);
+        carga.add(enMano);
       }
     }
     var period = 0.0;
@@ -1523,22 +2074,37 @@ List<Townsfolk> _folkOf(
     }
     out.add(
       Townsfolk._(
-          b.index,
-          seed,
-          apuntado?.$2 ?? folkName(seed),
-          apuntado?.$3,
+          pl.b.index,
+          pl.seed,
+          pl.name,
+          pl.born,
           path,
           stay,
           facing,
           acts,
           math.max(period, 1),
+          swapIn: entra,
+          swapOut: sale,
+          carry: carga,
         )
-        .._calles = calles
-        .._h = h,
+        .._calles = calles2
+        .._callesSin = calles
+        .._h = pl.h
+        ..plazaCentre = layout.solo ? null : (layout.cx, layout.cz),
     );
   }
+  final cosas = <FolkFixture>[
+    for (final (i, k) in fijos)
+      FolkFixture(
+        out[i],
+        planes[i].doing[k],
+        planes[i].stops[k].$1,
+        planes[i].stops[k].$2,
+        planes[i].look[k],
+      ),
+  ];
   if (hasSage(layout)) out.add(Townsfolk.sage(layout));
-  return out;
+  return (out, calles2, cosas);
 }
 
 /// Si en la plaza de [layout] vive el consejero.
@@ -1573,7 +2139,12 @@ final Map<String, (double, double, double, double)> _gestures = {};
       // baja, la pelota que sube— tiene que caber en todas sus posturas.
       final vuelta = 2 * math.pi / math.max(d.rate, 0.05);
       for (var k = 0; k < 16; k++) {
-        for (final s in folkSolids(who, who.at(vuelta * k / 16), 1.0)) {
+        for (final s in folkSolids(
+          who,
+          who.at(vuelta * k / 16),
+          1.0,
+          measuring: true,
+        )) {
           for (final f in s.faces) {
             for (final v in f.v) {
               x0 = math.min(x0, v.x);
@@ -1587,6 +2158,54 @@ final Map<String, (double, double, double, double)> _gestures = {};
       final b = who.build;
       return (x0 / b, z0 / b, x1 / b, z1 / b);
     }();
+
+/// Lo que ocupa en el suelo lo que vive en su sitio de una actividad —el
+/// tocón, el puesto, las ovejas—, sin la persona. En partes de lo que mide
+/// quien la hace y en su sistema, como [_footprintOf].
+final Map<String, (double, double, double, double)> _fixedShapes = {};
+
+(double x0, double z0, double x1, double z1) _fixedFootprintOf(
+  Doing d,
+  bool kid,
+) => _fixedShapes['${d.id}:$kid'] ??= () {
+  final who = Townsfolk.showcase(d, kid: kid);
+  var x0 = double.infinity, z0 = double.infinity;
+  var x1 = -double.infinity, z1 = -double.infinity;
+  final vuelta = 2 * math.pi / math.max(d.rate, 0.05);
+  for (var k = 0; k < 16; k++) {
+    for (final s in folkSolids(
+      who,
+      who.at(vuelta * k / 16),
+      1.0,
+      onlyFixed: true,
+    )) {
+      for (final f in s.faces) {
+        for (final v in f.v) {
+          x0 = math.min(x0, v.x);
+          x1 = math.max(x1, v.x);
+          z0 = math.min(z0, v.z);
+          z1 = math.max(z1, v.z);
+        }
+      }
+    }
+  }
+  if (x0 > x1) return (0.0, 0.0, 0.0, 0.0);
+  final b = who.build;
+  return (x0 / b, z0 / b, x1 / b, z1 / b);
+}();
+
+/// Si quien está en [p] mirando a [look] está asomado al pilón de la fuente
+/// de la plaza: cerca del brocal y de cara a él. Es el único sitio donde se
+/// echa un barco de papel.
+bool _atFountain(TownLayout layout, (double, double) p, double look) {
+  if (layout.solo) return false;
+  final dx = layout.cx - p.$1, dz = layout.cz - p.$2;
+  final d = math.sqrt(dx * dx + dz * dz);
+  if (d > Plaza.basinOf(TownLayout.plazaReach) + 1.1) return false;
+  var giro = (math.atan2(dx, dz) - look) % (2 * math.pi);
+  if (giro > math.pi) giro -= 2 * math.pi;
+  return giro.abs() < 0.35;
+}
 
 /// Si alguien de talla [h] puede hacer [d] de pie en [p] mirando a
 /// [heading] sin que nada de lo suyo —el cuerpo, el taburete, el tocón, las
@@ -1647,6 +2266,8 @@ bool _fitsAt(
   const giros = [0.0, 0.785, -0.785, 1.571, -1.571, 2.356, -2.356, 3.142];
   for (final d in prefer) {
     if (!d.fits(kid)) continue;
+    // El barco de papel, de cara al pilón o nada: girado no hay agua delante.
+    final vueltas = d.prop == PropKind.boat ? const [0.0] : giros;
     for (var k = 0; k <= (step && calles != null ? 6 : 0); k++) {
       final q = k == 0
           ? p
@@ -1654,7 +2275,7 @@ bool _fitsAt(
               p.$1 - math.sin(look) * k * 0.2,
               p.$2 - math.cos(look) * k * 0.2,
             ));
-      for (final g in giros) {
+      for (final g in vueltas) {
         if (_fitsAt(calles, h, d, kid, q, look + g)) return (q, d, look + g);
       }
     }

@@ -41,14 +41,18 @@ para borrar.
   o ya está en el pueblo, fijo en su sitio, o la persona va a su casa, entra,
   sale con ello, lo usa y lo vuelve a guardar.
 
-**Plan acordado con la regla de lo plausible:**
-- Lo saca de casa y lo vuelve a guardar: banqueta, carretilla, barreño de
-  lavar, madero de serrar.
-- Fijo en el pueblo y se va a usarlo: tocón con leña junto a la casa,
-  tendedero junto a la puerta, puesto en la plaza, sillares al pie de la obra.
-- Animales que viven en su sitio: gallinas en un corralito junto a algunas
-  casas, ovejas pastando en el prado aunque nadie las cuide.
-- Barco de papel: sólo donde ya hay agua, sin charco que aparece.
+**Hecho, con la regla de lo plausible** (ver `Doing.anchored` y
+`Doing.fetched`, y `test/plausible_test.dart`):
+- Lo saca de casa y lo vuelve a guardar: banqueta (en su puerta), barreño de
+  lavar y carretilla (el primer recado de la vuelta: entra, sale con ello, lo
+  lleva, lo usa, vuelve a casa a dejarlo y sigue).
+- Fijo en el pueblo y se va a usarlo: tocón con su leño junto a la casa,
+  tendedero con ropa junto a la puerta, un puesto en la plaza (de espaldas a
+  la fuente), sillar y caballete con su madero al pie de la obra. Los demás
+  los rodean al pasar.
+- Animales que viven en su sitio: gallinas delante de la casa y ovejas en el
+  prado, pastando aunque no haya nadie.
+- Barco de papel: en el pilón de la fuente de la plaza, sin charco.
 - Quitada: la cometa (demasiado moderna para el resto).
 
 **Pendiente:** revisar las 22 y quitar las malas. Las nueve últimas, marcadas

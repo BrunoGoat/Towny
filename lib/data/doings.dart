@@ -110,10 +110,11 @@ enum PropKind {
   /// Un tocón con un leño encima y el hacha subiendo y cayendo.
   axe,
 
-  /// Tres gallinas picoteando alrededor de los pies, y el grano cayendo.
+  /// Tres gallinas que viven delante de la casa, picoteando, y el grano
+  /// cayendo de la mano de quien les da de comer.
   hens,
 
-  /// Un charco y un barco de papel con su vela, meciéndose.
+  /// Un barco de papel con su vela, meciéndose en el pilón de la fuente.
   boat,
 
   /// Una carretilla cargada de piedras, con su rueda.
@@ -198,6 +199,35 @@ class Doing {
   /// hundirse nunca por debajo. Es lo que hace quien salta a la comba, y no
   /// se puede decir con [bob], que sube tanto como baja.
   final bool hop;
+
+  /// **Lo que no se lleva encima vive en su sitio.** El tocón con su leño,
+  /// el tendedero, el puesto del mercado, el sillar de la obra, el caballete
+  /// con su madero, las gallinas y las ovejas no aparecen cuando alguien se
+  /// pone a ello ni se van cuando termina: están en el pueblo, en el sitio
+  /// donde se hace, y quien lo hace va hasta ahí con lo que sí se lleva en la
+  /// mano —el hacha, la maza, la sierra, el grano, el cayado—.
+  bool get anchored => _anclados.contains(prop);
+
+  /// **Y lo que se lleva pero no cabe en un bolsillo se saca de casa.** La
+  /// banqueta, el barreño y la carretilla: quien lo usa entra en su casa,
+  /// sale con ello, lo lleva hasta donde lo usa, y al terminar lo vuelve a
+  /// guardar.
+  bool get fetched => _traidos.contains(prop);
+
+  static const Set<PropKind> _anclados = {
+    PropKind.axe,
+    PropKind.line,
+    PropKind.stall,
+    PropKind.mallet,
+    PropKind.saw,
+    PropKind.hens,
+    PropKind.crook,
+  };
+  static const Set<PropKind> _traidos = {
+    PropKind.stool,
+    PropKind.tub,
+    PropKind.barrow,
+  };
 
   /// Si esto se lo puede hacer alguien de esta edad.
   bool fits(bool kid) => switch (who) {
@@ -391,6 +421,24 @@ class Doing {
       prop: PropKind.rope,
       hop: true,
     ),
+    // En el pilón de la fuente de la plaza, que es el agua que de verdad está
+    // ahí: el barco sale del bolsillo y el agua no la trae nadie.
+    Doing(
+      'barquito',
+      'echa un barco de papel',
+      where: Where.square,
+      who: Who.kid,
+      // Un crío que llega a la fuente con un barco de papel en el bolsillo es
+      // de lo que más se ve en una plaza.
+      weight: 1.6,
+      // De pie y asomado: el brocal del pilón le llega a la barbilla a un
+      // crío, y de rodillas no vería el agua.
+      bob: 0.005,
+      rate: 0.8,
+      lean: 0.10,
+      turn: 0.1,
+      prop: PropKind.boat,
+    ),
 
     // ------------------------------------------------------------- donde hay agua
     Doing(
@@ -430,19 +478,6 @@ class Doing {
       seated: true,
     ),
 
-    Doing(
-      'barquito',
-      'echa un barco de papel',
-      where: Where.water,
-      who: Who.kid,
-      weight: 1.0,
-      sink: 0.80,
-      bob: 0.005,
-      rate: 0.8,
-      lean: 0.06,
-      turn: 0.1,
-      prop: PropKind.boat,
-    ),
 
     // ------------------------------------------------------------ al pie de la obra
     Doing(

@@ -238,6 +238,9 @@ class Streets {
     return _straighten(a, b, camino);
   }
 
+  /// Si el tramo recto de [a] a [b] no pisa nada.
+  bool clearLine((double, double) a, (double, double) b) => !_walled(a, b);
+
   /// Si el tramo recto de [a] a [b] pisa algo.
   ///
   /// Se lo pregunta al plano y no a las cajas. Cuesta lo que mide el tramo y
