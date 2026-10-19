@@ -160,6 +160,18 @@ class Facet {
   /// arrive piece by piece, and the colour of a wall belongs to its house.
   int piece = 0;
 
+  /// La cara entera de la que salió ésta, si es un pedazo: el árbol de planos
+  /// corta paredes, y con ellas las ventanas que llevan colgadas. Nula en una
+  /// cara sin cortar, que es entera ella misma ([whole]).
+  ///
+  /// Hace falta para la luz de las ventanas: cada pedazo de una ventana
+  /// cortada encendía su propio halo, y una ventana partida en tres
+  /// brillaba el triple que su vecina.
+  Facet? _whole;
+
+  /// La cara entera: ésta, o aquella de la que es un pedazo.
+  Facet get whole => _whole ?? this;
+
   V3 get centroid {
     var x = 0.0, y = 0.0, z = 0.0;
     for (final p in v) {
@@ -194,7 +206,8 @@ class Facet {
   Facet withVerts(List<V3> nv, {List<Facet>? carrying}) =>
       Facet(nv, n, surface, ao: ao, tint: tint, decals: carrying)
         ..data = data
-        ..piece = piece;
+        ..piece = piece
+        .._whole = whole;
 }
 
 /// Lo que vale [Facet.piece] en las caras del tablón: un mueble, como la

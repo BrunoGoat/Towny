@@ -218,6 +218,7 @@ class TownPainter extends CustomPainter {
     _faceCount = 0;
     _lamps.clear();
     _lampOwner.clear();
+    _litWindows.clear();
     _lastFaceOf.clear();
     _canvasW = size.width;
     _canvasH = size.height;
@@ -2787,6 +2788,10 @@ class TownPainter extends CustomPainter {
   (TownLayout, int)? _buildingNow;
   final Map<(TownLayout, int)?, int> _lastFaceOf = {};
 
+  /// Las ventanas que ya tienen su luz en este fotograma: una por ventana
+  /// entera, aunque llegue cortada en pedazos. Por identidad.
+  final Set<Facet> _litWindows = Set.identity();
+
   /// De qué edificio es cada lámpara apuntada, en el mismo orden.
   final List<(TownLayout, int)?> _lampOwner = [];
 
@@ -2804,6 +2809,7 @@ class TownPainter extends CustomPainter {
   void _lampsAfterBuildings() {
     final n = _lamps.length ~/ _lampStride;
     if (n == 0) return;
+    _shareLight(n);
     var cambio = false;
     for (var i = 0; i < n; i++) {
       final ultima = _lastFaceOf[_lampOwner[i]];
@@ -2830,6 +2836,38 @@ class TownPainter extends CustomPainter {
     }
   }
 
+  /// Ventanas juntas se reparten la luz en vez de sumarla.
+  ///
+  /// Los halos se pintan sumando, y de lejos está bien: cada ventana es un
+  /// punto y su luz no pisa la de nadie. De cerca, en cambio, el halo de una
+  /// ventana mide cien píxeles y una fachada de ocho ventanas acababa con
+  /// seis halos uno encima de otro. La pared se ponía blanca, y en calidad
+  /// máxima el resplandor de la cámara —que agarra lo que pasa de cierto
+  /// claro— convertía las ventanas de arriba, donde además da la luz de
+  /// arriba, en focos.
+  ///
+  /// Cada halo baja según cuántos otros caen encima de su centro. Una
+  /// ventana sola, o un pueblo visto de lejos, no cambia nada.
+  void _shareLight(int n) {
+    for (var i = 0; i < n; i++) {
+      final a = i * _lampStride;
+      final x = _lamps[a], y = _lamps[a + 1];
+      var encima = 0.0;
+      for (var j = 0; j < n; j++) {
+        if (j == i) continue;
+        final b = j * _lampStride;
+        final r = _lamps[b + 2] * 3.0;
+        final dx = _lamps[b] - x, dy = _lamps[b + 1] - y;
+        final d2 = dx * dx + dy * dy;
+        if (d2 >= r * r) continue;
+        // Cuánto de esa luz llega hasta aquí: entera en su centro, nada en
+        // el borde.
+        encima += 1 - math.sqrt(d2) / r;
+      }
+      if (encima > 0) _lamps[a + 3] /= math.pow(1 + encima, 0.35);
+    }
+  }
+
   /// A window, which is where the town says how you are doing. A lit window is
   /// one achievement showing from the outside; a whole town of them read in a
   /// single glance is the thing the wall could never do. At night every one of
@@ -2842,8 +2880,10 @@ class TownPainter extends CustomPainter {
     const colour = Color(0xFFFFD79A);
     // A lit window is a light, not a yellow rectangle. Remember where it fell
     // so a glow can be laid over the town once the walls are down.
-    if (_lamps.length < _lampStride * 220) {
-      final at = p.project(f.centroid);
+    // Una luz por ventana: el árbol de planos puede haberla partido, y cada
+    // pedazo llega aquí por su lado. La luz va en el centro de la entera.
+    if (_lamps.length < _lampStride * 220 && _litWindows.add(f.whole)) {
+      final at = p.project(f.whole.centroid);
       if (at != null) {
         final r = p.focal / at.depth * 0.34;
         if (r > 1.2) {
