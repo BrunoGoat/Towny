@@ -1817,7 +1817,7 @@ class TownPainter extends CustomPainter {
         feast: feast?.pose,
         // Tres escalones y no dos: por debajo de catorce píxeles se van las
         // piernas y las mariposas, y por debajo de ocho se van también los
-        // brazos. La cometa no se va nunca — es lo que se ve desde lejos.
+        // brazos.
         detail: v.pixels > 14
             ? 1.0
             : v.pixels > 8

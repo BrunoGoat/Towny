@@ -36,8 +36,22 @@ para borrar.
 - No es otra actividad con otro nombre.
 - El objeto es ese objeto y no un palo.
 - Tiene sentido en ese sitio.
+- **Es plausible.** Lo que se saca tiene que poder llevarse encima —un libro
+  del bolsillo, la escoba, el cayado—. Nada grande ni vivo aparece de la nada:
+  o ya está en el pueblo, fijo en su sitio, o la persona va a su casa, entra,
+  sale con ello, lo usa y lo vuelve a guardar.
 
-**Pendiente:** revisar las 23 y quitar las malas. Las nueve últimas, marcadas
+**Plan acordado con la regla de lo plausible:**
+- Lo saca de casa y lo vuelve a guardar: banqueta, carretilla, barreño de
+  lavar, madero de serrar.
+- Fijo en el pueblo y se va a usarlo: tocón con leña junto a la casa,
+  tendedero junto a la puerta, puesto en la plaza, sillares al pie de la obra.
+- Animales que viven en su sitio: gallinas en un corralito junto a algunas
+  casas, ovejas pastando en el prado aunque nadie las cuide.
+- Barco de papel: sólo donde ya hay agua, sin charco que aparece.
+- Quitada: la cometa (demasiado moderna para el resto).
+
+**Pendiente:** revisar las 22 y quitar las malas. Las nueve últimas, marcadas
 *(nueva)*, no las miró nadie todavía.
 
 - **Puerta**
@@ -63,8 +77,6 @@ para borrar.
   - [ ] carretilla — empuja la carretilla *(nueva)*
 - **Prado**
   - [ ] segar — siega
-  - [ ] cometa — vuela una cometa *(rehecha: rombo de cuatro colores con cola
-    de lazos, siempre de cara a la cámara)*
   - [ ] leer — lee
   - [ ] nubes — se tumba a mirar las nubes
   - [ ] pastorear — cuida las ovejas *(nueva)*

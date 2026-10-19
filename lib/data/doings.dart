@@ -95,9 +95,6 @@ enum PropKind {
   /// Una guadaña: el mango largo y la hoja a ras de suelo.
   scythe,
 
-  /// Una cometa en lo alto, con su hilo.
-  kite,
-
   /// Una cuerda entre dos palos con la ropa colgada.
   line,
 
@@ -229,7 +226,7 @@ class Doing {
 
   /// Las que están bien.
   ///
-  /// **Veintitrés, y crece de a poco.** Hubo noventa y cuatro y se fueron todas:
+  /// **Veintidós, y crece de a poco.** Hubo noventa y cuatro y se fueron todas:
   /// la mitad no se distinguía de estar quieto y la otra mitad llevaba un
   /// objeto que no era el objeto —la escoba era un palo—. Un catálogo grande
   /// de cosas que no se entienden vale menos que catorce que sí.
@@ -245,7 +242,8 @@ class Doing {
   /// **silueta** y el **movimiento**. Por eso cada una tiene su objeto, y por
   /// eso ninguna repite el gesto de otra — quien pica piedra dobla el espinazo
   /// a golpes, quien sierra va de lado, quien saca agua sube y baja el
-  /// caldero, y quien vuela una cometa es el único que mira hacia arriba.
+  /// caldero, y quien se tumba a mirar las nubes es el único que mira hacia
+  /// arriba.
   /// El consejero, sentado en el banco de la plaza mirando el agua. No está
   /// en [all]: es suyo y de nadie más.
   static const Doing bench = Doing(
@@ -498,18 +496,6 @@ class Doing {
       lean: 0.05,
       turn: 0.0,
       prop: PropKind.scythe,
-    ),
-    Doing(
-      'cometa',
-      'vuela una cometa',
-      where: Where.meadow,
-      who: Who.kid,
-      weight: 1.2,
-      bob: 0.012,
-      rate: 0.6,
-      lean: -0.07,
-      turn: 0.2,
-      prop: PropKind.kite,
     ),
     Doing(
       'leer',

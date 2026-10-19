@@ -304,8 +304,8 @@ List<Solid> folkSolids(
     0.13 + fwd + lean,
   );
 
-  /// Una vara entre dos puntos: el hilo de la cometa, su cola, el mango de una
-  /// herramienta, la cuerda de un caldero. [box] sólo sabe hacer cajas rectas
+  /// Una vara entre dos puntos: el mango de una herramienta, la cuerda de un
+  /// caldero, el sedal de una caña. [box] sólo sabe hacer cajas rectas
   /// en el sistema de la persona, y una cuerda va en diagonal.
   void link(
     (double, double, double) a,
@@ -914,88 +914,6 @@ List<Solid> folkSolids(
         0xFFC8CCCE,
         1.06,
       );
-
-    case PropKind.kite:
-      // La cometa de toda la vida: un rombo de cuatro colores y una cola con
-      // tres lazos, allá arriba y con su hilo.
-      //
-      // **Y mirando siempre a quien la mira.** Un rombo es plano, y de canto
-      // —que es como se lo ve la mitad del tiempo, porque la cámara da
-      // vueltas— era un palo con una raya flotando. Así que se gira sobre sí
-      // misma hacia el ojo, que es además lo que hace una cometa de verdad:
-      // se pone de cara al viento. Sin ojo (en las cuentas de lo que ocupa)
-      // mira hacia delante.
-      final m = hold(1, 0.80, 0.05);
-      final vaiven = swing * 0.12;
-      final cx = 0.62 + vaiven, cy = 1.66 + swing * 0.08, cz = 0.92;
-      // El ojo, en el sistema de la persona: hacia dónde tiene que mirar.
-      var ox = 0.0, oz = 1.0;
-      if (eye != null) {
-        final dX = eye.x - (at.x + (cx * cos + cz * sin) * h);
-        final dZ = eye.z - (at.z + (-cx * sin + cz * cos) * h);
-        ox = dX * cos - dZ * sin;
-        oz = dX * sin + dZ * cos;
-        final l = math.sqrt(ox * ox + oz * oz);
-        if (l > 1e-6) {
-          ox /= l;
-          oz /= l;
-        } else {
-          ox = 0;
-          oz = 1;
-        }
-      }
-      // A lo ancho del rombo: de lado respecto del ojo.
-      final rx = oz, rz = -ox;
-      (double, double, double) en(double a, double up) =>
-          (cx + rx * a, cy + up, cz + rz * a);
-      final arriba = en(0, 0.27), abajo = en(0, -0.48);
-      final izq = en(-0.25, 0), der = en(0.25, 0), medio = en(0, 0);
-      // Un triángulo por las dos caras: se ve de frente y de espaldas.
-      void tela(
-        (double, double, double) a,
-        (double, double, double) b,
-        (double, double, double) c,
-        int tinte,
-      ) {
-        final pa = world(a.$1, a.$2, a.$3);
-        final pb = world(b.$1, b.$2, b.$3);
-        final pc = world(c.$1, c.$2, c.$3);
-        final n = (pb - pa).cross(pc - pa).normalized;
-        final atras = V3(-n.x, -n.y, -n.z);
-        out.add(
-          Solid(-1, [
-            Facet([pa, pb, pc], n, Surface.cloth, ao: 1.06, tint: tinte),
-            Facet([pa, pb, pc], atras, Surface.cloth, ao: 0.96, tint: tinte),
-          ]),
-        );
-      }
-
-      tela(arriba, izq, medio, 0xFFE0524A);
-      tela(arriba, medio, der, 0xFF22AE9C);
-      tela(izq, abajo, medio, 0xFFEFB02E);
-      tela(medio, abajo, der, 0xFFC56BA8);
-      // El hilo, a la cruz de las varillas.
-      link(m, medio, 0.005, 0xFFE4DCC6, 1.04);
-      // La cola: una cuerda que ondea y tres lazos azules.
-      var antes = abajo;
-      for (var k = 1; k <= 6; k++) {
-        final ondea = math.sin(ph * 2.2 - k * 0.9) * 0.05 - vaiven * k * 0.04;
-        final punto = en(ondea, -0.48 - k * 0.11);
-        link(antes, punto, 0.006, 0xFF2F62B0, 1.0);
-        if (k.isOdd) {
-          // El lazo: dos triangulitos que salen del nudo, uno a cada lado.
-          for (final lado in [-1.0, 1.0]) {
-            final p = punto;
-            tela(
-              p,
-              (p.$1 + rx * 0.11 * lado, p.$2 + 0.05, p.$3 + rz * 0.11 * lado),
-              (p.$1 + rx * 0.11 * lado, p.$2 - 0.05, p.$3 + rz * 0.11 * lado),
-              0xFF2F62B0,
-            );
-          }
-        }
-        antes = punto;
-      }
 
     case PropKind.line:
       // La cuerda entre dos palos con la ropa colgada. Pasa **por encima** de

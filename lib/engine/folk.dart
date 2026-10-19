@@ -337,9 +337,9 @@ class Townsfolk {
   /// que no son sitios a los que se va.
   final List<Doing?> _act;
 
-  /// Si es un crío. Más chico, y es el que sale al prado a soltar la cometa o
-  /// a correr detrás de una mariposa — que es lo que hace un crío en un pueblo
-  /// donde no hay nada más que hacer.
+  /// Si es un crío. Más chico, y es el que salta a la comba o corre detrás de
+  /// una mariposa — que es lo que hace un crío en un pueblo donde no hay nada
+  /// más que hacer.
   bool get kid => hash01(seed, 12) < 0.24;
 
   /// Lo que mide, contra lo que mide una persona hecha.
@@ -444,7 +444,7 @@ class Townsfolk {
   List<(double x, double z)> get debugPath => _stops;
 
   /// En qué anda cuando está parado. Para poder exigir en un test que un crío
-  /// no se ponga a martillear un puente y que nadie suelte una cometa dentro
+  /// no se ponga a martillear un puente y que nadie se ponga a segar dentro
   /// de la plaza.
   @visibleForTesting
   List<Doing?> get debugActs => _act;
@@ -1402,8 +1402,8 @@ List<Townsfolk> _folkOf(
   //
   // Cada sitio dice además qué clase de sitio es, porque de eso depende lo que
   // se hace al llegar: en la plaza se charla, en una obra se arrima el hombro,
-  // y en el prado se suelta la cometa. Un crío soltando una cometa en medio de
-  // la plaza es lo que pasa cuando esto no se distingue.
+  // y en el prado se siega. Alguien segando en medio de la plaza es lo que
+  // pasa cuando esto no se distingue.
   final sitios = _sitesOf(layout, placed, huella);
 
   // Lo que diga el padrón manda. Un vecino apuntado conserva su semilla —y con
@@ -1590,7 +1590,7 @@ final Map<String, (double, double, double, double)> _gestures = {};
 
 /// Si alguien de talla [h] puede hacer [d] de pie en [p] mirando a
 /// [heading] sin que nada de lo suyo —el cuerpo, el taburete, el tocón, las
-/// ovejas, la cometa— se meta en algo construido.
+/// ovejas, la guadaña— se meta en algo construido.
 ///
 /// **Es la regla, no un parche por actividad.** Antes sólo se comprobaba que
 /// los pies estuvieran en la calle, y lo que se lleva no se miraba nunca: un

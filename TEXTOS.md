@@ -20,13 +20,13 @@ nombres de fuente (`PermanentMarker.ttf`), la hoja de pruebas y los comentarios.
 | Comarcas | 8 | 24 + 42 | sí |
 | Lo que el tablón dice de vos | 100 | 100 | sí |
 | Nombres de la gente | 87 | 87 | no: nombres propios |
-| Lo que hace la gente | 22 | 22 | sí |
+| Lo que hace la gente | 21 | 21 | sí |
 | Símbolos de hábito | 72 | 72 | sí |
 | La interfaz | 651 | 651 | sí |
 | Notificaciones | 9 | 9 | sí |
 | Widget de Android | 6 | 6 | sí |
 
-**1022 entradas**, que son unas 1140 frases sueltas.
+**1021 entradas**, que son unas 1139 frases sueltas.
 
 
 
@@ -220,10 +220,9 @@ nombres de fuente (`PermanentMarker.ttf`), la hoja de pruebas y los comentarios.
 - **G16** · pica piedra
 - **G17** · sierra un madero
 - **G18** · empuja la carretilla
-- **G19** · vuela una cometa
-- **G20** · se tumba a mirar las nubes
-- **G21** · cuida las ovejas
-- **G22** · coge flores
+- **G19** · se tumba a mirar las nubes
+- **G20** · cuida las ovejas
+- **G21** · coge flores
 
 ## Los símbolos de hábito (72)
 
@@ -586,8 +585,8 @@ Lo que sale al tocar el tablón de la plaza: escribir una nota, borrarla.
 
 Lo que aparece al dejar una nota apretada para cambiarla de sitio.
 
-- **U125** · `Editarla`  <sub>board_scene.dart:754 · _BoardSceneState._actions</sub>
-- **U126** · `Quitarla`  <sub>board_scene.dart:773 · _BoardSceneState._actions</sub>
+- **U125** · `Quitarla`  <sub>board_scene.dart:753 · _BoardSceneState._actions</sub>
+- **U126** · `Editarla`  <sub>board_scene.dart:774 · _BoardSceneState._actions</sub>
 - **U127** · `NO QUEDA SITIO`  <sub>board_scene.dart:960 · _BoardSceneState._esperando</sub>
 - **U128** · `LLEVALA A UN HUECO VERDE`  <sub>board_scene.dart:962 · _BoardSceneState._esperando</sub>
 
@@ -1018,7 +1017,7 @@ Invierno, primavera, verano y otoño, en ajustes y en el tablón.
 
 Frases que no caen en ninguna pantalla concreta.
 
-- **U467** · `versión simple`  <sub>renderer.dart:2445 · TownPainter._colourOf</sub>
+- **U467** · `versión simple`  <sub>renderer.dart:2446 · TownPainter._colourOf</sub>
 - **U468** · `el pueblo`  <sub>advice_book.dart:533 · AdviceReason.AdviceReason</sub>
 - **U469** · `Porque $el no hubo pieza en $t.`  <sub>advice_book.dart:541 · AdviceReason.AdviceReason</sub>
 - **U470** · `Porque a $t le están faltando piezas estos días.`  <sub>advice_book.dart:545 · AdviceReason.AdviceReason</sub>
@@ -1199,10 +1198,10 @@ Frases que no caen en ninguna pantalla concreta.
 - **U645** · `DARLO POR HECHO`  <sub>plan_picker.dart:276 · _PlanSheetState.build</sub>
 - **U646** · `ArchitectsDaughter`  <sub>sage_screen.dart:44 · _Estilo.dicho</sub>
 - **U647** · `EBGaramond`  <sub>sage_screen.dart:52 · _Estilo.habla</sub>
-- **U648** · `EL CONSEJERO`  <sub>sage_screen.dart:427 · _Cabecera.build</sub>
-- **U649** · `un dicho guardado`  <sub>sage_screen.dart:452 · _Cabecera.build</sub>
-- **U650** · `$cuantos dichos guardados`  <sub>sage_screen.dart:453 · _Cabecera.build</sub>
-- **U651** · `Ahora no`  <sub>sage_screen.dart:1115 · _EscribeState.build</sub>
+- **U648** · `EL CONSEJERO`  <sub>sage_screen.dart:449 · _Cabecera.build</sub>
+- **U649** · `un dicho guardado`  <sub>sage_screen.dart:474 · _Cabecera.build</sub>
+- **U650** · `$cuantos dichos guardados`  <sub>sage_screen.dart:475 · _Cabecera.build</sub>
+- **U651** · `Ahora no`  <sub>sage_screen.dart:1149 · _EscribeState.build</sub>
 
 ## Las notificaciones (9)
 

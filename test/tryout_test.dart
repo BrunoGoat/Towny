@@ -102,7 +102,7 @@ void main() {
   test('seguido por la cámara o no, termina igual de bien', () {
     final t = _town(400);
     final who = folkOf(t, 400)[3];
-    final d = Doing.all.firstWhere((d) => d.id == 'cometa');
+    final d = Doing.all.firstWhere((d) => d.id == 'leer');
     who.spotlight(200, on: true);
     folkTryOut(t, 400, who, d, 200);
     final r = _recorre(who, d, 200);

@@ -15,7 +15,6 @@ const Map<String, String> doingsEn = {
   'cantero': 'cuts stone',
   'serrar': 'saws a log',
   'segar': 'reaps',
-  'cometa': 'flies a kite',
   'leer': 'reads',
   'nubes': 'lies down to watch the clouds',
   'malabares': 'juggles',

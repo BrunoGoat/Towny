@@ -292,7 +292,7 @@ void main() {
   });
 
   group('cada uno en lo suyo', () {
-    test('la cometa y las mariposas son cosa de críos', () {
+    test('la comba y las mariposas son cosa de críos', () {
       // Un maestro cantero de cincuenta años corriendo detrás de una mariposa
       // es gracioso una vez y raro siempre.
       final t = _town(400);
@@ -325,7 +325,7 @@ void main() {
           expect(
             d,
             greaterThan(borde),
-            reason: 'alguien suelta una cometa dentro del pueblo',
+            reason: 'alguien hace cosas del prado dentro del pueblo',
           );
         }
       }
