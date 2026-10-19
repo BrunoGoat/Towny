@@ -157,4 +157,60 @@ void main() {
     expect(find.text('probar'), findsOneWidget);
     expect(AdviceBook.instance.read(), isEmpty);
   });
+
+  testWidgets('uno leído sale de su hueco en la lista y vuelve a él', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    late Store store;
+    await tester.runAsync(() async {
+      await Appearance.instance.load();
+      await Appearance.instance.setSoundOff(true);
+      store = Store();
+      await store.load();
+    });
+    final libro = AdviceBook.instance
+      ..forget()
+      ..meet()
+      ..setGoal(store.habit.id, AdviceGoal.start);
+    final hoy = DateTime.now();
+    for (var k = 3; k >= 1; k--) {
+      for (final a in libro.visit(
+        store.habits,
+        now: hoy.subtract(Duration(days: k)),
+      )) {
+        libro.markRead(a);
+      }
+    }
+    final primero = libro.read().first.$1;
+    tester.view.physicalSize = const Size(780, 1688);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SageScreen(store: store, theme: UiTheme(Palette.forMoment(13))),
+      ),
+    );
+    for (var i = 0; i < 40; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    bool hueco() => tester
+        .widgetList<Opacity>(find.byType(Opacity))
+        .any((o) => o.opacity == 0);
+    expect(hueco(), isFalse);
+    await tester.tap(find.text(primero.say).first);
+    await tester.pump(const Duration(milliseconds: 50));
+    // Ya se fue de la lista, y todavía no se desenrolló arriba.
+    expect(hueco(), isTrue);
+    expect(find.byKey(sageCordKey), findsNothing);
+    for (var i = 0; i < 40; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(hueco(), isTrue);
+    await tester.tapAt(const Offset(195, 300));
+    for (var i = 0; i < 30; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(hueco(), isFalse, reason: 'no volvió a su sitio');
+  });
 }

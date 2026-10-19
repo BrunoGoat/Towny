@@ -236,7 +236,24 @@ class _SageScreenState extends State<SageScreen> {
     setState(() {
       _abierto = a;
       _dando = false;
+      // De dónde sale: su sitio en la lista, ahora. Ahí se enrolla, de ahí
+      // se despega y de ahí vuela hasta arriba a desenrollarse.
+      _desde = _enLista(a.id);
     });
+  }
+
+  /// El sitio de cada rollo en la lista, para que el que se abre salga de
+  /// ahí y vuelva ahí.
+  final Map<String, GlobalKey> _sitios = {};
+  GlobalKey _sitio(String id) => _sitios.putIfAbsent(id, GlobalKey.new);
+  Rect? _desde;
+
+  /// Dónde está ahora en la pantalla el rollo [id] de la lista; nulo si no se
+  /// ve —la lista se movió y quedó fuera—.
+  Rect? _enLista(String id) {
+    final caja = _sitios[id]?.currentContext?.findRenderObject() as RenderBox?;
+    if (caja == null || !caja.hasSize || !caja.attached) return null;
+    return caja.localToGlobal(Offset.zero) & caja.size;
   }
 
   /// Adónde va el rollo leído: arriba de la lista, donde va a quedar.
@@ -349,6 +366,9 @@ class _SageScreenState extends State<SageScreen> {
                       dichos: leidos,
                       controller: _desliza,
                       onTap: _abrir,
+                      sitio: _sitio,
+                      // El que está fuera deja su hueco vacío mientras tanto.
+                      fuera: _dando ? null : _abierto?.id,
                     ),
                   ),
                 ),
@@ -387,6 +407,8 @@ class _SageScreenState extends State<SageScreen> {
                 consejo: _abierto!,
                 motivo: _libro.reasonOf(_abierto!)?.text,
                 destino: _dando ? _destino : null,
+                origen: _dando ? null : _desde,
+                regreso: _dando ? null : () => _enLista(_abierto!.id),
                 // Uno nuevo se abre a mano, y cuesta; uno que ya se leyó se
                 // abre solo, como siempre.
                 sealed: _dando,
@@ -602,12 +624,20 @@ class _Lista extends StatelessWidget {
     required this.dichos,
     required this.controller,
     required this.onTap,
+    required this.sitio,
+    this.fuera,
   });
 
   final _Estilo e;
   final List<(Advice, DateTime)> dichos;
   final ScrollController controller;
   final void Function(Advice) onTap;
+
+  /// La llave de cada rollo, para saber dónde está.
+  final GlobalKey Function(String id) sitio;
+
+  /// El que está abierto encima: su hueco queda vacío hasta que vuelva.
+  final String? fuera;
 
   /// El margen de la lista: el rollo que llega volando va a este hueco.
   /// Ancho de lado: las varillas sobresalen del rollo con sus remates y
@@ -630,22 +660,26 @@ class _Lista extends StatelessWidget {
           style: e.habla(18).copyWith(fontStyle: FontStyle.italic),
         );
         return GestureDetector(
+          key: sitio(a.id),
           behavior: HitTestBehavior.opaque,
           onTap: () => onTap(a),
           // El de arriba se desenrolla al llegar: es el rollo que acaba de
           // aterrizar ahí, o el último que se dio.
-          child: i == 0
-              ? TweenAnimationBuilder<double>(
-                  key: ValueKey(a.id),
-                  tween: Tween(begin: 0, end: 1),
-                  duration: const Duration(milliseconds: 420),
-                  curve: Curves.easeOutCubic,
-                  builder: (_, t, child) => _ConVarillas(
-                    child: SageScroll(open: t, child: child!),
-                  ),
-                  child: texto,
-                )
-              : _ConVarillas(child: SageScroll(child: texto)),
+          child: Opacity(
+            opacity: a.id == fuera ? 0 : 1,
+            child: i == 0
+                ? TweenAnimationBuilder<double>(
+                    key: ValueKey(a.id),
+                    tween: Tween(begin: 0, end: 1),
+                    duration: const Duration(milliseconds: 420),
+                    curve: Curves.easeOutCubic,
+                    builder: (_, t, child) => _ConVarillas(
+                      child: SageScroll(open: t, child: child!),
+                    ),
+                    child: texto,
+                  )
+                : _ConVarillas(child: SageScroll(child: texto)),
+          ),
         );
       },
     );
@@ -1360,8 +1394,19 @@ class _Detalle extends StatefulWidget {
     required this.onClosed,
     this.motivo,
     this.destino,
+    this.origen,
+    this.regreso,
     this.sealed = false,
   });
+
+  /// De dónde sale, en coordenadas de la pantalla: el sitio del rollo en la
+  /// lista. Ahí se enrolla, se despega y vuela hasta arriba; nulo si aparece
+  /// sin más.
+  final Rect? origen;
+
+  /// Adónde vuelve al cerrarse —su sitio en la lista, mirado en ese
+  /// momento—: vuela enrollado y ahí se vuelve a desplegar.
+  final Rect? Function()? regreso;
 
   /// Si hay que abrirlo a mano. Ver la clase.
   final bool sealed;
@@ -1396,6 +1441,23 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
   bool _cerrando = false;
   Rect? _hasta;
 
+  /// Salir de la lista —enrollarse en su sitio y volar hasta arriba— y,
+  /// al cerrar, volver a desplegarse en ella.
+  late final AnimationController _sale = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 820),
+  );
+  late final AnimationController _despliega = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 380),
+  );
+
+  /// Su sitio en la lista al volver, en coordenadas de la escena.
+  Rect? _regresoA;
+
+  /// Si está saliendo de la lista todavía.
+  bool get _saliendo => widget.origen != null && _sale.value < 1;
+
   @override
   void initState() {
     super.initState();
@@ -1407,11 +1469,26 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
       // Uno ya leído se abre solo, en la misma escena que uno nuevo —sus
       // varillas, su luz— pero sin lacre ni esfuerzo; y al terminar de
       // desenrollarse, un polvo dorado que sube.
-      _abre.forward().then((_) {
-        if (mounted && !_cerrando) _brilla();
-      });
+      void abre() {
+        _abre.forward().then((_) {
+          if (mounted && !_cerrando) _brilla();
+        });
+      }
+
+      if (widget.origen != null) {
+        // Primero sale de la lista; desenrollarse empieza al llegar arriba.
+        _sale.forward().then((_) {
+          if (!mounted || _cerrando) return;
+          _abre.value = _asoma;
+          Sensory.instance.tick();
+          abre();
+        });
+        _luego(const Duration(milliseconds: 2500));
+      } else {
+        abre();
+        _luego(const Duration(milliseconds: 1900));
+      }
       _tiempo.start();
-      _luego(const Duration(milliseconds: 1900));
     }
   }
 
@@ -1428,6 +1505,8 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
     _tiempo.dispose();
     _abre.dispose();
     _vuela.dispose();
+    _sale.dispose();
+    _despliega.dispose();
     super.dispose();
   }
 
@@ -1651,7 +1730,7 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
       _bajoCerrado = false;
       return;
     }
-    if (_sellado) return;
+    if (_sellado || _saliendo) return;
     _cerrar();
   }
 
@@ -1666,8 +1745,25 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
       curve: Curves.easeInOutCubic,
     );
     if (!mounted) return;
-    final d = widget.destino?.call();
     final caja = context.findRenderObject() as RenderBox?;
+    // Uno de la lista vuelve a su sitio: vuela enrollado hasta el medio de
+    // su hueco y ahí se vuelve a desplegar.
+    final sitio = widget.regreso?.call();
+    if (sitio != null && caja != null) {
+      final aca = caja.globalToLocal(sitio.topLeft) & sitio.size;
+      _regresoA = aca;
+      _hasta = Rect.fromCenter(
+        center: aca.center,
+        width: aca.width,
+        height: SageScroll.closed,
+      );
+      await _vuela.forward();
+      if (!mounted) return;
+      await _despliega.forward();
+      if (mounted) widget.onClosed();
+      return;
+    }
+    final d = widget.destino?.call();
     if (d != null && caja != null) {
       final arriba = caja.globalToLocal(d.topLeft);
       _hasta = arriba & d.size;
@@ -1675,6 +1771,19 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
     }
     if (mounted) widget.onClosed();
   }
+
+  /// El rollo como está en la lista: abierto [open], con el dicho y sus dos
+  /// varillas. Es lo que se ve mientras sale de ella y cuando vuelve.
+  Widget _comoEnLista(double open) => _ConVarillas(
+    child: SageScroll(
+      open: open,
+      child: Text(
+        widget.consejo.say,
+        textAlign: TextAlign.center,
+        style: widget.e.habla(18).copyWith(fontStyle: FontStyle.italic),
+      ),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -1726,14 +1835,17 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
         behavior: HitTestBehavior.opaque,
         onTap: _toque,
         child: AnimatedBuilder(
-          animation: Listenable.merge([_abre, _vuela]),
+          animation: Listenable.merge([_abre, _vuela, _sale, _despliega]),
           builder: (context, _) {
             final a = _abre.value;
             final v = Curves.easeInOutCubic.transform(_vuela.value);
             // Al llegar asoma y se desenrolla; al irse, el velo se aclara
             // mientras vuela, pero el rollo no se desvanece: se va.
+            // Saliendo de la lista, el velo va cayendo mientras vuela.
             final llega = _cerrando
                 ? 1.0
+                : _saliendo
+                ? Curves.easeOut.transform(_sale.value)
                 : Curves.easeOut.transform((a / _asoma).clamp(0, 1));
             // Tirando de él, lo abierto es lo que se tiró: sin curva, que el
             // borde de abajo vaya con el dedo.
@@ -1764,6 +1876,77 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
                     // El que se abre tirando cuelga de arriba: la cuerda de
                     // arriba se queda quieta y la de abajo baja con el dedo.
                     final arriba = box.maxHeight * 0.18;
+                    final ancla = Rect.fromLTWH(
+                      34,
+                      arriba,
+                      box.maxWidth - 68,
+                      SageScroll.closed,
+                    );
+                    // Saliendo de la lista: primero se enrolla en su sitio,
+                    // después se despega y vuela hasta donde se desenrolla.
+                    final de = widget.origen;
+                    final caja = this.context.findRenderObject() as RenderBox?;
+                    if (_saliendo &&
+                        de != null &&
+                        caja != null &&
+                        caja.hasSize) {
+                      final o = caja.globalToLocal(de.topLeft) & de.size;
+                      final t = _sale.value;
+                      final pliega = Curves.easeInOutCubic.transform(
+                        (t / 0.36).clamp(0.0, 1.0),
+                      );
+                      final vuelo = Curves.easeInOutCubic.transform(
+                        ((t - 0.36) / 0.64).clamp(0.0, 1.0),
+                      );
+                      final tira = Rect.fromCenter(
+                        center: o.center,
+                        width: o.width,
+                        height: SageScroll.closed,
+                      );
+                      final r = vuelo > 0
+                          ? Rect.lerp(tira, ancla, vuelo)!
+                          : Rect.fromCenter(
+                              center: o.center,
+                              width: o.width,
+                              height: ui.lerpDouble(
+                                o.height,
+                                SageScroll.closed,
+                                pliega,
+                              )!,
+                            );
+                      // Al despegarse sube un poco y vuelve a bajar: un arco,
+                      // no una recta.
+                      final arco = -math.sin(vuelo * math.pi) * 36;
+                      return Stack(
+                        children: [
+                          Positioned.fromRect(
+                            rect: r.shift(Offset(0, arco)),
+                            child: _comoEnLista(1 - pliega),
+                          ),
+                        ],
+                      );
+                    }
+                    // Y al volver, ya en su hueco, se despliega como estaba.
+                    final vuelta = _regresoA;
+                    if (_despliega.value > 0 && vuelta != null) {
+                      final f = Curves.easeOutCubic.transform(_despliega.value);
+                      return Stack(
+                        children: [
+                          Positioned.fromRect(
+                            rect: Rect.fromCenter(
+                              center: vuelta.center,
+                              width: vuelta.width,
+                              height: ui.lerpDouble(
+                                SageScroll.closed,
+                                vuelta.height,
+                                f,
+                              )!,
+                            ),
+                            child: _comoEnLista(f),
+                          ),
+                        ],
+                      );
+                    }
                     if (hasta == null || v == 0) {
                       final rollo = Opacity(
                         opacity: llega,
@@ -1850,13 +2033,16 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
                       box.maxWidth - 68,
                       SageScroll.closed,
                     );
-                    final r = Rect.lerp(desde, hasta, v)!;
+                    // Enrollado y con sus varillas, como va a quedar en la
+                    // lista; y en arco, como a la ida.
+                    final r = Rect.lerp(
+                      desde,
+                      hasta,
+                      v,
+                    )!.shift(Offset(0, -math.sin(v * math.pi) * 36));
                     return Stack(
                       children: [
-                        Positioned.fromRect(
-                          rect: r,
-                          child: const SageScroll(open: 0, child: SizedBox()),
-                        ),
+                        Positioned.fromRect(rect: r, child: _comoEnLista(0)),
                       ],
                     );
                   },
