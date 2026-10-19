@@ -638,21 +638,21 @@ En ajustes: todos los vecinos, con su nombre y lo que están haciendo.
 
 Poner un pueblo en pausa por una semana, dos o un mes, sin que se deteriore.
 
-- **U158** · `Una semana`  <sub>rest_sheet.dart:51 · _RestSheetState</sub>
-- **U159** · `un viaje, una gripe, una semana imposible`  <sub>rest_sheet.dart:53 · _RestSheetState</sub>
-- **U160** · `Dos semanas`  <sub>rest_sheet.dart:57 · _RestSheetState</sub>
-- **U161** · `unas vacaciones`  <sub>rest_sheet.dart:57 · _RestSheetState</sub>
-- **U162** · `Un mes`  <sub>rest_sheet.dart:60 · _RestSheetState</sub>
-- **U163** · `una mudanza, un examen, un mes de los otros`  <sub>rest_sheet.dart:62 · _RestSheetState</sub>
-- **U164** · `Tres meses`  <sub>rest_sheet.dart:68 · _RestSheetState</sub>
-- **U165** · `una temporada entera de tu vida`  <sub>rest_sheet.dart:69 · _RestSheetState</sub>
-- **U166** · `DORMIR EL PUEBLO`  <sub>rest_sheet.dart:98 · _RestSheetState.build</sub>
-- **U167** · `¿Hasta cuándo?`  <sub>rest_sheet.dart:102 · _RestSheetState.build</sub>
-- **U168** · `Mientras duerme no cuenta ningún día en contra. Podés volver `  <sub>rest_sheet.dart:106 · _RestSheetState.build</sub>
-- **U169** · `antes cuando quieras: poner una pieza lo despierta.`  <sub>rest_sheet.dart:107 · _RestSheetState.build</sub>
-- **U170** · `Elegí cuánto`  <sub>rest_sheet.dart:144 · _RestSheetState.build</sub>
-- **U171** · `Que duerma ${_days == 1 ? 'un día' : '$_days días'}`  <sub>rest_sheet.dart:146 · _RestSheetState.build</sub>
-- **U172** · `Esto no borra nada y no es lo mismo que eliminarlo.`  <sub>rest_sheet.dart:156 · _RestSheetState.build</sub>
+- **U158** · `Una semana`  <sub>rest_sheet.dart:53 · _RestSheetState</sub>
+- **U159** · `un viaje, una gripe, una semana imposible`  <sub>rest_sheet.dart:55 · _RestSheetState</sub>
+- **U160** · `Dos semanas`  <sub>rest_sheet.dart:59 · _RestSheetState</sub>
+- **U161** · `unas vacaciones`  <sub>rest_sheet.dart:59 · _RestSheetState</sub>
+- **U162** · `Un mes`  <sub>rest_sheet.dart:62 · _RestSheetState</sub>
+- **U163** · `una mudanza, un examen, un mes de los otros`  <sub>rest_sheet.dart:64 · _RestSheetState</sub>
+- **U164** · `Tres meses`  <sub>rest_sheet.dart:70 · _RestSheetState</sub>
+- **U165** · `una temporada entera de tu vida`  <sub>rest_sheet.dart:71 · _RestSheetState</sub>
+- **U166** · `DORMIR ${widget.habit.name.toUpperCase()}`  <sub>rest_sheet.dart:119 · _RestSheetState.build</sub>
+- **U167** · `¿Hasta cuándo?`  <sub>rest_sheet.dart:131 · _RestSheetState.build</sub>
+- **U168** · `Mientras duerme no cuenta ningún día en contra. Podés volver `  <sub>rest_sheet.dart:137 · _RestSheetState.build</sub>
+- **U169** · `antes cuando quieras: poner una pieza lo despierta.`  <sub>rest_sheet.dart:138 · _RestSheetState.build</sub>
+- **U170** · `Elegí cuánto`  <sub>rest_sheet.dart:177 · _RestSheetState.build</sub>
+- **U171** · `Que duerma hasta el ${dayMonth(_wakeOn(dias))}`  <sub>rest_sheet.dart:179 · _RestSheetState.build</sub>
+- **U172** · `Esto no borra nada y no es lo mismo que eliminarlo.`  <sub>rest_sheet.dart:193 · _RestSheetState.build</sub>
 
 ### El pueblo a la deriva
 
@@ -1160,32 +1160,32 @@ Frases que no caen en ninguna pantalla concreta.
 - **U607** · `sólo cambió la nube`  <sub>merge.dart:90 · SyncPlan.toString</sub>
 - **U608** · `cambiaron los dos y el teléfono es lo más reciente`  <sub>merge.dart:99 · SyncPlan.toString</sub>
 - **U609** · `cambiaron los dos y la nube es lo más reciente`  <sub>merge.dart:105 · SyncPlan.toString</sub>
-- **U610** · `Contanos más de tu hábito`  <sub>cadence_sheet.dart:52 · CadenceIntro.build</sub>
-- **U611** · `Ya pasó una semana. Con una pregunta, el pueblo entiende `  <sub>cadence_sheet.dart:62 · CadenceIntro.build</sub>
-- **U612** · `tu ritmo y no se preocupa de más.`  <sub>cadence_sheet.dart:63 · CadenceIntro.build</sub>
-- **U613** · `Ahora no`  <sub>cadence_sheet.dart:87 · CadenceIntro.build</sub>
-- **U614** · `Continuar`  <sub>cadence_sheet.dart:94 · CadenceIntro.build</sub>
-- **U615** · `día`  <sub>cadence_sheet.dart:186 · _CadenceSheetState.build</sub>
-- **U616** · `días`  <sub>cadence_sheet.dart:186 · _CadenceSheetState.build</sub>
-- **U617** · `TU RITMO`  <sub>cadence_sheet.dart:215 · _CadenceSheetState.build</sub>
-- **U618** · `CADA CUÁNTO`  <sub>cadence_sheet.dart:216 · _CadenceSheetState.build</sub>
-- **U619** · `En $dias $ds pusiste $piezas $pz.`  <sub>cadence_sheet.dart:223 · _CadenceSheetState.build</sub>
-- **U620** · `¿Cada cuánto va ${h.name}?`  <sub>cadence_sheet.dart:227 · _CadenceSheetState.build</sub>
-- **U621** · `¿Cada cuánto va ${h.name}? Viene marcado lo que se ve.`  <sub>cadence_sheet.dart:236 · _CadenceSheetState.build</sub>
-- **U622** · `No es una meta. Es para que el pueblo sepa cuándo un `  <sub>cadence_sheet.dart:241 · _CadenceSheetState.build</sub>
-- **U623** · `hueco es un hueco.`  <sub>cadence_sheet.dart:242 · _CadenceSheetState.build</sub>
-- **U624** · `Todos los días`  <sub>cadence_sheet.dart:257 · _CadenceSheetState.build</sub>
-- **U625** · `Un día sin pieza ya es un hueco.`  <sub>cadence_sheet.dart:259 · _CadenceSheetState.build</sub>
-- **U626** · `Algunos días por semana`  <sub>cadence_sheet.dart:268 · _CadenceSheetState.build</sub>
-- **U627** · `Los que toquen, sin día fijo.`  <sub>cadence_sheet.dart:270 · _CadenceSheetState.build</sub>
-- **U628** · `Cada dos días`  <sub>cadence_sheet.dart:289 · _CadenceSheetState.build</sub>
-- **U629** · `Un día sí y otro no.`  <sub>cadence_sheet.dart:290 · _CadenceSheetState.build</sub>
-- **U630** · `Una vez por semana`  <sub>cadence_sheet.dart:297 · _CadenceSheetState.build</sub>
-- **U631** · `Un día fijo, o el que se pueda.`  <sub>cadence_sheet.dart:299 · _CadenceSheetState.build</sub>
-- **U632** · `Cada dos semanas`  <sub>cadence_sheet.dart:308 · _CadenceSheetState.build</sub>
-- **U633** · `De vez en cuando, pero sin perderlo.`  <sub>cadence_sheet.dart:310 · _CadenceSheetState.build</sub>
-- **U634** · `Se cambia cuando quieras en la hoja del hábito.`  <sub>cadence_sheet.dart:332 · _CadenceSheetState.build</sub>
-- **U635** · `$n por semana`  <sub>cadence_sheet.dart:549 · _Count.build</sub>
+- **U610** · `Contanos más de tu hábito`  <sub>cadence_sheet.dart:51 · CadenceIntro.build</sub>
+- **U611** · `Ya pasó una semana. Con una pregunta, el pueblo entiende `  <sub>cadence_sheet.dart:61 · CadenceIntro.build</sub>
+- **U612** · `tu ritmo y no se preocupa de más.`  <sub>cadence_sheet.dart:62 · CadenceIntro.build</sub>
+- **U613** · `Ahora no`  <sub>cadence_sheet.dart:86 · CadenceIntro.build</sub>
+- **U614** · `Continuar`  <sub>cadence_sheet.dart:93 · CadenceIntro.build</sub>
+- **U615** · `día`  <sub>cadence_sheet.dart:185 · _CadenceSheetState.build</sub>
+- **U616** · `días`  <sub>cadence_sheet.dart:185 · _CadenceSheetState.build</sub>
+- **U617** · `TU RITMO`  <sub>cadence_sheet.dart:214 · _CadenceSheetState.build</sub>
+- **U618** · `CADA CUÁNTO`  <sub>cadence_sheet.dart:215 · _CadenceSheetState.build</sub>
+- **U619** · `En $dias $ds pusiste $piezas $pz.`  <sub>cadence_sheet.dart:222 · _CadenceSheetState.build</sub>
+- **U620** · `¿Cada cuánto va ${h.name}?`  <sub>cadence_sheet.dart:226 · _CadenceSheetState.build</sub>
+- **U621** · `¿Cada cuánto va ${h.name}? Viene marcado lo que se ve.`  <sub>cadence_sheet.dart:235 · _CadenceSheetState.build</sub>
+- **U622** · `No es una meta. Es para que el pueblo sepa cuándo un `  <sub>cadence_sheet.dart:240 · _CadenceSheetState.build</sub>
+- **U623** · `hueco es un hueco.`  <sub>cadence_sheet.dart:241 · _CadenceSheetState.build</sub>
+- **U624** · `Todos los días`  <sub>cadence_sheet.dart:256 · _CadenceSheetState.build</sub>
+- **U625** · `Un día sin pieza ya es un hueco.`  <sub>cadence_sheet.dart:258 · _CadenceSheetState.build</sub>
+- **U626** · `Algunos días por semana`  <sub>cadence_sheet.dart:267 · _CadenceSheetState.build</sub>
+- **U627** · `Los que toquen, sin día fijo.`  <sub>cadence_sheet.dart:269 · _CadenceSheetState.build</sub>
+- **U628** · `Cada dos días`  <sub>cadence_sheet.dart:288 · _CadenceSheetState.build</sub>
+- **U629** · `Un día sí y otro no.`  <sub>cadence_sheet.dart:289 · _CadenceSheetState.build</sub>
+- **U630** · `Una vez por semana`  <sub>cadence_sheet.dart:296 · _CadenceSheetState.build</sub>
+- **U631** · `Un día fijo, o el que se pueda.`  <sub>cadence_sheet.dart:298 · _CadenceSheetState.build</sub>
+- **U632** · `Cada dos semanas`  <sub>cadence_sheet.dart:307 · _CadenceSheetState.build</sub>
+- **U633** · `De vez en cuando, pero sin perderlo.`  <sub>cadence_sheet.dart:309 · _CadenceSheetState.build</sub>
+- **U634** · `Se cambia cuando quieras en la hoja del hábito.`  <sub>cadence_sheet.dart:331 · _CadenceSheetState.build</sub>
+- **U635** · `$n por semana`  <sub>cadence_sheet.dart:386 · _Count.build</sub>
 - **U636** · `0 fps`  <sub>perf_overlay.dart:46 · _PerfOverlayState._resume</sub>
 - **U637** · `cuadro ${arma[n ~/ 2].toStringAsFixed(1)} ms `  <sub>perf_overlay.dart:52 · _PerfOverlayState._resume</sub>
 - **U638** · `(peor ${arma.last.toStringAsFixed(0)})\n`  <sub>perf_overlay.dart:53 · _PerfOverlayState._resume</sub>

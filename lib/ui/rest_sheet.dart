@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../fx/sensory.dart';
+import '../l10n/dates.dart';
 import '../l10n/lang.dart';
 import '../model/habit.dart';
 import '../model/piece.dart';
+import 'sheet_glass.dart';
 import 'style.dart';
 
 /// Dormir un pueblo, y hasta cuándo.
@@ -70,36 +72,65 @@ class _RestSheetState extends State<RestSheet> {
     ),
   ];
 
+  /// El día en que despierta si se elige dormirlo [dias] días.
+  static DateTime _wakeOn(int dias) =>
+      dayStart(DateTime.now().add(Duration(days: dias + 1)));
+
   @override
   Widget build(BuildContext context) {
     final t = widget.theme;
-    return Frosted(
-      theme: t,
-      strong: true,
-      radius: 30,
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 22),
+    final velo = SheetInk.of(t);
+    final dias = _days;
+    return SheetGlass(
+      velo: velo,
+      radius: 28,
+      bottom: false,
+      padding: EdgeInsets.fromLTRB(
+        20,
+        14,
+        20,
+        18 + MediaQuery.of(context).padding.bottom,
+      ),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Center(
               child: Container(
                 width: 38,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: t.fg.withValues(alpha: 0.22),
+                  color: velo.cuerpo.withValues(alpha: 0.22),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
             const SizedBox(height: 16),
-            Text(
-              tr('DORMIR EL PUEBLO', 'PUT THE TOWN TO SLEEP'),
-              style: t.label,
+            // La luna del rótulo: lo que dice «dormir» sin palabras, en el
+            // color del pueblo.
+            Row(
+              children: [
+                Icon(Icons.bedtime_outlined, size: 14, color: t.accent),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    tr(
+                      'DORMIR ${widget.habit.name.toUpperCase()}',
+                      'PUT ${widget.habit.name.toUpperCase()} TO SLEEP',
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: t.label.copyWith(color: velo.tenue),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 10),
-            Text(tr('¿Hasta cuándo?', 'Until when?'), style: t.title),
+            Text(
+              tr('¿Hasta cuándo?', 'Until when?'),
+              style: t.title.copyWith(color: velo.cuerpo),
+            ),
             const SizedBox(height: 6),
             Text(
               tr(
@@ -108,103 +139,68 @@ class _RestSheetState extends State<RestSheet> {
                 'While it sleeps, no day counts against you. You can come back '
                     'earlier whenever you like: placing a piece wakes it up.',
               ),
-              style: t.bodySoft.copyWith(fontSize: 12.5, height: 1.4),
+              style: t.bodySoft.copyWith(
+                fontSize: 12.5,
+                height: 1.4,
+                color: velo.suave,
+              ),
             ),
+            const SizedBox(height: 14),
+            for (final span in _spans)
+              SheetChoice(
+                theme: t,
+                velo: velo,
+                on: dias == span.$1,
+                title: span.$2,
+                hint: span.$3,
+                // El día en que vuelve, al lado: una pausa siempre tiene
+                // fecha de vuelta, y verla es lo que la hace una pausa.
+                trailing: Text(
+                  dayMonthShort(_wakeOn(span.$1)),
+                  style: t.bodySoft.copyWith(
+                    fontSize: 12,
+                    color: dias == span.$1 ? t.accent : velo.tenue,
+                    fontWeight: dias == span.$1
+                        ? FontWeight.w600
+                        : FontWeight.w400,
+                  ),
+                ),
+                onTap: () {
+                  Sensory.instance.tick();
+                  setState(() => _days = span.$1);
+                },
+              ),
             const SizedBox(height: 16),
-            for (var i = 0; i < _spans.length; i++) ...[
-              if (i > 0) const SizedBox(height: 8),
-              _span(t, _spans[i]),
-            ],
-            const SizedBox(height: 18),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: _days == null
-                    ? null
-                    : () {
-                        widget.onRest(
-                          dayStart(
-                            DateTime.now().add(Duration(days: _days! + 1)),
-                          ),
-                        );
-                        Navigator.of(context).pop();
-                      },
-                style: FilledButton.styleFrom(
-                  backgroundColor: t.accent.withValues(alpha: 0.85),
-                  foregroundColor: t.dark ? Colors.black : Colors.white,
-                  disabledBackgroundColor: t.fg.withValues(alpha: 0.10),
-                  disabledForegroundColor: t.fgFaint,
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                child: Text(
-                  _days == null
-                      ? tr('Elegí cuánto', 'Choose how long')
-                      : tr(
-                          'Que duerma ${_days == 1 ? 'un día' : '$_days días'}',
-                          'Let it sleep ${_days == 1 ? 'one day' : '$_days days'}',
-                        ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Center(
-              child: Text(
-                tr(
-                  'Esto no borra nada y no es lo mismo que eliminarlo.',
-                  "This doesn't delete anything, and it isn't the same as "
-                      'removing it.',
-                ),
-                style: t.bodySoft.copyWith(fontSize: 11.5),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _span(UiTheme t, (int, String, String) span) {
-    final chosen = _days == span.$1;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () {
-        Sensory.instance.tick();
-        setState(() => _days = span.$1);
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 170),
-        curve: Curves.easeOut,
-        decoration: BoxDecoration(
-          color: t.fg.withValues(alpha: chosen ? 0.10 : 0.04),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: chosen ? t.accent.withValues(alpha: 0.85) : t.stroke,
-            width: chosen ? 1.6 : 1,
-          ),
-        ),
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    span.$2,
-                    style: t.body.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: chosen ? t.accent : t.fg,
+            SheetAccent(
+              theme: t,
+              text: dias == null
+                  ? tr('Elegí cuánto', 'Choose how long')
+                  : tr(
+                      'Que duerma hasta el ${dayMonth(_wakeOn(dias))}',
+                      'Let it sleep until ${dayMonth(_wakeOn(dias))}',
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(span.$3, style: t.bodySoft.copyWith(fontSize: 11.5)),
-                ],
+              onTap: dias == null
+                  ? null
+                  : () {
+                      Sensory.instance.tick();
+                      widget.onRest(_wakeOn(dias));
+                      Navigator.of(context).pop();
+                    },
+            ),
+            const SizedBox(height: 10),
+            Text(
+              tr(
+                'Esto no borra nada y no es lo mismo que eliminarlo.',
+                "This doesn't delete anything, and it isn't the same as "
+                    'removing it.',
+              ),
+              textAlign: TextAlign.center,
+              style: t.bodySoft.copyWith(
+                fontSize: 11.5,
+                height: 1.4,
+                color: velo.tenue,
               ),
             ),
-            if (chosen) Icon(Icons.check, size: 18, color: t.accent),
           ],
         ),
       ),

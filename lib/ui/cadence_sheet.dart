@@ -1,11 +1,10 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
 
 import '../fx/sensory.dart';
 import '../l10n/lang.dart';
 import '../model/cadence.dart';
 import '../model/habit.dart';
+import 'sheet_glass.dart';
 import 'style.dart';
 
 /// El aviso antes de la pregunta: «contanos más de tu hábito».
@@ -29,7 +28,7 @@ class CadenceIntro extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 28),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 380),
-          child: _Glass(
+          child: SheetGlass(
             velo: velo,
             radius: 26,
             padding: const EdgeInsets.fromLTRB(22, 22, 22, 16),
@@ -89,7 +88,7 @@ class CadenceIntro extends StatelessWidget {
                     ),
                     const SizedBox(width: 10),
                     Expanded(
-                      child: _Accent(
+                      child: SheetAccent(
                         theme: t,
                         text: tr('Continuar', 'Continue'),
                         onTap: () {
@@ -184,7 +183,7 @@ class _CadenceSheetState extends State<CadenceSheet> {
     final (piezas, dias) = sinceStartOf(h);
     final pz = piezas == 1 ? tr('pieza', 'piece') : tr('piezas', 'pieces');
     final ds = dias == 1 ? tr('día', 'day') : tr('días', 'days');
-    return _Glass(
+    return SheetGlass(
       velo: velo,
       radius: 28,
       bottom: false,
@@ -250,7 +249,7 @@ class _CadenceSheetState extends State<CadenceSheet> {
               ),
             ),
             const SizedBox(height: 14),
-            _Row(
+            SheetChoice(
               theme: t,
               velo: velo,
               on: _way == _Way.daily,
@@ -261,7 +260,7 @@ class _CadenceSheetState extends State<CadenceSheet> {
               ),
               onTap: () => _choose(7),
             ),
-            _Row(
+            SheetChoice(
               theme: t,
               velo: velo,
               on: _way == _Way.someDays,
@@ -282,7 +281,7 @@ class _CadenceSheetState extends State<CadenceSheet> {
               ),
               onTap: () => _choose(_some.toDouble()),
             ),
-            _Row(
+            SheetChoice(
               theme: t,
               velo: velo,
               on: _way == _Way.everyOther,
@@ -290,7 +289,7 @@ class _CadenceSheetState extends State<CadenceSheet> {
               hint: tr('Un día sí y otro no.', 'One day on, one day off.'),
               onTap: () => _choose(everyOtherDay),
             ),
-            _Row(
+            SheetChoice(
               theme: t,
               velo: velo,
               on: _way == _Way.weekly,
@@ -301,7 +300,7 @@ class _CadenceSheetState extends State<CadenceSheet> {
               ),
               onTap: () => _choose(1),
             ),
-            _Row(
+            SheetChoice(
               theme: t,
               velo: velo,
               on: _way == _Way.fortnightly,
@@ -313,7 +312,7 @@ class _CadenceSheetState extends State<CadenceSheet> {
               onTap: () => _choose(everyOtherWeek),
             ),
             const SizedBox(height: 16),
-            _Accent(
+            SheetAccent(
               theme: t,
               text: tr(
                 'Es ${cadenceSaid(_pick)}',
@@ -340,168 +339,6 @@ class _CadenceSheetState extends State<CadenceSheet> {
                 ),
               ),
             ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// El vidrio ahumado de las hojas nuevas (ver [SheetInk]): flotando con las
-/// cuatro esquinas redondas, o apoyado abajo con las dos de arriba.
-class _Glass extends StatelessWidget {
-  const _Glass({
-    required this.velo,
-    required this.child,
-    required this.padding,
-    this.radius = 26,
-    this.bottom = true,
-  });
-
-  final SheetInk velo;
-  final Widget child;
-  final EdgeInsets padding;
-  final double radius;
-
-  /// Si redondea también las esquinas de abajo.
-  final bool bottom;
-
-  @override
-  Widget build(BuildContext context) {
-    final borde = bottom
-        ? BorderRadius.circular(radius)
-        : BorderRadius.vertical(top: Radius.circular(radius));
-    return ClipRRect(
-      borderRadius: borde,
-      child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: velo.bruma, sigmaY: velo.bruma),
-        // Material transparente: un diálogo vive fuera del `Scaffold` y sin
-        // esto escribe con la letra de emergencia de Flutter, subrayada.
-        child: Material(
-          type: MaterialType.transparency,
-          child: Container(
-            padding: padding,
-            decoration: BoxDecoration(
-              color: velo.tinte.withValues(alpha: velo.tapa),
-              borderRadius: borde,
-              border: bottom
-                  ? Border.all(color: velo.canto)
-                  : Border(top: BorderSide(color: velo.canto)),
-            ),
-            child: child,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// El botón de seguir: del color del pueblo, lleno.
-class _Accent extends StatelessWidget {
-  const _Accent({required this.theme, required this.text, required this.onTap});
-
-  final UiTheme theme;
-  final String text;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = theme;
-    return FilledButton(
-      style: FilledButton.styleFrom(
-        backgroundColor: t.accent.withValues(alpha: 0.88),
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      ),
-      onPressed: onTap,
-      child: Text(
-        text,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontWeight: FontWeight.w600),
-      ),
-    );
-  }
-}
-
-/// Un renglón: el punto de elegir, el nombre de la manera y una línea de qué
-/// quiere decir. Sin cápsula alrededor: el renglón elegido se nota porque el
-/// vidrio se espesa debajo y el punto se enciende.
-class _Row extends StatelessWidget {
-  const _Row({
-    required this.theme,
-    required this.velo,
-    required this.on,
-    required this.title,
-    required this.hint,
-    required this.onTap,
-    this.trailing,
-  });
-
-  final UiTheme theme;
-  final SheetInk velo;
-  final bool on;
-  final String title;
-  final String hint;
-  final VoidCallback onTap;
-  final Widget? trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = theme;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOut,
-        margin: const EdgeInsets.only(bottom: 2),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-        decoration: BoxDecoration(
-          color: on ? velo.cuerpo.withValues(alpha: 0.08) : Colors.transparent,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Row(
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              width: 18,
-              height: 18,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: on ? t.accent : velo.cuerpo.withValues(alpha: 0.38),
-                  width: on ? 5.5 : 1.4,
-                ),
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: t.body.copyWith(
-                      fontSize: 14.5,
-                      color: velo.cuerpo,
-                      fontWeight: on ? FontWeight.w600 : FontWeight.w400,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    hint,
-                    style: t.bodySoft.copyWith(
-                      fontSize: 11.5,
-                      height: 1.3,
-                      color: velo.tenue,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (trailing != null) ...[const SizedBox(width: 8), trailing!],
           ],
         ),
       ),
