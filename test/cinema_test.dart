@@ -161,6 +161,28 @@ void main() {
       expect(sale(0.5), lessThan(0), reason: 'un gris medio no brilla');
       expect(sale(1.0), closeTo(255, 1), reason: 'el blanco da todo');
     });
+
+    test('de noche brilla la luz amarilla y no la pared encalada', () {
+      final m = Cinema.threshold(
+        0.82,
+        1.0,
+        const Color(0xFFFFFFFF),
+        calido: 0.6,
+      );
+      // Canal rojo de un color de entrada.
+      double rojo(Color c) =>
+          m[0] * c.r * 255 + m[1] * c.g * 255 + m[2] * c.b * 255 + m[4];
+      expect(
+        rojo(const Color(0xFFFFD79A)),
+        greaterThan(20),
+        reason: 'la ventana encendida',
+      );
+      expect(
+        rojo(const Color(0xFFF2F4F8)),
+        lessThan(0),
+        reason: 'una pared casi blanca al caer la tarde',
+      );
+    });
   });
 
   group('las sombras', () {
@@ -226,7 +248,7 @@ void main() {
   });
 
   test('lo que brilla sangra luz alrededor, y lo apagado no', () async {
-    // Un cuadro negro con dos cuadrados: uno blanco, como una ventana
+    // Un cuadro negro con dos cuadrados: uno del amarillo de una ventana
     // encendida, y otro gris, como una pared. Pasado por la cámara de noche,
     // al lado del blanco el negro se aclara; al lado del gris, no.
     final pal = Palette.forMoment(23);
@@ -242,7 +264,7 @@ void main() {
       )
       ..drawRect(
         const Rect.fromLTWH(140, 220, 24, 24),
-        Paint()..color = const Color(0xFFFFFFFF),
+        Paint()..color = const Color(0xFFFFD79A),
       )
       ..drawRect(
         const Rect.fromLTWH(460, 220, 24, 24),
@@ -263,8 +285,8 @@ void main() {
     final junto = luz(152, 256), lejos = luz(472, 256);
     expect(
       junto,
-      greaterThan(lejos + 30),
-      reason: 'blanco $junto, gris $lejos',
+      greaterThan(lejos + 8),
+      reason: 'ventana $junto, gris $lejos',
     );
   });
 }

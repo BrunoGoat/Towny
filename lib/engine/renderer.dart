@@ -2471,7 +2471,15 @@ class TownPainter extends CustomPainter {
           pal,
         ).toARGB32();
       case Surface.window:
-        return _window(p, f, piece, pal, night);
+        // La pared de alrededor, para saber cuánta luz le cabe todavía.
+        final pared = hazeAt(
+          _shade(f.n, tone.wall, light, pal, f.ao, 0, 0, Surface.wall),
+          p,
+          piece.cx,
+          piece.cz,
+          pal,
+        );
+        return _window(p, f, piece, pal, night, pared);
       case Surface.plank:
         // Las tablas de una ventana clausurada. Salían cuando un pueblo se
         // quedaba sin nadie, y un pueblo ya no se queda sin nadie.
@@ -2918,11 +2926,31 @@ class TownPainter extends CustomPainter {
     }
   }
 
+  /// Cuánto halo le cabe a una ventana según lo clara que esté su pared.
+  ///
+  /// El halo se pinta sumando, y eso de noche, contra una pared oscura, es
+  /// justo lo que se busca: la pared se entibia alrededor de la ventana. Pero
+  /// las ventanas se encienden ya al atardecer, cuando la pared todavía está
+  /// casi blanca de cielo, y ahí sumarle luz la quemaba a blanco puro —y el
+  /// resplandor de la cámara, que agarra lo que pasa de cierto claro, la
+  /// convertía en un foco—. Contra una pared clara la ventana ya se lee sola.
+  static double _cabe(Color pared) {
+    final l = pared.computeLuminance();
+    return clampD((0.55 - l) / 0.45, 0.08, 1.0);
+  }
+
   /// A window, which is where the town says how you are doing. A lit window is
   /// one achievement showing from the outside; a whole town of them read in a
   /// single glance is the thing the wall could never do. At night every one of
   /// them is lit.
-  int _window(Projector p, Facet f, TownPiece piece, Palette pal, bool night) {
+  int _window(
+    Projector p,
+    Facet f,
+    TownPiece piece,
+    Palette pal,
+    bool night,
+    Color pared,
+  ) {
     if (!night) {
       final dark = Color.lerp(pal.ink, pal.stoneCool, 0.30)!;
       return hazeAt(dark, p, piece.cx, piece.cz, pal).toARGB32();
@@ -2941,7 +2969,7 @@ class TownPainter extends CustomPainter {
             ..add(at.x)
             ..add(at.y)
             ..add(math.min(r, 34))
-            ..add(1.0)
+            ..add(_cabe(pared))
             // A qué cara pertenece: la que está a punto de emitirse con este
             // color, que es la ventana misma. De ahí sale su sitio en el
             // orden de pintado.

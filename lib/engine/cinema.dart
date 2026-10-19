@@ -126,6 +126,14 @@ class Cinema {
     // De noche brilla casi todo lo encendido; de día sólo lo que deslumbra.
     // Y de noche el umbral no baja: una pared alumbrada por su ventana ya es
     // casi tan clara como la ventana, y si brilla todo no brilla nada.
+    //
+    // Y de noche lo que brilla es lo cálido, no lo blanco. Al caer la tarde
+    // las ventanas ya están encendidas pero una pared encalada todavía está
+    // casi blanca de cielo —más clara que la ventana misma—, y por claridad
+    // sola el resplandor la tomaba por una lámpara y la quemaba entera. La
+    // luz de una ventana es amarilla: tiene mucho más rojo que azul, y una
+    // pared clara no.
+    final calido = 0.6 * night;
     final umbral = lerpD(0.80, 0.82, night);
     final fuerza =
         lerpD(0.42, 0.70, night) + (pal.isDaylight ? golden * 0.3 : 0.0);
@@ -147,7 +155,7 @@ class Cinema {
             sigmaY: s,
             tileMode: TileMode.decal,
           ),
-          inner: ColorFilter.matrix(threshold(umbral, fuerza * k, tinte)),
+          inner: ColorFilter.matrix(threshold(umbral, fuerza * k, tinte, calido: calido)),
         ),
       );
       canvas.drawPicture(world);
@@ -364,17 +372,27 @@ class Cinema {
 
   /// Lo que pasa de [umbral] para arriba, multiplicado por [gain] y teñido de
   /// [tint]; lo demás, negro. Opaco siempre, porque se suma.
-  static List<double> threshold(double umbral, double gain, Color tint) {
+  ///
+  /// Con [calido] cuenta además cuánto más rojo que azul tiene cada punto:
+  /// así una luz amarilla pasa y un blanco igual de claro no. El listón sube
+  /// lo mismo que suma una luz amarilla, para que la ventana siga brillando
+  /// lo que brillaba.
+  static List<double> threshold(
+    double umbral,
+    double gain,
+    Color tint, {
+    double calido = 0,
+  }) {
     const lr = 0.2126, lg = 0.7152, lb = 0.0722;
     // Escala para que lo que esté en blanco salga con [gain].
     final k = gain / math.max(0.05, 1 - umbral);
-    final off = -umbral * 255 * k;
+    final off = -(umbral + calido * 0.4) * 255 * k;
     final tr = tint.r, tg = tint.g, tb = tint.b;
     // Mitad luminancia y mitad color propio: una ventana amarilla tiene que
     // dar luz amarilla, no blanca.
     List<double> fila(double t, int canal) {
-      final propio = [0.0, 0.0, 0.0];
-      propio[canal] = 0.5;
+      final propio = [calido, 0.0, -calido];
+      propio[canal] += 0.5;
       return [
         k * t * (lr * 0.5 + propio[0]),
         k * t * (lg * 0.5 + propio[1]),
