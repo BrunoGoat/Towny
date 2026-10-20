@@ -1841,10 +1841,15 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
             final v = Curves.easeInOutCubic.transform(_vuela.value);
             // Al llegar asoma y se desenrolla; al irse, el velo se aclara
             // mientras vuela, pero el rollo no se desvanece: se va.
-            // Saliendo de la lista, el velo va cayendo mientras vuela.
+            // Saliendo de la lista, el velo va cayendo mientras vuela, y se
+            // queda puesto ya llegado: lo que lo sostiene es el vuelo, no el
+            // desenrollado. Colgaba del desenrollado, que arranca un instante
+            // después de que el vuelo termine —cuando se resuelve su futuro—,
+            // y en la web ese instante son varios fotogramas: el velo y el
+            // desenfoque se iban de golpe y volvían.
             final llega = _cerrando
                 ? 1.0
-                : _saliendo
+                : widget.origen != null
                 ? Curves.easeOut.transform(_sale.value)
                 : Curves.easeOut.transform((a / _asoma).clamp(0, 1));
             // Tirando de él, lo abierto es lo que se tiró: sin curva, que el
