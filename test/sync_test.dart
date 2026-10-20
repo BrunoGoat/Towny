@@ -25,7 +25,6 @@ Map<String, dynamic> _valle() {
     ..vowPlace = 'en el patio'
     ..identity = 'entrena aunque llueva'
     ..identityWonAt = DateTime(2026, 2, 1, 9, 30, 12, 345)
-    ..afterId = habitos[1].id
     ..perWeek = 4
     ..cadenceAskedAt = DateTime(2026, 1, 3)
     ..askedAt = DateTime(2026, 2, 20, 18)
@@ -42,7 +41,8 @@ Map<String, dynamic> _valle() {
   return {
     'v': 1,
     'a': 1,
-    'u': true,
+    // Uno más de los que tiene fundados: el que se ganó y todavía no fundó.
+    'u2': habitos.length + 1,
     'w': 3,
     'h': [for (final h in habitos) h.toJson()],
   };
@@ -163,6 +163,20 @@ void main() {
             ];
       expect(primaryKeys[m.group(1)], clave, reason: m.group(1));
     }
+  });
+
+  test('un pueblo ganado y sin fundar vuelve de la nube', () async {
+    // La nube guardaba sólo si la puerta del segundo estaba abierta: con un
+    // valle de dos y el tercero ganado, restaurar devolvía la puerta cerrada.
+    SharedPreferences.setMockInitialValues({});
+    await Appearance.instance.load();
+    final save = _valle();
+    final back = fromRows(toRows(LocalSnapshot(save: save), 'u'));
+    final s = Store();
+    await s.load();
+    expect(s.importSave(jsonEncode(back.save)), isNull);
+    expect(s.habits.length, (save['h'] as List).length);
+    expect(s.canAddHabit, isTrue, reason: 'se perdió el pueblo ganado');
   });
 
   test('las fechas viajan en UTC con milisegundos', () {

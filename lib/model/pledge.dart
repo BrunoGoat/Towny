@@ -18,8 +18,7 @@
 ///
 /// Hubo una tercera, la regla («después de correr, estirar»), y ya no se firma:
 /// que dos hábitos van juntos es algo que el tablón ve y dice, no algo que haya
-/// que declarar. Lo que queda de ella es [Habit.afterId], que se lee de las
-/// copias viejas y nada más.
+/// que declarar.
 ///
 /// Este fichero no escribe ninguna pantalla ni ninguna nota: sólo dice cómo se
 /// leen las dos en voz alta y qué tan bien se están cumpliendo. Lo demás lo

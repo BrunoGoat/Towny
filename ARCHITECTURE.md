@@ -360,14 +360,11 @@ De `model/`, los dos que hacen falta conocer:
 para saber en qué pieza empieza y acaba cada hito, y de ahí saca las fechas de
 las piezas de sus extremos. Lo usa la tarjeta del día en que se remata una obra.
 
-`pledge.dart` son las tres cosas que no se deducen de las piezas —el plan, la
-identidad y la regla— y todo lo que se puede decir de ellas: cómo se lee cada una
-en voz alta, a qué hora aparecés de verdad, cuánto se cumple el plan y cuánto la
-regla. Los campos viven en `Habit` (`vowHour`, `vowPlace`, `identity`,
-`afterId`), las frases y las cuentas viven aquí, y las notas que salen de ellas
-en `findings.dart` como cualquier otra. La regla se guarda contra el
-**identificador** del otro hábito, así que renombrarlo no la rompe y borrarlo la
-deshace sin que nadie tenga que limpiar nada.
+`pledge.dart` son las dos cosas que no se deducen de las piezas —el plan y la
+identidad— y todo lo que se puede decir de ellas: cómo se lee cada una en voz
+alta, a qué hora aparecés de verdad y cuánto se cumple el plan. Los campos viven
+en `Habit` (`vowHour`, `vowPlace`, `identity`), las frases y las cuentas viven
+aquí, y las notas que salen de ellas en `findings.dart` como cualquier otra.
 
 El widget de la pantalla de inicio vive entero en `android/` —Kotlin, `RemoteViews`
 y unas preferencias suyas— y habla con la app por un canal de tres verbos

@@ -843,12 +843,10 @@ class Store extends ChangeNotifier {
 
   /// Cuántos pueblos se había ganado una copia guardada.
   ///
-  /// La del teléfono lo trae contado (`u2`). La que vuelve de la nube sólo
-  /// trae si la puerta del segundo estaba abierta (`u`), y sin nada es uno.
-  /// En todos los casos vale como ganado lo que ya tiene fundado.
+  /// Sólo viene contado (`u2`) cuando hay alguno ganado y sin fundar; si no,
+  /// vale como ganado lo que ya tiene fundado.
   int _earnedFrom(Map<String, dynamic> j) {
-    final dicho =
-        (j['u2'] as num?)?.toInt() ?? ((j['u'] as bool?) == true ? 2 : 1);
+    final dicho = (j['u2'] as num?)?.toInt() ?? 1;
     return math.max(dicho, habits.length).clamp(1, Habit.maxSlots);
   }
 

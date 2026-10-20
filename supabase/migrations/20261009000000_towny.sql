@@ -18,8 +18,9 @@ create table if not exists public.valleys (
     references auth.users (id) on delete cascade,
   -- Qué pueblo se estaba mirando: su posición en `habits.position`.
   active int not null default 0,
-  -- Si la puerta a más de un pueblo ya está abierta.
-  unlocked boolean not null default false,
+  -- Cuántos pueblos se ganó el valle, contando el que se ganó y todavía no
+  -- se fundó.
+  earned int not null default 1 check (earned >= 1),
   -- Hasta dónde se vio el buzón del widget.
   seen_arrival int not null default 0,
   -- Los ajustes tal como los guarda la app: `{"clave": "valor"}`. Los de
@@ -55,7 +56,6 @@ create table if not exists public.habits (
   vow_place text,
   identity text,
   identity_won_at timestamptz,
-  after_id text,
   per_week int check (per_week between 1 and 7),
   cadence_asked_at timestamptz,
   asked_at timestamptz,

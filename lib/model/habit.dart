@@ -30,7 +30,6 @@ class Habit {
     this.identityAt,
     this.planIf,
     this.planThen,
-    this.afterId,
     this.perWeek,
     this.cadenceAskedAt,
     this.cadenceLaterAt,
@@ -168,15 +167,6 @@ class Habit {
   /// patrón: a la tercera vez el consejero puede decir que tus caídas
   /// vienen casi siempre del cansancio, o que caen en lunes.
   final List<String> stumbles;
-
-  /// Detrás de qué otro hábito iba éste, en las copias que lo traen.
-  ///
-  /// Hubo un tiempo en que dos hábitos se podían encadenar a mano —«después de
-  /// correr, estirar»— y esto guardaba cuál iba primero. Ya no se ofrece: que
-  /// dos hábitos van juntos es algo que el tablón ve y dice, no algo que haya
-  /// que declarar. Se sigue leyendo y escribiendo para no perder nada de una
-  /// copia vieja, y nada más lo mira.
-  String? afterId;
 
   /// Cuántas veces por semana, si lo dijiste. Ver `model/cadence.dart`.
   ///
@@ -403,7 +393,6 @@ class Habit {
     if (planIf != null && planIf!.isNotEmpty) 'pi': planIf,
     if (planThen != null && planThen!.isNotEmpty) 'pt': planThen,
     if (stumbles.isNotEmpty) 'tr': stumbles,
-    if (afterId != null && afterId!.isNotEmpty) 'af': afterId,
     // Entero cuando es entero: así lo lee igual una copia de antes, y el
     // archivo no cambia de forma al ir y volver.
     if (perWeek != null) 'pw': perWeek! % 1 == 0 ? perWeek!.round() : perWeek,
@@ -455,7 +444,6 @@ class Habit {
       planIf: (j['pi'] as String?)?.trim(),
       planThen: (j['pt'] as String?)?.trim(),
       stumbles: [for (final e in (j['tr'] as List?) ?? []) e.toString()],
-      afterId: (j['af'] as String?)?.trim(),
       // Una frecuencia fuera de la semana —un archivo tocado a mano— se lee
       // como que no se dijo.
       perWeek: switch ((j['pw'] as num?)?.toDouble()) {

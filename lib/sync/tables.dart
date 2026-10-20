@@ -16,6 +16,7 @@
 library;
 
 import 'dart:convert';
+import 'dart:math' as math;
 
 import '../model/census.dart';
 
@@ -188,7 +189,12 @@ ValleyRows toRows(LocalSnapshot local, String userId) {
   out[Tables.valleys]!.add({
     'user_id': userId,
     'active': (save['a'] as num?)?.toInt() ?? 0,
-    'unlocked': save['u'] == true,
+    // Cuántos pueblos se ganó, contando el que todavía no se fundó. La copia
+    // del teléfono sólo lo escribe cuando hay alguno así; si no, son los que
+    // tiene fundados.
+    'earned':
+        (save['u2'] as num?)?.toInt() ??
+        math.max(1, ((save['h'] as List?) ?? const []).length),
     'seen_arrival': (save['w'] as num?)?.toInt() ?? 0,
     'changed_at': local.changedAt?.toUtc().toIso8601String(),
     'settings': {
@@ -220,7 +226,6 @@ ValleyRows toRows(LocalSnapshot local, String userId) {
       'vow_place': h['vp'],
       'identity': h['qn'],
       'identity_won_at': _when(h['iw']),
-      'after_id': h['af'],
       'per_week': h['pw'],
       'cadence_asked_at': _when(h['ca']),
       'asked_at': _when(h['k']),
@@ -369,7 +374,6 @@ LocalSnapshot fromRows(ValleyRows rows) {
       if (text('vow_place') case final v?) 'vp': v,
       if (text('identity') case final v?) 'qn': v,
       if (_ms(h['identity_won_at']) case final v?) 'iw': v,
-      if (text('after_id') case final v?) 'af': v,
       if (h['per_week'] case final num v) 'pw': v.toInt(),
       if (_ms(h['cadence_asked_at']) case final v?) 'ca': v,
       if ((rests[id] ?? const <Row>[]).isNotEmpty)
@@ -399,7 +403,10 @@ LocalSnapshot fromRows(ValleyRows rows) {
     save: {
       'v': 1,
       'a': (valley['active'] as num?)?.toInt() ?? 0,
-      if (valley['unlocked'] == true) 'u': true,
+      // Como en el teléfono: sólo si hay uno ganado y sin fundar.
+      if ((valley['earned'] as num?)?.toInt() case final int e
+          when e > list.length)
+        'u2': e,
       if (((valley['seen_arrival'] as num?)?.toInt() ?? 0) > 0)
         'w': (valley['seen_arrival'] as num).toInt(),
       'h': list,

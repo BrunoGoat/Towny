@@ -30,7 +30,6 @@ Habit _habit({
   int? vowHour,
   String? place,
   String? identity,
-  String? after,
 }) {
   final start = from ?? DateTime(2026, 3, 1);
   final h = Habit(
@@ -43,7 +42,6 @@ Habit _habit({
     vowHour: vowHour,
     vowPlace: place,
     identity: identity,
-    afterId: after,
   );
   var n = 0;
   for (var d = 0; n < days; d++) {
@@ -483,16 +481,8 @@ void main() {
     });
 
     test('dos hábitos que van juntos son una observación y nada más', () {
-      // Aunque una copia vieja traiga la regla firmada: ya no se enseña ni
-      // tapa nada, así que lo que queda es lo que el pueblo ve.
       final correr = _habit(id: 'hA', name: 'Correr', days: 30, every: 2);
-      final estirar = _habit(
-        id: 'hB',
-        name: 'Estirar',
-        days: 30,
-        every: 2,
-        after: 'hA',
-      );
+      final estirar = _habit(id: 'hB', name: 'Estirar', days: 30, every: 2);
       final valle = [correr, estirar];
       final clavado = kinds(estirar, valley: valle);
       expect(clavado, contains(NoticeKind.pair));
@@ -500,18 +490,16 @@ void main() {
   });
 
   group('lo que se guarda', () {
-    test('las cuatro líneas van y vuelven del disco', () {
+    test('las tres líneas van y vuelven del disco', () {
       final h = _habit(
         vowHour: 22,
         place: 'la cama',
         identity: 'alguien que lee todos los días',
-        after: 'hA',
       );
       final otra = Habit.fromJson(h.toJson());
       expect(otra.vowHour, 22);
       expect(otra.vowPlace, 'la cama');
       expect(otra.identity, 'alguien que lee todos los días');
-      expect(otra.afterId, 'hA');
     });
 
     test('una hora que no es del reloj se lee como que no hay plan', () {
