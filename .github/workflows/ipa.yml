@@ -1,0 +1,76 @@
+name: IPA
+
+on:
+  push:
+    branches:
+      - claude/sustainable-habits-design-snpxyb
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Los minutos de macOS cuentan diez veces más que los de Linux: si llegan dos
+# pushes seguidos, sólo vale la pena terminar la build del último.
+concurrency:
+  group: ipa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Towny IPA
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.1'
+          channel: stable
+          cache: true
+
+      - name: Dependencies
+        run: flutter pub get
+
+      # Sin analyze ni test: ya los corre la build de la APK en Linux, donde
+      # cuestan una décima parte.
+      - name: Build release app, unsigned
+        # Sin firmar porque no hay cuenta de desarrollador paga: la firma la
+        # pone después Sideloadly o AltStore con un Apple ID común.
+        # BUILD es el mismo número que se lee en *Ajustes*, como en la APK.
+        run: |
+          flutter build ios --release --no-codesign \
+            --build-number=${{ github.run_number }} \
+            --dart-define=BUILD=${{ github.run_number }}
+
+      - name: Package the IPA
+        # Un .ipa no es más que la app dentro de una carpeta Payload, zipeada.
+        run: |
+          mkdir -p out/Payload
+          cp -R build/ios/iphoneos/Runner.app out/Payload/
+          cd out
+          zip -qry "towny-${{ github.run_number }}.ipa" Payload
+          ls -la
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: towny-ipa
+          path: out/*.ipa
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Publish a release so the IPA has a direct download link
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ipa-${{ github.run_number }}
+          name: Towny iOS · build ${{ github.run_number }}
+          body: |
+            IPA de prueba de **Towny**, **sin firmar**.
+
+            Se instala desde Windows con Sideloadly (o con AltStore) usando
+            un Apple ID común. Con una cuenta gratis la app vence a los
+            7 días: se vuelve a firmar e instalar encima y **conserva tus
+            pueblos**, mientras el bundle ID siga siendo `com.towny.app`.
+            iOS 13 o superior.
+          files: out/*.ipa
+          prerelease: true
+          fail_on_unmatched_files: true
