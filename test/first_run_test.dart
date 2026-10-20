@@ -5,6 +5,7 @@ import 'package:towny/data/character.dart';
 import 'package:towny/engine/town.dart';
 import 'package:towny/engine/world.dart';
 import 'package:towny/model/appearance.dart';
+import 'package:towny/sync/account.dart';
 import 'package:towny/ui/first_run.dart';
 import 'package:towny/ui/habit_sigil.dart';
 
@@ -444,6 +445,112 @@ void main() {
     });
   });
 
+  group('la cuenta', () {
+    Future<void> tocar(WidgetTester tester, String texto) async {
+      await tester.ensureVisible(find.text(texto));
+      await tester.pump();
+      await tester.tap(find.text(texto));
+      await _asentar(tester);
+    }
+
+    testWidgets('el correo, el código, y después la bienvenida', (
+      tester,
+    ) async {
+      final cuenta = _Cuenta();
+      await tester.pumpWidget(
+        _marco(
+          FirstRun(
+            account: cuenta,
+            onDone: (_, _, {required character, why, identity}) {},
+          ),
+        ),
+      );
+      await _asentar(tester);
+      // Antes que nada: la cuenta, con la marca arriba como en la bienvenida.
+      expect(find.text('Guardá tu valle.'), findsOneWidget);
+      expect(find.text('Towny'), findsWidgets);
+      expect(find.text('Esto es un valle vacío.'), findsNothing);
+
+      // Sin algo que parezca un correo, no se manda nada.
+      await tester.enterText(find.byType(TextField).first, 'bruno');
+      await tester.pump();
+      await tocar(tester, 'MANDARME EL CÓDIGO');
+      expect(cuenta.mandados, isEmpty);
+
+      await tester.enterText(
+        find.byType(TextField).first,
+        ' bruno@correo.com ',
+      );
+      await tester.pump();
+      await tocar(tester, 'MANDARME EL CÓDIGO');
+      expect(cuenta.mandados, ['bruno@correo.com']);
+      expect(find.text('Revisá tu correo.'), findsOneWidget);
+      expect(find.textContaining('bruno@correo.com'), findsOneWidget);
+
+      // Uno equivocado se dice, y se queda en el código.
+      await tester.enterText(find.byType(TextField).first, '111111');
+      await _asentar(tester);
+      expect(find.textContaining('Ese código no es'), findsOneWidget);
+      expect(find.text('Revisá tu correo.'), findsOneWidget);
+
+      // El bueno entra solo, sin tocar nada más.
+      await tester.enterText(find.byType(TextField).first, '123456');
+      await _asentar(tester);
+      expect(find.text('Esto es un valle vacío.'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('se puede volver a cambiar el correo', (tester) async {
+      final cuenta = _Cuenta();
+      await tester.pumpWidget(
+        _marco(
+          FirstRun(
+            account: cuenta,
+            onDone: (_, _, {required character, why, identity}) {},
+          ),
+        ),
+      );
+      await _asentar(tester);
+      await tester.enterText(find.byType(TextField).first, 'bruno@correo.com');
+      await tester.pump();
+      await tocar(tester, 'MANDARME EL CÓDIGO');
+      await tocar(tester, 'Usar otro correo');
+      expect(find.text('Guardá tu valle.'), findsOneWidget);
+    });
+
+    testWidgets('si no se pudo mandar, se dice y no se sigue', (tester) async {
+      final cuenta = _Cuenta()..falla = true;
+      await tester.pumpWidget(
+        _marco(
+          FirstRun(
+            account: cuenta,
+            onDone: (_, _, {required character, why, identity}) {},
+          ),
+        ),
+      );
+      await _asentar(tester);
+      await tester.enterText(find.byType(TextField).first, 'bruno@correo.com');
+      await tester.pump();
+      await tocar(tester, 'MANDARME EL CÓDIGO');
+      expect(find.textContaining('No se pudo mandar'), findsOneWidget);
+      expect(find.text('Guardá tu valle.'), findsOneWidget);
+    });
+
+    testWidgets('y se puede seguir sin cuenta', (tester) async {
+      await tester.pumpWidget(
+        _marco(
+          FirstRun(
+            account: _Cuenta(),
+            onDone: (_, _, {required character, why, identity}) {},
+          ),
+        ),
+      );
+      await _asentar(tester);
+      await tocar(tester, 'Seguir sin cuenta');
+      expect(find.text('Esto es un valle vacío.'), findsOneWidget);
+    });
+  });
+
   group('la plaza', () {
     test('existe desde que se funda, no desde la primera pieza', () {
       // Antes hacía falta una pieza puesta, y eso era una plaza apareciendo de
@@ -477,4 +584,19 @@ void main() {
       expect(caras(solo) * 4, lessThan(caras(TownLayout(0, ch, seed: 3))));
     });
   });
+}
+
+/// Una cuenta de mentira: apunta a quién se mandó y sólo acepta 123456.
+class _Cuenta implements Account {
+  final mandados = <String>[];
+  bool falla = false;
+
+  @override
+  Future<void> sendCode(String email) async {
+    if (falla) throw Exception('sin conexión');
+    mandados.add(email);
+  }
+
+  @override
+  Future<bool> verify(String email, String code) async => code == '123456';
 }

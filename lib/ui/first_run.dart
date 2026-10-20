@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 
 import '../core/math3.dart';
 import '../data/character.dart';
@@ -17,6 +18,7 @@ import '../l10n/lang.dart';
 import '../model/appearance.dart';
 import '../model/pledge.dart';
 import '../model/store.dart';
+import '../sync/account.dart';
 import 'habit_sigil.dart';
 
 /// Lo que se ve la primera vez que se abre la app.
@@ -57,7 +59,21 @@ import 'habit_sigil.dart';
 /// de vidrio oscuro con letra crema y dorado: al mediodía y a medianoche se
 /// leen igual, que no pasaba escribiendo directamente sobre el prado.
 class FirstRun extends StatefulWidget {
-  const FirstRun({super.key, required this.onDone, this.next, this.onCancel});
+  const FirstRun({
+    super.key,
+    required this.onDone,
+    this.next,
+    this.onCancel,
+    this.account,
+  });
+
+  /// Con qué se entra a la cuenta, antes de la bienvenida. Nulo, no se pide:
+  /// el pueblo siguiente ya está dentro, y los tests van directo al valle.
+  ///
+  /// **Antes de todo y no al final**, porque es lo único que puede traer un
+  /// valle que ya existe: quien cambió de teléfono no tiene que contestar las
+  /// preguntas de un pueblo que ya fundó.
+  final Account? account;
 
   /// Si esto no es la primera vez sino el pueblo siguiente: lo que ya hay en
   /// el valle. Nulo la primera vez. Ver [NextTown].
@@ -175,7 +191,13 @@ class _Ink {
   /// El fondo de los botones redondos: un poco de noche, para que el sello se
   /// lea sobre lo que haya detrás.
   static const disc = Color(0x40000000);
+
+  /// Lo que salió mal: cálido y no rojo, que no es una alarma.
+  static const warn = Color(0xFFF2A88E);
 }
+
+/// Por dónde va la entrada a la cuenta, antes de la bienvenida.
+enum _Entry { email, code }
 
 class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
   int _step = 0;
@@ -202,6 +224,20 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
   /// Ya se contestó todo y la cámara está bajando al pueblo.
   bool _leaving = false;
 
+  /// En qué parte de la entrada a la cuenta, o nulo si ya se entró (o no hay
+  /// que entrar). Mientras no es nulo, el valle sigue en la bienvenida.
+  late _Entry? _entry = widget.account != null && widget.next == null
+      ? _Entry.email
+      : null;
+  final _email = TextEditingController();
+  final _code = TextEditingController();
+
+  /// Esperando a la cuenta: el botón se apaga para no pedir dos veces.
+  bool _busy = false;
+
+  /// Lo que salió mal en el último intento, dicho debajo del campo.
+  String? _problem;
+
   /// Mirando el pueblo de muestra de la comarca con la interfaz escondida.
   bool _exploring = false;
 
@@ -222,6 +258,8 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
     _name.dispose();
     _why.dispose();
     _identity.dispose();
+    _email.dispose();
+    _code.dispose();
     super.dispose();
   }
 
@@ -235,7 +273,14 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
 
   /// Si desde aquí se puede volver: lo que dice si el gesto hace algo.
   bool get _canBack =>
-      !_leaving && (_exploring || _step > 0 || widget.onCancel != null);
+      !_leaving &&
+      (_exploring ||
+          _step > 0 ||
+          _entry == _Entry.code ||
+          widget.onCancel != null);
+
+  /// Lo que hay en la tarjeta ahora: la entrada a la cuenta o la pregunta.
+  Object get _stage => _entry ?? _step;
 
   void _go(int to) {
     Sensory.instance.tick();
@@ -256,6 +301,11 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
     if (_leaving) return;
     if (_exploring) {
       _explore(false);
+    } else if (_entry == _Entry.code) {
+      FocusScope.of(context).unfocus();
+      _enter(_Entry.email, backward: true);
+    } else if (_entry != null) {
+      return;
     } else if (_step > 0) {
       FocusScope.of(context).unfocus();
       _go(_step - 1);
@@ -268,6 +318,79 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
     Sensory.instance.tick();
     if (on) FocusScope.of(context).unfocus();
     setState(() => _exploring = on);
+  }
+
+  // ------------------------------------------------------------- la cuenta
+
+  bool get _emailOk =>
+      RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(_email.text.trim());
+
+  void _enter(_Entry? to, {bool backward = false}) {
+    Sensory.instance.tick();
+    setState(() {
+      _backward = backward;
+      _entry = to;
+      _problem = null;
+    });
+  }
+
+  Future<void> _sendCode() async {
+    if (_busy || !_emailOk) return;
+    Sensory.instance.tick();
+    setState(() {
+      _busy = true;
+      _problem = null;
+    });
+    try {
+      await widget.account!.sendCode(_email.text.trim());
+      if (!mounted) return;
+      _code.clear();
+      _busy = false;
+      _enter(_Entry.code);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _problem = tr(
+          'No se pudo mandar el código. Revisá la conexión y probá otra vez.',
+          "The code couldn't be sent. Check your connection and try again.",
+        );
+      });
+    }
+  }
+
+  Future<void> _verify() async {
+    final code = _code.text.trim();
+    if (_busy || code.length != 6) return;
+    setState(() {
+      _busy = true;
+      _problem = null;
+    });
+    String? problema;
+    try {
+      final ok = await widget.account!.verify(_email.text.trim(), code);
+      if (ok) {
+        if (!mounted) return;
+        FocusScope.of(context).unfocus();
+        _busy = false;
+        _enter(null);
+        return;
+      }
+      problema = tr(
+        'Ese código no es. Revisalo y probá otra vez.',
+        "That's not the code. Check it and try again.",
+      );
+    } catch (_) {
+      problema = tr(
+        'No se pudo comprobar el código. Revisá la conexión.',
+        "The code couldn't be checked. Check your connection.",
+      );
+    }
+    if (!mounted) return;
+    setState(() {
+      _busy = false;
+      _problem = problema;
+    });
   }
 
   Future<void> _found() async {
@@ -343,7 +466,9 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
             ),
             // La vuelta atrás, a la vista: no todo el mundo sabe que el botón
             // del teléfono o del navegador también vuelve.
-            if (_step > 0 && !_leaving && !_exploring)
+            if ((_step > 0 || _entry == _Entry.code) &&
+                !_leaving &&
+                !_exploring)
               Positioned(
                 left: 6,
                 top: mq.padding.top + 6,
@@ -501,7 +626,7 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
       // Y hacia atrás, al revés: lo de ahora baja y se va, y la pregunta de
       // antes vuelve desde arriba, de donde se había ido.
       transitionBuilder: (child, a) {
-        final entra = child.key == ValueKey(_step);
+        final entra = child.key == ValueKey(_stage);
         final dy = _backward ? (entra ? -0.22 : 0.08) : (entra ? 0.08 : -0.22);
         return FadeTransition(
           opacity: a,
@@ -512,8 +637,10 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
         );
       },
       child: KeyedSubtree(
-        key: ValueKey(_step),
-        child: switch (_step) {
+        key: ValueKey(_stage),
+        child: switch (_stage) {
+          _Entry.email => _signIn(),
+          _Entry.code => _signInCode(),
           0 => _welcome(),
           1 => _askName(),
           2 => _askPlace(),
@@ -525,6 +652,78 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
   );
 
   // ------------------------------------------------------------ las pantallas
+
+  /// Entrar a la cuenta: el correo.
+  ///
+  /// Se dice para qué antes de pedir nada —que el valle no se pierde— porque
+  /// un correo pedido sin motivo, en la primera pantalla de una app, se lee
+  /// como una lista de suscripción. Y se puede seguir sin cuenta: la app
+  /// entera funciona sin ella, sólo que lo hecho vive en este teléfono.
+  ///
+  /// Cuando llegue Google, va acá como otra salida debajo de la del correo.
+  Widget _signIn() => _Step(
+    over: tr('Tu cuenta', 'Your account'),
+    title: tr('Guardá tu valle.', 'Keep your valley safe.'),
+    lines: [
+      tr(
+        'Con tu correo, tus pueblos se guardan en la nube y no se pierden '
+            'aunque cambies de teléfono.',
+        'With your email, your towns are kept in the cloud and are never '
+            'lost, even if you change phones.',
+      ),
+    ],
+    next: _busy
+        ? tr('Mandando…', 'Sending…')
+        : tr('Mandarme el código', 'Send me the code'),
+    onNext: _emailOk && !_busy ? _sendCode : null,
+    skip: tr('Seguir sin cuenta', 'Continue without an account'),
+    onSkip: _busy ? null : () => _enter(null),
+    child: _Problem(
+      problem: _problem,
+      child: _Field(
+        controller: _email,
+        hint: tr('tu@correo.com', 'you@email.com'),
+        max: 120,
+        kind: _FieldKind.email,
+        // Sin teclado de entrada: lo primero que se ve es el valle y lo
+        // que dice la tarjeta, no media pantalla de letras.
+        autofocus: false,
+        onChanged: () => setState(() => _problem = null),
+      ),
+    ),
+  );
+
+  /// Entrar a la cuenta: el código que llegó.
+  ///
+  /// Con los seis números se comprueba solo, sin tener que tocar nada más.
+  Widget _signInCode() => _Step(
+    over: tr('Tu cuenta', 'Your account'),
+    title: tr('Revisá tu correo.', 'Check your email.'),
+    lines: [
+      tr(
+        'Te mandamos un código de seis números a ${_email.text.trim()}.',
+        'We sent a six-digit code to ${_email.text.trim()}.',
+      ),
+    ],
+    next: _busy ? tr('Entrando…', 'Signing in…') : tr('Entrar', 'Sign in'),
+    onNext: _code.text.trim().length == 6 && !_busy ? _verify : null,
+    skip: tr('Usar otro correo', 'Use another email'),
+    onSkip: _busy ? null : _back,
+    child: _Problem(
+      problem: _problem,
+      child: _Field(
+        controller: _code,
+        hint: '000000',
+        max: 6,
+        big: true,
+        kind: _FieldKind.code,
+        onChanged: () {
+          setState(() => _problem = null);
+          if (_code.text.trim().length == 6) _verify();
+        },
+      ),
+    ),
+  );
 
   Widget _welcome() {
     final next = widget.next;
@@ -1969,9 +2168,13 @@ class _Field extends StatelessWidget {
     required this.onChanged,
     this.big = false,
     this.prefix,
+    this.kind = _FieldKind.words,
+    this.autofocus = true,
   });
 
   final TextEditingController controller;
+  final _FieldKind kind;
+  final bool autofocus;
   final String hint;
 
   /// Una palabra fija delante de lo que se escribe, que no se puede borrar.
@@ -1988,15 +2191,35 @@ class _Field extends StatelessWidget {
     return TextField(
       controller: controller,
       onChanged: (_) => onChanged(),
-      autofocus: true,
+      autofocus: autofocus,
       textAlign: prefix == null ? TextAlign.center : TextAlign.start,
-      textCapitalization: TextCapitalization.sentences,
+      textCapitalization: kind == _FieldKind.words
+          ? TextCapitalization.sentences
+          : TextCapitalization.none,
+      keyboardType: switch (kind) {
+        _FieldKind.words => TextInputType.text,
+        _FieldKind.email => TextInputType.emailAddress,
+        _FieldKind.code => TextInputType.number,
+      },
+      autocorrect: kind == _FieldKind.words,
+      enableSuggestions: kind == _FieldKind.words,
+      autofillHints: switch (kind) {
+        _FieldKind.words => null,
+        _FieldKind.email => const [AutofillHints.email],
+        _FieldKind.code => const [AutofillHints.oneTimeCode],
+      },
+      inputFormatters: kind == _FieldKind.code
+          ? [FilteringTextInputFormatter.digitsOnly]
+          : null,
       maxLength: max,
       cursorColor: _Ink.gold,
       style: TextStyle(
         fontFamily: big ? _Ink.serif : null,
         fontSize: big ? 30 : 18,
         height: 1.3,
+        // El código, con aire entre los números: se lee de a uno, como se
+        // copia del correo.
+        letterSpacing: kind == _FieldKind.code ? 10 : null,
         color: _Ink.cream,
         shadows: _Ink.shadow,
       ),
@@ -2005,6 +2228,7 @@ class _Field extends StatelessWidget {
         hintStyle: TextStyle(
           fontFamily: big ? _Ink.serif : null,
           fontSize: big ? 26 : 17,
+          letterSpacing: kind == _FieldKind.code ? 10 : null,
           color: _Ink.soft(0.42),
           shadows: _Ink.shadow,
         ),
@@ -2038,6 +2262,46 @@ class _Field extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Qué se escribe en un [_Field]: cambia el teclado y lo que se corrige.
+enum _FieldKind { words, email, code }
+
+/// Lo que salió mal, dicho debajo de donde se escribe. Ocupa su sitio sólo
+/// cuando hay algo que decir.
+class _Problem extends StatelessWidget {
+  const _Problem({required this.problem, required this.child});
+
+  final String? problem;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      child,
+      AnimatedSize(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        child: problem == null
+            ? const SizedBox(width: double.infinity)
+            : Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: Text(
+                  problem!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 13.5,
+                    height: 1.4,
+                    color: _Ink.warn,
+                    shadows: _Ink.shadow,
+                  ),
+                ),
+              ),
+      ),
+    ],
+  );
 }
 
 /// Todas las marcas, en dos filas que se deslizan de lado.

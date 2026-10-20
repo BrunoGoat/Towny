@@ -21,6 +21,7 @@ import 'model/board_slots.dart';
 import 'model/changes.dart';
 import 'model/reel.dart';
 import 'model/store.dart';
+import 'sync/account.dart';
 import 'ui/first_run.dart';
 import 'ui/gallery_screen.dart';
 import 'ui/home_screen.dart';
@@ -399,6 +400,9 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
                           )
                         : FirstRun(
                             key: const ValueKey('preguntas'),
+                            // Todavía sin la nube detrás: se entra con
+                            // cualquier código de seis números.
+                            account: const PreviewAccount(),
                             onDone: _found,
                           ),
                   )),
