@@ -141,35 +141,6 @@ void main() {
     });
   });
 
-  group('la hoja de un hábito', () {
-    test('un guardado con sus ajustes viejos se limpia solo', () async {
-      // La hoja tuvo diez materiales y un deslizador para lo sólido que era de
-      // noche. Las dos cosas estuvieron el tiempo que se tardó en encontrar lo
-      // que se buscaba; quien las tocara tiene un `skin` y un `nightVeil`
-      // guardados que ya no significan nada. Se leen, se tiran, y en el primer
-      // guardado desaparecen del disco sin llevarse por delante lo que sí vale.
-      final a = await fresh(
-        from: {
-          'pueblo_sound_v1': [
-            'sound=0',
-            'vol=2',
-            'nightVeil=0.4',
-            'skin=tinta',
-            'musicVol=0.8',
-          ],
-        },
-      );
-      expect(a.soundOff, isTrue, reason: 'perdió lo que sí valía');
-      expect(a.musicVolume, closeTo(0.8, 1e-9));
-      await a.flush();
-      final escrito = (await SharedPreferences.getInstance()).getStringList(
-        'pueblo_sound_v1',
-      )!;
-      expect(escrito.any((r) => r.startsWith('nightVeil=')), isFalse);
-      expect(escrito.any((r) => r.startsWith('skin=')), isFalse);
-    });
-  });
-
   group('lo elegido sobrevive a cerrar la app', () {
     test('arrastrar un slider no escribe a disco en cada fotograma', () async {
       final a = await fresh();
@@ -277,28 +248,6 @@ void main() {
       // ...y el tramo de arriba da mucho más que el de abajo, que es lo que
       // hace que valga la pena subirlo.
       expect(tresCuartos - mitad, greaterThan((mitad - cuarto) * 2));
-    });
-
-    test('a quien ya la tenía donde quería no se le baja', () async {
-      // Antes de la curva, «0,15» guardado quería decir «suena al quince por
-      // ciento». Ahora eso mismo se dice con el dedo a la mitad. Si se leyera
-      // tal cual, esa música pasaría a oírse al uno por ciento.
-      SharedPreferences.setMockInitialValues({
-        'pueblo_sound_v1': ['musicVol=0.15', 'effectsVol=0.5'],
-      });
-      final a = Appearance.instance;
-      await a.load();
-      expect(a.musicGain, closeTo(0.15, 0.005));
-      expect(a.musicVolume, closeTo(0.5, 0.005));
-
-      // Y se traduce una sola vez: lo ya traducido se lee tal cual.
-      await a.flush();
-      final guardado = (await SharedPreferences.getInstance()).getStringList(
-        'pueblo_sound_v1',
-      )!;
-      SharedPreferences.setMockInitialValues({'pueblo_sound_v1': guardado});
-      await a.load();
-      expect(a.musicVolume, closeTo(0.5, 0.005));
     });
   });
 

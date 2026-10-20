@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:towny/data/symbols.dart';
 import 'package:towny/engine/sigils.dart';
-import 'package:towny/model/habit.dart';
 
 void main() {
   group('the marks a habit wears', () {
@@ -58,34 +57,12 @@ void main() {
       expect(habitSymbols.length % 3, 0);
     });
 
-    test('the emoji of older saves keep their meaning', () {
-      expect(resolveHabitSymbol('🏠'), 'torre');
-      expect(resolveHabitSymbol('📖'), 'libro');
-      expect(resolveHabitSymbol('🏃'), 'carrera');
-      // Stored with the variation selector, as phones write them.
-      expect(resolveHabitSymbol('✍️'), 'pluma');
-      expect(resolveHabitSymbol('☎️'), 'campana');
-    });
-
     test('anything unknown still lands on one mark, and always the same', () {
       for (final odd in ['🦖', '', 'no-such-mark', '🥔🥔']) {
         final got = resolveHabitSymbol(odd);
         expect(habitSymbols, contains(got), reason: odd);
         expect(resolveHabitSymbol(odd), got, reason: odd);
       }
-    });
-
-    test('a habit read back from an old save wears a drawn mark', () {
-      final h = Habit.fromJson({
-        'id': 'h0',
-        'n': 'Leer',
-        's': '📖',
-        'slot': 0,
-        'c': 0,
-        'p': <dynamic>[],
-      });
-      expect(h.symbol, 'libro');
-      expect(habitSymbols, contains(h.symbol));
     });
 
     test(

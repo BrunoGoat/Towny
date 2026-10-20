@@ -514,15 +514,6 @@ void main() {
       expect(otra.afterId, 'hA');
     });
 
-    test('una copia vieja no las trae y sigue siendo el mismo pueblo', () {
-      final viejo = Habit.fromJson({'id': 'h1', 'n': 'Leer'});
-      expect(viejo.vowHour, isNull);
-      expect(viejo.vowPlace, isNull);
-      expect(viejo.identity, isNull);
-      expect(viejo.afterId, isNull);
-      expect(vowOf(viejo), isNull);
-    });
-
     test('una hora que no es del reloj se lee como que no hay plan', () {
       final raro = Habit.fromJson({'id': 'h1', 'n': 'Leer', 'vh': 99});
       expect(raro.vowHour, isNull);

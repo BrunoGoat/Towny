@@ -431,25 +431,13 @@ class Habit {
     return Habit(
       id: j['id'] as String? ?? 'h0',
       name: j['n'] as String? ?? tr('Mi hábito', 'My habit'),
-      // Older saves hold an emoji here. They are read back as the mark that
-      // means the same thing, so nobody's habit changes what it is about.
       symbol: resolveHabitSymbol(j['s'] as String?),
       slot: (j['slot'] as num?)?.toInt() ?? 0,
-      // Una copia vieja no la trae: se rellena al cargar, a partir del
-      // catálogo de hoy, y desde entonces queda escrita.
       chronicle: [for (final e in (j['w'] as List?) ?? []) e.toString()],
-      // Una copia vieja tampoco lo trae: se rellena al cargar con las fechas
-      // de las piezas que remataron cada casa, así que nadie pierde su
-      // cumpleaños por haber empezado a usar la app antes de que existiera.
       folk: [for (final e in (j['f'] as List?) ?? []) e.toString()],
       notes: [for (final e in (j['m'] as List?) ?? []) e.toString()],
-      // Tres cosas que una copia vieja no trae y que valen lo mismo vacías: un
-      // hábito sin motivo escrito es un hábito sin motivo escrito, y un pueblo
-      // que nunca durmió no tiene tramos. Nadie pierde nada por venir de antes.
       why: (j['y'] as String?)?.trim(),
       floor: (j['q'] as String?)?.trim(),
-      // Y otras cuatro que tampoco trae, por lo mismo: un pueblo fundado antes
-      // de que existiera el plan no tiene plan, y sigue siendo el mismo pueblo.
       // La hora se guarda sólo si es una hora: un número de fuera del reloj
       // —un archivo tocado a mano— se lee como que no hay plan.
       vowHour: switch ((j['vh'] as num?)?.toInt()) {
@@ -484,8 +472,6 @@ class Habit {
       askedAt: (j['k'] as num?) == null
           ? null
           : DateTime.fromMillisecondsSinceEpoch((j['k'] as num).toInt()),
-      // A save from before towns could be chosen keeps the one its plot was
-      // given, so nobody's town changes shape under them.
       character: (j['ch'] as num?)?.toInt(),
       nudgedAt: (j['g'] as num?) == null
           ? null

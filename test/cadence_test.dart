@@ -297,12 +297,6 @@ void main() {
       final j = _habit(now: now, on: [0]).toJson()..['pw'] = 9;
       expect(Habit.fromJson(j).perWeek, isNull);
     });
-
-    test('una copia vieja no la trae, y no pasa nada', () {
-      final j = _habit(now: now, on: [0]).toJson();
-      expect(j.containsKey('pw'), isFalse);
-      expect(Habit.fromJson(j).perWeek, isNull);
-    });
   });
 
   group('decirlo', () {

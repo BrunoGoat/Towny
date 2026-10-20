@@ -180,75 +180,17 @@ const Map<String, String> _habitSymbolNamesEs = {
 /// The mark a habit gets when nobody has chosen one.
 const String kDefaultHabitSymbol = 'torre';
 
-/// What the emoji of earlier versions turn into.
-///
-/// Anybody who has been laying pieces since before the marks were drawn opens
-/// the app to the same habits with the same meanings, not to a valley of
-/// question marks.
-const Map<String, String> _legacy = {
-  '🏠': 'torre',
-  '📖': 'libro',
-  '📚': 'libro',
-  '🏃': 'carrera',
-  '💪': 'pesa',
-  '🏋': 'pesa',
-  '🧘': 'loto',
-  '🚭': 'pipa',
-  '🚬': 'pipa',
-  '💧': 'gota',
-  '🥗': 'hoja',
-  '🍎': 'hoja',
-  '😴': 'luna',
-  '🛏': 'luna',
-  '✍': 'pluma',
-  '📝': 'pluma',
-  '💻': 'pluma',
-  '🎸': 'laud',
-  '🎵': 'laud',
-  '🎨': 'pincel',
-  '🧹': 'escoba',
-  '💊': 'frasco',
-  '🦷': 'diente',
-  '☎': 'campana',
-  '📞': 'campana',
-  '🌱': 'brote',
-  '🧠': 'estrella',
-  '🪙': 'bolsa',
-  '💰': 'bolsa',
-  '🚲': 'rueda',
-  '🏊': 'ola',
-  '🐕': 'huella',
-  '🐶': 'huella',
-  '🍳': 'olla',
-  '🎯': 'diana',
-  '☀': 'sol',
-  '⭐': 'estrella',
-  '❤': 'corazon',
-  '⛰': 'montana',
-  '🌳': 'arbol',
-  '🔑': 'llave',
-  '⚔': 'espada',
-  '🛡': 'escudo',
-  '⏳': 'reloj',
-  '🏮': 'farol',
-};
-
 /// The mark to actually draw for whatever is saved against a habit.
 ///
 /// Never fails and never returns nothing: a town always has a mark over it.
 String resolveHabitSymbol(String? saved) {
   if (saved == null || saved.isEmpty) return kDefaultHabitSymbol;
   if (habitSymbolNames.containsKey(saved)) return saved;
-  // Emoji are routinely stored with a variation selector on the end, which is
-  // invisible and would otherwise miss the table by one code unit.
-  final bare = saved.replaceAll('️', '').replaceAll('⃣', '');
-  final hit = _legacy[bare];
-  if (hit != null) return hit;
-  // Something nobody planned for — an emoji typed by hand, a mark from a
+  // Something nobody planned for — a file touched by hand, a mark from a
   // version that came later. Choose one and always choose the same one: a
   // town must not change its sign every time the app opens.
   var h = 0;
-  for (final c in bare.codeUnits) {
+  for (final c in saved.codeUnits) {
     h = (h * 31 + c) & 0x7fffffff;
   }
   return habitSymbols[h % habitSymbols.length];

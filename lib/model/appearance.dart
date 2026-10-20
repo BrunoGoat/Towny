@@ -196,26 +196,11 @@ class Appearance extends ChangeNotifier {
     return Season.on(DateTime.now(), hemisphere);
   }
 
-  // De qué está hecha la hoja de un hábito tampoco se elige ya.
-  //
-  // Llegó a haber una lista de diez materiales y un deslizador para lo sólido
-  // que era de noche. Las dos cosas estuvieron el tiempo que se tardó en
-  // encontrar lo que se buscaba —vidrio ahumado, y noventa y cinco por ciento—
-  // y después sobraban: un ajuste que ya nadie va a tocar es una fila más que
-  // leer cada vez que se abren los ajustes. Lo guardado se lee y se tira, así
-  // que el disco se limpia solo.
-
   // ------------------------------------------------------- la letra del papel
 
   /// Con qué letra están escritos los papeles del tablón.
   ///
-  /// Ya no son ajustes y por eso ya no se guardan. El día que dejaron de
-  /// elegirse, los valores viejos siguieron en el disco de quien los hubiera
-  /// tocado, y les seguía saliendo aunque ya no la pudieran cambiar. Una
-  /// preferencia que no se puede cambiar no es una preferencia: es una
-  /// constante con un sitio donde quedarse desactualizada.
-  ///
-  /// Lo que quedó elegido tras probarlas una a una en el tablón: Arquitecta, a
+  /// No es un ajuste: lo quedó elegido tras probarlas una a una en el tablón: Arquitecta, a
   /// media altura del deslizador.
   static const String noteFont = 'arquitecta';
   static const double noteScale = 1.5;
@@ -265,15 +250,6 @@ class Appearance extends ChangeNotifier {
   /// del dedo; esto es lo que esa posición significa.
   double get musicGain => math.pow(_musicVolume, _curve).toDouble();
 
-  /// La posición del dedo que sonaría igual que este volumen de antes, para no
-  /// bajarle la música a quien ya la tenía donde quería.
-  static double _asPosition(double oldGain) =>
-      math.pow(oldGain.clamp(0.0, 1.0), 1 / _curve).toDouble();
-
-  /// Qué versión de esa cuenta trae lo guardado. Sin marca es la de antes,
-  /// cuando la posición y el volumen eran el mismo número.
-  static const String _volMark = 'vol';
-  static const String _volNow = '2';
   double _musicVolume = _midway;
   double _effectsVolume = _midway;
 
@@ -330,21 +306,7 @@ class Appearance extends ChangeNotifier {
       _rapid = prefs.getBool(_rapidKey) ?? false;
       _freeHabits = prefs.getBool(_freeKey) ?? false;
       final saved = prefs.getStringList(_soundKey);
-      if (saved != null) {
-        final visto = _readPrefs(saved);
-        // Lo guardado antes de la curva decía «0,15» queriendo decir «que
-        // suene al quince por ciento». Ahora eso mismo se dice con el dedo a
-        // la mitad, así que se traduce una vez y se marca como traducido.
-        //
-        // Sólo si había un volumen escrito. Un guardado que no lo traía —de
-        // una versión anterior a que se pudiera tocar, o corrupto— no tiene
-        // nada que conservar: se queda con el valor por defecto de hoy, que es
-        // justamente lo que se acaba de cambiar.
-        if (visto.contains('musicVol') && !visto.contains(_volMark)) {
-          _musicVolume = _asPosition(_musicVolume);
-          unawaited(_writeNow());
-        }
-      }
+      if (saved != null) _readPrefs(saved);
     } catch (_) {
       // A phone that will not give us its preferences still gets a town.
     }
@@ -356,13 +318,11 @@ class Appearance extends ChangeNotifier {
   /// back as its default instead of throwing the whole lot away. Que la clave
   /// del disco se llame «sound» es historia: ahí dentro va ya todo lo que se
   /// elige, y renombrarla le borraría a todo el mundo lo que tenía puesto.
-  Set<String> _readPrefs(List<String> rows) {
-    final visto = <String>{};
+  void _readPrefs(List<String> rows) {
     for (final row in rows) {
       final at = row.indexOf('=');
       if (at <= 0) continue;
       final key = row.substring(0, at), value = row.substring(at + 1);
-      visto.add(key);
       switch (key) {
         case 'sound':
           _soundOff = value == '0';
@@ -377,14 +337,7 @@ class Appearance extends ChangeNotifier {
         case 'onboarded':
           _onboarded = value == '1';
         case 'musicVol':
-          // Un valor ilegible no es un volumen guardado: se queda el de hoy y
-          // no hay nada que traducir a la curva nueva.
-          final v = double.tryParse(value);
-          if (v == null) {
-            visto.remove(key);
-          } else {
-            _musicVolume = v.clamp(0.0, 1.0);
-          }
+          _musicVolume = (double.tryParse(value) ?? _midway).clamp(0.0, 1.0);
         case 'effectsVol':
           _effectsVolume = (double.tryParse(value) ?? _midway).clamp(0.0, 1.0);
         case 'fakeHour':
@@ -411,27 +364,8 @@ class Appearance extends ChangeNotifier {
           _fakeSeason = value == '1';
         case 'fakeSeasonAt':
           _fakeSeasonAt = (double.tryParse(value) ?? 0.0).clamp(0.0, 0.999);
-        case 'skin':
-        case 'nightVeil':
-          visto.remove(key);
-
-        // Y lo mismo el estilo del vuelo al valle: llegaron a estar hechos
-        // los diez y se eligió la niebla, así que se fueron los otros nueve
-        // con su selector. Quien hubiera probado otro lo tenía guardado.
-        case 'flight':
-        // Las cuatro de la letra ya no se eligen, así que ya no se guardan.
-        // Se leen para tirarlas: al sacarlas de `visto`, la próxima escritura
-        // no las vuelve a poner y el disco se limpia solo. Hace falta hacerlo
-        // y no ignorarlas sin más, porque quien hubiera probado letras seguía
-        // viendo la suya.
-        case 'noteFont':
-        case 'villageFont':
-        case 'noteScale':
-        case 'villageScale':
-          visto.remove(key);
       }
     }
-    return visto;
   }
 
   /// Los ajustes tal como se guardan, `clave=valor`. Para la copia en la
@@ -453,7 +387,6 @@ class Appearance extends ChangeNotifier {
     'haptics=${_hapticsOff ? 0 : 1}',
     'nudges=${_nudgesOff ? 0 : 1}',
     'onboarded=${_onboarded || _rehearsing ? 1 : 0}',
-    '$_volMark=$_volNow',
     'musicVol=$_musicVolume',
     'effectsVol=$_effectsVolume',
     'fakeHour=${_fakeHour ? 1 : 0}',

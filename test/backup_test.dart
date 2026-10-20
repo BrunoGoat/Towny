@@ -131,24 +131,7 @@ void main() {
     });
   });
 
-  group('una copia vieja sigue entrando', () {
-    test('sin región elegida, sin símbolo dibujado y sin etiquetas', () async {
-      // Lo que habría escrito una versión anterior: sin `ch`, con un emoji
-      // donde ahora va una marca, y sin `l` en las piezas.
-      const old =
-          '{"v":1,"a":0,"h":[{"id":"h0","n":"Leer","s":"📖","slot":0,'
-          '"c":1700000000000,"p":[{"i":0,"t":1700000000000},'
-          '{"i":1,"t":1700086400000}]}]}';
-      final s = await freshStore();
-      expect(s.importSave(old), isNull);
-      expect(s.habits.single.total, 2);
-      expect(s.habits.single.name, 'Leer');
-      // El emoji se lee como la marca que significa lo mismo.
-      expect(s.habits.single.symbol, isNot('📖'));
-      // Y sin región guardada se queda con la que su parcela tenía.
-      expect(s.habits.single.character, TownCharacter.forSlot(0).order);
-    });
-
+  group('una copia con huecos sigue entrando', () {
     test('piezas con huecos en la numeración se renumeran', () async {
       const gappy =
           '{"h":[{"id":"h0","n":"Leer","s":"libro","slot":0,"c":0,'

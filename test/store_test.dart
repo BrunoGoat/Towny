@@ -42,25 +42,6 @@ void main() {
     });
   });
 
-  group('las leyendas ya no existen', () {
-    // Quien venga de una versión con leyendas trae en cada pieza una clave
-    // `l`. Se lee el valle entero, y en el teléfono queda escrito sin ellas.
-    test('un guardado con leyendas se abre y se reescribe sin ellas', () async {
-      final s = await freshStore();
-      s.placePiece();
-      s.placePiece();
-      final viejo = s.exportSave().replaceFirst('"i":1,', '"i":1,"l":"Leí",');
-      expect(viejo, contains('"l":"Leí"'));
-
-      SharedPreferences.setMockInitialValues({'pueblo_state_v1': viejo});
-      final again = Store();
-      await again.load();
-      expect(again.total, 2);
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('pueblo_state_v1'), isNot(contains('"l":')));
-    });
-  });
-
   group('sin límite de hábitos, para probar', () {
     test('abre la puerta sin ganarla, y apagarlo la vuelve a cerrar', () async {
       final s = await freshStore();
@@ -166,18 +147,6 @@ void main() {
       await again.load();
       final found = again.habits.firstWhere((h) => h.name == 'Correr');
       expect(found.place.region, want.region);
-    });
-
-    test('a habit saved before there was a choice keeps its plot\'s own', () {
-      final old = Habit.fromJson({
-        'id': 'h1',
-        'n': 'Leer',
-        's': 'libro',
-        'slot': 2,
-        'c': DateTime(2025).millisecondsSinceEpoch,
-        'p': const [],
-      });
-      expect(old.place.region, TownCharacter.forSlot(2).region);
     });
   });
 
@@ -378,21 +347,6 @@ void main() {
         expect(plan.built(l.id, at - 1), isFalse, reason: l.name);
         expect(plan.built(l.id, at + 500), isTrue, reason: l.name);
       }
-    });
-
-    test('y un guardado viejo con su cuaderno se lee igual', () async {
-      // Quien tenga anotadas constelaciones en el disco trae una lista `sky`
-      // que ya no significa nada. Se lee, se tira, y lo que importa —el valle—
-      // entra entero.
-      final s = await freshStore();
-      s.addHabit('Leer', 'lectura');
-      s.placePiece();
-      final saved = s.exportSave();
-      final viejo = saved.replaceFirst('{', '{"sky":["orion","cruz"],');
-      final other = await freshStore();
-      expect(other.importSave(viejo), isNull, reason: 'no lo pudo leer');
-      expect(other.habits.length, 2);
-      expect(other.exportSave().contains('sky'), isFalse);
     });
   });
 

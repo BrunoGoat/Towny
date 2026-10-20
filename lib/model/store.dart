@@ -316,9 +316,6 @@ class Store extends ChangeNotifier {
   // es un sistema dentro de una app que sólo tiene uno: una pieza, un logro.
   // El cielo se queda de cielo: algunas noches hay una figura ahí arriba y
   // otras no, tocarla suena, y no lleva la cuenta nadie.
-  //
-  // Lo que hubiera guardado sigue leyéndose y se tira al escribir, para que el
-  // disco se limpie solo igual que se hizo con las letras del tablón.
 
   // ------------------------------------------------------------------ habits
 
@@ -817,17 +814,13 @@ class Store extends ChangeNotifier {
     }
     if (habits.isEmpty) habits.add(_blankHabit());
     active = active.clamp(0, habits.length - 1);
-    // Una copia guardada por una versión anterior no trae crónica. Se escribe
-    // aquí, con el catálogo de hoy, y de ahí en adelante ya no se recalcula.
-    // Y si los días que ya llevaba puestos abren la puerta, queda escrito al
-    // arrancar y no la primera vez que ponga una pieza: nadie tiene que poner
-    // una más para cobrar algo que ya se había ganado.
+    // Lo que falte de la crónica se escribe aquí, con el catálogo de hoy, y de
+    // ahí en adelante ya no se recalcula. Y si los días que ya llevaba
+    // puestos abren la puerta, queda escrito al arrancar y no la primera vez
+    // que ponga una pieza: nadie tiene que poner una más para cobrar algo que
+    // ya se había ganado.
     var moved = _checkUnlock();
     if (_writeUpWorks(habit) || _writeUpAll()) moved = true;
-    // Las leyendas ya no existen: una copia que todavía las trae (la clave
-    // `l` de cada pieza) se vuelve a escribir sin ellas, para que no queden
-    // guardadas en el teléfono sin que nada las lea.
-    if (raw != null && raw.contains('"l":')) moved = true;
     // Arreglar al cargar no es un cambio de nadie: un teléfono recién
     // instalado que se marcara como cambiado pisaría el valle de la nube.
     if (moved) _save(touch: false);
@@ -844,24 +837,15 @@ class Store extends ChangeNotifier {
         ),
       );
     active = (j['a'] as num?)?.toInt() ?? 0;
-    // El candado llegó después que la app, así que una copia anterior no lo
-    // trae — y un valle que ya tenía varios pueblos cuando esto no existía es,
-    // por definición, un valle que ya está del otro lado de la puerta. Se
-    // marca abierto y no se le pregunta nada. Nadie pierde un pueblo por una
-    // regla que se inventó después de que lo fundara.
     _earned = _earnedFrom(j);
     _seenArrival = (j['w'] as num?)?.toInt() ?? 0;
-    // `sky` —el cuaderno de constelaciones— se lee y se tira: al no volver a
-    // escribirse, el disco se limpia solo en el primer guardado.
   }
 
   /// Cuántos pueblos se había ganado una copia guardada.
   ///
-  /// Las de antes guardaban sólo si la puerta del segundo estaba abierta
-  /// (`u`), y las de antes del candado no guardaban nada. En los dos casos
-  /// vale como ganado lo que ya tenía: nadie pierde un pueblo por una regla
-  /// que se inventó después de que lo fundara. Lo que no trae es el solar
-  /// siguiente, que se gana como cualquier otro.
+  /// La del teléfono lo trae contado (`u2`). La que vuelve de la nube sólo
+  /// trae si la puerta del segundo estaba abierta (`u`), y sin nada es uno.
+  /// En todos los casos vale como ganado lo que ya tiene fundado.
   int _earnedFrom(Map<String, dynamic> j) {
     final dicho =
         (j['u2'] as num?)?.toInt() ?? ((j['u'] as bool?) == true ? 2 : 1);
