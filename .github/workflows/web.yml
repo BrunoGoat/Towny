@@ -47,6 +47,8 @@ jobs:
           flutter build web --release \
             --no-web-resources-cdn \
             --base-href /Towny/ \
+            --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
+            --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }} \
             --dart-define=BUILD=${{ github.run_number }}
 
       - uses: actions/upload-pages-artifact@v3

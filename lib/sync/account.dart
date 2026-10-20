@@ -7,7 +7,8 @@ library;
 
 abstract interface class Account {
   /// Manda el código a [email]. Si no se pudo (sin conexión, demasiados
-  /// pedidos seguidos), lanza, y la pantalla lo dice.
+  /// pedidos seguidos), lanza, y la pantalla lo dice. [TooSoon] si es que se
+  /// pidió otro hace un momento.
   Future<void> sendCode(String email);
 
   /// Si [code] es el que se mandó a [email]. Falso si no lo es; lanza si no
@@ -15,20 +16,8 @@ abstract interface class Account {
   Future<bool> verify(String email, String code);
 }
 
-/// La pantalla sin la nube detrás, para verla mientras no esté conectada.
-///
-/// No manda ningún correo: cualquier código de seis números entra. Se va en
-/// cuanto exista la cuenta de Supabase.
-class PreviewAccount implements Account {
-  const PreviewAccount();
-
-  @override
-  Future<void> sendCode(String email) =>
-      Future.delayed(const Duration(milliseconds: 700));
-
-  @override
-  Future<bool> verify(String email, String code) => Future.delayed(
-    const Duration(milliseconds: 500),
-    () => RegExp(r'^\d{6}$').hasMatch(code),
-  );
+/// Se pidió un código hace muy poco: la nube no manda otro hasta dentro de un
+/// rato, y el que llegó antes sigue sirviendo.
+class TooSoon implements Exception {
+  const TooSoon();
 }

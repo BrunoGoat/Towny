@@ -65,7 +65,18 @@ class FirstRun extends StatefulWidget {
     this.next,
     this.onCancel,
     this.account,
+    this.onSignedIn,
+    this.accountOnly = false,
   });
+
+  /// Lo que hay que hacer apenas se entra, antes de seguir: ponerse de acuerdo
+  /// con la nube. Mientras tanto el botón dice que está entrando. Si trae un
+  /// valle que ya existía, quien lo pidió se encarga de saltar las preguntas.
+  final Future<void> Function()? onSignedIn;
+
+  /// Sólo la cuenta, sin las preguntas: para entrar desde ajustes con el valle
+  /// ya fundado. Al entrar, o al seguir sin cuenta, se llama a [onCancel].
+  final bool accountOnly;
 
   /// Con qué se entra a la cuenta, antes de la bienvenida. Nulo, no se pide:
   /// el pueblo siguiente ya está dentro, y los tests van directo al valle.
@@ -305,7 +316,7 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
       FocusScope.of(context).unfocus();
       _enter(_Entry.email, backward: true);
     } else if (_entry != null) {
-      return;
+      if (widget.accountOnly) widget.onCancel?.call();
     } else if (_step > 0) {
       FocusScope.of(context).unfocus();
       _go(_step - 1);
@@ -334,6 +345,17 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
     });
   }
 
+  /// Ya está: con cuenta o sin ella. Desde ajustes se vuelve al valle; la
+  /// primera vez siguen las preguntas.
+  void _entered() {
+    if (widget.accountOnly) {
+      Sensory.instance.tick();
+      widget.onCancel?.call();
+    } else {
+      _enter(null);
+    }
+  }
+
   Future<void> _sendCode() async {
     if (_busy || !_emailOk) return;
     Sensory.instance.tick();
@@ -347,6 +369,20 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
       _code.clear();
       _busy = false;
       _enter(_Entry.code);
+    } on TooSoon {
+      // El de hace un momento sigue sirviendo: se va a escribirlo.
+      if (!mounted) return;
+      _code.clear();
+      _busy = false;
+      _enter(_Entry.code);
+      setState(
+        () => _problem = tr(
+          'Ya te mandamos uno hace un momento: usá ese. Si no llegó, mirá en '
+              'Spam o esperá un minuto y pedí otro.',
+          "We sent you one a moment ago: use that one. If it didn't arrive, "
+              'check Spam or wait a minute and ask for another.',
+        ),
+      );
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -372,8 +408,12 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
       if (ok) {
         if (!mounted) return;
         FocusScope.of(context).unfocus();
+        // Todavía «entrando»: lo que haya en la nube baja antes de seguir,
+        // y si había un valle, ya no hacen falta las preguntas.
+        await widget.onSignedIn?.call();
+        if (!mounted) return;
         _busy = false;
-        _enter(null);
+        _entered();
         return;
       }
       problema = tr(
@@ -676,8 +716,10 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
         ? tr('Mandando…', 'Sending…')
         : tr('Mandarme el código', 'Send me the code'),
     onNext: _emailOk && !_busy ? _sendCode : null,
-    skip: tr('Seguir sin cuenta', 'Continue without an account'),
-    onSkip: _busy ? null : () => _enter(null),
+    skip: widget.accountOnly
+        ? tr('Ahora no', 'Not now')
+        : tr('Seguir sin cuenta', 'Continue without an account'),
+    onSkip: _busy ? null : _entered,
     child: _Problem(
       problem: _problem,
       child: _Field(

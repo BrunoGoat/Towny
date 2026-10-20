@@ -47,6 +47,8 @@ jobs:
         run: |
           flutter build apk --release \
             --build-number=${{ github.run_number }} \
+            --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
+            --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }} \
             --dart-define=BUILD=${{ github.run_number }}
 
       - name: Check it is signed with the key we meant

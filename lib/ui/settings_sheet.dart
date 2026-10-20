@@ -22,9 +22,11 @@ import '../model/piece.dart';
 import '../model/reel.dart';
 import '../model/sage_talk.dart';
 import '../model/store.dart';
+import '../sync/cloud.dart';
 import 'backup_sheet.dart';
 import 'choice_sheet.dart';
 import 'debug_sheet.dart';
+import 'first_run.dart';
 import 'folk_gallery_screen.dart';
 import 'gallery_screen.dart';
 import 'notice_board.dart';
@@ -756,6 +758,69 @@ class _SettingsSheetState extends State<SettingsSheet> {
                   onChanged: (v) => wants.setHapticsOff(!v),
                 ),
                 _Undo(theme: t, store: store),
+                // La cuenta, al lado de la copia a mano: son las dos maneras de
+                // que el valle no viva sólo en este teléfono. Sin nube en esta
+                // build, no está.
+                if (Cloud.configured)
+                  ListenableBuilder(
+                    listenable: Cloud.instance,
+                    builder: (context, _) => Cloud.instance.signedIn
+                        ? _Row(
+                            theme: t,
+                            icon: Icons.cloud_done_outlined,
+                            title: tr('Tu cuenta', 'Your account'),
+                            subtitle: Cloud.instance.offline
+                                ? tr(
+                                    '${Cloud.instance.email} · Sin conexión: '
+                                        'lo nuevo sube en cuanto vuelva.',
+                                    '${Cloud.instance.email} · Offline: '
+                                        'anything new goes up once it is back.',
+                                  )
+                                : tr(
+                                    '${Cloud.instance.email} · Tu valle está '
+                                        'guardado en la nube.',
+                                    '${Cloud.instance.email} · Your valley is '
+                                        'kept in the cloud.',
+                                  ),
+                            act: (nav) => _salirDeLaCuenta(nav, t),
+                          )
+                        : _Row(
+                            theme: t,
+                            icon: Icons.cloud_outlined,
+                            title: tr(
+                              'Guardar tu valle en la nube',
+                              'Keep your valley in the cloud',
+                            ),
+                            subtitle: tr(
+                              'Entrá con tu correo y tus pueblos no se pierden '
+                                  'aunque cambies de teléfono.',
+                              'Sign in with your email and your towns are never '
+                                  'lost, even if you change phones.',
+                            ),
+                            act: (nav) {
+                              nav.pop();
+                              nav.push(
+                                MaterialPageRoute<void>(
+                                  builder: (page) => FirstRun(
+                                    account: Cloud.instance.account,
+                                    accountOnly: true,
+                                    onSignedIn: () =>
+                                        Cloud.instance.start(store),
+                                    onCancel: () => Navigator.of(page).pop(),
+                                    onDone:
+                                        (
+                                          _,
+                                          _, {
+                                          required character,
+                                          why,
+                                          identity,
+                                        }) {},
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                  ),
                 _Row(
                   theme: t,
                   icon: Icons.save_alt,
@@ -823,6 +888,41 @@ class _SettingsSheetState extends State<SettingsSheet> {
       children: items,
     );
   }
+}
+
+/// Salir de la cuenta. Pregunta antes, y dice lo que importa: que el valle se
+/// queda en el teléfono, sólo que deja de subir.
+void _salirDeLaCuenta(NavigatorState nav, UiTheme t) {
+  showDialog<void>(
+    context: nav.context,
+    builder: (dialog) => AlertDialog(
+      backgroundColor: t.panelStrong,
+      elevation: 0,
+      title: Text(tr('¿Salir de tu cuenta?', 'Sign out?'), style: t.body),
+      content: Text(
+        tr(
+          'Tus pueblos se quedan en este teléfono, pero lo que hagas desde ahora '
+              'no se guarda en la nube hasta que vuelvas a entrar.',
+          'Your towns stay on this phone, but what you do from now on is not '
+              'kept in the cloud until you sign in again.',
+        ),
+        style: t.bodySoft,
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialog).pop(),
+          child: Text(tr('No', 'No')),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.of(dialog).pop();
+            Cloud.instance.signOut();
+          },
+          child: Text(tr('Salir', 'Sign out')),
+        ),
+      ],
+    ),
+  );
 }
 
 /// Borrar el valle entero y volver a la primera vez.

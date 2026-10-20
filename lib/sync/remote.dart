@@ -67,7 +67,7 @@ int _piecesOf(Map<String, dynamic> save) {
 /// Guarda lo último que quedó en la nube ([_base]) para subir sólo la
 /// diferencia: una pieza nueva son tres filas, no el valle entero. Por eso
 /// lo primero siempre es [connect], que baja lo que hay y fija esa base; sin
-/// base no se sube nada.
+/// haberse conectado no se sube nada.
 ///
 /// Las subidas esperan una pausa corta, porque un cambio casi nunca viene
 /// solo —arrastrar un papel son muchos movimientos, y poner una pieza escribe
@@ -86,8 +86,14 @@ class CloudSync {
   final String userId;
   final Duration pause;
 
-  /// Lo que hay en la nube ahora, escrito como lo escribe [toRows].
+  /// Lo que hay en la nube ahora, escrito como lo escribe [toRows]. Nulo si
+  /// la nube está vacía.
   ValleyRows? _base;
+
+  /// Si ya se pusieron de acuerdo. Es esto y no tener [_base] lo que deja
+  /// subir: con la nube vacía y el teléfono recién instalado no hay base, y
+  /// el pueblo que se funde después tiene que subir igual, todo entero.
+  bool _connected = false;
 
   Timer? _soon;
   bool _busy = false;
@@ -115,6 +121,7 @@ class CloudSync {
     switch (plan.action) {
       case SyncAction.none:
         _base = base;
+        _connected = true;
         changes.markSynced(DateTime.now());
       case SyncAction.upload:
         if (plan.backup && cloud != null) {
@@ -124,12 +131,14 @@ class CloudSync {
         final mine = toRows(local, userId);
         await _send(diffRows(base, mine));
         _base = mine;
+        _connected = true;
         changes.markSynced(now);
       case SyncAction.download:
         if (plan.backup) await LocalChanges.keepBackup(local.save);
         final error = await applyLocal(store, cloud!);
         if (error == null) {
           _base = base;
+          _connected = true;
           changes.markSynced(DateTime.now());
         }
     }
@@ -159,7 +168,7 @@ class CloudSync {
 
   /// Sube ya lo que haya pendiente: sólo lo que cambió desde la última vez.
   Future<void> pushNow() async {
-    if (_busy || _base == null || !LocalChanges.instance.dirty) return;
+    if (_busy || !_connected || !LocalChanges.instance.dirty) return;
     _busy = true;
     final now = DateTime.now();
     var subio = false;

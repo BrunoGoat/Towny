@@ -21,7 +21,7 @@ import 'model/board_slots.dart';
 import 'model/changes.dart';
 import 'model/reel.dart';
 import 'model/store.dart';
-import 'sync/account.dart';
+import 'sync/cloud.dart';
 import 'ui/first_run.dart';
 import 'ui/gallery_screen.dart';
 import 'ui/home_screen.dart';
@@ -72,6 +72,10 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
   /// cinemáticas una encima de la otra.
   bool _watching = false;
 
+  /// Todavía arrancando: lo que diga la nube mientras tanto lo recoge el final
+  /// de [_boot], que es el que decide cuándo se enseña el valle.
+  bool _booting = true;
+
   @override
   void initState() {
     super.initState();
@@ -80,6 +84,7 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
     // ajustes: es lo único de las preferencias que cambia qué pantalla se está
     // mirando, y sin esto no pasaba nada hasta reiniciar la app.
     Appearance.instance.addListener(_prefsChanged);
+    Cloud.instance.addListener(_cloudChanged);
     _boot();
   }
 
@@ -87,6 +92,7 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     Appearance.instance.removeListener(_prefsChanged);
+    Cloud.instance.removeListener(_cloudChanged);
     super.dispose();
   }
 
@@ -105,6 +111,9 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
       AdviceBook.instance.visit(store.habits);
       // Y lo que se haya tocado en la pantalla de inicio mientras tanto.
       _collect();
+      // Y la nube: lo que haya quedado sin subir, o volver a intentar si la
+      // última vez no hubo conexión.
+      Cloud.instance.resume(store);
     } else {
       Sensory.instance.sleep();
       // Y lo que va a sonar mientras la app no esté se programa ahora, que es
@@ -144,6 +153,23 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
       _replan();
       WidgetBridge.instance.publish(store.habits);
     }
+  }
+
+  /// Algo cambió con la nube: se entró, o bajó un valle.
+  ///
+  /// Si bajó uno con piezas mientras se estaba en la primera vez —el teléfono
+  /// nuevo de alguien que ya tenía pueblos—, las preguntas sobran: se va
+  /// derecho a su valle. Y los avisos y el cuadrito de la pantalla de inicio
+  /// pasan a hablar de lo que bajó.
+  void _cloudChanged() {
+    if (!store.loaded || _booting) return;
+    if (!Appearance.instance.onboarded &&
+        store.habits.any((h) => h.total > 0)) {
+      Appearance.instance.setOnboarded();
+    }
+    if (mounted) setState(() {});
+    _replan();
+    WidgetBridge.instance.publish(store.habits);
   }
 
   /// Fundar el primer pueblo con lo que se contestó en la primera pantalla.
@@ -236,17 +262,27 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
   }
 
   Future<void> _boot() async {
+    // Lo primero, para que la primera vez ya sepa si tiene que pedir cuenta.
+    // No necesita conexión: sólo lee la sesión guardada.
+    await Cloud.instance.init();
     await Appearance.instance.load();
     await BoardSlots.instance.load();
     await BoardSeen.instance.load();
     await LocalChanges.instance.load();
     await store.load();
+    // Ponerse de acuerdo con la nube antes de enseñar nada, para no enseñar
+    // un valle y cambiarlo al segundo. Con un tope: sin conexión no puede ser
+    // lo que impida abrir la app, y si tarda, termina por detrás.
+    await Cloud.instance
+        .start(store)
+        .timeout(const Duration(seconds: 3), onTimeout: () {});
     // El consejero: lo que ya se ganó, y el de hoy si todavía no.
     await AdviceBook.instance.load();
     AdviceBook.instance.visit(store.habits);
     // Quien ya tenía pueblo no pasa por la pantalla de la primera vez, y no se
     // entera de que existe. Se apunta como pasada y a otra cosa.
-    if (!Appearance.instance.onboarded && store.total > 0) {
+    if (!Appearance.instance.onboarded &&
+        store.habits.any((h) => h.total > 0)) {
       await Appearance.instance.setOnboarded();
     }
     _replan();
@@ -321,6 +357,7 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
         townOrder(store.habit, valley: store.habits),
       ).timeout(const Duration(seconds: 2), onTimeout: () {});
     }
+    _booting = false;
     if (mounted) setState(() {});
     Sensory.instance.init();
     // Y los demás pueblos del valle, sin prisa y sin esperar a nadie: cuando
@@ -400,9 +437,12 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
                           )
                         : FirstRun(
                             key: const ValueKey('preguntas'),
-                            // Todavía sin la nube detrás: se entra con
-                            // cualquier código de seis números.
-                            account: const PreviewAccount(),
+                            // Nula si esta build no tiene nube: entonces
+                            // no se pide cuenta.
+                            account: Cloud.instance.signedIn
+                                ? null
+                                : Cloud.instance.account,
+                            onSignedIn: () => Cloud.instance.start(store),
                             onDone: _found,
                           ),
                   )),

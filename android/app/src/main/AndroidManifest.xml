@@ -13,6 +13,9 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <!-- Para que lo programado sobreviva a reiniciar el teléfono. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <!-- Y la nube. Las builds de prueba lo traen solas, y por eso no se notaba
+         que faltaba: sin esto, la APK de verdad no puede hablar con Supabase. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="Towny"
         android:name="${applicationName}"

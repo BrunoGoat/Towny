@@ -313,14 +313,15 @@ que **se vea** a menos de ocho píxeles. No hay rectángulos revisados en un ord
 fijo: nada se puede tocar a través de lo que tiene delante, y una cosa tocable
 nueva sólo tiene que anotarse al pintarse.
 
-**La nube, preparada pero sin conectar.** `supabase/migrations/` tiene las
+**La nube.** `supabase/migrations/` tiene las
 tablas de todo lo que la app guarda de una persona —el valle, cada hábito con
 sus piezas, vecinos, notas y pausas, los ajustes y el tablón—, cada una con una
 política que deja a cada uno ver sólo lo suyo. El pueblo en sí no se guarda: se
 calcula de eso, como en el teléfono. `sync/tables.dart` traduce la copia de la
 app a esas filas y de vuelta, sin red; `sync/remote.dart` es la interfaz que
-tendrá que cumplir el cliente de Supabase cuando se conecte, y restaurar desde
-allá pasa por la misma puerta que pegar una copia a mano. Cada cambio queda
+cumple el cliente de Supabase (`sync/cloud.dart`, con la cuenta por código de
+correo), y restaurar desde allá pasa por la misma puerta que pegar una copia a
+mano. Cada cambio queda
 apuntado en `model/changes.dart` y se sube solo, sólo la diferencia con lo que
 ya está allá (`CloudSync`); al entrar,
 `sync/merge.dart` decide qué copia manda sin que un teléfono vacío pueda pisar

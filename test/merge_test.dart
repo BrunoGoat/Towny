@@ -207,6 +207,25 @@ void main() {
       nubeDe.stop();
     });
 
+    test(
+      'con la nube vacía y nada hecho, lo que se funde después sube',
+      () async {
+        // Entrar antes de fundar: no hay nada en ningún lado, así que no hay
+        // base. El pueblo que viene después tiene que subir igual.
+        final nube = _Nube();
+        final s = await _telefono();
+        final nubeDe = CloudSync(s, nube, 'u', pause: Duration.zero);
+        final hecho = await nubeDe.connect();
+        expect(hecho.action, SyncAction.none);
+        s.renameHabit(0, name: 'Leer', symbol: 'libro');
+        s.placePiece();
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        expect(nube.piezas('u'), 1);
+        expect(LocalChanges.instance.dirty, isFalse);
+        nubeDe.stop();
+      },
+    );
+
     test('lo que ya no está se borra también allá', () async {
       final nube = _Nube();
       final s = await _telefono(valle: _valle());

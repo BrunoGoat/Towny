@@ -358,27 +358,23 @@ y de cerca para cada actividad desde 24 ángulos; ninguno falla.
 
 ### La nube (Supabase)
 
-**Hecho, menos el enchufe:**
-- las tablas (`supabase/migrations/`, probadas contra Postgres 16);
-- el traductor (`lib/sync/tables.dart`);
-- la sincronización (`lib/sync/remote.dart` y `merge.dart`). Sube cada cambio,
-  sólo lo nuevo; al entrar gana lo más reciente, y la copia que pierde queda
-  guardada en el teléfono. Los ajustes de desarrollo no viajan.
+**Conectada**, con código por correo (`lib/sync/cloud.dart`):
+- la cuenta se pide antes de la bienvenida (se puede seguir sin ella), y
+  desde *Ajustes → Guardar tu valle en la nube* para quien ya tiene pueblos;
+- al entrar se ponen de acuerdo el teléfono y la nube (`merge.dart`), y desde
+  ahí sube cada cambio solo; si bajó un valle con piezas, no hay preguntas;
+- la URL y la clave pública salen de los secretos `SUPABASE_URL` y
+  `SUPABASE_ANON_KEY` del repositorio. Sin ellas no se pide cuenta.
 
-**Para conectarlo, con Google:**
-1. Crear el proyecto en Supabase y correr la migración.
-2. En Google Cloud, crear un cliente OAuth tipo *Web*. Pegar su id y su secreto
-   en Supabase → Authentication → Providers → Google. Para Android hace falta
-   además un cliente *Android* con la huella SHA-1 de la firma.
-3. Pasar a la app la URL y la clave `anon` por `--dart-define`, nunca en el
-   repositorio.
-4. Agregar `supabase_flutter`, el botón de entrar en Ajustes y una clase que
-   implemente `Remote`:
-   - `apply`: `upsert` y `delete` tabla por tabla en el orden de `Tables.all`
-     (los borrados al revés);
-   - `pull`: `select` de cada tabla.
+**Hecho en Supabase:** la migración, el correo por SMTP de Gmail y las
+plantillas *Magic Link* y *Confirm signup* con `{{ .Token }}` (el código de
+seis números, y no un enlace).
 
-   Al entrar se llama a `CloudSync.connect()`, y desde ahí sube solo.
+- [ ] Entrar con Google: un cliente OAuth *Web* en Google Cloud pegado en
+  Supabase → Authentication → Providers → Google, uno *Android* con la huella
+  SHA-1 de la firma, y uno *iOS*. Va como otro botón debajo del correo.
+- [ ] Si la usa más gente: un SMTP de verdad (Resend con dominio propio) en
+  vez del Gmail, que es para pocos correos.
 
 ---
 
