@@ -160,13 +160,20 @@ class _Pen {
   ///
   /// Para las cosas que se reconocen en diagonal —un laúd, un pincel, una
   /// escoba— y que es más fácil trazar derechas.
-  void turned(double degrees, void Function(_Pen) draw) {
+  ///
+  /// Con [cx] y [cy] gira alrededor de otro punto: un dedo, desde su base.
+  void turned(
+    double degrees,
+    void Function(_Pen) draw, {
+    double cx = 50,
+    double cy = 50,
+  }) {
     final inner = _Pen();
     draw(inner);
     final m = Matrix4.identity()
-      ..translateByDouble(50, 50, 0, 1)
+      ..translateByDouble(cx, cy, 0, 1)
       ..rotateZ(degrees * math.pi / 180)
-      ..translateByDouble(-50, -50, 0, 1);
+      ..translateByDouble(-cx, -cy, 0, 1);
     for (final mark in inner.marks) {
       marks.add(_Mark(mark.path.transform(m.storage), mark.width));
     }
@@ -245,23 +252,37 @@ final Map<String, void Function(_Pen)> _glyphs = {
     });
   },
   'leaf': (p) {
-    // Ancha y con su nervio: angosta se leía como una pluma.
-    p.fill(
-      (q) {
-        q.moveTo(16, 84);
-        q.cubicTo(10, 42, 40, 12, 90, 10);
-        q.cubicTo(92, 58, 62, 90, 16, 84);
-        q.close();
-      },
-      cut: (q) {
-        q.moveTo(84, 12);
-        q.lineTo(89, 17);
-        q.lineTo(23, 82);
-        q.lineTo(18, 77);
-        q.close();
-      },
-    );
-    p.poly(6, [20, 80, 6, 94]);
+    // Una hoja de árbol: ancha y redonda, con la punta, el nervio, tres pares
+    // de nervaduras y el tallo curvo. Angosta se leía como una pluma.
+    p.turned(45, (p) {
+      p.fill(
+        (q) {
+          q.moveTo(50, 2);
+          q.cubicTo(82, 22, 86, 58, 50, 84);
+          q.cubicTo(14, 58, 18, 22, 50, 2);
+          q.close();
+        },
+        cut: (q) {
+          q.addRect(const Rect.fromLTRB(48.5, 14, 51.5, 84));
+          for (final (y, w) in [(34.0, 16.0), (50.0, 20.0), (64.0, 18.0)]) {
+            q.moveTo(50, y + 8);
+            q.lineTo(50 + w, y - 4);
+            q.lineTo(50 + w, y - 1);
+            q.lineTo(50, y + 11);
+            q.close();
+            q.moveTo(50, y + 8);
+            q.lineTo(50 - w, y - 4);
+            q.lineTo(50 - w, y - 1);
+            q.lineTo(50, y + 11);
+            q.close();
+          }
+        },
+      );
+      p.line(6, (q) {
+        q.moveTo(50, 82);
+        q.cubicTo(50, 90, 47, 96, 42, 100);
+      });
+    });
   },
 
   'moon': (p) {
@@ -636,24 +657,16 @@ final Map<String, void Function(_Pen)> _glyphs = {
     p.poly(7, [21, 79, 79, 21]);
   },
   'bread': (p) {
-    // Un pan largo en diagonal, con sus cortes: la hogaza de frente se leía
-    // como un casco.
-    p.turned(-30, (p) {
-      p.fill(
-        (q) => q.addRRect(
-          RRect.fromLTRBR(4, 32, 96, 70, const Radius.circular(19)),
-        ),
-        cut: (q) {
-          for (var i = 0; i < 4; i++) {
-            final x = 20.0 + i * 18;
-            q.moveTo(x, 60);
-            q.lineTo(x + 10, 40);
-            q.lineTo(x + 15, 40);
-            q.lineTo(x + 5, 60);
-            q.close();
-          }
-        },
-      );
+    // Una rodaja de pan de molde, con la copa más ancha que el cuerpo: el pan
+    // largo se leía como una pastilla.
+    p.fill((q) {
+      q.moveTo(20, 92);
+      q.lineTo(20, 46);
+      q.cubicTo(4, 42, 4, 8, 30, 8);
+      q.lineTo(70, 8);
+      q.cubicTo(96, 8, 96, 42, 80, 46);
+      q.lineTo(80, 92);
+      q.close();
     });
   },
 
@@ -787,30 +800,58 @@ final Map<String, void Function(_Pen)> _glyphs = {
     p.poly(4, [35, 65, 31, 81]);
   },
   'fist': (p) {
-    // Cuatro dedos separados arriba y el pulgar cruzado delante: un bloque
-    // redondeado no decía puño.
-    for (var i = 0; i < 4; i++) {
-      p.rect(18 + i * 16.0, 16, 32 + i * 16.0, 50, round: 7);
-    }
+    // Un puño en alto con su antebrazo, de una sola pieza: los nudillos y el
+    // pulgar son rayas finas, no piezas sueltas.
     p.fill(
-      (q) => q.addRRect(
-        RRect.fromLTRBR(18, 38, 82, 82, const Radius.circular(14)),
-      ),
-      cut: (q) =>
-          q.addRRect(RRect.fromLTRBR(6, 47, 63, 72, const Radius.circular(12))),
+      (q) {
+        q.addRRect(RRect.fromLTRBR(22, 8, 80, 64, const Radius.circular(14)));
+        q.addRRect(RRect.fromLTRBR(32, 56, 70, 100, const Radius.circular(4)));
+      },
+      cut: (q) {
+        // Entre los dedos, de arriba hasta el pulgar.
+        for (final x in [36.5, 51.0, 65.5]) {
+          q.addRect(Rect.fromLTRB(x - 1.6, 8, x + 1.6, 38));
+        }
+        // El pulgar, cruzado delante: su borde de arriba y su punta.
+        q.addRRect(
+          RRect.fromLTRBR(22, 36.5, 62, 39.5, const Radius.circular(1.5)),
+        );
+        q.addRect(const Rect.fromLTRB(58.5, 36.5, 61.5, 52));
+        // Donde termina la mano y empieza la muñeca.
+        q.addRect(const Rect.fromLTRB(30, 63, 72, 66));
+      },
     );
-    p.rect(10, 51, 59, 68, round: 8);
-    p.rect(28, 86, 72, 97, round: 4);
   },
 
   'hands': (p) {
-    // Una mano abierta, de frente: el par de manos en cuenco no se entendía.
-    p.rect(26, 46, 78, 90, round: 16);
-    p.rect(28, 16, 39, 58, round: 5.5);
-    p.rect(41, 6, 52, 58, round: 5.5);
-    p.rect(54, 9, 65, 58, round: 5.5);
-    p.rect(67, 20, 78, 60, round: 5.5);
-    p.poly(12, [32, 74, 12, 50]);
+    // Una mano abierta de frente, de una sola pieza: los dedos juntos,
+    // separados por rayas finas, y el pulgar abierto hacia un costado.
+    p.fill(
+      (q) {
+        q.addRRect(RRect.fromLTRBR(30, 18, 44, 60, const Radius.circular(7)));
+        q.addRRect(RRect.fromLTRBR(44, 8, 58, 60, const Radius.circular(7)));
+        q.addRRect(RRect.fromLTRBR(58, 12, 72, 60, const Radius.circular(7)));
+        q.addRRect(RRect.fromLTRBR(72, 26, 84, 62, const Radius.circular(6)));
+        q.addRRect(RRect.fromLTRBR(30, 46, 84, 94, const Radius.circular(18)));
+        // El pulgar, inclinado hacia afuera desde la base de la palma.
+        final m = Matrix4.identity()
+          ..translateByDouble(36, 78, 0, 1)
+          ..rotateZ(-38 * math.pi / 180)
+          ..translateByDouble(-36, -78, 0, 1);
+        q.addPath(
+          Path()..addRRect(
+            RRect.fromLTRBR(29, 40, 43, 80, const Radius.circular(7)),
+          ),
+          Offset.zero,
+          matrix4: m.storage,
+        );
+      },
+      cut: (q) {
+        for (final x in [44.0, 58.0, 72.0]) {
+          q.addRect(Rect.fromLTRB(x - 1.5, 0, x + 1.5, 52));
+        }
+      },
+    );
   },
 
   'eye': (p) {
