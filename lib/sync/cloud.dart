@@ -134,6 +134,16 @@ class Cloud extends ChangeNotifier {
   /// Si esta build sabe dónde está la nube.
   static bool get configured => _url.isNotEmpty && _key.isNotEmpty;
 
+  /// Sólo `https://<proyecto>.supabase.co`, aunque el secreto traiga más.
+  ///
+  /// La página de Supabase que muestra la dirección la da con `/rest/v1/` al
+  /// final, y es fácil copiarla así. El cliente agrega su propio camino
+  /// encima y la nube contesta «Invalid path specified in request URL».
+  static String get _base {
+    final u = Uri.tryParse(_url.trim());
+    return u == null || !u.hasScheme ? _url.trim() : u.origin;
+  }
+
   bool _ready = false;
   CloudSync? _sync;
 
@@ -145,7 +155,7 @@ class Cloud extends ChangeNotifier {
   Future<void> init() async {
     if (!configured || _ready) return;
     try {
-      await Supabase.initialize(url: _url, publishableKey: _key);
+      await Supabase.initialize(url: _base, publishableKey: _key.trim());
       _ready = true;
     } catch (e) {
       debugPrint('nube: no arrancó: $e');
