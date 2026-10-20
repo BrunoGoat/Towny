@@ -383,6 +383,15 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
               'check Spam or wait a minute and ask for another.',
         ),
       );
+    } on AccountRefused catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _problem = tr(
+          'No se pudo mandar el código. La nube dice: «${e.reason}»',
+          "The code couldn't be sent. The cloud says: \"${e.reason}\"",
+        );
+      });
     } catch (_) {
       if (!mounted) return;
       setState(() {

@@ -35,7 +35,7 @@ class SupabaseAccount implements Account {
       if (e.statusCode == '429' || e.code == 'over_email_send_rate_limit') {
         throw const TooSoon();
       }
-      rethrow;
+      throw AccountRefused(e.message);
     }
   }
 

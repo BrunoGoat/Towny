@@ -21,3 +21,12 @@ abstract interface class Account {
 class TooSoon implements Exception {
   const TooSoon();
 }
+
+/// La nube contestó, y contestó que no. Lleva su motivo tal como vino, para
+/// decirlo en pantalla: «revisá la conexión» cuando la conexión anda manda a
+/// buscar el problema donde no está.
+class AccountRefused implements Exception {
+  const AccountRefused(this.reason);
+
+  final String reason;
+}

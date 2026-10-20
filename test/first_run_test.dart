@@ -536,6 +536,27 @@ void main() {
       expect(find.text('Guardá tu valle.'), findsOneWidget);
     });
 
+    testWidgets('si la nube dice que no, se dice por qué', (tester) async {
+      final cuenta = _Cuenta()..rechazo = 'Error sending magic link email';
+      await tester.pumpWidget(
+        _marco(
+          FirstRun(
+            account: cuenta,
+            onDone: (_, _, {required character, why, identity}) {},
+          ),
+        ),
+      );
+      await _asentar(tester);
+      await tester.enterText(find.byType(TextField).first, 'bruno@correo.com');
+      await tester.pump();
+      await tocar(tester, 'MANDARME EL CÓDIGO');
+      expect(
+        find.textContaining('Error sending magic link email'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('Revisá la conexión'), findsNothing);
+    });
+
     testWidgets('y se puede seguir sin cuenta', (tester) async {
       await tester.pumpWidget(
         _marco(
@@ -590,10 +611,12 @@ void main() {
 class _Cuenta implements Account {
   final mandados = <String>[];
   bool falla = false;
+  String? rechazo;
 
   @override
   Future<void> sendCode(String email) async {
     if (falla) throw Exception('sin conexión');
+    if (rechazo != null) throw AccountRefused(rechazo!);
     mandados.add(email);
   }
 
