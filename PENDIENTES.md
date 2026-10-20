@@ -377,6 +377,80 @@ seis— y la *Site URL* en la web.
 - [ ] Si la usa más gente: un SMTP de verdad (Resend con dominio propio) en
   vez del Gmail, que es para pocos correos.
 
+**Idea, sin armar todavía: lo que aprende el valle de todos.** Lo de cada uno
+ya lo dice el tablón desde el teléfono; lo que sólo sale de la nube es lo que
+les pasa a todos juntos, devuelto como un papel verdadero. No sirve hasta que
+haya cientos de personas usándola un par de meses: con pocos valles los números
+no dicen nada.
+
+- [ ] **«La mayoría vuelve».** De las veces que alguien cortó una semana o más,
+  en cuántas volvió a poner piezas. Para cuando llevás días quieto: «de cada
+  10 pueblos que se quedaron quietos una semana, 6 volvieron a crecer».
+  ```sql
+  with p as (
+    select user_id, habit_id, placed_at,
+           lead(placed_at) over (partition by user_id, habit_id
+                                 order by placed_at) as siguiente
+    from pieces
+  ),
+  cortes as (
+    select siguiente from p
+    where coalesce(siguiente, now()) - placed_at >= interval '7 days'
+  )
+  select count(*) as cortes,
+         round(100.0 * count(siguiente) / count(*)) as pct_volvieron
+  from cortes;
+  ```
+- [ ] **Tener plan ayuda (si es verdad).** Qué parte de los pueblos con hora
+  fija y sin ella siguen poniendo piezas a los dos meses. Va en el papel que
+  ofrece la hora.
+  ```sql
+  select (h.vow_hour is not null) as con_plan, count(*) as pueblos,
+         round(100.0 * avg(case when exists (
+           select 1 from pieces p
+           where p.user_id = h.user_id and p.habit_id = h.id
+             and p.placed_at between h.created_at + interval '7 weeks'
+                                 and h.created_at + interval '9 weeks'
+         ) then 1 else 0 end)) as pct_siguen_a_los_2_meses
+  from habits h
+  where h.created_at < now() - interval '9 weeks'
+  group by con_plan;
+  ```
+- [ ] **El ritmo típico de cada clase de hábito**, con la marca como pista: «la
+  gente que corre suele poner 3 piezas por semana», para que nadie se sienta
+  mal por no hacerlo cada día.
+  ```sql
+  select symbol, count(*) as pueblos,
+         round(percentile_cont(0.5) within group (order by por_semana)::numeric, 1)
+           as piezas_por_semana_tipico
+  from (
+    select h.symbol,
+           count(p.idx) / greatest(1, extract(epoch from now() - h.created_at)
+                                      / 604800.0) as por_semana
+    from habits h
+    left join pieces p on p.user_id = h.user_id and p.habit_id = h.id
+    where h.created_at < now() - interval '4 weeks'
+    group by h.user_id, h.id, h.symbol, h.created_at
+  ) x
+  group by symbol having count(*) >= 30
+  order by pueblos desc;
+  ```
+- [ ] Más, con la misma idea: si escribir el *para qué* y el *quién sos* se
+  nota en cuánto dura; si las pausas evitan abandonar; en qué semana se
+  abandona más («la semana 3 es la difícil para casi todos»).
+
+Cómo llegaría al tablón, sin que nadie pueda leer lo de otro: una tarea de
+`pg_cron` en Supabase corre las consultas una vez por día y guarda sólo los
+porcentajes en una tabla chica (`insights`) que cualquiera con cuenta puede
+leer; un número no sale si tiene menos de ~50 pueblos detrás; la app baja esa
+tabla y el tablón enseña el papel cuando toca. Y decirlo en la política de
+privacidad: datos sumados y anónimos.
+
+Para ver qué marcas se eligen más (y ordenar la lista algún día) no hace falta
+llevar cuenta: `select symbol, count(*) from habits group by 1 order by 2
+desc`. Ojo con que la marca que va primera, y viene elegida, gana por estar
+ahí.
+
 ---
 
 ## 9. El consejero
