@@ -218,6 +218,41 @@ void main() {
       },
     );
 
+    test('el día también, y las piezas siguen en orden', () async {
+      // Se pusieron tres hoy; la última era de anteayer y no hubo forma de
+      // ponerla a tiempo. Corrida a anteayer salta por encima de las otras
+      // dos: el pueblo no se mueve, se reparten las fechas, y la fecha
+      // corregida queda en la primera pieza.
+      final s = await freshStore();
+      s.placePiece();
+      s.placePiece();
+      s.placePiece();
+      final hoy = [for (var i = 0; i < 3; i++) s.pieceAt(i)!.placedAt];
+      final anteayer = DateTime.fromMillisecondsSinceEpoch(
+        shiftDays(hoy[2], -2).millisecondsSinceEpoch,
+      );
+      final donde = s.setPlacedAt(2, anteayer);
+      expect(donde, 0);
+      expect(s.pieceAt(0)!.placedAt, anteayer);
+      expect(s.pieceAt(1)!.placedAt, hoy[0]);
+      expect(s.pieceAt(2)!.placedAt, hoy[1]);
+      for (var i = 0; i < 3; i++) {
+        expect(s.pieceAt(i)!.index, i, reason: 'cada una en su sitio');
+      }
+      expect(s.habit.lastPlacedAt, hoy[1]);
+      expect(s.today, 2);
+    });
+
+    test('sin saltar a nadie, se queda donde estaba', () async {
+      final s = await freshStore();
+      s.placePiece();
+      s.placePiece();
+      final w = s.pieceAt(0)!.placedAt;
+      final antes = w.subtract(const Duration(days: 3));
+      expect(s.setPlacedAt(0, antes), 0);
+      expect(s.pieceAt(0)!.placedAt, antes);
+    });
+
     test('un índice que no existe no toca nada', () async {
       final s = await freshStore();
       s.addHabit('Correr', 'carrera');

@@ -144,12 +144,42 @@ void main() {
       await tester.pump(const Duration(milliseconds: 200));
       expect(tester.takeException(), isNull);
       expect(find.text('PIEZA 1284'), findsOneWidget);
-      expect(find.text('10 sep 2026 · 08:50'), findsOneWidget);
+      // El día y la hora, cada uno por su lado: los dos se corrigen.
+      expect(find.text('10 sep 2026'), findsOneWidget);
+      expect(find.text('08:50'), findsOneWidget);
       // Y nada que escribir.
       expect(find.byType(TextField), findsNothing);
       _dentro(tester, size, 'la tarjeta');
       await tester.pumpWidget(const SizedBox());
     }
+  });
+
+  testWidgets('el día de una pieza se corrige con el calendario', (
+    tester,
+  ) async {
+    DateTime? puesto;
+    final w = DateTime.now().subtract(const Duration(hours: 1));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: StoneCard(
+              theme: UiTheme(Palette.forMoment(13)),
+              when: w,
+              number: 3,
+              onWhen: (x) => puesto = x,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(const ValueKey('stone-day')));
+    await tester.pumpAndSettle();
+    expect(find.text('QUÉ DÍA FUE'), findsOneWidget);
+    // Elegir el mismo día no cambia nada.
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    expect(puesto, isNull);
   });
 }
 

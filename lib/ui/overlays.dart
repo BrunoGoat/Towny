@@ -195,8 +195,9 @@ class Whisper extends StatelessWidget {
 
 /// Una pieza, al tocarla: cuál es y cuándo se puso.
 ///
-/// Tocar la fecha corrige la hora. Sólo la hora: el día es el día en que se
-/// puso y eso no se discute — una pieza es el día que la ganaste.
+/// Tocar el día corrige el día, y tocar la hora corrige la hora. Lo que se
+/// apunta es cuándo tocaste el botón, y a veces se pone hoy lo que se hizo
+/// ayer y no hubo forma de ponerlo a tiempo.
 class StoneCard extends StatelessWidget {
   const StoneCard({
     super.key,
@@ -210,7 +211,7 @@ class StoneCard extends StatelessWidget {
   final DateTime when;
   final int number;
 
-  /// La hora corregida.
+  /// El momento corregido, el día o la hora.
   ///
   /// La app apunta la hora en que tocaste el botón, y ésa no siempre es la
   /// hora en que hiciste la cosa: se corre a las once de la noche lo que se
@@ -242,20 +243,38 @@ class StoneCard extends StatelessWidget {
       '${dayMonthShort(w)} ${w.year} · '
       '${w.hour.toString().padLeft(2, '0')}:${w.minute.toString().padLeft(2, '0')}';
 
-  Future<void> _when(BuildContext context) async {
+  ThemeData _tema(BuildContext context) => Theme.of(context).copyWith(
+    colorScheme: (theme.dark ? ColorScheme.dark() : ColorScheme.light())
+        .copyWith(primary: theme.accent, surface: theme.panelStrong),
+  );
+
+  Future<void> _day(BuildContext context) async {
     Sensory.instance.tick();
-    final t = theme;
+    final hoy = DateTime.now();
+    final puesto = await showDatePicker(
+      context: context,
+      initialDate: when.isAfter(hoy) ? hoy : when,
+      firstDate: DateTime(2000),
+      // Hasta hoy: el futuro no se puede haber hecho todavía.
+      lastDate: hoy,
+      helpText: tr('QUÉ DÍA FUE', 'WHAT DAY WAS IT'),
+      builder: (context, child) => Theme(data: _tema(context), child: child!),
+    );
+    if (puesto == null) return;
+    if (dayStart(puesto) == dayStart(when)) return;
+    Sensory.instance.tick();
+    onWhen(
+      DateTime(puesto.year, puesto.month, puesto.day, when.hour, when.minute),
+    );
+  }
+
+  Future<void> _time(BuildContext context) async {
+    Sensory.instance.tick();
     final puesto = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(when),
       helpText: tr('A QUÉ HORA FUE', 'WHAT TIME WAS IT'),
-      builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(
-          colorScheme: (t.dark ? ColorScheme.dark() : ColorScheme.light())
-              .copyWith(primary: t.accent, surface: t.panelStrong),
-        ),
-        child: child!,
-      ),
+      builder: (context, child) => Theme(data: _tema(context), child: child!),
     );
     if (puesto == null) return;
     if (puesto.hour == when.hour && puesto.minute == when.minute) return;
@@ -282,33 +301,31 @@ class StoneCard extends StatelessWidget {
             children: [
               Text(tr('PIEZA $number', 'PIECE $number'), style: rotulo),
               const SizedBox(height: 5),
-              // La fecha lleva un relojito detrás: se puede corregir, y una
-              // fecha que se toca tiene que verse distinta de una que no.
-              GestureDetector(
-                onTap: () => _when(context),
-                behavior: HitTestBehavior.opaque,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        formatDate(when),
-                        style: TextStyle(
-                          fontSize: 13.5,
-                          height: 1.25,
-                          fontWeight: FontWeight.w500,
-                          color: t.fg,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Icon(
-                      Icons.schedule,
-                      size: 12,
-                      color: t.fg.withValues(alpha: 0.6),
-                    ),
-                  ],
-                ),
+              // El día y la hora, cada uno con su icono detrás: los dos se
+              // pueden corregir, y una fecha que se toca tiene que verse
+              // distinta de una que no.
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 14,
+                runSpacing: 4,
+                children: [
+                  _Tocable(
+                    key: const ValueKey('stone-day'),
+                    text: '${dayMonthShort(when)} ${when.year}',
+                    icon: Icons.calendar_today_outlined,
+                    theme: t,
+                    onTap: () => _day(context),
+                  ),
+                  _Tocable(
+                    key: const ValueKey('stone-time'),
+                    text:
+                        '${when.hour.toString().padLeft(2, '0')}:'
+                        '${when.minute.toString().padLeft(2, '0')}',
+                    icon: Icons.schedule,
+                    theme: t,
+                    onTap: () => _time(context),
+                  ),
+                ],
               ),
             ],
           ),
@@ -316,6 +333,47 @@ class StoneCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Un trozo de la fecha de una pieza que se puede tocar para corregirlo.
+class _Tocable extends StatelessWidget {
+  const _Tocable({
+    super.key,
+    required this.text,
+    required this.icon,
+    required this.theme,
+    required this.onTap,
+  });
+
+  final String text;
+  final IconData icon;
+  final UiTheme theme;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onTap: onTap,
+    behavior: HitTestBehavior.opaque,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 13.5,
+              height: 1.25,
+              fontWeight: FontWeight.w500,
+              color: theme.fg,
+            ),
+          ),
+          const SizedBox(width: 5),
+          Icon(icon, size: 12, color: theme.fg.withValues(alpha: 0.6)),
+        ],
+      ),
+    ),
+  );
 }
 
 /// Quién es el vecino que sigue la cámara: su nombre grande, y debajo, en

@@ -543,8 +543,10 @@ class _HomeScreenState extends State<HomeScreen>
                   when: _selected!.placedAt,
                   number: _selected!.index + 1,
                   onWhen: (when) => setState(() {
-                    store.setPlacedAt(_selected!.index, when);
-                    _selected = store.pieceAt(_selected!.index);
+                    // Si el día nuevo salta por encima de otra pieza, esta
+                    // fecha queda en otro sitio de la fila; se sigue a ella.
+                    final donde = store.setPlacedAt(_selected!.index, when);
+                    _selected = store.pieceAt(donde);
                   }),
                 ),
               ),

@@ -1104,21 +1104,43 @@ class Store extends ChangeNotifier {
     return null;
   }
 
-  /// Corrige la hora a la que se puso una pieza.
+  /// Corrige cuándo se puso una pieza: la hora o también el día.
   ///
   /// Nunca hacia el futuro: una pieza puesta dentro de tres horas rompe todo
   /// lo que mide el tiempo desde la última —el deterioro, la racha, lo que el
   /// tablón va notando— y no significa nada. Lo que pase de ahora se recorta a
   /// ahora, en silencio, porque es lo único que puede querer decir.
-  void setPlacedAt(int index, DateTime when) {
+  ///
+  /// Y las piezas siguen en orden. Todo lo que mira el tiempo da por hecho
+  /// que la última de la fila es la más reciente, y el número de una pieza es
+  /// su sitio en el pueblo, que no se mueve. Así que si la fecha nueva salta
+  /// por encima de otra pieza, lo que se reparte de nuevo son las fechas: el
+  /// pueblo queda igual y cada sitio con la suya, en orden. Devuelve el
+  /// número de la pieza que se quedó con esta fecha, para seguir mirándola.
+  int setPlacedAt(int index, DateTime when) {
     final list = habit.pieces;
-    if (index < 0 || index >= list.length) return;
+    if (index < 0 || index >= list.length) return index;
     final now = DateTime.now();
     final cuando = when.isAfter(now) ? now : when;
-    if (cuando == list[index].placedAt) return;
-    list[index] = list[index].withWhen(cuando);
+    if (cuando == list[index].placedAt) return index;
+    final fechas = [
+      for (var i = 0; i < list.length; i++)
+        i == index ? cuando : list[i].placedAt,
+    ];
+    final orden = List<int>.generate(list.length, (i) => i)
+      ..sort((a, b) {
+        final c = fechas[a].compareTo(fechas[b]);
+        // A igual fecha, la corregida va donde estaba respecto de las otras.
+        return c != 0 ? c : a.compareTo(b);
+      });
+    var donde = index;
+    for (var i = 0; i < list.length; i++) {
+      list[i] = list[i].withWhen(fechas[orden[i]]);
+      if (orden[i] == index) donde = i;
+    }
     _save();
     notifyListeners();
+    return donde;
   }
 
   Piece? pieceAt(int index) {
