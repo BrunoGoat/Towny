@@ -233,7 +233,7 @@ class _GalleryScreenState extends State<GalleryScreen>
         TownEntry(
           layout: _layout,
           name: _it.title,
-          symbol: 'torre',
+          symbol: 'tower',
           placed: _shown,
         ),
       ],

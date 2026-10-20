@@ -18,8 +18,8 @@ void main() {
     await Appearance.instance.setOnboarded();
     final store = Store();
     await store.load();
-    store.renameHabit(0, name: 'Leer', symbol: 'libro');
-    store.addHabit('Correr', 'carrera');
+    store.renameHabit(0, name: 'Leer', symbol: 'book');
+    store.addHabit('Correr', 'run');
     for (var i = 0; i < 5; i++) {
       store.placePiece();
     }

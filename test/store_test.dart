@@ -140,7 +140,7 @@ void main() {
     test('the region chosen when founding is the one it keeps', () async {
       final store = await freshStore();
       final want = TownCharacter.all[3];
-      store.addHabit('Correr', 'carrera', character: want.order);
+      store.addHabit('Correr', 'run', character: want.order);
       expect(store.habit.place.region, want.region);
 
       final again = Store();
@@ -154,8 +154,8 @@ void main() {
     test('se lleva su pueblo y deja los demás donde estaban', () async {
       final s = await freshStore();
       s.renameHabit(0, name: 'Leer');
-      s.addHabit('Correr', 'carrera');
-      s.addHabit('Nadar', 'ola');
+      s.addHabit('Correr', 'run');
+      s.addHabit('Nadar', 'wave');
       s.select(1);
       s.placePiece();
       s.removeHabit(1);
@@ -173,7 +173,7 @@ void main() {
         // el único deja el mismo hábito en blanco de un teléfono recién
         // instalado — sin nombre puesto, sin piezas y sin la marca de antes.
         final s = await freshStore();
-        s.renameHabit(0, name: 'Fumar menos', symbol: 'pipa');
+        s.renameHabit(0, name: 'Fumar menos', symbol: 'pipe');
         s.placePiece();
         s.placePiece();
         final was = s.habit.id;
@@ -182,7 +182,7 @@ void main() {
         expect(s.habit.id, isNot(was));
         expect(s.habit.total, 0);
         expect(s.habit.name, isNot('Fumar menos'));
-        expect(s.habit.symbol, isNot('pipa'));
+        expect(s.habit.symbol, isNot('pipe'));
         expect(s.active, 0);
       },
     );
@@ -224,7 +224,7 @@ void main() {
 
     test('un índice que no existe no toca nada', () async {
       final s = await freshStore();
-      s.addHabit('Correr', 'carrera');
+      s.addHabit('Correr', 'run');
       s.removeHabit(7);
       s.removeHabit(-1);
       expect(s.habits.length, 2);
@@ -653,8 +653,8 @@ void main() {
           'v': 1,
           'a': 0,
           'h': [
-            {'id': 'h1', 'n': 'Leer', 's': 'libro', 'slot': 0, 'p': []},
-            {'id': 'h2', 'n': 'Correr', 's': 'carrera', 'slot': 1, 'p': []},
+            {'id': 'h1', 'n': 'Leer', 's': 'book', 'slot': 0, 'p': []},
+            {'id': 'h2', 'n': 'Correr', 's': 'run', 'slot': 1, 'p': []},
           ],
         }),
       });
@@ -687,7 +687,7 @@ void main() {
       sostener(s.habit);
       s.placePiece();
       expect(s.canAddHabit, isTrue);
-      s.addHabit('Correr', 'carrera');
+      s.addHabit('Correr', 'run');
       // Lo que pasaba: con el segundo ganado se podían fundar los seis.
       expect(s.habits.length, 2);
       expect(s.canAddHabit, isFalse, reason: 'el tercero se abrió solo');
@@ -697,7 +697,7 @@ void main() {
       final s = await freshStore();
       sostener(s.habit);
       s.placePiece();
-      s.addHabit('Correr', 'carrera');
+      s.addHabit('Correr', 'run');
       // El primero sigue sostenido; el segundo, recién fundado, no.
       s.select(0);
       s.placePiece();
@@ -711,13 +711,13 @@ void main() {
         final s = await freshStore();
         sostener(s.habit);
         s.placePiece();
-        s.addHabit('Correr', 'carrera');
+        s.addHabit('Correr', 'run');
         sostener(s.habits[1]);
         s.select(1);
         s.placePiece();
         expect(s.allowed, 3);
         expect(s.canAddHabit, isTrue);
-        s.addHabit('Meditar', 'luna');
+        s.addHabit('Meditar', 'moon');
         expect(s.canAddHabit, isFalse, reason: 'el cuarto pide los tres');
       },
     );
@@ -726,7 +726,7 @@ void main() {
       final s = await freshStore();
       sostener(s.habit);
       s.placePiece();
-      s.addHabit('Correr', 'carrera');
+      s.addHabit('Correr', 'run');
       sostener(s.habits[1]);
       s.select(1);
       s.placePiece();

@@ -16,7 +16,7 @@ void main() {
     await Appearance.instance.setOnboarded();
     final s = Store();
     await s.load();
-    s.renameHabit(0, name: 'Leer', symbol: 'libro');
+    s.renameHabit(0, name: 'Leer', symbol: 'book');
     s.settle(0, TownCharacter.all[1].order);
     s.pledgeHabit(0, identity: 'alguien sabio');
     s.placePiece();
@@ -32,7 +32,7 @@ void main() {
     final fundo = await foundFirstTown(
       s,
       'Otra cosa',
-      'carrera',
+      'run',
       character: TownCharacter.all[4].order,
       why: 'por probar',
       identity: 'alguien distinto',
@@ -63,7 +63,7 @@ void main() {
     final fundo = await foundFirstTown(
       s,
       'Correr',
-      'carrera',
+      'run',
       character: TownCharacter.all[4].order,
       identity: 'alguien constante',
     );

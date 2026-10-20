@@ -51,7 +51,7 @@ Future<ByteData> frame({
         // contaba el borde de una parcela como una raya del prado.
         layout: TownLayout(0, TownCharacter.all.first, cx: 600, cz: 600),
         name: 'Prueba',
-        symbol: 'torre',
+        symbol: 'tower',
         placed: 0,
       ),
     ],

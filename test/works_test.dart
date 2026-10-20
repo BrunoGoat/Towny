@@ -16,7 +16,7 @@ Habit _habit(int n, {DateTime? desde, List<int>? saltos}) {
   final h = Habit(
     id: 'h1758000000000001',
     name: 'Leer',
-    symbol: 'rueda',
+    symbol: 'wheel',
     slot: 0,
     createdAt: start,
     character: TownCharacter.all.first.order,
@@ -112,7 +112,7 @@ void main() {
       final h = Habit(
         id: 'h1758000000000002',
         name: 'Correr',
-        symbol: 'rueda',
+        symbol: 'wheel',
         slot: 0,
         createdAt: start,
         character: TownCharacter.all.first.order,

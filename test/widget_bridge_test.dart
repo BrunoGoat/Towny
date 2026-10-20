@@ -9,7 +9,7 @@ import 'package:towny/model/piece.dart';
 Habit _habit({
   required String id,
   String name = 'Leer',
-  String symbol = 'libro',
+  String symbol = 'book',
   List<DateTime> cuando = const [],
   int slot = 0,
 }) => Habit(
@@ -60,8 +60,8 @@ void main() {
       final espia = espiar();
       final hoy = DateTime(2026, 5, 4, 20);
       await WidgetBridge.fresh().publish([
-        _habit(id: 'a', name: 'Leer', symbol: 'libro'),
-        _habit(id: 'b', name: 'Correr', symbol: 'carrera', slot: 1),
+        _habit(id: 'a', name: 'Leer', symbol: 'book'),
+        _habit(id: 'b', name: 'Correr', symbol: 'run', slot: 1),
       ], now: hoy);
 
       expect(espia.dichas.single.method, 'publish');

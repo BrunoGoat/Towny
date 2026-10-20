@@ -26,7 +26,7 @@ List<String> _solares(TownCharacter c, int seed, {int hasta = 6}) {
 Habit _habit(String id, int slot) => Habit(
   id: id,
   name: 'Prueba',
-  symbol: 'rueda',
+  symbol: 'wheel',
   slot: slot,
   createdAt: DateTime(2026, 3, 1),
   character: TownCharacter.all.first.order,

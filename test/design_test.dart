@@ -96,7 +96,7 @@ void main() {
           size,
           TownSignOverlay(
             name: _largo,
-            symbol: 'sol',
+            symbol: 'sun',
             theme: UiTheme(Palette.forMoment(13)),
             life: vida,
           ),
@@ -255,7 +255,7 @@ void _pieles() {
         floor: 'abrir el libro y leer una página',
       );
       store.setCadence(store.habit, 3);
-      store.addHabit('Correr', 'carrera');
+      store.addHabit('Correr', 'run');
       store.active = 0;
       for (final size in _pantallas) {
         tester.view.physicalSize = size;
@@ -615,7 +615,7 @@ void _abajo() {
       SharedPreferences.setMockInitialValues({});
       final store = Store();
       await store.load();
-      store.renameHabit(0, name: 'Leer', symbol: 'libro');
+      store.renameHabit(0, name: 'Leer', symbol: 'book');
       store.debugFill(40);
 
       for (final hora in [11.0, 17.6, 21.0]) {

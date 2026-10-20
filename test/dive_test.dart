@@ -25,7 +25,7 @@ void main() {
     await Appearance.instance.setMusicOff(true);
     final store = Store();
     await store.load();
-    store.addHabit('Correr', 'carrera');
+    store.addHabit('Correr', 'run');
     store.select(activo);
     store.justFounded = false;
     final tocados = <int>[];

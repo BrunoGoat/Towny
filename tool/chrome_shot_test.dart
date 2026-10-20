@@ -68,9 +68,9 @@ void main() {
       await Appearance.instance.setFakeHourAt(hora);
       final store = Store();
       await store.load();
-      store.renameHabit(0, name: 'Leer', symbol: 'libro');
+      store.renameHabit(0, name: 'Leer', symbol: 'book');
       store.debugFill(38, endedDaysAgo: dejado);
-      store.addHabit('Correr', 'carrera');
+      store.addHabit('Correr', 'run');
       store.debugFill(12, endedDaysAgo: dejado);
       store.select(0);
 

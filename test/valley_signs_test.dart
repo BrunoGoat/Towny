@@ -27,13 +27,13 @@ void main() {
       TownEntry(
         layout: uno,
         name: 'Saltar la cuerda',
-        symbol: 'libro',
+        symbol: 'book',
         placed: 8,
       ),
       TownEntry(
         layout: dos,
         name: 'Aprontar las cosas',
-        symbol: 'libro',
+        symbol: 'book',
         placed: 0,
       ),
     ];

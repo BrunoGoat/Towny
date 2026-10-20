@@ -108,7 +108,7 @@ void _retrato(Canvas canvas, Doing d, double t, double giro, Size size) {
         TownEntry(
           layout: TownLayout.showcase(TownCharacter.all.first, placed: 0),
           name: d.name,
-          symbol: 'torre',
+          symbol: 'tower',
           placed: 0,
         ),
       ],

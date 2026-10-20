@@ -172,7 +172,7 @@ void main() {
     Future<Store> valle() async {
       final store = Store();
       await store.load();
-      store.renameHabit(0, name: 'Reading', symbol: 'libro');
+      store.renameHabit(0, name: 'Reading', symbol: 'book');
       for (var i = 0; i < 30; i++) {
         store.lay(store.habit, DateTime.now().subtract(Duration(days: 40 - i)));
       }

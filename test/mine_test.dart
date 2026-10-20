@@ -10,7 +10,7 @@ import 'package:towny/ui/paper_ink.dart';
 Habit _habit({List<String>? notes, int pieces = 40}) => Habit(
   id: 'h',
   name: 'Prueba',
-  symbol: 'rueda',
+  symbol: 'wheel',
   slot: 0,
   createdAt: DateTime(2026, 3, 1),
   character: TownCharacter.all.first.order,

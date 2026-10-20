@@ -54,7 +54,7 @@ void main() {
     expect(mando.founding, 1.0);
 
     // Lo que hace el «+» al terminar la pantalla de fundar.
-    store.addHabit('Correr', 'carrera');
+    store.addHabit('Correr', 'run');
     store.justFounded = true;
     await tester.pump(const Duration(milliseconds: 16));
     await tester.pump(const Duration(milliseconds: 16));

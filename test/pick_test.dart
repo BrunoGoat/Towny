@@ -42,7 +42,7 @@ const Size _screen = Size(420, 860);
       TownEntry(
         layout: layout,
         name: 'Prueba',
-        symbol: 'torre',
+        symbol: 'tower',
         placed: placed,
       ),
     ],

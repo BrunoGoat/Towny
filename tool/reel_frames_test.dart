@@ -51,7 +51,7 @@ void main() {
           Habit(
             id: 'h$k',
             name: ['Leer', 'Correr', 'Dibujar'][k % 3],
-            symbol: ['libro', 'carrera', 'rueda'][k % 3],
+            symbol: ['book', 'run', 'wheel'][k % 3],
             slot: k,
             createdAt: DateTime(2026, 1, 5),
             character: TownCharacter.all[k % TownCharacter.all.length].order,
@@ -127,7 +127,7 @@ void main() {
     final h = Habit(
       id: 'h0',
       name: 'Leer',
-      symbol: 'libro',
+      symbol: 'book',
       slot: 0,
       createdAt: DateTime(2026, 1, 5),
       character: TownCharacter.all.first.order,
@@ -202,7 +202,7 @@ void main() {
         Habit(
           id: 'h0',
           name: 'Leer',
-          symbol: 'libro',
+          symbol: 'book',
           slot: 0,
           createdAt: DateTime(2026, 1, 5),
           character: TownCharacter.all.first.order,

@@ -10,7 +10,7 @@ import 'package:towny/model/piece.dart';
 Habit _habit(int n) => Habit(
   id: 'h',
   name: 'Prueba',
-  symbol: 'rueda',
+  symbol: 'wheel',
   slot: 0,
   createdAt: DateTime(2026, 3, 1),
   character: TownCharacter.all.first.order,

@@ -7,7 +7,7 @@ Future<Store> _store() async {
   SharedPreferences.setMockInitialValues({});
   final s = Store();
   await s.load();
-  s.renameHabit(0, name: 'Leer', symbol: 'libro');
+  s.renameHabit(0, name: 'Leer', symbol: 'book');
   return s;
 }
 
@@ -47,7 +47,7 @@ void main() {
       'la pieza es del hábito que dice, no del que se está mirando',
       () async {
         final s = await _store();
-        s.addHabit('Correr', 'carrera');
+        s.addHabit('Correr', 'run');
         final leer = s.habits[0], correr = s.habits[1];
         s.select(0);
         expect(s.habit.id, leer.id);
@@ -139,7 +139,7 @@ void main() {
       final buzon = _inbox([(3, 'un-pueblo-borrado', DateTime.now())]);
       expect(s.applyArrivals(Arrival.parseAll(buzon)), isEmpty);
       // Pero queda entregada: si no, el buzón la reenvía para siempre.
-      s.addHabit('Correr', 'carrera');
+      s.addHabit('Correr', 'run');
       expect(s.applyArrivals(Arrival.parseAll(buzon)), isEmpty);
     });
 
@@ -201,7 +201,7 @@ void main() {
       'varias, en el orden en que pasaron y no en el que llegaron',
       () async {
         final s = await _store();
-        s.addHabit('Correr', 'carrera');
+        s.addHabit('Correr', 'run');
         final leer = s.habits[0], correr = s.habits[1];
         final t0 = DateTime.now().subtract(const Duration(hours: 9));
         final puestas = s.applyArrivals(

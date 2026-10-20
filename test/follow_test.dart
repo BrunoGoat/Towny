@@ -32,7 +32,7 @@ void main() {
       final h = Habit(
         id: 'h0',
         name: 'Leer',
-        symbol: 'libro',
+        symbol: 'book',
         slot: 0,
         createdAt: DateTime(2026, 1, 1),
       );
@@ -251,7 +251,7 @@ void main() {
             effects: EffectSystem(),
             budget: 60000,
             towns: [
-              TownEntry(layout: l, name: 'Leer', symbol: 'libro', placed: 160),
+              TownEntry(layout: l, name: 'Leer', symbol: 'book', placed: 160),
             ],
             active: 0,
             labels: false,

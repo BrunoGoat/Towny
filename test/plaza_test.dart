@@ -72,7 +72,7 @@ Future<ui.Image> _frame({
       effects: EffectSystem(),
       budget: 40000,
       towns: [
-        TownEntry(layout: layout, name: 'Pueblo', symbol: 'rueda', placed: 40),
+        TownEntry(layout: layout, name: 'Pueblo', symbol: 'wheel', placed: 40),
       ],
       active: 0,
       labels: false,
@@ -104,7 +104,7 @@ Future<ui.Image> _plaza(Season season) async {
       effects: EffectSystem(),
       budget: 40000,
       towns: [
-        TownEntry(layout: layout, name: 'Pueblo', symbol: 'rueda', placed: 0),
+        TownEntry(layout: layout, name: 'Pueblo', symbol: 'wheel', placed: 0),
       ],
       active: 0,
       labels: false,
@@ -553,7 +553,7 @@ void main() {
             TownEntry(
               layout: layout,
               name: 'Pueblo',
-              symbol: 'rueda',
+              symbol: 'wheel',
               placed: 40,
             ),
           ],
@@ -647,7 +647,7 @@ void main() {
             TownEntry(
               layout: layout,
               name: 'Pueblo',
-              symbol: 'rueda',
+              symbol: 'wheel',
               placed: 40,
             ),
           ],

@@ -12,7 +12,7 @@ Habit _habit(String name, Iterable<DateTime> when) {
   return Habit(
     id: name,
     name: name,
-    symbol: 'libro',
+    symbol: 'book',
     slot: 0,
     createdAt: list.isEmpty ? _now : list.first,
     pieces: [

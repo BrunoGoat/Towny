@@ -23,7 +23,7 @@ Habit _habit({
   return Habit(
     id: 'h1',
     name: 'Correr',
-    symbol: 'carrera',
+    symbol: 'run',
     slot: 0,
     createdAt: DateTime(today.year, today.month, today.day - age),
     perWeek: perWeek?.toDouble(),

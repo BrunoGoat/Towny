@@ -160,7 +160,7 @@ void main() {
       await Appearance.instance.load();
       final store = Store();
       await store.load();
-      store.renameHabit(0, name: 'Entrenar', symbol: 'pesa');
+      store.renameHabit(0, name: 'Entrenar', symbol: 'weight');
       store.debugFill(120);
       final h = store.habit;
       store.pinNote(h, 'Una nota mía');
@@ -260,7 +260,7 @@ void main() {
           await Appearance.instance.load();
           final store = Store();
           await store.load();
-          store.renameHabit(0, name: 'Entrenar', symbol: 'pesa');
+          store.renameHabit(0, name: 'Entrenar', symbol: 'weight');
           store.debugFill(120);
           final h = store.habit;
           store.pinNote(h, 'Una nota mía');
@@ -349,7 +349,7 @@ void main() {
       await Appearance.instance.load();
       final store = Store();
       await store.load();
-      store.renameHabit(0, name: 'Entrenar', symbol: 'pesa');
+      store.renameHabit(0, name: 'Entrenar', symbol: 'weight');
       store.debugFill(120);
 
       const size = Size(390, 844);
@@ -447,7 +447,7 @@ void main() {
       await Appearance.instance.load();
       final store = Store();
       await store.load();
-      store.renameHabit(0, name: 'Entrenar', symbol: 'pesa');
+      store.renameHabit(0, name: 'Entrenar', symbol: 'weight');
       store.debugFill(120);
       const size = Size(390, 844);
       tester.view.physicalSize = size * 2;
@@ -498,7 +498,7 @@ void main() {
       final h = Habit(
         id: 'h',
         name: 'Leer',
-        symbol: 'libro',
+        symbol: 'book',
         slot: 0,
         createdAt: DateTime(2026, 1, 1),
       );
@@ -524,7 +524,7 @@ void main() {
       await Appearance.instance.load();
       final store = Store();
       await store.load();
-      store.renameHabit(0, name: 'Entrenar', symbol: 'pesa');
+      store.renameHabit(0, name: 'Entrenar', symbol: 'weight');
       store.debugFill(120);
       final h = store.habit;
       store.pinNote(h, 'Una nota mía');

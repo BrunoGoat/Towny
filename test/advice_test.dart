@@ -9,7 +9,7 @@ Habit _pueblo(String id, DateTime fundado, {List<DateTime> dias = const []}) =>
     Habit(
       id: id,
       name: id,
-      symbol: 'libro',
+      symbol: 'book',
       slot: 0,
       createdAt: fundado,
       pieces: [

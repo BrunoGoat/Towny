@@ -52,7 +52,7 @@ void main() {
       effects: EffectSystem(),
       budget: 60000,
       towns: [
-        TownEntry(layout: l, name: 'Leer', symbol: 'libro', placed: piezas),
+        TownEntry(layout: l, name: 'Leer', symbol: 'book', placed: piezas),
       ],
       active: 0,
       labels: false,

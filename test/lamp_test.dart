@@ -40,7 +40,7 @@ Future<ui.Image> _frame() async {
     hourOfDay: 19.8,
     effects: EffectSystem(),
     budget: 60000,
-    towns: [TownEntry(layout: l, name: 'Leer', symbol: 'libro', placed: 38)],
+    towns: [TownEntry(layout: l, name: 'Leer', symbol: 'book', placed: 38)],
     active: 0,
     labels: false,
   );

@@ -31,7 +31,7 @@ void main() {
 
     final store = Store();
     await store.load();
-    store.renameHabit(0, name: 'Entrenar', symbol: 'pesa');
+    store.renameHabit(0, name: 'Entrenar', symbol: 'weight');
     store.debugFill(180);
     store.pinNote(store.habit, 'Zapatillas al lado de la puerta');
     store.pinNote(store.habit, 'El martes, con Ana');

@@ -63,7 +63,7 @@ void main() {
     final store = Store();
     await store.load();
     for (var i = 1; i < Habit.maxSlots; i++) {
-      store.addHabit('Hábito $i', 'libro');
+      store.addHabit('Hábito $i', 'book');
     }
     await Appearance.instance.setFreeHabits(true);
     addTearDown(() => Appearance.instance.setFreeHabits(false));

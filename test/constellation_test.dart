@@ -25,7 +25,7 @@ TownScene _noche(OrbitCamera cam, Constellation c, double rotulo) {
     hourOfDay: 23,
     effects: EffectSystem(),
     budget: 60000,
-    towns: [TownEntry(layout: l, name: 'Leer', symbol: 'libro', placed: 6)],
+    towns: [TownEntry(layout: l, name: 'Leer', symbol: 'book', placed: 6)],
     active: 0,
     labels: false,
     folk: false,
@@ -184,7 +184,7 @@ void main() {
         effects: EffectSystem(),
         budget: 60000,
         towns: [
-          TownEntry(layout: l, name: 'Leer', symbol: 'libro', placed: 120),
+          TownEntry(layout: l, name: 'Leer', symbol: 'book', placed: 120),
         ],
         active: 0,
         labels: false,

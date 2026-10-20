@@ -302,7 +302,7 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
         // regions, and the later ones would be out of reach.
         store.addHabit(
           'Leer',
-          'libro',
+          'book',
           character: TownCharacter.all[region % TownCharacter.all.length].order,
         );
         store.removeHabit(0);
@@ -323,7 +323,7 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
         'Nadar',
         'Pintar',
       ];
-      const symbols = ['libro', 'carrera', 'pesa', 'laud', 'ola', 'pluma'];
+      const symbols = ['book', 'run', 'weight', 'lute', 'wave', 'quill'];
       final parts = valley.split(',');
       for (var i = 0; i < parts.length && i < names.length; i++) {
         final bits = parts[i].split(':');

@@ -1003,7 +1003,7 @@ Future<void> _pinta(
       effects: EffectSystem(),
       budget: 40000,
       towns: [
-        TownEntry(layout: layout, name: 'Pueblo', symbol: 'rueda', placed: 40),
+        TownEntry(layout: layout, name: 'Pueblo', symbol: 'wheel', placed: 40),
       ],
       active: 0,
       labels: false,

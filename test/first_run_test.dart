@@ -88,7 +88,9 @@ void main() {
       // Los botones son sólo el sello; el nombre se revela al tocarlo.
       expect(find.text('Sierra'), findsNothing);
       await tester.tap(
-        find.byWidgetPredicate((w) => w is HabitSigil && w.symbol == 'montana'),
+        find.byWidgetPredicate(
+          (w) => w is HabitSigil && w.symbol == 'mountain',
+        ),
       );
       await _asentar(tester);
       expect(find.text('Sierra'), findsOneWidget);
@@ -357,9 +359,7 @@ void main() {
         _marco(
           FirstRun(
             next: NextTown(
-              towns: [
-                (name: 'Leer', symbol: 'libro', pieces: 34, character: 0),
-              ],
+              towns: [(name: 'Leer', symbol: 'book', pieces: 34, character: 0)],
             ),
             onCancel: () => cancelado = true,
             onDone: (_, _, {required character, why, identity}) {},
@@ -378,7 +378,7 @@ void main() {
       towns: [
         (
           name: 'Leer',
-          symbol: 'libro',
+          symbol: 'book',
           pieces: 34,
           character: TownCharacter.all.first.order,
         ),

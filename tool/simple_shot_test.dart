@@ -36,7 +36,7 @@ void main() {
             seed: 7 + k,
           ),
           name: 'Pueblo $k',
-          symbol: 'libro',
+          symbol: 'book',
           placed: piezas,
         ),
     ];

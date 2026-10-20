@@ -39,11 +39,11 @@ String shapeOf(Habit h) => [
 /// Un valle con algo dentro, para tener qué perder.
 Future<Store> lived() async {
   final s = await freshStore();
-  s.renameHabit(0, name: 'Leer', symbol: 'libro');
+  s.renameHabit(0, name: 'Leer', symbol: 'book');
   for (var i = 0; i < 5; i++) {
     s.placePiece();
   }
-  s.addHabit('Correr', 'carrera', character: TownCharacter.all[3].order);
+  s.addHabit('Correr', 'run', character: TownCharacter.all[3].order);
   for (var i = 0; i < 3; i++) {
     s.placePiece();
   }
@@ -125,7 +125,7 @@ void main() {
     test('más pueblos de los que el valle tiene sitio', () async {
       final many = List.generate(
         Habit.maxSlots + 1,
-        (i) => '{"id":"h$i","n":"P$i","s":"libro","slot":$i,"c":0,"p":[]}',
+        (i) => '{"id":"h$i","n":"P$i","s":"book","slot":$i,"c":0,"p":[]}',
       ).join(',');
       await refuses('{"h":[$many]}', because: 'un pueblo más de los que caben');
     });
@@ -134,7 +134,7 @@ void main() {
   group('una copia con huecos sigue entrando', () {
     test('piezas con huecos en la numeración se renumeran', () async {
       const gappy =
-          '{"h":[{"id":"h0","n":"Leer","s":"libro","slot":0,"c":0,'
+          '{"h":[{"id":"h0","n":"Leer","s":"book","slot":0,"c":0,'
           '"p":[{"i":9,"t":3},{"i":0,"t":1},{"i":4,"t":2}]}]}';
       final s = await freshStore();
       expect(s.importSave(gappy), isNull);
@@ -152,7 +152,7 @@ void main() {
       s.placePiece();
       expect(s.describe(), '1 pieza en 1 pueblo');
       s.placePiece();
-      s.addHabit('Correr', 'carrera');
+      s.addHabit('Correr', 'run');
       expect(s.describe(), '2 piezas en 2 pueblos');
     });
   });

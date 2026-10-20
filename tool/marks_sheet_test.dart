@@ -100,7 +100,7 @@ void _retrato(Canvas canvas, Landmark l, TownCharacter ch, double giro) {
     effects: EffectSystem(),
     budget: 22000,
     towns: [
-      TownEntry(layout: layout, name: l.name, symbol: 'torre', placed: l.cost),
+      TownEntry(layout: layout, name: l.name, symbol: 'tower', placed: l.cost),
     ],
     active: 0,
     labels: false,

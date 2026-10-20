@@ -41,7 +41,7 @@ Habit _habit({
   return Habit(
     id: id,
     name: 'Leer',
-    symbol: 'libro',
+    symbol: 'book',
     slot: slot,
     createdAt: _inicio,
     character: TownCharacter.all.first.order,

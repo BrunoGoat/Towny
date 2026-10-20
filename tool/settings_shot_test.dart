@@ -105,7 +105,7 @@ void main() {
                             TownEntry(
                               layout: pueblo,
                               name: 'Leer',
-                              symbol: 'libro',
+                              symbol: 'book',
                               placed: 160,
                             ),
                           ],

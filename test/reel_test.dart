@@ -12,7 +12,7 @@ final _inicio = DateTime(2026, 3, 1, 9);
 Habit _habit(List<double> dias, {int slot = 0, String id = 'h'}) => Habit(
   id: id,
   name: 'Prueba',
-  symbol: 'rueda',
+  symbol: 'wheel',
   slot: slot,
   createdAt: _inicio,
   character: TownCharacter.all.first.order,

@@ -35,7 +35,7 @@ Habit _habit({
   final h = Habit(
     id: id,
     name: name,
-    symbol: 'rueda',
+    symbol: 'wheel',
     slot: 0,
     createdAt: start,
     character: TownCharacter.all.first.order,
@@ -195,7 +195,7 @@ void main() {
       final h = Habit(
         id: 'h1758000000000003',
         name: 'Leer',
-        symbol: 'rueda',
+        symbol: 'wheel',
         slot: 0,
         createdAt: desde,
         character: TownCharacter.all.first.order,

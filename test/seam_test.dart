@@ -52,7 +52,7 @@ void main() {
         hourOfDay: hora,
         effects: EffectSystem(),
         budget: 60000,
-        towns: [TownEntry(layout: l, name: 'L', symbol: 'libro', placed: 3)],
+        towns: [TownEntry(layout: l, name: 'L', symbol: 'book', placed: 3)],
         active: 0,
         labels: false,
         folk: false,

@@ -90,7 +90,7 @@ Habit _entrenar(DateTime today) {
   return Habit(
     id: 'demo-entrenar',
     name: tr('Entrenar', 'Training'),
-    symbol: 'pesa',
+    symbol: 'weight',
     slot: 0,
     createdAt: today.subtract(const Duration(days: _span)),
     pieces: pieces,
@@ -172,7 +172,7 @@ Habit _leer(DateTime today, Habit entrenar) {
   return Habit(
     id: 'demo-leer',
     name: tr('Leer', 'Reading'),
-    symbol: 'libro',
+    symbol: 'book',
     slot: 1,
     createdAt: today.subtract(const Duration(days: _span - 62)),
     pieces: pieces,

@@ -167,11 +167,11 @@ class _Pen {
 
 final Map<String, void Function(_Pen)> _glyphs = {
   // ------------------------------------------------------------- lo de todos
-  'libro': (p) {
+  'book': (p) {
     p.shape([8, 30, 47, 21, 47, 74, 8, 68]);
     p.shape([53, 21, 92, 30, 92, 68, 53, 74]);
   },
-  'carrera': (p) {
+  'run': (p) {
     p.dot(63, 17, 10);
     p.poly(9, [57, 32, 46, 54]);
     p.poly(8, [46, 54, 63, 65, 59, 85]);
@@ -179,14 +179,14 @@ final Map<String, void Function(_Pen)> _glyphs = {
     p.poly(7, [53, 37, 73, 41, 82, 29]);
     p.poly(7, [53, 40, 34, 37, 26, 49]);
   },
-  'pesa': (p) {
+  'weight': (p) {
     p.poly(10, [30, 50, 70, 50]);
     p.rect(12, 30, 25, 70, round: 3);
     p.rect(75, 30, 88, 70, round: 3);
     p.rect(26, 38, 34, 62, round: 2);
     p.rect(66, 38, 74, 62, round: 2);
   },
-  'loto': (p) {
+  'lotus': (p) {
     p.dot(50, 17, 10);
     p.fill((q) {
       q.moveTo(38, 33);
@@ -205,7 +205,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
       q.close();
     });
   },
-  'pipa': (p) {
+  'pipe': (p) {
     p.fill((q) {
       q.moveTo(25, 46);
       q.lineTo(51, 46);
@@ -218,7 +218,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
     p.ring(50, 50, 42, 7);
     p.poly(7, [21, 79, 79, 21]);
   },
-  'gota': (p) {
+  'drop': (p) {
     p.fill((q) {
       q.moveTo(50, 8);
       q.cubicTo(68, 32, 84, 48, 84, 62);
@@ -228,7 +228,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
       q.close();
     });
   },
-  'hoja': (p) {
+  'leaf': (p) {
     p.fill(
       (q) {
         q.moveTo(88, 8);
@@ -247,7 +247,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
     );
     p.poly(5, [23, 72, 10, 91]);
   },
-  'luna': (p) {
+  'moon': (p) {
     p.fill(
       (q) =>
           q.addOval(Rect.fromCircle(center: const Offset(48, 50), radius: 40)),
@@ -257,7 +257,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
   },
 
   // ----------------------------------------------------------------- oficios
-  'pluma': (p) {
+  'quill': (p) {
     p.fill((q) {
       q.moveTo(94, 3);
       q.cubicTo(62, 14, 44, 34, 38, 58);
@@ -267,7 +267,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
     p.poly(6, [43, 54, 19, 87]);
     p.shape([8, 98, 22, 81, 27, 87]);
   },
-  'laud': (p) {
+  'lute': (p) {
     // A big body and a short neck: at the size a town sign draws it, a small
     // body on a long stalk reads as a spoon.
     p.fill(
@@ -290,7 +290,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
     p.poly(3, [38, 19, 62, 19]);
     p.poly(3, [38, 30, 62, 30]);
   },
-  'pincel': (p) {
+  'brush': (p) {
     p.poly(9, [50, 8, 50, 50]);
     p.rect(36, 49, 64, 62, round: 2);
     p.fill((q) {
@@ -301,7 +301,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
       q.close();
     });
   },
-  'escoba': (p) {
+  'broom': (p) {
     p.poly(8, [66, 6, 49, 52]);
     p.shape(
       [30, 50, 66, 50, 76, 92, 20, 92],
@@ -313,7 +313,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
       ],
     );
   },
-  'frasco': (p) {
+  'flask': (p) {
     p.rect(29, 5, 71, 18, round: 3);
     p.rect(41, 18, 59, 29);
     p.fill(
@@ -326,7 +326,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
       },
     );
   },
-  'diente': (p) {
+  'tooth': (p) {
     p.fill((q) {
       q.moveTo(22, 36);
       q.cubicTo(22, 10, 78, 10, 78, 36);
@@ -339,7 +339,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
       q.close();
     });
   },
-  'campana': (p) {
+  'bell': (p) {
     p.rect(44, 6, 56, 20, round: 3);
     p.fill((q) {
       q.moveTo(23, 74);
@@ -353,7 +353,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
   },
 
   // ------------------------------------------------------------------ afuera
-  'brote': (p) {
+  'sprout': (p) {
     p.poly(6, [50, 94, 50, 42]);
     p.fill((q) {
       q.moveTo(50, 58);
@@ -368,7 +368,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
       q.close();
     });
   },
-  'rueda': (p) {
+  'wheel': (p) {
     p.ring(50, 50, 36, 6);
     for (var i = 0; i < 6; i++) {
       final a = i * math.pi / 3;
@@ -381,7 +381,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
     }
     p.dot(50, 50, 9);
   },
-  'ola': (p) {
+  'wave': (p) {
     for (var i = 0; i < 3; i++) {
       final y = 30.0 + i * 21;
       p.line(7, (q) {
@@ -391,26 +391,26 @@ final Map<String, void Function(_Pen)> _glyphs = {
       });
     }
   },
-  'huella': (p) {
+  'footprint': (p) {
     p.oval(28, 50, 72, 89);
     p.oval(12, 34, 31, 59);
     p.oval(32, 15, 48, 42);
     p.oval(52, 15, 68, 42);
     p.oval(69, 34, 88, 59);
   },
-  'olla': (p) {
+  'pot': (p) {
     p.rect(15, 27, 85, 38, round: 4);
     p.dot(50, 21, 7);
     p.shape([24, 38, 76, 38, 70, 89, 30, 89]);
     p.rect(5, 44, 18, 59, round: 4);
     p.rect(82, 44, 95, 59, round: 4);
   },
-  'diana': (p) {
+  'target': (p) {
     p.ring(50, 50, 38, 7);
     p.ring(50, 50, 23, 6);
     p.dot(50, 50, 10);
   },
-  'sol': (p) {
+  'sun': (p) {
     p.dot(50, 50, 21);
     for (var i = 0; i < 8; i++) {
       final a = i * math.pi / 4;
@@ -422,7 +422,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
       ]);
     }
   },
-  'estrella': (p) {
+  'star': (p) {
     final pts = <double>[];
     for (var i = 0; i < 10; i++) {
       final a = -math.pi / 2 + i * math.pi / 5;
@@ -433,7 +433,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
     }
     p.shape(pts);
   },
-  'corazon': (p) {
+  'heart': (p) {
     p.fill((q) {
       q.moveTo(50, 91);
       q.cubicTo(10, 62, 6, 33, 24, 21);
@@ -443,16 +443,16 @@ final Map<String, void Function(_Pen)> _glyphs = {
       q.close();
     });
   },
-  'montana': (p) {
+  'mountain': (p) {
     p.shape([4, 87, 34, 24, 51, 53, 63, 35, 96, 87]);
   },
-  'arbol': (p) {
+  'tree': (p) {
     p.rect(45, 52, 55, 93);
     p.dot(50, 35, 25);
     p.dot(28, 49, 16);
     p.dot(72, 49, 16);
   },
-  'espiga': (p) {
+  'wheat': (p) {
     p.poly(5, [50, 94, 50, 24]);
     p.oval(41, 8, 59, 34);
     for (var i = 0; i < 3; i++) {
@@ -463,7 +463,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
   },
 
   // ------------------------------------------------------------- de la villa
-  'copa': (p) {
+  'goblet': (p) {
     p.fill((q) {
       q.moveTo(25, 16);
       q.lineTo(75, 16);
@@ -474,7 +474,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
     p.poly(7, [50, 56, 50, 80]);
     p.rect(28, 80, 72, 91, round: 4);
   },
-  'bolsa': (p) {
+  'purse': (p) {
     p.line(5, (q) {
       q.moveTo(31, 30);
       q.cubicTo(36, 13, 64, 13, 69, 30);
@@ -492,24 +492,24 @@ final Map<String, void Function(_Pen)> _glyphs = {
     p.dot(32, 33, 9);
     p.dot(68, 33, 9);
   },
-  'llave': (p) {
+  'key': (p) {
     p.ring(28, 50, 17, 8);
     p.poly(8, [45, 50, 88, 50]);
     p.poly(7, [80, 50, 80, 69]);
     p.poly(7, [67, 50, 67, 64]);
   },
-  'yunque': (p) {
+  'anvil': (p) {
     p.shape([16, 30, 62, 30, 90, 43, 62, 51, 16, 51]);
     p.shape([34, 51, 62, 51, 58, 66, 38, 66]);
     p.shape([24, 66, 72, 66, 79, 87, 17, 87]);
   },
-  'espada': (p) {
+  'sword': (p) {
     p.shape([50, 2, 61, 18, 61, 54, 39, 54, 39, 18]);
     p.rect(26, 54, 74, 65, round: 3);
     p.rect(43, 65, 57, 84);
     p.dot(50, 89, 8);
   },
-  'escudo': (p) {
+  'shield': (p) {
     p.fill(
       (q) {
         q.moveTo(13, 13);
@@ -525,12 +525,12 @@ final Map<String, void Function(_Pen)> _glyphs = {
       },
     );
   },
-  'reloj': (p) {
+  'clock': (p) {
     p.shape([24, 14, 76, 14, 54, 50, 76, 86, 24, 86, 46, 50]);
     p.rect(15, 5, 85, 14, round: 3);
     p.rect(15, 86, 85, 95, round: 3);
   },
-  'farol': (p) {
+  'lantern': (p) {
     p.line(4, (q) {
       q.addArc(
         Rect.fromCircle(center: const Offset(50, 18), radius: 9),
@@ -552,7 +552,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
     );
     p.rect(21, 78, 79, 89, round: 3);
   },
-  'torre': (p) {
+  'tower': (p) {
     p.shape([
       21, 34, 21, 19, 31, 19, 31, 27, 37, 27, 37, 19, 47, 19, 47, 27, //
       53, 27, 53, 19, 63, 19, 63, 27, 69, 27, 69, 19, 79, 19, 79, 34,
@@ -567,7 +567,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
     );
   },
   // ------------------------------------------------------------- la mesa
-  'taza': (p) {
+  'cup': (p) {
     p.line(
       6,
       (q) => q.addArc(
@@ -587,7 +587,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
       q.cubicTo(63, 20, 51, 14, 58, 4);
     });
   },
-  'jarra': (p) {
+  'mug': (p) {
     // Tachada como la pipa, y con el mismo aro: lo que se deja también es un
     // hábito. Al principio la raya iba sobre la jarra a pelo y se la comía —
     // el aro es lo que dice «esto no» sin borrar el dibujo de debajo.
@@ -604,7 +604,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
     p.ring(50, 50, 42, 7);
     p.poly(7, [21, 79, 79, 21]);
   },
-  'pan': (p) {
+  'bread': (p) {
     p.fill(
       (q) {
         q.moveTo(9, 74);
@@ -625,7 +625,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
     );
     p.rect(6, 74, 94, 85, round: 4);
   },
-  'plato': (p) {
+  'plate': (p) {
     p.ring(41, 57, 30, 7);
     p.dot(41, 57, 8);
     p.oval(74, 10, 96, 40);
@@ -633,7 +633,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
   },
 
   // ---------------------------------------------------------- los animales
-  'pez': (p) {
+  'fish': (p) {
     p.fill(
       (q) {
         q.moveTo(22, 50);
@@ -646,7 +646,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
     );
     p.shape([26, 50, 6, 26, 6, 74]);
   },
-  'ave': (p) {
+  'bird': (p) {
     p.fill(
       (q) {
         q.moveTo(31, 29);
@@ -665,7 +665,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
       q.cubicTo(65, 59, 73, 68, 75, 80);
     });
   },
-  'gato': (p) {
+  'cat': (p) {
     p.fill(
       (q) {
         q.moveTo(19, 45);
@@ -688,7 +688,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
       },
     );
   },
-  'lobo': (p) {
+  'wolf': (p) {
     // Hocico largo y ojos rasgados: es lo que lo separa del gato, que es
     // redondo y con los ojos abiertos.
     p.fill(
@@ -722,7 +722,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
       },
     );
   },
-  'herradura': (p) {
+  'horseshoe': (p) {
     p.line(
       16,
       (q) => q.addArc(
@@ -736,7 +736,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
   },
 
   // ------------------------------------------------------------- el cuerpo
-  'arco': (p) {
+  'bow': (p) {
     // En diagonal, como el emoji: el arco abajo a la izquierda y la flecha
     // saliendo hacia arriba a la derecha. De frente y con la flecha cruzada
     // no se sabía qué era el arco y qué la flecha.
@@ -754,7 +754,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
     p.poly(4, [35, 65, 23, 69]);
     p.poly(4, [35, 65, 31, 81]);
   },
-  'puno': (p) {
+  'fist': (p) {
     p.fill(
       (q) => q.addRRect(
         RRect.fromLTRBR(23, 32, 82, 82, const Radius.circular(14)),
@@ -769,7 +769,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
     );
     p.rect(31, 82, 74, 93, round: 4);
   },
-  'manos': (p) {
+  'hands': (p) {
     p.fill((q) {
       q.moveTo(6, 44);
       q.cubicTo(10, 74, 28, 90, 50, 90);
@@ -786,7 +786,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
     p.poly(9, [72, 44, 67, 21]);
     p.poly(9, [60, 44, 54, 24]);
   },
-  'ojo': (p) {
+  'eye': (p) {
     p.fill(
       (q) {
         q.moveTo(5, 50);
@@ -801,7 +801,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
   },
 
   // -------------------------------------------------------------- el oficio
-  'dialogo': (p) {
+  'speech': (p) {
     p.fill(
       (q) {
         q.addRRect(RRect.fromLTRBR(7, 15, 93, 67, const Radius.circular(13)));
@@ -819,7 +819,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
       },
     );
   },
-  'pergamino': (p) {
+  'scroll': (p) {
     p.fill(
       (q) => q.addRect(const Rect.fromLTRB(22, 22, 78, 78)),
       cut: (q) {
@@ -831,7 +831,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
     p.poly(10, [15, 22, 85, 22]);
     p.poly(10, [15, 78, 85, 78]);
   },
-  'abaco': (p) {
+  'abacus': (p) {
     p.rect(9, 12, 91, 21, round: 3);
     p.rect(9, 79, 91, 88, round: 3);
     p.rect(9, 12, 18, 88, round: 3);
@@ -853,7 +853,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
       p.dot(b[0].toDouble(), b[1].toDouble(), 7);
     }
   },
-  'engranaje': (p) {
+  'gear': (p) {
     // Los dientes van de uno en uno, cada cual su propia figura: dos figuras
     // superpuestas se pintan dos veces del mismo color, que no se nota, y en
     // cambio una sola figura que se cruza a sí misma deja agujeros.
@@ -874,7 +874,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
           q.addOval(Rect.fromCircle(center: const Offset(50, 50), radius: 14)),
     );
   },
-  'martillo': (p) {
+  'hammer': (p) {
     p.shape([46, 11, 88, 11, 88, 39, 46, 39]);
     // La uña, que es lo que lo separa de un mazo: dos puntas y el hueco de
     // sacar el clavo entre ellas.
@@ -884,7 +884,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
     ]);
     p.rect(58, 39, 75, 95, round: 6);
   },
-  'hacha': (p) {
+  'axe': (p) {
     // El astil atraviesa la cabeza y sigue mucho más abajo, y la cabeza es
     // una cuña de cantos rectos.
     p.rect(40, 6, 54, 96, round: 6);
@@ -896,14 +896,14 @@ final Map<String, void Function(_Pen)> _glyphs = {
       q.close();
     });
   },
-  'brujula': (p) {
+  'compass': (p) {
     p.ring(50, 50, 42, 7);
     p.shape([
       50, 16, 62, 38, 84, 50, 62, 62, //
       50, 84, 38, 62, 16, 50, 38, 38,
     ]);
   },
-  'hoz': (p) {
+  'sickle': (p) {
     p.fill((q) {
       q.moveTo(94, 6);
       q.cubicTo(94, 58, 60, 86, 14, 86);
@@ -913,7 +913,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
     });
     p.rect(4, 62, 31, 97, round: 8);
   },
-  'balanza': (p) {
+  'scales': (p) {
     p.poly(7, [50, 16, 50, 84]);
     p.poly(7, [17, 30, 83, 30]);
     p.dot(50, 15, 8);
@@ -925,7 +925,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
   },
 
   // -------------------------------------------------------------- y la casa
-  'vela': (p) {
+  'candle': (p) {
     p.fill((q) {
       q.moveTo(50, 5);
       q.cubicTo(62, 19, 66, 27, 66, 34);
@@ -938,7 +938,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
     p.rect(35, 57, 65, 86, round: 3);
     p.rect(23, 86, 77, 95, round: 3);
   },
-  'casa': (p) {
+  'house': (p) {
     p.shape([50, 7, 96, 45, 4, 45]);
     p.rect(70, 15, 80, 32);
     p.shape(
@@ -950,7 +950,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
       ],
     );
   },
-  'puerta': (p) {
+  'door': (p) {
     // Sin la junta central ni el travesaño: las dos cosas juntas hacían una
     // cruz en medio de la puerta y era lo primero que se veía.
     p.fill(
@@ -967,7 +967,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
       },
     );
   },
-  'puente': (p) {
+  'bridge': (p) {
     p.rect(5, 36, 95, 49, round: 3);
     p.fill(
       (q) => q.addRect(const Rect.fromLTRB(14, 49, 86, 88)),
@@ -979,7 +979,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
     p.poly(5, [89, 36, 89, 21]);
     p.poly(5, [11, 22, 89, 22]);
   },
-  'barco': (p) {
+  'boat': (p) {
     p.shape([48, 5, 48, 60, 12, 60]);
     p.shape([56, 20, 56, 60, 89, 60]);
     p.poly(5, [50, 6, 50, 64]);
@@ -991,14 +991,14 @@ final Map<String, void Function(_Pen)> _glyphs = {
       q.close();
     });
   },
-  'escalera': (p) {
+  'ladder': (p) {
     p.rect(19, 5, 30, 95, round: 4);
     p.rect(70, 5, 81, 95, round: 4);
     for (var i = 0; i < 5; i++) {
       p.rect(25, 17.0 + i * 17, 75, 25.0 + i * 17, round: 2);
     }
   },
-  'bota': (p) {
+  'boot': (p) {
     p.fill((q) {
       q.moveTo(24, 7);
       q.lineTo(56, 7);
@@ -1010,13 +1010,13 @@ final Map<String, void Function(_Pen)> _glyphs = {
     });
     p.rect(17, 83, 96, 94, round: 3);
   },
-  'cama': (p) {
+  'bed': (p) {
     p.rect(5, 25, 17, 89, round: 4);
     p.rect(83, 49, 95, 89, round: 4);
     p.rect(5, 55, 95, 72, round: 4);
     p.rect(22, 42, 48, 57, round: 5);
   },
-  'balde': (p) {
+  'bucket': (p) {
     p.line(
       6,
       (q) => q.addArc(
@@ -1028,7 +1028,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
     p.rect(13, 30, 87, 43, round: 3);
     p.shape([18, 43, 82, 43, 70, 93, 30, 93]);
   },
-  'espejo': (p) {
+  'mirror': (p) {
     p.ring(50, 34, 27, 8);
     p.line(6, (q) {
       q.moveTo(39, 23);
@@ -1037,13 +1037,13 @@ final Map<String, void Function(_Pen)> _glyphs = {
     p.rect(43, 60, 57, 92, round: 5);
     p.rect(35, 86, 65, 97, round: 4);
   },
-  'peine': (p) {
+  'comb': (p) {
     p.rect(9, 18, 91, 38, round: 4);
     for (var i = 0; i < 9; i++) {
       p.rect(12.0 + i * 9, 38, 18.0 + i * 9, 84, round: 2);
     }
   },
-  'nube': (p) {
+  'cloud': (p) {
     p.fill((q) {
       q.addOval(Rect.fromCircle(center: const Offset(33, 46), radius: 20));
       q.addOval(Rect.fromCircle(center: const Offset(57, 38), radius: 26));
@@ -1051,7 +1051,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
       q.addRRect(RRect.fromLTRBR(13, 50, 95, 74, const Radius.circular(12)));
     });
   },
-  'copo': (p) {
+  'snowflake': (p) {
     for (var i = 0; i < 3; i++) {
       final a = i * math.pi / 3;
       final ca = math.cos(a), sa = math.sin(a);
@@ -1068,7 +1068,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
       }
     }
   },
-  'dado': (p) {
+  'die': (p) {
     p.fill(
       (q) => q.addRRect(
         RRect.fromLTRBR(11, 11, 89, 89, const Radius.circular(15)),

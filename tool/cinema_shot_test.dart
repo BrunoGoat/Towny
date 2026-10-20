@@ -68,7 +68,7 @@ void main() {
               TownEntry(
                 layout: l,
                 name: 'Leer',
-                symbol: 'libro',
+                symbol: 'book',
                 placed: piezas,
               ),
             ],

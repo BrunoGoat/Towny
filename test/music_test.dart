@@ -565,7 +565,7 @@ void main() {
 Habit _unPuebloLargo() => Habit(
   id: 'h',
   name: 'Prueba',
-  symbol: 'rueda',
+  symbol: 'wheel',
   slot: 0,
   createdAt: DateTime(2026, 1, 1),
   character: 0,

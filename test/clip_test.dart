@@ -45,7 +45,7 @@ TownScene _valle(
     final ch = TownCharacter.all[k % TownCharacter.all.length];
     final l = TownLayout(piezas, ch, cx: k * 124.0, cz: 0, seed: 7 + k);
     towns.add(
-      TownEntry(layout: l, name: 'Pueblo $k', symbol: 'libro', placed: piezas),
+      TownEntry(layout: l, name: 'Pueblo $k', symbol: 'book', placed: piezas),
     );
   }
   cam.wallLength = towns.first.layout.radius * 2;
@@ -82,7 +82,7 @@ TownScene _obra(Landmark mark, {double yaw = 0.7, double dist = 14}) {
       TownEntry(
         layout: layout,
         name: mark.name,
-        symbol: 'libro',
+        symbol: 'book',
         placed: mark.cost,
       ),
     ],
@@ -130,7 +130,7 @@ TownScene _cayendo(Landmark mark, double t) {
       TownEntry(
         layout: layout,
         name: mark.name,
-        symbol: 'libro',
+        symbol: 'book',
         placed: mark.cost,
       ),
     ],

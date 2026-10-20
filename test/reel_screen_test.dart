@@ -22,7 +22,7 @@ Habit _habit(
 }) => Habit(
   id: id,
   name: 'Leer',
-  symbol: 'libro',
+  symbol: 'book',
   slot: slot,
   createdAt: DateTime(2026, 3, 1),
   character: TownCharacter.all[slot % TownCharacter.all.length].order,

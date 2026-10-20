@@ -164,7 +164,7 @@ void _retrato(Canvas canvas, Landmark l) {
         TownEntry(
           layout: layout,
           name: l.name,
-          symbol: 'torre',
+          symbol: 'tower',
           placed: m.count,
         ),
       ],

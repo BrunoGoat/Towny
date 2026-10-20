@@ -217,7 +217,7 @@ void main() {
         final nubeDe = CloudSync(s, nube, 'u', pause: Duration.zero);
         final hecho = await nubeDe.connect();
         expect(hecho.action, SyncAction.none);
-        s.renameHabit(0, name: 'Leer', symbol: 'libro');
+        s.renameHabit(0, name: 'Leer', symbol: 'book');
         s.placePiece();
         await Future<void>.delayed(const Duration(milliseconds: 50));
         expect(nube.piezas('u'), 1);

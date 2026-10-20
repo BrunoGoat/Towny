@@ -40,7 +40,7 @@ Future<ui.Image> _frame(double t) async {
       effects: EffectSystem(),
       budget: 40000,
       towns: [
-        TownEntry(layout: layout, name: 'Pueblo', symbol: 'rueda', placed: 0),
+        TownEntry(layout: layout, name: 'Pueblo', symbol: 'wheel', placed: 0),
       ],
       active: 0,
       labels: false,

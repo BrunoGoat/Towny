@@ -418,7 +418,7 @@ void main() {
       await Appearance.instance.load();
       final store = Store();
       await store.load();
-      store.renameHabit(0, name: 'Leer', symbol: 'libro');
+      store.renameHabit(0, name: 'Leer', symbol: 'book');
       store.debugFill(120);
       // **Y con el pueblo justo en una pregunta de verdad.** Si no, contestar
       // en la tarjeta de mentira no escribiría nada ni siendo de verdad

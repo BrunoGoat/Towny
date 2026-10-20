@@ -807,7 +807,7 @@ void main() {
     Habit nuevo(String nombre) => Habit(
       id: nombre,
       name: nombre,
-      symbol: 'libro',
+      symbol: 'book',
       slot: 0,
       createdAt: DateTime(2026, 3, 12),
     );
@@ -833,7 +833,7 @@ void main() {
       final segundo = Habit(
         id: 'Correr',
         name: 'Correr',
-        symbol: 'pesa',
+        symbol: 'weight',
         slot: 1,
         createdAt: DateTime(2026, 4, 1),
       );

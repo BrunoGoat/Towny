@@ -7,6 +7,16 @@ import 'package:towny/engine/sigils.dart';
 
 void main() {
   group('the marks a habit wears', () {
+    test('los ids de antes, en castellano, siguen dando la misma marca', () {
+      // Un valle guardado antes del cambio trae «libro» y «bota»: tiene que
+      // seguir viendo el libro y la bota, no una marca sorteada.
+      expect(resolveHabitSymbol('libro'), 'book');
+      expect(resolveHabitSymbol('bota'), 'boot');
+      expect(resolveHabitSymbol('brote'), 'sprout');
+      expect(habitSymbols, everyElement(matches(RegExp(r'^[a-z_]+$'))));
+      expect(habitSymbols, isNot(contains('libro')));
+    });
+
     test('there are enough of them, and none is a font character', () {
       expect(habitSymbols.length, greaterThanOrEqualTo(60));
       expect(habitSymbols.toSet().length, habitSymbols.length);
@@ -30,20 +40,20 @@ void main() {
       // hay algo que encontrar. Éstos son los que faltaban y por los que se
       // preguntó: la mesa, los animales, el oficio, la casa y el aseo.
       for (final s in [
-        'taza', 'jarra', 'pan', 'plato', 'pez', 'ave', 'gato', 'lobo',
-        'herradura',
-        'arco', 'puno', 'manos', 'ojo', 'dialogo', 'pergamino', 'abaco',
-        'engranaje',
-        'martillo',
-        'puerta',
-        'brujula',
-        'hoz',
-        'balanza',
-        'vela',
-        'casa',
-        'puente',
-        'barco', 'escalera', 'bota', 'cama', 'balde', 'espejo', 'peine',
-        'dado', 'puerta', 'nube', 'copo', //
+        'cup', 'mug', 'bread', 'plate', 'fish', 'bird', 'cat', 'wolf',
+        'horseshoe',
+        'bow', 'fist', 'hands', 'eye', 'speech', 'scroll', 'abacus',
+        'gear',
+        'hammer',
+        'door',
+        'compass',
+        'sickle',
+        'scales',
+        'candle',
+        'house',
+        'bridge',
+        'boat', 'ladder', 'boot', 'bed', 'bucket', 'mirror', 'comb',
+        'die', 'door', 'cloud', 'snowflake', //
       ]) {
         expect(habitSymbols, contains(s), reason: s);
         expect(HabitSigils.marksFor(s), isNotEmpty, reason: s);

@@ -46,7 +46,7 @@ Future<ui.Image> _frame(double giro) async {
         TownEntry(
           layout: layout,
           name: 'Molino',
-          symbol: 'torre',
+          symbol: 'tower',
           placed: l.cost,
         ),
       ],

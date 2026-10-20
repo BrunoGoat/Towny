@@ -41,7 +41,7 @@ TownScene _escena(
     final ch = TownCharacter.all[k % TownCharacter.all.length];
     final l = TownLayout(piezas, ch, cx: k * 124.0, cz: 0, seed: 7 + k);
     towns.add(
-      TownEntry(layout: l, name: 'Pueblo $k', symbol: 'libro', placed: piezas),
+      TownEntry(layout: l, name: 'Pueblo $k', symbol: 'book', placed: piezas),
     );
   }
   cam.wallLength = towns.first.layout.radius * 2;

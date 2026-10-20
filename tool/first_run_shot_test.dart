@@ -86,7 +86,7 @@ void main() {
                         towns: [
                           (
                             name: 'Leer',
-                            symbol: 'libro',
+                            symbol: 'book',
                             pieces: 34,
                             character: 0x1A7C,
                           ),
@@ -191,7 +191,7 @@ void main() {
     await Appearance.instance.setFakeHourAt(11);
     final store = Store();
     await store.load();
-    store.renameHabit(0, name: 'Leer', symbol: 'libro');
+    store.renameHabit(0, name: 'Leer', symbol: 'book');
     store.justFounded = true;
     tester.view.physicalSize = const Size(390 * 3, 844 * 3);
     tester.view.devicePixelRatio = 3;

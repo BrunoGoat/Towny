@@ -152,7 +152,7 @@ class TownCharacter {
       regionEs: 'Ribera',
       suitsEs:
           'Para hábitos de calma y descanso: dormir mejor, meditar, tomar agua.',
-      symbol: 'gota',
+      symbol: 'drop',
       blurbEs: 'Casas anchas y bajas, encaladas de blanco, casi todas de teja.',
       storey: 0.9,
       spread: 1.2,
@@ -171,7 +171,7 @@ class TownCharacter {
       regionEs: 'Sierra',
       suitsEs:
           'Para los hábitos que cuestan esfuerzo físico y de verdad son difíciles: entrenar, correr, madrugar.',
-      symbol: 'montana',
+      symbol: 'mountain',
       blurbEs: 'Alta y apretada, de piedra gris y pizarra, con tejados agudos.',
       storey: 1.34,
       spread: 0.8,
@@ -193,7 +193,7 @@ class TownCharacter {
       regionEs: 'Marca',
       suitsEs:
           'Para dejar algo y aguantar: no fumar, menos pantalla, menos azúcar.',
-      symbol: 'escudo',
+      symbol: 'shield',
       blurbEs: 'De frontera: muros gruesos, ocre, pocas ventanas y todo junto.',
       storey: 1.06,
       spread: 1.0,
@@ -214,7 +214,7 @@ class TownCharacter {
       regionEs: 'Valle',
       suitsEs:
           'Para hábitos ligados a la naturaleza y la salud: comer sano, cocinar, caminar al aire libre.',
-      symbol: 'espiga',
+      symbol: 'wheat',
       blurbEs: 'Madera y paja, solares grandes y huerta en casi todas.',
       storey: 0.96,
       spread: 1.1,
@@ -235,7 +235,7 @@ class TownCharacter {
       regionEs: 'Costa',
       suitsEs:
           'Para el orden y la claridad: ordenar la casa, las cuentas, planificar la semana.',
-      symbol: 'ola',
+      symbol: 'wave',
       blurbEs: 'Cal y añil, tejados casi planos y mucho aire entre las casas.',
       storey: 0.8,
       spread: 1.1,
@@ -257,7 +257,7 @@ class TownCharacter {
       regionEs: 'Robledal',
       suitsEs:
           'Para lo que crece despacio, como un roble: leer, estudiar, escribir, aprender un instrumento.',
-      symbol: 'arbol',
+      symbol: 'tree',
       blurbEs: 'Madera oscura bajo los robles, tejados de paja muy inclinados.',
       storey: 1.16,
       spread: 0.88,
@@ -284,7 +284,7 @@ class TownCharacter {
       suitsEs:
           'Para los vínculos: llamar a la familia, escribirle a un amigo, '
           'salir más, tener paciencia con los demás.',
-      symbol: 'brujula',
+      symbol: 'compass',
       blurbEs:
           'Pueblo de camino: posadas, plazas anchas y casas de colores '
           'distintos.',
@@ -316,7 +316,7 @@ class TownCharacter {
       suitsEs:
           'Para lo creativo: dibujar, tocar música, escribir, fotografiar, lo '
           'que se hace con las manos.',
-      symbol: 'olla',
+      symbol: 'pot',
       blurbEs: 'De artesanos: talleres y hornos, barro cocido y tejados rojos.',
       storey: 0.94,
       spread: 1.05,

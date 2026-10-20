@@ -39,7 +39,7 @@ TownScene _escena(TownLayout l, double hora, {required bool cine}) => TownScene(
   hourOfDay: hora,
   effects: EffectSystem(),
   budget: 60000,
-  towns: [TownEntry(layout: l, name: 'Leer', symbol: 'libro', placed: 6)],
+  towns: [TownEntry(layout: l, name: 'Leer', symbol: 'book', placed: 6)],
   active: 0,
   labels: false,
   folk: false,
