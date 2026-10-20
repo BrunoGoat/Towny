@@ -11,9 +11,15 @@ import 'package:towny/model/reel.dart';
 import 'package:towny/model/store.dart';
 import 'package:towny/ui/reel_screen.dart';
 
-/// Un hábito con [n] piezas, una al día desde el 1 de marzo, en el pueblo
-/// [slot] y empezando [desde] días después del principio del valle.
-Habit _habit(int n, {int slot = 0, String id = 'h', int desde = 0}) => Habit(
+/// Un hábito con [n] piezas, una cada [cada] días desde el 1 de marzo, en el
+/// pueblo [slot] y empezando [desde] días después del principio del valle.
+Habit _habit(
+  int n, {
+  int slot = 0,
+  String id = 'h',
+  int desde = 0,
+  int cada = 1,
+}) => Habit(
   id: id,
   name: 'Leer',
   symbol: 'libro',
@@ -24,7 +30,12 @@ Habit _habit(int n, {int slot = 0, String id = 'h', int desde = 0}) => Habit(
     for (var i = 0; i < n; i++)
       Piece(
         index: i,
-        placedAt: DateTime(2026, 3, 1, 19).add(Duration(days: desde + i)),
+        placedAt: DateTime(
+          2026,
+          3,
+          1,
+          19,
+        ).add(Duration(days: desde + i * cada)),
       ),
   ],
 );
@@ -89,30 +100,20 @@ void main() {
   // comprueba todo lo que se puede comprobar de ella, en vez de repetir la
   // misma película para mirar una cosa distinta cada vez.
 
-  testWidgets('el valle de dos pueblos: se pinta entero y la cámara nunca '
-      'se aleja, aunque salte de pueblo en pueblo', (tester) async {
+  testWidgets('el valle de dos pueblos: se puede saltar mientras corre, la '
+      'fecha avanza, la cámara nunca se aleja aunque salte de pueblo en '
+      'pueblo, y acaba enseñando lo que hay, no una pieza menos', (
+    tester,
+  ) async {
+    // Cien piezas en algo más de medio año, una cada dos días, y un segundo
+    // pueblo que empieza un mes después: cambia la estación y la cámara va de
+    // un pueblo a otro, que es todo lo que esta pantalla cuenta. Una sola
+    // película para todo y con pocas piezas, porque son sesenta segundos
+    // pintados cuadro por cuadro y cada pieza se pinta mil veces.
     final s = await _store([
-      _habit(90, id: 'a'),
-      _habit(60, id: 'b', slot: 1, desde: 30),
+      _habit(100, id: 'a', cada: 2),
+      _habit(40, id: 'b', slot: 1, desde: 30, cada: 2),
     ]);
-    await tester.pumpWidget(_marco(ReelScreen(store: s)));
-    final estado = tester.state<ReelScreenState>(find.byType(ReelScreen));
-    var antes = double.infinity;
-    for (var t = 0.0; t < 67; t += 0.05) {
-      await tester.pump(const Duration(milliseconds: 50));
-      final d = estado.camera.distance;
-      expect(d, lessThanOrEqualTo(antes + 1e-6), reason: 'se alejó en $t s');
-      antes = d;
-    }
-    expect(tester.takeException(), isNull);
-    expect(find.text('150'), findsOneWidget);
-  });
-
-  testWidgets('se puede saltar mientras corre, la fecha avanza, y acaba '
-      'enseñando lo que hay, no una pieza menos', (tester) async {
-    // Doscientas piezas en algo más de medio año: hay ráfagas, hay huecos y
-    // cambia la estación, que es la mitad de lo que esta pantalla cuenta.
-    final s = await _store([_habit(200)]);
     await tester.pumpWidget(_marco(ReelScreen(store: s)));
     await tester.pump(const Duration(seconds: 3));
     expect(find.text('SALTAR'), findsOneWidget);
@@ -121,13 +122,20 @@ void main() {
     expect(find.text('VOLVER AL VALLE'), findsNothing);
     await tester.pump(const Duration(seconds: 1));
     expect(find.text('MARZO DE 2026'), findsOneWidget);
-    await _correr(tester);
+    final estado = tester.state<ReelScreenState>(find.byType(ReelScreen));
+    var antes = estado.camera.distance;
+    for (var t = 0.0; t < 67; t += 0.05) {
+      await tester.pump(const Duration(milliseconds: 50));
+      final d = estado.camera.distance;
+      expect(d, lessThanOrEqualTo(antes + 1e-6), reason: 'se alejó en $t s');
+      antes = d;
+    }
     expect(tester.takeException(), isNull);
     // Doscientos días desde el 1 de marzo caen en septiembre.
     expect(find.text('SEPTIEMBRE DE 2026'), findsOneWidget);
     // La tarjeta del final dice la cuenta de verdad. Es el único número que
     // esta pantalla escribe y el único que no se puede equivocar.
-    expect(find.text('200'), findsOneWidget);
+    expect(find.text('140'), findsOneWidget);
     expect(find.text('piezas'), findsOneWidget);
     expect(find.text('SALTAR'), findsNothing);
     expect(find.text('VOLVER AL VALLE'), findsOneWidget);
@@ -201,10 +209,9 @@ void main() {
     // Y lo que se pidió es poder mirar **un** pueblo, no el valle encuadrado
     // sobre uno: si las piezas de los demás siguieran cayendo, la cinemática
     // contaría otra cosa de la que dice contar.
-    final s = await _store([
-      _habit(40, id: 'a'),
-      _habit(160, id: 'b', slot: 1),
-    ]);
+    // Pocas piezas: lo que se mira es la cámara, que respiraba igual con
+    // cuarenta que con mil, y cada pieza de más se pinta mil veces.
+    final s = await _store([_habit(20, id: 'a'), _habit(60, id: 'b', slot: 1)]);
     await tester.pumpWidget(_marco(ReelScreen.town(store: s, habit: 1)));
     final estado = tester.state<ReelScreenState>(find.byType(ReelScreen));
     var antes = double.infinity;
@@ -221,7 +228,7 @@ void main() {
       reason: 'la cámara se alejó $peor en mitad de la cinemática',
     );
     expect(tester.takeException(), isNull);
-    // Ciento sesenta, las de ese pueblo, y no doscientas.
-    expect(find.text('160'), findsOneWidget);
+    // Sesenta, las de ese pueblo, y no ochenta.
+    expect(find.text('60'), findsOneWidget);
   });
 }

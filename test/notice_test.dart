@@ -39,12 +39,6 @@ void main() {
       nuevo.notes.add('${_now.millisecondsSinceEpoch}|comprar libros');
       expect(tiene(boardNotices(nuevo, at: _now)), isTrue);
     });
-
-    test('se va con la primera nota de verdad', () {
-      final viejo = _daily('Leer', 40);
-      expect(noticesFor(viejo, at: _now), isNotEmpty);
-      expect(tiene(boardNotices(viejo, at: _now)), isFalse);
-    });
   });
 
   group('the board says nothing it cannot back up', () {

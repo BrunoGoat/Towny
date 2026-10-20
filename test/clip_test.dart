@@ -274,25 +274,27 @@ void main() {
       // pieza que cae se dibuja aparte, levantada; si al archivarse hubiera
       // borrado la cara de abajo de lo que tiene debajo, el agujero se vería
       // durante todo el vuelo.
+      // A medio caer: arriba del todo o casi llegando dan el mismo agujero
+      // si lo hay, y mirar los dos momentos duplicaba el test más lento del
+      // archivo.
+      const t = 0.5;
       for (final mark in landmarks) {
-        for (final t in [0.3, 0.8]) {
-          // Y que la pieza esté de verdad en el aire: una prueba que compara
-          // dos fotogramas en los que no vuela nada no prueba nada.
-          buryHidden = true;
-          forgetTowns();
-          final (conVuelo, _) = await _pinta(tester, _cayendo(mark, t));
-          final (quieta, _) = await _pinta(tester, _obra(mark));
-          expect(
-            _difieren(conVuelo, quieta),
-            greaterThan(0),
-            reason: '${mark.name}: no se movió nada',
-          );
-          await igual(
-            tester,
-            '${mark.name} a $t de caer',
-            () => _cayendo(mark, t),
-          );
-        }
+        // Y que la pieza esté de verdad en el aire: una prueba que compara
+        // dos fotogramas en los que no vuela nada no prueba nada.
+        buryHidden = true;
+        forgetTowns();
+        final (conVuelo, _) = await _pinta(tester, _cayendo(mark, t));
+        final (quieta, _) = await _pinta(tester, _obra(mark));
+        expect(
+          _difieren(conVuelo, quieta),
+          greaterThan(0),
+          reason: '${mark.name}: no se movió nada',
+        );
+        await igual(
+          tester,
+          '${mark.name} a medio caer',
+          () => _cayendo(mark, t),
+        );
       }
     });
 

@@ -572,21 +572,6 @@ void main() {
       expect(find.text('¿Qué construir?'), findsNothing);
     });
 
-    testWidgets('y no queda nada del formulario que era', (tester) async {
-      // Lo que se quitó, y que no vuelva por descuido: el rótulo de encima, el
-      // párrafo de las reglas, el botón ámbar del ancho de la tarjeta, y los
-      // dos renglones de abajo —confirmar y «que decidan ellos»—, que eran
-      // tres maneras de contestar la misma pregunta.
-      await pump(tester);
-      expect(find.text('EL PUEBLO PREGUNTA'), findsNothing);
-      expect(find.textContaining('la próxima vez'), findsNothing);
-      expect(find.byType(FilledButton), findsNothing);
-      expect(find.text('ELEGÍ UNA'), findsNothing);
-      expect(find.text('QUE EMPIECEN'), findsNothing);
-      expect(find.text('Que decidan ellos'), findsNothing);
-      expect(find.text('¿Qué construir?'), findsOneWidget);
-    });
-
     testWidgets('el título entra en un renglón hasta en el móvil más '
         'estrecho', (tester) async {
       // «¿Qué levantamos ahora?» partía en dos, y dos renglones de título

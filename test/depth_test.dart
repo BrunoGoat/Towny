@@ -458,13 +458,17 @@ void main() {
       var medidos = 0;
       var partidas = 0;
       for (final c in [TownCharacter.all[0], TownCharacter.all[3]]) {
-        for (final placed in [24, 160, 400]) {
+        // Un pueblo chico y uno mediano, y uno de cada ocho vecinos: cada uno
+        // se mira en todo lo que hace y desde doce sitios, y con eso ya sale
+        // cualquier pieza mal ordenada. Mirar a uno de cada tres tardaba un
+        // minuto y medio y no encontraba nada que éste no encuentre.
+        for (final placed in [24, 160]) {
           final layout = TownLayout(placed, c, seed: 77);
           final built = builtTown(layout, placed);
           final root = built.root!;
           final talla = folkTalla(c);
           final gente = folkOf(layout, placed);
-          for (var i = 0; i < gente.length; i += 3) {
+          for (var i = 0; i < gente.length; i += 8) {
             final who = gente[i];
             // Cada parada de su ronda, haciendo lo que hace en ella, y un
             // momento andando.

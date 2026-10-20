@@ -24,6 +24,27 @@ List<String> road(
   return out;
 }
 
+/// Todo lo que el pueblo sabe construir: las siete casas corrientes y los
+/// ciento y pico hitos, que es la misma lista que enseña el expositor.
+List<(String, Landmark?, BuildingKind?, int)> _catalogue() => [
+  for (final k in BuildingKind.values)
+    (buildingName[k]!, null, k, buildingCost[k]!),
+  for (final m in landmarks) (m.name, m, null, m.cost),
+];
+
+TownLayout _show(
+  Landmark? mark,
+  BuildingKind? kind,
+  int cost,
+  TownCharacter c,
+) => TownLayout.showcase(
+  c,
+  landmark: mark,
+  kind: kind,
+  placed: cost,
+  seed: c.order,
+);
+
 void main() {
   group('one achievement is one piece', () {
     test('n achievements produce n pieces, plus one ghost for the next', () {
@@ -360,27 +381,6 @@ void main() {
       }
     });
 
-    test('every landmark builds to exactly what it costs', () {
-      for (final l in landmarks) {
-        final m = Mason(0, 0, 12345, true);
-        l.build(m);
-        expect(
-          m.count,
-          greaterThanOrEqualTo(l.cost),
-          reason:
-              '${l.name} lays ${m.count} pieces but costs ${l.cost}, so '
-              'the last ones would be padding',
-        );
-        expect(
-          m.count,
-          lessThanOrEqualTo(l.cost + 3),
-          reason:
-              '${l.name} lays ${m.count} pieces but costs only ${l.cost}, '
-              'so it would never be finished',
-        );
-      }
-    });
-
     test('nada vuela: cada pieza se apoya en algo que tiene debajo', () {
       // **Ésta es la prueba que faltaba, y por eso había piezas volando.**
       //
@@ -596,6 +596,78 @@ void main() {
       for (final p in t.pieces) {
         expect((p.cx - cx).abs(), lessThan(40));
         expect((p.cz - cz).abs(), lessThan(40));
+      }
+    });
+  });
+
+  group('cada receta cobra lo que pone', () {
+    // Si a una receta se le quita una pieza y no se le baja el precio,
+    // `finish` rellena repitiendo la anterior en el mismo sitio — y eso es un
+    // día en que se puso una pieza y el pueblo no cambió.
+    test('cada estructura pone exactamente las piezas que cuesta', () {
+      for (final c in TownCharacter.all) {
+        for (final (name, mark, kind, cost) in _catalogue()) {
+          expect(
+            _show(mark, kind, cost, c).pieces.length,
+            cost,
+            reason: '${c.region} $name',
+          );
+        }
+      }
+    });
+
+    test('y ninguna receta rellena repitiendo la pieza anterior', () {
+      final mudas = <String>[];
+      for (final c in TownCharacter.all) {
+        for (final (name, mark, kind, cost) in _catalogue()) {
+          final ps = _show(mark, kind, cost, c).pieces;
+          for (var i = 1; i < ps.length; i++) {
+            final a = ps[i - 1], b = ps[i];
+            if (a.kind == b.kind &&
+                (a.cx - b.cx).abs() < 1e-9 &&
+                (a.cz - b.cz).abs() < 1e-9 &&
+                (a.w - b.w).abs() < 1e-9 &&
+                (a.d - b.d).abs() < 1e-9 &&
+                (a.y0 - b.y0).abs() < 1e-9 &&
+                (a.y1 - b.y1).abs() < 1e-9) {
+              mudas.add('${c.region} $name en la pieza $i');
+            }
+          }
+        }
+      }
+      expect(mudas, isEmpty, reason: 'logros que no colocan nada: $mudas');
+    });
+
+    test('ni deja ninguna receta a medio escribir', () {
+      // Al revés que lo anterior: una receta que escribe más piezas de las que
+      // cuesta se queda con el final sin construir para siempre. Se mira
+      // pidiéndole una pieza de más y comprobando que no sabe darla.
+      for (final c in TownCharacter.all) {
+        for (final (name, mark, kind, cost) in _catalogue()) {
+          expect(
+            TownLayout.showcase(
+              c,
+              landmark: mark,
+              kind: kind,
+              placed: cost + 4,
+              seed: c.order,
+            ).pieces.length,
+            cost,
+            reason: '${c.region} $name sabe poner más de lo que cobra',
+          );
+        }
+      }
+    });
+
+    test('lo escrito en la crónica sigue siendo lo que se levanta', () {
+      // El quinto edificio de un pueblo es el que decía la crónica, aunque
+      // cambie lo que cuesta cada cosa.
+      final c = TownCharacter.all.first;
+      final plan = TownPlan.of(c);
+      final cronica = plan.chronicleFor(400, const []);
+      final anda = plan.walk(cronica).take(cronica.length).toList();
+      for (var i = 0; i < cronica.length; i++) {
+        expect(anda[i].id, cronica[i]);
       }
     });
   });

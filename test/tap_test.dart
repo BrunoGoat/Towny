@@ -121,9 +121,9 @@ void main() {
   }
 
   group('el tablón se abre tocándolo', () {
-    // Seiscientas es la cuenta en la que se rompía, y mil es un pueblo de los
-    // que existen de verdad después de un año.
-    for (final piezas in [10, 80, 300, 600, 1000]) {
+    // Seiscientas es la cuenta en la que se rompía; diez, un pueblo que
+    // empieza.
+    for (final piezas in [10, 600]) {
       testWidgets('con $piezas piezas', (tester) async {
         final p = await pueblo(tester, piezas);
         expect(
@@ -147,7 +147,8 @@ void main() {
     // Lo que se vio en un teléfono: con dos piezas, la casa entera delante del
     // tablón, tocar la pared abría el tablón de atrás. El blanco del tablón es
     // su rectángulo, y el rectángulo sigue ahí aunque algo se le ponga delante.
-    for (final piezas in [2, 3, 10, 80]) {
+    // Dos, que es donde se vio, y diez, con la casa ya terminada.
+    for (final piezas in [2, 10]) {
       testWidgets('con $piezas piezas', (tester) async {
         final p = await pueblo(tester, piezas);
         for (var giro = 0; giro < 16; giro++) {

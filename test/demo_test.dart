@@ -1240,13 +1240,17 @@ void _fugaz() {
     });
 
     test('sale a su ritmo, y en el tablón más a menudo', () {
+      // Con la misma vista todo el rato y sin olvidar lo calculado: olvidarlo
+      // en cada paso recalculaba trescientas mil veces cómo esquivar los
+      // montes, y daba lo mismo.
+      final v = mirando();
       double minutosEntre(double chance) {
+        ShootingStar.forget();
         var n = 0;
         double? last;
         const hasta = 90000.0;
         for (var t = 0.0; t < hasta; t += 0.25) {
-          ShootingStar.forget();
-          final s = ShootingStar.at(t, 22, mirando(), chance: chance);
+          final s = ShootingStar.at(t, 22, v, chance: chance);
           if (s != null && (last == null || t - last > ShootingStar.flight)) {
             n++;
             last = t;
