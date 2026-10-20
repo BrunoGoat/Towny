@@ -377,6 +377,17 @@ seis— y la *Site URL* en la web.
 - [ ] Si la usa más gente: un SMTP de verdad (Resend con dominio propio) en
   vez del Gmail, que es para pocos correos.
 
+- [ ] **Más adelante: cifrar los textos personales** antes de subirlos, para
+  que ni quien administra la base sepa qué dicen: el nombre del hábito, el
+  *para qué*, lo más chico que cuenta, *quién sos*, dónde, el plan, los
+  tropiezos y las notas del tablón. Hoy ningún otro usuario los puede leer
+  (las políticas de cada tabla), pero el dueño del proyecto sí, en el Table
+  Editor. Lo difícil es la llave: tiene que estar en todos los aparatos de la
+  persona y no en el servidor, así que pide algo que sólo ella sepa (una
+  frase aparte del correo), y si la olvida esos textos no se recuperan. Las
+  consultas de lo que aprende el valle no se enteran: usan números y fechas,
+  nunca textos.
+
 **Idea, sin armar todavía: lo que aprende el valle de todos.** Lo de cada uno
 ya lo dice el tablón desde el teléfono; lo que sólo sale de la nube es lo que
 les pasa a todos juntos, devuelto como un papel verdadero. No sirve hasta que

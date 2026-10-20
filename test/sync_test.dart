@@ -100,7 +100,8 @@ void main() {
     }
     final back = fromRows(rows);
 
-    expect(jsonEncode(back.save), jsonEncode(save));
+    // Todo menos el buzón del widget, que es de cada aparato y no viaja.
+    expect(jsonEncode(back.save), jsonEncode({...save}..remove('w')));
     expect(back.prefs.toSet(), local.prefs.toSet());
     expect(back.boardSlots, local.boardSlots);
     expect(back.boardSeen, local.boardSeen);
@@ -229,5 +230,13 @@ void main() {
     expect(BoardSeen.instance.all, {
       'h0': {'y'},
     });
+  });
+
+  test('el buzón del widget no viaja: es de cada aparato', () {
+    // Cada widget numera sus piezas desde uno: el número de otro teléfono no
+    // le dice nada a éste. Al bajar, [Store.importSave] ya deja el de acá.
+    final rows = toRows(LocalSnapshot(save: _valle()..['w'] = 50), 'u');
+    expect(rows[Tables.valleys].first.containsKey('seen_arrival'), isFalse);
+    expect(fromRows(rows).save.containsKey('w'), isFalse);
   });
 }

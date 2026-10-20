@@ -213,7 +213,6 @@ ValleyRows toRows(LocalSnapshot local, String userId) {
     'earned':
         (save['u2'] as num?)?.toInt() ??
         math.max(1, ((save['h'] as List?) ?? const []).length),
-    'seen_arrival': (save['w'] as num?)?.toInt() ?? 0,
     'changed_at': local.changedAt?.toUtc().toIso8601String(),
     'settings': _traveling(local.prefs),
   });
@@ -431,8 +430,6 @@ LocalSnapshot fromRows(ValleyRows rows) {
       if ((valley['earned'] as num?)?.toInt() case final int e
           when e > list.length)
         'u2': e,
-      if (((valley['seen_arrival'] as num?)?.toInt() ?? 0) > 0)
-        'w': (valley['seen_arrival'] as num).toInt(),
       'h': list,
     },
     // Filtrado también al bajar: lo que subió una versión de antes traía el

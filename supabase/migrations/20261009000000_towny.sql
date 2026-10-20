@@ -21,11 +21,10 @@ create table if not exists public.valleys (
   -- Cuántos pueblos se ganó el valle, contando el que se ganó y todavía no
   -- se fundó.
   earned int not null default 1 check (earned >= 1),
-  -- Hasta dónde se vio el buzón del widget.
-  seen_arrival int not null default 0,
-  -- Los ajustes tal como los guarda la app: `{"clave": "valor"}`. Los de
-  -- desarrollo (la hora y la estación fingidas) no viajan: son de cada
-  -- teléfono.
+  -- Los ajustes de la persona, `{"clave": "valor"}`: el idioma, el
+  -- hemisferio, las estaciones y si ya pasó la primera vez. Los del aparato
+  -- (la calidad, el sonido, los avisos) no viajan: ver `travelingPrefs` en
+  -- `lib/sync/tables.dart`.
   settings jsonb not null default '{}'::jsonb,
   -- Cuándo cambió esto en el teléfono que lo subió, con el reloj de ese
   -- teléfono. No es `updated_at`: una pieza puesta sin conexión el lunes y
