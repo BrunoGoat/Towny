@@ -265,7 +265,12 @@ el cartel del pueblo y en el tablón.
 - Se reconoce qué es en chico.
 - Ninguno se confunde con otro.
 
-**Pendiente:** [ ] mirar los 72 juntos y quitar los que no se entiendan.
+- [x] Mirarlos juntos en hojas (`flutter test tool/symbols_sheet_test.dart`,
+  y `--dart-define=SOLO=leaf,fist` para unos pocos). Se rehicieron 16: hoja,
+  pluma, laúd, pincel, escoba, bolsa, farol, pan, puño, mano, martillo,
+  brújula, hoz, espejo, peine y nube.
+- [ ] Mirarlos **en la app** —en la barra, el cartel y el tablón— y ver si se
+  entienden ahí.
 
 ---
 
