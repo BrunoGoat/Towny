@@ -904,16 +904,16 @@ final Map<String, void Function(_Pen)> _glyphs = {
   'hammer': (p) {
     // La cabeza de bloque con el mango al medio, la boca de golpear a un lado
     // y la uña curva al otro. Con el mango corrido parecía un hacha.
-    p.rect(30, 12, 84, 32, round: 3);
-    p.rect(76, 6, 92, 38, round: 3);
+    p.rect(36, 12, 72, 31, round: 3);
+    p.rect(66, 6, 80, 37, round: 3);
     p.fill((q) {
-      q.moveTo(32, 13);
-      q.cubicTo(20, 12, 10, 18, 4, 34);
-      q.lineTo(13, 34);
-      q.cubicTo(17, 27, 23, 24, 32, 26);
+      q.moveTo(38, 13);
+      q.cubicTo(28, 12, 21, 18, 16, 33);
+      q.lineTo(24, 33);
+      q.cubicTo(27, 27, 31, 24, 38, 26);
       q.close();
     });
-    p.rect(50, 30, 64, 96, round: 6);
+    p.rect(48, 29, 61, 96, round: 6);
   },
 
   'axe': (p) {
@@ -1092,12 +1092,18 @@ final Map<String, void Function(_Pen)> _glyphs = {
   },
 
   'comb': (p) {
-    // En diagonal y con pocos dientes gruesos: derecho y con muchos finos se
-    // leía como un cepillo o un código de barras.
+    // En diagonal, el lomo redondeado arriba y todos los dientes iguales:
+    // derecho y con muchos finos se leía como un código de barras.
     p.turned(-25, (p) {
-      p.rect(6, 26, 94, 44, round: 9);
+      p.fill((q) {
+        q.moveTo(6, 46);
+        q.lineTo(6, 38);
+        q.cubicTo(6, 22, 94, 22, 94, 38);
+        q.lineTo(94, 46);
+        q.close();
+      });
       for (var i = 0; i < 8; i++) {
-        p.rect(10 + i * 10.5, 40, 16 + i * 10.5, i < 4 ? 78 : 70, round: 3);
+        p.rect(10 + i * 10.5, 42, 16 + i * 10.5, 76, round: 3);
       }
     });
   },
