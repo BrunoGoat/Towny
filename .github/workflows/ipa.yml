@@ -1,9 +1,8 @@
 name: IPA
 
 on:
-  push:
-    branches:
-      - claude/sustainable-habits-design-snpxyb
+  # Apagado por ahora: sólo se publica la web. Para volver a armar el .ipa en
+  # cada push, devolverle el bloque `push` con la rama.
   workflow_dispatch:
 
 permissions:
