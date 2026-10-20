@@ -271,25 +271,44 @@ void main() {
     });
   });
 
-  test('mover un ajuste de desarrollo no es un cambio para la nube', () async {
+  test('mover un ajuste del aparato no es un cambio para la nube', () async {
     await _telefono();
-    await Appearance.instance.setFakeHour(true);
-    await Appearance.instance.setFakeHourAt(3);
-    await Appearance.instance.setFakeSeason(true);
-    await Appearance.instance.setFakeSeasonAt(0.4);
+    final a = Appearance.instance;
+    await a.setFakeHour(true);
+    await a.setFakeHourAt(3);
+    await a.setFakeSeason(true);
+    await a.setFakeSeasonAt(0.4);
+    await a.setCinematic(!a.cinematic);
+    await a.setSoundOff(!a.soundOff);
+    await a.setMusicOff(!a.musicOff);
+    await a.setEffectsOff(!a.effectsOff);
+    await a.setHapticsOff(!a.hapticsOff);
+    await a.setNudgesOff(!a.nudgesOff);
+    await a.setMusicVolume(0.2);
+    await a.setEffectsVolume(0.3);
     expect(LocalChanges.instance.changedAt, isNull);
     // Y uno que sí viaja, sí.
-    await Appearance.instance.setCinematic(!Appearance.instance.cinematic);
+    await a.setSeasons(!a.seasons);
     expect(LocalChanges.instance.changedAt, isNotNull);
   });
 
-  test('los ajustes de desarrollo no viajan', () {
+  test('sólo viajan los ajustes de la persona, no los del aparato', () {
     final rows = toRows(
       LocalSnapshot(
         save: jsonDecode(_valle()) as Map<String, dynamic>,
         prefs: const [
           'lang=es',
+          'hemisphere=s',
+          'seasons=1',
+          'onboarded=1',
           'quality=max',
+          'sound=0',
+          'music=1',
+          'effects=1',
+          'haptics=1',
+          'nudges=1',
+          'musicVol=0.5',
+          'effectsVol=0.5',
           'fakeHour=1',
           'fakeHourAt=22.0',
           'fakeSeason=1',
@@ -299,6 +318,27 @@ void main() {
       'u',
     );
     final ajustes = rows[Tables.valleys].first['settings'] as Map;
-    expect(ajustes.keys.toSet(), {'lang', 'quality'});
+    expect(ajustes.keys.toSet(), {
+      'lang',
+      'hemisphere',
+      'seasons',
+      'onboarded',
+    });
+  });
+
+  test('lo que subió una versión de antes no pisa el aparato al bajar', () {
+    // Antes subían también la calidad y el sonido: siguen en la nube hasta
+    // la próxima subida, y al bajar no pueden ponerse en este aparato.
+    final rows = toRows(
+      LocalSnapshot(
+        save: jsonDecode(_valle()) as Map<String, dynamic>,
+        prefs: const ['lang=es'],
+      ),
+      'u',
+    );
+    (rows[Tables.valleys].first['settings'] as Map)
+      ..['quality'] = 'max'
+      ..['sound'] = '0';
+    expect(fromRows(rows).prefs, ['lang=es']);
   });
 }

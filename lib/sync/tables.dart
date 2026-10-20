@@ -172,13 +172,31 @@ String? _when(Object? ms) => ms is num
 int? _ms(Object? iso) =>
     iso is String ? DateTime.parse(iso).millisecondsSinceEpoch : null;
 
-/// Los ajustes que no viajan: son para probar la app, y cada teléfono tiene
-/// los suyos.
-const Set<String> localOnlyPrefs = {
-  'fakeHour',
-  'fakeHourAt',
-  'fakeSeason',
-  'fakeSeasonAt',
+/// Los ajustes que viajan: los que son de la persona y no del aparato.
+///
+/// Lo demás se queda en cada uno, y alguno haría daño si viajara: la calidad
+/// máxima puesta en una compu potente arrastra a un teléfono viejo, y los
+/// avisos encendidos en un teléfono que nunca dio permiso creen que avisan y
+/// no avisan. El sonido, los volúmenes y la vibración son de dónde se está
+/// —la compu callada y el teléfono con música—, y los de desarrollo, para
+/// probar. Es una lista de lo que viaja y no de lo que no, para que un ajuste
+/// nuevo se quede en el aparato mientras nadie decida otra cosa.
+///
+/// `onboarded` va porque un pueblo recién fundado, todavía sin piezas, no
+/// tiene otra manera de decir en otro aparato que la primera vez ya pasó.
+const Set<String> travelingPrefs = {
+  'lang',
+  'hemisphere',
+  'seasons',
+  'onboarded',
+};
+
+/// Sólo las filas `clave=valor` de [rows] cuya clave está en [travelingPrefs].
+Map<String, String> _traveling(Iterable<String> rows) => {
+  for (final row in rows)
+    if (row.indexOf('=') case final at when at > 0)
+      if (travelingPrefs.contains(row.substring(0, at)))
+        row.substring(0, at): row.substring(at + 1),
 };
 
 /// La copia de la app, en filas para [userId].
@@ -197,14 +215,7 @@ ValleyRows toRows(LocalSnapshot local, String userId) {
         math.max(1, ((save['h'] as List?) ?? const []).length),
     'seen_arrival': (save['w'] as num?)?.toInt() ?? 0,
     'changed_at': local.changedAt?.toUtc().toIso8601String(),
-    'settings': {
-      for (final row in local.prefs)
-        if (row.indexOf('=') > 0 &&
-            !localOnlyPrefs.contains(row.substring(0, row.indexOf('='))))
-          row.substring(0, row.indexOf('=')): row.substring(
-            row.indexOf('=') + 1,
-          ),
-    },
+    'settings': _traveling(local.prefs),
   });
 
   final habits = (save['h'] as List?) ?? const [];
@@ -424,7 +435,14 @@ LocalSnapshot fromRows(ValleyRows rows) {
         'w': (valley['seen_arrival'] as num).toInt(),
       'h': list,
     },
-    prefs: [for (final e in settings.entries) '${e.key}=${e.value}'],
+    // Filtrado también al bajar: lo que subió una versión de antes traía el
+    // sonido y la calidad, y no pueden pisar los de este aparato.
+    prefs: [
+      for (final e in _traveling([
+        for (final e in settings.entries) '${e.key}=${e.value}',
+      ]).entries)
+        '${e.key}=${e.value}',
+    ],
     boardSlots: {
       for (final r in rows[Tables.boardSlots])
         r['key'] as String: (r['slot'] as num).toInt(),

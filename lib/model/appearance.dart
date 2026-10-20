@@ -159,7 +159,7 @@ class Appearance extends ChangeNotifier {
   Future<void> setCinematic(bool v) async {
     if (v == _cinematic) return;
     _cinematic = v;
-    await _keep();
+    await _keep(travels: false);
   }
 
   Future<void> setSeasons(bool v) async {
@@ -407,8 +407,8 @@ class Appearance extends ChangeNotifier {
   /// finger comes off. Dragging a volume slider changes this sixty times a
   /// second, and sixty writes a second to the phone's own storage is a way to
   /// make a slider feel broken.
-  /// [travels] es si el ajuste viaja a la nube: los de desarrollo no (ver
-  /// `localOnlyPrefs` en `lib/sync/tables.dart`), así que moverlos no es un
+  /// [travels] es si el ajuste viaja a la nube: los del aparato no (ver
+  /// `travelingPrefs` en `lib/sync/tables.dart`), así que moverlos no es un
   /// cambio que haya que subir.
   Future<void> _keep({bool travels = true}) async {
     if (travels) LocalChanges.instance.touch();
@@ -434,25 +434,25 @@ class Appearance extends ChangeNotifier {
   Future<void> setSoundOff(bool v) async {
     if (v == _soundOff) return;
     _soundOff = v;
-    await _keep();
+    await _keep(travels: false);
   }
 
   Future<void> setMusicOff(bool v) async {
     if (v == _musicOff) return;
     _musicOff = v;
-    await _keep();
+    await _keep(travels: false);
   }
 
   Future<void> setEffectsOff(bool v) async {
     if (v == _effectsOff) return;
     _effectsOff = v;
-    await _keep();
+    await _keep(travels: false);
   }
 
   Future<void> setHapticsOff(bool v) async {
     if (v == _hapticsOff) return;
     _hapticsOff = v;
-    await _keep();
+    await _keep(travels: false);
   }
 
   Future<void> setOnboarded() async {
@@ -485,21 +485,21 @@ class Appearance extends ChangeNotifier {
   Future<void> setNudgesOff(bool v) async {
     if (v == _nudgesOff) return;
     _nudgesOff = v;
-    await _keep();
+    await _keep(travels: false);
   }
 
   Future<void> setMusicVolume(double v) async {
     final want = v.clamp(0.0, 1.0);
     if (want == _musicVolume) return;
     _musicVolume = want;
-    await _keep();
+    await _keep(travels: false);
   }
 
   Future<void> setEffectsVolume(double v) async {
     final want = v.clamp(0.0, 1.0);
     if (want == _effectsVolume) return;
     _effectsVolume = want;
-    await _keep();
+    await _keep(travels: false);
   }
 
   Future<void> setFreeHabits(bool v) async {

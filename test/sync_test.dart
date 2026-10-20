@@ -85,7 +85,7 @@ void main() {
     final save = _valle();
     final local = LocalSnapshot(
       save: save,
-      prefs: const ['sound=1', 'lang=es', 'quality=max'],
+      prefs: const ['lang=es', 'hemisphere=s', 'seasons=0', 'onboarded=1'],
       boardSlots: const {'h0/bando:12': 3, 'h1/racha': 7},
       boardSeen: const {
         'h0': {'a', 'b'},
@@ -198,7 +198,9 @@ void main() {
     await antes.load();
     expect(antes.importSave(jsonEncode(_valle())), isNull);
     await Appearance.instance.load();
-    // Lo contrario de lo de fábrica, para que se note si no viaja.
+    // Lo contrario de lo de fábrica, para que se note si no viaja. Las
+    // estaciones son de la persona y viajan; la calidad es del aparato y no.
+    await Appearance.instance.setSeasons(false);
     await Appearance.instance.setCinematic(false);
     await BoardSlots.instance.replaceAll({'h0/x': 4});
     await BoardSeen.instance.replaceAll({
@@ -214,11 +216,15 @@ void main() {
     await Appearance.instance.load();
     BoardSlots.instance.forget();
     BoardSeen.instance.forget();
+    // El de este aparato, puesto a mano: cargar unas preferencias vacías no
+    // devuelve todo a fábrica.
+    await Appearance.instance.setSeasons(true);
     expect(Appearance.instance.cinematic, isTrue);
 
     expect(await applyLocal(despues, fromRows(copia)), isNull);
     expect(despues.exportSave(), guardado);
-    expect(Appearance.instance.cinematic, isFalse);
+    expect(Appearance.instance.seasons, isFalse);
+    expect(Appearance.instance.cinematic, isTrue, reason: 'es del aparato');
     expect(BoardSlots.instance.all, {'h0/x': 4});
     expect(BoardSeen.instance.all, {
       'h0': {'y'},
