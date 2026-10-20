@@ -156,6 +156,22 @@ class _Pen {
         : p.addRect(Rect.fromLTRB(l, t, r, b)),
   );
 
+  /// Lo que dibuja [draw], girado [degrees] alrededor del centro de la caja.
+  ///
+  /// Para las cosas que se reconocen en diagonal —un laúd, un pincel, una
+  /// escoba— y que es más fácil trazar derechas.
+  void turned(double degrees, void Function(_Pen) draw) {
+    final inner = _Pen();
+    draw(inner);
+    final m = Matrix4.identity()
+      ..translateByDouble(50, 50, 0, 1)
+      ..rotateZ(degrees * math.pi / 180)
+      ..translateByDouble(-50, -50, 0, 1);
+    for (final mark in inner.marks) {
+      marks.add(_Mark(mark.path.transform(m.storage), mark.width));
+    }
+  }
+
   static void _run(Path p, List<double> xy, bool close) {
     p.moveTo(xy[0], xy[1]);
     for (var i = 2; i + 1 < xy.length; i += 2) {
@@ -229,24 +245,25 @@ final Map<String, void Function(_Pen)> _glyphs = {
     });
   },
   'leaf': (p) {
+    // Ancha y con su nervio: angosta se leía como una pluma.
     p.fill(
       (q) {
-        q.moveTo(88, 8);
-        q.cubicTo(50, 13, 26, 35, 20, 72);
-        q.cubicTo(60, 65, 84, 44, 88, 8);
+        q.moveTo(16, 84);
+        q.cubicTo(10, 42, 40, 12, 90, 10);
+        q.cubicTo(92, 58, 62, 90, 16, 84);
         q.close();
       },
       cut: (q) {
-        // The rib, corner to corner. Without it the leaf is only a lozenge.
-        q.moveTo(85, 8);
-        q.lineTo(90, 13);
-        q.lineTo(25, 74);
-        q.lineTo(20, 69);
+        q.moveTo(84, 12);
+        q.lineTo(89, 17);
+        q.lineTo(23, 82);
+        q.lineTo(18, 77);
         q.close();
       },
     );
-    p.poly(5, [23, 72, 10, 91]);
+    p.poly(6, [20, 80, 6, 94]);
   },
+
   'moon': (p) {
     p.fill(
       (q) =>
@@ -258,61 +275,81 @@ final Map<String, void Function(_Pen)> _glyphs = {
 
   // ----------------------------------------------------------------- oficios
   'quill': (p) {
+    // Gruesa para que se lea en chico, y con su renglón escrito debajo: es lo
+    // que la separa de una hoja.
     p.fill((q) {
-      q.moveTo(94, 3);
-      q.cubicTo(62, 14, 44, 34, 38, 58);
-      q.cubicTo(64, 52, 86, 30, 94, 3);
+      q.moveTo(94, 4);
+      q.cubicTo(56, 10, 36, 32, 30, 62);
+      q.cubicTo(64, 58, 88, 36, 94, 4);
       q.close();
     });
-    p.poly(6, [43, 54, 19, 87]);
-    p.shape([8, 98, 22, 81, 27, 87]);
+    p.poly(8, [36, 56, 16, 82]);
+    p.shape([6, 94, 14, 76, 24, 84]);
+    p.line(6, (q) {
+      q.moveTo(40, 92);
+      q.cubicTo(50, 82, 58, 100, 68, 90);
+      q.cubicTo(74, 84, 80, 92, 92, 88);
+    });
   },
+
   'lute': (p) {
-    // A big body and a short neck: at the size a town sign draws it, a small
-    // body on a long stalk reads as a spoon.
-    p.fill(
-      (q) {
-        q.moveTo(50, 36);
-        q.cubicTo(77, 36, 90, 56, 90, 72);
-        q.cubicTo(90, 88, 72, 98, 50, 98);
-        q.cubicTo(28, 98, 10, 88, 10, 72);
-        q.cubicTo(10, 56, 23, 36, 50, 36);
-        q.close();
-      },
-      cut: (q) {
-        q.addOval(Rect.fromCircle(center: const Offset(50, 66), radius: 9));
-      },
-    );
-    p.rect(43, 6, 57, 42);
-    p.rect(33, 0, 67, 11, round: 3);
-    // The frets, poking out either side of the neck: the one thing a bottle
-    // has never had.
-    p.poly(3, [38, 19, 62, 19]);
-    p.poly(3, [38, 30, 62, 30]);
-  },
-  'brush': (p) {
-    p.poly(9, [50, 8, 50, 50]);
-    p.rect(36, 49, 64, 62, round: 2);
-    p.fill((q) {
-      q.moveTo(37, 62);
-      q.lineTo(63, 62);
-      q.cubicTo(60, 80, 56, 93, 50, 93);
-      q.cubicTo(44, 93, 40, 80, 37, 62);
-      q.close();
+    // En diagonal y largo: derecho y corto se leía como una botella.
+    p.turned(40, (p) {
+      p.fill(
+        (q) {
+          q.moveTo(50, 46);
+          q.cubicTo(70, 46, 80, 64, 80, 78);
+          q.cubicTo(80, 92, 66, 100, 50, 100);
+          q.cubicTo(34, 100, 20, 92, 20, 78);
+          q.cubicTo(20, 64, 30, 46, 50, 46);
+          q.close();
+        },
+        cut: (q) {
+          q.addOval(Rect.fromCircle(center: const Offset(50, 74), radius: 8));
+        },
+      );
+      p.rect(45, 6, 55, 50);
+      // El clavijero, doblado hacia atrás como en un laúd de verdad.
+      p.shape([44, 8, 56, 8, 62, -4, 50, -4]);
+      p.poly(3, [41, 20, 59, 20]);
+      p.poly(3, [41, 32, 59, 32]);
     });
   },
-  'broom': (p) {
-    p.poly(8, [66, 6, 49, 52]);
-    p.shape(
-      [30, 50, 66, 50, 76, 92, 20, 92],
-      holes: [
-        [29, 63, 33, 63, 33, 92, 29, 92],
-        [41, 62, 45, 62, 45, 92, 41, 92],
-        [53, 62, 57, 62, 57, 92, 53, 92],
-        [65, 63, 69, 63, 69, 92, 65, 92],
-      ],
-    );
+
+  'brush': (p) {
+    // Fino y en diagonal, con la punta afilada: grueso y derecho no se
+    // entendía.
+    p.turned(35, (p) {
+      p.poly(7, [50, 0, 50, 54]);
+      p.rect(44, 52, 56, 64, round: 2);
+      p.fill((q) {
+        q.moveTo(44, 64);
+        q.lineTo(56, 64);
+        q.cubicTo(58, 80, 54, 92, 50, 100);
+        q.cubicTo(46, 92, 42, 80, 44, 64);
+        q.close();
+      });
+    });
   },
+
+  'broom': (p) {
+    // El palo largo, el atado y las cerdas abriéndose en abanico.
+    p.turned(-28, (p) {
+      p.poly(7, [50, 0, 50, 56]);
+      p.rect(38, 52, 62, 63, round: 3);
+      p.shape(
+        [39, 66, 61, 66, 82, 100, 18, 100],
+        holes: [
+          [44, 74, 47, 74, 38, 100, 35, 100],
+          [52, 74, 55, 74, 59, 100, 56, 100],
+          [48.5, 74, 51.5, 74, 51.5, 100, 48.5, 100],
+          [37, 80, 40, 80, 27, 100, 24, 100],
+          [60, 80, 63, 80, 76, 100, 73, 100],
+        ],
+      );
+    });
+  },
+
   'flask': (p) {
     p.rect(29, 5, 71, 18, round: 3);
     p.rect(41, 18, 59, 29);
@@ -475,23 +512,24 @@ final Map<String, void Function(_Pen)> _glyphs = {
     p.rect(28, 80, 72, 91, round: 4);
   },
   'purse': (p) {
-    p.line(5, (q) {
-      q.moveTo(31, 30);
-      q.cubicTo(36, 13, 64, 13, 69, 30);
-    });
+    // El saco atado y una pila de monedas al lado: el saco solo era un saco
+    // cualquiera.
+    p.shape([18, 8, 58, 8, 49, 25, 27, 25]);
+    p.rect(23, 24, 53, 32, round: 3);
     p.fill((q) {
-      q.moveTo(39, 31);
-      q.lineTo(61, 31);
-      q.cubicTo(79, 38, 96, 58, 93, 76);
-      q.cubicTo(90, 91, 73, 98, 50, 98);
-      q.cubicTo(27, 98, 10, 91, 7, 76);
-      q.cubicTo(4, 58, 21, 38, 39, 31);
+      q.moveTo(28, 32);
+      q.lineTo(48, 32);
+      q.cubicTo(64, 40, 72, 58, 70, 74);
+      q.cubicTo(68, 90, 56, 97, 38, 97);
+      q.cubicTo(18, 97, 4, 90, 2, 74);
+      q.cubicTo(0, 58, 10, 40, 28, 32);
       q.close();
     });
-    // The knot, one lobe either side of the pinch.
-    p.dot(32, 33, 9);
-    p.dot(68, 33, 9);
+    for (var i = 0; i < 3; i++) {
+      p.rect(76, 87 - i * 11.0, 99, 96 - i * 11.0, round: 4.5);
+    }
   },
+
   'key': (p) {
     p.ring(28, 50, 17, 8);
     p.poly(8, [45, 50, 88, 50]);
@@ -531,27 +569,20 @@ final Map<String, void Function(_Pen)> _glyphs = {
     p.rect(15, 86, 85, 95, round: 3);
   },
   'lantern': (p) {
-    p.line(4, (q) {
-      q.addArc(
-        Rect.fromCircle(center: const Offset(50, 18), radius: 9),
-        math.pi,
-        math.pi,
-      );
+    // El armazón hueco con la llama adentro: lleno era una botella.
+    p.ring(50, 9, 6, 4);
+    p.shape([24, 30, 50, 14, 76, 30]);
+    p.line(6, (q) => q.addRect(const Rect.fromLTRB(31, 33, 69, 79)));
+    p.fill((q) {
+      q.moveTo(50, 40);
+      q.cubicTo(62, 53, 62, 63, 56, 69);
+      q.cubicTo(52, 73, 48, 73, 44, 69);
+      q.cubicTo(38, 63, 38, 53, 50, 40);
+      q.close();
     });
-    p.shape([32, 18, 68, 18, 77, 30, 23, 30]);
-    p.fill(
-      (q) =>
-          q.addRRect(RRect.fromLTRBR(28, 30, 72, 78, const Radius.circular(5))),
-      cut: (q) {
-        q.moveTo(50, 39);
-        q.cubicTo(63, 52, 63, 63, 56, 69);
-        q.cubicTo(52, 73, 48, 73, 44, 69);
-        q.cubicTo(37, 63, 37, 52, 50, 39);
-        q.close();
-      },
-    );
-    p.rect(21, 78, 79, 89, round: 3);
+    p.rect(22, 82, 78, 93, round: 3);
   },
+
   'tower': (p) {
     p.shape([
       21, 34, 21, 19, 31, 19, 31, 27, 37, 27, 37, 19, 47, 19, 47, 27, //
@@ -605,26 +636,27 @@ final Map<String, void Function(_Pen)> _glyphs = {
     p.poly(7, [21, 79, 79, 21]);
   },
   'bread': (p) {
-    p.fill(
-      (q) {
-        q.moveTo(9, 74);
-        q.cubicTo(9, 38, 26, 22, 50, 22);
-        q.cubicTo(74, 22, 91, 38, 91, 74);
-        q.close();
-      },
-      cut: (q) {
-        for (var i = 0; i < 3; i++) {
-          final x = 22.0 + i * 20;
-          q.moveTo(x, 58);
-          q.lineTo(x + 13, 36);
-          q.lineTo(x + 20, 36);
-          q.lineTo(x + 7, 58);
-          q.close();
-        }
-      },
-    );
-    p.rect(6, 74, 94, 85, round: 4);
+    // Un pan largo en diagonal, con sus cortes: la hogaza de frente se leía
+    // como un casco.
+    p.turned(-30, (p) {
+      p.fill(
+        (q) => q.addRRect(
+          RRect.fromLTRBR(4, 32, 96, 70, const Radius.circular(19)),
+        ),
+        cut: (q) {
+          for (var i = 0; i < 4; i++) {
+            final x = 20.0 + i * 18;
+            q.moveTo(x, 60);
+            q.lineTo(x + 10, 40);
+            q.lineTo(x + 15, 40);
+            q.lineTo(x + 5, 60);
+            q.close();
+          }
+        },
+      );
+    });
   },
+
   'plate': (p) {
     p.ring(41, 57, 30, 7);
     p.dot(41, 57, 8);
@@ -755,37 +787,32 @@ final Map<String, void Function(_Pen)> _glyphs = {
     p.poly(4, [35, 65, 31, 81]);
   },
   'fist': (p) {
-    p.fill(
-      (q) => q.addRRect(
-        RRect.fromLTRBR(23, 32, 82, 82, const Radius.circular(14)),
-      ),
-    );
+    // Cuatro dedos separados arriba y el pulgar cruzado delante: un bloque
+    // redondeado no decía puño.
     for (var i = 0; i < 4; i++) {
-      p.dot(32 + i * 14, 34, 9);
+      p.rect(18 + i * 16.0, 16, 32 + i * 16.0, 50, round: 7);
     }
     p.fill(
-      (q) =>
-          q.addRRect(RRect.fromLTRBR(11, 46, 30, 70, const Radius.circular(9))),
+      (q) => q.addRRect(
+        RRect.fromLTRBR(18, 38, 82, 82, const Radius.circular(14)),
+      ),
+      cut: (q) =>
+          q.addRRect(RRect.fromLTRBR(6, 47, 63, 72, const Radius.circular(12))),
     );
-    p.rect(31, 82, 74, 93, round: 4);
+    p.rect(10, 51, 59, 68, round: 8);
+    p.rect(28, 86, 72, 97, round: 4);
   },
+
   'hands': (p) {
-    p.fill((q) {
-      q.moveTo(6, 44);
-      q.cubicTo(10, 74, 28, 90, 50, 90);
-      q.cubicTo(72, 90, 90, 74, 94, 44);
-      q.lineTo(79, 44);
-      q.cubicTo(75, 66, 64, 75, 50, 75);
-      q.cubicTo(36, 75, 25, 66, 21, 44);
-      q.close();
-    });
-    p.poly(9, [15, 44, 18, 25]);
-    p.poly(9, [28, 44, 33, 21]);
-    p.poly(9, [40, 44, 46, 24]);
-    p.poly(9, [85, 44, 82, 25]);
-    p.poly(9, [72, 44, 67, 21]);
-    p.poly(9, [60, 44, 54, 24]);
+    // Una mano abierta, de frente: el par de manos en cuenco no se entendía.
+    p.rect(26, 46, 78, 90, round: 16);
+    p.rect(28, 16, 39, 58, round: 5.5);
+    p.rect(41, 6, 52, 58, round: 5.5);
+    p.rect(54, 9, 65, 58, round: 5.5);
+    p.rect(67, 20, 78, 60, round: 5.5);
+    p.poly(12, [32, 74, 12, 50]);
   },
+
   'eye': (p) {
     p.fill(
       (q) {
@@ -875,15 +902,20 @@ final Map<String, void Function(_Pen)> _glyphs = {
     );
   },
   'hammer': (p) {
-    p.shape([46, 11, 88, 11, 88, 39, 46, 39]);
-    // La uña, que es lo que lo separa de un mazo: dos puntas y el hueco de
-    // sacar el clavo entre ellas.
-    p.shape([
-      46, 11, 46, 39, 27, 39, 12, 51, 3, 41, //
-      17, 30, 21, 21, 10, 11,
-    ]);
-    p.rect(58, 39, 75, 95, round: 6);
+    // La cabeza de bloque con el mango al medio, la boca de golpear a un lado
+    // y la uña curva al otro. Con el mango corrido parecía un hacha.
+    p.rect(30, 12, 84, 32, round: 3);
+    p.rect(76, 6, 92, 38, round: 3);
+    p.fill((q) {
+      q.moveTo(32, 13);
+      q.cubicTo(20, 12, 10, 18, 4, 34);
+      q.lineTo(13, 34);
+      q.cubicTo(17, 27, 23, 24, 32, 26);
+      q.close();
+    });
+    p.rect(50, 30, 64, 96, round: 6);
   },
+
   'axe': (p) {
     // El astil atraviesa la cabeza y sigue mucho más abajo, y la cabeza es
     // una cuña de cantos rectos.
@@ -897,22 +929,40 @@ final Map<String, void Function(_Pen)> _glyphs = {
     });
   },
   'compass': (p) {
-    p.ring(50, 50, 42, 7);
-    p.shape([
-      50, 16, 62, 38, 84, 50, 62, 62, //
-      50, 84, 38, 62, 16, 50, 38, 38,
-    ]);
-  },
-  'sickle': (p) {
-    p.fill((q) {
-      q.moveTo(94, 6);
-      q.cubicTo(94, 58, 60, 86, 14, 86);
-      q.lineTo(14, 66);
-      q.cubicTo(50, 66, 74, 44, 74, 6);
+    // La caja redonda con su argolla, las cuatro marcas y la aguja: media
+    // llena, la que apunta al norte, y media hueca.
+    p.ring(50, 55, 38, 6);
+    p.ring(50, 9, 6, 4);
+    p.rect(46, 12, 54, 19);
+    p.rect(48, 24, 52, 32);
+    p.rect(48, 78, 52, 86);
+    p.rect(73, 53, 81, 57);
+    p.rect(19, 53, 27, 57);
+    p.shape([72, 33, 55, 60, 45, 50]);
+    p.line(3, (q) {
+      q.moveTo(28, 77);
+      q.lineTo(45, 50);
+      q.lineTo(55, 60);
       q.close();
     });
-    p.rect(4, 62, 31, 97, round: 8);
   },
+
+  'sickle': (p) {
+    // La hoja en media luna que termina en punta, y el mango aparte, con su
+    // virola: unida al mango de un solo trazo se leía como un signo de
+    // pregunta.
+    p.fill(
+      (q) =>
+          q.addOval(Rect.fromCircle(center: const Offset(56, 40), radius: 38)),
+      cut: (q) {
+        q.addOval(Rect.fromCircle(center: const Offset(44, 52), radius: 31));
+      },
+    );
+    // La virola y el mango salen de la punta de abajo; la otra es el filo.
+    p.poly(6, [58, 88, 72, 74]);
+    p.poly(12, [72, 88, 88, 100]);
+  },
+
   'scales': (p) {
     p.poly(7, [50, 16, 50, 84]);
     p.poly(7, [17, 30, 83, 30]);
@@ -1029,28 +1079,40 @@ final Map<String, void Function(_Pen)> _glyphs = {
     p.shape([18, 43, 82, 43, 70, 93, 30, 93]);
   },
   'mirror': (p) {
-    p.ring(50, 34, 27, 8);
-    p.line(6, (q) {
-      q.moveTo(39, 23);
-      q.cubicTo(31, 29, 29, 39, 33, 47);
-    });
-    p.rect(43, 60, 57, 92, round: 5);
-    p.rect(35, 86, 65, 97, round: 4);
+    // El marco ovalado con el brillo del cristal, y el mango con su remate.
+    p.fill(
+      (q) => q.addOval(const Rect.fromLTRB(20, 2, 80, 66)),
+      cut: (q) => q.addOval(const Rect.fromLTRB(28, 10, 72, 58)),
+    );
+    p.poly(5, [38, 30, 48, 20]);
+    p.poly(5, [40, 42, 58, 24]);
+    p.rect(44, 64, 56, 72, round: 2);
+    p.shape([44, 72, 56, 72, 54, 92, 46, 92]);
+    p.dot(50, 93, 6);
   },
+
   'comb': (p) {
-    p.rect(9, 18, 91, 38, round: 4);
-    for (var i = 0; i < 9; i++) {
-      p.rect(12.0 + i * 9, 38, 18.0 + i * 9, 84, round: 2);
-    }
-  },
-  'cloud': (p) {
-    p.fill((q) {
-      q.addOval(Rect.fromCircle(center: const Offset(33, 46), radius: 20));
-      q.addOval(Rect.fromCircle(center: const Offset(57, 38), radius: 26));
-      q.addOval(Rect.fromCircle(center: const Offset(78, 52), radius: 17));
-      q.addRRect(RRect.fromLTRBR(13, 50, 95, 74, const Radius.circular(12)));
+    // En diagonal y con pocos dientes gruesos: derecho y con muchos finos se
+    // leía como un cepillo o un código de barras.
+    p.turned(-25, (p) {
+      p.rect(6, 26, 94, 44, round: 9);
+      for (var i = 0; i < 8; i++) {
+        p.rect(10 + i * 10.5, 40, 16 + i * 10.5, i < 4 ? 78 : 70, round: 3);
+      }
     });
   },
+
+  'cloud': (p) {
+    // Tres lomos bien marcados sobre una base plana: lo que se dibuja cuando
+    // se dibuja una nube.
+    p.fill((q) {
+      q.addOval(Rect.fromCircle(center: const Offset(25, 58), radius: 18));
+      q.addOval(Rect.fromCircle(center: const Offset(51, 41), radius: 26));
+      q.addOval(Rect.fromCircle(center: const Offset(77, 56), radius: 19));
+      q.addRRect(RRect.fromLTRBR(7, 56, 95, 76, const Radius.circular(10)));
+    });
+  },
+
   'snowflake': (p) {
     for (var i = 0; i < 3; i++) {
       final a = i * math.pi / 3;

@@ -52,15 +52,21 @@ void main() {
   testWidgets('las marcas en hojas', (tester) async {
     Directory(out).createSync(recursive: true);
     await tester.runAsync(_letras);
-    final hojas = (habitSymbols.length / porHoja).ceil();
+    // SOLO=leaf,quill… dibuja sólo ésas, con su número de siempre.
+    const solo = String.fromEnvironment('SOLO');
+    final todas = [
+      for (var i = 0; i < habitSymbols.length; i++)
+        if (solo.isEmpty || solo.split(',').contains(habitSymbols[i])) i,
+    ];
+    final hojas = (todas.length / porHoja).ceil();
     tester.view.physicalSize = const Size(ancho, celda * filas);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
     for (var hoja = 0; hoja < hojas; hoja++) {
       final key = GlobalKey();
-      final desde = hoja * porHoja;
-      final ids = habitSymbols.skip(desde).take(porHoja).toList();
+      final aca = todas.skip(hoja * porHoja).take(porHoja).toList();
+      final ids = [for (final i in aca) habitSymbols[i]];
       await tester.pumpWidget(
         MaterialApp(
           debugShowCheckedModeBanner: false,
@@ -90,7 +96,7 @@ void main() {
                                 Row(
                                   children: [
                                     Text(
-                                      '${desde + i + 1}',
+                                      '${aca[i] + 1}',
                                       style: const TextStyle(
                                         color: dorado,
                                         fontSize: 30,
