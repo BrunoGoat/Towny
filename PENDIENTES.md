@@ -367,8 +367,9 @@ y de cerca para cada actividad desde 24 ángulos; ninguno falla.
   `SUPABASE_ANON_KEY` del repositorio. Sin ellas no se pide cuenta.
 
 **Hecho en Supabase:** la migración, el correo por SMTP de Gmail y las
-plantillas *Magic Link* y *Confirm signup* con `{{ .Token }}` (el código de
-seis números, y no un enlace).
+plantillas *Magic Link* y *Confirm signup* con `{{ .Token }}` (el código, y
+no un enlace), *Email OTP Length* en 6 —el de fábrica es 8, y la app espera
+seis— y la *Site URL* en la web.
 
 - [ ] Entrar con Google: un cliente OAuth *Web* en Google Cloud pegado en
   Supabase → Authentication → Providers → Google, uno *Android* con la huella
