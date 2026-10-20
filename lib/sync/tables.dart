@@ -226,8 +226,13 @@ ValleyRows toRows(LocalSnapshot local, String userId) {
       'vow_place': h['vp'],
       'identity': h['qn'],
       'identity_won_at': _when(h['iw']),
+      'identity_at': _when(h['ia']),
+      'plan_if': h['pi'],
+      'plan_then': h['pt'],
+      'stumbles': [for (final s in (h['tr'] as List?) ?? const []) '$s'],
       'per_week': h['pw'],
       'cadence_asked_at': _when(h['ca']),
+      'cadence_later_at': _when(h['cl']),
       'asked_at': _when(h['k']),
       'nudged_at': _when(h['g']),
       'nudges_ignored': (h['gi'] as num?)?.toInt() ?? 0,
@@ -374,8 +379,16 @@ LocalSnapshot fromRows(ValleyRows rows) {
       if (text('vow_place') case final v?) 'vp': v,
       if (text('identity') case final v?) 'qn': v,
       if (_ms(h['identity_won_at']) case final v?) 'iw': v,
-      if (h['per_week'] case final num v) 'pw': v.toInt(),
+      if (_ms(h['identity_at']) case final v?) 'ia': v,
+      if (text('plan_if') case final v?) 'pi': v,
+      if (text('plan_then') case final v?) 'pt': v,
+      if ((h['stumbles'] as List?) case final List v when v.isNotEmpty)
+        'tr': [for (final s in v) '$s'],
+      // Entero cuando es entero, como lo escribe el teléfono: «cada dos días»
+      // son 3,5 y no 3.
+      if (h['per_week'] case final num v) 'pw': v % 1 == 0 ? v.round() : v,
       if (_ms(h['cadence_asked_at']) case final v?) 'ca': v,
+      if (_ms(h['cadence_later_at']) case final v?) 'cl': v,
       if ((rests[id] ?? const <Row>[]).isNotEmpty)
         'r': [
           for (final r in rests[id]!)

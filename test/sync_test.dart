@@ -25,14 +25,20 @@ Map<String, dynamic> _valle() {
     ..vowPlace = 'en el patio'
     ..identity = 'entrena aunque llueva'
     ..identityWonAt = DateTime(2026, 2, 1, 9, 30, 12, 345)
-    ..perWeek = 4
+    ..identityAt = DateTime(2026, 1, 15, 8)
+    ..planIf = 'llegue del trabajo'
+    ..planThen = 'me pongo las zapatillas'
+    // Cada dos días: un ritmo que no es un número entero de veces.
+    ..perWeek = 3.5
     ..cadenceAskedAt = DateTime(2026, 1, 3)
+    ..cadenceLaterAt = DateTime(2026, 1, 2)
     ..askedAt = DateTime(2026, 2, 20, 18)
     ..nudgedAt = DateTime(2026, 3, 1, 8)
     ..nudgesIgnored = 2;
   h.notes
     ..add('${DateTime(2026, 3, 10).millisecondsSinceEpoch}|Hoy | costó')
     ..add('${DateTime(2026, 3, 2).millisecondsSinceEpoch}|Primera nota');
+  h.stumbles.add('${DateTime(2026, 2, 10).millisecondsSinceEpoch}|tired');
   h.rests.add(Rest(DateTime(2025, 12, 20), DateTime(2026, 1, 4)).encode());
   h.folk
     ..add(Villager(3, 991, DateTime(2025, 6, 1, 10), 'Andrés el Herrero').line)

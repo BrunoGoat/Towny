@@ -56,8 +56,20 @@ create table if not exists public.habits (
   vow_place text,
   identity text,
   identity_won_at timestamptz,
-  per_week int check (per_week between 1 and 7),
+  -- Desde cuándo cuenta la frase de identidad: los votos se cuentan desde
+  -- ahí.
+  identity_at timestamptz,
+  -- El plan «cuando… voy a…».
+  plan_if text,
+  plan_then text,
+  -- Los tropiezos contestados, `milisegundos|causa`.
+  stumbles text[] not null default '{}',
+  -- Cuántas veces por semana: «cada dos días» son 3,5 y «cada dos semanas»,
+  -- 0,5.
+  per_week real check (per_week between 0.5 and 7),
   cadence_asked_at timestamptz,
+  -- El «ahora no» de la pregunta del ritmo.
+  cadence_later_at timestamptz,
   asked_at timestamptz,
   nudged_at timestamptz,
   nudges_ignored int not null default 0,
