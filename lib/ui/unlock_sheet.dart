@@ -160,16 +160,12 @@ class _UnlockSheetState extends State<UnlockSheet> {
                     child: Text(
                       varios
                           ? tr(
-                              'Y todos tienen que estar despiertos: uno en '
-                                  'pausa no abre la puerta.',
-                              'And all of them have to be awake: a resting '
-                                  "one doesn't open the door.",
+                              'Y todos tienen que estar despiertos.',
+                              'And all of them have to be awake.',
                             )
                           : tr(
-                              'Y tiene que estar despierto: en pausa no abre '
-                                  'la puerta.',
-                              "And it has to be awake: resting, it doesn't "
-                                  'open the door.',
+                              'Y tiene que estar despierto.',
+                              'And it has to be awake.',
                             ),
                       style: chico.copyWith(color: UnlockSheet._luna),
                     ),
