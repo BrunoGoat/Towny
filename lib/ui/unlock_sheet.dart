@@ -384,7 +384,11 @@ class _Detail extends StatelessWidget {
     final dias = inEnglish
         ? const ['M', 'T', 'W', 'T', 'F', 'S', 'S']
         : const ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
-    final rotulo = t.label.copyWith(color: velo.tenue, fontSize: 10);
+    final rotulo = t.label.copyWith(
+      color: velo.tenue,
+      fontSize: 8.5,
+      letterSpacing: 1.2,
+    );
 
     Widget celda((DateTime, DayMark)? c) {
       if (c == null) return const SizedBox.shrink();
@@ -403,7 +407,7 @@ class _Detail extends StatelessWidget {
               : esHoy
               ? Border.all(color: velo.cuerpo.withValues(alpha: 0.55))
               : null,
-          borderRadius: BorderRadius.circular(5),
+          borderRadius: BorderRadius.circular(3),
         ),
         alignment: Alignment.center,
         child: marca == DayMark.asleep
@@ -423,11 +427,10 @@ class _Detail extends StatelessWidget {
             '$n',
             style: t.title.copyWith(
               color: color ?? velo.cuerpo,
-              fontSize: 22,
+              fontSize: 16,
               height: 1.1,
             ),
           ),
-          const SizedBox(height: 2),
           Text(tr(es, en), style: rotulo),
         ],
       ),
@@ -451,7 +454,7 @@ class _Detail extends StatelessWidget {
                 ),
           style: t.bodySoft.copyWith(fontSize: 12, color: velo.suave),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 6),
         Row(
           children: [
             for (final d in dias)
@@ -460,18 +463,18 @@ class _Detail extends StatelessWidget {
               ),
           ],
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 2),
         for (var f = 0; f < celdas.length; f += 7)
           Padding(
-            padding: const EdgeInsets.only(bottom: 4),
+            padding: const EdgeInsets.only(bottom: 3),
             child: Row(
               children: [
                 for (var i = f; i < f + 7; i++)
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 1.5),
                       child: AspectRatio(
-                        aspectRatio: 2.2,
+                        aspectRatio: 3.4,
                         child: celda(celdas[i]),
                       ),
                     ),
@@ -479,7 +482,7 @@ class _Detail extends StatelessWidget {
               ],
             ),
           ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 6),
         Row(
           children: [
             numero(g.have, 'HECHOS', 'DONE'),
