@@ -186,6 +186,21 @@ String cadenceSaid(double perWeek) => switch (perWeek) {
 /// Y lo que pasa de tu ritmo en siete días seguidos no cuenta. Quien va una
 /// vez por semana y pone tres piezas un domingo lleva una semana, no tres: lo
 /// que se demuestra es que se sostiene, no que se puede apretar.
+/// Cómo quedó un día dentro de la cuenta del candado.
+enum DayMark {
+  /// Con pieza, y cuenta.
+  counted,
+
+  /// Con pieza, pero esa semana ya iba por encima de su ritmo: no suma.
+  extra,
+
+  /// Despierto y sin pieza.
+  missed,
+
+  /// En pausa y sin pieza: la cuenta se lo salta.
+  asleep,
+}
+
 class UnlockGoal {
   const UnlockGoal({
     required this.perWeek,
@@ -195,6 +210,7 @@ class UnlockGoal {
     this.declared = false,
     this.resting = false,
     this.restDays = 0,
+    this.calendar = const [],
   });
 
   /// El ritmo contra el que se mide, en veces por semana.
@@ -227,6 +243,10 @@ class UnlockGoal {
   /// despiertos.
   final int restDays;
 
+  /// Los días que mira la cuenta, del más viejo a hoy, y cómo quedó cada
+  /// uno: para enseñarlos, no para contar.
+  final List<(DateTime, DayMark)> calendar;
+
   /// Cuántas veces se puede fallar por el camino y abrir igual.
   int get slack => (perWeek * window / 7 + 1e-9).floor() - need;
 
@@ -245,6 +265,10 @@ class UnlockGoal {
     final meta = goalPercent;
     return have >= need ? p.clamp(meta, 100) : p.clamp(0, meta - 1);
   }
+
+  /// Cuántos días con pieza pide su ritmo entero en la ventana: el cien por
+  /// cien, del que [need] es el setenta.
+  int get expected => math.max(need, (perWeek * window / 7).round());
 
   /// La meta, en por ciento: [share].
   static int get goalPercent => (share * 100).round();
@@ -309,6 +333,24 @@ class UnlockGoal {
       if (enSemana < tope) quedan.add(d);
     }
     final have = quedan.length;
+    final cuentan = {for (final d in quedan) dayKey(d)};
+    final calendar = <(DateTime, DayMark)>[
+      for (
+        var d = desde;
+        !d.isAfter(today);
+        d = DateTime(d.year, d.month, d.day + 1)
+      )
+        (
+          d,
+          cuentan.contains(dayKey(d))
+              ? DayMark.counted
+              : conPieza.contains(dayKey(d))
+              ? DayMark.extra
+              : h.restedOn(d)
+              ? DayMark.asleep
+              : DayMark.missed,
+        ),
+    ];
     return UnlockGoal(
       perWeek: f,
       window: window,
@@ -317,6 +359,7 @@ class UnlockGoal {
       declared: h.perWeek != null,
       resting: h.restAt(now) != null,
       restDays: dormidos,
+      calendar: calendar,
     );
   }
 }

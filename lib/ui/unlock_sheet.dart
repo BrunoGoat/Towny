@@ -1,7 +1,11 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
+import '../fx/sensory.dart';
 import '../l10n/lang.dart';
 import '../model/cadence.dart';
+import '../model/piece.dart';
 import '../model/store.dart';
 import 'habit_sigil.dart';
 import 'sheet_glass.dart';
@@ -20,15 +24,33 @@ import 'style.dart';
 /// Un valle que se abre solo es una lista de deseos. Uno que se abre cuando lo
 /// anterior se sostiene dice otra cosa, y es la cosa que hay que decir:
 /// primero aprendí a mantener una, ahora estoy listo para otra.
-class UnlockSheet extends StatelessWidget {
+class UnlockSheet extends StatefulWidget {
   const UnlockSheet({super.key, required this.store, required this.theme});
 
   final Store store;
   final UiTheme theme;
 
   @override
+  State<UnlockSheet> createState() => _UnlockSheetState();
+
+  /// Cómo va un pueblo: lo que lleva, en por ciento. Dormido, y que duerme.
+  static String _state(UnlockGoal g) => g.resting
+      ? tr('${g.percent}% · en pausa', '${g.percent}% · resting')
+      : '${g.percent}%';
+
+  /// El color de dormir: el de la luna, el mismo para la marca y la cuenta.
+  static const Color _luna = Color(0xFF9FB8E6);
+}
+
+class _UnlockSheetState extends State<UnlockSheet> {
+  /// El hábito abierto, por su posición: uno solo a la vez. Con un único
+  /// pueblo, abierto de entrada: no hay otro que mirar.
+  late int? _open = widget.store.habits.length == 1 ? 0 : null;
+
+  @override
   Widget build(BuildContext context) {
-    final t = theme;
+    final store = widget.store;
+    final t = widget.theme;
     final velo = SheetInk.of(t);
     final goal = store.unlockGoal;
     final left = goal.need - goal.have;
@@ -101,67 +123,27 @@ class UnlockSheet extends StatelessWidget {
               style: t.title.copyWith(color: velo.cuerpo),
             ),
             const SizedBox(height: 16),
-            for (final (h, g) in store.unlockGoals) ...[
-              Row(
-                children: [
-                  if (g.resting) ...[
-                    const HabitSigil(symbol: 'moon', color: _luna, size: 15),
-                    const SizedBox(width: 6),
-                  ],
-                  Expanded(
-                    child: Text(
-                      h.name,
-                      style: t.body.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: velo.cuerpo,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Text(
-                    _state(g),
-                    style: chico.copyWith(
-                      fontWeight: g.met ? FontWeight.w700 : FontWeight.w500,
-                      color: g.resting
-                          ? _luna
-                          : (g.met ? t.accent : velo.tenue),
-                    ),
-                  ),
-                ],
+            for (final (i, (h, g)) in store.unlockGoals.indexed)
+              _HabitLine(
+                name: h.name,
+                goal: g,
+                theme: t,
+                velo: velo,
+                small: chico,
+                open: _open == i,
+                // Abrir uno cierra el que estaba abierto.
+                onTap: () {
+                  Sensory.instance.tick();
+                  setState(() => _open = _open == i ? null : i);
+                },
               ),
-              const SizedBox(height: 6),
-              _days(t, velo, g),
-              const SizedBox(height: 14),
-            ],
             // Lo único que hace falta saber, y nada más: qué cuenta, y que no
             // es una racha.
             Text(_rule(varios), style: chico),
-            // Sin ritmo dicho se mide como de todos los días: quien va dos
-            // veces por semana tiene que saber dónde se cambia.
-            if (store.unlockGoals.any((e) => !e.$2.declared)) ...[
-              const SizedBox(height: 6),
-              Text(
-                tr(
-                  '¿No es diario? Cambiá su ritmo en la hoja del hábito.',
-                  "Not daily? Change its pace in the habit's sheet.",
-                ),
-                style: chico,
-              ),
-            ],
           ],
         ),
       ),
     );
-  }
-
-  /// Cómo va un pueblo: lo que lleva contra la meta. Dormido, lo mismo y
-  /// que duerme.
-  static String _state(UnlockGoal g) {
-    final meta = UnlockGoal.goalPercent;
-    if (g.resting) {
-      return tr('${g.percent}% · en pausa', '${g.percent}% · resting');
-    }
-    return tr('${g.percent}% · meta $meta%', '${g.percent}% · goal $meta%');
   }
 
   /// Qué hace falta, en una línea: cada hábito al setenta por ciento de su
@@ -191,32 +173,78 @@ class UnlockSheet extends StatelessWidget {
   ///
   /// Dormido, la cuenta se pone del color de la luna: lo que llevaba sigue
   /// ahí, entero, pero quieto.
-  Widget _days(UiTheme t, SheetInk velo, UnlockGoal g) => Row(
-    children: [
-      for (var i = 0; i < g.need; i++)
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.only(right: 4),
-            child: Container(
-              height: 10,
-              decoration: BoxDecoration(
-                color: i < g.have
-                    ? (g.resting ? _luna : t.accent).withValues(
-                        alpha: g.met || g.resting ? 0.85 : 0.45,
-                      )
-                    : (g.resting ? _luna : velo.cuerpo).withValues(
-                        alpha: g.resting ? 0.18 : 0.14,
+  ///
+  /// La barra entera es el ritmo entero —todos los días que pide, el cien por
+  /// cien— y la meta es una raya que la cruza en el setenta: se ve cuánto
+  /// falta para pasarla sin leer ningún número.
+  static Widget _days(UiTheme t, SheetInk velo, UnlockGoal g) {
+    final total = g.expected;
+    const gap = 4.0;
+    return LayoutBuilder(
+      builder: (context, c) {
+        final celda = (c.maxWidth + gap) / total;
+        return SizedBox(
+          height: 20,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fill(
+                top: 5,
+                bottom: 5,
+                child: Row(
+                  children: [
+                    for (var i = 0; i < total; i++)
+                      Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                            right: i == total - 1 ? 0 : gap,
+                          ),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: i < g.have
+                                  ? (g.resting ? UnlockSheet._luna : t.accent)
+                                        .withValues(
+                                          alpha: g.met || g.resting
+                                              ? 0.85
+                                              : 0.45,
+                                        )
+                                  : (g.resting
+                                            ? UnlockSheet._luna
+                                            : velo.cuerpo)
+                                        .withValues(
+                                          alpha: g.resting ? 0.18 : 0.14,
+                                        ),
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                          ),
+                        ),
                       ),
-                borderRadius: BorderRadius.circular(3),
+                  ],
+                ),
               ),
-            ),
+              // La meta: en el hueco entre la última casilla que hace falta
+              // y la siguiente.
+              if (g.need < total)
+                Positioned(
+                  left: celda * g.need - gap / 2 - 1,
+                  top: 0,
+                  bottom: 0,
+                  child: Container(
+                    width: 2,
+                    decoration: BoxDecoration(
+                      color: g.met
+                          ? t.accent
+                          : velo.cuerpo.withValues(alpha: 0.75),
+                      borderRadius: BorderRadius.circular(1),
+                    ),
+                  ),
+                ),
+            ],
           ),
-        ),
-    ],
-  );
-
-  /// El color de dormir: el de la luna, el mismo para la marca y la cuenta.
-  static const Color _luna = Color(0xFF9FB8E6);
+        );
+      },
+    );
+  }
 }
 
 /// Cómo se dice el pueblo número [n] —el segundo, el tercero—, en castellano
@@ -229,3 +257,242 @@ class UnlockSheet extends StatelessWidget {
   6 => ('sexto', 'sixth'),
   _ => ('siguiente', 'next'),
 };
+
+/// Un hábito en el candado: su nombre, cómo va y su barra. Tocándolo se
+/// abre el detalle —los días que mira la cuenta, uno por uno, y cuánto
+/// falta—, y tocándolo otra vez se cierra.
+class _HabitLine extends StatelessWidget {
+  const _HabitLine({
+    required this.name,
+    required this.goal,
+    required this.theme,
+    required this.velo,
+    required this.small,
+    required this.open,
+    required this.onTap,
+  });
+
+  final String name;
+  final UnlockGoal goal;
+  final UiTheme theme;
+  final SheetInk velo;
+  final TextStyle small;
+  final bool open;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = theme;
+    final g = goal;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                if (g.resting) ...[
+                  const HabitSigil(
+                    symbol: 'moon',
+                    color: UnlockSheet._luna,
+                    size: 15,
+                  ),
+                  const SizedBox(width: 6),
+                ],
+                Expanded(
+                  child: Text(
+                    name,
+                    style: t.body.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: velo.cuerpo,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Text(
+                  UnlockSheet._state(g),
+                  style: small.copyWith(
+                    fontWeight: g.met ? FontWeight.w700 : FontWeight.w500,
+                    color: g.resting
+                        ? UnlockSheet._luna
+                        : (g.met ? t.accent : velo.tenue),
+                  ),
+                ),
+                const SizedBox(width: 2),
+                AnimatedRotation(
+                  turns: open ? 0.5 : 0,
+                  duration: const Duration(milliseconds: 220),
+                  child: Icon(
+                    Icons.expand_more_rounded,
+                    size: 18,
+                    color: velo.tenue,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            _UnlockSheetState._days(t, velo, g),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 260),
+              curve: Curves.easeOutCubic,
+              alignment: Alignment.topCenter,
+              child: open
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: _Detail(goal: g, theme: t, velo: velo),
+                    )
+                  : const SizedBox(width: double.infinity),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// El detalle de un hábito: los días que mira la cuenta, por semanas, y tres
+/// números — lo hecho, la meta y lo que falta.
+///
+/// Un día con pieza que cuenta va lleno; uno con pieza que no suma porque esa
+/// semana ya iba por encima de su ritmo, sólo con borde; uno sin pieza,
+/// apagado; y uno en pausa lleva la luna: pegada a su día se entiende sola.
+class _Detail extends StatelessWidget {
+  const _Detail({required this.goal, required this.theme, required this.velo});
+
+  final UnlockGoal goal;
+  final UiTheme theme;
+  final SheetInk velo;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = theme;
+    final g = goal;
+    final hoy = g.calendar.isEmpty ? null : g.calendar.last.$1;
+    // Por semanas de lunes a domingo: las casillas antes del primer día y
+    // después de hoy quedan vacías.
+    final celdas = <(DateTime, DayMark)?>[
+      if (g.calendar.isNotEmpty)
+        for (var i = 1; i < g.calendar.first.$1.weekday; i++) null,
+      ...g.calendar,
+    ];
+    while (celdas.length % 7 != 0) {
+      celdas.add(null);
+    }
+    final dias = inEnglish
+        ? const ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+        : const ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+    final rotulo = t.label.copyWith(color: velo.tenue, fontSize: 10);
+
+    Widget celda((DateTime, DayMark)? c) {
+      if (c == null) return const SizedBox.shrink();
+      final (dia, marca) = c;
+      final esHoy = hoy != null && dayKey(dia) == dayKey(hoy);
+      final acento = g.resting ? UnlockSheet._luna : t.accent;
+      return Container(
+        decoration: BoxDecoration(
+          color: switch (marca) {
+            DayMark.counted => acento.withValues(alpha: 0.85),
+            DayMark.missed => velo.cuerpo.withValues(alpha: 0.10),
+            DayMark.extra || DayMark.asleep => null,
+          },
+          border: marca == DayMark.extra
+              ? Border.all(color: acento.withValues(alpha: 0.85), width: 1.5)
+              : esHoy
+              ? Border.all(color: velo.cuerpo.withValues(alpha: 0.55))
+              : null,
+          borderRadius: BorderRadius.circular(5),
+        ),
+        alignment: Alignment.center,
+        child: marca == DayMark.asleep
+            ? const HabitSigil(
+                symbol: 'moon',
+                color: UnlockSheet._luna,
+                size: 13,
+              )
+            : null,
+      );
+    }
+
+    Widget numero(int n, String es, String en, {Color? color}) => Expanded(
+      child: Column(
+        children: [
+          Text(
+            '$n',
+            style: t.title.copyWith(
+              color: color ?? velo.cuerpo,
+              fontSize: 22,
+              height: 1.1,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(tr(es, en), style: rotulo),
+        ],
+      ),
+    );
+
+    final faltan = math.max(0, g.need - g.have);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Contra qué ritmo se mide este. Sin elegir, todos los días: y es
+        // acá, en el suyo, donde se dice dónde se cambia.
+        Text(
+          g.declared
+              ? tr(
+                  'Ritmo: ${cadenceSaid(g.perWeek)}',
+                  'Pace: ${cadenceSaid(g.perWeek)}',
+                )
+              : tr(
+                  'Ritmo: todos los días · cambialo en la hoja del hábito',
+                  "Pace: every day · change it in the habit's sheet",
+                ),
+          style: t.bodySoft.copyWith(fontSize: 12, color: velo.suave),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            for (final d in dias)
+              Expanded(
+                child: Center(child: Text(d, style: rotulo)),
+              ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        for (var f = 0; f < celdas.length; f += 7)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Row(
+              children: [
+                for (var i = f; i < f + 7; i++)
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: AspectRatio(
+                        aspectRatio: 2.2,
+                        child: celda(celdas[i]),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            numero(g.have, 'HECHOS', 'DONE'),
+            numero(g.need, 'META', 'GOAL'),
+            numero(
+              faltan,
+              'FALTAN',
+              'TO GO',
+              color: faltan == 0 ? t.accent : null,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}

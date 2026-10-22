@@ -61,59 +61,69 @@ Future<Store> _valle(List<int> leer, List<int> correr) async {
   return s;
 }
 
+final _key = GlobalKey();
+
+Future<void> _pon(WidgetTester tester, Store s) async {
+  await tester.pumpWidget(
+    MediaQuery(
+      data: const MediaQueryData(size: Size(390, 844), devicePixelRatio: 3),
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(fontFamily: 'Roboto'),
+        home: Scaffold(
+          // Algo detrás que se parezca al valle, para que el vidrio se vea
+          // como vidrio: cielo, montes y prado.
+          body: Stack(
+            children: [
+              const Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color(0xFF8FB3DE),
+                        Color(0xFFC9D8E4),
+                        Color(0xFF8C9A6E),
+                        Color(0xFF5E7A3E),
+                        Color(0xFFB79A6A),
+                      ],
+                      stops: [0, 0.35, 0.45, 0.7, 1],
+                    ),
+                  ),
+                ),
+              ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: RepaintBoundary(
+                  key: _key,
+                  child: UnlockSheet(
+                    store: s,
+                    theme: UiTheme(Palette.forMoment(13)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+  await tester.pump(const Duration(milliseconds: 400));
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   const out = String.fromEnvironment('OUT', defaultValue: '/tmp/candado');
 
-  Future<void> foto(WidgetTester tester, Store s, String nombre) async {
-    final key = GlobalKey();
-    await tester.pumpWidget(
-      MediaQuery(
-        data: const MediaQueryData(size: Size(390, 844), devicePixelRatio: 3),
-        child: MaterialApp(
-          debugShowCheckedModeBanner: false,
-          theme: ThemeData(fontFamily: 'Roboto'),
-          home: Scaffold(
-            // Algo detrás que se parezca al valle, para que el vidrio se vea
-            // como vidrio: cielo, montes y prado.
-            body: Stack(
-              children: [
-                const Positioned.fill(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Color(0xFF8FB3DE),
-                          Color(0xFFC9D8E4),
-                          Color(0xFF8C9A6E),
-                          Color(0xFF5E7A3E),
-                          Color(0xFFB79A6A),
-                        ],
-                        stops: [0, 0.35, 0.45, 0.7, 1],
-                      ),
-                    ),
-                  ),
-                ),
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: RepaintBoundary(
-                    key: key,
-                    child: UnlockSheet(
-                      store: s,
-                      theme: UiTheme(Palette.forMoment(13)),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-    await tester.pump(const Duration(milliseconds: 400));
-    final b = key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+  Future<void> foto(
+    WidgetTester tester,
+    Store s,
+    String nombre, {
+    bool pump = true,
+  }) async {
+    if (pump) await _pon(tester, s);
+    final b = _key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
     await tester.runAsync(() async {
       final img = await b.toImage(pixelRatio: 2.5);
       final png = await img.toByteData(format: ui.ImageByteFormat.png);
@@ -141,6 +151,10 @@ void main() {
     );
     s!.habits[0].rests.add(Rest(dia(1, 8), dia(-6, 8)).encode());
     await foto(tester, s, '1-uno-en-pausa');
+    // Y tocando cada uno, su detalle.
+    await tester.tap(find.text('Correr'));
+    await tester.pumpAndSettle();
+    await foto(tester, s, '1b-detalle', pump: false);
 
     // Los dos despiertos, y «Leer» con dos días de pausa ya pasados: la
     // cuenta se los salta.
