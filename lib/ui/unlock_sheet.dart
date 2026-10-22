@@ -140,6 +140,43 @@ class _UnlockSheetState extends State<UnlockSheet> {
             // Lo único que hace falta saber, y nada más: qué cuenta, y que no
             // es una racha.
             Text(_rule(varios), style: chico),
+            // Si alguno duerme, lo que lo frena es eso: se dice abajo, junto
+            // a la regla, con la misma luna que lleva su nombre.
+            if (store.unlockGoals.any((e) => e.$2.resting)) ...[
+              const SizedBox(height: 6),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(top: 2),
+                    child: HabitSigil(
+                      symbol: 'moon',
+                      color: UnlockSheet._luna,
+                      size: 13,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      varios
+                          ? tr(
+                              'Y todos tienen que estar despiertos: uno en '
+                                  'pausa no abre la puerta.',
+                              'And all of them have to be awake: a resting '
+                                  "one doesn't open the door.",
+                            )
+                          : tr(
+                              'Y tiene que estar despierto: en pausa no abre '
+                                  'la puerta.',
+                              "And it has to be awake: resting, it doesn't "
+                                  'open the door.',
+                            ),
+                      style: chico.copyWith(color: UnlockSheet._luna),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
