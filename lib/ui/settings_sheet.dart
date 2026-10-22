@@ -337,6 +337,18 @@ class _SettingsSheetState extends State<SettingsSheet> {
                     ),
                   ),
                   (
+                    TalkKind.rests,
+                    tr('Charla de los descansos', 'The rests talk'),
+                    tr(
+                      'Como si este pueblo se hubiera pausado varias veces y '
+                          'despertado a los pocos días. De prueba: no toca tus '
+                          'datos.',
+                      'As if this town had been put to sleep several times and '
+                          'woken a few days later. Just a test: your data stays '
+                          'untouched.',
+                    ),
+                  ),
+                  (
                     TalkKind.identity,
                     tr('Repasar la identidad', 'Review the identity'),
                     tr(

@@ -15,11 +15,18 @@
 ///   cansancio».
 /// * **La identidad.** Al mes de escrita, si todavía es la persona que querés
 ///   ser, con los votos que diste por ella: una pieza, un voto.
+/// * **Los descansos raros.** Un pueblo se pausó varias veces seguidas y se
+///   despertó a los pocos días: puede ser que las pausas estén tapando días
+///   sueltos. El viejo no lo da por hecho —pregunta—, y según lo que se
+///   conteste propone un ritmo más holgado, te devuelve tu motivo y lo más
+///   chico que cuenta, o lo deja estar.
 /// * **La semana.** Cada siete días, cómo fue el camino, qué costó y qué se
 ///   ajusta.
 ///
 /// Cada paso es un globo con sus respuestas, o con un renglón para escribir.
 library;
+
+import 'dart:math' as math;
 
 import '../data/advice.dart';
 import '../l10n/lang.dart';
@@ -92,13 +99,47 @@ Habit? identityDue(Iterable<Habit> habits, {DateTime? at}) {
   return null;
 }
 
+/// Cuántas pausas cortadas antes de tiempo, en [oddRestsDays] días, hacen
+/// que el viejo pregunte. La más corta que se puede pedir es de una semana:
+/// varias que terminan a los pocos días son pausar para saltear días sueltos,
+/// o algo que conviene hablar.
+const int oddRestsCount = 3;
+const int oddRestsDays = 28;
+
+/// Las pausas cortas de [h] que todavía no se hablaron: cortadas, de menos de
+/// cuatro días, empezadas en las últimas [oddRestsDays] y después de la
+/// última vez que se habló de esto.
+int oddRests(Habit h, AdviceBook book, {DateTime? at}) {
+  final now = at ?? DateTime.now();
+  final desde = now.subtract(const Duration(days: oddRestsDays));
+  final hablado = book.restTalkAt(h.id);
+  var n = 0;
+  for (final r in h.sleeps) {
+    if (r.from.isBefore(desde)) continue;
+    if (hablado != null && r.from.isBefore(hablado)) continue;
+    if (r.until.isAfter(now)) continue;
+    if (r.until.difference(r.from) < const Duration(days: 4)) n++;
+  }
+  return n;
+}
+
+/// El pueblo cuyos descansos toca hablar, si lo hay.
+Habit? oddRestsDue(Iterable<Habit> habits, AdviceBook book, {DateTime? at}) {
+  for (final h in habits) {
+    if (oddRests(h, book, at: at) >= oddRestsCount) return h;
+  }
+  return null;
+}
+
 /// Si el consejero tiene algo que hablar: es el punto de su botón.
 bool talkDue(Store store, AdviceBook book, {DateTime? at}) {
   if (!book.met) return false;
   for (final h in store.habits) {
     if (stumbleDue(h, at: at) != null) return true;
   }
-  return identityDue(store.habits, at: at) != null || book.weekDue(at: at);
+  return oddRestsDue(store.habits, book, at: at) != null ||
+      identityDue(store.habits, at: at) != null ||
+      book.weekDue(at: at);
 }
 
 /// La charla que toca ahora, o nula. Una por visita: la pide la pantalla del
@@ -110,6 +151,10 @@ TalkStep? nextTalk(Store store, AdviceBook book, {DateTime? at}) {
     final dia = stumbleDue(h, at: now);
     if (dia != null) return _Charla.deVerdad(store, book, now).tropiezo(h, dia);
   }
+  final duerme = oddRestsDue(store.habits, book, at: now);
+  if (duerme != null) {
+    return _Charla.deVerdad(store, book, now).descansos(duerme);
+  }
   final quien = identityDue(store.habits, at: now);
   if (quien != null) return _Charla.deVerdad(store, book, now).identidad(quien);
   if (book.weekDue(at: now)) return _Charla.deVerdad(store, book, now).semana();
@@ -117,7 +162,7 @@ TalkStep? nextTalk(Store store, AdviceBook book, {DateTime? at}) {
 }
 
 /// Las tres charlas, para probarlas desde los ajustes de desarrollo.
-enum TalkKind { stumble, identity, week }
+enum TalkKind { stumble, rests, identity, week }
 
 /// Una charla a la fuerza, sobre el pueblo de delante, toque o no toque.
 ///
@@ -135,6 +180,7 @@ TalkStep trialTalk(TalkKind kind, Store store, AdviceBook book) {
       actual,
       DateTime(now.year, now.month, now.day - 1),
     ),
+    TalkKind.rests => c.descansos(actual),
     TalkKind.identity => c.identidad(actual),
     TalkKind.week => c.semana(),
   };
@@ -150,6 +196,7 @@ abstract class _Hace {
   void setFloor(Habit h, String floor);
   void confirmIdentity(Habit h, {String? identity});
   void weekDone(DateTime at, String how, String cost);
+  void restTalked(Habit h, DateTime at);
 }
 
 class _DeVerdad extends _Hace {
@@ -173,6 +220,8 @@ class _DeVerdad extends _Hace {
   @override
   void weekDone(DateTime at, String how, String cost) =>
       book.weekDone(at: at, how: how, cost: cost);
+  @override
+  void restTalked(Habit h, DateTime at) => book.restTalked(h.id, at: at);
 }
 
 /// Lo mismo que hace el almacén, pero en la copia y sin guardar nada: para
@@ -204,6 +253,8 @@ class _EnCopia extends _Hace {
 
   @override
   void weekDone(DateTime at, String how, String cost) {}
+  @override
+  void restTalked(Habit h, DateTime at) {}
 }
 
 class _Charla {
@@ -307,6 +358,129 @@ class _Charla {
           ),
         ),
       ],
+    );
+  }
+
+  // ------------------------------------------------------ los descansos raros
+
+  /// Varias pausas seguidas cortadas a los pocos días. Se pregunta, no se
+  /// acusa: puede ser un mes difícil de verdad, y entonces la pausa está
+  /// haciendo lo que tiene que hacer.
+  TalkStep descansos(Habit h) {
+    final n = math.max(oddRests(h, book, at: now), oddRestsCount);
+    TalkOption op(String label, TalkStep? Function() then) =>
+        TalkOption(label, () {
+          // Contestar ya es haberlo hablado: estas pausas no vuelven a contar.
+          hace.restTalked(h, now);
+          return then();
+        });
+    return TalkStep(
+      tr(
+        'Estoy viendo algo raro en tus descansos. En las últimas semanas '
+            'dormiste «${h.name}» $n veces y lo despertaste a los pocos días. '
+            'No vengo a reprochártelo, sólo a preguntar: ¿qué está pasando?',
+        'I am seeing something odd in your rests. In the last few weeks you '
+            'put "${h.name}" to sleep $n times and woke it a few days later. '
+            'I am not here to reproach you, only to ask: what is going on?',
+      ),
+      options: [
+        op(
+          tr('Necesito días libres', 'I need days off'),
+          () => _ritmoHolgado(h),
+        ),
+        op(tr('Me está costando', "It's been hard"), () => _cuesta(h)),
+        op(
+          tr('Fueron cosas puntuales', 'They were one-offs'),
+          () => TalkStep(
+            tr(
+              'Entendido. Para eso está la pausa: sólo quería preguntar.',
+              'Understood. That is what the pause is for: I only wanted to '
+                  'ask.',
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Días libres de verdad: el ritmo queda apretado, y se ofrece uno más
+  /// holgado en vez de seguir pausando.
+  TalkStep _ritmoHolgado(Habit h) {
+    final ahora = perWeekOf(h, at: now);
+    final mas = [
+      for (final c in cadenceChoices)
+        if (c < ahora - 1e-9) c,
+    ].take(3);
+    return TalkStep(
+      tr(
+        'Entonces puede que el ritmo te quede apretado. Para «${h.name}» '
+            'contamos con ${cadenceSaid(ahora)}. Un ritmo que se sostiene '
+            'vale más que uno que se pausa. ¿Probamos con otro?',
+        'Then the pace may be too tight. For "${h.name}" we are counting on '
+            '${cadenceSaid(ahora)}. A pace you keep is worth more than one '
+            'you pause. Shall we try another?',
+      ),
+      options: [
+        for (final c in mas)
+          TalkOption(_mayuscula(cadenceSaid(c)), () {
+            hace.setCadence(h, c);
+            return TalkStep(
+              tr(
+                'Así sea: ${cadenceSaid(c)}. Los días libres ya no van a '
+                    'necesitar una pausa.',
+                'So be it: ${cadenceSaid(c)}. Days off will no longer need a '
+                    'pause.',
+              ),
+            );
+          }),
+        TalkOption(
+          tr('Lo dejo como está', 'I will leave it'),
+          () => TalkStep(
+            tr(
+              'Bien. Vos sabés lo que podés.',
+              'Fine. You know what you can do.',
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Cuesta: lo que escribiste al empezar, y lo más chico que contaría.
+  TalkStep _cuesta(Habit h) {
+    TalkStep minimo() => TalkStep(
+      tr(
+        '¿Y si lo hacemos más chico? En un día difícil, ¿qué es lo mínimo '
+            'que contaría como hecho?',
+        'What if we make it smaller? On a hard day, what is the least that '
+            'would count as done?',
+      ),
+      input: TalkInput(
+        hint: tr('leer una página', 'read one page'),
+        then: (texto) {
+          if (texto.trim().isNotEmpty) hace.setFloor(h, texto);
+          return TalkStep(
+            tr(
+              '«${texto.trim()}» también cuenta. Un día así sigue siendo un '
+                  'día, y no hace falta dormir el pueblo.',
+              '"${texto.trim()}" counts too. A day like that is still a day, '
+                  'and the town does not need to sleep.',
+            ),
+          );
+        },
+        skip: () => null,
+      ),
+    );
+    final porque = h.why?.trim();
+    if (porque == null || porque.isEmpty) return minimo();
+    return TalkStep(
+      tr(
+        'Cuando lo empezaste escribiste que querías esto «$porque». Eso '
+            'sigue ahí, aunque cueste.',
+        'When you started you wrote that you wanted this "$porque". That is '
+            'still there, even when it is hard.',
+      ),
+      next: minimo,
     );
   }
 

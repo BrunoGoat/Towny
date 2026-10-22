@@ -101,6 +101,20 @@ class AdviceBook extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Pueblo -> cuándo se habló de sus descansos raros: las pausas de antes de
+  /// eso ya se hablaron, y no vuelven a contar para la próxima.
+  final Map<String, DateTime> _restTalks = {};
+  static const String _restTalksKey = 'consejero_pausas_v1';
+
+  /// Cuándo se habló de los descansos de [town], o nulo si nunca.
+  DateTime? restTalkAt(String town) => _restTalks[town];
+
+  /// Que ya se habló de los descansos de [town].
+  void restTalked(String town, {DateTime? at}) {
+    _restTalks[town] = at ?? DateTime.now();
+    unawaited(flush());
+  }
+
   /// Los que ya se miraron, para el punto del botón.
   final Set<String> _seen = {};
   static const String _seenKey = 'consejero_visto_v1';
@@ -113,6 +127,7 @@ class AdviceBook extends ChangeNotifier {
     _met = false;
     _weekAt = null;
     _weeks.clear();
+    _restTalks.clear();
     try {
       final prefs = await SharedPreferences.getInstance();
       for (final row in prefs.getStringList(_key) ?? const <String>[]) {
@@ -135,6 +150,15 @@ class AdviceBook extends ChangeNotifier {
         _weekAt = DateTime.fromMillisecondsSinceEpoch(semana);
       }
       _weeks.addAll(prefs.getStringList(_weeksKey) ?? const <String>[]);
+      for (final row
+          in prefs.getStringList(_restTalksKey) ?? const <String>[]) {
+        final cut = row.lastIndexOf('|');
+        final ms = cut > 0 ? int.tryParse(row.substring(cut + 1)) : null;
+        if (ms == null) continue;
+        _restTalks[row.substring(0, cut)] = DateTime.fromMillisecondsSinceEpoch(
+          ms,
+        );
+      }
       for (final row in prefs.getStringList(_goalKey) ?? const <String>[]) {
         final a = row.indexOf(_sep);
         if (a <= 0) continue;
@@ -358,6 +382,10 @@ class AdviceBook extends ChangeNotifier {
         await prefs.remove(_weekKey);
       }
       await prefs.setStringList(_weeksKey, _weeks);
+      await prefs.setStringList(_restTalksKey, [
+        for (final MapEntry(key: town, value: at) in _restTalks.entries)
+          '$town|${at.millisecondsSinceEpoch}',
+      ]);
       await prefs.setStringList(_goalKey, [
         for (final MapEntry(key: town, value: g) in _goals.entries)
           '$town$_sep${g.name}',
@@ -375,6 +403,7 @@ class AdviceBook extends ChangeNotifier {
     _seen.clear();
     _weekAt = null;
     _weeks.clear();
+    _restTalks.clear();
     notifyListeners();
   }
 }

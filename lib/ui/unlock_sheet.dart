@@ -139,7 +139,10 @@ class _UnlockSheetState extends State<UnlockSheet> {
               ),
             // Lo único que hace falta saber, y nada más: qué cuenta, y que no
             // es una racha.
-            Text(_rule(varios), style: chico),
+            Text(
+              _rule(varios, [for (final (_, g) in store.unlockGoals) g]),
+              style: chico,
+            ),
             // Si alguno duerme, lo que lo frena es eso: se dice abajo, junto
             // a la regla, con la misma luna que lleva su nombre.
             if (store.unlockGoals.any((e) => e.$2.resting)) ...[
@@ -181,19 +184,31 @@ class _UnlockSheetState extends State<UnlockSheet> {
 
   /// Qué hace falta, en una línea: cada hábito al setenta por ciento de su
   /// ritmo. Dice solo que se puede fallar, sin hablar de rachas.
-  static String _rule(bool varios) {
+  static String _rule(bool varios, Iterable<UnlockGoal> goals) {
     final meta = UnlockGoal.goalPercent;
+    // Durante cuánto: dos semanas, o cuatro para lo que va menos de tres
+    // veces por semana. Los días exactos los dice el detalle de cada uno.
+    final cortas = goals.any((g) => g.window == 14);
+    final largas = goals.any((g) => g.window == 28);
+    final (es, en) = cortas && largas
+        ? (
+            'durante 2 semanas (4 si va menos de 3 veces por semana)',
+            'for 2 weeks (4 if it goes less than 3 times a week)',
+          )
+        : largas
+        ? ('durante 4 semanas', 'for 4 weeks')
+        : ('durante 2 semanas', 'for 2 weeks');
     return varios
         ? tr(
-            'Mantené cada hábito al $meta% del ritmo que le marcaste para '
+            'Mantené cada hábito al $meta% del ritmo que le marcaste $es para '
                 'abrir el siguiente pueblo.',
-            'Keep each habit at $meta% of the pace you set for it to open '
-                'the next town.',
+            'Keep each habit at $meta% of the pace you set for it $en to '
+                'open the next town.',
           )
         : tr(
-            'Mantené tu hábito al $meta% del ritmo que le marcaste para '
+            'Mantené tu hábito al $meta% del ritmo que le marcaste $es para '
                 'abrir el siguiente pueblo.',
-            'Keep your habit at $meta% of the pace you set for it to open '
+            'Keep your habit at $meta% of the pace you set for it $en to open '
                 'the next town.',
           );
   }

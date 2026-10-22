@@ -333,6 +333,67 @@ void main() {
       expect(identityDue(store.habits), isNull);
     });
   });
+
+  group('los descansos raros', () {
+    Habit conPausas(int cortas) {
+      final h = diario([1, 2, 3, 5, 6, 9, 10, 12], why: 'para estar bien');
+      for (var i = 0; i < cortas; i++) {
+        final desde = DateTime(hoy.year, hoy.month, hoy.day - 25 + i * 7, 20);
+        h.rests.add(Rest(desde, desde.add(const Duration(days: 2))).encode());
+      }
+      return h;
+    }
+
+    test('tres pausas cortadas en cuatro semanas: el viejo pregunta', () {
+      final libro = AdviceBook.instance..forget();
+      expect(oddRestsDue([conPausas(2)], libro, at: hoy), isNull);
+      final h = conPausas(3);
+      expect(oddRestsDue([h], libro, at: hoy), h);
+    });
+
+    test('pregunta sin acusar, y contestar lo da por hablado', () {
+      SharedPreferences.setMockInitialValues({});
+      final libro = AdviceBook.instance
+        ..forget()
+        ..meet();
+      final s = Store();
+      final h = conPausas(3);
+      s.habits
+        ..clear()
+        ..add(h);
+      final paso = nextTalk(s, libro, at: hoy)!;
+      expect(paso.says, contains('algo raro en tus descansos'));
+      expect(paso.says, isNot(contains('trampa')));
+      // «Me está costando»: tu motivo, y después lo mínimo que cuenta.
+      final cuesta = paso.options
+          .firstWhere((o) => o.label == 'Me está costando')
+          .then()!;
+      expect(cuesta.says, contains('para estar bien'));
+      expect(cuesta.next!()!.input, isNotNull);
+      // Ya hablado: estas pausas no vuelven a contar.
+      expect(libro.restTalkAt(h.id), isNotNull);
+      expect(oddRestsDue([h], libro, at: hoy), isNull);
+    });
+
+    test('«necesito días libres» ofrece un ritmo más holgado', () {
+      SharedPreferences.setMockInitialValues({});
+      final libro = AdviceBook.instance
+        ..forget()
+        ..meet();
+      final s = Store();
+      final h = conPausas(3);
+      s.habits
+        ..clear()
+        ..add(h);
+      final paso = nextTalk(s, libro, at: hoy)!;
+      final ritmo = paso.options
+          .firstWhere((o) => o.label == 'Necesito días libres')
+          .then()!;
+      final opcion = ritmo.options.first;
+      opcion.then();
+      expect(h.perWeek, lessThan(7));
+    });
+  });
 }
 
 Future<void> _toca(WidgetTester tester, Finder f) async {

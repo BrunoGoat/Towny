@@ -52,6 +52,14 @@ Future<Store> _valle(List<int> leer, List<int> correr) async {
   s.renameHabit(0, name: 'Leer', symbol: 'book');
   s.addHabit('Correr', 'run');
   final hoy = DateTime.now();
+  // Fundados hace dos meses: si no, los días de la cuenta serían de antes de
+  // que existieran.
+  for (var i = 0; i < s.habits.length; i++) {
+    s.habits[i] = Habit.fromJson({
+      ...s.habits[i].toJson(),
+      'c': DateTime(hoy.year, hoy.month - 2, hoy.day).millisecondsSinceEpoch,
+    });
+  }
   for (final (h, dias) in [(s.habits[0], leer), (s.habits[1], correr)]) {
     for (final d in dias.reversed) {
       s.lay(h, DateTime(hoy.year, hoy.month, hoy.day - d, 9));
