@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:towny/engine/palette.dart';
 import 'package:towny/model/appearance.dart';
 import 'package:towny/model/habit.dart';
+import 'package:towny/model/piece.dart';
 import 'package:towny/model/store.dart';
 import 'package:towny/ui/style.dart';
 import 'package:towny/ui/unlock_sheet.dart';
@@ -43,6 +44,37 @@ Future<void> _letras() async {
 
 /// Un valle de dos: «Leer» con piezas en [leer] días atrás y «Correr» en
 /// [correr], y las pausas que se le pongan después.
+/// Un hábito de prueba: fundado hace [edad] días, con piezas los días
+/// [dias] (días antes de hoy), a [ritmo] por semana, y las pausas [pausas]
+/// (desde, hasta, en días antes de hoy; negativo es en el futuro).
+Habit _pueblo(
+  String id,
+  String nombre,
+  String marca,
+  int slot, {
+  required int edad,
+  required List<int> dias,
+  double? ritmo,
+  List<(int, int)> pausas = const [],
+}) {
+  final hoy = DateTime.now();
+  DateTime dia(int atras, [int hora = 9]) =>
+      DateTime(hoy.year, hoy.month, hoy.day - atras, hora);
+  final orden = [...dias]..sort((a, b) => b.compareTo(a));
+  return Habit(
+    id: id,
+    name: nombre,
+    symbol: marca,
+    slot: slot,
+    createdAt: dia(edad, 8),
+    perWeek: ritmo,
+    pieces: [
+      for (final (i, d) in orden.indexed) Piece(index: i, placedAt: dia(d)),
+    ],
+    rests: [for (final (a, b) in pausas) Rest(dia(a, 8), dia(b, 18)).encode()],
+  );
+}
+
 Future<Store> _valle(List<int> leer, List<int> correr) async {
   SharedPreferences.setMockInitialValues({});
   await Appearance.instance.load();
@@ -71,10 +103,10 @@ Future<Store> _valle(List<int> leer, List<int> correr) async {
 
 final _key = GlobalKey();
 
-Future<void> _pon(WidgetTester tester, Store s) async {
+Future<void> _pon(WidgetTester tester, Store s, {double alto = 844}) async {
   await tester.pumpWidget(
     MediaQuery(
-      data: const MediaQueryData(size: Size(390, 844), devicePixelRatio: 3),
+      data: MediaQueryData(size: Size(390, alto), devicePixelRatio: 3),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: ThemeData(fontFamily: 'Roboto'),
@@ -177,5 +209,50 @@ void main() {
     final u = await tester.runAsync(() => _valle([0, 1, 3, 4, 6, 8], [0]));
     u!.removeHabit(1);
     await foto(tester, u, '3-un-pueblo');
+
+    // Cuatro pueblos camino al quinto, con todo a la vista: uno que llegó,
+    // uno a medio camino de tres por semana, uno en pausa ahora, y uno nuevo
+    // de dos por semana con su detalle abierto —días antes de fundarlo, días
+    // en pausa y una pieza de más esa semana—.
+    final v = u..habits.clear();
+    v.habits.addAll([
+      _pueblo(
+        'a',
+        'Leer',
+        'book',
+        0,
+        edad: 90,
+        dias: [0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 13],
+        ritmo: 7,
+      ),
+      _pueblo('b', 'Correr', 'run', 1, edad: 70, dias: [1, 4, 8, 12], ritmo: 3),
+      _pueblo(
+        'c',
+        'Meditar',
+        'lotus',
+        2,
+        edad: 60,
+        dias: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+        ritmo: 7,
+        pausas: [(2, -5)],
+      ),
+      _pueblo(
+        'd',
+        'Guitarra',
+        'lute',
+        3,
+        edad: 20,
+        dias: [1, 2, 3, 9, 16],
+        ritmo: 2,
+        pausas: [(13, 11)],
+      ),
+    ]);
+    await Appearance.instance.setFreeHabits(false);
+    tester.view.physicalSize = const Size(390 * 3, 1300 * 3);
+    await tester.pumpWidget(const SizedBox());
+    await _pon(tester, v, alto: 1300);
+    await tester.tap(find.text('Guitarra'));
+    await tester.pumpAndSettle();
+    await foto(tester, v, '4-cuatro-pueblos', pump: false);
   });
 }
