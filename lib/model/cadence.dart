@@ -193,6 +193,8 @@ class UnlockGoal {
     required this.need,
     required this.have,
     this.declared = false,
+    this.resting = false,
+    this.restDays = 0,
   });
 
   /// El ritmo contra el que se mide, en veces por semana.
@@ -214,10 +216,21 @@ class UnlockGoal {
   /// Si el ritmo lo dijiste vos. Si no, se mide como de todos los días.
   final bool declared;
 
+  /// Si el pueblo está en pausa ahora. No pierde nada por eso —lo que lleva
+  /// queda guardado—, pero mientras duerme no abre la puerta: el siguiente
+  /// pueblo se gana sosteniendo todos los que hay, y uno dormido no se está
+  /// sosteniendo. Si no, alcanzaría con pausar todos menos uno para abrir el
+  /// valle entero.
+  final bool resting;
+
+  /// Cuántos días en pausa se saltó la cuenta para llegar a [window] días
+  /// despiertos.
+  final int restDays;
+
   /// Cuántas veces se puede fallar por el camino y abrir igual.
   int get slack => (perWeek * window / 7 + 1e-9).floor() - need;
 
-  bool get met => have >= need;
+  bool get met => !resting && have >= need;
   double get progress => need <= 0 ? 1 : (have / need).clamp(0.0, 1.0);
 
   /// Qué parte de lo esperable hay que juntar.
@@ -233,7 +246,25 @@ class UnlockGoal {
     final window = f >= 3 ? 14 : 28;
     final need = (share * f * window / 7 - 1e-9).ceil();
     final today = dayStart(now);
-    final desde = DateTime(today.year, today.month, today.day - window + 1);
+    // **La ventana cuenta días despiertos.** Un día en pausa sin pieza no
+    // cuenta ni a favor ni en contra: la ventana se corre hacia atrás para
+    // saltarlo. Pausar una semana y volver a los dos días no tira lo que se
+    // llevaba —esos dos días no existen para la cuenta—, que es para lo que
+    // está la pausa. Con un tope de un año, para que una pausa eterna no haga
+    // buscar para siempre.
+    final conPieza = {for (final p in h.pieces) dayKey(dayStart(p.placedAt))};
+    var desde = today;
+    var despiertos = 0;
+    var dormidos = 0;
+    for (var i = 0; despiertos < window && i < window + 366; i++) {
+      final d = DateTime(today.year, today.month, today.day - i);
+      if (h.restedOn(d) && !conPieza.contains(dayKey(d))) {
+        dormidos++;
+      } else {
+        despiertos++;
+      }
+      desde = d;
+    }
     // Los días con pieza dentro de la ventana, de más viejo a más nuevo.
     final dias = <DateTime>[];
     final vistos = <int>{};
@@ -268,6 +299,8 @@ class UnlockGoal {
       need: need,
       have: have,
       declared: h.perWeek != null,
+      resting: h.restAt(now) != null,
+      restDays: dormidos,
     );
   }
 }

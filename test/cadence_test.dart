@@ -174,6 +174,42 @@ void main() {
       expect(UnlockGoal.of(h, at: manana).met, isFalse);
     });
 
+    test('los días en pausa no cuentan: lo de antes de pausar se guarda', () {
+      // Nueve días con pieza en la ventana de siempre y dos más justo antes,
+      // y los últimos cuatro en pausa. Sin saltarlos, esos cuatro eran días
+      // fallados y no llegaba; saltándolos, la ventana se corre y llega.
+      final hoy = DateTime(2026, 5, 20, 18);
+      final h = _habit(
+        now: hoy,
+        on: [4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15],
+        perWeek: 7,
+      );
+      h.rests.add(
+        Rest(DateTime(2026, 5, 16, 8), DateTime(2026, 5, 20, 13)).encode(),
+      );
+      final g = UnlockGoal.of(h, at: hoy);
+      expect(g.restDays, 4);
+      expect(g.resting, isFalse);
+      expect(g.have, greaterThanOrEqualTo(g.need));
+      expect(g.met, isTrue);
+    });
+
+    test('dormido ahora no abre la puerta, aunque haya llegado', () {
+      final hoy = DateTime(2026, 5, 20, 18);
+      final h = _habit(
+        now: hoy,
+        on: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        perWeek: 7,
+      );
+      h.rests.add(
+        Rest(DateTime(2026, 5, 19, 8), DateTime(2026, 5, 25, 8)).encode(),
+      );
+      final g = UnlockGoal.of(h, at: hoy);
+      expect(g.resting, isTrue);
+      expect(g.have, greaterThanOrEqualTo(g.need), reason: 'lo suyo se guarda');
+      expect(g.met, isFalse);
+    });
+
     test('todos los días es la regla de siempre: diez de catorce', () {
       final g = UnlockGoal.of(
         _habit(now: now, on: [0, 1, 2, 4, 5, 7, 8, 9, 11, 13], perWeek: 7),

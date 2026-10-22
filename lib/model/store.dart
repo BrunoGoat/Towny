@@ -357,14 +357,16 @@ class Store extends ChangeNotifier {
 
   /// Lo que falta para el siguiente, medido en el pueblo que más lejos está:
   /// como tienen que sostenerse todos a la vez, el que manda es el que va
-  /// peor. Con un solo pueblo, el de siempre.
+  /// peor. Uno en pausa va antes que cualquiera despierto: es el que tiene la
+  /// puerta cerrada aunque lleve todo. Con un solo pueblo, el de siempre.
   ///
   /// Días con pieza y no piezas: diez en una tarde son una tarde, y lo que
   /// esto pregunta es si la cosa se sostiene.
   UnlockGoal get unlockGoal {
     UnlockGoal? worst;
+    double peso(UnlockGoal g) => g.resting ? -1 : g.progress;
     for (final (_, g) in unlockGoals) {
-      if (worst == null || g.progress < worst.progress) worst = g;
+      if (worst == null || peso(g) < peso(worst)) worst = g;
     }
     return worst!;
   }
