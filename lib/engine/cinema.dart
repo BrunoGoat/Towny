@@ -192,11 +192,14 @@ class Cinema {
     _capaChica(
       canvas,
       rect,
-      ui.ImageFilter.blur(sigmaX: 1.5, sigmaY: 1.5, tileMode: TileMode.decal),
+      ui.ImageFilter.blur(sigmaX: 3.0, sigmaY: 3.0, tileMode: TileMode.decal),
     );
-    // Eran catorce copias; seis más separadas llegan igual de lejos, y cada
-    // una pesa lo que pesaban las que reemplaza.
-    const pasos = 6, junta = 14 / pasos;
+    // Eran catorce copias, después seis, y ahora tres más separadas, con más
+    // desenfoque para que no se vean los escalones: llegan igual de lejos y
+    // cada una pesa lo que pesaban las que reemplaza. **Cada copia es el
+    // pueblo entero pintado otra vez**, y con el sol en cuadro eran seis de
+    // nueve repintados por fotograma: mirar al sol hundía los fotogramas.
+    const pasos = 3, junta = 14 / pasos;
     for (var k = 0; k < pasos; k++) {
       final s = 1.0 + k * 0.055 * junta;
       final peso = cuanto * 0.16 * junta * math.pow(0.86, k * junta);
