@@ -237,6 +237,25 @@ class TownPainter extends CustomPainter {
     // por si la cuenta falla, o si no hay cielo libre donde quepa.
     fondo.drawShootingStar(canvas, size, p, horizonY);
     fondo.drawRanges(canvas, p, size, horizonY);
+    // Los rayos de sol, en calidad máxima: detrás del pueblo, que los tapa
+    // él solo. Salen del cielo y los montes, no del cuadro entero: ver
+    // [Cinema.raysBehind].
+    if (!overlays && scene.cinematic && RenderDebug.instance.rays) {
+      final cine = Cinema(scene.palette, p, size);
+      if (cine.raysWanted) {
+        final rec = ui.PictureRecorder();
+        final cielo = Canvas(rec, Offset.zero & size);
+        final solo = Backdrop(scene, TouchMap());
+        solo.drawSky(cielo, size, p, horizonY);
+        // El prado también, aunque no eche rayos: sin él, el cielo llega
+        // hasta abajo y lo claro de las copias le cae encima al pasto.
+        solo.drawGround(cielo, size, horizonY);
+        solo.drawRanges(cielo, p, size, horizonY);
+        final skyline = rec.endRecording();
+        cine.raysBehind(canvas, skyline);
+        skyline.dispose();
+      }
+    }
     // La gente se resuelve una vez por fotograma y se usa dos: para su sombra
     // en el suelo, que va debajo de todo, y para pintarla en su sitio del
     // orden, que va entre los edificios. Resolverla dos veces sería que la

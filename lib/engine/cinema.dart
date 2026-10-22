@@ -88,7 +88,8 @@ class Cinema {
     // se vuelve a pintar dentro, a un cuarto, con los filtros puestos, y al
     // cerrarla se amplía ×4. Todo queda en la tarjeta gráfica.
     if (dbg.bloom) _bloom(canvas, world, rect);
-    if (dbg.rays && _raysWanted) _rays(canvas, world, rect);
+    // Los rayos ya no van acá: los pinta el cielo, detrás del pueblo
+    // ([raysBehind]).
 
     _flare(canvas);
     _vignette(canvas, rect);
@@ -155,7 +156,9 @@ class Cinema {
             sigmaY: s,
             tileMode: TileMode.decal,
           ),
-          inner: ColorFilter.matrix(threshold(umbral, fuerza * k, tinte, calido: calido)),
+          inner: ColorFilter.matrix(
+            threshold(umbral, fuerza * k, tinte, calido: calido),
+          ),
         ),
       );
       canvas.drawPicture(world);
@@ -166,7 +169,7 @@ class Cinema {
   // ----------------------------------------------------------------- rayos
 
   /// Si hay sol delante, o cerca, para echar rayos.
-  bool get _raysWanted {
+  bool get raysWanted {
     // Sólo del sol. De noche lo único claro cerca de la luna son las casas
     // encendidas, y unos rayos saliendo de un tejado son un fallo.
     if (!pal.isDaylight) return false;
@@ -178,6 +181,18 @@ class Cinema {
         sol.dy > -lejos * 0.6 &&
         sol.dy < size.height + lejos * 0.4;
   }
+
+  /// Los rayos, pintados en el cielo, detrás del pueblo.
+  ///
+  /// **De [skyline] —el cielo y los montes— y no del cuadro entero.** Eran
+  /// copias del cuadro, y cada copia era el pueblo entero pintado otra vez:
+  /// con el sol en cuadro, mirar al sol hundía los fotogramas. El cielo y los
+  /// montes son unas pocas formas, y repetirlos no cuesta nada. Lo que tapa
+  /// el sol —un monte— sigue cortando los rayos; y como esto va antes del
+  /// pueblo, una casa delante del sol los tapa por estar delante, que es lo
+  /// que pasa de verdad.
+  void raysBehind(Canvas canvas, ui.Picture skyline) =>
+      _rays(canvas, skyline, Offset.zero & size);
 
   /// El cuadro repetido unas cuantas veces, cada vez un poco más grande
   /// alrededor del sol, quedándose sólo con lo claro. Lo que tapa el sol —un
@@ -309,17 +324,22 @@ class Cinema {
       final u = Offset(math.cos(ang), math.sin(ang));
       final desde = sol + u * (disco * 0.9);
       final hasta = sol + u * largo;
-      canvas.drawLine(
-        desde,
-        hasta,
-        Paint()
-          ..strokeWidth = 1.6
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.5)
-          ..shader = ui.Gradient.linear(desde, hasta, [
-            tinte.withValues(alpha: 0.45 * a),
-            tinte.withValues(alpha: 0),
-          ]),
-      );
+      // Sin desenfoque: en la web cada trazo desenfocado es una pasada más,
+      // y esto se pinta en cada fotograma con el sol en cuadro. Una raya
+      // ancha y tenue debajo de una fina hace lo mismo a la vista.
+      for (final (ancho, k) in [(4.5, 0.35), (1.4, 1.0)]) {
+        canvas.drawLine(
+          desde,
+          hasta,
+          Paint()
+            ..strokeWidth = ancho
+            ..strokeCap = StrokeCap.round
+            ..shader = ui.Gradient.linear(desde, hasta, [
+              tinte.withValues(alpha: 0.45 * a * k),
+              tinte.withValues(alpha: 0),
+            ]),
+        );
+      }
     }
   }
 
