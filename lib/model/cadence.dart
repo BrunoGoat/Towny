@@ -199,6 +199,9 @@ enum DayMark {
 
   /// En pausa y sin pieza: la cuenta se lo salta.
   asleep,
+
+  /// Antes de que el pueblo existiera.
+  unborn,
 }
 
 class UnlockGoal {
@@ -211,7 +214,10 @@ class UnlockGoal {
     this.resting = false,
     this.restDays = 0,
     this.calendar = const [],
-  });
+    double? expectedFull,
+    double? expectedLived,
+  }) : expectedFull = expectedFull ?? perWeek * window / 7,
+       expectedLived = expectedLived ?? expectedFull ?? perWeek * window / 7;
 
   /// El ritmo contra el que se mide, en veces por semana.
   final double perWeek;
@@ -247,6 +253,15 @@ class UnlockGoal {
   /// uno: para enseñarlos, no para contar.
   final List<(DateTime, DayMark)> calendar;
 
+  /// Cuántos días con pieza pide la ventana entera, cada día con el ritmo
+  /// que tenía: el cien por cien, del que [need] es el setenta.
+  final double expectedFull;
+
+  /// Lo mismo, contando sólo los días en que el pueblo ya existía: contra
+  /// esto se dice el porcentaje, para que un pueblo nuevo no arranque
+  /// castigado por los días en que no estaba.
+  final double expectedLived;
+
   /// Cuántas veces se puede fallar por el camino y abrir igual.
   int get slack => (perWeek * window / 7 + 1e-9).floor() - need;
 
@@ -260,15 +275,28 @@ class UnlockGoal {
   /// [need], que es el setenta por ciento hacia arriba—: llegado nunca dice
   /// menos que la meta, y sin llegar nunca dice la meta.
   int get percent {
-    final esperable = perWeek * window / 7;
-    final p = esperable <= 0 ? 100 : (100 * have / esperable).round();
+    final p = expectedLived <= 0
+        ? 0
+        : (100 * have / expectedLived).round().clamp(0, 100);
     final meta = goalPercent;
-    return have >= need ? p.clamp(meta, 100) : p.clamp(0, meta - 1);
+    // Llegado, nunca menos que la meta. Sin llegar con la ventana entera
+    // vivida, nunca la meta. Un pueblo más nuevo que la ventana puede ir por
+    // encima —va bien— y todavía no llegar: le faltan días, no ganas.
+    if (have >= need) return math.max(p, meta);
+    if (!young) return math.min(p, meta - 1);
+    return p;
   }
+
+  /// Si el pueblo es más nuevo que la ventana: tiene días de antes de
+  /// fundarse dentro de la cuenta.
+  bool get young => expectedLived < expectedFull - 1e-9;
+
+  /// Si va al ritmo de la meta, haya llegado o no: lo que pinta la cuenta.
+  bool get onTrack => !resting && percent >= goalPercent;
 
   /// Cuántos días con pieza pide su ritmo entero en la ventana: el cien por
   /// cien, del que [need] es el setenta.
-  int get expected => math.max(need, (perWeek * window / 7).round());
+  int get expected => math.max(need, expectedFull.round());
 
   /// La meta, en por ciento: [share].
   static int get goalPercent => (share * 100).round();
@@ -284,8 +312,8 @@ class UnlockGoal {
     // lo de siempre, todos los días.
     final f = h.perWeek ?? 7.0;
     final window = f >= 3 ? 14 : 28;
-    final need = (share * f * window / 7 - 1e-9).ceil();
     final today = dayStart(now);
+    final born = dayStart(h.createdAt);
     // **La ventana cuenta días despiertos.** Un día en pausa sin pieza no
     // cuenta ni a favor ni en contra: la ventana se corre hacia atrás para
     // saltarlo. Pausar una semana y volver a los dos días no tira lo que se
@@ -298,13 +326,31 @@ class UnlockGoal {
     var dormidos = 0;
     for (var i = 0; despiertos < window && i < window + 366; i++) {
       final d = DateTime(today.year, today.month, today.day - i);
-      if (h.restedOn(d) && !conPieza.contains(dayKey(d))) {
+      if (!d.isBefore(born) && h.restedOn(d) && !conPieza.contains(dayKey(d))) {
         dormidos++;
       } else {
         despiertos++;
       }
       desde = d;
     }
+    // **Cada día con el ritmo que tenía** ([Habit.paceOn]). Lo que se pide es
+    // la suma: bajar el ritmo hoy alivia de hoy en adelante, no hacia atrás.
+    // Los días de antes de fundar el pueblo cuentan para lo que se pide —la
+    // puerta pide la ventana entera— pero no para el porcentaje.
+    var pide = 0.0;
+    var vivido = 0.0;
+    for (
+      var d = desde;
+      !d.isAfter(today);
+      d = DateTime(d.year, d.month, d.day + 1)
+    ) {
+      final nacido = !d.isBefore(born);
+      if (nacido && h.restedOn(d) && !conPieza.contains(dayKey(d))) continue;
+      final r = h.paceOn(nacido ? d : born) / 7;
+      pide += r;
+      if (nacido) vivido += r;
+    }
+    final need = (share * pide - 1e-9).ceil();
     // Los días con pieza dentro de la ventana, de más viejo a más nuevo.
     final dias = <DateTime>[];
     final vistos = <int>{};
@@ -322,15 +368,14 @@ class UnlockGoal {
     // los cortes: se quedan los días que se pueden quedar sin pasarse del
     // ritmo en ninguna semana —de más viejo a más nuevo, que es la manera de
     // quedarse con más—, y la cuenta sólo sube al poner una pieza. Con los
-    // días que pasan, como mucho baja.
-    final tope = f.ceil();
+    // días que pasan, como mucho baja. El tope es el ritmo de ese día.
     final quedan = <DateTime>[];
     for (final d in dias) {
       var enSemana = 0;
       for (final q in quedan) {
         if (daysBetween(q, d) < 7) enSemana++;
       }
-      if (enSemana < tope) quedan.add(d);
+      if (enSemana < h.paceOn(d).ceil()) quedan.add(d);
     }
     final have = quedan.length;
     final cuentan = {for (final d in quedan) dayKey(d)};
@@ -342,7 +387,9 @@ class UnlockGoal {
       )
         (
           d,
-          cuentan.contains(dayKey(d))
+          d.isBefore(born)
+              ? DayMark.unborn
+              : cuentan.contains(dayKey(d))
               ? DayMark.counted
               : conPieza.contains(dayKey(d))
               ? DayMark.extra
@@ -360,6 +407,8 @@ class UnlockGoal {
       resting: h.restAt(now) != null,
       restDays: dormidos,
       calendar: calendar,
+      expectedFull: pide,
+      expectedLived: vivido,
     );
   }
 }

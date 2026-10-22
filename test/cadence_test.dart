@@ -224,13 +224,62 @@ void main() {
           final g = UnlockGoal.of(h, at: hoy);
           if (g.met) {
             expect(g.percent, greaterThanOrEqualTo(UnlockGoal.goalPercent));
-          } else {
+          } else if (!g.young) {
             expect(g.percent, lessThan(UnlockGoal.goalPercent));
           }
           expect(g.percent, inInclusiveRange(0, 100));
         }
       }
     });
+
+    test('decir el ritmo la primera semana vale para todo el pueblo', () {
+      // Cinco seguidos, falla el sexto, y en la charla dice «cinco por
+      // semana»: lo hecho cuenta entero contra el ritmo que dijo.
+      final s = Store();
+      final hoy = DateTime.now();
+      final h = _habit(now: hoy, age: 6, on: [1, 2, 3, 4, 5]);
+      s.setCadence(h, 5);
+      expect(h.paces, isEmpty, reason: 'decirlo no es cambiarlo');
+      expect(h.paceOn(DateTime(hoy.year, hoy.month, hoy.day - 5)), 5);
+      final g = UnlockGoal.of(h, at: hoy);
+      expect(g.young, isTrue);
+      expect(g.onTrack, isTrue, reason: 'va bien aunque le falten días');
+      expect(g.met, isFalse, reason: 'la ventana entera todavía no está');
+    });
+
+    test('bajar el ritmo después no abre la puerta con los días de antes', () {
+      // Un pueblo de dos meses, todos los días, que viene flojo: seis de
+      // catorce. Bajarlo a una por semana hoy no lo hace llegar.
+      final s = Store();
+      final hoy = DateTime.now();
+      final h = _habit(now: hoy, age: 60, on: [1, 3, 5, 8, 10, 12], perWeek: 7);
+      expect(UnlockGoal.of(h, at: hoy).met, isFalse);
+      s.setCadence(h, 1);
+      expect(h.paces.length, 2, reason: 'el de antes y el de ahora');
+      final g = UnlockGoal.of(h, at: hoy);
+      expect(g.met, isFalse);
+      // Y de hoy en adelante, sí vale el nuevo.
+      expect(h.paceOn(dayStart(hoy)), 1);
+      expect(h.paceOn(DateTime(hoy.year, hoy.month, hoy.day - 3)), 7);
+    });
+
+    test(
+      'un pueblo nuevo no arranca castigado por los días que no existía',
+      () {
+        final hoy = DateTime(2026, 5, 20, 12);
+        final g = UnlockGoal.of(
+          _habit(now: hoy, age: 4, on: [0, 1, 2, 3, 4], perWeek: 7),
+          at: hoy,
+        );
+        expect(g.percent, 100);
+        expect(g.met, isFalse);
+        expect(
+          g.calendar.where((c) => c.$2 == DayMark.unborn).length,
+          14 - 5,
+          reason: 'los días de antes de fundarlo, en blanco',
+        );
+      },
+    );
 
     test('todos los días es la regla de siempre: diez de catorce', () {
       final g = UnlockGoal.of(

@@ -237,7 +237,7 @@ class _UnlockSheetState extends State<UnlockSheet> {
                               color: i < g.have
                                   ? (g.resting ? UnlockSheet._luna : t.accent)
                                         .withValues(
-                                          alpha: g.met || g.resting
+                                          alpha: g.onTrack || g.resting
                                               ? 0.85
                                               : 0.45,
                                         )
@@ -348,10 +348,10 @@ class _HabitLine extends StatelessWidget {
                 Text(
                   UnlockSheet._state(g),
                   style: small.copyWith(
-                    fontWeight: g.met ? FontWeight.w700 : FontWeight.w500,
+                    fontWeight: g.onTrack ? FontWeight.w700 : FontWeight.w500,
                     color: g.resting
                         ? UnlockSheet._luna
-                        : (g.met ? t.accent : velo.tenue),
+                        : (g.onTrack ? t.accent : velo.tenue),
                   ),
                 ),
                 const SizedBox(width: 2),
@@ -433,7 +433,7 @@ class _Detail extends StatelessWidget {
           color: switch (marca) {
             DayMark.counted => acento.withValues(alpha: 0.85),
             DayMark.missed => velo.cuerpo.withValues(alpha: 0.10),
-            DayMark.extra || DayMark.asleep => null,
+            DayMark.extra || DayMark.asleep || DayMark.unborn => null,
           },
           border: marca == DayMark.extra
               ? Border.all(color: acento.withValues(alpha: 0.85), width: 1.5)

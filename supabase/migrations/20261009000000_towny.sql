@@ -66,6 +66,9 @@ create table if not exists public.habits (
   -- Cuántas veces por semana: «cada dos días» son 3,5 y «cada dos semanas»,
   -- 0,5.
   per_week real check (per_week between 0.5 and 7),
+  -- Desde cuándo valió cada ritmo, `milisegundos|veces` (vacío: sin decir).
+  -- El candado mide cada día con el que tenía.
+  paces text[] not null default '{}',
   cadence_asked_at timestamptz,
   -- El «ahora no» de la pregunta del ritmo.
   cadence_later_at timestamptz,

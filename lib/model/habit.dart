@@ -42,13 +42,15 @@ class Habit {
     List<String>? notes,
     List<String>? rests,
     List<String>? stumbles,
+    List<String>? paces,
   }) : character = character ?? TownCharacter.forSlot(slot).order,
        pieces = pieces ?? [],
        chronicle = chronicle ?? [],
        folk = folk ?? [],
        notes = notes ?? [],
        rests = rests ?? [],
-       stumbles = stumbles ?? [];
+       stumbles = stumbles ?? [],
+       paces = paces ?? [];
 
   /// Never reused and never changed: it is what a saved town is filed under.
   final String id;
@@ -179,6 +181,36 @@ class Habit {
   /// lo que ya ve marcado, y se puede cambiar después en la hoja del hábito.
   /// Nulo es no haberlo dicho, y entonces vale lo que se ve.
   double? perWeek;
+
+  /// Desde cuándo valió cada ritmo, `milisegundos|veces` y vacío detrás de la
+  /// raya para «sin decir», del más viejo al más nuevo. Vacía si nunca se
+  /// cambió: entonces vale [perWeek] para todo el pueblo.
+  ///
+  /// Existe para el candado. Un ritmo nuevo vale desde el día que se cambia, y
+  /// los días de antes se miden con el que tenían: si no, bajar el ritmo justo
+  /// antes de mirar abría la puerta con días que no la merecían.
+  final List<String> paces;
+
+  /// El ritmo que valía ese día del calendario, en veces por semana. Sin decir,
+  /// todos los días.
+  double paceOn(DateTime day) {
+    double? vale = perWeek;
+    var hay = false;
+    for (final linea in paces) {
+      final cut = linea.indexOf('|');
+      final ms = cut > 0 ? int.tryParse(linea.substring(0, cut)) : null;
+      if (ms == null) continue;
+      final desde = DateTime.fromMillisecondsSinceEpoch(ms);
+      final v = double.tryParse(linea.substring(cut + 1));
+      // Lo que vale antes del primer cambio es lo que ese cambio dejó atrás,
+      // que se apunta con la fecha de fundación.
+      if (!hay || !DateTime(desde.year, desde.month, desde.day).isAfter(day)) {
+        vale = v;
+        hay = true;
+      }
+    }
+    return vale ?? 7.0;
+  }
 
   /// Cuándo se contestó la pregunta por la frecuencia. Una vez contestada no
   /// se vuelve a hacer.
@@ -399,6 +431,7 @@ class Habit {
     if (cadenceAskedAt != null) 'ca': cadenceAskedAt!.millisecondsSinceEpoch,
     if (cadenceLaterAt != null) 'cl': cadenceLaterAt!.millisecondsSinceEpoch,
     if (rests.isNotEmpty) 'r': rests,
+    if (paces.isNotEmpty) 'pc': paces,
     if (askedAt != null) 'k': askedAt!.millisecondsSinceEpoch,
     if (nudgedAt != null) 'g': nudgedAt!.millisecondsSinceEpoch,
     if (nudgesIgnored > 0) 'gi': nudgesIgnored,
@@ -457,6 +490,7 @@ class Habit {
           ? null
           : DateTime.fromMillisecondsSinceEpoch((j['cl'] as num).toInt()),
       rests: [for (final e in (j['r'] as List?) ?? []) e.toString()],
+      paces: [for (final e in (j['pc'] as List?) ?? []) e.toString()],
       askedAt: (j['k'] as num?) == null
           ? null
           : DateTime.fromMillisecondsSinceEpoch((j['k'] as num).toInt()),

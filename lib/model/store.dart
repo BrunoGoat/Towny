@@ -723,9 +723,24 @@ class Store extends ChangeNotifier {
   /// semana: quien lo cambió en la hoja del hábito no necesita que el pueblo
   /// se lo pregunte después.
   void setCadence(Habit h, double? perWeek) {
-    h.perWeek = perWeek != null && perWeek >= 0.5 && perWeek <= 7
+    final nuevo = perWeek != null && perWeek >= 0.5 && perWeek <= 7
         ? perWeek
         : null;
+    final viejo = h.perWeek;
+    final now = DateTime.now();
+    // Desde cuándo vale, para el candado: ver [Habit.paces]. Decirlo por
+    // primera vez en las dos primeras semanas —que es cuando el pueblo lo
+    // pregunta— no es cambiarlo sino decir cuál era, y vale para todo el
+    // pueblo. Cualquier otro cambio vale desde hoy.
+    String linea(DateTime at, double? v) =>
+        '${at.millisecondsSinceEpoch}|${v ?? ''}';
+    final primero =
+        viejo == null && h.paces.isEmpty && daysBetween(h.createdAt, now) < 14;
+    if (nuevo != viejo && !primero) {
+      if (h.paces.isEmpty) h.paces.add(linea(h.createdAt, viejo));
+      h.paces.add(linea(now, nuevo));
+    }
+    h.perWeek = nuevo;
     h.cadenceAskedAt ??= DateTime.now();
     // Un ritmo más holgado puede abrir la puerta con lo que ya había puesto.
     _checkUnlock();

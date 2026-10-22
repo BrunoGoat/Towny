@@ -240,6 +240,7 @@ ValleyRows toRows(LocalSnapshot local, String userId) {
       'plan_if': h['pi'],
       'plan_then': h['pt'],
       'stumbles': [for (final s in (h['tr'] as List?) ?? const []) '$s'],
+      'paces': [for (final s in (h['pc'] as List?) ?? const []) '$s'],
       'per_week': h['pw'],
       'cadence_asked_at': _when(h['ca']),
       'cadence_later_at': _when(h['cl']),
@@ -394,6 +395,8 @@ LocalSnapshot fromRows(ValleyRows rows) {
       if (text('plan_then') case final v?) 'pt': v,
       if ((h['stumbles'] as List?) case final List v when v.isNotEmpty)
         'tr': [for (final s in v) '$s'],
+      if ((h['paces'] as List?) case final List v when v.isNotEmpty)
+        'pc': [for (final s in v) '$s'],
       // Entero cuando es entero, como lo escribe el teléfono: «cada dos días»
       // son 3,5 y no 3.
       if (h['per_week'] case final num v) 'pw': v % 1 == 0 ? v.round() : v,
