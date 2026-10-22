@@ -233,6 +233,22 @@ class UnlockGoal {
   bool get met => !resting && have >= need;
   double get progress => need <= 0 ? 1 : (have / need).clamp(0.0, 1.0);
 
+  /// Qué parte de lo esperable lleva, en por ciento: los días con pieza
+  /// contra los que pide su ritmo en la ventana.
+  ///
+  /// Redondeado de manera que no contradiga a [met] —hace falta llegar a
+  /// [need], que es el setenta por ciento hacia arriba—: llegado nunca dice
+  /// menos que la meta, y sin llegar nunca dice la meta.
+  int get percent {
+    final esperable = perWeek * window / 7;
+    final p = esperable <= 0 ? 100 : (100 * have / esperable).round();
+    final meta = goalPercent;
+    return have >= need ? p.clamp(meta, 100) : p.clamp(0, meta - 1);
+  }
+
+  /// La meta, en por ciento: [share].
+  static int get goalPercent => (share * 100).round();
+
   /// Qué parte de lo esperable hay que juntar.
   static const double share = 0.7;
 

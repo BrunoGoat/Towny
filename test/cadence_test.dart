@@ -210,6 +210,28 @@ void main() {
       expect(g.met, isFalse);
     });
 
+    test('el porcentaje nunca contradice a la puerta', () {
+      // Llegado, nunca menos que la meta; sin llegar, nunca la meta.
+      final hoy = DateTime(2026, 5, 20, 12);
+      for (final ritmo in [1, 2, 3, 4, 5, 6, 7]) {
+        for (var n = 0; n <= 28; n++) {
+          final h = _habit(
+            now: hoy,
+            age: 60,
+            on: [for (var d = 0; d < n; d++) d],
+            perWeek: ritmo,
+          );
+          final g = UnlockGoal.of(h, at: hoy);
+          if (g.met) {
+            expect(g.percent, greaterThanOrEqualTo(UnlockGoal.goalPercent));
+          } else {
+            expect(g.percent, lessThan(UnlockGoal.goalPercent));
+          }
+          expect(g.percent, inInclusiveRange(0, 100));
+        }
+      }
+    });
+
     test('todos los días es la regla de siempre: diez de catorce', () {
       final g = UnlockGoal.of(
         _habit(now: now, on: [0, 1, 2, 4, 5, 7, 8, 9, 11, 13], perWeek: 7),

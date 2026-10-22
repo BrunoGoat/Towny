@@ -81,68 +81,61 @@ class UnlockSheet extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 10),
-            if (varios) ...[
-              Text(
-                tr(
-                  'Sostené los ${store.habits.length} a la vez.',
-                  'Keep up all ${store.habits.length} at once.',
-                ),
-                style: t.title.copyWith(color: velo.cuerpo),
-              ),
-              const SizedBox(height: 16),
-              for (final (h, g) in store.unlockGoals) ...[
-                Row(
-                  children: [
-                    if (g.resting) ...[
-                      const HabitSigil(symbol: 'moon', color: _luna, size: 15),
-                      const SizedBox(width: 6),
-                    ],
-                    Expanded(
-                      child: Text(
-                        h.name,
-                        style: t.body.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: velo.cuerpo,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+            Text(
+              varios
+                  ? tr(
+                      'Sostené los ${store.habits.length} a la vez.',
+                      'Keep up all ${store.habits.length} at once.',
+                    )
+                  : goal.resting
+                  ? tr('Tu pueblo está en pausa.', 'Your town is resting.')
+                  : left <= 1
+                  ? tr(
+                      'Te falta un día con pieza.',
+                      'You need one more day with a piece.',
+                    )
+                  : tr(
+                      'Te faltan $left días con pieza.',
+                      'You need $left more days with a piece.',
                     ),
-                    Text(
-                      _state(g),
-                      style: chico.copyWith(
-                        color: g.resting
-                            ? _luna
-                            : (g.met ? t.accent : velo.suave),
-                      ),
-                    ),
+              style: t.title.copyWith(color: velo.cuerpo),
+            ),
+            const SizedBox(height: 16),
+            for (final (h, g) in store.unlockGoals) ...[
+              Row(
+                children: [
+                  if (g.resting) ...[
+                    const HabitSigil(symbol: 'moon', color: _luna, size: 15),
+                    const SizedBox(width: 6),
                   ],
-                ),
-                const SizedBox(height: 6),
-                _days(t, velo, g),
-                const SizedBox(height: 14),
-              ],
-            ] else ...[
-              Text(
-                goal.resting
-                    ? tr('Tu pueblo está en pausa.', 'Your town is resting.')
-                    : left <= 1
-                    ? tr(
-                        'Te falta un día con pieza.',
-                        'You need one more day with a piece.',
-                      )
-                    : tr(
-                        'Te faltan $left días con pieza.',
-                        'You need $left more days with a piece.',
+                  Expanded(
+                    child: Text(
+                      h.name,
+                      style: t.body.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: velo.cuerpo,
                       ),
-                style: t.title.copyWith(color: velo.cuerpo),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Text(
+                    _state(g),
+                    style: chico.copyWith(
+                      fontWeight: g.met ? FontWeight.w700 : FontWeight.w500,
+                      color: g.resting
+                          ? _luna
+                          : (g.met ? t.accent : velo.tenue),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              _days(t, velo, goal),
+              const SizedBox(height: 6),
+              _days(t, velo, g),
               const SizedBox(height: 14),
             ],
             // Lo único que hace falta saber, y nada más: qué cuenta, y que no
             // es una racha.
-            Text(_rule(goal, varios), style: chico),
+            Text(_rule(varios), style: chico),
             // Sin ritmo dicho se mide como de todos los días: quien va dos
             // veces por semana tiene que saber dónde se cambia.
             if (store.unlockGoals.any((e) => !e.$2.declared)) ...[
@@ -161,47 +154,40 @@ class UnlockSheet extends StatelessWidget {
     );
   }
 
-  /// Cómo va un pueblo, en dos o tres palabras.
+  /// Cómo va un pueblo: lo que lleva contra la meta. Dormido, lo mismo y
+  /// que duerme.
   static String _state(UnlockGoal g) {
-    if (g.resting) return tr('en pausa', 'resting');
-    if (g.met) return tr('listo', 'done');
-    final n = g.need - g.have;
-    return n <= 1
-        ? tr('falta 1 día', '1 day left')
-        : tr('faltan $n días', '$n days left');
+    final meta = UnlockGoal.goalPercent;
+    if (g.resting) {
+      return tr('${g.percent}% · en pausa', '${g.percent}% · resting');
+    }
+    return tr('${g.percent}% · meta $meta%', '${g.percent}% · goal $meta%');
   }
 
-  /// Qué cuenta, en una línea: los días con pieza, en qué ventana, y que no
-  /// hace falta que sean seguidos. Con varios pueblos, cada uno a su ritmo.
-  static String _rule(UnlockGoal g, bool varios) {
-    if (varios) {
-      return tr(
-        'Cuentan los días con pieza de cada uno, a su ritmo. No hace falta '
-            'que sean seguidos.',
-        "Days with a piece count, each at its own pace. They don't have to "
-            'be in a row.',
-      );
-    }
-    if (g.perWeek >= 7) {
-      return tr(
-        '${g.need} días con pieza de los últimos ${g.window}. No hace falta '
-            'que sean seguidos.',
-        "${g.need} days with a piece out of the last ${g.window}. They don't "
-            'have to be in a row.',
-      );
-    }
-    return tr(
-      '${g.need} días con pieza en ${g.window ~/ 7} semanas, hasta ${g.cap} '
-          'por semana. No hace falta que sean seguidos.',
-      "${g.need} days with a piece in ${g.window ~/ 7} weeks, up to ${g.cap} "
-          "a week. They don't have to be in a row.",
-    );
+  /// Qué hace falta, en una línea: cada hábito al setenta por ciento de su
+  /// ritmo. Dice solo que se puede fallar, sin hablar de rachas.
+  static String _rule(bool varios) {
+    final meta = UnlockGoal.goalPercent;
+    return varios
+        ? tr(
+            'Mantené cada hábito al $meta% del ritmo que le marcaste para '
+                'abrir el siguiente pueblo.',
+            'Keep each habit at $meta% of the pace you set for it to open '
+                'the next town.',
+          )
+        : tr(
+            'Mantené tu hábito al $meta% del ritmo que le marcaste para '
+                'abrir el siguiente pueblo.',
+            'Keep your habit at $meta% of the pace you set for it to open '
+                'the next town.',
+          );
   }
 
   /// Los días que hacen falta, uno por casilla, con los ganados encendidos.
   ///
   /// Dibujado y no dicho: «6 de 10» es un dato y esto es una cuenta atrás que
   /// se ve llenarse, que es lo que hace que se quiera volver a mirar mañana.
+  /// Desteñida mientras no llega a la meta, y del color del pueblo al llegar.
   ///
   /// Dormido, la cuenta se pone del color de la luna: lo que llevaba sigue
   /// ahí, entero, pero quieto.
@@ -215,7 +201,9 @@ class UnlockSheet extends StatelessWidget {
               height: 10,
               decoration: BoxDecoration(
                 color: i < g.have
-                    ? (g.resting ? _luna : t.accent).withValues(alpha: 0.85)
+                    ? (g.resting ? _luna : t.accent).withValues(
+                        alpha: g.met || g.resting ? 0.85 : 0.45,
+                      )
                     : (g.resting ? _luna : velo.cuerpo).withValues(
                         alpha: g.resting ? 0.18 : 0.14,
                       ),
