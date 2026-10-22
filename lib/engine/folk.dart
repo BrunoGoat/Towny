@@ -1761,9 +1761,14 @@ List<Townsfolk> folkOf(TownLayout layout, int placed) {
       >[];
   var hayPuesto = false;
   final ocupado = <String, PropKind>{};
+  // La primera casa del pueblo, la de su primer vecino: ver [adultSeed].
+  final primera = layout.buildings
+      .where((b) => !b.isLandmark)
+      .fold<int?>(null, (m, b) => m == null || b.index < m ? b.index : m);
   for (final b in casas) {
     final apuntado = padron[b.index];
-    final seed = apuntado?.$1 ?? folkSeedOf(layout.seed, b.seed, b.index);
+    final nacida = apuntado?.$1 ?? folkSeedOf(layout.seed, b.seed, b.index);
+    final seed = b.index == primera ? adultSeed(nacida) : nacida;
     // La puerta, del lado por el que se sale al pueblo, y justo fuera de su
     // propia pared: si cae dentro, el vecino empieza el día dentro de su casa
     // y sale de ella atravesándola.
@@ -2397,6 +2402,21 @@ Doing _actAt(Where where, int seed, int k, bool kid) {
 /// ropa, mismo nombre— en todos los pueblos de todo el mundo.
 int folkSeedOf(int townSeed, int buildingSeed, int index) =>
     hash32(hash32(buildingSeed, 0xF01C, index), 0x70A7, townSeed);
+
+/// [seed], o la primera semilla de adulto que sale de ella.
+///
+/// **El primer vecino de un pueblo nunca es un crío.** Uno de cada cuatro lo
+/// es, y en un pueblo recién fundado el primero es el único que hay: un crío
+/// solo, a dos tercios de la talla de un adulto al lado de su casa, se leía
+/// como un pueblo de enanos. Se aplica al pintar y no al escribir el padrón,
+/// así que vale también para los pueblos que ya lo tenían apuntado.
+int adultSeed(int seed) {
+  var s = seed;
+  for (var i = 1; hash01(s, 12) < 0.24 && i < 32; i++) {
+    s = hash32(seed, 0xAD17, i);
+  }
+  return s;
+}
 
 /// El padrón de [layout], leído.
 ///

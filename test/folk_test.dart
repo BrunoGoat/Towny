@@ -30,6 +30,21 @@ void main() {
   _nacimientos();
   _salirDeCasa();
   group('quién vive en el pueblo', () {
+    test('el primer vecino de un pueblo nunca es un crío', () {
+      // En un pueblo recién fundado el primero es el único: un crío solo al
+      // lado de su casa se leía como un pueblo de enanos.
+      var vistos = 0;
+      for (var seed = 1; seed <= 60; seed++) {
+        final l = TownLayout(30, TownCharacter.all[seed % 8], seed: seed);
+        final gente = folkOf(l, 30).where((v) => !v.sage).toList();
+        if (gente.isEmpty) continue;
+        final primero = gente.reduce((a, b) => a.home < b.home ? a : b);
+        expect(primero.kid, isFalse, reason: 'pueblo $seed');
+        vistos++;
+      }
+      expect(vistos, greaterThan(40));
+    });
+
     test('una casa terminada, un vecino; ni uno más ni uno menos', () {
       for (final n in [1, 5, 20, 80, 300]) {
         final t = _town(n);
