@@ -204,9 +204,7 @@ class UnlockSheet extends StatelessWidget {
   /// se ve llenarse, que es lo que hace que se quiera volver a mirar mañana.
   ///
   /// Dormido, la cuenta se pone del color de la luna: lo que llevaba sigue
-  /// ahí, entero, pero quieto. Y si la cuenta se saltó días en pausa, al final
-  /// va una lunita con cuántos: sin una palabra, dice que esos días no
-  /// contaron ni a favor ni en contra.
+  /// ahí, entero, pero quieto.
   Widget _days(UiTheme t, SheetInk velo, UnlockGoal g) => Row(
     children: [
       for (var i = 0; i < g.need; i++)
@@ -226,19 +224,6 @@ class UnlockSheet extends StatelessWidget {
             ),
           ),
         ),
-      if (g.restDays > 0 && !g.resting) ...[
-        const SizedBox(width: 4),
-        const HabitSigil(symbol: 'moon', color: _luna, size: 13),
-        const SizedBox(width: 2),
-        Text(
-          '${g.restDays}',
-          style: t.bodySoft.copyWith(
-            fontSize: 11.5,
-            color: _luna,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
     ],
   );
 
