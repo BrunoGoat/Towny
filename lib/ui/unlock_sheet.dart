@@ -252,7 +252,7 @@ class _UnlockSheetState extends State<UnlockSheet> {
                               color: i < g.have
                                   ? (g.resting ? UnlockSheet._luna : t.accent)
                                         .withValues(
-                                          alpha: g.onTrack || g.resting
+                                          alpha: g.met || g.resting
                                               ? 0.85
                                               : 0.45,
                                         )
@@ -363,10 +363,10 @@ class _HabitLine extends StatelessWidget {
                 Text(
                   UnlockSheet._state(g),
                   style: small.copyWith(
-                    fontWeight: g.onTrack ? FontWeight.w700 : FontWeight.w500,
+                    fontWeight: g.met ? FontWeight.w700 : FontWeight.w500,
                     color: g.resting
                         ? UnlockSheet._luna
-                        : (g.onTrack ? t.accent : velo.tenue),
+                        : (g.met ? t.accent : velo.tenue),
                   ),
                 ),
                 const SizedBox(width: 2),
