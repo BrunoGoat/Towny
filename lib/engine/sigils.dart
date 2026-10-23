@@ -813,16 +813,40 @@ final Map<String, void Function(_Pen)> _glyphs = {
     );
   },
   'horseshoe': (p) {
-    p.line(
-      16,
-      (q) => q.addArc(
-        Rect.fromCircle(center: const Offset(50, 48), radius: 31),
-        math.pi * 0.75,
-        math.pi * 1.5,
-      ),
+    // Una herradura de verdad: la banda ancha que da más de media vuelta y se
+    // cierra hacia abajo, con los clavos a lo largo y las puntas gruesas. Recta
+    // de abajo era un arco de puerta, y con dos bolitas, un imán.
+    const c = Offset(50, 50);
+    const fuera = 43.0, dentro = 25.0, medio = (fuera + dentro) / 2;
+    const desde = math.pi * 0.72, vuelta = math.pi * 1.56;
+    Offset en(double r, double a) =>
+        c + Offset(math.cos(a) * r, math.sin(a) * r);
+    p.fill(
+      (q) {
+        q.addArc(Rect.fromCircle(center: c, radius: fuera), desde, vuelta);
+        final fin = en(dentro, desde + vuelta);
+        q.lineTo(fin.dx, fin.dy);
+        q.arcTo(
+          Rect.fromCircle(center: c, radius: dentro),
+          desde + vuelta,
+          -vuelta,
+          false,
+        );
+        q.close();
+      },
+      cut: (q) {
+        for (final g in [165.0, 205.0, 245.0, 295.0, 335.0, 15.0]) {
+          q.addOval(
+            Rect.fromCircle(center: en(medio, g * math.pi / 180), radius: 4),
+          );
+        }
+      },
     );
-    p.dot(28, 70, 10);
-    p.dot(72, 70, 10);
+    // Los talones: las dos puntas, un poco más anchas.
+    for (final a in [desde, desde + vuelta]) {
+      final t = en(medio, a);
+      p.dot(t.dx, t.dy, 10.5);
+    }
   },
 
   // ------------------------------------------------------------- el cuerpo
