@@ -269,8 +269,12 @@ el cartel del pueblo y en el tablón.
   y `--dart-define=SOLO=leaf,fist` para unos pocos). Se rehicieron 16: hoja,
   pluma, laúd, pincel, escoba, bolsa, farol, pan, puño, mano, martillo,
   brújula, hoz, espejo, peine y nube.
-- [ ] Mirarlos **en la app** —en la barra, el cartel y el tablón— y ver si se
-  entienden ahí.
+- [x] Mirarlos **en la app** y ver si se entienden ahí. Revisados en el
+  selector, en la web. Los agujeros que quedaban enteros dentro de la figura
+  no salían en la web (ojos, puntos del dado, cruz del escudo…) y ya salen.
+  Se rehicieron además corredor, laúd, pincel, yunque, torre, olla, escudo,
+  espejo, puerta, pergamino y herradura, y se agrandaron los ojos de pez,
+  pájaro y gato.
 
 ---
 
