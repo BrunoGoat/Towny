@@ -371,6 +371,22 @@ class Store extends ChangeNotifier {
     return worst!;
   }
 
+  /// Cuánto falta para el siguiente, de cero a uno, contando a todos: el
+  /// anillo del candado. Lo que lleva cada pueblo hacia su meta, promediado.
+  ///
+  /// Lleno sólo cuando todos llegaron; si entonces sigue cerrado es porque
+  /// alguno duerme. Medido en el que va peor, con uno en pausa que ya había
+  /// llegado se veía lleno aunque los demás no llegaran.
+  double get unlockProgress {
+    final metas = unlockGoals;
+    if (metas.isEmpty) return 0;
+    var suma = 0.0;
+    for (final (_, g) in metas) {
+      suma += g.progress;
+    }
+    return suma / metas.length;
+  }
+
   /// Si lo de hoy gana un solar, dejarlo escrito.
   ///
   /// Se mira al poner una pieza, al decir un ritmo y al cargar, que es cuando

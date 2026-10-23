@@ -706,6 +706,28 @@ void main() {
     });
 
     test(
+      'el anillo cuenta a todos: uno dormido y llegado no lo llena',
+      () async {
+        // Lo que pasaba: mandaba el que duerme, que ya había llegado, y el
+        // anillo del más salía lleno con el otro a medio camino.
+        final s = await freshStore();
+        sostener(s.habit);
+        s.placePiece();
+        s.addHabit('Correr', 'run');
+        final hoy = dayStart(DateTime.now());
+        s.habits[0].rests.add(
+          Rest(hoy, hoy.add(const Duration(days: 4))).encode(),
+        );
+        expect(s.unlockGoals[0].$2.resting, isTrue);
+        expect(s.unlockProgress, lessThan(1.0));
+        // Y con los dos llegados, lleno aunque uno duerma.
+        sostener(s.habits[1]);
+        expect(s.unlockProgress, 1.0);
+        expect(s.unlockGoal.met, isFalse, reason: 'dormido no abre');
+      },
+    );
+
+    test(
       'sostener los dos a la vez abre el tercero, y sólo el tercero',
       () async {
         final s = await freshStore();

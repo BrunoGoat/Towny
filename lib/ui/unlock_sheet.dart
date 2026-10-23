@@ -40,6 +40,11 @@ class UnlockSheet extends StatefulWidget {
 
   /// El color de dormir: el de la luna, el mismo para la marca y la cuenta.
   static const Color _luna = Color(0xFF9FB8E6);
+
+  /// El dorado de llegar, a cualquier hora. El acento de la app sigue al
+  /// cielo, y de noche es azul: igual que la luna de lo que duerme, y la hoja
+  /// entera se veía en pausa.
+  static const Color _oro = Color(0xFFE8A24A);
 }
 
 class _UnlockSheetState extends State<UnlockSheet> {
@@ -91,7 +96,11 @@ class _UnlockSheetState extends State<UnlockSheet> {
             const SizedBox(height: 16),
             Row(
               children: [
-                Icon(Icons.lock_outline_rounded, size: 14, color: t.accent),
+                Icon(
+                  Icons.lock_outline_rounded,
+                  size: 14,
+                  color: UnlockSheet._oro,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   tr(
@@ -235,7 +244,9 @@ class _UnlockSheetState extends State<UnlockSheet> {
                           child: Container(
                             decoration: BoxDecoration(
                               color: i < g.have
-                                  ? (g.resting ? UnlockSheet._luna : t.accent)
+                                  ? (g.resting
+                                            ? UnlockSheet._luna
+                                            : UnlockSheet._oro)
                                         .withValues(
                                           alpha: g.met || g.resting
                                               ? 0.85
@@ -266,7 +277,7 @@ class _UnlockSheetState extends State<UnlockSheet> {
                     width: 2,
                     decoration: BoxDecoration(
                       color: g.met
-                          ? t.accent
+                          ? UnlockSheet._oro
                           : velo.cuerpo.withValues(alpha: 0.75),
                       borderRadius: BorderRadius.circular(1),
                     ),
@@ -351,7 +362,7 @@ class _HabitLine extends StatelessWidget {
                     fontWeight: g.met ? FontWeight.w700 : FontWeight.w500,
                     color: g.resting
                         ? UnlockSheet._luna
-                        : (g.met ? t.accent : velo.tenue),
+                        : (g.met ? UnlockSheet._oro : velo.tenue),
                   ),
                 ),
                 const SizedBox(width: 2),
@@ -427,7 +438,7 @@ class _Detail extends StatelessWidget {
       if (c == null) return const SizedBox.shrink();
       final (dia, marca) = c;
       final esHoy = hoy != null && dayKey(dia) == dayKey(hoy);
-      final acento = g.resting ? UnlockSheet._luna : t.accent;
+      final acento = g.resting ? UnlockSheet._luna : UnlockSheet._oro;
       return Container(
         decoration: BoxDecoration(
           color: switch (marca) {
@@ -524,7 +535,7 @@ class _Detail extends StatelessWidget {
               faltan,
               'FALTAN',
               'TO GO',
-              color: faltan == 0 ? t.accent : null,
+              color: faltan == 0 ? UnlockSheet._oro : null,
             ),
           ],
         ),
