@@ -201,10 +201,10 @@ const List<Advice> dailyAdvice = [
   // ------------------------------------------------- para quien siembra
   Advice(
     'lugar',
-    'Una semilla no crece en la mesa de la cocina.',
-    'Dale a esto un lugar propio, que no sea donde duermes ni donde comes. Con el tiempo, llegar allí bastará para ponerte en marcha.',
-    'A seed doesn’t grow on the kitchen table.',
-    'Give this a place of its own: not where you sleep or eat. In time, just getting there sets you going.',
+    'Cada semilla necesita su rincón de tierra.',
+    'Elige un lugar solo para esto. Que no sea donde duermes ni donde comes. Así, cuando estés ahí, tu cabeza ya sabe qué toca hacer.',
+    'Every seed needs its own patch of earth.',
+    'Choose a place just for this. Not where you sleep or where you eat. That way, when you are there, your mind already knows what comes next.',
     goal: AdviceGoal.start,
   ),
   Advice(

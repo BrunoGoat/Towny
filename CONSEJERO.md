@@ -208,12 +208,6 @@ Cien veces elegiste aparecer. La prueba de que puedes está construida ahí afue
 
 Gusta la idea, no el dicho. Primero cómo está hoy, después la propuesta.
 
-**1.** «Una semilla no crece en la mesa de la cocina.» [E1]  
-Dale a esto un lugar propio, que no sea donde duermes ni donde comes. Con el tiempo, llegar allí bastará para ponerte en marcha.
-
-> **Propuesta:** «Cada semilla necesita su rincón de tierra.»  
-> Elige un lugar solo para esto. Que no sea donde duermes ni donde comes. Con el tiempo, con solo llegar ahí vas a tener ganas de empezar.
-
 **5.** «Lo que el ojo no ve, la mano no lo busca.» [E5]  
 Déjalo a la vista: el calzado junto a la puerta, el libro sobre la almohada.
 
@@ -294,6 +288,11 @@ Termina con algo amable: un vaso de agua fresca, un rato al sol. Lo que se recue
 
 ## Ya revisado
 
+**1.** ~~«Una semilla no crece en la mesa de la cocina.» [E1]~~  
+~~Dale a esto un lugar propio, que no sea donde duermes ni donde comes. Con el tiempo, llegar allí bastará para ponerte en marcha.~~
+
+Reescrito: ver el 1 en Aprobado.
+
 **17.** ~~«El fuego que uno cuida solo se apaga más rápido.» [E17 · D13]~~  
 ~~Cuéntaselo a alguien. No para que te vigile: para que alguien lo sepa.~~
 
@@ -308,4 +307,7 @@ Sacado.
 
 # Aprobado
 
-Lo que va a quedar en la app. Todavía nada.
+Lo que va a quedar en la app.
+
+**1.** «Cada semilla necesita su rincón de tierra.» [E1]  
+Elige un lugar solo para esto. Que no sea donde duermes ni donde comes. Así, cuando estés ahí, tu cabeza ya sabe qué toca hacer.
