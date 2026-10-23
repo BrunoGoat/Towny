@@ -224,14 +224,6 @@ const List<Advice> dailyAdvice = [
     goal: AdviceGoal.start,
   ),
   Advice(
-    'despues',
-    'El agua nueva sigue el cauce del río viejo.',
-    'Átalo a algo que ya haces: «al volver del trabajo, salto la cuerda». Lo de siempre trae a lo nuevo de la mano.',
-    'New water follows the old river’s bed.',
-    'Tie it to something you already do: “after I get home from work, I skip rope.” The old thing brings the new one by the hand.',
-    goal: AdviceGoal.start,
-  ),
-  Advice(
     'vista',
     'Lo que el ojo no ve, la mano no lo busca.',
     'Déjalo a la vista: el calzado junto a la puerta, el libro sobre la almohada.',
@@ -613,7 +605,6 @@ List<String> pathFor(AdviceGoal goal) => switch (goal) {
     'lugar',
     'hora',
     'chico',
-    'despues',
     'vista',
     'dosminutos',
     'nodosveces',
@@ -700,6 +691,17 @@ const List<Advice> eventAdvice = [
     'Encadénalos: haz lo nuevo justo después de lo que ya te sale. El que ya tiene raíces le presta las suyas al que llega.',
     'You already have a river running. Let the new one spring from it.',
     'Chain them: do the new thing right after what already comes easily. The one with roots lends them to the newcomer.',
+    event: AdviceEvent.secondTown,
+    goal: AdviceGoal.start,
+  ),
+  // Atar lo nuevo a lo de siempre, recién cuando hay un segundo hábito: con
+  // uno solo es pronto para pensar en cadenas.
+  Advice(
+    'despues',
+    'El agua nueva sigue el cauce del río viejo.',
+    'Átalo a algo que ya haces todos los días, como «al volver del trabajo, leo». Lo de siempre ya pasa solo, así que cuando termina te recuerda lo nuevo sin que tengas que acordarte.',
+    'New water follows the old river’s bed.',
+    'Tie it to something you already do every day, like “when I get home from work, I read.” The usual thing already happens on its own, so when it ends it reminds you of the new one without you having to remember.',
     event: AdviceEvent.secondTown,
     goal: AdviceGoal.start,
   ),

@@ -26,9 +26,6 @@ lugar. **E** es a quien empieza un hábito, **D** a quien deja uno.
 
 ### Los de todos los días
 
-**4.** «El agua nueva sigue el cauce del río viejo.» [E4]  
-Átalo a algo que ya haces: «al volver del trabajo, salto la cuerda». Lo de siempre trae a lo nuevo de la mano.
-
 **9.** «La buena mañana se siembra la noche anterior.» [E9]  
 Si es de mañana, déjalo todo listo antes de dormir: la ropa a la vista, el agua servida, el camino despejado. Que al despertar no haya nada que buscar ni nada que decidir.
 
@@ -285,6 +282,11 @@ Termina con algo amable: un vaso de agua fresca, un rato al sol. Lo que se recue
 
 ## Ya revisado
 
+**4.** ~~«El agua nueva sigue el cauce del río viejo.» [E4]~~  
+~~Átalo a algo que ya haces: «al volver del trabajo, salto la cuerda». Lo de siempre trae a lo nuevo de la mano.~~
+
+Reescrito y movido: ver el 4 en Aprobado.
+
 **3.** ~~«El roble más grande fue una bellota que no se rindió.» [E3]~~  
 ~~Empieza ridículamente pequeño: una página, dos minutos. Lo primero que se construye no es el hábito, es el aparecer.~~
 
@@ -324,3 +326,6 @@ Dale una hora fija. La decisión la tomas una sola vez, el día que eliges la ho
 
 **3.** «El roble más grande fue una bellota que no se rindió.» [E3]  
 Empieza muy pequeño, una página, dos minutos. Algo tan chico lo cumples hasta en el peor día. Primero te acostumbras a aparecer, lo grande viene después.
+
+**4.** «El agua nueva sigue el cauce del río viejo.» [al fundar el segundo pueblo · sólo a quien empieza]  
+Átalo a algo que ya haces todos los días, como «al volver del trabajo, leo». Lo de siempre ya pasa solo, así que cuando termina te recuerda lo nuevo sin que tengas que acordarte.
