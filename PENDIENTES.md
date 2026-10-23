@@ -20,7 +20,7 @@ para borrar.
 
 ## 1. Animaciones de la gente
 
-**Hay 23 actividades**, más andar y quedarse mirando, en
+**Hay 22 actividades**, más andar y quedarse mirando, en
 `lib/data/doings.dart`. Cada una tiene su objeto en `lib/engine/folk_body.dart`.
 
 **Dónde se miran:**
@@ -37,7 +37,7 @@ para borrar.
 - El objeto es ese objeto y no un palo.
 - Tiene sentido en ese sitio.
 - **Es plausible.** Lo que se saca tiene que poder llevarse encima —un libro
-  del bolsillo, la escoba, el cayado—. Nada grande ni vivo aparece de la nada:
+  del bolsillo, la escoba—. Nada grande ni vivo aparece de la nada:
   o ya está en el pueblo, fijo en su sitio, o la persona va a su casa, entra,
   sale con ello, lo usa y lo vuelve a guardar.
 
@@ -50,8 +50,8 @@ para borrar.
   tendedero con ropa junto a la puerta, un puesto en la plaza (de espaldas a
   la fuente), sillar y caballete con su madero al pie de la obra. Los demás
   los rodean al pasar.
-- Animales que viven en su sitio: gallinas delante de la casa y ovejas en el
-  prado, pastando aunque no haya nadie.
+- Animales que viven en su sitio: gallinas delante de la casa.
+- Quitado: el pastor con sus ovejas (sacar un bastón al lado no contaba nada).
 - Barco de papel: en el pilón de la fuente de la plaza, sin charco.
 - Quitada: la cometa (demasiado moderna para el resto).
 
