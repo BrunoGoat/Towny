@@ -15,6 +15,9 @@ la primera lista y no cambian nunca, aunque se saquen consejos.
 **Reglas para escribir:**
 - El dicho es corto y se entiende a la primera.
 - La explicación es concreta y simple. Nunca punto y coma.
+- La explicación cuenta **por qué funciona**, la lógica detrás, y no sólo
+  qué hacer. Por ejemplo: con una hora fija, la decisión se toma una vez y
+  no cada día.
 
 **Entre corchetes**, en los de todos los días: a quién le llega y en qué
 lugar. **E** es a quien empieza un hábito, **D** a quien deja uno.
@@ -22,9 +25,6 @@ lugar. **E** es a quien empieza un hábito, **D** a quien deja uno.
 ## Pendiente de revisar
 
 ### Los de todos los días
-
-**2.** «El sol no pregunta si tiene ganas de salir.» [E2]  
-Dale una hora. «Cuando pueda» no llega nunca; «a las ocho, después de cenar» llega cada día.
 
 **3.** «El roble más grande fue una bellota que no se rindió.» [E3]  
 Empieza ridículamente pequeño: una página, dos minutos. Lo primero que se construye no es el hábito, es el aparecer.
@@ -288,6 +288,11 @@ Termina con algo amable: un vaso de agua fresca, un rato al sol. Lo que se recue
 
 ## Ya revisado
 
+**2.** ~~«El sol no pregunta si tiene ganas de salir.» [E2]~~  
+~~Dale una hora. «Cuando pueda» no llega nunca; «a las ocho, después de cenar» llega cada día.~~
+
+Reescrito: ver el 2 en Aprobado.
+
 **1.** ~~«Una semilla no crece en la mesa de la cocina.» [E1]~~  
 ~~Dale a esto un lugar propio, que no sea donde duermes ni donde comes. Con el tiempo, llegar allí bastará para ponerte en marcha.~~
 
@@ -311,3 +316,6 @@ Lo que va a quedar en la app.
 
 **1.** «Cada semilla necesita su rincón de tierra.» [E1]  
 Elige un lugar solo para esto. Que no sea donde duermes ni donde comes. Así, cuando estés ahí, tu cabeza ya sabe qué toca hacer.
+
+**2.** «El sol no pregunta si tiene ganas de salir.» [E2]  
+Dale una hora fija. La decisión la tomas una sola vez, el día que eliges la hora. Después, cada día solo queda cumplirla.

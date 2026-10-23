@@ -210,9 +210,9 @@ const List<Advice> dailyAdvice = [
   Advice(
     'hora',
     'El sol no pregunta si tiene ganas de salir.',
-    'Dale una hora. «Cuando pueda» no llega nunca; «a las ocho, después de cenar» llega cada día.',
+    'Dale una hora fija. La decisión la tomas una sola vez, el día que eliges la hora. Después, cada día solo queda cumplirla.',
     'The sun doesn’t ask whether it feels like rising.',
-    'Give it a time. “When I can” never comes; “at eight, after dinner” comes every day.',
+    'Give it a fixed time. You make the decision only once, the day you choose the time. After that, each day you just keep it.',
     goal: AdviceGoal.start,
   ),
   Advice(
