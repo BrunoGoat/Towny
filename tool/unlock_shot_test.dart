@@ -18,6 +18,8 @@ import 'package:towny/ui/unlock_sheet.dart';
 /// pausa ahora, y otro con los dos despiertos y días de pausa ya pasados.
 ///
 ///   flutter test tool/unlock_shot_test.dart --dart-define=OUT=/tmp/candado
+///
+/// Con --dart-define=HOUR=1, de noche.
 Future<void> _letras() async {
   Future<void> carga(String familia, List<String> archivos) async {
     final l = FontLoader(familia);
@@ -139,7 +141,14 @@ Future<void> _pon(WidgetTester tester, Store s, {double alto = 844}) async {
                   key: _key,
                   child: UnlockSheet(
                     store: s,
-                    theme: UiTheme(Palette.forMoment(13)),
+                    theme: UiTheme(
+                      Palette.forMoment(
+                        const int.fromEnvironment(
+                          'HOUR',
+                          defaultValue: 13,
+                        ).toDouble(),
+                      ),
+                    ),
                   ),
                 ),
               ),
