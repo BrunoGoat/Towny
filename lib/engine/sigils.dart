@@ -114,6 +114,11 @@ class _Pen {
       final c = Path();
       cut(c);
       p = Path.combine(PathOperation.difference, p, c);
+      // En la web el agujero que queda entero por dentro de la figura vuelve
+      // con el mismo sentido que el borde, y con la regla de siempre se
+      // pinta lleno: el dado salía sin puntos y el gato sin ojos. Con pares e
+      // impares un contorno dentro de otro es un agujero, gire como gire.
+      p.fillType = PathFillType.evenOdd;
     }
     marks.add(_Mark(p, 0));
   }
@@ -195,13 +200,19 @@ final Map<String, void Function(_Pen)> _glyphs = {
     p.shape([53, 21, 92, 30, 92, 68, 53, 74]);
   },
   'run': (p) {
-    p.dot(63, 17, 10);
-    p.poly(9, [57, 32, 46, 54]);
-    p.poly(8, [46, 54, 63, 65, 59, 85]);
-    p.poly(8, [46, 54, 30, 61, 19, 79]);
-    p.poly(7, [53, 37, 73, 41, 82, 29]);
-    p.poly(7, [53, 40, 34, 37, 26, 49]);
+    // Inclinado hacia adelante, a zancada abierta, con los brazos doblados
+    // y el pie de atrás levantado: palitos del mismo grosor parecían un
+    // dibujo de pizarrón.
+    p.dot(64, 14, 10);
+    p.poly(14, [58, 31, 47, 55]);
+    p.poly(9, [57, 34, 70, 46, 83, 38]);
+    p.poly(9, [55, 33, 40, 31, 31, 43]);
+    p.poly(11, [47, 55, 65, 63]);
+    p.poly(9, [65, 63, 61, 86, 70, 88]);
+    p.poly(11, [47, 55, 38, 73]);
+    p.poly(9, [38, 73, 17, 79, 13, 72]);
   },
+
   'weight': (p) {
     p.poly(10, [30, 50, 70, 50]);
     p.rect(12, 30, 25, 70, round: 3);
@@ -314,22 +325,23 @@ final Map<String, void Function(_Pen)> _glyphs = {
   },
 
   'lute': (p) {
-    // En diagonal y largo: derecho y corto se leía como una botella.
+    // En diagonal y largo: derecho y corto se leía como una botella. La boca,
+    // grande y en el medio de la caja, es lo que lo hace un instrumento.
     p.turned(40, (p) {
       p.fill(
         (q) {
-          q.moveTo(50, 46);
-          q.cubicTo(70, 46, 80, 64, 80, 78);
-          q.cubicTo(80, 92, 66, 100, 50, 100);
-          q.cubicTo(34, 100, 20, 92, 20, 78);
-          q.cubicTo(20, 64, 30, 46, 50, 46);
+          q.moveTo(50, 44);
+          q.cubicTo(71, 44, 82, 63, 82, 78);
+          q.cubicTo(82, 93, 67, 100, 50, 100);
+          q.cubicTo(33, 100, 18, 93, 18, 78);
+          q.cubicTo(18, 63, 29, 44, 50, 44);
           q.close();
         },
         cut: (q) {
-          q.addOval(Rect.fromCircle(center: const Offset(50, 74), radius: 8));
+          q.addOval(Rect.fromCircle(center: const Offset(50, 70), radius: 11));
         },
       );
-      p.rect(45, 6, 55, 50);
+      p.rect(45, 6, 55, 47);
       // El clavijero, doblado hacia atrás como en un laúd de verdad.
       p.shape([44, 8, 56, 8, 62, -4, 50, -4]);
       p.poly(3, [41, 20, 59, 20]);
@@ -338,16 +350,16 @@ final Map<String, void Function(_Pen)> _glyphs = {
   },
 
   'brush': (p) {
-    // Fino y en diagonal, con la punta afilada: grueso y derecho no se
-    // entendía.
+    // En diagonal, con mango de verdad, la virola y un mechón ancho que
+    // termina en punta: fino de punta a punta se perdía de lejos.
     p.turned(35, (p) {
-      p.poly(7, [50, 0, 50, 54]);
-      p.rect(44, 52, 56, 64, round: 2);
+      p.poly(11, [50, 2, 50, 46]);
+      p.rect(41, 44, 59, 60, round: 3);
       p.fill((q) {
-        q.moveTo(44, 64);
-        q.lineTo(56, 64);
-        q.cubicTo(58, 80, 54, 92, 50, 100);
-        q.cubicTo(46, 92, 42, 80, 44, 64);
+        q.moveTo(41, 60);
+        q.lineTo(59, 60);
+        q.cubicTo(66, 74, 62, 90, 50, 102);
+        q.cubicTo(38, 90, 34, 74, 41, 60);
         q.close();
       });
     });
@@ -457,12 +469,28 @@ final Map<String, void Function(_Pen)> _glyphs = {
     p.oval(69, 34, 88, 59);
   },
   'pot': (p) {
-    p.rect(15, 27, 85, 38, round: 4);
-    p.dot(50, 21, 7);
-    p.shape([24, 38, 76, 38, 70, 89, 30, 89]);
-    p.rect(5, 44, 18, 59, round: 4);
-    p.rect(82, 44, 95, 59, round: 4);
+    // Una olla de cocina: ancha y baja, con el fondo redondeado, la tapa en
+    // cúpula y las dos asas a los lados. Alta y recta parecía un tacho.
+    p.fill((q) {
+      q.moveTo(17, 40);
+      q.cubicTo(22, 25, 78, 25, 83, 40);
+      q.close();
+    });
+    p.rect(43, 18, 57, 27, round: 4);
+    p.rect(9, 40, 91, 48, round: 4);
+    p.fill((q) {
+      q.moveTo(15, 48);
+      q.lineTo(85, 48);
+      q.lineTo(83, 70);
+      q.cubicTo(81, 83, 72, 88, 60, 88);
+      q.lineTo(40, 88);
+      q.cubicTo(28, 88, 19, 83, 17, 70);
+      q.close();
+    });
+    p.rect(1, 52, 15, 60, round: 4);
+    p.rect(85, 52, 99, 60, round: 4);
   },
+
   'target': (p) {
     p.ring(50, 50, 38, 7);
     p.ring(50, 50, 23, 6);
@@ -558,10 +586,13 @@ final Map<String, void Function(_Pen)> _glyphs = {
     p.poly(7, [67, 50, 67, 64]);
   },
   'anvil': (p) {
-    p.shape([16, 30, 62, 30, 90, 43, 62, 51, 16, 51]);
-    p.shape([34, 51, 62, 51, 58, 66, 38, 66]);
-    p.shape([24, 66, 72, 66, 79, 87, 17, 87]);
+    // De borde a borde de la caja: chico se quedaba en un rincón al lado de
+    // los demás.
+    p.shape([4, 22, 68, 22, 98, 32, 68, 48, 14, 48, 4, 34]);
+    p.shape([30, 48, 64, 48, 58, 68, 36, 68]);
+    p.shape([18, 68, 76, 68, 86, 94, 8, 94]);
   },
+
   'sword': (p) {
     p.shape([50, 2, 61, 18, 61, 54, 39, 54, 39, 18]);
     p.rect(26, 54, 74, 65, round: 3);
@@ -569,21 +600,24 @@ final Map<String, void Function(_Pen)> _glyphs = {
     p.dot(50, 89, 8);
   },
   'shield': (p) {
+    // El borde aparte del campo, y en el campo una cruz: liso era una placa.
+    Path escudo(Path q, double d) => q
+      ..moveTo(10 + d, 8 + d)
+      ..lineTo(90 - d, 8 + d)
+      ..lineTo(90 - d, 46)
+      ..cubicTo(90 - d, 74 - d * 0.4, 70, 90 - d, 50, 98 - d * 1.3)
+      ..cubicTo(30, 90 - d, 10 + d, 74 - d * 0.4, 10 + d, 46)
+      ..close();
+    p.fill((q) => escudo(q, 0), cut: (q) => escudo(q, 6));
     p.fill(
-      (q) {
-        q.moveTo(13, 13);
-        q.lineTo(87, 13);
-        q.lineTo(87, 47);
-        q.cubicTo(87, 74, 68, 88, 50, 95);
-        q.cubicTo(32, 88, 13, 74, 13, 47);
-        q.close();
-      },
+      (q) => escudo(q, 11),
       cut: (q) {
-        q.addRect(const Rect.fromLTRB(44, 21, 56, 79));
-        q.addRect(const Rect.fromLTRB(21, 38, 79, 50));
+        q.addRect(const Rect.fromLTRB(46, 19, 54, 84));
+        q.addRect(const Rect.fromLTRB(21, 38, 79, 46));
       },
     );
   },
+
   'clock': (p) {
     p.shape([24, 14, 76, 14, 54, 50, 76, 86, 24, 86, 46, 50]);
     p.rect(15, 5, 85, 14, round: 3);
@@ -605,19 +639,30 @@ final Map<String, void Function(_Pen)> _glyphs = {
   },
 
   'tower': (p) {
+    // Tan alta como la caja, con almenas, dos ventanas y la puerta en arco.
     p.shape([
-      21, 34, 21, 19, 31, 19, 31, 27, 37, 27, 37, 19, 47, 19, 47, 27, //
-      53, 27, 53, 19, 63, 19, 63, 27, 69, 27, 69, 19, 79, 19, 79, 34,
+      12, 30, 12, 6, 25, 6, 25, 15, 34, 15, 34, 6, 46, 6, 46, 15, //
+      54, 15, 54, 6, 66, 6, 66, 15, 75, 15, 75, 6, 88, 6, 88, 30,
     ]);
-    p.shape(
-      [27, 34, 73, 34, 73, 93, 27, 93],
-      holes: [
-        [36, 44, 45, 44, 45, 55, 36, 55],
-        [55, 44, 64, 44, 64, 55, 55, 55],
-        [42, 68, 58, 68, 58, 90, 42, 90],
-      ],
+    p.fill(
+      (q) => q.addRect(const Rect.fromLTRB(18, 30, 82, 97)),
+      cut: (q) {
+        q.addRRect(RRect.fromLTRBR(28, 40, 42, 58, const Radius.circular(7)));
+        q.addRRect(RRect.fromLTRBR(58, 40, 72, 58, const Radius.circular(7)));
+        q.addRRect(
+          RRect.fromLTRBAndCorners(
+            39,
+            70,
+            61,
+            97,
+            topLeft: const Radius.circular(11),
+            topRight: const Radius.circular(11),
+          ),
+        );
+      },
     );
   },
+
   // ------------------------------------------------------------- la mesa
   'cup': (p) {
     p.line(
@@ -687,7 +732,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
         q.close();
       },
       cut: (q) =>
-          q.addOval(Rect.fromCircle(center: const Offset(74, 42), radius: 5)),
+          q.addOval(Rect.fromCircle(center: const Offset(72, 43), radius: 7)),
     );
     p.shape([26, 50, 6, 26, 6, 74]);
   },
@@ -702,7 +747,7 @@ final Map<String, void Function(_Pen)> _glyphs = {
         q.close();
       },
       cut: (q) =>
-          q.addOval(Rect.fromCircle(center: const Offset(43, 33), radius: 4)),
+          q.addOval(Rect.fromCircle(center: const Offset(44, 34), radius: 6)),
     );
     p.shape([30, 32, 7, 39, 30, 47]);
     p.line(5, (q) {
@@ -724,8 +769,8 @@ final Map<String, void Function(_Pen)> _glyphs = {
         q.close();
       },
       cut: (q) {
-        q.addOval(Rect.fromCircle(center: const Offset(36, 52), radius: 6));
-        q.addOval(Rect.fromCircle(center: const Offset(64, 52), radius: 6));
+        q.addOval(Rect.fromCircle(center: const Offset(36, 52), radius: 7.5));
+        q.addOval(Rect.fromCircle(center: const Offset(64, 52), radius: 7.5));
         q.moveTo(43, 63);
         q.lineTo(57, 63);
         q.lineTo(50, 73);
@@ -888,17 +933,27 @@ final Map<String, void Function(_Pen)> _glyphs = {
     );
   },
   'scroll': (p) {
+    // El papel con sus renglones y los dos rollos de las puntas, con el
+    // hueco del rollo a la vista.
     p.fill(
-      (q) => q.addRect(const Rect.fromLTRB(22, 22, 78, 78)),
+      (q) => q.addRect(const Rect.fromLTRB(22, 20, 78, 80)),
       cut: (q) {
-        for (var i = 0; i < 3; i++) {
-          q.addRect(Rect.fromLTRB(31, 32.0 + i * 13, 69, 37.0 + i * 13));
+        for (var i = 0; i < 4; i++) {
+          q.addRect(Rect.fromLTRB(31, 33.0 + i * 10, 69, 37.0 + i * 10));
         }
       },
     );
-    p.poly(10, [15, 22, 85, 22]);
-    p.poly(10, [15, 78, 85, 78]);
+    for (final y in [18.0, 82.0]) {
+      p.fill(
+        (q) => q.addRRect(
+          RRect.fromLTRBR(12, y - 8, 88, y + 8, const Radius.circular(8)),
+        ),
+        cut: (q) =>
+            q.addOval(Rect.fromCircle(center: Offset(80, y), radius: 3.5)),
+      );
+    }
   },
+
   'abacus': (p) {
     p.rect(9, 12, 91, 21, round: 3);
     p.rect(9, 79, 91, 88, round: 3);
@@ -1043,21 +1098,26 @@ final Map<String, void Function(_Pen)> _glyphs = {
   },
   'door': (p) {
     // Sin la junta central ni el travesaño: las dos cosas juntas hacían una
-    // cruz en medio de la puerta y era lo primero que se veía.
+    // cruz en medio de la puerta y era lo primero que se veía. Las tablas,
+    // el pomo y el escalón la separan de una lápida.
     p.fill(
       (q) {
-        q.moveTo(15, 96);
-        q.lineTo(15, 42);
-        q.cubicTo(15, 12, 85, 12, 85, 42);
-        q.lineTo(85, 96);
+        q.moveTo(17, 88);
+        q.lineTo(17, 40);
+        q.cubicTo(17, 10, 83, 10, 83, 40);
+        q.lineTo(83, 88);
         q.close();
       },
       cut: (q) {
-        q.addRRect(RRect.fromLTRBR(39, 27, 61, 45, const Radius.circular(4)));
-        q.addOval(Rect.fromCircle(center: const Offset(68, 70), radius: 6));
+        q.addRRect(RRect.fromLTRBR(39, 25, 61, 41, const Radius.circular(4)));
+        q.addRect(const Rect.fromLTRB(36, 48, 39.5, 88));
+        q.addRect(const Rect.fromLTRB(60.5, 48, 64, 88));
+        q.addOval(Rect.fromCircle(center: const Offset(72, 66), radius: 4.5));
       },
     );
+    p.rect(8, 90, 92, 98, round: 2);
   },
+
   'bridge': (p) {
     p.rect(5, 36, 95, 49, round: 3);
     p.fill(
@@ -1120,16 +1180,26 @@ final Map<String, void Function(_Pen)> _glyphs = {
     p.shape([18, 43, 82, 43, 70, 93, 30, 93]);
   },
   'mirror': (p) {
-    // El marco ovalado con el brillo del cristal, y el mango con su remate.
+    // Un espejo de mano: el marco redondo, el cristal separado del marco por
+    // una línea fina y con dos brillos, y el mango largo.
+    p.ring(50, 36, 31, 6);
     p.fill(
-      (q) => q.addOval(const Rect.fromLTRB(20, 2, 80, 66)),
-      cut: (q) => q.addOval(const Rect.fromLTRB(28, 10, 72, 58)),
+      (q) =>
+          q.addOval(Rect.fromCircle(center: const Offset(50, 36), radius: 24)),
+      cut: (q) {
+        // Dos brillos finos arriba a la izquierda: gruesos y en el medio
+        // eran una señal de prohibido.
+        for (final (a, b, l) in [(-9.0, 4.0, 15.0), (-1.0, 3.0, 9.0)]) {
+          q.moveTo(33 + a, 36 + a);
+          q.lineTo(33 + a + l, 36 + a - l);
+          q.lineTo(33 + a + l + b, 36 + a - l + b);
+          q.lineTo(33 + a + b, 36 + a + b);
+          q.close();
+        }
+      },
     );
-    p.poly(5, [38, 30, 48, 20]);
-    p.poly(5, [40, 42, 58, 24]);
-    p.rect(44, 64, 56, 72, round: 2);
-    p.shape([44, 72, 56, 72, 54, 92, 46, 92]);
-    p.dot(50, 93, 6);
+    p.rect(43, 66, 57, 74, round: 2);
+    p.rect(45, 74, 55, 94, round: 4);
   },
 
   'comb': (p) {
