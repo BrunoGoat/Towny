@@ -218,9 +218,9 @@ const List<Advice> dailyAdvice = [
   Advice(
     'chico',
     'El roble más grande fue una bellota que no se rindió.',
-    'Empieza ridículamente pequeño: una página, dos minutos. Lo primero que se construye no es el hábito, es el aparecer.',
+    'Empieza muy pequeño, una página, dos minutos. Algo tan chico lo cumples hasta en el peor día. Primero te acostumbras a aparecer, lo grande viene después.',
     'The tallest oak was an acorn that didn’t give up.',
-    'Start ridiculously small: one page, two minutes. What you build first isn’t the habit, it’s showing up.',
+    'Start very small, one page, two minutes. Something that small you can do even on your worst day. First you get used to showing up, the big things come later.',
     goal: AdviceGoal.start,
   ),
   Advice(

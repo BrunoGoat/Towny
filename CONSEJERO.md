@@ -26,9 +26,6 @@ lugar. **E** es a quien empieza un hábito, **D** a quien deja uno.
 
 ### Los de todos los días
 
-**3.** «El roble más grande fue una bellota que no se rindió.» [E3]  
-Empieza ridículamente pequeño: una página, dos minutos. Lo primero que se construye no es el hábito, es el aparecer.
-
 **4.** «El agua nueva sigue el cauce del río viejo.» [E4]  
 Átalo a algo que ya haces: «al volver del trabajo, salto la cuerda». Lo de siempre trae a lo nuevo de la mano.
 
@@ -288,6 +285,11 @@ Termina con algo amable: un vaso de agua fresca, un rato al sol. Lo que se recue
 
 ## Ya revisado
 
+**3.** ~~«El roble más grande fue una bellota que no se rindió.» [E3]~~  
+~~Empieza ridículamente pequeño: una página, dos minutos. Lo primero que se construye no es el hábito, es el aparecer.~~
+
+Reescrito: ver el 3 en Aprobado.
+
 **2.** ~~«El sol no pregunta si tiene ganas de salir.» [E2]~~  
 ~~Dale una hora. «Cuando pueda» no llega nunca; «a las ocho, después de cenar» llega cada día.~~
 
@@ -319,3 +321,6 @@ Elige un lugar solo para esto. Que no sea donde duermes ni donde comes. Así, cu
 
 **2.** «El sol no pregunta si tiene ganas de salir.» [E2]  
 Dale una hora fija. La decisión la tomas una sola vez, el día que eliges la hora. Después, cada día solo queda cumplirla.
+
+**3.** «El roble más grande fue una bellota que no se rindió.» [E3]  
+Empieza muy pequeño, una página, dos minutos. Algo tan chico lo cumples hasta en el peor día. Primero te acostumbras a aparecer, lo grande viene después.
