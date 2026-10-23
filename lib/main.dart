@@ -270,14 +270,18 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
     await BoardSeen.instance.load();
     await LocalChanges.instance.load();
     await store.load();
+    // La libreta del consejero, antes de que se vea el pueblo: la pantalla
+    // sale en cuanto el almacén está cargado, y con la libreta todavía vacía
+    // el botón del viejo marcaba que tenía algo que decir durante los
+    // segundos que se espera a la nube, y después se apagaba.
+    await AdviceBook.instance.load();
     // Ponerse de acuerdo con la nube antes de enseñar nada, para no enseñar
     // un valle y cambiarlo al segundo. Con un tope: sin conexión no puede ser
     // lo que impida abrir la app, y si tarda, termina por detrás.
     await Cloud.instance
         .start(store)
         .timeout(const Duration(seconds: 3), onTimeout: () {});
-    // El consejero: lo que ya se ganó, y el de hoy si todavía no.
-    await AdviceBook.instance.load();
+    // El consejero: el de hoy si todavía no, con los pueblos ya al día.
     AdviceBook.instance.visit(store.habits);
     // Quien ya tenía pueblo no pasa por la pantalla de la primera vez, y no se
     // entera de que existe. Se apunta como pasada y a otra cosa.

@@ -64,7 +64,7 @@ class BspTree {
   /// bajaba por el árbol como un punto —el de sus pies— y salía entera por
   /// la hoja de ese punto. Para el cuerpo casi siempre daba bien, pero una
   /// persona no es un punto: el taburete, la guadaña a metro y medio, las
-  /// ovejas al lado, la caña hasta el agua. Todo eso se pintaba donde le
+  /// gallinas al lado, la caña hasta el agua. Todo eso se pintaba donde le
   /// tocaba a los pies, y en cuanto cruzaba un plano de un edificio —el
   /// bordillo de la plaza, la pared de su propia casa— salía por delante de
   /// lo que tenía delante. No era un caso raro: era la regla, y se veía

@@ -1266,97 +1266,6 @@ List<Solid> folkSolids(
         // levantar las patas del suelo; la rueda no se mueve de sitio.
         barrow(swing * 0.030, math.max(0.0, swing) * 0.035);
 
-      case PropKind.crook:
-        // El cayado de pie al costado, con la vuelta arriba que lo hace
-        // cayado y no bastón, y dos ovejas paciendo. Las ovejas son lo que
-        // cuenta qué hace: sin ellas es alguien con un palo.
-        //
-        // Las ovejas viven en el prado y pacen aunque no haya nadie: el
-        // pastor llega con su cayado y se queda con ellas. Lo suyo es el
-        // cayado; las ovejas no aparecen porque llegue él.
-        if (mano) {
-          final vaiven = swing * 0.02;
-          const cx = 0.28, cz = 0.20;
-          final arriba = (cx + vaiven, 1.15, cz);
-          link((cx, 0.0, cz), arriba, 0.016, _wood2, 0.94);
-          final c1 = (cx + vaiven, 1.25, cz + 0.06);
-          final c2 = (cx + vaiven, 1.23, cz + 0.14);
-          final c3 = (cx + vaiven, 1.14, cz + 0.155);
-          link(arriba, c1, 0.016, _wood2, 0.94);
-          link(c1, c2, 0.016, _wood2, 0.94);
-          link(c2, c3, 0.016, _wood2, 0.94);
-        }
-        const ovejas = [(-0.66, 0.58, 0.0, 1.0), (0.62, 0.98, -1.0, 0.0)];
-        if (fijo) {
-          for (var k = 0; k < ovejas.length; k++) {
-            final (ox, oz, dx, dz) = ovejas[k];
-            void parte(
-              double f0,
-              double y0,
-              double l0,
-              double f1,
-              double y1,
-              double l1,
-              int tint,
-              double ao,
-            ) {
-              final xa = ox + f0 * dx + l0 * dz, xb = ox + f1 * dx + l1 * dz;
-              final za = oz + f0 * dz - l0 * dx, zb = oz + f1 * dz - l1 * dx;
-              box(
-                math.min(xa, xb),
-                y0,
-                math.min(za, zb),
-                math.max(xa, xb),
-                y1,
-                math.max(za, zb),
-                tint,
-                ao,
-              );
-            }
-
-            parte(-0.19, 0.10, -0.115, 0.14, 0.31, 0.115, 0xFFEFEADF, 1.02);
-            for (final f in [-0.13, 0.08]) {
-              for (final l in [-0.065, 0.065]) {
-                parte(
-                  f - 0.022,
-                  0.0,
-                  l - 0.022,
-                  f + 0.022,
-                  0.11,
-                  l + 0.022,
-                  0xFF3A332C,
-                  0.90,
-                );
-              }
-            }
-            // Pace: la cabeza casi siempre abajo, y de tanto en tanto la levanta.
-            final mira = math
-                .pow(math.max(0.0, math.sin(ph * 0.5 + k * 2.4)), 4)
-                .toDouble();
-            final hf = 0.15 - mira * 0.02, hy = 0.04 + mira * 0.18;
-            parte(
-              hf,
-              hy,
-              -0.055,
-              hf + 0.11,
-              hy + 0.10,
-              0.055,
-              0xFF3A332C,
-              0.96,
-            );
-            parte(
-              hf + 0.005,
-              hy + 0.07,
-              -0.085,
-              hf + 0.04,
-              hy + 0.10,
-              0.085,
-              0xFF3A332C,
-              0.92,
-            );
-          }
-        }
-
       case PropKind.flowers:
         // En cuclillas cogiendo flores: las que quedan delante, en el suelo, y
         // el cesto al lado lleno de las ya cogidas. Una va y viene en la mano,
@@ -1706,7 +1615,7 @@ List<Solid> folkSolids(
 
 /// Lo que vive en su sitio del pueblo ([FolkFixture]), sin nadie: el tocón,
 /// el tendedero con su ropa, el puesto, el sillar, el caballete con su
-/// madero, las gallinas picoteando y las ovejas paciendo, a la hora [time].
+/// madero y las gallinas picoteando, a la hora [time].
 ///
 /// Es la misma cuenta que pinta lo que lleva quien lo usa, con sólo lo fijo:
 /// así lo de la mano y lo del suelo encajan, porque salen del mismo sitio.

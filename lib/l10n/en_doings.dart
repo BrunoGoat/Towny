@@ -24,6 +24,5 @@ const Map<String, String> doingsEn = {
   'gallinas': 'feeds the hens',
   'barquito': 'floats a paper boat',
   'carretilla': 'pushes the wheelbarrow',
-  'pastorear': 'minds the sheep',
   'flores': 'picks flowers',
 };

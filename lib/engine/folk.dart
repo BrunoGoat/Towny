@@ -510,7 +510,7 @@ class Townsfolk {
         _swapAt(_swapOut, i) != null) {
       return [suya];
     }
-    // Y lo que necesita algo en su sitio —el tocón, el puesto, las ovejas—
+    // Y lo que necesita algo en su sitio —el tocón, el puesto, las gallinas—
     // o traído de casa, o el agua de la fuente, sólo donde es suyo: en otro
     // sitio no está.
     return [
@@ -800,7 +800,7 @@ class Townsfolk {
   Streets? _calles;
 
   /// Las mismas calles sin lo que vive en su sitio —el tocón, el puesto, las
-  /// ovejas—: por donde se va si eso deja a alguien encerrado.
+  /// gallinas—: por donde se va si eso deja a alguien encerrado.
   Streets? _callesSin;
 
   /// Los quiebros para ir de [a] a [b] rodeando lo construido y lo que vive
@@ -1563,8 +1563,7 @@ final Map<
 _folk = {};
 
 /// Lo que vive en su sitio en [layout]: el tocón de quien parte leña, el
-/// tendedero, el puesto de la plaza, el sillar de la obra, las gallinas, las
-/// ovejas. Ver [Doing.anchored].
+/// tendedero, el puesto de la plaza, el sillar de la obra y las gallinas. Ver [Doing.anchored].
 ///
 /// Sale de la misma cuenta que la gente, y se guarda con ella: está donde
 /// se pone a usarlo quien lo usa, mirando hacia donde mira él.
@@ -1923,7 +1922,7 @@ List<Townsfolk> folkOf(TownLayout layout, int placed) {
   }
 
   // Lo que vive en su sitio: el tocón delante de la casa de quien parte
-  // leña, el puesto en la plaza, las gallinas, las ovejas en el prado. Va
+  // leña, el puesto en la plaza, las gallinas. Va
   // donde se pone a hacerlo quien lo usa, mirando hacia donde mira él, y a
   // partir de aquí es parte del pueblo: los demás lo rodean al pasar.
   final fijos = <(int plan, int stop)>[];
@@ -2165,7 +2164,7 @@ final Map<String, (double, double, double, double)> _gestures = {};
     }();
 
 /// Lo que ocupa en el suelo lo que vive en su sitio de una actividad —el
-/// tocón, el puesto, las ovejas—, sin la persona. En partes de lo que mide
+/// tocón, el puesto, las gallinas—, sin la persona. En partes de lo que mide
 /// quien la hace y en su sistema, como [_footprintOf].
 final Map<String, (double, double, double, double)> _fixedShapes = {};
 
@@ -2214,7 +2213,7 @@ bool _atFountain(TownLayout layout, (double, double) p, double look) {
 
 /// Si alguien de talla [h] puede hacer [d] de pie en [p] mirando a
 /// [heading] sin que nada de lo suyo —el cuerpo, el taburete, el tocón, las
-/// ovejas, la guadaña— se meta en algo construido.
+/// gallinas, la guadaña— se meta en algo construido.
 ///
 /// **Es la regla, no un parche por actividad.** Antes sólo se comprobaba que
 /// los pies estuvieran en la calle, y lo que se lleva no se miraba nunca: un

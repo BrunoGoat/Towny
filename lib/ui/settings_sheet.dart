@@ -70,6 +70,10 @@ class SettingsSheet extends StatefulWidget {
 }
 
 class _SettingsSheetState extends State<SettingsSheet> {
+  /// En la de desarrollo, la sección desplegada: una por vez, para que la
+  /// hoja no sea un muro de interruptores.
+  String? _abierta;
+
   @override
   Widget build(BuildContext context) {
     final t = widget.theme;
@@ -567,6 +571,34 @@ class _SettingsSheetState extends State<SettingsSheet> {
             ),
           ]
         : <Widget>[
+            // Arriba, para no tener que bajar hasta el fondo cada vez; y sólo
+            // en el teléfono donde se puso el código.
+            if (wants.devUnlocked)
+              _Section(
+                theme: t,
+                children: [
+                  _Row(
+                    theme: t,
+                    icon: Icons.science_outlined,
+                    title: tr('Desarrollo', 'Developer'),
+                    subtitle: tr(
+                      'Lo que sirve para probar la app.',
+                      'What helps to test the app.',
+                    ),
+                    act: (nav) {
+                      nav.pop();
+                      showModalBottomSheet<void>(
+                        context: nav.context,
+                        backgroundColor: Colors.transparent,
+                        barrierColor: sheetScrim(t.dark),
+                        isScrollControlled: true,
+                        builder: (_) =>
+                            SettingsSheet(store: store, theme: t, dev: true),
+                      );
+                    },
+                  ),
+                ],
+              ),
             // Lo primero de todo: quien abrió los ajustes buscando esto puede no
             // entender nada de lo que hay debajo.
             _Section(
@@ -877,27 +909,25 @@ class _SettingsSheetState extends State<SettingsSheet> {
             ),
             // Las dos salidas, como en la hoja del hábito: en letra y no en
             // filas, y la que no se deshace en rojo.
-            _Salidas(
-              theme: t,
-              onDev: (nav) {
-                nav.pop();
-                showModalBottomSheet<void>(
-                  context: nav.context,
-                  backgroundColor: Colors.transparent,
-                  barrierColor: sheetScrim(t.dark),
-                  isScrollControlled: true,
-                  builder: (_) =>
-                      SettingsSheet(store: store, theme: t, dev: true),
-                );
-              },
-              onReset: (nav) => _empezarDeCero(nav, t, store),
-            ),
+            _Salidas(theme: t, onReset: (nav) => _empezarDeCero(nav, t, store)),
+            if (!wants.devUnlocked) _DevCode(theme: t),
           ];
     return ListView(
       padding: EdgeInsets.only(
         bottom: 24 + MediaQuery.of(context).padding.bottom,
       ),
-      children: items,
+      children: [
+        for (final i in items)
+          if (widget.dev && i is _Section)
+            i.folded(
+              open: _abierta == i.title,
+              onToggle: () => setState(
+                () => _abierta = _abierta == i.title ? null : i.title,
+              ),
+            )
+          else
+            i,
+      ],
     );
   }
 }
@@ -1378,12 +1408,29 @@ class _Section extends StatelessWidget {
     this.title,
     this.icon,
     required this.children,
+    this.open = true,
+    this.onToggle,
   });
 
   final UiTheme theme;
   final String? title;
   final IconData? icon;
   final List<Widget> children;
+
+  /// Con [onToggle], el rótulo se toca para abrirla o cerrarla, y las filas
+  /// sólo se ven si [open].
+  final bool open;
+  final VoidCallback? onToggle;
+
+  _Section folded({required bool open, required VoidCallback onToggle}) =>
+      _Section(
+        theme: theme,
+        title: title,
+        icon: icon,
+        open: open,
+        onToggle: onToggle,
+        children: children,
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -1410,35 +1457,65 @@ class _Section extends StatelessWidget {
           if (title != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 4),
-              child: Row(
-                children: [
-                  Expanded(child: _hair(t)),
-                  const SizedBox(width: 12),
-                  if (icon != null) ...[
-                    Icon(
-                      icon,
-                      size: 15,
-                      color: t.accent.withValues(alpha: 0.9),
-                      shadows: velo.aliento,
-                    ),
-                    const SizedBox(width: 8),
-                  ],
-                  Text(
-                    title!,
-                    style: t.label.copyWith(
-                      fontSize: 11,
-                      color: t.accent,
-                      letterSpacing: 2.4,
-                      shadows: velo.aliento,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(child: _hair(t)),
-                ],
-              ),
+              child: _rotulo(t, velo),
             ),
-          ...filas,
+          if (open) ...filas,
         ],
+      ),
+    );
+  }
+
+  Widget _rotulo(UiTheme t, SheetInk velo) {
+    final fila = Row(
+      children: [
+        Expanded(child: _hair(t)),
+        const SizedBox(width: 12),
+        if (icon != null) ...[
+          Icon(
+            icon,
+            size: 15,
+            color: t.accent.withValues(alpha: 0.9),
+            shadows: velo.aliento,
+          ),
+          const SizedBox(width: 8),
+        ],
+        Text(
+          title!,
+          style: t.label.copyWith(
+            fontSize: 11,
+            color: t.accent,
+            letterSpacing: 2.4,
+            shadows: velo.aliento,
+          ),
+        ),
+        if (onToggle != null) ...[
+          const SizedBox(width: 6),
+          AnimatedRotation(
+            turns: open ? 0.5 : 0,
+            duration: const Duration(milliseconds: 180),
+            child: Icon(
+              Icons.expand_more_rounded,
+              size: 18,
+              color: t.accent,
+              shadows: velo.aliento,
+            ),
+          ),
+        ],
+        const SizedBox(width: 12),
+        Expanded(child: _hair(t)),
+      ],
+    );
+    final toggle = onToggle;
+    if (toggle == null) return fila;
+    return InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: () {
+        Sensory.instance.tick();
+        toggle();
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: fila,
       ),
     );
   }
@@ -1468,14 +1545,9 @@ class _Tile extends StatelessWidget {
 /// Las salidas del pie de la hoja, como las de la hoja del hábito: en letra,
 /// una al lado de la otra, y la que no se deshace en rojo.
 class _Salidas extends StatelessWidget {
-  const _Salidas({
-    required this.theme,
-    required this.onDev,
-    required this.onReset,
-  });
+  const _Salidas({required this.theme, required this.onReset});
 
   final UiTheme theme;
-  final void Function(NavigatorState nav) onDev;
   final void Function(NavigatorState nav) onReset;
 
   @override
@@ -1517,12 +1589,6 @@ class _Salidas extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               boton(
-                tr('Desarrollo', 'Developer'),
-                Icons.science_outlined,
-                velo.suave,
-                onDev,
-              ),
-              boton(
                 tr('Empezar de cero', 'Start from scratch'),
                 Icons.delete_outline,
                 _rojo(t),
@@ -1531,6 +1597,71 @@ class _Salidas extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Al pie de todo, chiquito: el código que abre la hoja de desarrollo en este
+/// teléfono. Se pone una vez; con el bueno desaparece y aparece la fila de
+/// arriba, y con uno malo se borra y ya.
+class _DevCode extends StatefulWidget {
+  const _DevCode({required this.theme});
+  final UiTheme theme;
+
+  @override
+  State<_DevCode> createState() => _DevCodeState();
+}
+
+class _DevCodeState extends State<_DevCode> {
+  final _campo = TextEditingController();
+
+  @override
+  void dispose() {
+    _campo.dispose();
+    super.dispose();
+  }
+
+  Future<void> _probar(String v) async {
+    if (v.length < Appearance.devCode.length) return;
+    if (await Appearance.instance.unlockDev(v)) {
+      Sensory.instance.tick();
+    } else {
+      _campo.clear();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = widget.theme;
+    final velo = SheetInk.of(t);
+    return Padding(
+      padding: const EdgeInsets.only(top: 18),
+      child: Center(
+        child: SizedBox(
+          width: 96,
+          child: TextField(
+            controller: _campo,
+            onChanged: _probar,
+            keyboardType: TextInputType.number,
+            obscureText: true,
+            maxLength: Appearance.devCode.length,
+            textAlign: TextAlign.center,
+            cursorColor: t.accent,
+            style: t.bodySoft.copyWith(
+              fontSize: 13,
+              letterSpacing: 4,
+              color: velo.suave,
+            ),
+            decoration: InputDecoration(
+              isDense: true,
+              counterText: '',
+              hintText: tr('código', 'code'),
+              hintStyle: t.bodySoft.copyWith(fontSize: 11.5, color: velo.tenue),
+              border: InputBorder.none,
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -170,6 +170,7 @@ class AdviceBook extends ChangeNotifier {
     } catch (_) {
       // Sin preferencias, la libreta empieza de cero.
     }
+    notifyListeners();
   }
 
   /// Lo que busca el pueblo [habitId], o nulo si todavía no se le contestó.

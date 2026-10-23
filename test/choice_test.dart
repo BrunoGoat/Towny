@@ -461,15 +461,34 @@ void main() {
       );
       await tester.tap(find.text('ajustes'));
       await tester.pumpAndSettle();
-      // La fila está en la hoja de desarrollo, que se abre desde la última
-      // fila de los ajustes de siempre.
+      // La fila está en la hoja de desarrollo, que sólo existe en el
+      // teléfono donde se puso el código del pie de los ajustes. Sin él, no
+      // hay fila.
+      expect(find.text('Desarrollo'), findsNothing);
+      final codigo = find.byType(TextField);
+      await tester.scrollUntilVisible(codigo, 120);
+      await tester.enterText(codigo, '1222');
+      await tester.pumpAndSettle();
+      expect(find.text('Desarrollo'), findsNothing);
+      await tester.enterText(codigo, '1221');
+      await tester.pumpAndSettle();
+      // Con el bueno, el campo se va y la fila sale arriba de todo.
+      expect(find.byType(TextField), findsNothing);
       final dev = find.text('Desarrollo');
-      await tester.scrollUntilVisible(dev, 120);
-      await tester.ensureVisible(dev);
+      await tester.scrollUntilVisible(dev, -120);
       await tester.pumpAndSettle();
       await tester.tap(dev);
       await tester.pumpAndSettle();
+      // Las secciones llegan cerradas, y se abren de a una.
+      expect(find.text('Modo rápido'), findsNothing);
+      await tester.tap(find.text('PIEZAS Y PUEBLOS'));
+      await tester.pumpAndSettle();
       expect(find.text('Modo rápido'), findsOneWidget);
+      final mirar = find.text('PARA MIRAR');
+      await tester.scrollUntilVisible(mirar, 120);
+      await tester.tap(mirar);
+      await tester.pumpAndSettle();
+      expect(find.text('Modo rápido'), findsNothing);
       return store;
     }
 

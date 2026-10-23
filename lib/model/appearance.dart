@@ -23,6 +23,7 @@ class Appearance extends ChangeNotifier {
   static const String _rapidKey = 'pueblo_rapid_v1';
   static const String _freeKey = 'pueblo_free_habits_v1';
   static const String _soundKey = 'pueblo_sound_v1';
+  static const String _devKey = 'pueblo_dev_v1';
 
   bool _rapid = false;
 
@@ -40,6 +41,13 @@ class Appearance extends ChangeNotifier {
   /// esto vive con el modo rápido y no con los ajustes de verdad. El tope del
   /// valle sigue: son los solares que hay, no un candado.
   bool get freeHabits => _freeHabits;
+
+  bool _devUnlocked = false;
+
+  /// Si en este teléfono ya se puso el código de desarrollo. Una vez y para
+  /// siempre, y sólo en este teléfono: va suelto como el modo rápido, fuera
+  /// de las preferencias que viajan con la cuenta.
+  bool get devUnlocked => _devUnlocked;
 
   // ------------------------------------------------------------- la hora
 
@@ -305,6 +313,7 @@ class Appearance extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       _rapid = prefs.getBool(_rapidKey) ?? false;
       _freeHabits = prefs.getBool(_freeKey) ?? false;
+      _devUnlocked = prefs.getBool(_devKey) ?? false;
       final saved = prefs.getStringList(_soundKey);
       if (saved != null) _readPrefs(saved);
     } catch (_) {
@@ -521,4 +530,18 @@ class Appearance extends ChangeNotifier {
       await prefs.setBool(_rapidKey, v);
     } catch (_) {}
   }
+
+  /// Abre la hoja de desarrollo en este teléfono si [codigo] es el bueno.
+  Future<bool> unlockDev(String codigo) async {
+    if (codigo != devCode) return false;
+    _devUnlocked = true;
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_devKey, true);
+    } catch (_) {}
+    return true;
+  }
+
+  static const String devCode = '1221';
 }

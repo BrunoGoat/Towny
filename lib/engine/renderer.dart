@@ -1894,7 +1894,7 @@ class TownPainter extends CustomPainter {
   }
 
   /// Lo que vive en su sitio del pueblo —el tocón, el tendedero, el puesto,
-  /// el sillar, las gallinas, las ovejas—, haya o no alguien usándolo y a
+  /// el sillar, las gallinas—, haya o no alguien usándolo y a
   /// cualquier hora. Va con la gente por el árbol, y no es de nadie: tocarlo
   /// no abre a ningún vecino. Ver [Doing.anchored].
   void _fixtureRiders(Projector p, TownEntry e, List<Rider> out) {

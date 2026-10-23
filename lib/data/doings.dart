@@ -120,9 +120,6 @@ enum PropKind {
   /// Una carretilla cargada de piedras, con su rueda.
   barrow,
 
-  /// Un cayado con la punta curva, y dos ovejas paciendo.
-  crook,
-
   /// Un cesto lleno de flores, y las que quedan por coger en el suelo.
   flowers,
 }
@@ -202,10 +199,10 @@ class Doing {
 
   /// **Lo que no se lleva encima vive en su sitio.** El tocón con su leño,
   /// el tendedero, el puesto del mercado, el sillar de la obra, el caballete
-  /// con su madero, las gallinas y las ovejas no aparecen cuando alguien se
+  /// con su madero y las gallinas no aparecen cuando alguien se
   /// pone a ello ni se van cuando termina: están en el pueblo, en el sitio
   /// donde se hace, y quien lo hace va hasta ahí con lo que sí se lleva en la
-  /// mano —el hacha, la maza, la sierra, el grano, el cayado—.
+  /// mano —el hacha, la maza, la sierra, el grano—.
   bool get anchored => _anclados.contains(prop);
 
   /// **Y lo que se lleva pero no cabe en un bolsillo se saca de casa.** La
@@ -221,7 +218,6 @@ class Doing {
     PropKind.mallet,
     PropKind.saw,
     PropKind.hens,
-    PropKind.crook,
   };
   static const Set<PropKind> _traidos = {
     PropKind.stool,
@@ -478,7 +474,6 @@ class Doing {
       seated: true,
     ),
 
-
     // ------------------------------------------------------------ al pie de la obra
     Doing(
       'cantero',
@@ -553,17 +548,6 @@ class Doing {
       rate: 0.35,
       turn: 0.0,
       lying: true,
-    ),
-    Doing(
-      'pastorear',
-      'cuida las ovejas',
-      where: Where.meadow,
-      weight: 1.0,
-      bob: 0.004,
-      rate: 0.4,
-      lean: 0.01,
-      turn: 0.6,
-      prop: PropKind.crook,
     ),
     Doing(
       'flores',
