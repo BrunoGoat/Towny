@@ -3665,7 +3665,8 @@ class TownPainter extends CustomPainter {
       final q = e.layout.pieces[i];
       final caja = por[q.building];
       if (caja == null) {
-        por[q.building] = _Box(q.building, q.x0, q.x1, q.z0, q.z1, q.y1);
+        por[q.building] = _Box(q.building, q.x0, q.x1, q.z0, q.z1, q.y1)
+          ..take(q);
       } else {
         caja.grow(q);
       }
@@ -3691,7 +3692,16 @@ class TownPainter extends CustomPainter {
     final eye = p.eye;
     final dx = at.x - eye.x, dy = at.y - eye.y, dz = at.z - eye.z;
     for (final b in _buildingBoxes()) {
-      if (b.building == owner) continue;
+      if (b.building == owner) {
+        // La casa de la chimenea no se mira como caja —la chimenea está
+        // dentro de ella y la caja lo taparía todo—, sino por sus piezas: las
+        // paredes y el tejado a dos aguas. Sin esto el humo de una chimenea
+        // del faldón de atrás se veía a través del tejado.
+        for (final forma in b.shapes) {
+          if (_through(eye, dx, dy, dz, forma)) return true;
+        }
+        continue;
+      }
       var t0 = 0.0, t1 = 1.0;
       var fuera = false;
       for (var eje = 0; eje < 3 && !fuera; eje++) {
@@ -3719,6 +3729,36 @@ class TownPainter extends CustomPainter {
       if (!fuera && t1 > t0 && t0 > 0.02) return true;
     }
     return false;
+  }
+
+  /// Si el tramo del ojo al punto pasa por dentro de [forma]: una figura
+  /// convexa dada por planos `a·x + b·y + c·z <= e`.
+  static bool _through(
+    V3 eye,
+    double dx,
+    double dy,
+    double dz,
+    List<(double, double, double, double)> forma,
+  ) {
+    var t0 = 0.0, t1 = 1.0;
+    for (final (a, b, c, e) in forma) {
+      final num = e - (a * eye.x + b * eye.y + c * eye.z);
+      final den = a * dx + b * dy + c * dz;
+      if (den.abs() < 1e-12) {
+        if (num < 0) return false;
+        continue;
+      }
+      final t = num / den;
+      if (den > 0) {
+        if (t < t1) t1 = t;
+      } else {
+        if (t > t0) t0 = t;
+      }
+      if (t0 >= t1) return false;
+    }
+    // Por delante del ojo, y un poco antes del punto: la voluta que acaba de
+    // salir roza el tejado y no por eso está detrás de él.
+    return t0 > 0.02 && t0 < 0.995;
   }
 
   void _drawParticles(Canvas canvas, Projector p) {
@@ -3838,11 +3878,50 @@ class _Box {
   final int building;
   double x0, x1, z0, z1, y1;
 
+  /// Las paredes y los tejados, cada uno como figura convexa: con esto se
+  /// tapa el humo de su propia chimenea. Ver [TownPainter._through].
+  final List<List<(double, double, double, double)>> shapes = [];
+
   void grow(TownPiece q) {
     if (q.x0 < x0) x0 = q.x0;
     if (q.x1 > x1) x1 = q.x1;
     if (q.z0 < z0) z0 = q.z0;
     if (q.z1 > z1) z1 = q.z1;
     if (q.y1 > y1) y1 = q.y1;
+    take(q);
+  }
+
+  void take(TownPiece q) {
+    final caja = [
+      (-1.0, 0.0, 0.0, -q.x0),
+      (1.0, 0.0, 0.0, q.x1),
+      (0.0, -1.0, 0.0, -q.y0),
+      (0.0, 0.0, -1.0, -q.z0),
+      (0.0, 0.0, 1.0, q.z1),
+    ];
+    switch (q.kind) {
+      case PieceKind.floor || PieceKind.plinth:
+        shapes.add([...caja, (0.0, 1.0, 0.0, q.y1)]);
+      case PieceKind.roof || PieceKind.thatch:
+        // A dos aguas: dos planos inclinados que se cortan en la cumbrera.
+        final medio = (q.alongX ? q.d : q.w) / 2;
+        if (medio <= 0) return;
+        final k = (q.y1 - q.y0) / medio;
+        final c = q.alongX ? q.cz : q.cx;
+        if (q.alongX) {
+          shapes.add([
+            ...caja,
+            (0.0, 1.0, k, q.y1 + k * c),
+            (0.0, 1.0, -k, q.y1 - k * c),
+          ]);
+        } else {
+          shapes.add([
+            ...caja,
+            (k, 1.0, 0.0, q.y1 + k * c),
+            (-k, 1.0, 0.0, q.y1 - k * c),
+          ]);
+        }
+      default:
+    }
   }
 }
