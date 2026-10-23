@@ -4,14 +4,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:towny/data/advice.dart';
 import 'package:towny/l10n/lang.dart';
 
-/// Todo lo que dice el consejero, en castellano y numerado, para revisarlo
-/// de una sentada:
+/// Todo lo que dice el consejero hoy, en castellano y numerado, sacado del
+/// código. La revisión se lleva a mano en `CONSEJERO.md`; esto sirve para
+/// ver de un vistazo lo que hay de verdad en la app:
 ///
-///   flutter test tool/consejero_test.dart --dart-define=OUT=CONSEJERO.md
+///   flutter test tool/consejero_test.dart --dart-define=OUT=build/consejero.md
 void main() {
   test('el consejero, en limpio', () {
     lang = Lang.es;
-    const out = String.fromEnvironment('OUT', defaultValue: 'CONSEJERO.md');
+    const out = String.fromEnvironment('OUT', defaultValue: 'build/consejero.md');
     final b = StringBuffer('# Lo que dice el consejero\n\n');
     final siembra = pathFor(AdviceGoal.start);
     final arranca = pathFor(AdviceGoal.quit);

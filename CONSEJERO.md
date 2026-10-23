@@ -1,11 +1,27 @@
-# Lo que dice el consejero
+# El consejero
 
-## Los de todos los días
+Todo lo que dice el viejo, para revisarlo de a poco. Los números son los de
+la primera lista y no cambian nunca, aunque se saquen consejos.
 
-Entre corchetes, para quién es y en qué lugar le llega: **E** a quien empieza un hábito, **D** a quien deja uno.
+**Cómo se usa:**
+- **Arriba, lo pendiente.** Lo que todavía no se decidió, tal como está hoy
+  en la app.
+- **En discusión.** Lo que gusta la idea pero se está reescribiendo: el texto
+  de hoy y la propuesta nueva.
+- **Ya revisado, tachado.** Lo de antes de cada uno que ya se decidió, al
+  final de la parte de arriba para que no se mezcle con lo pendiente.
+- **Abajo de la raya, lo aprobado.** Lo que va a quedar en la app.
 
-**1.** «Una semilla no crece en la mesa de la cocina.» [E1]  
-Dale a esto un lugar propio, que no sea donde duermes ni donde comes. Con el tiempo, llegar allí bastará para ponerte en marcha.
+**Reglas para escribir:**
+- El dicho es corto y se entiende a la primera.
+- La explicación es concreta y simple. Nunca punto y coma.
+
+**Entre corchetes**, en los de todos los días: a quién le llega y en qué
+lugar. **E** es a quien empieza un hábito, **D** a quien deja uno.
+
+## Pendiente de revisar
+
+### Los de todos los días
 
 **2.** «El sol no pregunta si tiene ganas de salir.» [E2]  
 Dale una hora. «Cuando pueda» no llega nunca; «a las ocho, después de cenar» llega cada día.
@@ -16,71 +32,26 @@ Empieza ridículamente pequeño: una página, dos minutos. Lo primero que se con
 **4.** «El agua nueva sigue el cauce del río viejo.» [E4]  
 Átalo a algo que ya haces: «al volver del trabajo, salto la cuerda». Lo de siempre trae a lo nuevo de la mano.
 
-**5.** «Lo que el ojo no ve, la mano no lo busca.» [E5]  
-Déjalo a la vista: el calzado junto a la puerta, el libro sobre la almohada.
-
-**6.** «Nadie sube la montaña. Se dan pasos.» [E6]  
-No te propongas hacerlo entero: proponte empezar. Casi nadie se detiene una vez que ha empezado.
-
-**7.** «Una gota no hace un charco. Dos, empiezan.» [E7 · D9]  
-Faltar un día le pasa a cualquiera y no rompe nada. Lo que rompe es el segundo seguido.
-
-**8.** «Quien prepara la leña al atardecer tiene fuego en la noche.» [E8]  
-Déjalo listo antes: la ropa doblada, la página marcada. Cuando llegue el momento, no habrá nada que decidir.
-
 **9.** «La buena mañana se siembra la noche anterior.» [E9]  
 Si es de mañana, déjalo todo listo antes de dormir: la ropa a la vista, el agua servida, el camino despejado. Que al despertar no haya nada que buscar ni nada que decidir.
-
-**10.** «Que decida quien traza el camino, no quien tropieza en él.» [E10 · D8]  
-Decide en calma, el día antes, qué harás y cuándo. Quien despierta con sueño no debe pensar ni elegir: solo seguir el plan que dejó tu mejor versión.
 
 **11.** «Cada piedra en el camino es una excusa sentada, esperando.» [E11]  
 Quita pasos: si entre tú y el hábito hay tres, que quede uno.
 
-**12.** «La abeja vuelve a la flor que le dio miel.» [E12]  
-Únelo a algo que te guste: tu música solo al caminar, el té bueno solo al estudiar.
-
 **13.** «En invierno el árbol no da frutos, y sigue siendo árbol.» [E13 · D17]  
 Decide ahora cuál es la versión mínima que cuenta. En el día malo, haz esa y nada más.
-
-**14.** «El pájaro vuelve a la misma rama, y por eso la rama lo espera.» [E14]  
-Mismo lugar, misma hora, mismo primer gesto. El cuerpo lo reconoce antes que la mente.
-
-**15.** «Quien espera el viento perfecto nunca suelta la vela.» [E15]  
-No esperes a tener ganas. Las ganas llegan después de empezar, no antes.
 
 **16.** «Una intención es una nube. Una cita es una piedra.» [E16]  
 Escribe el plan entero: «haré esto, a esta hora, en este lugar».
 
-**17.** «El fuego que uno cuida solo se apaga más rápido.» [E17 · D13]  
-Cuéntaselo a alguien. No para que te vigile: para que alguien lo sepa.
-
 **18.** «No eres lo que haces una vez. Eres lo que haces siempre.» [E18 · D26]  
 Cada pieza es un voto por quien quieres ser. No «intento leer»: «soy alguien que lee».
-
-**19.** «Nadie le gana al río parado en el medio.» [E19 · D18]  
-No es falta de voluntad: nadie vence a lo que tiene al lado todo el día. Apártate de lo que te distrae.
 
 **20.** «Mira atrás de vez en cuando: el camino también enseña.» [E20 · D24]  
 Da un paseo por el pueblo. Lo construido es la prueba de que puedes, y una prueba convence más que las ganas.
 
 **21.** «La piedra no se gasta por la fuerza del agua, sino por su costumbre.» [E21 · D27]  
 Que se vuelva aburrido es buena señal: ahí es donde casi todos lo dejan, y donde se queda quien sigue.
-
-**22.** «Quien persigue dos conejos no atrapa ninguno.» [E22 · D25]  
-De uno en uno. Cambiarlo todo a la vez un lunes es la manera más segura de no cambiar nada.
-
-**23.** «La semilla no decide dónde cae. Tú sí.» [E23 · D19]  
-Cambia el lugar, no la fuerza de voluntad. El lugar decide más que tú.
-
-**24.** «No preguntes cuánto llovió. Pregunta si llovió.» [E24]  
-Al principio no importa cuánto: importa que ese día estuviste.
-
-**25.** «Quien camina junto al que camina aprende a caminar.» [E25 · D20]  
-Se pega lo que hace la gente que tienes cerca. Busca a quienes ya tienen la costumbre que buscas.
-
-**26.** «Lo que termina bien, vuelve.» [E26]  
-Termina con algo amable: un vaso de agua fresca, un rato al sol. Lo que se recuerda con gusto se repite.
 
 **27.** «Llegar tarde a la fuente igual calma la sed.» [E27]  
 Si la hora pasó, hazlo igual: más tarde y más pequeño, pero hoy.
@@ -163,7 +134,7 @@ A menudo el hábito tapa otra cosa: cansancio, nervios, soledad. Atiende esa sed
 **53.** «Quien no mira la cuenta la paga dos veces.» [D16]  
 Haz visible lo que te cuesta: el dinero, el sueño, el tiempo. Escríbelo donde lo veas.
 
-## Los que llegan cuando pasa algo
+### Los que llegan cuando pasa algo
 
 **54.** «Vi la primera piedra posarse.» [la primera pieza]  
 Lo más difícil ya está hecho: empezar. Mañana solo hace falta lo mismo, en el mismo lugar.
@@ -201,7 +172,7 @@ Parar a propósito no es abandonar. Cuando el pueblo despierte, vuelve con la ve
 **65.** «Cien piedras. Ya no necesitas creerme a mí.» [cien piezas]  
 Cien veces elegiste aparecer. La prueba de que puedes está construida ahí afuera.
 
-## Lo que dice fuera de los consejos
+### Lo que dice fuera de los consejos
 
 **66.** Al presentarse: «Te doy la bienvenida al valle. Pasa, pasa… aquí nadie corre, ni siquiera el agua.»
 
@@ -233,3 +204,108 @@ Cien veces elegiste aparecer. La prueba de que puedes está construida ahí afue
 
 **80.** Si le decís que todavía no: «Esperará. Las palabras no se pudren: maduran.»
 
+## En discusión
+
+Gusta la idea, no el dicho. Primero cómo está hoy, después la propuesta.
+
+**1.** «Una semilla no crece en la mesa de la cocina.» [E1]  
+Dale a esto un lugar propio, que no sea donde duermes ni donde comes. Con el tiempo, llegar allí bastará para ponerte en marcha.
+
+> **Propuesta:** «Cada semilla necesita su rincón de tierra.»  
+> Elige un lugar solo para esto. Que no sea donde duermes ni donde comes. Con el tiempo, con solo llegar ahí vas a tener ganas de empezar.
+
+**5.** «Lo que el ojo no ve, la mano no lo busca.» [E5]  
+Déjalo a la vista: el calzado junto a la puerta, el libro sobre la almohada.
+
+> **Propuesta:** «Lo que está a la vista se recuerda solo.»  
+> Deja a la vista lo que necesitas: las zapatillas junto a la puerta, el libro sobre la almohada. Verlo te lo recuerda sin que tengas que pensar.
+
+**6.** «Nadie sube la montaña. Se dan pasos.» [E6]  
+No te propongas hacerlo entero: proponte empezar. Casi nadie se detiene una vez que ha empezado.
+
+> **Propuesta:** «Lo difícil no es el camino. Es salir de casa.»  
+> No te propongas hacerlo entero. Proponte solo empezar. Una vez que empezaste, casi siempre sigues.
+
+**7.** «Una gota no hace un charco. Dos, empiezan.» [E7 · D9]  
+Faltar un día le pasa a cualquiera y no rompe nada. Lo que rompe es el segundo seguido.
+
+> **Propuesta:** «Tropezar una vez es tropezar. Dos veces, es empezar a caer.»  
+> Faltar un día le pasa a cualquiera y no rompe nada. Lo importante es no faltar dos días seguidos.
+
+**8.** «Quien prepara la leña al atardecer tiene fuego en la noche.» [E8]  
+Déjalo listo antes: la ropa doblada, la página marcada. Cuando llegue el momento, no habrá nada que decidir.
+
+> **Propuesta:** «La leña se corta antes de que llegue el frío.»  
+> Deja todo listo antes: la ropa doblada, el libro abierto en la página. Cuando llegue la hora, no habrá nada que preparar ni que decidir.
+
+**10.** «Que decida quien traza el camino, no quien tropieza en él.» [E10 · D8]  
+Decide en calma, el día antes, qué harás y cuándo. Quien despierta con sueño no debe pensar ni elegir: solo seguir el plan que dejó tu mejor versión.
+
+> **Propuesta:** «El camino se elige de día, no a oscuras.»  
+> Decide la noche anterior qué vas a hacer y a qué hora. Cuando llegue el momento, no lo pienses: solo haz lo que decidiste.
+
+**12.** «La abeja vuelve a la flor que le dio miel.» [E12]  
+Únelo a algo que te guste: tu música solo al caminar, el té bueno solo al estudiar.
+
+> **Propuesta:** «Lo que viene con miel se busca solo.»  
+> Júntalo con algo que te guste: tu música favorita solo mientras caminas, tu té preferido solo mientras estudias.
+
+**14.** «El pájaro vuelve a la misma rama, y por eso la rama lo espera.» [E14]  
+Mismo lugar, misma hora, mismo primer gesto. El cuerpo lo reconoce antes que la mente.
+
+> **Propuesta:** «El sendero que se pisa cada día se abre solo.»  
+> Mismo lugar, misma hora, mismo primer paso. Con el tiempo, el cuerpo arranca antes de que lo pienses.
+
+**15.** «Quien espera el viento perfecto nunca suelta la vela.» [E15]  
+No esperes a tener ganas. Las ganas llegan después de empezar, no antes.
+
+> **Propuesta:** «Las ganas llegan andando, no esperando.»  
+> No esperes a tener ganas para empezar. Las ganas aparecen después de empezar, casi nunca antes.
+
+**19.** «Nadie le gana al río parado en el medio.» [E19 · D18]  
+No es falta de voluntad: nadie vence a lo que tiene al lado todo el día. Apártate de lo que te distrae.
+
+> **Propuesta:** «Es más fácil no cruzarse con el lobo que pelear con él.»  
+> No es falta de voluntad. Nadie le gana a algo que tiene al lado todo el día. Aleja lo que te distrae: el teléfono en otro cuarto, la tele apagada.
+
+**22.** «Quien persigue dos conejos no atrapa ninguno.» [E22 · D25]  
+De uno en uno. Cambiarlo todo a la vez un lunes es la manera más segura de no cambiar nada.
+
+> **Propuesta:** «El río se cruza de piedra en piedra.»  
+> Cambia una cosa por vez. Querer cambiarlo todo de golpe un lunes es la manera más segura de no cambiar nada.
+
+**23.** «La semilla no decide dónde cae. Tú sí.» [E23 · D19]  
+Cambia el lugar, no la fuerza de voluntad. El lugar decide más que tú.
+
+> **Propuesta:** «En buena tierra, la semilla crece sin esfuerzo.»  
+> En vez de exigirte más fuerza de voluntad, arregla el lugar. Si lo que necesitas está a mano y lo que te distrae está lejos, todo cuesta menos.
+
+**24.** «No preguntes cuánto llovió. Pregunta si llovió.» [E24]  
+Al principio no importa cuánto: importa que ese día estuviste.
+
+> **Propuesta:** «Al principio no importa cuánto llueve. Importa que llueva.»  
+> Al principio no importa cuánto hagas. Importa que ese día lo hiciste.
+
+**26.** «Lo que termina bien, vuelve.» [E26]  
+Termina con algo amable: un vaso de agua fresca, un rato al sol. Lo que se recuerda con gusto se repite.
+
+> **Propuesta:** «Al lugar donde nos fue bien, siempre se vuelve.»  
+> Termina con algo agradable: un vaso de agua fresca, un rato al sol. Lo que recuerdas con gusto, tienes ganas de repetirlo.
+
+## Ya revisado
+
+**17.** ~~«El fuego que uno cuida solo se apaga más rápido.» [E17 · D13]~~  
+~~Cuéntaselo a alguien. No para que te vigile: para que alguien lo sepa.~~
+
+Sacado.
+
+**25.** ~~«Quien camina junto al que camina aprende a caminar.» [E25 · D20]~~  
+~~Se pega lo que hace la gente que tienes cerca. Busca a quienes ya tienen la costumbre que buscas.~~
+
+Sacado.
+
+---
+
+# Aprobado
+
+Lo que va a quedar en la app. Todavía nada.
