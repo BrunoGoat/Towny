@@ -30,10 +30,10 @@ double skyAngle((double, double) a, (double, double) b) {
 }
 
 void main() {
-  group('las ocho son de verdad', () {
+  group('las veinticinco son de verdad', () {
     test('están completas y bien formadas', () {
-      expect(constellations.length, 8);
-      expect(constellations.map((c) => c.id).toSet().length, 8);
+      expect(constellations.length, 25);
+      expect(constellations.map((c) => c.id).toSet().length, 25);
       for (final c in constellations) {
         expect(c.id, matches(RegExp(r'^[a-z]+$')));
         expect(c.stars.length, greaterThanOrEqualTo(4), reason: c.id);
@@ -189,12 +189,12 @@ void main() {
       expect(con, lessThan(300), reason: 'hay cielo todas las noches');
     });
 
-    test('y en un mes salen las ocho, sin que ninguna se quede fuera', () {
+    test('y en mes y medio salen todas, sin que ninguna se quede fuera', () {
       // Al azar puro habría quien esperase un año por la última, y eso deja de
       // ser un hallazgo y pasa a ser un peaje.
       for (final from in [0, 1, 57, 4000]) {
         final seen = <String>{};
-        for (var d = 0; d < 30; d++) {
+        for (var d = 0; d < 50; d++) {
           final c = tonight(from + d);
           if (c != null) seen.add(c.id);
         }
