@@ -512,7 +512,63 @@ final List<(String, _Estilo)> _estilos = [
       ),
     ),
   ),
+  (
+    'P · Cinta arriba, crema translúcido y dorado',
+    (l, s, m) => SizedBox(
+      width: l,
+      height: l,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          s,
+          Positioned(
+            top: -l * 0.18,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              decoration: BoxDecoration(
+                color: _cream.withValues(alpha: 0.18),
+                border: Border.all(color: _gold.withValues(alpha: 0.6)),
+                borderRadius: BorderRadius.circular(3),
+                boxShadow: const [
+                  BoxShadow(color: Color(0x59000000), blurRadius: 4),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final x in m.take(3))
+                    HabitSigil(symbol: x, color: _gold, size: l * 0.2),
+                  if (m.length > 3)
+                    Text(
+                      '+${m.length - 3}',
+                      style: TextStyle(
+                        fontSize: l * 0.17,
+                        fontWeight: FontWeight.w700,
+                        color: _gold,
+                        height: 1,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  ),
 ];
+
+/// Con --dart-define=SOLO=M,N,P, sólo esas letras.
+List<(String, _Estilo)> get _elegidos {
+  const solo = String.fromEnvironment('SOLO');
+  if (solo.isEmpty) return _estilos;
+  final letras = solo.split(',').map((x) => x.trim()).toSet();
+  return [
+    for (final e in _estilos)
+      if (letras.contains(e.$1.split(' ').first)) e,
+  ];
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -540,7 +596,7 @@ void main() {
       await l.load();
     });
     const ancho = 420.0, fila = 108.0;
-    final alto = 20 + _estilos.length * fila;
+    final alto = 20 + _elegidos.length * fila;
     tester.view.physicalSize = Size(ancho * 2, alto * 2);
     tester.view.devicePixelRatio = 2;
     addTearDown(tester.view.reset);
@@ -566,7 +622,7 @@ void main() {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  for (final (nombre, estilo) in _estilos)
+                  for (final (nombre, estilo) in _elegidos)
                     SizedBox(
                       height: fila,
                       child: Column(
