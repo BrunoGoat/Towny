@@ -194,6 +194,13 @@ void main() {
         var prev = w.at(0);
         for (var k = 1; k <= 400; k++) {
           final at = w.at(k * 0.25);
+          // Menos el consejero al sentarse en su banco y al levantarse: se
+          // corre ya sentado del paso de delante al asiento, y eso es dejarse
+          // caer, no andar.
+          if (at.act == Doing.bench || prev.act == Doing.bench) {
+            prev = at;
+            continue;
+          }
           final d = math.sqrt(
             math.pow(at.x - prev.x, 2) + math.pow(at.z - prev.z, 2),
           );

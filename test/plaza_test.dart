@@ -496,11 +496,16 @@ void main() {
       // La misma cosa dicha en metros, que es donde se arregló: a quien está
       // dentro de la plaza el suelo le queda a la altura del enlosado.
       const r = TownLayout.plazaReach;
-      expect(Plaza.floorAt(0, 0, 0, 0, r), Plaza.lawnTop);
-      expect(Plaza.floorAt(r * 0.95, 0, 0, 0, r), Plaza.kerbTop);
+      expect(Plaza.floorAt(0, 0, 0, 0, r), Plaza.lawnTop + Plaza.standLift);
+      expect(
+        Plaza.floorAt(r * 0.95, 0, 0, 0, r),
+        Plaza.kerbTop + Plaza.standLift,
+      );
       expect(Plaza.floorAt(r * 1.4, 0, 0, 0, r), 0);
+      // Y por encima de las sombras, que si no le tapan los pies.
+      expect(Plaza.standLift, greaterThan(Plaza.shadowLift));
       // Y el pueblo de al lado tiene la suya en su sitio, no en el origen.
-      expect(Plaza.floorAt(40, 12, 40, 12, r), Plaza.lawnTop);
+      expect(Plaza.floorAt(40, 12, 40, 12, r), Plaza.lawnTop + Plaza.standLift);
       expect(Plaza.floorAt(0, 0, 40, 12, r), 0);
     });
 

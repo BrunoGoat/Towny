@@ -1795,6 +1795,14 @@ class Plaza {
   /// un día dejan de serlo.
   static const double kerbTop = 0.085, lawnTop = 0.055;
 
+  /// Cuánto por encima del suelo se pintan las sombras de la plaza: una capa
+  /// fina, del color del suelo oscurecido. Ver `plazaShadows`.
+  static const double shadowLift = 0.004;
+
+  /// Y cuánto por encima del suelo se apoya lo que está en la plaza: por
+  /// encima de las sombras, que si no le tapan los pies. Ver [floorAt].
+  static const double standLift = 0.01;
+
   /// Hasta dónde llega la hierba, en proporción al radio.
   static const double lawnOut = 0.905;
 
@@ -1806,6 +1814,14 @@ class Plaza {
   /// no tienen plano que los separe y por tanto no tienen orden; el que salía
   /// era el de la losa, así que cualquiera que entraba en la plaza se borraba
   /// entero al pisarla.
+  ///
+  /// **Y un pelo por encima de las sombras** ([standLift]). Las sombras de
+  /// la plaza son una capa del color del suelo oscurecido, cuatro milímetros
+  /// sobre él, y lo que se apoyaba justo en el suelo quedaba con los pies
+  /// dentro de esa capa: las migas del viejo, de un centímetro, desaparecían
+  /// enteras en su sombra, y las palomas parecían hundidas. Lo que se apoya
+  /// en la plaza —gente, palomas, migas, el viejo— pide su altura aquí, así
+  /// que con esto vale para todo lo que haya y lo que venga.
   ///
   /// Se mide con el círculo y no con el octágono. La diferencia son veinte
   /// centímetros en los seis vértices, y lo que se juega ahí son los tres
@@ -1821,7 +1837,7 @@ class Plaza {
     final dx = x - cx, dz = z - cz;
     final d = math.sqrt(dx * dx + dz * dz);
     if (d > reach) return 0;
-    return d > reach * lawnOut ? kerbTop : lawnTop;
+    return (d > reach * lawnOut ? kerbTop : lawnTop) + standLift;
   }
 
   /// La fuente: taza, brocal y el agua dentro.

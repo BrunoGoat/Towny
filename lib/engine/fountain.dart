@@ -882,7 +882,7 @@ List<Facet> plazaShadows(
 
   final out = <Facet>[];
   for (final (alto, trozos, surface, tint, ao) in suelos) {
-    final y = alto + 0.004;
+    final y = alto + Plaza.shadowLift;
     for (final (pts, k) in echan) {
       // Llevado al suelo, y de paso su caja y cuánto se aleja del centro:
       // con eso se descarta lo que no toca este suelo antes de hacer nada

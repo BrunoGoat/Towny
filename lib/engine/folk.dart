@@ -1027,8 +1027,10 @@ class Townsfolk {
     return r;
   }
 
-  /// Lo que tarda en correrse del paso de delante del banco al asiento.
-  static const double _corre = 0.7;
+  /// Lo que tarda en correrse del paso de delante del banco al asiento, y
+  /// al revés. Ya va sentado mientras se corre, así que tiene que ser casi
+  /// dejarse caer: a siete décimas se veía deslizarse sentado por el aire.
+  static const double _corre = 0.25;
 
   /// Lo que lleva en el tramo que sale del punto [i] del camino.
   PropKind? _carryAt(int i) => i < _carry.length ? _carry[i] : null;
