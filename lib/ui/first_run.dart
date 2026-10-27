@@ -1303,7 +1303,22 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
       0.9,
     );
     _explore = toward(_explore, widget.exploring, 0.6);
-    if (!widget.exploring) {
+    if (_peeking) {
+      // Mirando la muestra sin recorrerla: sólo se gira, y el giro se queda
+      // donde lo dejó el dedo.
+      final k = 1 - math.exp(-dt * 7.5);
+      _yawOff += (_yawT - _yawOff) * k;
+      // Lo demás vuelve a su sitio, por si se viene de recorrerlo.
+      final j = 1 - math.exp(-dt * 3.5);
+      _pitchT = 0;
+      _zoomT = 1;
+      _panXT = 0;
+      _panZT = 0;
+      _pitchOff -= _pitchOff * j;
+      _zoom += (1 - _zoom) * j;
+      _panX -= _panX * j;
+      _panZ -= _panZ * j;
+    } else if (!widget.exploring) {
       final k = 1 - math.exp(-dt * 3.5);
       _yawT = 0;
       _pitchT = 0;
@@ -1379,23 +1394,37 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
         : Curves.easeOutCubic.transform((_swap - 0.42) / 0.58);
     final vista = Curves.easeInOutCubic.transform(_preview);
     final muestra = vista * cambio;
+    final ojeando = _peeking;
+    final dedo = widget.exploring || ojeando;
     return LayoutBuilder(
       builder: (_, box) => GestureDetector(
         behavior: HitTestBehavior.opaque,
         // En la comarca, tocar el pueblo de muestra es ponerse a recorrerlo.
-        onTap: widget.stage == 2 && !widget.exploring && _preview > 0.5
-            ? widget.onExplore
+        onTap: ojeando ? widget.onExplore : null,
+        onScaleStart: dedo ? (_) => _lastScale = 1 : null,
+        // Y sin entrar, deslizar de lado lo gira: para darle una vuelta y
+        // ver cómo es sin ponerse a recorrerlo.
+        onScaleUpdate: widget.exploring
+            ? _onScale
+            : ojeando
+            ? (d) => _yawT -= d.focalPointDelta.dx * 0.0062
             : null,
-        onScaleStart: widget.exploring ? (_) => _lastScale = 1 : null,
-        onScaleUpdate: widget.exploring ? _onScale : null,
         // Y al soltar sigue un poco, con el impulso que llevaba el dedo.
-        onScaleEnd: widget.exploring
+        onScaleEnd: dedo
             ? (d) => _yawT -= d.velocity.pixelsPerSecond.dx * 0.0062 * 0.18
             : null,
         child: _scene(box, scene, noche, muestra, vista),
       ),
     );
   }
+
+  /// En la pregunta de la comarca, con el pueblo de muestra a la vista y sin
+  /// estar recorriéndolo.
+  bool get _peeking =>
+      widget.stage == 2 &&
+      !widget.exploring &&
+      !widget.leaving &&
+      _preview > 0.5;
 
   /// Un dedo gira la cámara alrededor del pueblo; dos la acercan y la mueven.
   void _onScale(ScaleUpdateDetails d) {

@@ -256,7 +256,7 @@ class TownCharacter {
     TownCharacter(
       regionEs: 'Robledal',
       suitsEs:
-          'Para lo que crece despacio, como un roble: leer, estudiar, escribir, aprender un instrumento.',
+          'Para lo que crece despacio, como un roble: leer, estudiar, aprender un idioma.',
       symbol: 'tree',
       blurbEs: 'Madera oscura bajo los robles, tejados de paja muy inclinados.',
       storey: 1.16,
@@ -314,8 +314,8 @@ class TownCharacter {
     TownCharacter(
       regionEs: 'Alfar',
       suitsEs:
-          'Para lo creativo: dibujar, tocar música, escribir, fotografiar, lo '
-          'que se hace con las manos.',
+          'Para lo creativo: dibujar, tocar un instrumento, escribir, '
+          'fotografiar.',
       symbol: 'pot',
       blurbEs: 'De artesanos: talleres y hornos, barro cocido y tejados rojos.',
       storey: 0.94,

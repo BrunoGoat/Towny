@@ -39,8 +39,8 @@ const Map<int, (String, String, String)> regionsEn = {
   0xB30D: (
     'Oakwood',
     'Dark timber under the oaks, very steep thatched roofs.',
-    'For what grows slowly, like an oak: reading, studying, writing, '
-        'learning an instrument.',
+    'For what grows slowly, like an oak: reading, studying, learning a '
+        'language.',
   ),
   0xD4A3: (
     'Crossroads',
@@ -51,7 +51,7 @@ const Map<int, (String, String, String)> regionsEn = {
   0xE817: (
     'Potteries',
     "A craftsmen's town: workshops and kilns, fired clay and red roofs.",
-    'For creative things: drawing, playing music, writing, photography, what '
-        'is made with the hands.',
+    'For creative things: drawing, playing an instrument, writing, '
+        'photography.',
   ),
 };
