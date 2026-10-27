@@ -1,12 +1,15 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/advice.dart';
 import '../l10n/lang.dart';
+import 'cadence.dart';
 import 'habit.dart';
 import 'piece.dart';
+import 'stumble.dart';
 
 /// La libreta del consejero: qué consejos ganaste, y cuándo.
 ///
@@ -183,6 +186,65 @@ class AdviceBook extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Lo que se ganó, antes de que el viejo esperara a que confirmes, por
+  /// faltas que nadie confirmó: se borra como un error.
+  ///
+  /// Antes un día sin pieza ya era faltar, aunque el ritmo fuera de cinco
+  /// por semana y ese día no tocara, o el pueblo estuviera dormido. Lo que
+  /// se dijo por eso se va: la falta tiene que estar confirmada en una charla
+  /// ese mismo día, y el «viene costando» no vale si el pueblo dormía.
+  void _forgetFalseMisses(List<Habit> habits) {
+    final porNombre = {for (final h in habits) h.name: h};
+    final antes = _got.length;
+    _got.removeWhere((g) {
+      final r = _why[g.$1];
+      final h = r == null ? null : porNombre[r.town];
+      if (r == null || h == null) return false;
+      final bool mal;
+      if (r.event == AdviceEvent.missedDay ||
+          r.moment == AdviceMoment.missedYesterday) {
+        final dia = r.when;
+        mal =
+            dia == null ||
+            !stumblesOf(h).any(
+              (s) => isRealStumble(s.cause) && dayKey(s.day) == dayKey(dia),
+            );
+      } else if (r.moment == AdviceMoment.struggling) {
+        mal = h.restedOn(g.$2);
+      } else {
+        mal = false;
+      }
+      if (mal) _why.remove(g.$1);
+      return mal;
+    });
+    if (_got.length != antes) unawaited(flush());
+  }
+
+  /// Lo que se dijo por un tropiezo de [town] que resultó no serlo: ese día
+  /// no tocaba. Se quita como un error, desde [since].
+  ///
+  /// Es lo que se ganó por haber faltado —el «que no sean dos», el «viene
+  /// costando»— en ese pueblo. Dejarlo en la libreta sería que el viejo
+  /// siguiera diciendo que faltaste cuando le acabás de decir que no.
+  void retractMisses(String town, DateTime since) {
+    final desde = dayStart(since);
+    final antes = _got.length;
+    _got.removeWhere((g) {
+      final r = _why[g.$1];
+      if (r == null || r.town != town || g.$2.isBefore(desde)) return false;
+      final fallo =
+          r.event == AdviceEvent.missedDay ||
+          r.moment == AdviceMoment.missedYesterday ||
+          r.moment == AdviceMoment.struggling;
+      if (fallo) _why.remove(g.$1);
+      return fallo;
+    });
+    if (_got.length != antes) {
+      unawaited(flush());
+      notifyListeners();
+    }
+  }
+
   /// Lo ganado, del más nuevo al más viejo. Sólo lo aprobado: lo que se saca
   /// de [approvedAdvice] deja de verse aunque ya se hubiera ganado.
   List<(Advice, DateTime)> unlocked({Set<String>? approved}) {
@@ -286,6 +348,8 @@ class AdviceBook extends ChangeNotifier {
     var cuanto = -1.0;
     for (final h in habits) {
       if (!_goals.containsKey(h.id)) continue;
+      // Uno dormido no cuesta: está descansando, y a propósito.
+      if (h.restAt(at) != null) continue;
       final c = struggleOf(h, at);
       // A igualdad, el más nuevo: es el que menos dominás.
       if (c > cuanto ||
@@ -310,6 +374,7 @@ class AdviceBook extends ChangeNotifier {
     final at = now ?? DateTime.now();
     final camino = pathOf(habits, now: at);
     if (camino.isEmpty) return const [];
+    _forgetFalseMisses(habits);
     final ya = {for (final (id, _) in _got) id};
     final nuevos = <Advice>[];
     void ganar(Advice a, [AdviceReason? por]) {
@@ -349,7 +414,7 @@ class AdviceBook extends ChangeNotifier {
                   moment: momento,
                   town: foco!.name,
                   when: momento == AdviceMoment.missedYesterday
-                      ? dayStart(at).subtract(const Duration(days: 1))
+                      ? lastConfirmedStumble(foco)?.day
                       : null,
                 )
               : null,
@@ -510,19 +575,29 @@ List<AdviceReason> reasonsOf(
 
     if (distintos.length >= 7) pasa(AdviceEvent.week, when: diaN(7));
     if (distintos.length >= 30) pasa(AdviceEvent.month, when: diaN(30));
-    DateTime? falto, volvio;
+    // Volver es volver de un hueco más largo que tus días libres, y sin
+    // contar los dormidos: a quien va tres veces por semana, tres días sin
+    // pieza son lo normal.
+    final libres = math.max(0, (7 - perWeekOf(h)).floor());
+    DateTime? volvio;
     var tras = 0;
     for (var i = 1; i < dias.length; i++) {
-      final hueco = daysBetween(dias[i - 1], dias[i]);
-      final siguiente = dias[i - 1].add(const Duration(days: 1));
-      // Un día sin nada entre dos con algo, y no en una pausa: dormir el
-      // pueblo es decidirlo, no saltearse un día.
-      if (hueco == 2 && !h.restedOn(siguiente)) falto = siguiente;
-      if (hueco >= 4) {
+      var blancos = 0;
+      for (
+        var d = dias[i - 1].add(const Duration(days: 1));
+        d.isBefore(dias[i]);
+        d = DateTime(d.year, d.month, d.day + 1)
+      ) {
+        if (!h.restedOn(d)) blancos++;
+      }
+      if (blancos >= math.max(3, libres + 2)) {
         volvio = dias[i];
-        tras = hueco - 1;
+        tras = blancos;
       }
     }
+    // Faltar, sólo lo que confirmaste: un día sin pieza puede ser un día que
+    // no tocaba, y el viejo no lo da por hecho hasta que se lo decís.
+    final falto = lastConfirmedStumble(h)?.day;
     if (falto != null) pasa(AdviceEvent.missedDay, when: falto);
     if (volvio != null) pasa(AdviceEvent.comeback, when: volvio, n: tras);
   }
@@ -660,13 +735,10 @@ class AdviceReason {
 /// anda.
 double struggleOf(Habit h, DateTime now) {
   final edad = daysBetween(h.createdAt, now) + 1;
-  final ventana = edad.clamp(1, 14);
-  final desde = dayStart(now).subtract(Duration(days: ventana - 1));
-  final dias = {
-    for (final p in h.pieces)
-      if (!p.placedAt.isBefore(desde)) dayKey(p.placedAt),
-  }.length;
-  final ritmo = (dias / ventana).clamp(0.0, 1.0);
+  // Contra su ritmo y sin los días dormidos: cinco de siete en uno de cinco
+  // por semana es ir perfecto, no ir flojo.
+  final (hubo, esperado) = _contraRitmo(h, now);
+  final ritmo = esperado <= 0 ? 1.0 : (hubo / esperado).clamp(0.0, 1.0);
   final nuevo = 1 / (1 + edad / 14);
   return 0.6 * (1 - ritmo) + 0.4 * nuevo;
 }
@@ -685,25 +757,39 @@ enum AdviceMoment {
 }
 
 AdviceMoment momentOf(Habit h, DateTime now) {
+  // Dormido no le pasa nada: descansa.
+  if (h.restAt(now) != null) return AdviceMoment.steady;
   final hoy = dayStart(now);
-  final ayer = hoy.subtract(const Duration(days: 1));
-  final dias = {for (final p in h.pieces) dayKey(p.placedAt)};
-  final antes = h.pieces.any((p) => p.placedAt.isBefore(ayer));
-  if (antes &&
-      !dias.contains(dayKey(ayer)) &&
-      !dias.contains(dayKey(hoy)) &&
-      !h.restedOn(ayer)) {
-    return AdviceMoment.missedYesterday;
+  // Que no sean dos, sólo si el tropiezo lo confirmaste vos, es reciente y
+  // no volviste a poner pieza desde entonces.
+  final tropiezo = lastConfirmedStumble(h);
+  if (tropiezo != null && daysBetween(tropiezo.day, hoy) <= 2) {
+    final ultima = h.lastPlacedAt;
+    if (ultima == null || !dayStart(ultima).isAfter(dayStart(tropiezo.day))) {
+      return AdviceMoment.missedYesterday;
+    }
   }
-  final edad = daysBetween(h.createdAt, now) + 1;
-  if (edad >= 7) {
-    final ventana = edad.clamp(1, 14);
-    final desde = hoy.subtract(Duration(days: ventana - 1));
-    final hubo = {
-      for (final p in h.pieces)
-        if (!p.placedAt.isBefore(desde)) dayKey(p.placedAt),
-    }.length;
-    if (hubo / ventana < 0.5) return AdviceMoment.struggling;
+  if (daysBetween(h.createdAt, now) + 1 >= 7) {
+    final (hubo, esperado) = _contraRitmo(h, now);
+    if (esperado >= 3 && hubo < esperado * 0.5) return AdviceMoment.struggling;
   }
   return AdviceMoment.steady;
+}
+
+/// En las dos últimas semanas (o desde que se fundó), los días con pieza y
+/// los que pedía su ritmo, sin contar los dormidos.
+(int, double) _contraRitmo(Habit h, DateTime now) {
+  final edad = daysBetween(h.createdAt, now) + 1;
+  final ventana = edad.clamp(1, 14);
+  final hoy = dayStart(now);
+  final con = {for (final p in h.pieces) dayKey(p.placedAt)};
+  var despiertos = 0, hubo = 0;
+  for (var i = 0; i < ventana; i++) {
+    final d = DateTime(hoy.year, hoy.month, hoy.day - i);
+    if (h.restedOn(d)) continue;
+    despiertos++;
+    if (con.contains(dayKey(d))) hubo++;
+  }
+  // Contra el ritmo dicho, o a diario si no se dijo, como el candado.
+  return (hubo, despiertos * (h.perWeek ?? 7) / 7);
 }

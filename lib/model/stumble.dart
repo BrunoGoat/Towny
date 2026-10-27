@@ -55,13 +55,58 @@ List<StumbleEntry> stumblesOf(Habit h) => [
 /// del que salirse.
 const int stumbleLeast = 3;
 
+/// Si es un tropiezo de verdad: uno que contestaste con lo que se interpuso.
+/// «Ese día no tocaba» y no querer contestar no lo son.
+bool isRealStumble(Stumble c) => c != Stumble.notDue && c != Stumble.skipped;
+
+/// El último tropiezo que confirmaste en [h], o nulo.
+///
+/// Es lo único de lo que el consejero da por hecho que faltaste. Un día sin
+/// pieza puede ser un día que no tocaba —quien va cinco veces por semana
+/// tiene dos días libres, y no siempre los mismos—, y el viejo no lo sabe
+/// hasta que se lo decís.
+StumbleEntry? lastConfirmedStumble(Habit h) {
+  StumbleEntry? ultimo;
+  for (final s in stumblesOf(h)) {
+    if (!isRealStumble(s.cause)) continue;
+    if (ultimo == null || s.day.isAfter(ultimo.day)) ultimo = s;
+  }
+  return ultimo;
+}
+
+/// Si en la semana que termina en [day] el pueblo quedó por debajo de su
+/// ritmo: menos días con pieza que el setenta por ciento de los que pide, sin
+/// contar los dormidos ni los de antes de fundarlo.
+///
+/// Con esto un día en blanco de quien va cinco veces por semana no es un
+/// tropiezo mientras la semana siga cumpliendo, y una semana de cuatro
+/// tampoco. A diario sí: ahí no hay días libres.
+bool behindPace(Habit h, DateTime day) {
+  final ritmo = perWeekOf(h, at: day);
+  if (ritmo >= 7) return true;
+  final fin = dayStart(day);
+  final fundado = dayStart(h.createdAt);
+  final con = {for (final p in h.pieces) dayKey(p.placedAt)};
+  var despiertos = 0, hechos = 0;
+  for (var i = 0; i < 7; i++) {
+    final d = DateTime(fin.year, fin.month, fin.day - i);
+    if (d.isBefore(fundado) || h.restedOn(d)) continue;
+    despiertos++;
+    if (con.contains(dayKey(d))) hechos++;
+  }
+  if (despiertos == 0) return false;
+  return hechos < ritmo * despiertos / 7 * UnlockGoal.share - 1e-9;
+}
+
 /// El día que el pueblo salió de tu ritmo, si salió y todavía no se habló de
 /// eso. Nulo casi siempre.
 ///
 /// Contra lo tuyo ([expectedGap]): a quien va a diario le basta un día en
-/// blanco, y a quien va dos veces por semana, cuatro. Hoy no cuenta —hoy
-/// todavía está a tiempo—, ni los días dormidos. Y una vez por hueco: el
-/// siguiente tropiezo empieza con la siguiente pieza.
+/// blanco, y a quien va dos veces por semana, cuatro. Y además, si no va a
+/// diario, que la semana se haya quedado corta ([behindPace]): los días
+/// libres no son tropiezos. Hoy no cuenta —hoy todavía está a tiempo—, ni
+/// los días dormidos. Y una vez por hueco: el siguiente tropiezo empieza con
+/// la siguiente pieza.
 DateTime? stumbleDue(Habit h, {DateTime? at}) {
   final now = at ?? DateTime.now();
   final last = h.lastPlacedAt;
@@ -80,7 +125,7 @@ DateTime? stumbleDue(Habit h, {DateTime? at}) {
     d = DateTime(d.year, d.month, d.day + 1)
   ) {
     if (h.restedOn(d)) continue;
-    if (++blancos > cabe) {
+    if (++blancos > cabe && behindPace(h, d)) {
       // Ya se habló de este hueco.
       for (final s in stumblesOf(h)) {
         if (dayStart(s.day).isAfter(desde)) return null;

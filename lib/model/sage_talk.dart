@@ -205,8 +205,12 @@ class _DeVerdad extends _Hace {
   final AdviceBook book;
 
   @override
-  void stumbled(Habit h, DateTime day, Stumble cause) =>
-      store.stumbled(h, day, cause);
+  void stumbled(Habit h, DateTime day, Stumble cause) {
+    store.stumbled(h, day, cause);
+    // No faltó: lo que el viejo dijo por esa falta se va, como un error.
+    if (cause == Stumble.notDue) book.retractMisses(h.name, day);
+  }
+
   @override
   void setCadence(Habit h, double perWeek) => store.setCadence(h, perWeek);
   @override

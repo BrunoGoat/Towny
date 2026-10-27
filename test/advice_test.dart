@@ -4,6 +4,7 @@ import 'package:towny/data/advice.dart';
 import 'package:towny/model/advice_book.dart';
 import 'package:towny/model/habit.dart';
 import 'package:towny/model/piece.dart';
+import 'package:towny/model/stumble.dart';
 
 Habit _pueblo(String id, DateTime fundado, {List<DateTime> dias = const []}) =>
     Habit(
@@ -161,8 +162,125 @@ void main() {
         dias: [for (var d = 0; d < 8; d++) DateTime(2026, 3, 1 + d, 20)],
       );
       libro.setGoal(h.id, AdviceGoal.start);
+      // Hasta que no se confirma, el viejo no da por hecho que faltaste.
+      expect(momentOf(h, hoy), AdviceMoment.steady);
+      h.stumbles.add(
+        StumbleEntry(DateTime(2026, 3, 9), Stumble.tired).encode(),
+      );
       expect(momentOf(h, hoy), AdviceMoment.missedYesterday);
       expect(libro.pathOf([h], now: hoy).first, 'nodosveces');
+    });
+
+    test('«ese día no tocaba» no es faltar', () {
+      final hoy = DateTime(2026, 3, 10, 21);
+      final h = _pueblo(
+        'Leer',
+        DateTime(2026, 3, 1),
+        dias: [for (var d = 0; d < 8; d++) DateTime(2026, 3, 1 + d, 20)],
+      );
+      h.stumbles.add(
+        StumbleEntry(DateTime(2026, 3, 9), Stumble.notDue).encode(),
+      );
+      expect(momentOf(h, hoy), AdviceMoment.steady);
+      expect({
+        for (final (e, _) in eventsOf([h])) e,
+      }, isNot(contains(AdviceEvent.missedDay)));
+    });
+
+    test('dormido no le pasa nada, y no manda', () {
+      final hoy = DateTime(2026, 3, 20, 21);
+      final h = _pueblo(
+        'Saltar',
+        DateTime(2026, 3, 1),
+        dias: [DateTime(2026, 3, 2)],
+      )..rests.add(Rest(DateTime(2026, 3, 5), DateTime(2026, 3, 30)).encode());
+      final b = _pueblo(
+        'Leer',
+        DateTime(2026, 3, 1),
+        dias: [for (var d = 0; d < 19; d++) DateTime(2026, 3, 1 + d, 20)],
+      );
+      libro
+        ..setGoal(h.id, AdviceGoal.start)
+        ..setGoal(b.id, AdviceGoal.start);
+      expect(momentOf(h, hoy), AdviceMoment.steady);
+      expect(libro.focusOf([h, b], now: hoy)?.id, 'Leer');
+    });
+
+    test('cinco por semana: los días libres no son tropiezos', () {
+      // Lunes a viernes, dos semanas, y hoy es el lunes siguiente.
+      final dias = [
+        for (final d in [2, 3, 4, 5, 6, 9, 10, 11, 12, 13])
+          DateTime(2026, 3, d, 20),
+      ];
+      final h = _pueblo('Ordenar', DateTime(2026, 3, 1), dias: dias)
+        ..perWeek = 5;
+      final lunes = DateTime(2026, 3, 16, 9);
+      expect(stumbleDue(h, at: lunes), isNull);
+      expect(momentOf(h, lunes), AdviceMoment.steady);
+      expect(struggleOf(h, lunes), lessThan(0.3));
+      // Una semana de cuatro tampoco.
+      final cuatro = _pueblo(
+        'Ordenar',
+        DateTime(2026, 3, 1),
+        dias: [
+          for (final d in [2, 3, 4, 5, 9, 10, 11, 12]) DateTime(2026, 3, d, 20),
+        ],
+      )..perWeek = 5;
+      expect(stumbleDue(cuatro, at: DateTime(2026, 3, 16, 9)), isNull);
+      // Pero tres días seguidos sin nada en una semana de dos, sí.
+      final flojo = _pueblo(
+        'Ordenar',
+        DateTime(2026, 3, 1),
+        dias: [
+          for (final d in [2, 3, 4, 5, 6, 9, 10]) DateTime(2026, 3, d, 20),
+        ],
+      )..perWeek = 5;
+      expect(stumbleDue(flojo, at: DateTime(2026, 3, 16, 9)), isNotNull);
+    });
+
+    test('y lo ganado antes por faltas sin confirmar, también', () async {
+      // Lo que quedó guardado de antes: un «que no sean dos» por un día que
+      // nadie confirmó.
+      final h = _pueblo(
+        'Ordenar',
+        DateTime(2026, 3, 1),
+        dias: [for (var d = 0; d < 8; d++) DateTime(2026, 3, 1 + d, 20)],
+      );
+      SharedPreferences.setMockInitialValues({
+        'consejero_v3': [
+          'nodosveces|${DateTime(2026, 3, 10).millisecondsSinceEpoch}|'
+              '${AdviceReason(moment: AdviceMoment.missedYesterday, town: 'Ordenar', when: DateTime(2026, 3, 9)).encode()}',
+        ],
+      });
+      await libro.load();
+      libro.setGoal(h.id, AdviceGoal.start);
+      bool hay(String id) =>
+          libro.unlocked(approved: todos).any((g) => g.$1.id == id);
+      expect(hay('nodosveces'), isTrue);
+      libro.visit([h], now: DateTime(2026, 3, 11, 21), approved: todos);
+      expect(hay('nodosveces'), isFalse);
+    });
+
+    test('lo que se dijo por una falta que no era, se borra', () {
+      final h = _pueblo(
+        'Leer',
+        DateTime(2026, 3, 1),
+        dias: [for (var d = 0; d < 8; d++) DateTime(2026, 3, 1 + d, 20)],
+      );
+      libro.setGoal(h.id, AdviceGoal.start);
+      h.stumbles.add(
+        StumbleEntry(DateTime(2026, 3, 9), Stumble.tired).encode(),
+      );
+      libro.visit([h], now: DateTime(2026, 3, 10, 21), approved: todos);
+      bool hay(String id) =>
+          libro.unlocked(approved: todos).any((g) => g.$1.id == id);
+      expect(hay('nodosveces'), isTrue);
+      expect(hay('ev_falta'), isTrue);
+      libro.retractMisses('Leer', DateTime(2026, 3, 9));
+      expect(hay('nodosveces'), isFalse);
+      expect(hay('ev_falta'), isFalse);
+      // Lo que no era por la falta se queda.
+      expect(hay('ev_primera'), isTrue);
     });
 
     test('si viene costando, más chico', () {
@@ -201,6 +319,10 @@ void main() {
         DateTime(2026, 3, 20, 20),
       ];
       final h = _pueblo('Leer', DateTime(2026, 3, 1), dias: dias);
+      // Faltar el 8, confirmado en la charla.
+      h.stumbles.add(
+        StumbleEntry(DateTime(2026, 3, 8), Stumble.forgot).encode(),
+      );
       final hay = {
         for (final (e, _) in eventsOf([h])) e,
       };
@@ -224,6 +346,9 @@ void main() {
         DateTime(2026, 3, 20, 20),
       ];
       final h = _pueblo('Leer', DateTime(2026, 3, 1), dias: dias);
+      h.stumbles.add(
+        StumbleEntry(DateTime(2026, 3, 8), Stumble.forgot).encode(),
+      );
       libro.setGoal(h.id, AdviceGoal.start);
       libro.visit([h], now: DateTime(2026, 3, 21), approved: todos);
       String? porque(String id) => libro.reasonOf(adviceById[id]!)?.text;
