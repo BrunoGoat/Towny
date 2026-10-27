@@ -90,6 +90,12 @@ void main() {
                             pieces: 34,
                             character: 0x1A7C,
                           ),
+                          (
+                            name: 'Saltar la cuerda',
+                            symbol: 'run',
+                            pieces: 12,
+                            character: 0x5E02,
+                          ),
                         ],
                       )
                     : null,

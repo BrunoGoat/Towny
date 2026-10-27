@@ -897,6 +897,7 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
         children: [
           _Places(
             chosen: _place,
+            used: _usadas(),
             onPick: (o) {
               Sensory.instance.tick();
               setState(() => _place = o);
@@ -934,6 +935,23 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
                     shadows: _Ink.shadow,
                   ),
                 ),
+                if (_quienes(ch.order).isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    tr(
+                      'Ya la usa ${_quienes(ch.order)}.',
+                      'Already used by ${_quienes(ch.order)}.',
+                    ),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      height: 1.4,
+                      fontWeight: FontWeight.w600,
+                      color: _Ink.gold,
+                      shadows: _Ink.shadow,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 6),
                 Text(
                   ch.suits,
@@ -972,6 +990,27 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
         ],
       ),
     );
+  }
+
+  /// Los pueblos que ya usan la comarca [order], por su nombre: «Leer» o
+  /// «Leer» y «Correr». Vacío si ninguno.
+  String _quienes(int order) {
+    final n = [
+      for (final t in widget.next?.towns ?? const [])
+        if (t.character == order) '«${t.name}»',
+    ];
+    if (n.length <= 1) return n.join();
+    return '${n.sublist(0, n.length - 1).join(', ')} ${tr('y', 'and')} ${n.last}';
+  }
+
+  /// Las comarcas que ya tiene el valle, con la marca de cada pueblo que la
+  /// usa: para ver de un vistazo cuáles no repetir sin volver atrás.
+  Map<int, List<String>> _usadas() {
+    final out = <int, List<String>>{};
+    for (final t in widget.next?.towns ?? const []) {
+      (out[t.character] ??= []).add(t.symbol);
+    }
+    return out;
   }
 
   Widget _askWhy() => _Step(
@@ -2453,10 +2492,19 @@ class _Marks extends StatelessWidget {
 /// Dos filas de la mitad cada una —tres y tres con seis, cuatro y cuatro con
 /// ocho—, y los sellos se achican si no entran, en vez de partir otra fila.
 class _Places extends StatelessWidget {
-  const _Places({required this.chosen, required this.onPick});
+  const _Places({
+    required this.chosen,
+    required this.onPick,
+    this.used = const {},
+  });
 
   final int chosen;
   final void Function(int order) onPick;
+
+  /// Comarca -> las marcas de los pueblos del valle que ya la usan. Van
+  /// encima de su sello, chiquitas, para no repetir sin tener que volver a
+  /// mirar los otros pueblos.
+  final Map<int, List<String>> used;
 
   static const double _gap = 14, _max = 52;
 
@@ -2493,7 +2541,7 @@ class _Places extends StatelessWidget {
 
   Widget _sello(TownCharacter c, double lado) {
     final elegida = c.order == chosen;
-    return Semantics(
+    final boton = Semantics(
       button: true,
       selected: elegida,
       label: c.region,
@@ -2519,6 +2567,49 @@ class _Places extends StatelessWidget {
           ),
         ),
       ),
+    );
+    final marcas = used[c.order] ?? const <String>[];
+    if (marcas.isEmpty) return boton;
+    // Las marcas de los pueblos que ya la usan, como chapitas color crema
+    // montadas sobre el borde de arriba del sello.
+    final chapa = lado * 0.42;
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.center,
+      children: [
+        boton,
+        Positioned(
+          top: -chapa * 0.38,
+          right: -chapa * 0.30,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final (i, m) in marcas.take(3).indexed)
+                Transform.translate(
+                  offset: Offset(-i * chapa * 0.45, 0),
+                  child: Container(
+                    width: chapa,
+                    height: chapa,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _Ink.cream,
+                      border: Border.all(color: _Ink.glass, width: 1.2),
+                      boxShadow: const [
+                        BoxShadow(color: Color(0x66000000), blurRadius: 4),
+                      ],
+                    ),
+                    child: HabitSigil(
+                      symbol: m,
+                      color: _Ink.glass,
+                      size: chapa * 0.62,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
