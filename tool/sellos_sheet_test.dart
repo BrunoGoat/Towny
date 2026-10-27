@@ -557,6 +557,29 @@ final List<(String, _Estilo)> _estilos = [
       ),
     ),
   ),
+  (
+    'Q · Pastilla con una marca y cuántos, colores de P',
+    (l, s, m) => _pastilla(
+      l,
+      s,
+      m,
+      fondo: _cream.withValues(alpha: 0.18),
+      tinta: _gold,
+      borde: _gold.withValues(alpha: 0.6),
+      numero: true,
+    ),
+  ),
+  (
+    'R · Pastilla con todas las marcas, colores de P',
+    (l, s, m) => _pastilla(
+      l,
+      s,
+      m,
+      fondo: _cream.withValues(alpha: 0.18),
+      tinta: _gold,
+      borde: _gold.withValues(alpha: 0.6),
+    ),
+  ),
 ];
 
 /// Con --dart-define=SOLO=M,N,P, sólo esas letras.
