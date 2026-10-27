@@ -512,12 +512,11 @@ List<AdviceReason> reasonsOf(
   Map<String, AdviceGoal> goals = const {},
 ]) {
   final out = <AdviceReason>[];
-  // El segundo y el tercero que se fundaron, con lo que busca cada uno.
+  // El segundo que se fundó, con lo que busca. Del tercero en adelante no
+  // se dice nada a propósito: quien abre un pueblo nuevo es porque sostuvo
+  // los que tenía, y el viejo no le advierte que son muchos.
   final orden = [...habits]..sort((a, b) => a.createdAt.compareTo(b.createdAt));
-  for (final (k, e) in [
-    (1, AdviceEvent.secondTown),
-    (2, AdviceEvent.thirdTown),
-  ]) {
+  for (final (k, e) in [(1, AdviceEvent.secondTown)]) {
     if (orden.length <= k) continue;
     final h = orden[k];
     out.add(
@@ -661,10 +660,6 @@ class AdviceReason {
       AdviceEvent.secondTown => tr(
         'Porque $el se fundó $t, el segundo pueblo del valle.',
         'Because $el$t was founded, the second town in the valley.',
-      ),
-      AdviceEvent.thirdTown => tr(
-        'Porque $el se fundó $t, el tercer pueblo del valle.',
-        'Because $el$t was founded, the third town in the valley.',
       ),
       AdviceEvent.week => tr(
         'Porque $el $t cumplió siete días con pieza.',

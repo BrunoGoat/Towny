@@ -515,6 +515,8 @@ Por ahora entran todos, para probarlos; se van sacando los que no.
   con quien no escribió hora, y con el hábito que se hace a otra hora que la
   prometida.
 - **Lo que no se va a hacer**, y conviene que siga escrito:
+  - advertir por tener muchos pueblos: quien abre uno nuevo sostuvo los que
+    tenía, y si sostiene diez se abre el once y punto;
   - rachas que castiguen;
   - medallas encima del pueblo;
   - comparación con otra gente;

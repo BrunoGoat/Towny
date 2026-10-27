@@ -79,7 +79,6 @@ void main() {
 const _cuando = {
   AdviceEvent.firstPiece: 'la primera pieza',
   AdviceEvent.secondTown: 'al fundar el segundo pueblo',
-  AdviceEvent.thirdTown: 'al fundar el tercero',
   AdviceEvent.week: 'siete días con pieza',
   AdviceEvent.month: 'treinta días con pieza',
   AdviceEvent.missedDay: 'un día sin pieza',

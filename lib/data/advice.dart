@@ -43,9 +43,6 @@ enum AdviceEvent {
   /// Este pueblo no es el primero: ya hay uno más viejo en el valle.
   secondTown,
 
-  /// Ya hay dos más viejos.
-  thirdTown,
-
   /// Siete días distintos con alguna pieza.
   week,
 
@@ -713,14 +710,6 @@ const List<Advice> eventAdvice = [
     'While you drop this, don’t overload the rest. What’s already going well in your other town is solid ground: lean on it.',
     event: AdviceEvent.secondTown,
     goal: AdviceGoal.quit,
-  ),
-  Advice(
-    'ev_tercero',
-    'Tres jardines son muchos para un solo jardinero.',
-    'Si alguno se tambalea, ponlo a dormir un tiempo. Es mejor que dejarlo caer.',
-    'Three gardens are a lot for one gardener.',
-    'If one wobbles, put it to sleep for a while. Better than letting it fall.',
-    event: AdviceEvent.thirdTown,
   ),
   Advice(
     'ev_semana',

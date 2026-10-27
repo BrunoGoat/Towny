@@ -15,6 +15,10 @@ la primera lista y no cambian nunca, aunque se saquen consejos.
 **Reglas para escribir:**
 - El dicho es corto y se entiende a la primera.
 - La explicación es concreta y simple. Nunca punto y coma.
+- **Nunca se advierte por tener muchos pueblos.** Quien abre uno nuevo es
+  porque sostuvo los que tenía: si sostiene diez, se abre el once y punto.
+  Sumar un hábito cada dos semanas manteniendo los otros es crecer. Cuando
+  no se pueda sostener, simplemente no se abre el siguiente.
 - La explicación cuenta **por qué funciona**, la lógica detrás, y no sólo
   qué hacer. Por ejemplo: con una hora fija, la decisión se toma una vez y
   no cada día.
@@ -138,9 +142,6 @@ Encadénalos: haz lo nuevo justo después de lo que ya te sale. El que ya tiene 
 
 **56.** «Para arrancar una raíz hay que tener los pies firmes.» [al fundar el segundo pueblo · sólo a quien deja]  
 Mientras dejas esto, no cargues de más lo demás. Lo que ya marcha bien en el otro pueblo es tierra firme: apóyate en ella.
-
-**57.** «Tres jardines son muchos para un solo jardinero.» [al fundar el tercero]  
-Si alguno se tambalea, ponlo a dormir un tiempo. Es mejor que dejarlo caer.
 
 **58.** «Siete días. Ya no es casualidad.» [siete días con pieza]  
 Es un comienzo. Ahora importa menos cuánto y más que no se corte.
@@ -281,6 +282,11 @@ Termina con algo amable: un vaso de agua fresca, un rato al sol. Lo que se recue
 > Termina con algo agradable: un vaso de agua fresca, un rato al sol. Lo que recuerdas con gusto, tienes ganas de repetirlo.
 
 ## Ya revisado
+
+**57.** ~~«Tres jardines son muchos para un solo jardinero.» [al fundar el tercero]~~  
+~~Si alguno se tambalea, ponlo a dormir un tiempo. Es mejor que dejarlo caer.~~
+
+Sacado: la app no castiga tener muchos pueblos.
 
 **4.** ~~«El agua nueva sigue el cauce del río viejo.» [E4]~~  
 ~~Átalo a algo que ya haces: «al volver del trabajo, salto la cuerda». Lo de siempre trae a lo nuevo de la mano.~~
