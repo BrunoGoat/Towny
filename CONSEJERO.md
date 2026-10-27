@@ -140,9 +140,6 @@ Lo más difícil ya está hecho: empezar. Mañana solo hace falta lo mismo, en e
 **55.** «Ya tienes un río que corre. Deja que el nuevo nazca de él.» [al fundar el segundo pueblo · sólo a quien empieza]  
 Encadénalos: haz lo nuevo justo después de lo que ya te sale. El que ya tiene raíces le presta las suyas al que llega.
 
-**56.** «Para arrancar una raíz hay que tener los pies firmes.» [al fundar el segundo pueblo · sólo a quien deja]  
-Mientras dejas esto, no cargues de más lo demás. Lo que ya marcha bien en el otro pueblo es tierra firme: apóyate en ella.
-
 **58.** «Siete días. Ya no es casualidad.» [siete días con pieza]  
 Es un comienzo. Ahora importa menos cuánto y más que no se corte.
 
@@ -282,6 +279,11 @@ Termina con algo amable: un vaso de agua fresca, un rato al sol. Lo que se recue
 > Termina con algo agradable: un vaso de agua fresca, un rato al sol. Lo que recuerdas con gusto, tienes ganas de repetirlo.
 
 ## Ya revisado
+
+**56.** ~~«Para arrancar una raíz hay que tener los pies firmes.» [al fundar el segundo pueblo · sólo a quien deja]~~  
+~~Mientras dejas esto, no cargues de más lo demás. Lo que ya marcha bien en el otro pueblo es tierra firme: apóyate en ella.~~
+
+Sacado.
 
 **57.** ~~«Tres jardines son muchos para un solo jardinero.» [al fundar el tercero]~~  
 ~~Si alguno se tambalea, ponlo a dormir un tiempo. Es mejor que dejarlo caer.~~

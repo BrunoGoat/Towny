@@ -703,15 +703,6 @@ const List<Advice> eventAdvice = [
     goal: AdviceGoal.start,
   ),
   Advice(
-    'ev_segundo_q',
-    'Para arrancar una raíz hay que tener los pies firmes.',
-    'Mientras dejas esto, no cargues de más lo demás. Lo que ya marcha bien en el otro pueblo es tierra firme: apóyate en ella.',
-    'To pull up a root, your feet must be steady.',
-    'While you drop this, don’t overload the rest. What’s already going well in your other town is solid ground: lean on it.',
-    event: AdviceEvent.secondTown,
-    goal: AdviceGoal.quit,
-  ),
-  Advice(
     'ev_semana',
     'Siete días. Ya no es casualidad.',
     'Es un comienzo. Ahora importa menos cuánto y más que no se corte.',

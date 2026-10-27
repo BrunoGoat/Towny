@@ -308,8 +308,9 @@ void main() {
       final nuevos = libro
           .visit([a, b], now: DateTime(2026, 3, 9), approved: todos)
           .map((x) => x.id);
-      expect(nuevos, contains('ev_segundo_q'));
+      // A quien deja algo, lo de atar lo nuevo a lo de siempre no le toca.
       expect(nuevos, isNot(contains('ev_segundo')));
+      expect(nuevos, isNot(contains('despues')));
     });
 
     test('lo que pasó se lee de lo guardado', () {
