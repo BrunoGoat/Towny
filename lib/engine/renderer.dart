@@ -1418,16 +1418,32 @@ class TownPainter extends CustomPainter {
           _gentePintada[w] ??
           _folkRiders(p, e, _folkNow[w] ?? const <_Walker>[], w);
       final agua = _aguaPintada[w] ?? _plazaRiders(p, e, pal, shadows: false);
-      final vecinos = [
-        ..._plazaRiders(
-          p,
-          e,
-          pal,
-          water: false,
-          moving: _sombraMovil[w] ?? [..._casterDe(gente), ..._casterDe(agua)],
-        ),
-        ...gente,
-      ];
+      // **Las sombras de la plaza van pegadas a su suelo**, no por el árbol
+      // con la gente. Iban como una cara más, cuatro milímetros sobre el
+      // césped, y donde el orden entre dos ramas se decide por cajas y no por
+      // un plano, la sombra salía pintada después de lo que tenía encima: la
+      // del viejo tapaba sus migas y la mitad de abajo de las palomas. Ahora
+      // cada trozo del suelo de la plaza se pinta con sus sombras encima en el
+      // mismo momento, como si fueran parte de él, y todo lo que está parado
+      // en la plaza queda por encima de ellas siempre.
+      final sombras = _plazaShadowFacets(
+        e,
+        pal,
+        _sombraMovil[w] ?? [..._casterDe(gente), ..._casterDe(agua)],
+      );
+      final vecinos = gente;
+      // **El suelo de la plaza, antes que todo lo del pueblo.** Debajo de él
+      // no hay nada, así que no puede tapar a nadie que deba verse: lo que
+      // está encima —la gente, las palomas, el pan, los muebles— se pinta
+      // después y lo tapa a él. Iba por el árbol, y donde el orden entre dos
+      // ramas se decide por cajas y no por un plano, el césped salía pintado
+      // después de las palomas y les tapaba la mitad de abajo.
+      if (!e.layout.solo) {
+        for (final f in _plazaFloor(builtTown(e.layout, take), e.layout)) {
+          _paint(p, e, f, pal, light, night, size);
+          if (sombras.isNotEmpty) _shadowsOn(p, e, f, sombras, pal, light);
+        }
+      }
       // **El agua no baja por el árbol del pueblo cara a cara.** Son cientos
       // de caras, todas dentro de la fuente, y todas acabarían en la misma
       // hoja: la de la plaza. Así que baja una sola, metida en el pilar, y
@@ -1481,7 +1497,13 @@ class TownPainter extends CustomPainter {
           if (w == scene.active && f.piece >= 0 && f.piece == _fallingPiece) {
             return;
           }
-          _paint(p, e, f, pal, light, night, size);
+          // El césped de la plaza ya se pintó, antes que todo; y lo que
+          // queda por debajo de él, adentro, no asoma.
+          final g = _aboveLawn(e.layout, f);
+          if (g == null) return;
+          _paint(p, e, g, pal, light, night, size);
+          // El bordillo sí va por el árbol, con sus sombras encima.
+          if (sombras.isNotEmpty) _shadowsOn(p, e, g, sombras, pal, light);
         }, (gente) => _paintRiders(p, gente, pal, light));
         // Straight after the building it belongs to, and before any building
         // nearer than that one.
@@ -1959,6 +1981,167 @@ class TownPainter extends CustomPainter {
     ((int, bool, double, double, double, double), List<Facet>)
   >
   _quietas = Expando();
+
+  /// Las sombras sobre el suelo de la plaza, las quietas y las de lo que se
+  /// mueve: vacío si no se pintan sombras.
+  List<Facet> _plazaShadowFacets(
+    TownEntry e,
+    Palette pal,
+    Iterable<ShadowCaster> moving,
+  ) {
+    final l = e.layout;
+    if (l.solo || !scene.cinematic) return const [];
+    final take = math.min(e.placed, l.pieces.length);
+    return [..._plazaQuieta(l, take, pal), ...plazaShadows(l, 0, pal, moving)];
+  }
+
+  /// Si [f] es un trozo del suelo de la plaza —el césped, el bordillo o su
+  /// canto, mirando arriba—, pinta encima las [sombras] de su altura,
+  /// recortadas a él. Lo de cada trozo, sólo sobre él: otro trozo del mismo
+  /// suelo se pinta más tarde y taparía lo que se le hubiera salido.
+  void _shadowsOn(
+    Projector p,
+    TownEntry e,
+    Facet f,
+    List<Facet> sombras,
+    Palette pal,
+    V3 light,
+  ) {
+    if (!_isPlazaFloor(e.layout, f)) return;
+    final y = f.v.first.y;
+    final trozo = convexHull([for (final v in f.v) (v.x, v.z)]);
+    if (trozo.length < 3) return;
+    final arriba = y + Plaza.shadowLift;
+    var x0 = double.infinity, x1 = -double.infinity;
+    var z0 = double.infinity, z1 = -double.infinity;
+    for (final (x, z) in trozo) {
+      if (x < x0) x0 = x;
+      if (x > x1) x1 = x;
+      if (z < z0) z0 = z;
+      if (z > z1) z1 = z;
+    }
+    for (final s in sombras) {
+      if ((s.v.first.y - arriba).abs() > 1e-5) continue;
+      // Lo que no llega a la caja de este trozo, fuera sin recortar nada.
+      var fuera = true;
+      var a0 = double.infinity, a1 = -double.infinity;
+      var b0 = double.infinity, b1 = -double.infinity;
+      for (final v in s.v) {
+        if (v.x < a0) a0 = v.x;
+        if (v.x > a1) a1 = v.x;
+        if (v.z < b0) b0 = v.z;
+        if (v.z > b1) b1 = v.z;
+      }
+      fuera = a1 < x0 || a0 > x1 || b1 < z0 || b0 > z1;
+      if (fuera) continue;
+      final c = clipConvex(
+        convexHull([for (final v in s.v) (v.x, v.z)]),
+        trozo,
+      );
+      if (c.length < 3) continue;
+      _plain(
+        p,
+        Facet(
+            [for (final q in c) V3(q.$1, arriba, q.$2)],
+            const V3(0, 1, 0),
+            s.surface,
+            ao: s.ao,
+            tint: s.tint,
+          )
+          ..data = s.data
+          ..piece = -1,
+        pal,
+        light,
+      );
+    }
+  }
+
+  /// Si [f] es un trozo de la cara de arriba de uno de los tres suelos de la
+  /// plaza de [l]: el césped, el bordillo o su canto.
+  static bool _isPlazaFloor(TownLayout l, Facet f) {
+    if (f.n.y < 0.999 || f.v.length < 3) return false;
+    final y = f.v.first.y;
+    if (!_plazaFloors.any((h) => (h - y).abs() < 1e-5)) return false;
+    for (final v in f.v) {
+      if ((v.y - y).abs() > 1e-5) return false;
+    }
+    final dx = f.v.first.x - l.cx, dz = f.v.first.z - l.cz;
+    final r = TownLayout.plazaReach * 1.02;
+    return dx * dx + dz * dz <= r * r;
+  }
+
+  /// Las caras de arriba de los suelos de la plaza de [l], **las mismas que
+  /// archivó el pueblo** —enteras, antes de que el árbol las cortara—: así
+  /// se pintan exactamente igual que se pintaban desde el árbol. Una vez por
+  /// pueblo levantado.
+  static List<Facet> _plazaFloor(BuiltTown built, TownLayout l) =>
+      _suelos[built] ??= [
+        for (final c in built.clusters)
+          for (final f in c.source)
+            if (_isLawnTop(l, f)) f,
+      ];
+
+  /// Si [f] es un trozo de la cara de arriba del césped de la plaza.
+  static bool _isLawnTop(TownLayout l, Facet f) {
+    if (!_isPlazaFloor(l, f) || (f.v.first.y - Plaza.lawnTop).abs() > 1e-5) {
+      return false;
+    }
+    final c = f.centroid;
+    final dx = c.x - l.cx, dz = c.z - l.cz;
+    final r = TownLayout.plazaReach * Plaza.lawnOut;
+    return dx * dx + dz * dz < r * r;
+  }
+
+  /// [f] tal como se pinta con el césped de la plaza ya pintado: nula si es
+  /// el césped mismo o si queda entera por debajo de él, y recortada a lo que
+  /// asoma si queda en parte. Lo de debajo del césped lo tapaba él; ahora que
+  /// se pinta antes que todo, se quita.
+  ///
+  /// Sólo para lo que cae entero dentro del octógono del césped —con un
+  /// pelo de holgura, que la pared de dentro del bordillo está justo en su
+  /// borde—: ahí debajo no hay más que césped. Lo de fuera va como siempre.
+  static Facet? _aboveLawn(TownLayout l, Facet f) {
+    if (l.solo) return f;
+    if (_isLawnTop(l, f)) return null;
+    final oct = _lawnOctagon[l] ??= convexHull(
+      Plaza.ring(l.cx, l.cz, TownLayout.plazaReach * Plaza.lawnOut + 0.002),
+    );
+    var bajo = double.infinity, alto = -double.infinity;
+    for (final v in f.v) {
+      for (var i = 0; i < oct.length; i++) {
+        final a = oct[i], b = oct[(i + 1) % oct.length];
+        final lado =
+            (b.$1 - a.$1) * (v.z - a.$2) - (b.$2 - a.$2) * (v.x - a.$1);
+        if (lado < 0) return f;
+      }
+      if (v.y < bajo) bajo = v.y;
+      if (v.y > alto) alto = v.y;
+    }
+    const y = Plaza.lawnTop;
+    if (alto <= y + 1e-5) return null;
+    if (bajo >= y - 1e-5) return f;
+    final quedan = <V3>[];
+    for (var i = 0; i < f.v.length; i++) {
+      final a = f.v[i], b = f.v[(i + 1) % f.v.length];
+      if (a.y >= y) quedan.add(a);
+      if ((a.y >= y) != (b.y >= y)) {
+        final t = (y - a.y) / (b.y - a.y);
+        quedan.add(V3(a.x + (b.x - a.x) * t, y, a.z + (b.z - a.z) * t));
+      }
+    }
+    if (quedan.length < 3) return null;
+    return f.withVerts(quedan, carrying: f.decals);
+  }
+
+  static final Expando<List<Facet>> _suelos = Expando();
+  static final Expando<List<(double, double)>> _lawnOctagon = Expando();
+
+  /// Las alturas de los tres suelos de la plaza. Ver `plazaShadows`.
+  static const List<double> _plazaFloors = [
+    Plaza.lawnTop,
+    Plaza.kerbTop,
+    Plaza.kerbTop + 0.02,
+  ];
 
   /// Lo que va por el árbol con la gente sin ser gente: el agua de la fuente
   /// y las sombras sobre el césped de la plaza. Van con [Rider.seq] negativo
