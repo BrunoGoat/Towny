@@ -406,19 +406,25 @@ class _Detail extends StatelessWidget {
     final t = theme;
     final g = goal;
     final hoy = g.calendar.isEmpty ? null : g.calendar.last.$1;
-    // Por semanas de lunes a domingo: las casillas antes del primer día y
-    // después de hoy quedan vacías.
+    // Por las semanas del pueblo, que empiezan el día de la semana en que se
+    // fundó ([UnlockGoal.weekStart]) y no siempre el lunes. Las casillas
+    // antes del primer día y después de hoy quedan vacías.
+    final antes = g.calendar.isEmpty
+        ? 0
+        : (g.calendar.first.$1.weekday - g.weekStart) % 7;
     final celdas = <(DateTime, DayMark)?>[
-      if (g.calendar.isNotEmpty)
-        for (var i = 1; i < g.calendar.first.$1.weekday; i++) null,
+      for (var i = 0; i < antes; i++) null,
       ...g.calendar,
     ];
     while (celdas.length % 7 != 0) {
       celdas.add(null);
     }
-    final dias = inEnglish
+    final semana = inEnglish
         ? const ['M', 'T', 'W', 'T', 'F', 'S', 'S']
         : const ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+    final dias = [
+      for (var i = 0; i < 7; i++) semana[(g.weekStart - 1 + i) % 7],
+    ];
     final rotulo = t.label.copyWith(
       color: velo.tenue,
       fontSize: 8.5,

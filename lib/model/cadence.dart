@@ -216,11 +216,17 @@ class UnlockGoal {
     this.calendar = const [],
     double? expectedFull,
     double? expectedLived,
+    this.weekStart = DateTime.monday,
   }) : expectedFull = expectedFull ?? perWeek * window / 7,
        expectedLived = expectedLived ?? expectedFull ?? perWeek * window / 7;
 
   /// El ritmo contra el que se mide, en veces por semana.
   final double perWeek;
+
+  /// El día en que empiezan las semanas de este pueblo, de lunes (1) a
+  /// domingo (7): el día de la semana en que se fundó. Es con el que se
+  /// enseña el detalle, para que cada fila sea una semana suya.
+  final int weekStart;
 
   /// Cuántas valen como mucho en una semana: el ritmo, hacia arriba. Quien va
   /// cada dos días tiene semanas de tres y semanas de cuatro.
@@ -360,22 +366,32 @@ class UnlockGoal {
       if (vistos.add(dayKey(d))) dias.add(d);
     }
     dias.sort();
-    // **Como mucho tu ritmo en cualquier tramo de siete días, y no en semanas
-    // contadas desde hoy.** Se contaba por semanas hacia atrás desde hoy, y
-    // como el corte entre semana y semana se corría cada día, las mismas
-    // piezas podían quedar mejor repartidas mañana que hoy: la puerta se abría
-    // al cambiar de día sin haber puesto nada. Así no depende de dónde caen
-    // los cortes: se quedan los días que se pueden quedar sin pasarse del
-    // ritmo en ninguna semana —de más viejo a más nuevo, que es la manera de
-    // quedarse con más—, y la cuenta sólo sube al poner una pieza. Con los
-    // días que pasan, como mucho baja. El tope es el ritmo de ese día.
+    // **Tu ritmo, en promedio, y no clavado semana por semana.** Se contaba
+    // como mucho tu ritmo en cualquier tramo de siete días seguidos, y eso
+    // castigaba a quien tiene horarios rotativos: seis de sábado a viernes y
+    // cuatro la semana siguiente promedian cinco, pero el tramo de los seis
+    // dejaba una de más.
+    //
+    // Ahora en siete días seguidos entra **uno más** que tu ritmo si vas
+    // cuatro veces por semana o más —una semana cargada se compensa con la
+    // siguiente—, y en toda la ventana nunca más de lo que pide tu ritmo
+    // entero: lo que sobra de una semana no tapa lo que falta de otra más
+    // allá del promedio. Con menos de cuatro no hay día de más: dos seguidos
+    // de quien va una vez por semana siguen siendo una semana.
+    //
+    // De más viejo a más nuevo, y en tramos que no dependen de hoy: la cuenta
+    // sólo sube al poner una pieza, y con los días que pasan como mucho baja.
+    final tope = (pide - 1e-9).ceil();
     final quedan = <DateTime>[];
     for (final d in dias) {
+      if (quedan.length >= tope) break;
       var enSemana = 0;
       for (final q in quedan) {
         if (daysBetween(q, d) < 7) enSemana++;
       }
-      if (enSemana < h.paceOn(d).ceil()) quedan.add(d);
+      final ritmo = h.paceOn(d);
+      final cabe = math.min(7, ritmo.ceil() + (ritmo >= 4 ? 1 : 0));
+      if (enSemana < cabe) quedan.add(d);
     }
     final have = quedan.length;
     final cuentan = {for (final d in quedan) dayKey(d)};
@@ -409,6 +425,7 @@ class UnlockGoal {
       calendar: calendar,
       expectedFull: pide,
       expectedLived: vivido,
+      weekStart: born.weekday,
     );
   }
 }

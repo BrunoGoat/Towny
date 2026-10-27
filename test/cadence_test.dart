@@ -161,17 +161,38 @@ void main() {
       }
     });
 
-    test('cinco por semana: seis días seguidos y uno antes no son siete', () {
-      // El caso concreto: seis días en la última semana —uno más que tu
-      // ritmo— y uno la anterior. Al día siguiente, contando por semanas
-      // desde hoy, el corte caía entre medio de los seis y salían siete.
+    test('cinco por semana: una semana de seis cuenta entera', () {
+      // Seis días seguidos —uno más que tu ritmo— y uno antes. Una semana
+      // cargada se compensa con otra más floja: son siete días de trabajo
+      // en la ventana, y alcanzan.
       final hoy = DateTime(2026, 5, 20, 12);
       final h = _habit(now: hoy, on: [0, 1, 2, 3, 4, 5, 8], perWeek: 5);
       final g = UnlockGoal.of(h, at: hoy);
       expect(g.need, 7);
-      expect(g.met, isFalse);
+      expect(g.have, 7);
+      // Y al día siguiente, sin poner nada, no sube.
       final manana = DateTime(2026, 5, 21, 12);
-      expect(UnlockGoal.of(h, at: manana).met, isFalse);
+      expect(UnlockGoal.of(h, at: manana).have, lessThanOrEqualTo(7));
+    });
+
+    test('horarios rotativos: seis una semana y cuatro la otra', () {
+      // El caso de quien trabaja por turnos: del sábado 17 al domingo 25,
+      // sin pieza el martes 20, ni el lunes 26 ni hoy. Del sábado al viernes
+      // son seis, y contado clavado de siete en siete sobraba una.
+      final hoy = DateTime(2026, 10, 27, 17);
+      final h = _habit(now: hoy, on: [2, 3, 4, 5, 6, 8, 9, 10], perWeek: 5);
+      final g = UnlockGoal.of(h, at: hoy);
+      expect(g.calendar.where((c) => c.$2 == DayMark.extra), isEmpty);
+      expect(g.have, 8);
+    });
+
+    test('cinco por semana: siete seguidos siguen siendo seis', () {
+      final hoy = DateTime(2026, 5, 20, 12);
+      final g = UnlockGoal.of(
+        _habit(now: hoy, on: [0, 1, 2, 3, 4, 5, 6], perWeek: 5),
+        at: hoy,
+      );
+      expect(g.have, 6);
     });
 
     test('los días en pausa no cuentan: lo de antes de pausar se guarda', () {
