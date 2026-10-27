@@ -2599,72 +2599,54 @@ class _Places extends StatelessWidget {
     );
     final marcas = used[c.order] ?? const <String>[];
     if (marcas.isEmpty) return boton;
-    // Las marcas de los pueblos que ya la usan, como chapitas de vidrio
-    // oscuro con borde y marca dorados —lo mismo que un sello elegido, en
-    // chico—, montadas sobre el borde del sello. Una por pueblo, repartidas
-    // por el arco de arriba de derecha a izquierda; de tres en adelante, la
-    // última dice cuántos más hay.
-    final chapa = lado * 0.40;
-    const angulos = [-40.0, -90.0, -140.0];
-    final caben = marcas.length <= angulos.length
-        ? marcas.length
-        : angulos.length - 1;
-    final resto = marcas.length - caben;
-    Widget disco(Widget dentro) => Container(
-      width: chapa,
-      height: chapa,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: _Ink.glass.withValues(alpha: 0.92),
-        border: Border.all(color: _Ink.gold.withValues(alpha: 0.85)),
-        boxShadow: const [BoxShadow(color: Color(0x59000000), blurRadius: 5)],
-      ),
-      child: dentro,
-    );
-    Widget enArco(int i, Widget w) {
-      final ang = angulos[i] * math.pi / 180;
-      final r = lado / 2;
-      return Positioned(
-        left: r + math.cos(ang) * r - chapa / 2,
-        top: r + math.sin(ang) * r - chapa / 2,
-        child: w,
-      );
-    }
-
+    // Las marcas de los pueblos que ya la usan, en una pastilla montada
+    // sobre el borde de arriba del sello: vidrio crema y borde y marcas
+    // dorados, como el resto de la pantalla. Una marca por pueblo, hasta
+    // tres; con más, las tres primeras y cuántos más hay.
     return SizedBox(
       width: lado,
       height: lado,
       child: Stack(
         clipBehavior: Clip.none,
+        alignment: Alignment.center,
         children: [
           boton,
-          for (var i = 0; i < caben; i++)
-            enArco(
-              i,
-              disco(
-                HabitSigil(
-                  symbol: marcas[i],
-                  color: _Ink.gold,
-                  size: chapa * 0.58,
+          Positioned(
+            top: -lado * 0.2,
+            child: IgnorePointer(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 7,
+                  vertical: 2.5,
+                ),
+                decoration: BoxDecoration(
+                  color: _Ink.cream.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(lado),
+                  border: Border.all(color: _Ink.gold.withValues(alpha: 0.6)),
+                  boxShadow: const [
+                    BoxShadow(color: Color(0x59000000), blurRadius: 4),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final m in marcas.take(3))
+                      HabitSigil(symbol: m, color: _Ink.gold, size: lado * 0.2),
+                    if (marcas.length > 3)
+                      Text(
+                        '+${marcas.length - 3}',
+                        style: TextStyle(
+                          fontSize: lado * 0.17,
+                          height: 1,
+                          fontWeight: FontWeight.w700,
+                          color: _Ink.gold,
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
-          if (resto > 0)
-            enArco(
-              caben,
-              disco(
-                Text(
-                  '+$resto',
-                  style: TextStyle(
-                    fontSize: chapa * 0.42,
-                    height: 1,
-                    fontWeight: FontWeight.w700,
-                    color: _Ink.gold,
-                  ),
-                ),
-              ),
-            ),
+          ),
         ],
       ),
     );
