@@ -558,6 +558,51 @@ final List<(String, _Estilo)> _estilos = [
     ),
   ),
   (
+    'S · Pastilla arriba, colores de P',
+    (l, s, m) => SizedBox(
+      width: l,
+      height: l,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          s,
+          Positioned(
+            top: -l * 0.2,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+              decoration: BoxDecoration(
+                color: _cream.withValues(alpha: 0.18),
+                border: Border.all(color: _gold.withValues(alpha: 0.6)),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: const [
+                  BoxShadow(color: Color(0x59000000), blurRadius: 4),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final x in m.take(3))
+                    HabitSigil(symbol: x, color: _gold, size: l * 0.2),
+                  if (m.length > 3)
+                    Text(
+                      '+${m.length - 3}',
+                      style: TextStyle(
+                        fontSize: l * 0.17,
+                        fontWeight: FontWeight.w700,
+                        color: _gold,
+                        height: 1,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  ),
+  (
     'Q · Pastilla con una marca y cuántos, colores de P',
     (l, s, m) => _pastilla(
       l,
