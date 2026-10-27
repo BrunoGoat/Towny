@@ -2599,46 +2599,74 @@ class _Places extends StatelessWidget {
     );
     final marcas = used[c.order] ?? const <String>[];
     if (marcas.isEmpty) return boton;
-    // Las marcas de los pueblos que ya la usan, como chapitas color crema
-    // montadas sobre el borde de arriba del sello.
-    final chapa = lado * 0.42;
-    return Stack(
-      clipBehavior: Clip.none,
+    // Las marcas de los pueblos que ya la usan, como chapitas de vidrio
+    // oscuro con borde y marca dorados —lo mismo que un sello elegido, en
+    // chico—, montadas sobre el borde del sello. Una por pueblo, repartidas
+    // por el arco de arriba de derecha a izquierda; de tres en adelante, la
+    // última dice cuántos más hay.
+    final chapa = lado * 0.40;
+    const angulos = [-40.0, -90.0, -140.0];
+    final caben = marcas.length <= angulos.length
+        ? marcas.length
+        : angulos.length - 1;
+    final resto = marcas.length - caben;
+    Widget disco(Widget dentro) => Container(
+      width: chapa,
+      height: chapa,
       alignment: Alignment.center,
-      children: [
-        boton,
-        Positioned(
-          top: -chapa * 0.38,
-          right: -chapa * 0.30,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (final (i, m) in marcas.take(3).indexed)
-                Transform.translate(
-                  offset: Offset(-i * chapa * 0.45, 0),
-                  child: Container(
-                    width: chapa,
-                    height: chapa,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: _Ink.cream,
-                      border: Border.all(color: _Ink.glass, width: 1.2),
-                      boxShadow: const [
-                        BoxShadow(color: Color(0x66000000), blurRadius: 4),
-                      ],
-                    ),
-                    child: HabitSigil(
-                      symbol: m,
-                      color: _Ink.glass,
-                      size: chapa * 0.62,
-                    ),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: _Ink.glass.withValues(alpha: 0.92),
+        border: Border.all(color: _Ink.gold.withValues(alpha: 0.85)),
+        boxShadow: const [BoxShadow(color: Color(0x59000000), blurRadius: 5)],
+      ),
+      child: dentro,
+    );
+    Widget enArco(int i, Widget w) {
+      final ang = angulos[i] * math.pi / 180;
+      final r = lado / 2;
+      return Positioned(
+        left: r + math.cos(ang) * r - chapa / 2,
+        top: r + math.sin(ang) * r - chapa / 2,
+        child: w,
+      );
+    }
+
+    return SizedBox(
+      width: lado,
+      height: lado,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          boton,
+          for (var i = 0; i < caben; i++)
+            enArco(
+              i,
+              disco(
+                HabitSigil(
+                  symbol: marcas[i],
+                  color: _Ink.gold,
+                  size: chapa * 0.58,
+                ),
+              ),
+            ),
+          if (resto > 0)
+            enArco(
+              caben,
+              disco(
+                Text(
+                  '+$resto',
+                  style: TextStyle(
+                    fontSize: chapa * 0.42,
+                    height: 1,
+                    fontWeight: FontWeight.w700,
+                    color: _Ink.gold,
                   ),
                 ),
-            ],
-          ),
-        ),
-      ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

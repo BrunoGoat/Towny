@@ -91,10 +91,28 @@ void main() {
                             character: 0x1A7C,
                           ),
                           (
-                            name: 'Saltar la cuerda',
-                            symbol: 'run',
-                            pieces: 12,
-                            character: 0x5E02,
+                            name: 'Meditar',
+                            symbol: 'lotus',
+                            pieces: 20,
+                            character: 0x7B45,
+                          ),
+                          (
+                            name: 'Nadar',
+                            symbol: 'wave',
+                            pieces: 3,
+                            character: 0x7B45,
+                          ),
+                          (
+                            name: 'Pintar',
+                            symbol: 'brush',
+                            pieces: 3,
+                            character: 0x7B45,
+                          ),
+                          (
+                            name: 'Escribir',
+                            symbol: 'quill',
+                            pieces: 3,
+                            character: 0x7B45,
                           ),
                         ],
                       )
