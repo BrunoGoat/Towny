@@ -316,8 +316,9 @@ List<Solid> folkSolids(
     (double, double, double) b,
     double r,
     int tint,
-    double ao,
-  ) {
+    double ao, {
+    double? deep,
+  }) {
     final dx = b.$1 - a.$1, dy = b.$2 - a.$2, dz = b.$3 - a.$3;
     final len = math.sqrt(dx * dx + dy * dy + dz * dz);
     if (len < 1e-5) return;
@@ -329,9 +330,9 @@ List<Solid> folkSolids(
     V3 corner(double sa, double sp, double sq) {
       final at0 = sa < 0 ? a : b;
       return world(
-        at0.$1 + (pv.x * sp + q.x * sq) * r,
-        at0.$2 + (pv.y * sp + q.y * sq) * r,
-        at0.$3 + (pv.z * sp + q.z * sq) * r,
+        at0.$1 + pv.x * sp * r + q.x * sq * (deep ?? r),
+        at0.$2 + pv.y * sp * r + q.y * sq * (deep ?? r),
+        at0.$3 + pv.z * sp * r + q.z * sq * (deep ?? r),
       );
     }
 
@@ -469,59 +470,107 @@ List<Solid> folkSolids(
         );
 
       case PropKind.lute:
-        // El laúd contra el pecho, **grande y de madera clara**.
+        // El laúd contra el pecho, cruzado y **con forma de laúd**.
         //
-        // Hicieron falta tres intentos. Con una caja chica y oscura y el mástil
-        // hacia arriba, a veinte píxeles era un bulto con un palo — o sea lo
-        // mismo que lleva quien saca agua del pozo. Lo que lo hace un laúd son
-        // tres cosas: que la caja mida lo que la cabeza, que sea más clara que
-        // cualquier sayo (si no, contra un pardo no existe), y que el mástil
-        // salga por fuera de la silueta, que es lo único que no puede tener
-        // ninguna otra cosa que se lleve encima.
+        // Lo que lo hace leerse a veinte píxeles sigue siendo lo de antes: la
+        // caja del tamaño de la cabeza, más clara que cualquier sayo, y el
+        // mástil saliendo por fuera de la silueta. Pero era una caja recta con
+        // un palo pegado en diagonal, y un laúd es una sola línea: la caja va
+        // a lo largo del mástil y se ensancha en pera hacia abajo. Así que
+        // todo se arma sobre ese eje —la pera en tres tramos, la tapa clara
+        // delante del fondo oscuro, la boca, el puente, el diapasón, las
+        // cuerdas y el clavijero doblado hacia atrás con sus clavijas—, y
+        // sigue siendo un puñado de cajas.
         final m = hold(-1, 0.50, 0.11);
-        final y = m.$2, z = m.$3;
-        box(-0.255, y - 0.105, z, 0.020, y + 0.135, z + 0.110, 0xFFD9AE68, 1.0);
-        // La tapa, por delante y más clara todavía: le da el bulto redondo.
-        box(
-          -0.230,
-          y - 0.080,
-          z + 0.105,
-          -0.005,
-          y + 0.110,
-          z + 0.134,
-          0xFFF0D69B,
-          1.06,
-        );
-        // La boca, el agujero redondo.
-        box(
-          -0.150,
-          y - 0.005,
-          z + 0.130,
-          -0.070,
-          y + 0.060,
-          z + 0.142,
-          0xFF43301E,
-          0.84,
-        );
-        // El mástil, largo y cruzado, asomando por el hombro del otro lado.
+        const ux = 0.79, uy = 0.61; // a lo largo del mástil
+        const vx = -0.61, vy = 0.79; // a lo ancho de la tapa
+        final cx = m.$1 - 0.10, cy = m.$2 - 0.02, cz = m.$3 + 0.055;
+        (double, double, double) en(double a, double b, double dz) =>
+            (cx + ux * a + vx * b, cy + uy * a + vy * b, cz + dz);
+        const fondo = 0xFF8A5530, tapa = 0xFFEACB8E, oscuro = 0xFF2E1F14;
+        const mastil = 0xFF6E4524;
+        // La pera: ancha abajo, angosta hacia el mástil. El fondo, de nogal;
+        // la tapa, de abeto claro, un poco más chica y por delante.
+        for (final (a0, a1, r) in const [
+          (-0.20, -0.10, 0.118),
+          (-0.10, -0.01, 0.100),
+          (-0.01, 0.05, 0.072),
+        ]) {
+          link(en(a0, 0, 0), en(a1, 0, 0), r, fondo, 0.92, deep: 0.052);
+          link(
+            en(a0 + 0.008, 0, 0.060),
+            en(a1 - 0.004, 0, 0.060),
+            r - 0.014,
+            tapa,
+            1.06,
+            deep: 0.008,
+          );
+        }
+        // La boca, con su rosa oscura, y el puente abajo, atravesado.
         link(
-          (-0.030, y + 0.110, z + 0.055),
-          (0.340, y + 0.330, z - 0.010),
-          0.022,
-          0xFFC79A54,
+          en(-0.050, 0, 0.068),
+          en(-0.004, 0, 0.068),
+          0.026,
+          oscuro,
+          0.84,
+          deep: 0.004,
+        );
+        link(
+          en(-0.150, -0.050, 0.068),
+          en(-0.150, 0.050, 0.068),
+          0.009,
+          oscuro,
+          0.86,
+          deep: 0.006,
+        );
+        // El mástil, y encima el diapasón negro, que es lo que lo afina a
+        // la vista.
+        link(
+          en(0.04, 0, 0.010),
+          en(0.43, 0, 0.010),
+          0.024,
+          mastil,
           1.0,
+          deep: 0.020,
         );
-        // El clavijero, doblado al final, que es lo que remata el mástil.
-        box(
-          0.312,
-          y + 0.318,
-          z - 0.060,
-          0.392,
-          y + 0.420,
-          z + 0.014,
-          0xFF43301E,
-          0.92,
+        link(
+          en(0.04, 0, 0.033),
+          en(0.43, 0, 0.033),
+          0.018,
+          oscuro,
+          0.9,
+          deep: 0.004,
         );
+        // Dos cuerdas claras, del puente a la cejuela.
+        for (final b in const [-0.011, 0.011]) {
+          link(
+            en(-0.150, b, 0.074),
+            en(0.43, b, 0.040),
+            0.0028,
+            0xFFF4EAD2,
+            1.12,
+            deep: 0.0028,
+          );
+        }
+        // El clavijero, doblado hacia atrás —lo que tiene un laúd y no una
+        // guitarra—, con tres clavijas claras a cada lado.
+        final p0 = en(0.43, 0, 0.010), p1 = en(0.50, 0, -0.085);
+        link(p0, p1, 0.026, oscuro, 0.92, deep: 0.016);
+        for (var k = 0; k < 3; k++) {
+          final t = 0.25 + k * 0.25;
+          final p = (
+            p0.$1 + (p1.$1 - p0.$1) * t,
+            p0.$2 + (p1.$2 - p0.$2) * t,
+            p0.$3 + (p1.$3 - p0.$3) * t,
+          );
+          link(
+            (p.$1 - vx * 0.045, p.$2 - vy * 0.045, p.$3),
+            (p.$1 + vx * 0.045, p.$2 + vy * 0.045, p.$3),
+            0.007,
+            0xFFE9D6AE,
+            1.08,
+          );
+        }
 
       case PropKind.drum:
         // El tambor colgado delante de la tripa, con la piel clara arriba, y
