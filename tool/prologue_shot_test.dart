@@ -173,7 +173,16 @@ void main() {
       await foto(n);
     }
     await g3.up();
-    await espera(20);
+    for (final (n, k) in [
+      ('7-post-a', 5),
+      ('7-post-b', 5),
+      ('7-post-c', 6),
+      ('7-post-d', 8),
+    ]) {
+      await espera(k);
+      await foto(n);
+    }
+    await espera(10);
     await foto('7-pregunta');
     // ignore: avoid_print
     print('escritas en $out');

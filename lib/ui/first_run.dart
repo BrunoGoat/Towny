@@ -286,6 +286,7 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
         if (_prologue && _warp.value >= _warpPeak) {
           setState(() {
             _prologue = false;
+            _fromWarp = true;
             _backward = false;
             _step = 1;
           });
@@ -298,6 +299,12 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
 
   /// Cuándo el salto está todo blanco.
   static const double _warpPeak = 0.5;
+
+  /// Recién salido del salto: la primera pregunta llega despacio, cuando el
+  /// blanco ya se abrió, y sin teclado. Salía de golpe con el campo ya
+  /// elegido y el teclado arriba, y después de la presentación del viejo
+  /// eso era un portazo.
+  bool _fromWarp = false;
 
   /// Se aguantó «fundar mi primer pueblo»: el salto.
   void _jump() {
@@ -635,14 +642,28 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
                           child: Align(
                             alignment: Alignment.bottomCenter,
                             child: AnimatedSlide(
-                              duration: const Duration(milliseconds: 560),
-                              curve: Curves.easeInCubic,
+                              duration: Duration(
+                                milliseconds: _fromWarp ? 1300 : 560,
+                              ),
+                              curve: _fromWarp
+                                  ? Curves.easeOutCubic
+                                  : Curves.easeInCubic,
+                              // Del salto sube despacio desde un poco más
+                              // abajo, cuando el blanco ya se abrió.
                               offset: _leaving
                                   ? const Offset(0, 0.35)
+                                  : _inPrologue || _warp.isAnimating
+                                  ? const Offset(0, 0.10)
                                   : Offset.zero,
                               child: AnimatedOpacity(
-                                duration: const Duration(milliseconds: 420),
-                                opacity: _leaving || _exploring || _inPrologue
+                                duration: Duration(
+                                  milliseconds: _fromWarp ? 1100 : 420,
+                                ),
+                                opacity:
+                                    _leaving ||
+                                        _exploring ||
+                                        _inPrologue ||
+                                        _warp.isAnimating
                                     ? 0
                                     : 1,
                                 child: IgnorePointer(
@@ -971,6 +992,9 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
           hint: tr('Leer, correr, no fumar…', 'Reading, running, yoga…'),
           big: true,
           max: 24,
+          // Después del viejo, sin teclado de golpe: se escribe cuando se
+          // toca el campo.
+          autofocus: !_fromWarp,
           onChanged: () => setState(() {}),
         ),
         const SizedBox(height: 18),
