@@ -182,6 +182,31 @@ void main() {
       return (cambios: cambios / 3, quieto: quieto, cosas: cosas.length);
     }
 
+    test('al tocarla sigue con lo que estaba haciendo diez segundos', () {
+      // Quien la toca mientras lee es porque quiere verla leer.
+      final l = TownLayout(160, TownCharacter.all.first, seed: 21);
+      var vistos = 0;
+      for (final who in folkOf(l, 160).where((v) => !v.sage)) {
+        for (var t = 30.0; t < 400; t += 37) {
+          final antes = who.at(t);
+          final hace = antes.act;
+          if (antes.moving || hace == null || hace == Doing.idle) continue;
+          who.spotlight(t, on: true);
+          for (var s = 0.0; s < 10; s += 0.5) {
+            expect(
+              who.at(t + s).act,
+              hace,
+              reason: '${who.name} a los $s s de tocarla',
+            );
+          }
+          who.spotlight(t + 10, on: false);
+          vistos++;
+          break;
+        }
+      }
+      expect(vistos, greaterThan(5));
+    });
+
     test('cambia de cosa mucho más a menudo que en su ronda de siempre', () {
       final l = TownLayout(160, TownCharacter.all.first, seed: 21);
       // Al consejero no se le sigue: tocarlo abre su menú.

@@ -488,7 +488,7 @@ class Townsfolk {
     for (var i = 0; i < _stay.length; i++)
       _act[i] == null
           ? 0.0
-          : (_spotChoices(i).length > 1 ? _spotStop : _spotEach),
+          : (_spotChoices(i).length > 1 ? _spotStop : _spotFirst + 2.4),
   ];
 
   /// Lo que puede hacer en la parada [i] cuando la sigue la cámara: lo de
@@ -752,7 +752,18 @@ class Townsfolk {
       _spotFacing = _lapFacing;
       _spotMemo.clear();
       _spotPeriodMemo = null;
-      final target = _uOf(i, walking, k, _spotStay, _spotStops!);
+      // Parada en un sitio, sigue con lo que estaba haciendo desde el
+      // principio de lo suyo ahí: lo de siempre va primero y dura diez
+      // segundos (ver [_spotFirst]). Si se cayera en el mismo segundo de la
+      // parada, que con el horario nuevo es otra cosa, el libro que estaba
+      // leyendo desaparecía al tocarla.
+      final target = _uOf(
+        i,
+        walking,
+        walking ? k : math.min(k, 1.25),
+        _spotStay,
+        _spotStops!,
+      );
       _spot = target - t;
     } else {
       final (i, walking, k) = _where(_uAt(t), _spotStay, _spotStops ?? _stops);
@@ -786,11 +797,13 @@ class Townsfolk {
   /// que tienen sentido en ese sitio, empezando por la de siempre.
   Doing _spotAct(int i, double held) {
     final puede = _spotChoices(i);
-    final k = (held / _spotEach).floor();
+    if (held < _spotFirst) return puede.first;
+    final despues = held - _spotFirst;
+    final k = (despues / _spotEach).floor();
     // Entre una cosa y la siguiente, un respiro: guardar la escoba y sacar
     // el libro no pasa entre dos fotogramas.
-    if (k > 0 && held - k * _spotEach < 1.2) return Doing.idle;
-    return puede[k % puede.length];
+    if (despues - k * _spotEach < 1.2) return Doing.idle;
+    return puede[(k + 1) % puede.length];
   }
 
   // ------------------------------------------------------------ a casa
@@ -1166,7 +1179,11 @@ const double _puertaEntra = 0.8, _puertaDentro = 0.4;
 
 /// Lo que dura cada cosa que hace la persona a la que sigue la cámara, y lo
 /// que se queda en cada parada.
-const double _spotEach = 8.0, _spotStop = 16.0;
+///
+/// La primera de cada parada —la de siempre, la que estaba haciendo si se
+/// la tocó ahí— dura [_spotFirst]: quien la toca mientras lee es porque
+/// quiere verla leer, y a los ocho segundos ya estaba guardando el libro.
+const double _spotEach = 8.0, _spotFirst = 10.0, _spotStop = 22.0;
 
 /// Lo que dura una prueba haciendo la cosa, sin contar ir y volver.
 const double _trialHold = 24.0;
