@@ -147,6 +147,10 @@ if __name__ == '__main__':
             f'{WEB}/icons/Icon-maskable-{size}.png')
     coloca(con_sombra, 64, DENTRO_LEGADO, campo).convert('RGB').save(
         f'{WEB}/favicon.png')
+    # El de la pantalla de inicio del iPhone, a la medida que pide: con el de
+    # 192 el sistema lo achicaba, y un icono achicado sale apenas borroso.
+    coloca(con_sombra, 180, DENTRO_LEGADO, campo).convert('RGB').save(
+        f'{WEB}/icons/apple-touch-icon.png')
     print('iconos de la web escritos')
 
     # Y el iPhone. Los nombres y las medidas son los que pide el catálogo que
