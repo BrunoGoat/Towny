@@ -93,6 +93,54 @@ const double _pico = 0.42, _baja = 3.4, _paso = 0.24;
 /// Lo que dura un paso de paloma: el cabeceo va con él.
 const double _zancada = 0.19;
 
+/// Cómo pica una paloma: cuánto inclina el cuerpo, se agacha y estira el
+/// cuello. Lo que baja la cabeza sale de ahí: lo justo para que la punta
+/// del pico toque la miga.
+const double _inclina = 0.45, _agacha = 0.30, _estira = 0.45;
+
+/// Hasta dónde baja la punta del pico al picar: hasta encima de la miga, que
+/// es una cajita de un centímetro.
+const double _tocaEn = 0.008;
+
+/// La cabeza al picar —cuánto baja— y cuánto por delante de los pies cae
+/// entonces la punta del pico, para una paloma de talla uno. Va en
+/// proporción a la talla.
+///
+/// Sale del pájaro mismo, no de un número a ojo: picaba con la cabeza cinco
+/// centímetros bajo el suelo y a dos de los pies, con la miga a ocho.
+final (double, double) _picotazo = () {
+  V3 punta(double baja) => birdBeakTip(
+    BirdVisit(
+      doing: BirdDoing.perched,
+      at: const V3(0, 0, 0),
+      heading: 0,
+      pitch: baja,
+      lean: _inclina,
+      crouch: _agacha,
+      reach: _estira,
+      kind: 3,
+    ),
+  );
+  var lo = 0.0, hi = 1.4;
+  for (var k = 0; k < 40; k++) {
+    final m = (lo + hi) / 2;
+    if (punta(m).y > _tocaEn) {
+      lo = m;
+    } else {
+      hi = m;
+    }
+  }
+  return (lo, punta(lo).x);
+}();
+
+/// Cuánto baja todo al picar, en cada momento del picotazo: baja, toca y se
+/// queda un instante, sube con la miga y traga.
+double _bajada(double f) =>
+    smoothstep(0, 0.30, f) * (1 - smoothstep(0.48, 0.80, f));
+
+/// En qué momento del picotazo el pico toca la miga, y en cuál se la traga.
+const double _toca = 0.31, _traga = 0.86;
+
 /// Por dónde va lo que flota. Ver [FeastPose.afloat].
 const _bolsillo = (0.19, 0.30, 0.02),
     _alto = (0.12, 0.42, 0.14),
@@ -236,7 +284,7 @@ Feast? sageFeast(
   ];
   // Lo que adelanta el pico de los pies al picar: se para eso antes de la
   // miga, no encima.
-  double alcance(int i) => 0.034 * talla[i] * 2.4;
+  double alcance(int i) => _picotazo.$2 * talla[i];
 
   // El reparto, jugado desde el principio.
   final tramos = [for (var i = 0; i < n; i++) <_Tramo>[]];
@@ -253,11 +301,13 @@ Feast? sageFeast(
     libre[i] = hasta;
   }
 
-  void anda(int i, V3 a, double desde) {
+  // Anda hasta [a], mirando adonde va o —si se le da [mira]— hacia ahí: el
+  // pasito de costado o para atrás para ponerse frente a la miga siguiente.
+  void anda(int i, V3 a, double desde, {double? mira}) {
     quieta(i, desde);
     final d = (a - donde[i]).length;
-    if (d < 0.01) return;
-    final rumbo = math.atan2(a.z - donde[i].z, a.x - donde[i].x);
+    if (d < 0.004) return;
+    final rumbo = mira ?? math.atan2(a.z - donde[i].z, a.x - donde[i].x);
     final fin = desde + math.max(0.25, d / _paso);
     tramos[i].add(_Tramo(desde, fin, _anda, donde[i], a, cara[i], rumbo));
     donde[i] = a;
@@ -269,16 +319,19 @@ Feast? sageFeast(
   for (var i = 0; i < n; i++) {
     anda(i, espera[i], libre[i] + 0.6 + 0.8 * hash01(s, lap, i, 14));
   }
-  // Cuándo desaparece cada miga: en el pico de alguna.
+  // Cuándo la toca el pico de una paloma, cuál, y cuándo se la traga.
   final comida = [
     for (var k = 0; k < tiros; k++) List<double>.filled(3, double.infinity),
   ];
+  final traga = [
+    for (var k = 0; k < tiros; k++) List<double>.filled(3, double.infinity),
+  ];
+  final quien = [for (var k = 0; k < tiros; k++) List<int>.filled(3, 0)];
   for (var k = 0; k < tiros; k++) {
     final g = cae[k];
     final enSueloYa = cuando[k] + _suelta + vuela(2);
     var mejor = -1;
     var llegaria = double.infinity;
-    var parada = g;
     var sale = 0.0;
     for (var i = 0; i < n; i++) {
       final reacciona = 0.15 + 0.3 * hash01(s, lap, i * 31 + k, 15);
@@ -295,23 +348,46 @@ Feast? sageFeast(
       if (en < llegaria) {
         llegaria = en;
         mejor = i;
-        parada = para;
         sale = desde;
       }
     }
     final i = mejor;
-    anda(i, parada, sale);
-    // Si ya estaba encima, al menos se gira hacia la miga.
-    final aMiga = math.atan2(g.z - donde[i].z, g.x - donde[i].x);
-    final empieza = libre[i];
-    final acaba = empieza + 3 * _pico;
-    tramos[i].add(
-      _Tramo(empieza, acaba, _pica, donde[i], donde[i], cara[i], aMiga),
-    );
-    cara[i] = aMiga;
-    libre[i] = acaba;
-    for (var j = 0; j < 3; j++) {
-      comida[k][j] = empieza + (j + 0.45) * _pico;
+    // Las tres migas, una por una, cada una de un picotazo, y antes de cada
+    // uno se pone justo a la distancia: andando hasta la primera, y de una a
+    // otra un pasito, si hace falta, sin dejar de mirarla. La más cercana
+    // primero.
+    var desde = sale;
+    final quedan = [0, 1, 2];
+    while (quedan.isNotEmpty) {
+      quedan.sort(
+        (a, b) => (miga(k, a) - donde[i]).length.compareTo(
+          (miga(k, b) - donde[i]).length,
+        ),
+      );
+      final j = quedan.removeAt(0);
+      final m = miga(k, j);
+      final hacia = m - donde[i];
+      final d = math.sqrt(hacia.x * hacia.x + hacia.z * hacia.z);
+      final aMiga = d < 1e-6 ? cara[i] : math.atan2(hacia.z, hacia.x);
+      final ux = d < 1e-6 ? math.cos(aMiga) : hacia.x / d;
+      final uz = d < 1e-6 ? math.sin(aMiga) : hacia.z / d;
+      anda(
+        i,
+        enSuelo(m.x - ux * alcance(i), m.z - uz * alcance(i)),
+        desde,
+        mira: d > alcance(i) + 0.06 ? null : aMiga,
+      );
+      final empieza = libre[i];
+      final acaba = empieza + _pico;
+      tramos[i].add(
+        _Tramo(empieza, acaba, _pica, donde[i], donde[i], cara[i], aMiga),
+      );
+      cara[i] = aMiga;
+      libre[i] = acaba;
+      comida[k][j] = empieza + _toca * _pico;
+      traga[k][j] = empieza + _traga * _pico;
+      quien[k][j] = i;
+      desde = libre[i];
     }
   }
   // Y cuando no queda nada, un rato más por si acaso, y se van: casi a la
@@ -335,6 +411,7 @@ Feast? sageFeast(
 
   // Las palomas en el segundo [p].
   final palomas = <BirdVisit>[];
+  final visitas = <BirdVisit>[];
   for (var i = 0; i < n; i++) {
     final v = _paloma(
       i,
@@ -353,6 +430,7 @@ Feast? sageFeast(
       talla[i],
       (bx, bz),
     );
+    visitas.add(v);
     if (v.doing != BirdDoing.away) palomas.add(v);
   }
 
@@ -372,6 +450,10 @@ Feast? sageFeast(
         migas.add(V3(a.x, a.y + 4 * e * (1 - e) * 0.10, a.z));
       } else if (p < comida[k][j]) {
         migas.add(g);
+      } else if (p < traga[k][j]) {
+        // En el pico, hasta que se la traga.
+        final t = birdBeakTip(visitas[quien[k][j]]);
+        migas.add(V3(t.x, t.y - 0.006, t.z));
       }
     }
   }
@@ -568,21 +650,19 @@ BirdVisit _paloma(
       heading += 0.05 * math.sin(q / _zancada * math.pi);
       tail = 0.08 * math.sin(q / _zancada * 2 * math.pi);
     case _pica:
-      // Tres picotazos secos a la miga, y entre uno y otro la cabeza arriba
-      // a tragar.
+      // Un picotazo seco a la miga: la punta del pico baja justo encima de
+      // ella, se la lleva, sube y la traga con un tirón de cabeza para
+      // atrás.
       heading = _mezclaAng(tr.h0, tr.h1, smoothstep(0, 0.12, q));
-      final j = math.min(2, (q / _pico).floor());
-      final f = (q - j * _pico) / _pico;
-      final b = smoothstep(0, 0.30, f) * (1 - smoothstep(0.48, 0.82, f));
-      final golpe = b * math.sin(clampD((f - 0.22) / 0.2, 0, 1) * math.pi);
+      final f = clampD(q / _pico, 0, 1);
+      final b = _bajada(f);
       pitch =
-          1.45 * b +
-          0.10 * golpe -
-          0.18 * smoothstep(0.82, 0.95, f) * (1 - smoothstep(0.95, 1.0, f));
-      lean = 0.85 * b;
-      crouch = 0.38 * b;
-      reach = 0.95 * b;
-      tail = 0.50 * b;
+          _picotazo.$1 * b -
+          0.18 * smoothstep(0.80, 0.90, f) * (1 - smoothstep(0.90, 1.0, f));
+      lean = _inclina * b;
+      crouch = _agacha * b;
+      reach = _estira * b;
+      tail = 0.40 * b;
     default:
       // Quieta, mirando al viejo a ver si cae algo. Se gira hacia él a
       // saltitos, mueve la cabeza a tirones —una paloma no gira la cabeza:
@@ -608,11 +688,11 @@ BirdVisit _paloma(
       final f2 = (p / 1.3 + i * 0.53) - w2;
       if (q > vuelta && hash01(s, i, w2, 31) < 0.25) {
         final b = smoothstep(0.1, 0.35, f2) * (1 - smoothstep(0.5, 0.75, f2));
-        pitch = 1.40 * b;
-        lean = 0.80 * b;
-        crouch = 0.35 * b;
-        reach = 0.85 * b;
-        tail = 0.45 * b;
+        pitch = _picotazo.$1 * b;
+        lean = _inclina * b;
+        crouch = _agacha * b;
+        reach = _estira * b;
+        tail = 0.40 * b;
         look *= 1 - b;
       }
       // Y alguna vez se ahueca y se sacude.

@@ -390,9 +390,15 @@ void fountainBirds(
 /// Lo que engorda una paloma: de ancho y de alto. Ver [birdFaces].
 const double _ancha = 1.45, _alta = 1.18;
 
-/// Un pájaro hecho de cajitas: cuerpo, pecho, cabeza, pico, cola y dos alas.
-List<Facet> birdFaces(BirdVisit v, V3 eye) {
-  final (cuerpo, pecho, alas, cabeza, pico) = _plumas[v.kind];
+/// Dónde queda la punta del pico de [v] en el mundo: lo que tiene que tocar
+/// la miga, o el agua, cuando pica.
+V3 birdBeakTip(BirdVisit v) => _mundoDe(v)(2.9, 2.5, 0, parte: 2);
+
+typedef _Mundo =
+    V3 Function(double x, double y, double z, {int parte, bool estira});
+
+/// Del espacio del pájaro al mundo, en la postura de [v]. Ver [birdFaces].
+_Mundo _mundoDe(BirdVisit v) {
   final s = 0.034 * v.size;
   final f = V3(math.cos(v.heading), 0, math.sin(v.heading));
   final rr = V3(-f.z, 0, f.x);
@@ -457,6 +463,15 @@ List<Facet> birdFaces(BirdVisit v, V3 eye) {
     return v.at + f * (x * s) + up * (y * s) + rr * (z * s);
   }
 
+  return mundo;
+}
+
+/// Un pájaro hecho de cajitas: cuerpo, pecho, cabeza, pico, cola y dos alas.
+List<Facet> birdFaces(BirdVisit v, V3 eye) {
+  final (cuerpo, pecho, alas, cabeza, pico) = _plumas[v.kind];
+  final vuela = v.doing != BirdDoing.perched;
+  final agacha = vuela ? 0.0 : v.crouch;
+  final mundo = _mundoDe(v);
   final out = <Facet>[];
 
   /// Un sólido de ocho esquinas, en el orden de [hexFaces], sin las caras
