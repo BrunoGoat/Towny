@@ -80,6 +80,30 @@ void main() {
     expect(math.sqrt(dx * dx + dz * dz), lessThan(60));
   });
 
+  // Con la cámara inclinada, hacia arriba y hacia abajo de la pantalla se
+  // disparaba: un píxel hacia el fondo es mucho más suelo que de lado. Cada
+  // dirección en su pueblo recién abierto, y todas contra lo que corre de
+  // lado.
+  final corrido = <String, double>{};
+  for (final (nombre, paso) in [
+    ('de lado', const Offset(14, 0)),
+    ('hacia arriba', const Offset(0, -14)),
+    ('hacia abajo', const Offset(0, 14)),
+  ]) {
+    testWidgets('dos dedos corren lo mismo $nombre', (tester) async {
+      final mando = await pueblo(tester);
+      final antes = mando.aim;
+      await dosDedos(tester, paso);
+      final dx = mando.aim.x - antes.x, dz = mando.aim.z - antes.z;
+      corrido[nombre] = math.sqrt(dx * dx + dz * dz);
+      expect(corrido[nombre], greaterThan(0.2));
+      final lado = corrido['de lado'];
+      if (lado != null && nombre != 'de lado') {
+        expect(corrido[nombre]! / lado, inInclusiveRange(0.75, 1.33));
+      }
+    });
+  }
+
   testWidgets('en la cámara libre el pueblo no se da vueltas solo', (
     tester,
   ) async {

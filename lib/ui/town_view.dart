@@ -1481,7 +1481,7 @@ class _TownViewState extends State<TownView>
         _cam.follow = false;
       }
       if (g.move.distanceSquared > 0.5) {
-        _panByDrag(g.move, d.localFocalPoint);
+        _panByDrag(g.move);
         _free = true;
       }
       if (g.zoom > 1) _diveIn(d.localFocalPoint);
@@ -1507,40 +1507,30 @@ class _TownViewState extends State<TownView>
   /// Un dedo, en el pueblo y en el valle, gira alrededor de lo encuadrado. El
   /// valle tuvo un tiempo una cámara libre, de mapa —un dedo corría el suelo—,
   /// y era fácil perderse: se pasaba de pueblo con cualquier gesto.
-  void _panByDrag(Offset delta, [Offset? finger]) {
+  void _panByDrag(Offset delta) {
     _stopFollowing();
     final size = context.size;
     if (size == null) return;
     final p = _aimed(size);
-    // Lo que estaba debajo del dedo sigue debajo: se busca el punto del suelo
-    // que tenía antes y el que tiene ahora, y el foco se corre lo que hay
-    // entre los dos. Antes se calculaba con lo que mide un píxel en el medio
-    // de la pantalla, y en el valle —mirado de canto, con los pueblos lejos
-    // del medio— el suelo corría el doble que el dedo y uno se pasaba de
-    // pueblo con cualquier gesto.
-    final dedo = finger ?? size.center(Offset.zero);
-    final antes = _groundAt(p, dedo - delta), ahora = _groundAt(p, dedo);
-    double x, z;
-    if (antes != null && ahora != null) {
-      x = _cam.travelTarget + antes.$1 - ahora.$1;
-      z = _cam.focusZTarget + antes.$2 - ahora.$2;
-    } else {
-      // Con el dedo en el cielo no hay suelo debajo: se corre como antes,
-      // con lo que mide un píxel en el foco.
-      var rx = p.right.x, rz = p.right.z;
-      var fx = p.forward.x, fz = p.forward.z;
-      final rl = math.sqrt(rx * rx + rz * rz),
-          fl = math.sqrt(fx * fx + fz * fz);
-      if (rl < 0.01 || fl < 0.01) return;
-      rx /= rl;
-      rz /= rl;
-      fx /= fl;
-      fz /= fl;
-      final metro = _cam.distanceTarget / p.focal;
-      final hondo = metro / math.max(0.25, math.sin(_cam.pitchTarget));
-      x = _cam.travelTarget - delta.dx * metro * rx + delta.dy * hondo * fx;
-      z = _cam.focusZTarget - delta.dx * metro * rz + delta.dy * hondo * fz;
-    }
+    // **Lo mismo en todas las direcciones.** Se buscaba el punto del suelo
+    // bajo el dedo antes y después y se corría lo que hubiera entre los dos,
+    // para que lo de debajo siguiera debajo. Con la cámara inclinada eso es
+    // muy distinto según hacia dónde: de lado un píxel es un palmo, y hacia
+    // el fondo, mirado de canto, el mismo píxel es medio pueblo, así que
+    // hacia arriba y hacia abajo se disparaba. Ahora un píxel vale lo mismo
+    // hacia cualquier lado y en cualquier punto de la pantalla: lo que mide
+    // de lado en el suelo donde mira la cámara.
+    var rx = p.right.x, rz = p.right.z;
+    var fx = p.forward.x, fz = p.forward.z;
+    final rl = math.sqrt(rx * rx + rz * rz), fl = math.sqrt(fx * fx + fz * fz);
+    if (rl < 0.01 || fl < 0.01) return;
+    rx /= rl;
+    rz /= rl;
+    fx /= fl;
+    fz /= fl;
+    final metro = _cam.distanceTarget / p.focal;
+    final x = _cam.travelTarget - delta.dx * metro * rx + delta.dy * metro * fx;
+    final z = _cam.focusZTarget - delta.dx * metro * rz + delta.dy * metro * fz;
     _keepInside(x, z);
   }
 
@@ -1572,20 +1562,6 @@ class _TownViewState extends State<TownView>
       ..pitch = _cam.pitchTarget
       ..distance = distance ?? _cam.distanceTarget;
     return c.projector(size.width, size.height, 0);
-  }
-
-  /// El punto del suelo que se ve en [s] de la pantalla, o nulo si ahí hay
-  /// cielo. Lo de muy cerca del horizonte tampoco cuenta: un píxel allá es
-  /// medio valle, y arrastrar desde ahí lanzaba la vista a la otra punta.
-  (double, double)? _groundAt(Projector p, Offset s) {
-    final dir =
-        p.forward +
-        p.right * ((s.dx - p.cx) / p.focal) -
-        p.up * ((s.dy - p.cy) / p.focal);
-    if (dir.y > -1e-3) return null;
-    final t = -p.eye.y / dir.y;
-    if (t * dir.length > _cam.distanceTarget * 4) return null;
-    return (p.eye.x + dir.x * t, p.eye.z + dir.z * t);
   }
 
   /// El botón derecho del ratón, arrastrando: girar e inclinar el valle. Va
