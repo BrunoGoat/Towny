@@ -489,13 +489,17 @@ void _pieles() {
 
       await abrir();
       expect(find.text('LO MÍNIMO QUE CUENTA'), findsNothing);
-      expect(find.text('EL PLAN'), findsNothing);
+      // Menos cada cuánto, que está siempre: se puede elegir desde acá sin
+      // esperar a que lo pregunte el pueblo.
+      expect(find.text('EL PLAN'), findsOneWidget);
+      expect(find.textContaining('elegir cada cuánto'), findsOneWidget);
 
       store.describeHabit(0, floor: 'leer una página');
       store.setCadence(store.habit, 3);
       await abrir();
       expect(find.text('LO MÍNIMO QUE CUENTA'), findsOneWidget);
       expect(find.text('EL PLAN'), findsOneWidget);
+      expect(find.textContaining('3 veces por semana'), findsOneWidget);
       await tester.pumpWidget(const SizedBox());
     });
     testWidgets('las marcas sin elegir se leen a cualquier hora', (

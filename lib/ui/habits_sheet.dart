@@ -395,25 +395,36 @@ class _HabitsSheetState extends State<HabitsSheet> {
     final dicho = h.perWeek;
     return [
       // Cada cuánto va: una línea, y tocarla abre la misma hoja con la que lo
-      // preguntó el pueblo la primera semana.
-      if (_hasCadence && dicho != null)
-        _tapLine(t, velo, cadenceSaid(dicho), t.accent, () {
-          Sensory.instance.tick();
-          showModalBottomSheet<void>(
-            context: context,
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            builder: (_) => CadenceSheet(
-              habit: h,
-              theme: t,
-              first: false,
-              onPick: (n) {
-                store.setCadence(h, n);
-                if (mounted) setState(() {});
-              },
-            ),
-          );
-        }, start: start),
+      // preguntó el pueblo la primera semana. Siempre, aunque no se haya dicho
+      // todavía: así se puede decir o cambiar cuando uno quiera, sin esperar
+      // a que lo pregunte el pueblo.
+      if (_hasCadence)
+        _tapLine(
+          t,
+          velo,
+          dicho != null
+              ? cadenceSaid(dicho)
+              : tr('elegir cada cuánto', 'choose how often'),
+          t.accent,
+          () {
+            Sensory.instance.tick();
+            showModalBottomSheet<void>(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (_) => CadenceSheet(
+                habit: h,
+                theme: t,
+                first: false,
+                onPick: (n) {
+                  store.setCadence(h, n);
+                  if (mounted) setState(() {});
+                },
+              ),
+            );
+          },
+          start: start,
+        ),
       if (_hasPlan && frase != null)
         // Abierto el reloj, la frase deja de llevar lápiz: el lápiz dice «esto
         // se puede tocar», y lo que hay debajo ya lo está diciendo.
@@ -607,9 +618,8 @@ class _HabitsSheetState extends State<HabitsSheet> {
   /// respuesta— y la hoja era el doble de alta con la mitad de cada renglón
   /// vacío. Así cada cosa ocupa un renglón y se lee de un vistazo.
   ///
-  /// El para qué va en letra de libro, más grande y en el color de la
-  /// marca: es la razón de todo el pueblo, y la hoja tiene que decir eso
-  /// antes que nada.
+  /// El para qué va en el color de la marca: es la razón de todo el pueblo,
+  /// y la hoja tiene que decir eso antes que nada.
   Widget _card(UiTheme t, SheetInk velo) {
     // La columna de los títulos, más angosta en un teléfono chico: lo que
     // importa es lo escrito, y con noventa píxeles fijos a la izquierda en una
@@ -643,7 +653,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
         ],
       ),
     );
-    final cadencia = _hasCadence && widget.store.habit.perWeek != null;
+    final cadencia = _hasCadence;
     final todo = _planBits(t, velo);
     // El primero, en la ficha y alineado a la izquierda; la frase, centrada.
     final plan = [
@@ -661,11 +671,13 @@ class _HabitsSheetState extends State<HabitsSheet> {
               velo,
               start: true,
               label: false,
-              style: TextStyle(
-                fontFamily: 'EBGaramond',
-                fontStyle: FontStyle.italic,
-                fontSize: 18,
-                height: 1.25,
+              // En la letra de los demás renglones y en el color de la
+              // marca, como el «alguien» de abajo. Iba en letra de libro,
+              // cursiva y más grande, y desentonaba con el resto de la ficha.
+              style: t.bodySoft.copyWith(
+                fontSize: 13.5,
+                height: 1.35,
+                fontWeight: FontWeight.w500,
                 color: t.accent,
                 shadows: velo.aliento,
               ),
@@ -738,10 +750,10 @@ class _HabitsSheetState extends State<HabitsSheet> {
   /// propone la hoja que pregunta si seguimos el día que hace falta.
   late final bool _hasFloor = widget.store.habit.floor?.isNotEmpty ?? false;
 
-  /// La frecuencia, sólo si ya se dijo. Sin decir, la pregunta el pueblo la
-  /// primera semana con su propia hoja; enseñar acá lo que cree mientras tanto
-  /// era otra línea para algo que nadie estableció.
-  late final bool _hasCadence = widget.store.habit.perWeek != null;
+  /// La frecuencia, siempre: se puede decir o cambiar desde acá cuando uno
+  /// quiera. Antes sólo salía si ya se había dicho, y quien quería cambiarla
+  /// antes de que el pueblo la preguntara no tenía dónde.
+  final bool _hasCadence = true;
 
   Widget _softLine(
     UiTheme t,
