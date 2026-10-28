@@ -26,6 +26,16 @@ final double _hora = double.parse(
   const String.fromEnvironment('HORA', defaultValue: '17.2'),
 );
 
+double _num(String k, double d) =>
+    double.tryParse(
+      const {
+            'PITCH': String.fromEnvironment('PITCH'),
+            'DIST': String.fromEnvironment('DIST'),
+          }[k] ??
+          '',
+    ) ??
+    d;
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -50,7 +60,8 @@ void main() {
     final rec = ui.PictureRecorder();
     final canvas = Canvas(rec);
     final tomas = [
-      for (final g in [0.6, 1.2, 1.8, 2.4, 3.0, 3.6]) (g, 0.75, 1.5),
+      for (final g in [0.6, 1.2, 1.8, 2.4, 3.0, 3.6])
+        (g, _num('PITCH', 0.75), _num('DIST', 1.5)),
     ];
     for (var i = 0; i < tomas.length; i++) {
       final (giro, alto, lejos) = tomas[i];

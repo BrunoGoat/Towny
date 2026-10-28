@@ -485,11 +485,19 @@ List<Facet> birdFaces(BirdVisit v, V3 eye) {
     );
   }
 
-  // Las patas, posado: dos palitos.
+  // Las patas, posado: dos palitos, y al pie de cada uno los dedos —tres
+  // hacia delante, abiertos en abanico, y uno hacia atrás—, que es lo que
+  // hace que se lea como una pata de pájaro y no como un palo clavado.
   if (!vuela) {
     final rodilla = 1.0 - agacha;
-    caja(-0.15, 0.05, 0, rodilla, -0.45, -0.25, pico, parte: 0);
-    caja(-0.15, 0.05, 0, rodilla, 0.25, 0.45, pico, parte: 0);
+    for (final z in [-0.35, 0.35]) {
+      caja(-0.15, 0.05, 0, rodilla, z - 0.1, z + 0.1, pico, parte: 0);
+      const g = 0.09;
+      caja(0.0, 0.62, 0, g, z - 0.045, z + 0.045, pico, parte: 0);
+      caja(0.0, 0.46, 0, g, z - 0.24, z - 0.15, pico, parte: 0);
+      caja(0.0, 0.46, 0, g, z + 0.15, z + 0.24, pico, parte: 0);
+      caja(-0.42, -0.1, 0, g, z - 0.045, z + 0.045, pico, parte: 0);
+    }
   }
   // El cuerpo: más alto y más ancho delante, donde va el pecho, y más fino
   // hacia la cola, que es lo que hace que un taco se lea como un pájaro.
