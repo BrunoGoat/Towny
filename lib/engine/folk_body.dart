@@ -479,7 +479,9 @@ List<Solid> folkSolids(
         // caja tienen que ser una sola línea para que sea un laúd.
         final m = hold(-1, 0.50, 0.11);
         const ux = 0.79, uy = 0.61; // a lo largo del mástil
-        final cx = m.$1 - 0.10, cy = m.$2 - 0.02, cz = m.$3 + 0.055;
+        // Delante del pecho y apoyado en él, no colgando al costado: la
+        // caja casi en el medio y el mástil cruzando hacia el otro hombro.
+        final cx = m.$1 + 0.11, cy = m.$2 - 0.05, cz = m.$3 - 0.055;
         (double, double, double) en(double a, double dz) =>
             (cx + ux * a, cy + uy * a, cz + dz);
         const madera = 0xFFB07A44, tapa = 0xFFEACB8E, oscuro = 0xFF3B2614;
@@ -507,11 +509,12 @@ List<Solid> folkSolids(
           0.84,
           deep: 0.004,
         );
-        // El mástil, y el clavijero doblado hacia atrás.
-        link(en(0.04, 0.010), en(0.42, 0.010), 0.022, madera, 1.0, deep: 0.018);
+        // El mástil, a ras de la tapa —más atrás, cruzando el pecho, rozaba la
+        // barbilla—, y el clavijero doblado hacia atrás.
+        link(en(0.04, 0.040), en(0.42, 0.040), 0.022, madera, 1.0, deep: 0.018);
         link(
-          en(0.42, 0.010),
-          en(0.48, -0.075),
+          en(0.42, 0.040),
+          en(0.48, -0.045),
           0.024,
           oscuro,
           0.92,
