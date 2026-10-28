@@ -452,8 +452,17 @@ class SagePrologueView extends StatefulWidget {
   State<SagePrologueView> createState() => _SagePrologueViewState();
 }
 
-class _SagePrologueViewState extends State<SagePrologueView> {
+class _SagePrologueViewState extends State<SagePrologueView>
+    with SingleTickerProviderStateMixin {
   final AdviceBook _libro = AdviceBook.instance;
+
+  /// La llegada: el valle se oscurece despacio y el viejo entra caminando
+  /// desde la izquierda; recién parado y de cara habla. Aparecer de golpe,
+  /// recién entrado el correo, era un corte seco.
+  late final AnimationController _llega = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 2800),
+  )..forward();
   final _Estilo _e = const _Estilo();
   final GlobalKey _lista = GlobalKey();
   final ScrollController _desliza = ScrollController();
@@ -468,6 +477,7 @@ class _SagePrologueViewState extends State<SagePrologueView> {
 
   @override
   void dispose() {
+    _llega.dispose();
     _desliza.dispose();
     super.dispose();
   }
@@ -533,7 +543,22 @@ class _SagePrologueViewState extends State<SagePrologueView> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: _llega,
+    builder: (context, _) {
+      final t = _llega.value;
+      // Primero la penumbra; el viejo entra mientras tanto y frena al final.
+      return Opacity(
+        opacity: smoothstep(0.0, 0.3, t),
+        child: _escena(
+          1 - Curves.easeOutCubic.transform(smoothstep(0.12, 1.0, t)),
+          llego: _llega.isCompleted,
+        ),
+      );
+    },
+  );
+
+  Widget _escena(double walking, {required bool llego}) {
     final e = _e;
     final abre = SagePrologue.opening;
     final leidos = _libro.read();
@@ -608,10 +633,15 @@ class _SagePrologueViewState extends State<SagePrologueView> {
                       height: habla,
                       child: _Habla(
                         e: e,
-                        dice: _abierto != null && _dando ? '' : dice,
+                        // Mientras llega, calla: el globo sale con él ya
+                        // parado.
+                        dice: (_abierto != null && _dando) || !llego
+                            ? ''
+                            : dice,
                         respuestas: const [],
-                        onNext: _abierto != null ? null : sigue,
+                        onNext: _abierto != null || !llego ? null : sigue,
                         more: sigue != null,
+                        walking: walking,
                       ),
                     ),
                     // Al terminar, en vez de «mantener», fundar: el mismo gesto
@@ -1051,10 +1081,15 @@ class _Habla extends StatelessWidget {
     this.onNext,
     this.escribe,
     this.more = true,
+    this.walking = 0,
   });
 
   final _Estilo e;
   final String dice;
+
+  /// Cuánto le falta al viejo para llegar a su sitio, de uno a cero: entra
+  /// caminando desde la izquierda. Ver [SageFigure.walking].
+  final double walking;
 
   /// Si tocar el globo sigue hablando —y lleva sus tres puntos— o sólo
   /// despide.
@@ -1096,11 +1131,11 @@ class _Habla extends StatelessWidget {
           children: [
             // El viejo, de cuerpo entero, ocupando la esquina.
             Positioned(
-              left: -alto * 0.06,
+              left: -alto * 0.06 - box.maxWidth * 0.75 * walking,
               bottom: 0,
               width: alto * 0.62,
               height: alto,
-              child: const IgnorePointer(child: SageFigure()),
+              child: IgnorePointer(child: SageFigure(walking: walking)),
             ),
             Positioned(
               left: alto * 0.52,
@@ -2635,7 +2670,12 @@ class _Frente extends CustomPainter {
 /// Las mismas y no un dibujo aparte: si algún día cambia cómo se ve en la
 /// plaza, cambia acá solo.
 class SageFigure extends StatefulWidget {
-  const SageFigure({super.key});
+  const SageFigure({super.key, this.walking = 0});
+
+  /// Cuánto le falta para llegar, de uno a cero: mientras no es cero viene
+  /// caminando, de costado, y al llegar se gira hacia vos. Ver
+  /// [SagePrologueView].
+  final double walking;
 
   @override
   State<SageFigure> createState() => _SageFigureState();
@@ -2662,15 +2702,19 @@ class _SageFigureState extends State<SageFigure>
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
     animation: _reloj,
-    builder: (_, _) =>
-        CustomPaint(painter: _FiguraPainter(_sabio, _reloj.value * 60)),
+    builder: (_, _) => CustomPaint(
+      painter: _FiguraPainter(_sabio, _reloj.value * 60, widget.walking),
+    ),
   );
 }
 
 class _FiguraPainter extends CustomPainter {
-  _FiguraPainter(this.who, this.t);
+  _FiguraPainter(this.who, this.t, [this.walking = 0]);
 
   final Townsfolk who;
+
+  /// Ver [SageFigure.walking].
+  final double walking;
 
   /// Segundos.
   final double t;
@@ -2679,13 +2723,17 @@ class _FiguraPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     // Mirando un poco hacia la derecha, que es donde está lo que dice, y
     // girando apenas la cabeza con el aire.
+    // Llegando, de costado hacia la derecha y con su paso; los últimos
+    // pasos ya girándose hacia vos.
+    final anda = walking > 0.02;
+    final gira = smoothstep(0.0, 0.35, walking);
     final at = FolkAt(
       0,
       0,
-      0.45 + math.sin(t * 0.25) * 0.08,
-      0,
-      false,
-      Doing.idle,
+      0.45 + math.sin(t * 0.25) * 0.08 * (1 - gira) + 1.0 * gira,
+      anda ? t * 9 : 0,
+      anda,
+      anda ? null : Doing.idle,
       t,
     );
     final solids = folkSolids(who, at, 1.0);
@@ -2785,5 +2833,6 @@ class _FiguraPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_FiguraPainter old) => old.t != t;
+  bool shouldRepaint(_FiguraPainter old) =>
+      old.t != t || old.walking != walking;
 }

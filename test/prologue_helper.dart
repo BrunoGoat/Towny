@@ -44,6 +44,8 @@ Future<void> pasarPresentacion(WidgetTester tester) async {
     await espera(30);
   }
 
+  // Llega caminando, y hasta que no está parado no habla.
+  await espera(30);
   for (final l in SagePrologue.opening) {
     await globo(l);
   }

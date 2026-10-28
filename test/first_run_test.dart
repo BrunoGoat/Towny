@@ -64,8 +64,16 @@ void main() {
         ),
       );
       await _asentar(tester);
-      // Sin tarjeta y sin preguntas: habla él.
+      // Sin tarjeta y sin preguntas. Primero llega caminando, callado, y
+      // recién parado habla.
       expect(find.text('¿Qué hábito querés desarrollar?'), findsNothing);
+      expect(
+        find.textContaining(SagePrologue.opening.first, findRichText: true),
+        findsNothing,
+      );
+      for (var i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
       expect(
         find.textContaining(SagePrologue.opening.first, findRichText: true),
         findsWidgets,
@@ -532,6 +540,10 @@ void main() {
       // El bueno entra solo, sin tocar nada más.
       await tester.enterText(find.byType(TextField).first, '123456');
       await _asentar(tester);
+      // El viejo llega caminando antes de hablar.
+      for (var i = 0; i < 4; i++) {
+        await _asentar(tester);
+      }
       expect(
         find.textContaining(SagePrologue.opening.first, findRichText: true),
         findsWidgets,
@@ -607,6 +619,10 @@ void main() {
       );
       await _asentar(tester);
       await tocar(tester, 'Seguir sin cuenta');
+      // El viejo llega caminando antes de hablar.
+      await _asentar(tester);
+      await _asentar(tester);
+      await _asentar(tester);
       expect(
         find.textContaining(SagePrologue.opening.first, findRichText: true),
         findsWidgets,

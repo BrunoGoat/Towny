@@ -115,7 +115,16 @@ void main() {
       await espera(6);
     }
 
-    await espera(30);
+    for (final (n, k) in [
+      ('0-llega-a', 4),
+      ('0-llega-b', 6),
+      ('0-llega-c', 6),
+      ('0-llega-d', 6),
+    ]) {
+      await espera(k);
+      await foto(n);
+    }
+    await espera(10);
     await foto('1-hola');
     final abre = SagePrologue.opening;
     for (var i = 0; i < abre.length; i++) {
