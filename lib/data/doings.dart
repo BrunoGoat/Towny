@@ -12,8 +12,7 @@
 /// sostener una tabla. De ahí salen todas.
 ///
 /// **Y ninguna se gana ni se compra.** Son consecuencia de lo construido, como
-/// la gente misma: un pueblo con fuente tiene quien eche un barco de papel
-/// porque tiene fuente. La regla de una pieza un logro no la toca nada de
+/// la gente misma: un pueblo con río tiene quien pesque porque tiene río. La regla de una pieza un logro no la toca nada de
 /// esto.
 library;
 
@@ -71,57 +70,14 @@ enum PropKind {
   /// Una banqueta de tres patas. Quien la tiene se sienta en ella.
   stool,
 
-  /// Un caldero colgado de una soga, que sube y baja con el gesto.
-  pail,
-
-  /// Un barreño en el suelo con ropa dentro.
-  tub,
-
   /// Una caña larga con su sedal hasta el agua.
   rod,
 
   /// Un laúd: la caja de peras contra el pecho y el mástil cruzado.
   lute,
 
-  /// Un tablero sobre caballetes con el género encima.
-  stall,
-
-  /// Una maza que baja sobre un sillar.
-  mallet,
-
-  /// Un madero sobre el caballete y la sierra pasando por él.
-  saw,
-
-  /// Una guadaña: el mango largo y la hoja a ras de suelo.
-  scythe,
-
-  /// Una cuerda entre dos palos con la ropa colgada.
-  line,
-
-  /// Tres pelotas de colores dando vueltas por encima de la cabeza.
-  balls,
-
   /// Un tambor colgado a la altura de la tripa y las dos baquetas.
   drum,
-
-  /// Una comba que pasa por encima de la cabeza y por debajo de los pies.
-  rope,
-
-  /// Un tocón con un leño encima y el hacha subiendo y cayendo.
-  axe,
-
-  /// Tres gallinas que viven delante de la casa, picoteando, y el grano
-  /// cayendo de la mano de quien les da de comer.
-  hens,
-
-  /// Un barco de papel con su vela, meciéndose en el pilón de la fuente.
-  boat,
-
-  /// Una carretilla cargada de piedras, con su rueda.
-  barrow,
-
-  /// Un cesto lleno de flores, y las que quedan por coger en el suelo.
-  flowers,
 }
 
 /// Una cosa que se hace.
@@ -197,33 +153,12 @@ class Doing {
   /// se puede decir con [bob], que sube tanto como baja.
   final bool hop;
 
-  /// **Lo que no se lleva encima vive en su sitio.** El tocón con su leño,
-  /// el tendedero, el puesto del mercado, el sillar de la obra, el caballete
-  /// con su madero y las gallinas no aparecen cuando alguien se
-  /// pone a ello ni se van cuando termina: están en el pueblo, en el sitio
-  /// donde se hace, y quien lo hace va hasta ahí con lo que sí se lleva en la
-  /// mano —el hacha, la maza, la sierra, el grano—.
-  bool get anchored => _anclados.contains(prop);
-
   /// **Y lo que se lleva pero no cabe en un bolsillo se saca de casa.** La
-  /// banqueta, el barreño y la carretilla: quien lo usa entra en su casa,
-  /// sale con ello, lo lleva hasta donde lo usa, y al terminar lo vuelve a
-  /// guardar.
+  /// banqueta: quien la usa entra en su casa, sale con ella, la lleva hasta
+  /// donde la usa, y al terminar la vuelve a guardar.
   bool get fetched => _traidos.contains(prop);
 
-  static const Set<PropKind> _anclados = {
-    PropKind.axe,
-    PropKind.line,
-    PropKind.stall,
-    PropKind.mallet,
-    PropKind.saw,
-    PropKind.hens,
-  };
-  static const Set<PropKind> _traidos = {
-    PropKind.stool,
-    PropKind.tub,
-    PropKind.barrow,
-  };
+  static const Set<PropKind> _traidos = {PropKind.stool};
 
   /// Si esto se lo puede hacer alguien de esta edad.
   bool fits(bool kid) => switch (who) {
@@ -320,43 +255,6 @@ class Doing {
       seated: true,
     ),
 
-    Doing(
-      'tender',
-      'tiende la ropa',
-      where: Where.door,
-      weight: 1.1,
-      bob: 0.016,
-      rate: 0.7,
-      lean: 0.02,
-      turn: 0.2,
-      prop: PropKind.line,
-    ),
-
-    Doing(
-      'lena',
-      'parte leña',
-      where: Where.door,
-      who: Who.grown,
-      weight: 1.2,
-      bob: -0.020,
-      rate: 1.3,
-      lean: 0.03,
-      turn: 0.0,
-      prop: PropKind.axe,
-    ),
-    Doing(
-      'gallinas',
-      'echa de comer a las gallinas',
-      where: Where.door,
-      weight: 1.1,
-      bob: 0.006,
-      rate: 1.1,
-      wag: 0.010,
-      lean: 0.04,
-      turn: 0.35,
-      prop: PropKind.hens,
-    ),
-
     // ---------------------------------------------------------------- la plaza
     Doing(
       'laud',
@@ -370,30 +268,7 @@ class Doing {
       turn: 0.3,
       prop: PropKind.lute,
     ),
-    Doing(
-      'puesto',
-      'atiende el puesto',
-      where: Where.square,
-      who: Who.grown,
-      weight: 1.4,
-      bob: 0.005,
-      rate: 0.5,
-      lean: 0.035,
-      turn: 0.6,
-      prop: PropKind.stall,
-    ),
 
-    Doing(
-      'malabares',
-      'hace malabares',
-      where: Where.square,
-      weight: 0.8,
-      bob: 0.008,
-      rate: 2.6,
-      lean: -0.03,
-      turn: 0.0,
-      prop: PropKind.balls,
-    ),
     Doing(
       'tambor',
       'toca el tambor',
@@ -405,63 +280,8 @@ class Doing {
       turn: 0.25,
       prop: PropKind.drum,
     ),
-    Doing(
-      'comba',
-      'salta a la comba',
-      where: Where.square,
-      who: Who.kid,
-      weight: 1.0,
-      bob: 0.110,
-      rate: 2.6,
-      turn: 0.0,
-      prop: PropKind.rope,
-      hop: true,
-    ),
-    // En el pilón de la fuente de la plaza, que es el agua que de verdad está
-    // ahí: el barco sale del bolsillo y el agua no la trae nadie.
-    Doing(
-      'barquito',
-      'echa un barco de papel',
-      where: Where.square,
-      who: Who.kid,
-      // Un crío que llega a la fuente con un barco de papel en el bolsillo es
-      // de lo que más se ve en una plaza.
-      weight: 1.6,
-      // De pie y asomado: el brocal del pilón le llega a la barbilla a un
-      // crío, y de rodillas no vería el agua.
-      bob: 0.005,
-      rate: 0.8,
-      lean: 0.10,
-      turn: 0.1,
-      prop: PropKind.boat,
-    ),
 
     // ------------------------------------------------------------- donde hay agua
-    Doing(
-      'pozo',
-      'saca agua',
-      where: Where.water,
-      who: Who.grown,
-      weight: 1.5,
-      bob: -0.045,
-      rate: 0.9,
-      lean: 0.05,
-      turn: 0.0,
-      prop: PropKind.pail,
-    ),
-    Doing(
-      'lavar',
-      'lava la ropa',
-      where: Where.water,
-      weight: 1.4,
-      sink: 0.72,
-      bob: 0.012,
-      rate: 2.2,
-      wag: 0.014,
-      lean: 0.05,
-      turn: 0.05,
-      prop: PropKind.tub,
-    ),
     Doing(
       'pescar',
       'pesca',
@@ -474,59 +294,7 @@ class Doing {
       seated: true,
     ),
 
-    // ------------------------------------------------------------ al pie de la obra
-    Doing(
-      'cantero',
-      'pica piedra',
-      where: Where.work,
-      who: Who.grown,
-      weight: 1.5,
-      bob: -0.050,
-      rate: 1.9,
-      lean: 0.06,
-      turn: 0.0,
-      prop: PropKind.mallet,
-    ),
-    Doing(
-      'serrar',
-      'sierra un madero',
-      where: Where.work,
-      weight: 1.3,
-      bob: 0.006,
-      rate: 2.4,
-      wag: 0.045,
-      lean: 0.04,
-      turn: 0.0,
-      prop: PropKind.saw,
-    ),
-
-    Doing(
-      'carretilla',
-      'empuja la carretilla',
-      where: Where.work,
-      who: Who.grown,
-      weight: 1.2,
-      bob: 0.010,
-      rate: 1.4,
-      lean: 0.07,
-      turn: 0.0,
-      prop: PropKind.barrow,
-    ),
-
     // ---------------------------------------------------------------- el prado
-    Doing(
-      'segar',
-      'siega',
-      where: Where.meadow,
-      who: Who.grown,
-      weight: 1.3,
-      bob: -0.028,
-      rate: 0.9,
-      wag: 0.060,
-      lean: 0.05,
-      turn: 0.0,
-      prop: PropKind.scythe,
-    ),
     Doing(
       'leer',
       'lee',
@@ -548,18 +316,6 @@ class Doing {
       rate: 0.35,
       turn: 0.0,
       lying: true,
-    ),
-    Doing(
-      'flores',
-      'coge flores',
-      where: Where.meadow,
-      weight: 1.1,
-      sink: 0.50,
-      bob: -0.030,
-      rate: 0.9,
-      lean: 0.05,
-      turn: 0.1,
-      prop: PropKind.flowers,
     ),
   ];
 }

@@ -655,7 +655,9 @@ void main() {
           }
         }
       }
-      expect(medidos, greaterThan(1000));
+      // Noventa y seis por actividad: ocho actividades desde que se sacaron
+      // las de las estructuras fijas.
+      expect(medidos, greaterThanOrEqualTo(96 * (Doing.all.length + 1)));
       expect(bad, isEmpty, reason: '${bad.length}:\n${bad.take(4).join('\n')}');
     });
   });
