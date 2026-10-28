@@ -275,6 +275,31 @@ class FoundingShow {
   /// Cuándo toca el suelo lo que se soltó en [at].
   static double landing(double at) => at + PlacementFx.fallDuration / seconds;
 
+  /// Si ya está todo en el suelo y quieto —la plaza, el tablón y el banco,
+  /// con su rebote terminado—: desde ahí la plaza se pinta como la de
+  /// siempre, con lo que ya tiene guardado.
+  ///
+  /// Se seguía armando entera en cada cuadro hasta que terminaba la cuenta,
+  /// agua incluida, y ese último medio segundo, ya quieta, era el más caro de
+  /// toda la fundación: de doce milisegundos por cuadro a setenta.
+  ///
+  /// Y quieto es también apoyado del todo: cualquier instante del rebote en
+  /// que los tres tocan el suelo, que se pinta igual por un camino que por
+  /// el otro.
+  static bool settled(double t) {
+    if (t >=
+        benchAt +
+            (PlacementFx.fallDuration + PlacementFx.settleDuration) / seconds) {
+      return true;
+    }
+    if (t < benchLands) return false;
+    for (final at in const [plazaAt, boardAt, benchAt]) {
+      final y = liftAt(t, at);
+      if (y == null || y.abs() >= 1e-4) return false;
+    }
+    return true;
+  }
+
   static double get plazaLands => landing(plazaAt);
   static double get boardLands => landing(boardAt);
   static double get benchLands => landing(benchAt);

@@ -286,7 +286,8 @@ class TownPainter extends CustomPainter {
         final take = math.min(e.placed, e.layout.pieces.length);
         // Con cero piezas también, si ya se fundó: el consejero está en la
         // plaza desde el primer día.
-        final fundado = take > 0 || (e.founded && scene.founding >= 1.0);
+        final fundado =
+            take > 0 || (e.founded && FoundingShow.settled(scene.founding));
         if (fundado && RenderDebug.instance.folk) {
           _folkNow[i] = _folkOut(
             p,
@@ -333,7 +334,7 @@ class TownPainter extends CustomPainter {
           // Con la plaza ya en el suelo, aunque no haya nada más: la fuente
           // echa sombra desde el día que se funda.
           if (scene.towns[i].placed > 0 ||
-              (scene.towns[i].founded && scene.founding >= 1.0))
+              (scene.towns[i].founded && FoundingShow.settled(scene.founding)))
             (
               scene.towns[i].layout,
               scene.towns[i].placed,
@@ -1389,7 +1390,7 @@ class TownPainter extends CustomPainter {
       // El día que se funda, la plaza sube del suelo en vez de estar ya puesta.
       // Con cero piezas lo único que hay en el pueblo es ella, así que se pinta
       // aparte —levantada y en tres tiempos— y el árbol de siempre se salta.
-      if (take <= 0 && scene.founding < 1.0) {
+      if (take <= 0 && !FoundingShow.settled(scene.founding)) {
         _tone.clear();
         _paintFounding(p, e, pal, light, night, size);
         continue;
