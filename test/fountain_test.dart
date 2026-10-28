@@ -95,11 +95,17 @@ void main() {
           }
           if (v.doing != BirdDoing.perched) continue;
           posados++;
-          // En el brocal, entre el agua y el canto de fuera.
+          // En el brocal, entre el agua y el canto de fuera. El brocal es
+          // ochavado: lo que cuenta es la distancia a cada lado.
           final dx = v.at.x - l.cx, dz = v.at.z - l.cz;
-          final r = math.sqrt(dx * dx + dz * dz);
-          expect(r, greaterThan(taza * 0.80));
-          expect(r, lessThan(taza));
+          var r = 0.0;
+          for (var k = 0; k < 8; k++) {
+            final a = k * math.pi / 4;
+            r = math.max(r, dx * math.cos(a) + dz * math.sin(a));
+          }
+          final apotema = math.cos(math.pi / 8);
+          expect(r, greaterThan(taza * 0.80 * apotema));
+          expect(r, lessThan(taza * apotema));
           expect(v.at.y, greaterThanOrEqualTo(0.40));
         }
       }

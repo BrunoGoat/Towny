@@ -154,7 +154,10 @@ BirdVisit birdVisit(TownLayout l, int slot, double time, {bool day = true}) {
   }
 
   if (hace == 2) {
-    // De costado no se desliza: va a saltitos, tres, cada uno un tercio.
+    // Cambiar de sitio por el brocal: se gira hacia donde va, avanza de
+    // frente a saltitos —tres, cada uno un tercio— y vuelve a mirar al agua.
+    // Saltaba de costado, mirando al agua, y se leía como un saltito porque
+    // sí.
     const n = 3;
     final g = clampD((f - 0.1) / 0.6, 0, 1) * n;
     final k = math.min(g.floor(), n - 1);
@@ -163,27 +166,31 @@ BirdVisit birdVisit(TownLayout l, int slot, double time, {bool day = true}) {
     ang += salto(paso) * avance / r;
     if (g < n) alto = 4 * dentro * (1 - dentro) * 0.022 * size;
   }
-  // Para beber se arrima al agua de un saltito, y al terminar —si lo que
-  // sigue no es volver a beber— vuelve de otro.
+  // Para beber se arrima al agua de un saltito hacia delante, hasta el canto
+  // de dentro del brocal —con los dedos en el borde, para que la cabeza baje
+  // al agua por encima de la piedra y no a través de ella—, y ahí se queda el
+  // resto de la visita. Volvía para atrás de otro saltito después de cada
+  // trago, que era saltar para atrás porque sí. El brocal es ochavado: en lo
+  // llano de cada lado la piedra entra más que en las esquinas, y ahí es
+  // donde la cabeza se le metía en la piedra.
   var rr = r;
-  if (posadoYa && hace == 0) {
-    const arrimo = 0.03;
-    final venia = paso > 0 && que(paso - 1) == 0;
-    final sigue = paso + 1 < cosas && que(paso + 1) == 0;
-    final ida = venia ? 1.0 : smoothstep(0.0, 0.10, f);
-    final vuelta = sigue ? 0.0 : smoothstep(0.90, 1.0, f);
-    rr -= arrimo * (ida - vuelta);
-    if (!venia) alto += brinco(0.0, 0.10);
-    if (!sigue) alto += brinco(0.90, 1.0);
+  if (u >= _llega) {
+    const lado8 = math.pi / 4;
+    final d = ang % lado8;
+    final canto =
+        taza * 0.80 * math.cos(lado8 / 2) / math.cos(math.min(d, lado8 - d));
+    final yendo = posadoYa && paso == 0;
+    final ida = yendo ? smoothstep(0.0, 0.10, f) : 1.0;
+    rr += (canto + 0.006 * size - r) * ida;
+    if (yendo) alto += brinco(0.0, 0.10);
   }
   final posado = V3(
     cx + math.cos(ang) * rr,
     brocal + alto,
     cz + math.sin(ang) * rr,
   );
-  // Mirando al agua, o un poco de lado.
+  // De cara al agua.
   final alAgua = math.atan2(cz - posado.z, cx - posado.x);
-  final lado = (hash01(slot, vuelta, paso, 9) - 0.5) * 1.0;
 
   if (u < _llega) {
     // Baja desde lo alto —de donde la cámara no mira—, planeando, y frena al
@@ -242,7 +249,7 @@ BirdVisit birdVisit(TownLayout l, int slot, double time, {bool day = true}) {
       return BirdVisit(
         doing: BirdDoing.leaving,
         at: p,
-        heading: _mezclaAng(alAgua + lado * 0.5, rumbo, smoothstep(0, 0.2, t)),
+        heading: _mezclaAng(alAgua, rumbo, smoothstep(0, 0.2, t)),
         flap: bate,
         kind: kind,
         size: size,
@@ -309,7 +316,19 @@ BirdVisit birdVisit(TownLayout l, int slot, double time, {bool day = true}) {
   return BirdVisit(
     doing: BirdDoing.perched,
     at: posado,
-    heading: alAgua + (hace == 2 ? 0 : lado * 0.5),
+    heading: switch (hace) {
+      // Bebiendo, de frente al agua: de lado estiraba el cuello sobre la
+      // piedra.
+      0 => alAgua,
+      2 => _mezclaAng(
+        alAgua,
+        alAgua - (salto(paso) >= 0 ? 1 : -1) * math.pi / 2,
+        smoothstep(0.0, 0.1, f) * (1 - smoothstep(0.75, 0.9, f)),
+      ),
+      // Mirando, el cuerpo quieto de cara al agua: la que gira es la
+      // cabeza.
+      _ => alAgua,
+    },
     pitch: pitch,
     look: look,
     lean: lean,
