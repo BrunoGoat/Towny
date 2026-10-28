@@ -1182,11 +1182,44 @@ class TownLayout {
   /// Done here rather than in every recipe: a mason lays a roof, and what
   /// region he is standing in decides what it is made of. Which is also how
   /// it worked.
+  ///
+  /// **Y lo que asoma del tejado sube con la paja.** La chimenea y la
+  /// buhardilla se colocan contra un tejado de tejas, y la paja no es eso: es
+  /// gruesa, con un alero que se levanta y una pendiente más alta en todo su
+  /// largo (ver `thatchFaces`). Puestas igual, la paja se las tragaba —de la
+  /// chimenea asomaba un dedo y de la buhardilla sólo el triángulo de arriba—
+  /// en todas las comarcas que techan con paja, no sólo en la más empinada.
+  /// Así que suben lo que la paja sube sobre su sitio.
   List<Spec> _straw(TownBuilding b, List<Spec> specs) {
     if (b.roof != RoofStuff.thatch) return specs;
+    final techos = [
+      for (final p in specs)
+        if (p.kind == PieceKind.roof) p,
+    ];
+    double sube(Spec p) {
+      var mas = 0.0;
+      for (final r in techos) {
+        mas = math.max(mas, _thatchOver(r, p.cx, p.cz));
+      }
+      return mas;
+    }
+
     return [
       for (final p in specs)
-        if (p.kind != PieceKind.roof)
+        if (p.kind == PieceKind.chimney || p.kind == PieceKind.dormer)
+          Spec(
+            kind: p.kind,
+            cx: p.cx,
+            cz: p.cz,
+            w: p.w,
+            d: p.d,
+            // La chimenea sigue saliendo de dentro de la casa; la buhardilla,
+            // que está apoyada en las tejas, sube entera.
+            y0: p.kind == PieceKind.dormer ? p.y0 + sube(p) : p.y0,
+            y1: p.y1 + sube(p),
+            alongX: p.alongX,
+          )
+        else if (p.kind != PieceKind.roof)
           p
         else
           Spec(
@@ -1386,4 +1419,24 @@ class TownLayout {
 
     return _straw(b, m.finish(b.cost));
   }
+}
+
+/// Lo que la paja de [roof] queda por encima de unas tejas del mismo tejado
+/// en el punto ([x], [z]): cero fuera de él. Las mismas cuentas que
+/// `thatchFaces` —el alero levantado y el lomo enrollado— contra las de un
+/// tejado a dos aguas.
+double _thatchOver(Spec roof, double x, double z) {
+  final dx = (x - roof.cx).abs(), dz = (z - roof.cz).abs();
+  if (dx > roof.w / 2 || dz > roof.d / 2) return 0;
+  final rise = roof.y1 - roof.y0;
+  final across = roof.alongX ? roof.d : roof.w;
+  final t = roof.alongX ? dz : dx;
+  final medio = across / 2;
+  final tejas = rise * (1 - t / medio);
+  final lip = math.min(rise * 0.30, across * 0.11);
+  final roll = across * 0.06;
+  final paja = t <= roll
+      ? rise
+      : lip + (rise - lip) * (1 - (t - roll) / (medio - roll));
+  return math.max(0.0, paja - tejas);
 }
