@@ -2,7 +2,9 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:towny/data/advice.dart';
 import 'package:towny/data/demo.dart';
+import 'package:towny/model/advice_book.dart';
 import 'package:towny/model/appearance.dart';
 import 'package:towny/model/board_seen.dart';
 import 'package:towny/model/board_slots.dart';
@@ -77,6 +79,7 @@ Future<Store> _telefono({String? valle}) async {
   LocalChanges.instance.forget();
   BoardSlots.instance.forget();
   BoardSeen.instance.forget();
+  AdviceBook.instance.forget();
   await Appearance.instance.load();
   final s = Store();
   await s.load();
@@ -174,6 +177,32 @@ void main() {
       expect(hecho.action, SyncAction.download);
       expect(nuevo.habits.fold<int>(0, (n, h) => n + h.total), piezas);
       expect(LocalChanges.instance.dirty, isFalse);
+    });
+
+    test('el viejo viaja con el valle: no se vuelve a presentar, recuerda qué '
+        'se busca con cada pueblo y trae sus consejos', () async {
+      final nube = _Nube();
+      final viejo = await _telefono(valle: _valle());
+      final libro = AdviceBook.instance;
+      libro.meet();
+      final pueblo = viejo.habits.first;
+      libro.setGoal(pueblo.id, AdviceGoal.start);
+      final dados = libro.visit(viejo.habits);
+      expect(dados, isNotEmpty);
+      for (final a in dados) {
+        libro.markRead(a);
+      }
+      final leidos = {for (final (a, _) in libro.read()) a.id};
+      await CloudSync(viejo, nube, 'u').connect();
+
+      // Otro teléfono, con el mismo correo: libro en blanco hasta que baja.
+      final nuevo = await _telefono();
+      expect(libro.met, isFalse);
+      expect(libro.read(), isEmpty);
+      await CloudSync(nuevo, nube, 'u').connect();
+      expect(libro.met, isTrue);
+      expect(libro.goalOf(pueblo.id), AdviceGoal.start);
+      expect({for (final (a, _) in libro.read()) a.id}, leidos);
     });
 
     test('cada cambio se sube solo, y sin conexión queda pendiente', () async {

@@ -189,6 +189,17 @@ class _SageScreenState extends State<SageScreen> {
   late TalkStep? _charla = widget.talk;
   late bool _pidio = widget.talk != null;
 
+  @override
+  void initState() {
+    super.initState();
+    // Quien ya tiene piezas ya conoce el valle: si el libro vino vacío —un
+    // teléfono nuevo con un valle de antes de que el libro viajara—, que no
+    // se vuelva a presentar como a alguien que recién llega.
+    if (!_libro.met && widget.store.habits.any((h) => h.total > 0)) {
+      _libro.meet();
+    }
+  }
+
   /// Pasar al globo siguiente de la charla, o terminarla.
   void _sigue(TalkStep? Function()? paso) {
     Sensory.instance.tick();

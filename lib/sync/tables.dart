@@ -184,11 +184,15 @@ int? _ms(Object? iso) =>
 ///
 /// `onboarded` va porque un pueblo recién fundado, todavía sin piezas, no
 /// tiene otra manera de decir en otro aparato que la primera vez ya pasó.
+///
+/// `consejero` es el libro del viejo entero ([AdviceBook.exportBook]): sus
+/// consejos, si ya se presentó y qué se busca con cada pueblo.
 const Set<String> travelingPrefs = {
   'lang',
   'hemisphere',
   'seasons',
   'onboarded',
+  'consejero',
 };
 
 /// Sólo las filas `clave=valor` de [rows] cuya clave está en [travelingPrefs].

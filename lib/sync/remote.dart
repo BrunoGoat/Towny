@@ -12,6 +12,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
+import '../model/advice_book.dart';
 import '../model/appearance.dart';
 import '../model/board_seen.dart';
 import '../model/board_slots.dart';
@@ -34,7 +35,10 @@ abstract interface class Remote {
 LocalSnapshot captureLocal(Store store) => LocalSnapshot(
   changedAt: LocalChanges.instance.changedAt,
   save: jsonDecode(store.exportSave()) as Map<String, dynamic>,
-  prefs: Appearance.instance.exportPrefs(),
+  prefs: [
+    ...Appearance.instance.exportPrefs(),
+    'consejero=${AdviceBook.instance.exportBook()}',
+  ],
   boardSlots: BoardSlots.instance.all,
   boardSeen: BoardSeen.instance.all,
 );
@@ -48,9 +52,20 @@ Future<String?> applyLocal(Store store, LocalSnapshot copy) async {
   final error = store.importSave(jsonEncode(copy.save));
   if (error != null) return error;
   await Appearance.instance.importPrefs(copy.prefs);
+  await mergeBookFrom(copy);
   await BoardSlots.instance.replaceAll(copy.boardSlots);
   await BoardSeen.instance.replaceAll(copy.boardSeen);
   return null;
+}
+
+/// El libro del viejo que vino en [copy], sumado al de este teléfono. Ver
+/// [AdviceBook.mergeBook].
+Future<void> mergeBookFrom(LocalSnapshot copy) async {
+  for (final row in copy.prefs) {
+    if (row.startsWith('consejero=')) {
+      await AdviceBook.instance.mergeBook(row.substring('consejero='.length));
+    }
+  }
 }
 
 int _piecesOf(Map<String, dynamic> save) {
@@ -107,10 +122,16 @@ class CloudSync {
   /// Después de esto, cada cambio se sube solo.
   Future<SyncPlan> connect() async {
     final changes = LocalChanges.instance;
-    final local = captureLocal(store);
+    var local = captureLocal(store);
     final rows = await remote.pull(userId);
     final cloud = rows == null ? null : fromRows(rows);
     final base = rows == null ? null : canonical(rows, userId);
+    // El libro del viejo se suma siempre, gane la copia que gane: así lo
+    // leído en el otro teléfono no se pierde aunque suba la de éste.
+    if (cloud != null) {
+      await mergeBookFrom(cloud);
+      local = captureLocal(store);
+    }
     final plan = decide(
       localChanged: changes.changedAt,
       lastSynced: changes.syncedAt,

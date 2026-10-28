@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
@@ -7,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../data/advice.dart';
 import '../l10n/lang.dart';
 import 'cadence.dart';
+import 'changes.dart';
 import 'habit.dart';
 import 'piece.dart';
 import 'stumble.dart';
@@ -177,9 +179,90 @@ class AdviceBook extends ChangeNotifier {
         );
         if (g.isNotEmpty) _goals[row.substring(0, a)] = g.first;
       }
+      // El libro empezó a viajar con el valle después de que muchos ya lo
+      // tenían lleno: el que lo tiene, lo sube una vez aunque no cambie nada.
+      // Uno vacío no, que subirlo vacío no le enseña nada a la nube.
+      if (!isEmpty && !(prefs.getBool(_travelsKey) ?? false)) {
+        await prefs.setBool(_travelsKey, true);
+        LocalChanges.instance.touch();
+      }
     } catch (_) {
       // Sin preferencias, la libreta empieza de cero.
     }
+    notifyListeners();
+  }
+
+  static const String _travelsKey = 'consejero_viaja_v1';
+
+  /// Si no tiene nada: ni consejos, ni presentación, ni pueblos contestados.
+  bool get isEmpty => _got.isEmpty && !_met && _goals.isEmpty;
+
+  /// El libro entero en una línea, para que viaje a la nube con el valle.
+  ///
+  /// **Antes no viajaba**, y entrar con el mismo correo en otro teléfono —o
+  /// en el mismo, después de borrar el navegador— bajaba los pueblos y las
+  /// piezas pero no al viejo: se volvía a presentar, preguntaba otra vez si
+  /// querías empezar o dejar, y los consejos guardados no estaban.
+  String exportBook() => jsonEncode({
+    'g': [
+      for (final (id, at) in _got)
+        [id, at.millisecondsSinceEpoch, ?_why[id]?.encode()],
+    ],
+    's': _seen.toList(),
+    'd': _given.toList(),
+    'm': _met,
+    'b': {for (final e in _goals.entries) e.key: e.value.name},
+    if (_weekAt != null) 'w': _weekAt!.millisecondsSinceEpoch,
+    'ws': _weeks,
+    'p': {
+      for (final e in _restTalks.entries) e.key: e.value.millisecondsSinceEpoch,
+    },
+  });
+
+  /// Suma lo que vino de la nube ([exportBook]) a lo de este teléfono.
+  ///
+  /// Suma y no reemplaza: un consejo leído en cualquiera de los dos queda
+  /// leído, y no se pierde ninguno porque un teléfono tuviera menos.
+  Future<void> mergeBook(String line) async {
+    final Map<String, dynamic> m;
+    try {
+      m = jsonDecode(line) as Map<String, dynamic>;
+    } catch (_) {
+      return;
+    }
+    final ya = {for (final (id, _) in _got) id};
+    for (final g in (m['g'] as List?) ?? const []) {
+      final row = g as List;
+      final id = row[0] as String;
+      if (!adviceById.containsKey(id) || ya.contains(id)) continue;
+      _got.add((id, DateTime.fromMillisecondsSinceEpoch(row[1] as int)));
+      ya.add(id);
+      if (row.length > 2) {
+        final r = AdviceReason.decode(row[2] as String);
+        if (r != null) _why[id] = r;
+      }
+    }
+    _got.sort((a, b) => a.$2.compareTo(b.$2));
+    _seen.addAll([for (final x in (m['s'] as List?) ?? const []) x as String]);
+    _given.addAll([for (final x in (m['d'] as List?) ?? const []) x as String]);
+    _met = _met || (m['m'] as bool? ?? false);
+    for (final e in ((m['b'] as Map?) ?? const {}).entries) {
+      final g = AdviceGoal.values.where((g) => g.name == e.value);
+      if (g.isNotEmpty) _goals[e.key as String] = g.first;
+    }
+    if (m['w'] case final int w) {
+      final at = DateTime.fromMillisecondsSinceEpoch(w);
+      if (_weekAt == null || at.isAfter(_weekAt!)) _weekAt = at;
+    }
+    for (final x in (m['ws'] as List?) ?? const []) {
+      if (!_weeks.contains(x)) _weeks.add(x as String);
+    }
+    for (final e in ((m['p'] as Map?) ?? const {}).entries) {
+      final at = DateTime.fromMillisecondsSinceEpoch(e.value as int);
+      final antes = _restTalks[e.key as String];
+      if (antes == null || at.isAfter(antes)) _restTalks[e.key as String] = at;
+    }
+    await flush(travels: false);
     notifyListeners();
   }
 
@@ -457,7 +540,10 @@ class AdviceBook extends ChangeNotifier {
     return nuevos;
   }
 
-  Future<void> flush() async {
+  /// Lo guarda en el teléfono, y si [travels], avisa que hay algo nuevo para
+  /// subir a la nube: el libro viaja con el valle ([exportBook]).
+  Future<void> flush({bool travels = true}) async {
+    if (travels) LocalChanges.instance.touch();
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setStringList(_key, [
