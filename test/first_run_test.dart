@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:towny/data/advice.dart';
 import 'package:towny/data/character.dart';
 import 'package:towny/engine/town.dart';
 import 'package:towny/engine/world.dart';
+import 'package:towny/model/advice_book.dart';
 import 'package:towny/model/appearance.dart';
 import 'package:towny/sync/account.dart';
 import 'package:towny/ui/first_run.dart';
 import 'package:towny/ui/habit_sigil.dart';
+
+import 'prologue_helper.dart';
 
 Widget _marco(Widget child) => MediaQuery(
   data: const MediaQueryData(
@@ -46,9 +50,39 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     await Appearance.instance.load();
     await Appearance.instance.setSoundOff(true);
+    // El libro del viejo, en blanco: la presentación da sus consejos, y lo
+    // que dio en una prueba no tiene que estar en la siguiente.
+    AdviceBook.instance.forget();
   });
 
   group('la primera vez', () {
+    testWidgets('antes de nada, el viejo: se presenta, da dos consejos y '
+        'deja el botón para fundar', (tester) async {
+      await tester.pumpWidget(
+        _marco(
+          FirstRun(onDone: (_, _, {required character, why, identity}) {}),
+        ),
+      );
+      await _asentar(tester);
+      // Sin tarjeta y sin preguntas: habla él.
+      expect(find.text('¿Qué hábito querés desarrollar?'), findsNothing);
+      expect(
+        find.textContaining(SagePrologue.opening.first, findRichText: true),
+        findsWidgets,
+      );
+      await pasarPresentacion(tester);
+      // Sus dos consejos quedaron en su libro, leídos, y ya se presentó.
+      expect(
+        AdviceBook.instance.read().map((g) => g.$1.id),
+        containsAll(prologueAdvice),
+      );
+      expect(AdviceBook.instance.met, isTrue);
+      // Y del salto sale la primera pregunta, sin vuelta atrás al viejo.
+      expect(find.text('¿Qué hábito querés desarrollar?'), findsOneWidget);
+      expect(find.byIcon(Icons.arrow_back_rounded), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('cinco pantallas, y lo que se contestó llega entero', (
       tester,
     ) async {
@@ -76,7 +110,7 @@ void main() {
       );
       await _asentar(tester);
 
-      await tester.tap(find.text('FUNDAR MI PUEBLO'));
+      await pasarPresentacion(tester);
       await _asentar(tester);
       await tester.enterText(find.byType(TextField).first, 'Leer');
       await tester.pump();
@@ -177,7 +211,7 @@ void main() {
         ),
       );
       await _asentar(tester);
-      await tester.tap(find.text('FUNDAR MI PUEBLO'));
+      await pasarPresentacion(tester);
       await _asentar(tester);
       await tester.enterText(find.byType(TextField).first, 'Correr');
       await tester.pump();
@@ -220,7 +254,7 @@ void main() {
         ),
       );
       await _asentar(tester);
-      await tester.tap(find.text('FUNDAR MI PUEBLO'));
+      await pasarPresentacion(tester);
       await _asentar(tester);
       // El botón está a la vista pero apagado: que se vea dónde está la salida
       // antes de poder usarla es la mitad de saber cuánto falta.
@@ -257,9 +291,7 @@ void main() {
         expect(tester.takeException(), isNull, reason: 'bienvenida, $teclado');
         // Con el teclado abierto la tarjeta rueda: el botón está, pero hay que
         // llegar a él.
-        await tester.ensureVisible(find.text('FUNDAR MI PUEBLO'));
-        await tester.pump();
-        await tester.tap(find.text('FUNDAR MI PUEBLO'));
+        await pasarPresentacion(tester);
         await _asentar(tester);
         expect(tester.takeException(), isNull, reason: 'nombre, $teclado');
         await tester.enterText(find.byType(TextField).first, 'Leer');
@@ -289,7 +321,7 @@ void main() {
         ),
       );
       await _asentar(tester);
-      await tester.tap(find.text('FUNDAR MI PUEBLO'));
+      await pasarPresentacion(tester);
       await _asentar(tester);
       await tester.enterText(find.byType(TextField).first, 'Leer');
       await tester.pump();
@@ -321,7 +353,7 @@ void main() {
         ),
       );
       await _asentar(tester);
-      await tester.tap(find.text('FUNDAR MI PUEBLO'));
+      await pasarPresentacion(tester);
       await _asentar(tester);
       await tester.enterText(find.byType(TextField).first, 'Leer');
       await tester.pump();
@@ -344,11 +376,12 @@ void main() {
       await tester.dragFrom(const Offset(4, 400), const Offset(240, 0));
       await _asentar(tester);
       expect(find.text('¿Qué hábito querés desarrollar?'), findsOneWidget);
-      // Y la flecha de arriba hace lo mismo.
-      await tester.tap(find.byIcon(Icons.arrow_back_rounded));
-      await _asentar(tester);
-      expect(find.text('FUNDAR MI PUEBLO'), findsOneWidget);
+      // Y de la primera pregunta no se vuelve a la presentación del viejo:
+      // ya se dijo. Ni flecha, ni el botón del sistema.
       expect(find.byIcon(Icons.arrow_back_rounded), findsNothing);
+      await tester.binding.handlePopRoute();
+      await _asentar(tester);
+      expect(find.text('¿Qué hábito querés desarrollar?'), findsOneWidget);
     });
 
     testWidgets('en la bienvenida del siguiente, vuelve al valle', (
@@ -469,7 +502,10 @@ void main() {
       // Antes que nada: la cuenta, con la marca arriba como en la bienvenida.
       expect(find.text('Guardá tu valle.'), findsOneWidget);
       expect(find.text('Towny'), findsWidgets);
-      expect(find.text('Esto es un valle vacío.'), findsNothing);
+      expect(
+        find.textContaining(SagePrologue.opening.first, findRichText: true),
+        findsNothing,
+      );
 
       // Sin algo que parezca un correo, no se manda nada.
       await tester.enterText(find.byType(TextField).first, 'bruno');
@@ -496,7 +532,10 @@ void main() {
       // El bueno entra solo, sin tocar nada más.
       await tester.enterText(find.byType(TextField).first, '123456');
       await _asentar(tester);
-      expect(find.text('Esto es un valle vacío.'), findsOneWidget);
+      expect(
+        find.textContaining(SagePrologue.opening.first, findRichText: true),
+        findsWidgets,
+      );
       expect(tester.takeException(), isNull);
     });
 
@@ -568,7 +607,10 @@ void main() {
       );
       await _asentar(tester);
       await tocar(tester, 'Seguir sin cuenta');
-      expect(find.text('Esto es un valle vacío.'), findsOneWidget);
+      expect(
+        find.textContaining(SagePrologue.opening.first, findRichText: true),
+        findsWidgets,
+      );
     });
   });
 

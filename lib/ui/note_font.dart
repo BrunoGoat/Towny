@@ -21,12 +21,7 @@ enum NoteFont {
 
   // La de las notas que clavás vos: todo lo que clavás lo escribe la misma
   // persona, que sos vos.
-  rotulador(
-    'PermanentMarker',
-    'PermanentMarker.ttf',
-    'Rotulador',
-    0.93,
-  ),
+  rotulador('PermanentMarker', 'PermanentMarker.ttf', 'Rotulador', 0.93),
 
   // La de las notas que el pueblo escribe de vos. Ya no hay otras que
   // elegir: las que se probaban a mano se fueron con el selector.
@@ -37,12 +32,7 @@ enum NoteFont {
     1.01,
   );
 
-  const NoteFont(
-    this.family,
-    this.asset,
-    this.label,
-    this.scale,
-  );
+  const NoteFont(this.family, this.asset, this.label, this.scale);
 
   /// Null quiere decir la del sistema.
   final String? family;

@@ -19,6 +19,7 @@ import '../l10n/lang.dart';
 import '../model/advice_book.dart';
 import '../model/sage_talk.dart';
 import '../model/store.dart';
+import 'hold_button.dart';
 import 'sage_scroll.dart';
 import 'style.dart';
 
@@ -297,7 +298,7 @@ class _SageScreenState extends State<SageScreen> {
         if (_paso >= intro.length) _libro.meet();
       });
     } else if (pregunta) {
-      dice = _sePresento || !_libro.met
+      dice = _sePresento || !_libro.met || _libro.noGoals
           ? SageLines.question
           : SageLines.questionAgain;
       respuestas = [
@@ -425,6 +426,250 @@ class _SageScreenState extends State<SageScreen> {
   }
 }
 
+/// La primera vez, antes de fundar nada: el viejo, en su pantalla de siempre
+/// y sobre el valle vacío, cuenta cómo funciona todo, da dos consejos de
+/// verdad —para que se vea cómo es recibir uno— y deja abajo el botón para
+/// fundar el primer pueblo ([onFound]).
+///
+/// **Por qué antes y no después.** El primer pueblo se elegía sin saber nada,
+/// y quien llega cansado de otras apps suele elegir justo lo que más le
+/// cuesta. Contado antes, el hábito se elige sabiendo que conviene empezar por
+/// lo que se puede sostener. Los dos consejos quedan en su libro, ya leídos, y
+/// al fundar el viejo tiene uno nuevo.
+class SagePrologueView extends StatefulWidget {
+  const SagePrologueView({
+    super.key,
+    required this.theme,
+    required this.onFound,
+  });
+
+  final UiTheme theme;
+
+  /// Se aguantó el botón del final.
+  final VoidCallback onFound;
+
+  @override
+  State<SagePrologueView> createState() => _SagePrologueViewState();
+}
+
+class _SagePrologueViewState extends State<SagePrologueView> {
+  final AdviceBook _libro = AdviceBook.instance;
+  final _Estilo _e = const _Estilo();
+  final GlobalKey _lista = GlobalKey();
+  final ScrollController _desliza = ScrollController();
+
+  /// Por qué globo va: primero los de [SagePrologue.opening]; después el
+  /// primer consejo, lo de en medio, el segundo, y los dos últimos.
+  int _paso = 0;
+
+  Advice? _abierto;
+  bool _dando = false;
+  bool _fundando = false;
+
+  @override
+  void dispose() {
+    _desliza.dispose();
+    super.dispose();
+  }
+
+  final Map<String, GlobalKey> _sitios = {};
+  GlobalKey _sitio(String id) => _sitios.putIfAbsent(id, GlobalKey.new);
+  Rect? _desde;
+
+  Rect? _enLista(String id) {
+    final caja = _sitios[id]?.currentContext?.findRenderObject() as RenderBox?;
+    if (caja == null || !caja.hasSize || !caja.attached) return null;
+    return caja.localToGlobal(Offset.zero) & caja.size;
+  }
+
+  Rect? _destino() {
+    final caja = _lista.currentContext?.findRenderObject() as RenderBox?;
+    if (caja == null || !caja.hasSize) return null;
+    if (_desliza.hasClients) _desliza.jumpTo(0);
+    final arriba = caja.localToGlobal(Offset.zero);
+    return Rect.fromLTWH(
+      arriba.dx + _Lista.margen.left,
+      arriba.dy + _Lista.margen.top,
+      caja.size.width - _Lista.margen.horizontal,
+      SageScroll.closed,
+    );
+  }
+
+  /// El consejo [k] de la presentación, llegando sellado como llega uno
+  /// nuevo.
+  void _dar(int k) {
+    final a = adviceById[prologueAdvice[k]]!;
+    _libro.give(a);
+    setState(() {
+      _abierto = a;
+      _dando = true;
+    });
+  }
+
+  void _abrir(Advice a) {
+    Sensory.instance.tick();
+    setState(() {
+      _abierto = a;
+      _dando = false;
+      _desde = _enLista(a.id);
+    });
+  }
+
+  void _sigue() {
+    Sensory.instance.tick();
+    final abre = SagePrologue.opening.length;
+    setState(() => _paso++);
+    // Después de lo último de la presentación, el primer consejo; después de
+    // lo de en medio, el segundo.
+    if (_paso == abre) _dar(0);
+    if (_paso == abre + 2) _dar(1);
+  }
+
+  void _fundar() {
+    if (_fundando) return;
+    _fundando = true;
+    _libro.meet();
+    widget.onFound();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final e = _e;
+    final abre = SagePrologue.opening;
+    final leidos = _libro.read();
+    // Lo que dice, por el globo en que va. Los consejos van en su rollo: en
+    // su paso el globo calla.
+    final String dice;
+    VoidCallback? sigue;
+    if (_paso < abre.length) {
+      dice = abre[_paso];
+      sigue = _sigue;
+    } else if (_paso == abre.length || _paso == abre.length + 2) {
+      dice = '';
+    } else if (_paso == abre.length + 1) {
+      dice = SagePrologue.between;
+      sigue = _sigue;
+    } else if (_paso == abre.length + 3) {
+      dice = SagePrologue.closing.first;
+      sigue = _sigue;
+    } else {
+      dice = SagePrologue.closing.last;
+    }
+    final listo = _paso > abre.length + 3 && _abierto == null;
+
+    return Material(
+      type: MaterialType.transparency,
+      child: Stack(
+        children: [
+          const Positioned.fill(child: IgnorePointer(child: _Ambiente())),
+          SafeArea(
+            // Lo que de verdad hay de alto, y no lo que dice la pantalla: con
+            // el botón de fundar debajo del viejo, en un teléfono chico no
+            // entraba todo.
+            child: LayoutBuilder(
+              builder: (context, caja) {
+                final alto = caja.maxHeight;
+                final boton = listo ? 122.0 : 0.0;
+                // En un teléfono chico, una parte más grande de la pantalla:
+                // los globos de la presentación son largos.
+                final habla = math
+                    .min(
+                      listo
+                          ? math.min(400, alto * 0.56)
+                          : math.min(360, alto * 0.52),
+                      math.max(0, alto - boton - 70),
+                    )
+                    .toDouble();
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(22, 6, 22, 0),
+                      child: _Cabecera(cuantos: leidos.length),
+                    ),
+                    Expanded(
+                      child: KeyedSubtree(
+                        key: _lista,
+                        child: _Lista(
+                          e: e,
+                          dichos: leidos,
+                          controller: _desliza,
+                          onTap: _abrir,
+                          sitio: _sitio,
+                          fuera: _dando ? null : _abierto?.id,
+                        ),
+                      ),
+                    ),
+                    // Lo último es largo y va con el botón debajo: más alto, que
+                    // si no el globo cortaba la última frase.
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 360),
+                      curve: Curves.easeOutCubic,
+                      height: habla,
+                      child: _Habla(
+                        e: e,
+                        dice: _abierto != null && _dando ? '' : dice,
+                        respuestas: const [],
+                        onNext: _abierto != null ? null : sigue,
+                        more: sigue != null,
+                      ),
+                    ),
+                    // Al terminar, en vez de «mantener», fundar: el mismo gesto
+                    // de aguantar con el que después se pone cada pieza.
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 420),
+                      curve: Curves.easeOutCubic,
+                      child: listo
+                          ? Center(
+                              child: TweenAnimationBuilder<double>(
+                                tween: Tween(begin: 0, end: 1),
+                                duration: const Duration(milliseconds: 700),
+                                builder: (_, v, c) =>
+                                    Opacity(opacity: v, child: c),
+                                child: HoldToPlace(
+                                  key: const ValueKey('fundar-primero'),
+                                  theme: widget.theme,
+                                  label: SagePrologue.found,
+                                  onPlace: _fundar,
+                                  onCharge: (_) {},
+                                ),
+                              ),
+                            )
+                          : const SizedBox(width: double.infinity),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+          if (_abierto != null)
+            Positioned.fill(
+              child: _Detalle(
+                key: ValueKey(_abierto!.id),
+                e: e,
+                consejo: _abierto!,
+                destino: _dando ? _destino : null,
+                origen: _dando ? null : _desde,
+                regreso: _dando ? null : () => _enLista(_abierto!.id),
+                sealed: _dando,
+                onClosed: () {
+                  final dado = _dando;
+                  setState(() {
+                    if (_dando) _libro.markRead(_abierto!);
+                    _abierto = null;
+                    _dando = false;
+                  });
+                  // Leído el consejo, sigue hablando.
+                  if (dado) setState(() => _paso++);
+                },
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 /// El nombre de la pantalla, como en la portada de un libro viejo: EL
 /// CONSEJERO en letra de libro, un filete con su estrella, y cuántos dichos
 /// lleva guardados.
@@ -469,15 +714,22 @@ class _Cabecera extends StatelessWidget {
             filete,
             const SizedBox(width: 10),
             if (cuantos > 0)
-              Text(
-                cuantos == 1
-                    ? tr('un dicho guardado', 'one saying kept')
-                    : tr('$cuantos dichos guardados', '$cuantos sayings kept'),
-                style: TextStyle(
-                  fontFamily: 'EBGaramond',
-                  fontStyle: FontStyle.italic,
-                  fontSize: 13,
-                  color: _oroViejo.withValues(alpha: 0.7),
+              Flexible(
+                child: Text(
+                  cuantos == 1
+                      ? tr('un dicho guardado', 'one saying kept')
+                      : tr(
+                          '$cuantos dichos guardados',
+                          '$cuantos sayings kept',
+                        ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: 'EBGaramond',
+                    fontStyle: FontStyle.italic,
+                    fontSize: 13,
+                    color: _oroViejo.withValues(alpha: 0.7),
+                  ),
                 ),
               ),
           ],

@@ -283,6 +283,19 @@ class AdviceBook extends ChangeNotifier {
     }
   }
 
+  /// Darlo ahora, sin que lo gane nada: lo que da al presentarse, antes del
+  /// primer pueblo ([prologueAdvice]). Queda ganado y, al leerse, en la lista.
+  void give(Advice a, {DateTime? now}) {
+    if (_got.any((g) => g.$1 == a.id)) return;
+    _got.add((a.id, now ?? DateTime.now()));
+    unawaited(flush());
+    notifyListeners();
+  }
+
+  /// Si todavía ningún pueblo le contestó qué se busca con él: la pregunta,
+  /// entonces, es la del primer pueblo y no la de «un pueblo nuevo…».
+  bool get noGoals => _goals.isEmpty;
+
   /// Por qué se ganó, si fue por algo que pasó; nulo si es uno del camino de
   /// todos los días sin más.
   AdviceReason? reasonOf(Advice a) => _why[a.id];
@@ -394,8 +407,13 @@ class AdviceBook extends ChangeNotifier {
       }
     }
     final hoy = dayKey(at);
+    // Los de la presentación no son el del día: el día que se funda el
+    // primer pueblo, el viejo ya tiene uno nuevo.
     final yaHoy = _got.any(
-      (g) => dayKey(g.$2) == hoy && adviceById[g.$1]!.event == null,
+      (g) =>
+          dayKey(g.$2) == hoy &&
+          adviceById[g.$1]!.event == null &&
+          !prologueAdvice.contains(g.$1),
     );
     if (!yaHoy) {
       // Si lo que sale primero es por lo que le está pasando al pueblo que
@@ -693,6 +711,7 @@ class AdviceReason {
         'Porque $el $t llegó a cien piezas.',
         'Because $el$t reached a hundred pieces.',
       ),
+      AdviceEvent.prologue => '',
     }).replaceAll('  ', ' ');
   }
 

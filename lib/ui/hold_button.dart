@@ -23,6 +23,7 @@ class HoldToPlace extends StatefulWidget {
     required this.onPlace,
     required this.onCharge,
     this.hint,
+    this.label,
     this.enabled = true,
     this.rapid = false,
   });
@@ -36,6 +37,10 @@ class HoldToPlace extends StatefulWidget {
   /// What this piece is going towards, said under the button. The pull to put
   /// one more down is strongest when you can see what it finishes.
   final String? hint;
+
+  /// Lo que dice debajo, en vez de «mantener»: fundar el primer pueblo se
+  /// hace con el mismo gesto.
+  final String? label;
   final bool enabled;
 
   /// Testing aid: keep laying stones for as long as the button is held,
@@ -158,6 +163,9 @@ class _HoldToPlaceState extends State<HoldToPlace>
   }
 
   void _release() {
+    // Fundar el primer pueblo se lleva el botón mientras el dedo sigue
+    // apoyado: al levantarlo ya no hay botón.
+    if (!mounted) return;
     _down = false;
     _fired = false;
     _pressedAt = null;
@@ -235,12 +243,17 @@ class _HoldToPlaceState extends State<HoldToPlace>
                     : t.grassInk.withValues(alpha: 0.76),
                 shadows: t.grassHalo,
               ),
-              child: Text(
-                _down && _fired && widget.rapid
-                    ? tr('EN OBRA', 'BUILDING')
-                    : (_charge > 0.02
-                          ? tr('SOSTENÉ', 'KEEP HOLDING')
-                          : tr('MANTENER', 'HOLD')),
+              // Un rótulo largo —«fundar mi primer pueblo»— se achica en vez
+              // de salirse del botón.
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  _down && _fired && widget.rapid
+                      ? tr('EN OBRA', 'BUILDING')
+                      : (_charge > 0.02
+                            ? tr('SOSTENÉ', 'KEEP HOLDING')
+                            : widget.label ?? tr('MANTENER', 'HOLD')),
+                ),
               ),
             ),
           ],

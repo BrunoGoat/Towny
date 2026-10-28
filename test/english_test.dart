@@ -34,6 +34,8 @@ import 'package:towny/ui/settings_sheet.dart';
 import 'package:towny/ui/style.dart';
 import 'package:towny/ui/unlock_sheet.dart';
 
+import 'prologue_helper.dart';
+
 /// La app entera en inglés, y nada de castellano colado.
 ///
 /// Dos clases de comprobación. Que **no falte nada** en los catálogos —una
@@ -356,7 +358,7 @@ void main() {
       );
       await asentar();
       sinCastellanoEnPantalla(tester, 'la bienvenida');
-      await tester.tap(find.text('FOUND MY TOWN'));
+      await pasarPresentacion(tester);
       await asentar();
       sinCastellanoEnPantalla(tester, 'el nombre');
       await tester.enterText(find.byType(TextField).first, 'Reading');

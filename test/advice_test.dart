@@ -88,6 +88,40 @@ void main() {
       );
     });
 
+    test('los de la presentación quedan dados, y no son el del día', () {
+      // Antes de fundar nada, el viejo da sus dos consejos.
+      final dia = DateTime(2026, 3, 1, 9);
+      for (final id in prologueAdvice) {
+        libro.give(adviceById[id]!, now: dia);
+        libro.markRead(adviceById[id]!);
+      }
+      expect(
+        libro.read(approved: todos).map((g) => g.$1.id),
+        containsAll(prologueAdvice),
+      );
+      // Fundado el primer pueblo ese mismo día, tiene uno nuevo, y no
+      // repite ninguno de los de la presentación.
+      final h = _pueblo('Leer', DateTime(2026, 3, 1));
+      libro.setGoal(h.id, AdviceGoal.start);
+      final hoy = libro.visit(
+        [h],
+        now: DateTime(2026, 3, 1, 10),
+        approved: todos,
+      );
+      expect(hoy, hasLength(1));
+      expect(prologueAdvice, isNot(contains(hoy.single.id)));
+      // Y ninguno de los días siguientes los vuelve a dar.
+      for (var d = 2; d < 40; d++) {
+        for (final a in libro.visit(
+          [h],
+          now: DateTime(2026, 3, d),
+          approved: todos,
+        )) {
+          expect(prologueAdvice, isNot(contains(a.id)), reason: 'día $d');
+        }
+      }
+    });
+
     test('uno por día que entrás, sin acumular los que no', () {
       final h = _pueblo('Leer', DateTime(2026, 3, 1));
       libro.setGoal(h.id, AdviceGoal.start);

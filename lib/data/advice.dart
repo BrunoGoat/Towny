@@ -66,6 +66,10 @@ enum AdviceEvent {
 
   /// Cien piezas.
   hundred,
+
+  /// Antes del primer pueblo, en la presentación: no lo gana nada que pase,
+  /// lo da él al presentarse. Ver [prologueAdvice].
+  prologue,
 }
 
 /// Un consejo: lo que dice él, y lo que quiere decir.
@@ -192,6 +196,92 @@ class SageLines {
     'It will wait. Words don’t rot: they ripen.',
   );
 }
+
+/// Lo que dice el viejo la primera vez, en el valle vacío, antes de fundar el
+/// primer pueblo: cómo funciona todo, de a un globo. Entre medio da dos
+/// consejos de verdad —[prologueAdvice]—, para que se vea cómo es eso de
+/// recibir uno, y al final queda el botón para fundar.
+class SagePrologue {
+  SagePrologue._();
+
+  /// Lo que dice antes de los consejos.
+  static List<String> get opening => [
+    tr(
+      'Te doy la bienvenida al valle. Pasa, pasa… aquí nadie corre, ni '
+          'siquiera el agua.',
+      'Welcome to the valley. Come in, come in… nobody hurries here, not '
+          'even the water.',
+    ),
+    tr(
+      'Soy el consejero. Llevo en este valle más años que sus piedras, '
+          'mirando cómo nacen y crecen los pueblos.',
+      'I am the advisor. I have been in this valley longer than its stones, '
+          'watching towns be born and grow.',
+    ),
+    tr(
+      'Aquí cada pueblo es un hábito. Tú lo fundas, y crece con lo que haces '
+          'de verdad: cada día que cumples lo que te propusiste, pones una '
+          'pieza.',
+      'Here every town is a habit. You found it, and it grows with what you '
+          'really do: each day you keep what you set out to do, you place a '
+          'piece.',
+    ),
+    tr(
+      'No cuentes los días sin pieza. El valle no castiga ni lleva la cuenta '
+          'de lo que falta. Lo único que pide es que vuelvas, aunque sea un '
+          'momento cada día.',
+      'Don’t count the days without a piece. The valley doesn’t punish, and '
+          'it keeps no tally of what is missing. All it asks is that you come '
+          'back, even for a moment, every day.',
+    ),
+    // En dos globos: entero no entraba en el de un teléfono chico.
+    tr(
+      'Cada vez que vengas, el viento me traerá una palabra para ti.',
+      'Each time you come, the wind will bring me a word for you.',
+    ),
+    tr(
+      'Y si algo se tuerce, un día que no pudiste o un ritmo que te queda '
+          'grande, dímelo. Juntos enderezamos el camino.',
+      'And if something goes crooked, a day you couldn’t or a pace too big '
+          'for you, tell me. Together we will straighten the path.',
+    ),
+    tr(
+      'Muchos llegan aquí cansados de intentarlo. Antes de fundar nada, '
+          'escucha esto.',
+      'Many arrive here tired of trying. Before you found anything, listen '
+          'to this.',
+    ),
+  ];
+
+  /// Entre el primer consejo y el segundo.
+  static String get between =>
+      tr('Y una más, para el camino.', 'And one more, for the road.');
+
+  /// Lo último, en dos globos: el botón sale con el segundo. Uno solo no
+  /// entraba en el globo de un teléfono chico.
+  static List<String> get closing => [
+    tr(
+      'Cuando estés listo, funda tu primer pueblo.',
+      'When you are ready, found your first town.',
+    ),
+    tr(
+      'Elige con calma: no lo que más te pesa, sino lo que de verdad puedas '
+          'mantener. Primero se gana confianza.',
+      'Choose calmly: not what weighs on you most, but what you can truly '
+          'keep. First you build confidence.',
+    ),
+  ];
+
+  /// El botón que queda abajo al terminar, en vez de «mantener».
+  static String get found =>
+      tr('FUNDAR MI PRIMER PUEBLO', 'FOUND MY FIRST TOWN');
+}
+
+/// Los dos consejos de la presentación, en el orden en que los da: el de
+/// empezar por lo que se puede sostener, y el de empezar chico. Ya quedan
+/// ganados y leídos al fundar el primer pueblo, y no cuentan como el consejo
+/// del día: ese mismo día, con el pueblo fundado, el viejo tiene uno nuevo.
+const List<String> prologueAdvice = ['herreria', 'chico'];
 
 /// Los consejos de todos los días. El orden en que se ganan lo da [pathFor].
 const List<Advice> dailyAdvice = [
@@ -674,6 +764,16 @@ List<String> pathFor(AdviceGoal goal) => switch (goal) {
 
 /// Los que llegan cuando pasa algo: es cuando más se nota que te mira.
 const List<Advice> eventAdvice = [
+  // Lo primero que da, antes de fundar nada: que el primer pueblo no sea lo
+  // que más cuesta. Ver [prologueAdvice].
+  Advice(
+    'herreria',
+    'El que empieza sin espada no busca al gigante… busca primero la herrería.',
+    'No empieces por lo que más te cuesta. Empieza por algo que puedas sostener. Cada día cumplido es un arma que juntas: confianza, costumbre, ganas. Con eso en la mano, lo difícil llega después y ya no lo enfrentas desarmado.',
+    'Whoever starts without a sword doesn’t go looking for the giant… first they look for the forge.',
+    'Don’t start with what costs you the most. Start with something you can keep up. Each day you keep it is a weapon you gather: confidence, habit, will. With that in hand, the hard things come later and you no longer face them unarmed.',
+    event: AdviceEvent.prologue,
+  ),
   Advice(
     'ev_primera',
     'Vi la primera piedra posarse.',

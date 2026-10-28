@@ -337,3 +337,34 @@ Empieza muy pequeño, una página, dos minutos. Algo tan chico lo cumples hasta 
 
 **4.** «El agua nueva sigue el cauce del río viejo.» [al fundar el segundo pueblo · sólo a quien empieza]  
 Átalo a algo que ya haces todos los días, como «al volver del trabajo, leo». Lo de siempre ya pasa solo, así que cuando termina te recuerda lo nuevo sin que tengas que acordarte.
+
+**81.** «El que empieza sin espada no busca al gigante… busca primero la herrería.» [en la presentación, antes del primer pueblo · a todos]  
+No empieces por lo que más te cuesta. Empieza por algo que puedas sostener. Cada día cumplido es un arma que juntas: confianza, costumbre, ganas. Con eso en la mano, lo difícil llega después y ya no lo enfrentas desarmado.
+
+**3** también se da en la presentación, después del 81. Los dos quedan guardados en su libro y no cuentan como el consejo del día: al fundar el primer pueblo, el viejo da el 1.
+
+### La presentación, antes del primer pueblo
+
+La primera vez, después del correo, el viejo habla en su pantalla sobre el valle vacío. Un globo por vez:
+
+**82.** «Te doy la bienvenida al valle. Pasa, pasa… aquí nadie corre, ni siquiera el agua.»
+
+**83.** «Soy el consejero. Llevo en este valle más años que sus piedras, mirando cómo nacen y crecen los pueblos.»
+
+**84.** «Aquí cada pueblo es un hábito. Tú lo fundas, y crece con lo que haces de verdad: cada día que cumples lo que te propusiste, pones una pieza.»
+
+**85.** «No cuentes los días sin pieza. El valle no castiga ni lleva la cuenta de lo que falta. Lo único que pide es que vuelvas, aunque sea un momento cada día.»
+
+**86.** «Cada vez que vengas, el viento me traerá una palabra para ti.»
+
+**87.** «Y si algo se tuerce, un día que no pudiste o un ritmo que te queda grande, dímelo. Juntos enderezamos el camino.»
+
+**88.** «Muchos llegan aquí cansados de intentarlo. Antes de fundar nada, escucha esto.» → da el 81.
+
+**89.** «Y una más, para el camino.» → da el 3.
+
+**90.** «Cuando estés listo, funda tu primer pueblo.»
+
+**91.** «Elige con calma: no lo que más te pesa, sino lo que de verdad puedas mantener. Primero se gana confianza.» → abajo, el botón «Fundar mi primer pueblo», que se deja apretado.
+
+Después de fundar, la pregunta de empezar o dejar sigue donde estaba: la primera vez que se le habla con el pueblo ya fundado.

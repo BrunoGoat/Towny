@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -20,6 +21,8 @@ import '../model/pledge.dart';
 import '../model/store.dart';
 import '../sync/account.dart';
 import 'habit_sigil.dart';
+import 'sage_screen.dart';
+import 'style.dart';
 
 /// Lo que se ve la primera vez que se abre la app.
 ///
@@ -110,6 +113,11 @@ class FirstRun extends StatefulWidget {
 
   /// Lo que tarda la bajada final, de la última pregunta al pueblo.
   static const Duration leaving = Duration(milliseconds: 1500);
+
+  /// Lo que tarda el salto de la presentación del viejo a la primera
+  /// pregunta: todo se estira hacia el centro, acelera y se funde en blanco
+  /// —a la mitad—, y del blanco sale la pregunta.
+  static const Duration warp = Duration(milliseconds: 1900);
 
   @override
   State<FirstRun> createState() => _FirstRunState();
@@ -252,6 +260,16 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
   /// Mirando el pueblo de muestra de la comarca con la interfaz escondida.
   bool _exploring = false;
 
+  /// Si todavía está la presentación del viejo: la primera vez, antes de la
+  /// primera pregunta. Al fundar desde ella se va para siempre.
+  late bool _prologue = widget.next == null;
+
+  /// El salto de la presentación a la primera pregunta. Ver [FirstRun.warp].
+  late final AnimationController _warp;
+
+  /// Si la presentación se está viendo ahora.
+  bool get _inPrologue => _prologue && _entry == null && _step == 0;
+
   /// Se crea al empezar y no la primera vez que se usa. Perezoso, una pantalla
   /// que se cerraba sin llegar a fundar lo creaba por primera vez dentro de su
   /// propio `dispose`, que es justo cuando ya no puede pedir su reloj.
@@ -261,11 +279,39 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _leave = AnimationController(vsync: this, duration: FirstRun.leaving);
+    _warp = AnimationController(vsync: this, duration: FirstRun.warp)
+      ..addListener(() {
+        // En el blanco, cambia lo de atrás: se va el viejo y queda la
+        // primera pregunta, que aparece cuando el blanco se abre.
+        if (_prologue && _warp.value >= _warpPeak) {
+          setState(() {
+            _prologue = false;
+            _backward = false;
+            _step = 1;
+          });
+        }
+      })
+      ..addStatusListener((st) {
+        if (st == AnimationStatus.completed) setState(() {});
+      });
+  }
+
+  /// Cuándo el salto está todo blanco.
+  static const double _warpPeak = 0.5;
+
+  /// Se aguantó «fundar mi primer pueblo»: el salto.
+  void _jump() {
+    Sensory.instance.tick();
+    // Con su repintado: la capa del salto entra al árbol sólo mientras dura.
+    // Y sin devolver el futuro del salto desde setState, que lo rechaza.
+    _warp.forward(from: 0);
+    setState(() {});
   }
 
   @override
   void dispose() {
     _leave.dispose();
+    _warp.dispose();
     _name.dispose();
     _why.dispose();
     _identity.dispose();
@@ -286,7 +332,8 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
   bool get _canBack =>
       !_leaving &&
       (_exploring ||
-          _step > 0 ||
+          _step > 1 ||
+          (_step == 1 && widget.next != null) ||
           _entry == _Entry.code ||
           widget.onCancel != null);
 
@@ -317,7 +364,9 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
       _enter(_Entry.email, backward: true);
     } else if (_entry != null) {
       if (widget.accountOnly) widget.onCancel?.call();
-    } else if (_step > 0) {
+    } else if (_step > 1 || (_step == 1 && widget.next != null)) {
+      // A la presentación del viejo no se vuelve: ya se dijo, y sus consejos
+      // quedaron en su libro.
       FocusScope.of(context).unfocus();
       _go(_step - 1);
     } else {
@@ -477,129 +526,152 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
         body: Stack(
           fit: StackFit.expand,
           children: [
-            // El valle, vivo. Va en su propio widget con su propio reloj para
-            // que pintar sesenta cuadros por segundo no reconstruya los campos
-            // de texto.
-            _Valley(
-              stage: _step,
-              leaving: _leaving,
-              name: _name.text,
-              symbol: _symbol,
-              place: _place,
-              exploring: _exploring,
-              onExplore: () => _explore(true),
-            ),
-            // Dos veladuras: arriba, para que la marca se lea sobre un cielo de
-            // mediodía; abajo, para que la tarjeta se apoye en algo.
-            IgnorePointer(
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 900),
-                opacity: _leaving || _exploring ? 0 : 1,
-                child: const DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Color(0x33000000),
-                        Color(0x00000000),
-                        Color(0x00000000),
-                        Color(0x8C0B0906),
-                        Color(0xC70B0906),
-                      ],
-                      stops: [0.0, 0.26, 0.40, 0.70, 1.0],
+            _warpZoom(
+              Stack(
+                fit: StackFit.expand,
+                children: [
+                  // El valle, vivo. Va en su propio widget con su propio reloj para
+                  // que pintar sesenta cuadros por segundo no reconstruya los campos
+                  // de texto.
+                  _Valley(
+                    stage: _step,
+                    leaving: _leaving,
+                    name: _name.text,
+                    symbol: _symbol,
+                    place: _place,
+                    exploring: _exploring,
+                    onExplore: () => _explore(true),
+                  ),
+                  // Dos veladuras: arriba, para que la marca se lea sobre un cielo de
+                  // mediodía; abajo, para que la tarjeta se apoye en algo.
+                  IgnorePointer(
+                    child: AnimatedOpacity(
+                      duration: const Duration(milliseconds: 900),
+                      opacity: _leaving || _exploring ? 0 : 1,
+                      child: const DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Color(0x33000000),
+                              Color(0x00000000),
+                              Color(0x00000000),
+                              Color(0x8C0B0906),
+                              Color(0xC70B0906),
+                            ],
+                            stops: [0.0, 0.26, 0.40, 0.70, 1.0],
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-            ),
-            // La vuelta atrás, a la vista: no todo el mundo sabe que el botón
-            // del teléfono o del navegador también vuelve.
-            if ((_step > 0 || _entry == _Entry.code) &&
-                !_leaving &&
-                !_exploring)
-              Positioned(
-                left: 6,
-                top: mq.padding.top + 6,
-                child: IconButton(
-                  onPressed: _back,
-                  tooltip: tr('Volver', 'Back'),
-                  icon: const Icon(
-                    Icons.arrow_back_rounded,
-                    color: _Ink.cream,
-                    shadows: _Ink.shadow,
-                  ),
-                ),
-              ),
-            // La marca, sólo en la bienvenida.
-            Positioned(
-              left: 0,
-              right: 0,
-              top: mq.padding.top + mq.size.height * 0.09,
-              child: IgnorePointer(
-                child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 600),
-                  opacity: _step == 0 && !_leaving ? 1 : 0,
-                  child: widget.next == null
-                      ? const _Wordmark()
-                      : _Milestone(next: widget.next!),
-                ),
-              ),
-            ),
-            // Mientras baja la cámara, el nombre del pueblo que se funda.
-            if (_leaving)
-              Center(
-                child: IgnorePointer(
-                  child: AnimatedBuilder(
-                    animation: _leave,
-                    builder: (_, _) => _FoundingName(
-                      name: nombre.isEmpty
-                          ? tr('Tu pueblo', 'Your town')
-                          : nombre,
-                      t: _leave.value,
+                  // La vuelta atrás, a la vista: no todo el mundo sabe que el botón
+                  // del teléfono o del navegador también vuelve.
+                  if ((_step > 1 ||
+                          (_step == 1 && widget.next != null) ||
+                          _entry == _Entry.code) &&
+                      !_leaving &&
+                      !_exploring)
+                    Positioned(
+                      left: 6,
+                      top: mq.padding.top + 6,
+                      child: IconButton(
+                        onPressed: _back,
+                        tooltip: tr('Volver', 'Back'),
+                        icon: const Icon(
+                          Icons.arrow_back_rounded,
+                          color: _Ink.cream,
+                          shadows: _Ink.shadow,
+                        ),
+                      ),
+                    ),
+                  // La marca, sólo en la bienvenida.
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    top: mq.padding.top + mq.size.height * 0.09,
+                    child: IgnorePointer(
+                      child: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 600),
+                        opacity: _step == 0 && !_leaving && !_inPrologue
+                            ? 1
+                            : 0,
+                        child: widget.next == null
+                            ? const _Wordmark()
+                            : _Milestone(next: widget.next!),
+                      ),
                     ),
                   ),
-                ),
-              ),
-            // La tarjeta, abajo, subiendo con el teclado.
-            AnimatedPadding(
-              duration: const Duration(milliseconds: 240),
-              curve: Curves.easeOutCubic,
-              padding: EdgeInsets.only(bottom: teclado),
-              child: SafeArea(
-                top: false,
-                child: Transform.translate(
-                  offset: Offset(_swipe, 0),
-                  child: Opacity(
-                    opacity: (1 - _swipe / (mq.size.width * 0.8)).clamp(
-                      0.0,
-                      1.0,
+                  // Mientras baja la cámara, el nombre del pueblo que se funda.
+                  if (_leaving)
+                    Center(
+                      child: IgnorePointer(
+                        child: AnimatedBuilder(
+                          animation: _leave,
+                          builder: (_, _) => _FoundingName(
+                            name: nombre.isEmpty
+                                ? tr('Tu pueblo', 'Your town')
+                                : nombre,
+                            t: _leave.value,
+                          ),
+                        ),
+                      ),
                     ),
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: AnimatedSlide(
-                        duration: const Duration(milliseconds: 560),
-                        curve: Curves.easeInCubic,
-                        offset: _leaving ? const Offset(0, 0.35) : Offset.zero,
-                        child: AnimatedOpacity(
-                          duration: const Duration(milliseconds: 420),
-                          opacity: _leaving || _exploring ? 0 : 1,
-                          child: IgnorePointer(
-                            ignoring: _exploring,
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-                              child: ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  maxWidth: 520,
-                                  maxHeight: math.max(
-                                    240,
-                                    mq.size.height -
-                                        teclado -
-                                        mq.padding.top -
-                                        40,
+                  // La tarjeta, abajo, subiendo con el teclado.
+                  AnimatedPadding(
+                    duration: const Duration(milliseconds: 240),
+                    curve: Curves.easeOutCubic,
+                    padding: EdgeInsets.only(bottom: teclado),
+                    child: SafeArea(
+                      top: false,
+                      child: Transform.translate(
+                        offset: Offset(_swipe, 0),
+                        child: Opacity(
+                          opacity: (1 - _swipe / (mq.size.width * 0.8)).clamp(
+                            0.0,
+                            1.0,
+                          ),
+                          child: Align(
+                            alignment: Alignment.bottomCenter,
+                            child: AnimatedSlide(
+                              duration: const Duration(milliseconds: 560),
+                              curve: Curves.easeInCubic,
+                              offset: _leaving
+                                  ? const Offset(0, 0.35)
+                                  : Offset.zero,
+                              child: AnimatedOpacity(
+                                duration: const Duration(milliseconds: 420),
+                                opacity: _leaving || _exploring || _inPrologue
+                                    ? 0
+                                    : 1,
+                                child: IgnorePointer(
+                                  ignoring: _exploring || _inPrologue,
+                                  child: Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                      14,
+                                      0,
+                                      14,
+                                      14,
+                                    ),
+                                    child: ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        maxWidth: 520,
+                                        maxHeight: math.max(
+                                          240,
+                                          mq.size.height -
+                                              teclado -
+                                              mq.padding.top -
+                                              40,
+                                        ),
+                                      ),
+                                      child: _Card(
+                                        step: _step,
+                                        child: _content(),
+                                      ),
+                                    ),
                                   ),
                                 ),
-                                child: _Card(step: _step, child: _content()),
                               ),
                             ),
                           ),
@@ -607,43 +679,64 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
                       ),
                     ),
                   ),
-                ),
+                  // El gesto de volver del teléfono: deslizar desde el borde
+                  // izquierdo hacia la derecha. En la web el navegador no siempre
+                  // lo da —sin página de antes, el gesto se va del sitio o no hace
+                  // nada—, así que se atiende aquí, en una franja del borde.
+                  if (_canBack)
+                    Positioned(
+                      left: 0,
+                      top: 0,
+                      bottom: 0,
+                      width: 28,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.translucent,
+                        onHorizontalDragUpdate: (d) => setState(
+                          () => _swipe = math.max(0, _swipe + d.delta.dx),
+                        ),
+                        onHorizontalDragEnd: (d) {
+                          final lejos =
+                              _swipe > mq.size.width / 3 ||
+                              (d.primaryVelocity ?? 0) > 700;
+                          setState(() => _swipe = 0);
+                          if (lejos) _back();
+                        },
+                        onHorizontalDragCancel: () =>
+                            setState(() => _swipe = 0),
+                      ),
+                    ),
+                  // Explorando: sólo el nombre de la comarca, cómo se mueve la cámara,
+                  // y la vuelta.
+                  if (_exploring)
+                    TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0, end: 1),
+                      duration: const Duration(milliseconds: 420),
+                      builder: (_, v, c) => Opacity(opacity: v, child: c),
+                      child: _ExploreBar(
+                        region: TownCharacter.byOrder(_place).region,
+                        onBack: () => _explore(false),
+                      ),
+                    ),
+                  // La presentación del viejo, la primera vez, sobre el valle vacío.
+                  if (_inPrologue)
+                    SagePrologueView(
+                      theme: UiTheme(
+                        Palette.forMoment(DateTime.now().hour + 0.0),
+                      ),
+                      onFound: _jump,
+                    ),
+                ],
               ),
             ),
-            // El gesto de volver del teléfono: deslizar desde el borde
-            // izquierdo hacia la derecha. En la web el navegador no siempre
-            // lo da —sin página de antes, el gesto se va del sitio o no hace
-            // nada—, así que se atiende aquí, en una franja del borde.
-            if (_canBack)
-              Positioned(
-                left: 0,
-                top: 0,
-                bottom: 0,
-                width: 28,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  onHorizontalDragUpdate: (d) =>
-                      setState(() => _swipe = math.max(0, _swipe + d.delta.dx)),
-                  onHorizontalDragEnd: (d) {
-                    final lejos =
-                        _swipe > mq.size.width / 3 ||
-                        (d.primaryVelocity ?? 0) > 700;
-                    setState(() => _swipe = 0);
-                    if (lejos) _back();
-                  },
-                  onHorizontalDragCancel: () => setState(() => _swipe = 0),
-                ),
-              ),
-            // Explorando: sólo el nombre de la comarca, cómo se mueve la cámara,
-            // y la vuelta.
-            if (_exploring)
-              TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0, end: 1),
-                duration: const Duration(milliseconds: 420),
-                builder: (_, v, c) => Opacity(opacity: v, child: c),
-                child: _ExploreBar(
-                  region: TownCharacter.byOrder(_place).region,
-                  onBack: () => _explore(false),
+            // Y el salto: encima de todo mientras dura, y fuera del acercamiento.
+            if (_warp.isAnimating)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: AnimatedBuilder(
+                    animation: _warp,
+                    builder: (_, _) =>
+                        CustomPaint(painter: WarpPainter(_warp.value)),
+                  ),
                 ),
               ),
           ],
@@ -651,6 +744,33 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
       ),
     );
   }
+
+  /// Durante la primera mitad del salto, todo lo de atrás se acerca cada vez
+  /// más rápido y se emborrona, como lo que se ve por la ventana de una nave
+  /// que acelera. En la segunda mitad, ya en blanco, queda quieto.
+  Widget _warpZoom(Widget child) => AnimatedBuilder(
+    animation: _warp,
+    child: child,
+    builder: (_, c) {
+      final t = _warp.value;
+      final e = _warp.isAnimating && t < _warpPeak ? t / _warpPeak : 0.0;
+      final borroso = 9 * e * e;
+      // Siempre el mismo árbol, con o sin salto: envolverlo sólo durante el
+      // salto rehacía todo lo de adentro, y el viejo volvía a empezar a
+      // hablar en medio del acercamiento.
+      return Transform.scale(
+        scale: 1 + 1.6 * e * e * e,
+        child: ImageFiltered(
+          enabled: borroso > 0.01,
+          imageFilter: ui.ImageFilter.blur(
+            sigmaX: math.max(borroso, 0.01),
+            sigmaY: math.max(borroso, 0.01),
+          ),
+          child: c,
+        ),
+      );
+    },
+  );
 
   /// Lo que va dentro de la tarjeta, y cómo se cambia de una pregunta a otra:
   /// la vieja se va hacia la izquierda y la nueva entra por la derecha, y la
@@ -778,7 +898,9 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
 
   Widget _welcome() {
     final next = widget.next;
-    return next == null ? _welcomeFirst() : _welcomeNext(next);
+    // La primera vez no hay tarjeta: la bienvenida la da el viejo, en su
+    // presentación ([SagePrologueView]).
+    return next == null ? const SizedBox.shrink() : _welcomeNext(next);
   }
 
   /// La bienvenida del pueblo siguiente: lo que se ganó, y con qué.
@@ -829,21 +951,6 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
       onSkip: widget.onCancel,
     );
   }
-
-  Widget _welcomeFirst() => _Step(
-    title: tr('Esto es un valle vacío.', 'This is an empty valley.'),
-    lines: [
-      tr(
-        'Cada vez que cumplas, vas a poner una pieza. Las piezas levantan un '
-            'pueblo, y el pueblo es lo que llevás hecho.',
-        'Every time you keep your habit, you place a piece. The pieces raise '
-            'a town, and the town is what you have done.',
-      ),
-      tr('Empecemos por uno.', "Let's start with one."),
-    ],
-    next: tr('Fundar mi pueblo', 'Found my town'),
-    onNext: () => _go(1),
-  );
 
   Widget _askName() => _Step(
     // La marca y el nombre se eligen aquí, y al confirmar suben al claro y
@@ -2651,4 +2758,95 @@ class _Places extends StatelessWidget {
       ),
     );
   }
+}
+
+/// El salto a la primera pregunta: rayas de luz que salen del centro hacia
+/// los bordes, cada vez más largas y más rápidas, como las estrellas desde una
+/// nave que acelera; y en el medio una luz que crece hasta que todo es blanco
+/// ([t] = la mitad). Después el blanco se abre despacio.
+class WarpPainter extends CustomPainter {
+  WarpPainter(this.t);
+
+  /// De cero a uno, lo que va del salto.
+  final double t;
+
+  static const int _rayas = 150;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = size.center(Offset.zero);
+    final lejos = size.longestSide * 0.75;
+    final ida = (t / 0.5).clamp(0.0, 1.0);
+    // Primero se oscurece un poco, como el espacio por la ventana: sobre el
+    // valle de día las rayas blancas no se veían.
+    final noche =
+        0.55 * smoothstep(0.0, 0.5, ida) * (1 - smoothstep(0.7, 1.0, ida));
+    if (noche > 0) {
+      canvas.drawRect(
+        Offset.zero & size,
+        Paint()..color = const Color(0xFF05070D).withValues(alpha: noche),
+      );
+    }
+    // Las rayas: sólo mientras se acelera, y se pierden en el blanco.
+    if (ida < 1) {
+      final rnd = math.Random(7);
+      final vel = ida * ida * ida;
+      for (var k = 0; k < _rayas; k++) {
+        final a = rnd.nextDouble() * 2 * math.pi;
+        final r0 = 0.04 + rnd.nextDouble() * 0.9;
+        final ancho = 0.6 + rnd.nextDouble() * 1.8;
+        // Cada una sale desde su sitio y se va hacia fuera, y lo largo de la
+        // raya es lo rápido que va.
+        final r = (r0 + vel * (1.2 + r0 * 2)) % 1.3;
+        final largo = 0.02 + vel * 0.55 * (0.4 + r);
+        final dir = Offset(math.cos(a), math.sin(a));
+        final p1 = c + dir * (r * lejos);
+        final p0 = c + dir * (math.max(0, r - largo) * lejos);
+        final alfa = (0.35 + 0.65 * ida) * (1 - smoothstep(0.8, 1.0, ida));
+        canvas.drawLine(
+          p0,
+          p1,
+          Paint()
+            ..strokeWidth = ancho * (1 + 2 * vel)
+            ..strokeCap = StrokeCap.round
+            ..shader = ui.Gradient.linear(p0, p1, [
+              const Color(0x00FFFFFF),
+              Colors.white.withValues(alpha: alfa),
+            ]),
+        );
+      }
+    }
+    // La luz del centro, que crece hasta tapar todo.
+    final luz = smoothstep(0.15, 1.0, ida);
+    if (luz > 0) {
+      canvas.drawCircle(
+        c,
+        lejos * (0.1 + 1.6 * luz),
+        Paint()
+          ..shader = ui.Gradient.radial(
+            c,
+            lejos * (0.1 + 1.6 * luz),
+            [
+              Colors.white.withValues(alpha: luz),
+              Colors.white.withValues(alpha: luz * luz),
+              Colors.white.withValues(alpha: luz * luz * luz),
+            ],
+            [0.0, 0.6, 1.0],
+          ),
+      );
+    }
+    // Todo blanco en la mitad, y se abre despacio.
+    final blanco = t < 0.5
+        ? smoothstep(0.32, 0.5, t)
+        : 1 - smoothstep(0.5, 1.0, t);
+    if (blanco > 0) {
+      canvas.drawRect(
+        Offset.zero & size,
+        Paint()..color = Colors.white.withValues(alpha: blanco),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(WarpPainter old) => old.t != t;
 }
