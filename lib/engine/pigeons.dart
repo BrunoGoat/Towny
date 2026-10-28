@@ -65,8 +65,9 @@ class Feast {
   final List<BirdVisit> pigeons;
 }
 
-/// Las veces que bajan: una vuelta de cada tres, más o menos.
-const double _cadaCuanto = 0.34;
+/// Las veces que bajan: una vuelta de cada seis, más o menos. Era una de
+/// cada tres, y tan seguido dejaba de ser un momento que se encuentra.
+const double _cadaCuanto = 0.17;
 
 /// Cuándo sale el pan de la túnica, cuándo lo tiene en el regazo y
 /// cuándo tira el primer puñado, en segundos desde que se sentó.

@@ -499,7 +499,7 @@ Por ahora entran todos, para probarlos; se van sacando los que no.
 - [x] El rollo: el de bambú (`lib/ui/sage_scroll.dart`), y el detalle es el
   mismo rollo, grande, que se desenrolla al tocarlo.
 - [ ] Las palomas (`lib/engine/pigeons.dart`): mirarlas en el teléfono. Bajan
-  una vuelta de cada tres que se sienta en el banco, de día.
+  una vuelta de cada seis que se sienta en el banco, de día.
 
 ---
 

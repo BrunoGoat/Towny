@@ -2,6 +2,7 @@ import '../core/rng.dart';
 import '../data/folknames.dart';
 import '../engine/folk.dart';
 import '../engine/town.dart';
+import '../l10n/lang.dart';
 import 'habit.dart';
 
 /// Un vecino, escrito.
@@ -76,14 +77,18 @@ List<Villager> enrolFolk(Habit habit, TownLayout layout) {
     for (final line in habit.folk) Villager.parse(line)?.home ?? -1,
   };
   final nuevos = <Villager>[];
+  final primera = _firstHouse(layout);
   for (final b in layout.buildings) {
     if (b.isLandmark) continue;
     final last = b.firstPiece + b.cost - 1;
     if (last >= habit.pieces.length) continue;
     if (had.contains(b.index)) continue;
     final seed = folkSeedOf(layout.seed, b.seed, b.index);
+    // El nombre, con la semilla con la que anda: la del primer vecino es
+    // siempre la de un mayor (ver [adultSeed]).
+    final anda = b.index == primera ? adultSeed(seed) : seed;
     nuevos.add(
-      Villager(b.index, seed, habit.pieces[last].placedAt, folkName(seed)),
+      Villager(b.index, seed, habit.pieces[last].placedAt, folkName(anda)),
     );
   }
   // Por orden de llegada, que es como se lee un padrón.
@@ -140,8 +145,13 @@ FolkCard? folkCardOf(Habit habit, TownLayout layout, int town, int home) {
   final b = layout.buildings[home];
   if (b.isLandmark) return null;
   final apuntado = censusOf(habit.folk)[home];
-  final seed = apuntado?.seed ?? folkSeedOf(layout.seed, b.seed, b.index);
+  final nacida = apuntado?.seed ?? folkSeedOf(layout.seed, b.seed, b.index);
+  // La misma semilla con la que anda por el pueblo: el primer vecino de cada
+  // pueblo es siempre un mayor (ver [adultSeed]).
+  final primera = _firstHouse(layout);
+  final seed = b.index == primera ? adultSeed(nacida) : nacida;
   final woman = folkIsWoman(seed);
+  final crio = folkIsKid(seed);
   final k =
       folkNamedTrade(seed) ??
       switch (b.kind) {
@@ -161,11 +171,19 @@ FolkCard? folkCardOf(Habit habit, TownLayout layout, int town, int home) {
   return FolkCard(
     town: town,
     home: home,
-    name: apuntado?.name ?? folkName(seed),
-    trade: tradeNoun(k, woman: woman),
+    name: crio ? folkName(seed) : apuntado?.name ?? folkName(seed),
+    // Un crío no tiene oficio: lo que se dice de él es que es un crío.
+    trade: crio
+        ? tr(woman ? 'Niña' : 'Niño', woman ? 'Girl' : 'Boy')
+        : tradeNoun(k, woman: woman),
     born: apuntado?.born,
     house: house,
     houseName: b.name,
     woman: woman,
   );
 }
+
+/// La primera casa del pueblo, la de su primer vecino.
+int? _firstHouse(TownLayout layout) => layout.buildings
+    .where((o) => !o.isLandmark)
+    .fold<int?>(null, (m, o) => m == null || o.index < m ? o.index : m);

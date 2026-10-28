@@ -78,7 +78,7 @@ class Townsfolk {
     // Un hombre hecho: la barba es suya.
     var s = hash32(layout.seed, 0x5A6E, 3);
     for (var k = 0; k < 4096; k++) {
-      if (hash01(s, 12) >= 0.24 && !folkIsWoman(s)) break;
+      if (!folkIsKid(s) && !folkIsWoman(s)) break;
       s = hash32(s, 0x5A6E, k);
     }
     final cx = layout.cx, cz = layout.cz;
@@ -292,7 +292,7 @@ class Townsfolk {
     // que sería una regla más que mantener.
     var s = seed;
     for (var k = 0; k < 4096; k++) {
-      if ((hash01(s, 12) < 0.24) == kid) break;
+      if (folkIsKid(s) == kid) break;
       s = hash32(s, 0x5EED, k);
     }
     return Townsfolk._(
@@ -359,13 +359,13 @@ class Townsfolk {
   /// Si es un crío. Más chico, y es el que salta a la comba o corre detrás de
   /// una mariposa — que es lo que hace un crío en un pueblo donde no hay nada
   /// más que hacer.
-  bool get kid => hash01(seed, 12) < 0.24;
+  bool get kid => folkIsKid(seed);
 
   /// Lo que mide, contra lo que mide una persona hecha.
   double get build => buildOf(seed);
 
   /// Lo que mide quien sale de la semilla [seed]. Ver [build].
-  static double buildOf(int seed) => hash01(seed, 12) < 0.24
+  static double buildOf(int seed) => folkIsKid(seed)
       ? 0.66 + hash01(seed, 13) * 0.10
       : 0.94 + hash01(seed, 14) * 0.15;
 
@@ -1782,7 +1782,7 @@ List<Townsfolk> folkOf(TownLayout layout, int placed) {
 
     // Tres recados y a casa. Tres y no más porque una ronda más larga es una
     // ronda que no se ve entera de una sentada.
-    final crio = hash01(seed, 12) < 0.24;
+    final crio = folkIsKid(seed);
     // Su propia puerta es el único sitio de la ronda que es suyo, y por eso es
     // donde pasan las cosas de casa: tomar el sol, hilar, partir leña. Casi la
     // mitad se queda un rato; los demás pasan de largo, que también es verdad.
@@ -1911,7 +1911,9 @@ List<Townsfolk> folkOf(TownLayout layout, int placed) {
     planes.add((
       b: b,
       seed: seed,
-      name: apuntado?.$2 ?? folkName(seed),
+      // Un crío no lleva el nombre que se le apuntó si era de oficio: los
+      // críos no tienen oficio.
+      name: crio ? folkName(seed) : apuntado?.$2 ?? folkName(seed),
       born: apuntado?.$3,
       crio: crio,
       h: h,
@@ -2413,7 +2415,7 @@ int folkSeedOf(int townSeed, int buildingSeed, int index) =>
 /// así que vale también para los pueblos que ya lo tenían apuntado.
 int adultSeed(int seed) {
   var s = seed;
-  for (var i = 1; hash01(s, 12) < 0.24 && i < 32; i++) {
+  for (var i = 1; folkIsKid(s) && i < 32; i++) {
     s = hash32(seed, 0xAD17, i);
   }
   return s;

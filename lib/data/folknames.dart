@@ -135,8 +135,9 @@ String folkName(int seed) {
   final (pila, ella) = _given[hashInt(_given.length, seed, 101)];
   // Dos de cada tres por el oficio y uno por la procedencia, que es más o
   // menos como salía: primero eras el herrero y sólo si no eras nada en
-  // particular eras el de la otra orilla.
-  if (hash01(seed, 103) < 0.68) {
+  // particular eras el de la otra orilla. Un crío no tiene oficio todavía:
+  // es siempre el de algún sitio.
+  if (!folkIsKid(seed) && hash01(seed, 103) < 0.68) {
     final k = hashInt(_trade.length, seed, 102);
     if (inEnglish) return '$pila ${tradeEn[k]}';
     final (el, la) = _trade[k];
@@ -145,6 +146,10 @@ String folkName(int seed) {
   final k = hashInt(_from.length, seed, 102);
   return '$pila ${inEnglish ? fromEn[k] : _from[k]}';
 }
+
+/// Si el vecino de semilla [seed] es un crío. Uno de cada cuatro, más o
+/// menos.
+bool folkIsKid(int seed) => hash01(seed, 12) < 0.24;
 
 /// Si el vecino de semilla [seed] es mujer: lo dice su nombre de pila.
 bool folkIsWoman(int seed) => _given[hashInt(_given.length, seed, 101)].$2;
@@ -156,7 +161,7 @@ const int _realTrades = 17;
 /// El oficio que ya dice su nombre, si lo dice: «Ximena la Tejedora» teje.
 /// Nulo si se le conoce por un mote o por de dónde venía.
 int? folkNamedTrade(int seed) {
-  if (hash01(seed, 103) >= 0.68) return null;
+  if (folkIsKid(seed) || hash01(seed, 103) >= 0.68) return null;
   final k = hashInt(_trade.length, seed, 102);
   return k < _realTrades ? k : null;
 }

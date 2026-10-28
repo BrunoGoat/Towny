@@ -66,6 +66,28 @@ void main() {
       expect(probados, greaterThan(10));
     });
 
+    test('los críos lo dicen, y no tienen oficio', () {
+      final h = pueblo(400);
+      final l = TownLayout(400, TownCharacter.byOrder(h.character));
+      enrolFolk(h, l);
+      final gente = {for (final v in folkOf(l, 400)) v.home: v};
+      var criosVistos = 0;
+      for (final b in l.buildings) {
+        final c = folkCardOf(h, l, 0, b.index);
+        final v = gente[b.index];
+        if (c == null || v == null) continue;
+        // La ficha y el que anda por el pueblo son la misma persona.
+        expect(c.name, v.name, reason: 'casa ${b.index}');
+        if (!v.kid) continue;
+        criosVistos++;
+        expect(c.trade, anyOf('Niño', 'Niña'), reason: c.name);
+        for (final oficio in ['Tejedor', 'Herrer', 'Pastor', 'Moliner']) {
+          expect(c.name, isNot(contains(oficio)), reason: c.name);
+        }
+      }
+      expect(criosVistos, greaterThan(3));
+    });
+
     test('en los hitos no vive nadie, y sólo las casas cuentan', () {
       final h = pueblo(400);
       final l = TownLayout(400, TownCharacter.byOrder(h.character));
