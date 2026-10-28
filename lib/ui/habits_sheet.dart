@@ -10,7 +10,6 @@ import '../l10n/lang.dart';
 import '../model/cadence.dart';
 import '../model/habit.dart';
 import '../model/pledge.dart';
-import '../model/sage_talk.dart';
 import '../model/store.dart';
 import 'cadence_sheet.dart';
 import 'habit_sigil.dart';
@@ -674,13 +673,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
           ),
           fila(
             tr('EN QUIÉN TE CONVIERTE', 'WHO IT MAKES YOU'),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _who(t, velo, start: true, label: false),
-                _votes(t, velo),
-              ],
-            ),
+            _who(t, velo, start: true, label: false),
           ),
           if (_hasIfPlan) ...[
             fila(
@@ -739,28 +732,6 @@ class _HabitsSheetState extends State<HabitsSheet> {
   /// propone el consejero el día que hace falta.
   late final bool _hasIfPlan =
       widget.store.habit.planIf != null || widget.store.habit.planThen != null;
-
-  /// Los votos por la persona que dice que querés ser: una pieza, un voto,
-  /// desde que se escribió la frase. Sólo con la frase escrita y algún voto.
-  Widget _votes(UiTheme t, SheetInk velo) {
-    final h = widget.store.habit;
-    final n = identityVotes(h);
-    if (identityWanted(h) == null || n == 0) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.only(top: 2),
-      child: Text(
-        n == 1
-            ? tr('un voto por esta persona', 'one vote for this person')
-            : tr('$n votos por esta persona', '$n votes for this person'),
-        style: t.bodySoft.copyWith(
-          fontSize: 11.5,
-          fontStyle: FontStyle.italic,
-          color: t.accent.withValues(alpha: 0.9),
-          shadows: velo.aliento,
-        ),
-      ),
-    );
-  }
 
   /// Lo mínimo que cuenta, igual que el plan: sólo si ya se escribió. Un
   /// renglón vacío más en la hoja es un formulario más largo, y esto lo
