@@ -368,3 +368,47 @@ La primera vez, después del correo, el viejo habla en su pantalla sobre el vall
 **91.** «Elige con calma: no lo que más te pesa, sino lo que de verdad puedas mantener. Primero se gana confianza.» → abajo, el botón «Fundar mi primer pueblo», que se deja apretado.
 
 Después de fundar, la pregunta de empezar o dejar sigue donde estaba: la primera vez que se le habla con el pueblo ya fundado.
+
+### El orden para quien empieza un buen hábito
+
+Decidido por el autor del 1 al 13, y el resto en el orden en que suelen hacer falta. Uno por día. Los números de la izquierda son el orden nuevo, y los corchetes [E…] de arriba quedaron viejos.
+
+1. «El que empieza sin espada…» (presentación)
+2. «El roble más grande fue una bellota…» (presentación)
+3. «Cada semilla necesita su rincón de tierra.»
+4. «Lo que el ojo no ve, la mano no lo busca.»
+5. «Quien espera el viento perfecto nunca suelta la vela.»
+6. «La abeja vuelve a la flor que le dio miel.»
+7. «No preguntes cuánto llovió. Pregunta si llovió.»
+8. «Quien prepara la leña al atardecer tiene fuego en la noche.»
+9. «Cada piedra en el camino es una excusa sentada, esperando.»
+10. «Que decida quien traza el camino, no quien tropieza en él.»
+11. «Nadie le gana al río parado en el medio.»
+12. «El bambú pasa años bajo tierra antes de asomar.»
+13. «Quien sabe para qué soporta casi cualquier cómo.»
+14. «El sol no pregunta si tiene ganas de salir.»
+15. «Una gota no hace un charco. Dos, empiezan.»
+16. «Nadie sube la montaña. Se dan pasos.»
+17. «En invierno el árbol no da frutos, y sigue siendo árbol.»
+18. «Llegar tarde a la fuente igual calma la sed.»
+19. «La buena mañana se siembra la noche anterior.»
+20. «El pájaro vuelve a la misma rama, y por eso la rama lo espera.»
+21. «Una intención es una nube. Una cita es una piedra.»
+22. «No eres lo que haces una vez. Eres lo que haces siempre.»
+23. «La flor no espera a ser perfecta para abrirse.»
+24. «Lo que termina bien, vuelve.»
+25. «El rocío se junta antes de que salga el sol.»
+26. «El sabio arregla el techo cuando hay sol.»
+27. «Mira atrás de vez en cuando: el camino también enseña.»
+28. «La piedra no se gasta por la fuerza del agua, sino por su costumbre.»
+29. «Agradece al día, aunque haya sido pequeño.»
+30. «La semilla no decide dónde cae. Tú sí.»
+31. «Quien persigue dos conejos no atrapa ninguno.»
+32. «El árbol no pide el cielo de un día para otro.»
+33. «Todo río tiene un manantial.»
+34. «Quien se castiga por caer aprende a no levantarse.»
+35. «Una promesa dicha en voz alta pesa más que mil pensadas.»
+36. «Hasta el río se detiene en el lago.»
+37. «Cuando ya no se piensa, es que echó raíz. Entonces se riega.»
+38. «Quien enseña, aprende dos veces.»
+39. «Un ladrillo no es una casa. Mil ladrillos, sí.»

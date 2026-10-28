@@ -49,6 +49,11 @@ class AdviceBook extends ChangeNotifier {
   /// Pueblo -> lo que se busca con él.
   final Map<String, AdviceGoal> _goals = {};
 
+  /// Los que dio al presentarse ([give]), y no ganó por el camino: ésos no
+  /// cuentan como el consejo del día.
+  final Set<String> _given = {};
+  static const String _givenKey = 'consejero_dados_v1';
+
   /// Si ya se presentó: la presentación es una vez en la vida.
   bool _met = false;
   static const String _metKey = 'consejero_conocido_v1';
@@ -127,6 +132,7 @@ class AdviceBook extends ChangeNotifier {
     _why.clear();
     _goals.clear();
     _seen.clear();
+    _given.clear();
     _met = false;
     _weekAt = null;
     _weeks.clear();
@@ -147,6 +153,7 @@ class AdviceBook extends ChangeNotifier {
         }
       }
       _seen.addAll(prefs.getStringList(_seenKey) ?? const <String>[]);
+      _given.addAll(prefs.getStringList(_givenKey) ?? const <String>[]);
       _met = prefs.getBool(_metKey) ?? false;
       final semana = prefs.getInt(_weekKey);
       if (semana != null) {
@@ -288,6 +295,7 @@ class AdviceBook extends ChangeNotifier {
   void give(Advice a, {DateTime? now}) {
     if (_got.any((g) => g.$1 == a.id)) return;
     _got.add((a.id, now ?? DateTime.now()));
+    _given.add(a.id);
     unawaited(flush());
     notifyListeners();
   }
@@ -408,12 +416,14 @@ class AdviceBook extends ChangeNotifier {
     }
     final hoy = dayKey(at);
     // Los de la presentación no son el del día: el día que se funda el
-    // primer pueblo, el viejo ya tiene uno nuevo.
+    // primer pueblo, el viejo ya tiene uno nuevo. Sólo los que dio ahí: a
+    // quien no pasó por ella, el de la bellota le llega por el camino y sí
+    // es el del día.
     final yaHoy = _got.any(
       (g) =>
           dayKey(g.$2) == hoy &&
           adviceById[g.$1]!.event == null &&
-          !prologueAdvice.contains(g.$1),
+          !_given.contains(g.$1),
     );
     if (!yaHoy) {
       // Si lo que sale primero es por lo que le está pasando al pueblo que
@@ -459,6 +469,7 @@ class AdviceBook extends ChangeNotifier {
           ].join('|'),
       ]);
       await prefs.setStringList(_seenKey, _seen.toList());
+      await prefs.setStringList(_givenKey, _given.toList());
       await prefs.setBool(_metKey, _met);
       if (_weekAt != null) {
         await prefs.setInt(_weekKey, _weekAt!.millisecondsSinceEpoch);
@@ -485,6 +496,7 @@ class AdviceBook extends ChangeNotifier {
     _why.clear();
     _goals.clear();
     _seen.clear();
+    _given.clear();
     _weekAt = null;
     _weeks.clear();
     _restTalks.clear();
