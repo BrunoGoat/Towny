@@ -69,6 +69,12 @@ class Feast {
 /// cada tres, y tan seguido dejaba de ser un momento que se encuentra.
 const double _cadaCuanto = 0.17;
 
+/// Cuánto siguen volando las palomas después de irse, en segundos. Como los
+/// pájaros de la fuente: se van lejos y alto, hasta que ya no se las ve, y
+/// no se apagan en el aire. A los catorce segundos todavía se veían, y
+/// desaparecían de golpe.
+const double _seVan = 60;
+
 /// Cuándo sale el pan de la túnica, cuándo lo tiene en el regazo y
 /// cuándo tira el primer puñado, en segundos desde que se sentó.
 const double _saca = 5.0, _enRegazo = 6.6, _primero = 7.4;
@@ -141,7 +147,7 @@ Feast? sageFeast(
   final reloj = sage.benchClock(time);
   if (reloj == null || !day) return null;
   final p = reloj.since, sits = reloj.sits, lap = reloj.lap;
-  if (p < 0 || p > sits + 15) return null;
+  if (p < 0 || p > sits + _seVan) return null;
   final s = sage.seed;
   if (hash01(s, lap, 0x9A1) >= _cadaCuanto) return null;
 
@@ -474,7 +480,7 @@ BirdVisit _paloma(
   }
   final fuera = p - vanse;
   if (fuera >= 0) {
-    if (fuera > 14) return BirdVisit.none;
+    if (fuera > _seVan) return BirdVisit.none;
     // Arranca de golpe —las palomas no se despiden— lejos del viejo y hacia
     // arriba, y después sube en diagonal hasta perderse.
     final lejos = math.atan2(ultimo.z - viejo.$2, ultimo.x - viejo.$1);
