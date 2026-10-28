@@ -75,11 +75,11 @@ const Map<BuildingKind, int> buildingCost = {
 };
 
 Map<BuildingKind, String> get buildingName => {
-  BuildingKind.shed: tr('Cobertizo', 'Shed'),
+  BuildingKind.shed: tr('Casita', 'Little house'),
   BuildingKind.cottage: tr('Casa', 'Cottage'),
-  BuildingKind.workshop: tr('Taller', 'Workshop'),
-  BuildingKind.house: tr('Casona', 'Manor'),
-  BuildingKind.granary: tr('Granero', 'Granary'),
+  BuildingKind.workshop: tr('Morada', 'Dwelling'),
+  BuildingKind.house: tr('Caserón', 'Big house'),
+  BuildingKind.granary: tr('Casa de piedra', 'Stone house'),
   BuildingKind.townhouse: tr('Casa de vecinos', 'Tenement'),
   BuildingKind.inn: tr('Posada', 'Inn'),
 };

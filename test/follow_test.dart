@@ -128,7 +128,7 @@ void main() {
         trade: 'Tejedora',
         born: DateTime(2026, 3, 1),
         house: 3,
-        houseName: 'Taller',
+        houseName: 'Morada',
         woman: true,
       );
       await tester.pumpWidget(
@@ -141,7 +141,7 @@ void main() {
       expect(find.text('Ximena la Tejedora'), findsOneWidget);
       expect(find.text('Tejedora'), findsOneWidget);
       expect(find.textContaining('desde el'), findsOneWidget);
-      expect(find.text('3.ª casa · taller'), findsOneWidget);
+      expect(find.text('3.ª casa · morada'), findsOneWidget);
       // Sin caja ni fondo: es texto sobre el pueblo.
       expect(find.byType(Container), findsNothing);
       expect(find.byType(DecoratedBox), findsNothing);
