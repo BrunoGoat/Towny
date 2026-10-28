@@ -1559,9 +1559,10 @@ class TownPainter extends CustomPainter {
       final f = r.f;
       if (f.n.y.abs() >= 0.95) continue;
       final c = casterOf(f);
-      var sx = 0.0, sz = 0.0;
+      var sx = 0.0, sy = 0.0, sz = 0.0;
       for (final v in f.v) {
         sx += v.x;
+        sy += v.y;
         sz += v.z;
       }
       // Lo que se transparenta, en trozos más grandes: sus sombras se suman
@@ -1569,8 +1570,14 @@ class TownPainter extends CustomPainter {
       final palmo = c.k < 1 ? 0.6 : 0.2;
       final gx = (sx / f.v.length / palmo).floor() & 0x3FF;
       final gz = (sz / f.v.length / palmo).floor() & 0x3FF;
+      // Y por alturas, el agua: el chorro sube alto y fino por el medio de
+      // la cortina, y juntos en un trozo la envolvente de los dos era una
+      // punta de flecha con alas —la sombra larga del chorro con la ancha de
+      // la cortina pegada—. Cada altura por su lado, el chorro deja una
+      // franja fina y la cortina su anillo.
+      final gy = c.k < 1 ? (sy / f.v.length / 0.15).floor() & 0x3F : 0;
       final key =
-          (((r.tag & 0xFFFF) << 21) | (gx << 11) | (gz << 1)) |
+          (((r.tag & 0xFFFF) << 27) | (gy << 21) | (gx << 11) | (gz << 1)) |
           (c.k < 1 ? 1 : 0);
       final g = juntos.putIfAbsent(key, () => (<V3>[], c.k));
       g.$1.addAll(c.pts);
