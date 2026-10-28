@@ -25,18 +25,26 @@ Map<String, List<String>> _arbol() {
     if (f is! File || !f.path.endsWith('.dart')) continue;
     final dentro = <String>[];
     for (final l in f.readAsLinesSync()) {
-      final m = RegExp("^import\\s+'([^']+)'").firstMatch(l);
+      // Los `export` también, y las dos ramas de uno condicional —la del
+      // teléfono y la de la web—: las dos se usan, según dónde corra.
+      final m = RegExp("^(?:import|export)\\s+'([^']+)'").firstMatch(l);
       if (m == null) continue;
-      final to = m.group(1)!;
-      if (to.startsWith('dart:') ||
-          (to.startsWith('package:') && !to.startsWith('package:towny/'))) {
-        continue;
+      final todos = [
+        m.group(1)!,
+        for (final c in RegExp("if \\([^)]*\\)\\s*'([^']+)'").allMatches(l))
+          c.group(1)!,
+      ];
+      for (final to in todos) {
+        if (to.startsWith('dart:') ||
+            (to.startsWith('package:') && !to.startsWith('package:towny/'))) {
+          continue;
+        }
+        dentro.add(
+          to.startsWith('package:towny/')
+              ? 'lib/${to.substring('package:towny/'.length)}'
+              : _normalize('${File(f.path).parent.path}/$to'),
+        );
       }
-      dentro.add(
-        to.startsWith('package:towny/')
-            ? 'lib/${to.substring('package:towny/'.length)}'
-            : _normalize('${File(f.path).parent.path}/$to'),
-      );
     }
     out[f.path] = dentro;
   }

@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 
 import '../data/tunes.dart';
 import '../model/appearance.dart';
+import 'loop_track.dart';
 
 /// One noise, with a name a person would recognise it by.
 class SoundBite {
@@ -71,7 +72,7 @@ class Sensory {
   Tune _tune = tunes.first;
   Tune get tune => _tune;
 
-  final List<AudioPlayer> _mus = [];
+  final List<LoopTrack> _mus = [];
   final List<double> _musAt = [0, 0, 0];
 
   /// Lo último que se le dijo de verdad a cada reproductor. El volumen que
@@ -96,8 +97,7 @@ class Sensory {
   Future<void> _loadTune(Tune want) async {
     for (final p in _mus) {
       try {
-        await p.stop();
-        await p.dispose();
+        p.dispose();
       } catch (_) {}
     }
     _mus.clear();
@@ -117,16 +117,11 @@ class Sensory {
     // que arranque y se sigue; lo que no pudo arrancar arranca al primer
     // toque ([_unlock]).
     for (final name in want.files) {
+      final p = LoopTrack();
+      _mus.add(p);
       try {
-        final p = AudioPlayer();
-        await p.setReleaseMode(ReleaseMode.loop);
-        await p.setVolume(0);
-        await p.setSource(AssetSource('sfx/$name'));
-        _mus.add(p);
-        unawaited(p.resume().catchError((Object _) {}));
-      } catch (_) {
-        _mus.add(AudioPlayer());
-      }
+        await p.load(name);
+      } catch (_) {}
     }
     _musReady = _mus.isNotEmpty;
   }
@@ -172,7 +167,7 @@ class Sensory {
       if (!worthSending(_musAt[i], _musSent[i], want[i])) continue;
       _musSent[i] = _musAt[i];
       try {
-        await _mus[i].setVolume(_musAt[i]);
+        _mus[i].setVolume(_musAt[i]);
       } catch (_) {}
     }
   }
@@ -214,7 +209,7 @@ class Sensory {
         } else {
           _mus[i].setVolume(_musAt[i].clamp(0.0, 1.0));
           _musSent[i] = _musAt[i];
-          _mus[i].resume();
+          _mus[i].play();
         }
       } catch (_) {}
     }
@@ -542,7 +537,10 @@ class Sensory {
   }
 
   void dispose() {
-    for (final p in [..._pool, ..._mus, ?_wisher, ?_starPlayer, ?_reeler]) {
+    for (final p in [..._pool, ?_wisher, ?_starPlayer, ?_reeler]) {
+      p.dispose();
+    }
+    for (final p in _mus) {
       p.dispose();
     }
     _wisher = null;
