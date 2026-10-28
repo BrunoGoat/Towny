@@ -237,7 +237,10 @@ List<Solid> folkSolids(
   }
 
   final pano = _cloth[hashInt(_cloth.length, seed, 2)];
-  final piel = _skin[hashInt(_skin.length, seed, 3)];
+  // El consejero, siempre el mismo: de piel clara en todos los valles. La
+  // sacaba de su semilla, que cambia con el valle, y en uno nuevo salía de
+  // otro color que en su pantalla, donde está el de siempre.
+  final piel = who.sage ? _skin[1] : _skin[hashInt(_skin.length, seed, 3)];
   final pelo = _hair[hashInt(_hair.length, seed, 5)];
 
   final act = at.act;
