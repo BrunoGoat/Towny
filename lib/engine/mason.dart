@@ -221,8 +221,18 @@ class Mason {
   void parapet(double w, double d, double ht, {double dx = 0, double dz = 0}) =>
       box(PieceKind.parapet, w, d, ht, dx: dx, dz: dz);
 
-  void chimney(double side, double ht, {double dx = 0, double dz = 0}) =>
-      box(PieceKind.chimney, side, side, ht, dx: dx, dz: dz, ridge: true);
+  /// A chimney, [ht] tall over the course line on a roof of ordinary pitch.
+  ///
+  /// On a steeper roof it grows by what the steeper slope adds over its own
+  /// spot: written for a roof of pitch one, a chimney on the steep thatch of
+  /// the oak country came up a hand's breadth above the straw, or not at all.
+  void chimney(double side, double ht, {double dx = 0, double dz = 0}) {
+    if (pitch > 1) {
+      final tejas = _tilesAt(dx, dz) - y;
+      if (tejas > 0) ht += tejas * (1 - 1 / pitch);
+    }
+    box(PieceKind.chimney, side, side, ht, dx: dx, dz: dz, ridge: true);
+  }
 
   /// A dormer: a little window standing out of the slope of a roof.
   ///
@@ -238,6 +248,9 @@ class Mason {
   /// half of it climbs out of the roof and what you see is a crate half sunk
   /// in the tiles rather than a window in them.
   void dormer(double w, double ht, {double dx = 0, double dz = 0, double? at}) {
+    // On a steep roof the slope climbs faster across the dormer's depth and
+    // buries more of it: taller, so its little gable still stands clear.
+    if (pitch > 1) ht *= 1 + (pitch - 1) * 0.6;
     final deep = w * 0.55;
     final ox = alongX ? dx : dz;
     final oz = alongX ? dz : dx;
@@ -253,7 +266,10 @@ class Mason {
       dx: ox,
       dz: oz,
       ridge: true,
-      at: at ?? low - ht * 0.22,
+      // Hundida un poco en las tejas, menos cuanto más empinado: en un techo
+      // de paja muy inclinado la paja tapaba toda su pared y quedaba sólo el
+      // triángulo de arriba asomando.
+      at: at ?? low - ht * (pitch > 1 ? 0.22 - 0.30 * (pitch - 1) : 0.22),
     );
   }
 

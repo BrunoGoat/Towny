@@ -302,11 +302,13 @@ void main() {
               'cuesta ${mark.cost}',
         );
         // Lo empinado del tejado sí es de la comarca, y va aparte.
-        // Y lo que se apoya en un tejado —la buhardilla— sube y baja con él.
+        // Y lo que se apoya en un tejado —la buhardilla, la chimenea— sube y
+        // baja con él: en un tejado más empinado asoman más.
         bool techoDe(PieceKind k) =>
             k == PieceKind.roof ||
             k == PieceKind.thatch ||
-            k == PieceKind.dormer;
+            k == PieceKind.dormer ||
+            k == PieceKind.chimney;
         for (final c in TownCharacter.all) {
           final l = TownLayout.showcase(c, landmark: mark, placed: mark.cost);
           final hechas = l.pieces.where((p) => p.building == 0).toList();
