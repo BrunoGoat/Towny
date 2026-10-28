@@ -21,7 +21,6 @@ import 'package:towny/model/notice.dart';
 import 'package:towny/model/pledge.dart';
 import 'package:towny/model/store.dart';
 import 'package:towny/ui/adrift_sheet.dart';
-import 'package:towny/ui/backup_sheet.dart';
 import 'package:towny/ui/cadence_sheet.dart';
 import 'package:towny/ui/choice_sheet.dart';
 import 'package:towny/ui/debug_sheet.dart';
@@ -285,8 +284,6 @@ void main() {
       sinCastellanoEnPantalla(tester, 'la deriva');
       await abrir(tester, CadenceSheet(habit: h, theme: t, onPick: (_) {}));
       sinCastellanoEnPantalla(tester, 'el ritmo');
-      await abrir(tester, BackupSheet(store: store, theme: t));
-      sinCastellanoEnPantalla(tester, 'tus datos');
       await abrir(tester, DebugSheet(store: store, theme: t));
       sinCastellanoEnPantalla(tester, 'el pueblo a futuro');
     });

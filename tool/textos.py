@@ -321,8 +321,6 @@ PANTALLAS = [
   'apagó.'),
  ('lib/ui/unlock_sheet.dart', 'El segundo hábito',
   'Lo que se lee cuando se abre el sitio para un segundo pueblo en el valle.'),
- ('lib/ui/backup_sheet.dart', 'Tus datos',
-  'En ajustes: copiar el valle entero al portapapeles y volver a meterlo.'),
  ('lib/ui/settings_sheet.dart', 'Ajustes',
   'Todo lo de la hoja de ajustes: sonido, hora, año, avisos, y los atajos de '
   'desarrollo del final.'),

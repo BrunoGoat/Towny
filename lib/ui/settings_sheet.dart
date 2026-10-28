@@ -23,7 +23,6 @@ import '../model/reel.dart';
 import '../model/sage_talk.dart';
 import '../model/store.dart';
 import '../sync/cloud.dart';
-import 'backup_sheet.dart';
 import 'choice_sheet.dart';
 import 'debug_sheet.dart';
 import 'first_run.dart';
@@ -80,7 +79,6 @@ class _SettingsSheetState extends State<SettingsSheet> {
     return ListenableBuilder(
       listenable: Appearance.instance,
       builder: (context, _) {
-        final hoy = Season.on(DateTime.now(), Appearance.instance.hemisphere);
         return _Velo(
           theme: t,
           height: MediaQuery.of(context).size.height * 0.88,
@@ -95,19 +93,13 @@ class _SettingsSheetState extends State<SettingsSheet> {
           // una tarde: se probaba algo que no salía, y la pregunta «¿está el
           // cambio o es la build de antes?» no tenía manera de contestarse
           // desde el teléfono. Lo pone el flujo al compilar; en local no hay.
+          // La estación va en «El año», que es donde se habla de ella; y la
+          // build sólo para quien puso el código de desarrollo.
           line: [
             if (widget.dev)
-              tr('Para probar, no para usar', 'For testing, not for using')
-            else if (Appearance.instance.seasons)
-              tr(
-                '${hoy.name} · ${hoy.daylightHours.toStringAsFixed(1)} horas '
-                    'de luz',
-                '${hoy.name} · ${hoy.daylightHours.toStringAsFixed(1)} hours '
-                    'of daylight',
-              )
-            else
-              tr('El año quieto', 'The year standing still'),
-            if (_build.isNotEmpty) 'build $_build',
+              tr('Para probar, no para usar', 'For testing, not for using'),
+            if (_build.isNotEmpty && Appearance.instance.devUnlocked)
+              'build $_build',
           ].join('  ·  '),
           child: _body(context, t),
         );
@@ -602,32 +594,6 @@ class _SettingsSheetState extends State<SettingsSheet> {
                   ),
                 ],
               ),
-            // Lo primero de todo: quien abrió los ajustes buscando esto puede no
-            // entender nada de lo que hay debajo.
-            _Section(
-              theme: t,
-              title: tr('IDIOMA · LANGUAGE', 'LANGUAGE · IDIOMA'),
-              icon: Icons.translate,
-              children: [
-                _Pick(
-                  theme: t,
-                  options: [
-                    for (final l in Lang.values) (l.name, l.index * 1.0),
-                  ],
-                  value: wants.language.index * 1.0,
-                  onPick: (at) => wants.setLanguage(Lang.values[at.round()]),
-                ),
-                Text(
-                  wants.languageChosen
-                      ? tr('Lo elegiste vos.', 'You chose it.')
-                      : tr(
-                          'Sale del idioma del teléfono.',
-                          "It follows your phone's language.",
-                        ),
-                  style: _nota(t),
-                ),
-              ],
-            ),
             _Section(
               theme: t,
               title: tr('IMAGEN', 'GRAPHICS'),
@@ -702,15 +668,6 @@ class _SettingsSheetState extends State<SettingsSheet> {
                   },
                   onSettled: () => Sensory.instance.preview('place'),
                 ),
-                Text(
-                  tr(
-                    'La mitad es como sonaba antes de que hubiera dónde tocarlo, así '
-                        'que lo que muevas se mide contra algo que ya conocés.',
-                    'Halfway is how it sounded before there was a way to change it, '
-                        'so whatever you move is measured against something you know.',
-                  ),
-                  style: _nota(t),
-                ),
               ],
             ),
             _Section(
@@ -733,6 +690,15 @@ class _SettingsSheetState extends State<SettingsSheet> {
                   onChanged: wants.setSeasons,
                 ),
                 if (wants.seasons) ...[
+                  Text(
+                    tr(
+                      'Hoy es '
+                          '${Season.on(DateTime.now(), wants.hemisphere).name.toLowerCase()}.',
+                      'Today it is '
+                          '${Season.on(DateTime.now(), wants.hemisphere).name.toLowerCase()}.',
+                    ),
+                    style: _nota(t),
+                  ),
                   // Y qué estación cree que es hoy, dicho en voz alta.
                   //
                   // Es la única manera de que quien lo mire sepa si esto está bien
@@ -805,9 +771,8 @@ class _SettingsSheetState extends State<SettingsSheet> {
                   onChanged: (v) => wants.setHapticsOff(!v),
                 ),
                 _Undo(theme: t, store: store),
-                // La cuenta, al lado de la copia a mano: son las dos maneras de
-                // que el valle no viva sólo en este teléfono. Sin nube en esta
-                // build, no está.
+                // La cuenta: es lo que hace que el valle no viva sólo en este
+                // teléfono. Sin nube en esta build, no está.
                 if (Cloud.configured)
                   ListenableBuilder(
                     listenable: Cloud.instance,
@@ -868,16 +833,6 @@ class _SettingsSheetState extends State<SettingsSheet> {
                             },
                           ),
                   ),
-                _Row(
-                  theme: t,
-                  icon: Icons.save_alt,
-                  title: tr('Tus datos', 'Your data'),
-                  subtitle: tr(
-                    'Copiar tu valle y volver a meterlo.',
-                    'Copy your valley out and put it back in.',
-                  ),
-                  open: () => BackupSheet(store: store, theme: t),
-                ),
                 // Al lado de «a futuro» a propósito: son la misma clase de cosa mirada
                 // en las dos direcciones, y la de atrás es la única de las dos que
                 // habla de vos. Va primero porque es la que existe de verdad — la otra
@@ -908,6 +863,23 @@ class _SettingsSheetState extends State<SettingsSheet> {
                         habit: _conCronica(store).firstOrNull ?? 0,
                       ),
                     ),
+              ],
+            ),
+            // Abajo de todo, sólo el selector: el título ya lo dice en los dos
+            // idiomas para quien no entiende el que está puesto.
+            _Section(
+              theme: t,
+              title: tr('IDIOMA · LANGUAGE', 'LANGUAGE · IDIOMA'),
+              icon: Icons.translate,
+              children: [
+                _Pick(
+                  theme: t,
+                  options: [
+                    for (final l in Lang.values) (l.name, l.index * 1.0),
+                  ],
+                  value: wants.language.index * 1.0,
+                  onPick: (at) => wants.setLanguage(Lang.values[at.round()]),
+                ),
               ],
             ),
             // Las dos salidas, como en la hoja del hábito: en letra y no en
