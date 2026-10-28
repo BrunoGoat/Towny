@@ -56,6 +56,25 @@ void main() {
   });
 
   group('la primera vez', () {
+    testWidgets('mirada desde ajustes, la presentación no toca el libro', (
+      tester,
+    ) async {
+      Appearance.instance.rehearseOnboarding();
+      await tester.pumpWidget(
+        _marco(
+          FirstRun(onDone: (_, _, {required character, why, identity}) {}),
+        ),
+      );
+      await _asentar(tester);
+      await pasarPresentacion(tester);
+      // Llegó a la primera pregunta, y el viejo ni dio consejos ni quedó
+      // presentado: es un ensayo.
+      expect(find.text('¿Qué hábito querés desarrollar?'), findsOneWidget);
+      expect(AdviceBook.instance.unlocked(), isEmpty);
+      expect(AdviceBook.instance.met, isFalse);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('antes de nada, el viejo: se presenta, da dos consejos y '
         'deja el botón para fundar', (tester) async {
       await tester.pumpWidget(

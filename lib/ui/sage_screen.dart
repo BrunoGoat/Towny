@@ -441,9 +441,15 @@ class SagePrologueView extends StatefulWidget {
     super.key,
     required this.theme,
     required this.onFound,
+    this.rehearsal = false,
   });
 
   final UiTheme theme;
+
+  /// Para mirarla desde ajustes, sin que cuente: no toca el libro del viejo
+  /// —ni le suma los consejos ni lo da por presentado— y la lista de arriba
+  /// es sólo la de este ensayo.
+  final bool rehearsal;
 
   /// Se aguantó el botón del final.
   final VoidCallback onFound;
@@ -474,6 +480,10 @@ class _SagePrologueViewState extends State<SagePrologueView>
   Advice? _abierto;
   bool _dando = false;
   bool _fundando = false;
+
+  /// Lo leído en un ensayo, que no va al libro. Ver
+  /// [SagePrologueView.rehearsal].
+  final List<(Advice, DateTime)> _ensayo = [];
 
   @override
   void dispose() {
@@ -509,7 +519,7 @@ class _SagePrologueViewState extends State<SagePrologueView>
   /// nuevo.
   void _dar(int k) {
     final a = adviceById[prologueAdvice[k]]!;
-    _libro.give(a);
+    if (!widget.rehearsal) _libro.give(a);
     setState(() {
       _abierto = a;
       _dando = true;
@@ -538,7 +548,7 @@ class _SagePrologueViewState extends State<SagePrologueView>
   void _fundar() {
     if (_fundando) return;
     _fundando = true;
-    _libro.meet();
+    if (!widget.rehearsal) _libro.meet();
     widget.onFound();
   }
 
@@ -561,7 +571,7 @@ class _SagePrologueViewState extends State<SagePrologueView>
   Widget _escena(double walking, {required bool llego}) {
     final e = _e;
     final abre = SagePrologue.opening;
-    final leidos = _libro.read();
+    final leidos = widget.rehearsal ? _ensayo.reversed.toList() : _libro.read();
     // Lo que dice, por el globo en que va. Los consejos van en su rollo: en
     // su paso el globo calla.
     final String dice;
@@ -685,7 +695,11 @@ class _SagePrologueViewState extends State<SagePrologueView>
                 onClosed: () {
                   final dado = _dando;
                   setState(() {
-                    if (_dando) _libro.markRead(_abierto!);
+                    if (_dando && widget.rehearsal) {
+                      _ensayo.add((_abierto!, DateTime.now()));
+                    } else if (_dando) {
+                      _libro.markRead(_abierto!);
+                    }
                     _abierto = null;
                     _dando = false;
                   });

@@ -524,8 +524,12 @@ class _HomeScreenState extends State<HomeScreen>
                       note: _tryNote,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  _TryButton(onTap: _pickTryOut),
+                  // Sólo con el código de desarrollo: es para revisar las
+                  // actividades, no para usar.
+                  if (Appearance.instance.devUnlocked) ...[
+                    const SizedBox(height: 12),
+                    _TryButton(onTap: _pickTryOut),
+                  ],
                 ],
               ),
             ),

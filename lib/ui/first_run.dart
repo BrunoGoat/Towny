@@ -745,6 +745,7 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
                         Palette.forMoment(DateTime.now().hour + 0.0),
                       ),
                       onFound: _jump,
+                      rehearsal: Appearance.instance.rehearsing,
                     ),
                 ],
               ),

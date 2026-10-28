@@ -532,11 +532,14 @@ class _SettingsSheetState extends State<SettingsSheet> {
                     'See the first time again',
                   ),
                   subtitle: tr(
-                    'Abre la pantalla de entrada como si acabaras de instalar la '
-                        'app. Es sólo para mirar: al terminar vuelve tu valle tal cual.',
-                    "Opens the welcome screen as if you'd just installed the app. "
-                        "It's only for looking: when you finish, your valley comes back "
-                        'as it was.',
+                    'Abre la entrada como si acabaras de instalar la app, con la '
+                        'presentación del viejo, sus dos consejos y el salto. Es sólo '
+                        'para mirar: no toca tus datos ni el libro del consejero, y al '
+                        'terminar vuelve tu valle tal cual.',
+                    "Opens the welcome as if you'd just installed the app, with the "
+                        "advisor's introduction, his two sayings and the jump. It's "
+                        "only for looking: it doesn't touch your data or the advisor's "
+                        'book, and when you finish your valley comes back as it was.',
                   ),
                   act: (nav) {
                     Appearance.instance.rehearseOnboarding();
