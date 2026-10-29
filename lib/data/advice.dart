@@ -604,10 +604,10 @@ const List<Advice> dailyAdvice = [
   ),
   Advice(
     'paciencia',
-    'El bambú pasa años bajo tierra antes de asomar.',
-    'Tarda más de lo que crees. No es que no te salga: es que todavía se está haciendo.',
-    'Bamboo spends years underground before it shows.',
-    'It takes longer than you think. It isn’t that you can’t: it’s still being made.',
+    'El que riega el bambú sin verlo crecer es el que lo ve llegar al cielo.',
+    'Un hábito tarda más de lo que crees en sentirse natural, a veces meses. Los primeros días cuesta igual que siempre, pero por dentro ya está echando raíces. No es que no te salga: es que todavía se está haciendo.',
+    'Whoever waters the bamboo without seeing it grow is the one who sees it reach the sky.',
+    'A habit takes longer than you think to feel natural, sometimes months. The first days cost the same as always, but inside it’s already putting down roots. It isn’t that you can’t: it’s still being made.',
   ),
   Advice(
     'porque',

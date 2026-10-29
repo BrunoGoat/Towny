@@ -54,9 +54,6 @@ Si la hora pasó, hazlo igual: más tarde y más pequeño, pero hoy.
 **28.** «El sabio arregla el techo cuando hay sol.» [E28]  
 Piensa en los días extraños antes de que lleguen: un viaje, una visita. Si ya sabes qué harás ese día, nada se derrumba.
 
-**29.** «El bambú pasa años bajo tierra antes de asomar.» [E29 · D23]  
-Tarda más de lo que crees. No es que no te salga: es que todavía se está haciendo.
-
 **30.** «El árbol no pide el cielo de un día para otro.» [E30]  
 Cuando lo pequeño ya no cueste, añade un poco. Un poco, no el doble: lo que debe seguir siendo fácil es empezar.
 
@@ -240,6 +237,11 @@ Termina con algo amable: un vaso de agua fresca, un rato al sol. Lo que se recue
 
 Reescrito: ver el 19 en Aprobado.
 
+**29.** ~~«El bambú pasa años bajo tierra antes de asomar.» [E29 · D23]~~  
+~~Tarda más de lo que crees. No es que no te salga: es que todavía se está haciendo.~~
+
+Reescrito: ver el 29 en Aprobado.
+
 **10.** ~~«Que decida quien traza el camino, no quien tropieza en él.» [E10 · D8]~~  
 ~~Decide en calma, el día antes, qué harás y cuándo. Quien despierta con sueño no debe pensar ni elegir: solo seguir el plan que dejó tu mejor versión.~~
 
@@ -354,6 +356,9 @@ Quita los pasos que hay antes de empezar: si entre tú y el hábito hay tres, qu
 **19.** «El que no quiere mojarse no camina bajo la cascada.» [10.º para quien empieza · también para quien deja]  
 No es falta de voluntad. Nadie le gana a algo que tiene al lado todo el día, porque la voluntad se cansa y la distracción no. Aleja lo que te distrae: el teléfono en otro cuarto, la tele apagada. Lo que no está cerca no tienta.
 
+**29.** «El que riega el bambú sin verlo crecer es el que lo ve llegar al cielo.» [11.º para quien empieza · también para quien deja]  
+Un hábito tarda más de lo que crees en sentirse natural, a veces meses. Los primeros días cuesta igual que siempre, pero por dentro ya está echando raíces. No es que no te salga: es que todavía se está haciendo.
+
 **81.** «El que empieza sin espada no busca al gigante… busca primero la herrería.» [en la presentación, antes del primer pueblo · a todos]  
 No empieces por lo que más te cuesta. Empieza por algo que puedas sostener. Cada día cumplido es un arma que juntas: confianza, costumbre, ganas. Con eso en la mano, lo difícil llega después y ya no lo enfrentas desarmado.
 
@@ -399,7 +404,7 @@ Decidido por el autor del 1 al 13, y el resto en el orden en que suelen hacer fa
 8. «Quien deja el farol encendido no busca la puerta a oscuras.»
 9. «Lo que está a un paso se hace. Lo que está a diez, se piensa.»
 10. «El que no quiere mojarse no camina bajo la cascada.»
-11. «El bambú pasa años bajo tierra antes de asomar.»
+11. «El que riega el bambú sin verlo crecer es el que lo ve llegar al cielo.»
 12. «Quien sabe para qué soporta casi cualquier cómo.»
 13. «El sol no pregunta si tiene ganas de salir.»
 14. «Una gota no hace un charco. Dos, empiezan.»
