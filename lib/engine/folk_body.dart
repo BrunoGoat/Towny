@@ -484,9 +484,9 @@ List<Solid> folkSolids(
         link(en(-0.18, 0), en(0.03, 0), 0.105, 0xFFE2B878, 1.0, deep: 0.050);
         // La boca, oscura, en el medio de la caja.
         link(
-          en(-0.095, 0.052),
-          en(-0.045, 0.052),
-          0.026,
+          en(-0.110, 0.052),
+          en(-0.035, 0.052),
+          0.038,
           0xFF3B2614,
           0.84,
           deep: 0.004,
