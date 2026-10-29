@@ -320,10 +320,10 @@ const List<Advice> dailyAdvice = [
   ),
   Advice(
     'dosminutos',
-    'Nadie sube la montaña. Se dan pasos.',
-    'No te propongas hacerlo entero: proponte empezar. Casi nadie se detiene una vez que ha empezado.',
-    'Nobody climbs the mountain. They take steps.',
-    'Don’t set out to do all of it: set out to begin. Hardly anyone stops once they’ve started.',
+    'La rueda cuesta en el primer giro. Después gira sola.',
+    'No te propongas hacerlo entero. Proponte solo empezar. Lo que más cuesta es arrancar, y una vez en marcha seguir cuesta mucho menos, así que casi siempre terminas haciendo más de lo que pensabas.',
+    'The wheel is hard on the first turn. After that it turns on its own.',
+    'Don’t set out to do all of it. Set out only to begin. Starting is what costs the most, and once you’re going, keeping on costs much less, so you almost always end up doing more than you planned.',
     goal: AdviceGoal.start,
   ),
   Advice(
