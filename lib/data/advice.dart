@@ -527,10 +527,10 @@ const List<Advice> dailyAdvice = [
   // ------------------------------------------------------- para los dos
   Advice(
     'nodosveces',
-    'Una gota no hace un charco. Dos, empiezan.',
-    'Faltar un día le pasa a cualquiera y no rompe nada. Lo que rompe es el segundo seguido.',
-    'One drop doesn’t make a puddle. Two begin one.',
-    'Missing a day happens to anyone and breaks nothing. What breaks things is the second in a row.',
+    'El charco no nace de una gota, nace de la que viene detrás.',
+    'Faltar un día le pasa a cualquiera y no rompe nada. El hábito sigue vivo. Pero dos días seguidos ya empiezan a armar una costumbre nueva, la de no hacerlo. Si fallaste ayer, hoy hazlo aunque sea chiquito.',
+    'The puddle isn’t born from one drop, it’s born from the one that comes after.',
+    'Missing a day happens to anyone and breaks nothing. The habit is still alive. But two days in a row start building a new custom, the one of not doing it. If you missed yesterday, do it today, even if it’s tiny.',
   ),
   Advice(
     'diamalo',

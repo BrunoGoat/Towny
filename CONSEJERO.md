@@ -197,12 +197,6 @@ No te propongas hacerlo entero: proponte empezar. Casi nadie se detiene una vez 
 > **Propuesta:** «Lo difícil no es el camino. Es salir de casa.»  
 > No te propongas hacerlo entero. Proponte solo empezar. Una vez que empezaste, casi siempre sigues.
 
-**7.** «Una gota no hace un charco. Dos, empiezan.» [E7 · D9]  
-Faltar un día le pasa a cualquiera y no rompe nada. Lo que rompe es el segundo seguido.
-
-> **Propuesta:** «Tropezar una vez es tropezar. Dos veces, es empezar a caer.»  
-> Faltar un día le pasa a cualquiera y no rompe nada. Lo importante es no faltar dos días seguidos.
-
 **14.** «El pájaro vuelve a la misma rama, y por eso la rama lo espera.» [E14]  
 Mismo lugar, misma hora, mismo primer gesto. El cuerpo lo reconoce antes que la mente.
 
@@ -243,6 +237,11 @@ Reescrito: ver el 29 en Aprobado.
 ~~Escribe en una línea por qué empezaste. El día que lo olvides, léela.~~
 
 Reescrito: ver el 31 en Aprobado.
+
+**7.** ~~«Una gota no hace un charco. Dos, empiezan.» [E7 · D9]~~  
+~~Faltar un día le pasa a cualquiera y no rompe nada. Lo que rompe es el segundo seguido.~~
+
+Reescrito: ver el 7 en Aprobado.
 
 **10.** ~~«Que decida quien traza el camino, no quien tropieza en él.» [E10 · D8]~~  
 ~~Decide en calma, el día antes, qué harás y cuándo. Quien despierta con sueño no debe pensar ni elegir: solo seguir el plan que dejó tu mejor versión.~~
@@ -364,6 +363,9 @@ Un hábito tarda más de lo que crees en sentirse natural, a veces meses. Los pr
 **31.** «Quien mira la estrella no cuenta las piedras del camino.» [12.º para quien empieza · también para quien deja]  
 Los días difíciles las ganas no alcanzan, pero un motivo claro sí. Cuando recuerdas para qué lo haces, el esfuerzo deja de ser un castigo y pasa a ser un precio que vale la pena. Escribe en una línea por qué empezaste. El día que lo olvides, léela.
 
+**7.** «El charco no nace de una gota, nace de la que viene detrás.» [14.º para quien empieza · también para quien deja]  
+Faltar un día le pasa a cualquiera y no rompe nada. El hábito sigue vivo. Pero dos días seguidos ya empiezan a armar una costumbre nueva, la de no hacerlo. Si fallaste ayer, hoy hazlo aunque sea chiquito.
+
 **81.** «El que empieza sin espada no busca al gigante… busca primero la herrería.» [en la presentación, antes del primer pueblo · a todos]  
 No empieces por lo que más te cuesta. Empieza por algo que puedas sostener. Cada día cumplido es un arma que juntas: confianza, costumbre, ganas. Con eso en la mano, lo difícil llega después y ya no lo enfrentas desarmado.
 
@@ -412,7 +414,7 @@ Decidido por el autor del 1 al 13, y el resto en el orden en que suelen hacer fa
 11. «El que riega el bambú sin verlo crecer es el que lo ve llegar al cielo.»
 12. «Quien mira la estrella no cuenta las piedras del camino.»
 13. «El sol no pregunta si tiene ganas de salir.»
-14. «Una gota no hace un charco. Dos, empiezan.»
+14. «El charco no nace de una gota, nace de la que viene detrás.»
 15. «Nadie sube la montaña. Se dan pasos.»
 16. «En invierno el árbol no da frutos, y sigue siendo árbol.»
 17. «Llegar tarde a la fuente igual calma la sed.»
