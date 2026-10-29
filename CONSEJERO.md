@@ -379,7 +379,7 @@ Hay días en que no da para todo, y eso no es fallar. Decide ahora cuál es la v
 **27.** «Quien suelta el día porque se le cayó la hora, tira la canasta por una manzana.» [17.º para quien empieza]  
 Si se te pasó la hora, no des el día por perdido. Hazlo igual, más tarde y más chico, pero hoy. Lo que sostiene la costumbre es no saltear el día, no la hora exacta.
 
-**14.** «El sendero que se pisa cada día se abre solo.» [18.º para quien empieza]  
+**14.** «El que siempre entra por la misma puerta no se pierde en la casa.» [18.º para quien empieza]  
 Empieza siempre con el mismo gesto: prender la misma luz, servirte el mismo té. Después de unas veces ese gesto avisa solo, y el cuerpo arranca antes de que tengas que pensarlo.
 
 **81.** «El que empieza sin espada no busca al gigante… busca primero la herrería.» [en la presentación, antes del primer pueblo · a todos]  
@@ -434,7 +434,7 @@ Decidido por el autor del 1 al 13, y el resto en el orden en que suelen hacer fa
 15. «La rueda cuesta en el primer giro. Después gira sola.»
 16. «En los días de sequía, el río se hace hilo, pero no deja de correr.»
 17. «Quien suelta el día porque se le cayó la hora, tira la canasta por una manzana.»
-18. «El sendero que se pisa cada día se abre solo.»
+18. «El que siempre entra por la misma puerta no se pierde en la casa.»
 19. «Una intención es una nube. Una cita es una piedra.»
 20. «No eres lo que haces una vez. Eres lo que haces siempre.»
 21. «La flor no espera a ser perfecta para abrirse.»
