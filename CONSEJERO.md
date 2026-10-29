@@ -30,9 +30,6 @@ lugar. **E** es a quien empieza un hábito, **D** a quien deja uno.
 
 ### Los de todos los días
 
-**9.** «La buena mañana se siembra la noche anterior.» [E9]  
-Si es de mañana, déjalo todo listo antes de dormir: la ropa a la vista, el agua servida, el camino despejado. Que al despertar no haya nada que buscar ni nada que decidir.
-
 **16.** «Una intención es una nube. Una cita es una piedra.» [E16]  
 Escribe el plan entero: «haré esto, a esta hora, en este lugar».
 
@@ -246,6 +243,11 @@ Reescrito: ver el 13 en Aprobado.
 
 Reescrito: ver el 27 en Aprobado.
 
+**9.** ~~«La buena mañana se siembra la noche anterior.» [E9]~~  
+~~Si es de mañana, déjalo todo listo antes de dormir: la ropa a la vista, el agua servida, el camino despejado. Que al despertar no haya nada que buscar ni nada que decidir.~~
+
+Sacado: repetía el del farol (dejar las cosas listas), y pisaba el del camino que se ve y el de un paso. Borrado de la app, también del libro de quien ya lo tenía.
+
 **10.** ~~«Que decida quien traza el camino, no quien tropieza en él.» [E10 · D8]~~  
 ~~Decide en calma, el día antes, qué harás y cuándo. Quien despierta con sueño no debe pensar ni elegir: solo seguir el plan que dejó tu mejor versión.~~
 
@@ -430,24 +432,23 @@ Decidido por el autor del 1 al 13, y el resto en el orden en que suelen hacer fa
 15. «La rueda cuesta en el primer giro. Después gira sola.»
 16. «En los días de sequía, el río se hace hilo, pero no deja de correr.»
 17. «Quien suelta el día porque se le cayó la hora, tira la canasta por una manzana.»
-18. «La buena mañana se siembra la noche anterior.»
-19. «El pájaro vuelve a la misma rama, y por eso la rama lo espera.»
-20. «Una intención es una nube. Una cita es una piedra.»
-21. «No eres lo que haces una vez. Eres lo que haces siempre.»
-22. «La flor no espera a ser perfecta para abrirse.»
-23. «Lo que termina bien, vuelve.»
-24. «El rocío se junta antes de que salga el sol.»
-25. «El sabio arregla el techo cuando hay sol.»
-26. «Mira atrás de vez en cuando: el camino también enseña.»
-27. «La piedra no se gasta por la fuerza del agua, sino por su costumbre.»
-28. «Agradece al día, aunque haya sido pequeño.»
-29. «La semilla no decide dónde cae. Tú sí.»
-30. «Quien persigue dos conejos no atrapa ninguno.»
-31. «El árbol no pide el cielo de un día para otro.»
-32. «Todo río tiene un manantial.»
-33. «Quien se castiga por caer aprende a no levantarse.»
-34. «Una promesa dicha en voz alta pesa más que mil pensadas.»
-35. «Hasta el río se detiene en el lago.»
-36. «Cuando ya no se piensa, es que echó raíz. Entonces se riega.»
-37. «Quien enseña, aprende dos veces.»
-38. «Un ladrillo no es una casa. Mil ladrillos, sí.»
+18. «El pájaro vuelve a la misma rama, y por eso la rama lo espera.»
+19. «Una intención es una nube. Una cita es una piedra.»
+20. «No eres lo que haces una vez. Eres lo que haces siempre.»
+21. «La flor no espera a ser perfecta para abrirse.»
+22. «Lo que termina bien, vuelve.»
+23. «El rocío se junta antes de que salga el sol.»
+24. «El sabio arregla el techo cuando hay sol.»
+25. «Mira atrás de vez en cuando: el camino también enseña.»
+26. «La piedra no se gasta por la fuerza del agua, sino por su costumbre.»
+27. «Agradece al día, aunque haya sido pequeño.»
+28. «La semilla no decide dónde cae. Tú sí.»
+29. «Quien persigue dos conejos no atrapa ninguno.»
+30. «El árbol no pide el cielo de un día para otro.»
+31. «Todo río tiene un manantial.»
+32. «Quien se castiga por caer aprende a no levantarse.»
+33. «Una promesa dicha en voz alta pesa más que mil pensadas.»
+34. «Hasta el río se detiene en el lago.»
+35. «Cuando ya no se piensa, es que echó raíz. Entonces se riega.»
+36. «Quien enseña, aprende dos veces.»
+37. «Un ladrillo no es una casa. Mil ladrillos, sí.»
