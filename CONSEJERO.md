@@ -248,12 +248,6 @@ Cambia el lugar, no la fuerza de voluntad. El lugar decide más que tú.
 > **Propuesta:** «En buena tierra, la semilla crece sin esfuerzo.»  
 > En vez de exigirte más fuerza de voluntad, arregla el lugar. Si lo que necesitas está a mano y lo que te distrae está lejos, todo cuesta menos.
 
-**24.** «No preguntes cuánto llovió. Pregunta si llovió.» [E24]  
-Al principio no importa cuánto: importa que ese día estuviste.
-
-> **Propuesta:** «Al principio no importa cuánto llueve. Importa que llueva.»  
-> Al principio no importa cuánto hagas. Importa que ese día lo hiciste.
-
 **26.** «Lo que termina bien, vuelve.» [E26]  
 Termina con algo amable: un vaso de agua fresca, un rato al sol. Lo que se recuerda con gusto se repite.
 
@@ -261,6 +255,11 @@ Termina con algo amable: un vaso de agua fresca, un rato al sol. Lo que se recue
 > Termina con algo agradable: un vaso de agua fresca, un rato al sol. Lo que recuerdas con gusto, tienes ganas de repetirlo.
 
 ## Ya revisado
+
+**24.** ~~«No preguntes cuánto llovió. Pregunta si llovió.» [E24]~~  
+~~Al principio no importa cuánto: importa que ese día estuviste.~~
+
+Reescrito: ver el 24 en Aprobado.
 
 **12.** ~~«La abeja vuelve a la flor que le dio miel.» [E12]~~  
 ~~Únelo a algo que te guste: tu música solo al caminar, el té bueno solo al estudiar.~~
@@ -344,6 +343,9 @@ No esperes a tener ganas para empezar. Las ganas se despiertan con el movimiento
 **12.** «El viajero repite el camino que pasa por la panadería.» [6.º para quien empieza]  
 Júntalo con algo que te guste: tu música favorita solo mientras caminas, tu té preferido solo mientras estudias. Así tu cabeza lo asocia con algo bueno, y lo que se asocia con algo bueno se busca solo.
 
+**24.** «La luna no brilla entera cada noche, pero sale siempre.» [7.º para quien empieza]  
+Al principio no importa cuánto hagas. Importa que ese día lo hiciste. Lo que se repite se vuelve costumbre, aunque sea poco, y una vez que es costumbre agrandarlo es fácil.
+
 **81.** «El que empieza sin espada no busca al gigante… busca primero la herrería.» [en la presentación, antes del primer pueblo · a todos]  
 No empieces por lo que más te cuesta. Empieza por algo que puedas sostener. Cada día cumplido es un arma que juntas: confianza, costumbre, ganas. Con eso en la mano, lo difícil llega después y ya no lo enfrentas desarmado.
 
@@ -385,7 +387,7 @@ Decidido por el autor del 1 al 13, y el resto en el orden en que suelen hacer fa
 4. «El camino que se ve es el que se anda.»
 5. «El fuego no espera calor para encenderse: el calor viene del fuego.»
 6. «El viajero repite el camino que pasa por la panadería.»
-7. «No preguntes cuánto llovió. Pregunta si llovió.»
+7. «La luna no brilla entera cada noche, pero sale siempre.»
 8. «Quien prepara la leña al atardecer tiene fuego en la noche.»
 9. «Cada piedra en el camino es una excusa sentada, esperando.»
 10. «Que decida quien traza el camino, no quien tropieza en él.»

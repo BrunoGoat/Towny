@@ -590,10 +590,10 @@ const List<Advice> dailyAdvice = [
   ),
   Advice(
     'nomedir',
-    'No preguntes cuánto llovió. Pregunta si llovió.',
-    'Al principio no importa cuánto: importa que ese día estuviste.',
-    'Don’t ask how much it rained. Ask whether it rained.',
-    'At first it doesn’t matter how much: it matters that you were there that day.',
+    'La luna no brilla entera cada noche, pero sale siempre.',
+    'Al principio no importa cuánto hagas. Importa que ese día lo hiciste. Lo que se repite se vuelve costumbre, aunque sea poco, y una vez que es costumbre agrandarlo es fácil.',
+    'The moon doesn’t shine full every night, but it always rises.',
+    'At first it doesn’t matter how much you do. What matters is that you did it that day. What repeats becomes habit, however small, and once it is a habit, making it bigger is easy.',
   ),
   Advice(
     'viajes',
