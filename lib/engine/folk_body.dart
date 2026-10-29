@@ -470,9 +470,10 @@ List<Solid> folkSolids(
         );
 
       case PropKind.lute:
-        // El laúd contra el pecho, cruzado: tres piezas en una sola línea.
-        // La caja, clara para que se lea contra cualquier sayo; el mástil,
-        // que sale por fuera de la silueta; y la punta oscura del clavijero.
+        // El laúd contra el pecho, cruzado y en una sola línea: la caja,
+        // clara para que se lea contra cualquier sayo, con su boca; el
+        // mástil, que sale por fuera de la silueta; y la punta oscura del
+        // clavijero.
         // Nada más: a veinte píxeles lo que se lee es la silueta.
         final m = hold(-1, 0.50, 0.11);
         const ux = 0.79, uy = 0.61; // a lo largo del mástil
@@ -481,6 +482,15 @@ List<Solid> folkSolids(
         (double, double, double) en(double a, double dz) =>
             (cx + ux * a, cy + uy * a, cz + dz);
         link(en(-0.18, 0), en(0.03, 0), 0.105, 0xFFE2B878, 1.0, deep: 0.050);
+        // La boca, oscura, en el medio de la caja.
+        link(
+          en(-0.095, 0.052),
+          en(-0.045, 0.052),
+          0.026,
+          0xFF3B2614,
+          0.84,
+          deep: 0.004,
+        );
         // El mástil, a ras de la caja —más atrás, cruzando el pecho, rozaba la
         // barbilla—.
         link(
