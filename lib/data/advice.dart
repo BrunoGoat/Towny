@@ -372,9 +372,9 @@ const List<Advice> dailyAdvice = [
   Advice(
     'plan',
     'Una intención es una nube. Una cita es una piedra.',
-    'Escribe el plan entero: «haré esto, a esta hora, en este lugar».',
+    '«Algún día» no llega nunca. Escribe el plan entero: «haré esto, a esta hora, en este lugar». Un plan escrito ya está decidido, así que cuando llega el momento no hay nada que pensar, solo cumplirlo.',
     'An intention is a cloud. An appointment is a stone.',
-    'Write the whole plan: “I will do this, at this time, in this place.”',
+    '“Someday” never comes. Write the whole plan: “I will do this, at this time, in this place.” A written plan is already decided, so when the moment comes there’s nothing to think about, just keep it.',
     goal: AdviceGoal.start,
   ),
   Advice(

@@ -30,9 +30,6 @@ lugar. **E** es a quien empieza un hábito, **D** a quien deja uno.
 
 ### Los de todos los días
 
-**16.** «Una intención es una nube. Una cita es una piedra.» [E16]  
-Escribe el plan entero: «haré esto, a esta hora, en este lugar».
-
 **18.** «No eres lo que haces una vez. Eres lo que haces siempre.» [E18 · D26]  
 Cada pieza es un voto por quien quieres ser. No «intento leer»: «soy alguien que lee».
 
@@ -247,6 +244,11 @@ Sacado: repetía el del farol (dejar las cosas listas), y pisaba el del camino q
 
 Reescrito: ver el 14 en Aprobado.
 
+**16.** ~~«Una intención es una nube. Una cita es una piedra.» [E16]~~  
+~~Escribe el plan entero: «haré esto, a esta hora, en este lugar».~~
+
+Queda el dicho, con explicación nueva: ver el 16 en Aprobado.
+
 **10.** ~~«Que decida quien traza el camino, no quien tropieza en él.» [E10 · D8]~~  
 ~~Decide en calma, el día antes, qué harás y cuándo. Quien despierta con sueño no debe pensar ni elegir: solo seguir el plan que dejó tu mejor versión.~~
 
@@ -381,6 +383,9 @@ Si se te pasó la hora, no des el día por perdido. Hazlo igual, más tarde y m�
 
 **14.** «El que siempre entra por la misma puerta no se pierde en la casa.» [18.º para quien empieza]  
 Empieza siempre con el mismo gesto: prender la misma luz, servirte el mismo té. Después de unas veces ese gesto avisa solo, y el cuerpo arranca antes de que tengas que pensarlo.
+
+**16.** «Una intención es una nube. Una cita es una piedra.» [19.º para quien empieza]  
+«Algún día» no llega nunca. Escribe el plan entero: «haré esto, a esta hora, en este lugar». Un plan escrito ya está decidido, así que cuando llega el momento no hay nada que pensar, solo cumplirlo.
 
 **81.** «El que empieza sin espada no busca al gigante… busca primero la herrería.» [en la presentación, antes del primer pueblo · a todos]  
 No empieces por lo que más te cuesta. Empieza por algo que puedas sostener. Cada día cumplido es un arma que juntas: confianza, costumbre, ganas. Con eso en la mano, lo difícil llega después y ya no lo enfrentas desarmado.
