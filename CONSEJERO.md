@@ -200,12 +200,6 @@ Cien veces elegiste aparecer. La prueba de que puedes está construida ahí afue
 
 Gusta la idea, no el dicho. Primero cómo está hoy, después la propuesta.
 
-**5.** «Lo que el ojo no ve, la mano no lo busca.» [E5]  
-Déjalo a la vista: el calzado junto a la puerta, el libro sobre la almohada.
-
-> **Propuesta:** «Lo que está a la vista se recuerda solo.»  
-> Deja a la vista lo que necesitas: las zapatillas junto a la puerta, el libro sobre la almohada. Verlo te lo recuerda sin que tengas que pensar.
-
 **6.** «Nadie sube la montaña. Se dan pasos.» [E6]  
 No te propongas hacerlo entero: proponte empezar. Casi nadie se detiene una vez que ha empezado.
 
@@ -280,6 +274,11 @@ Termina con algo amable: un vaso de agua fresca, un rato al sol. Lo que se recue
 
 ## Ya revisado
 
+**5.** ~~«Lo que el ojo no ve, la mano no lo busca.» [E5]~~  
+~~Déjalo a la vista: el calzado junto a la puerta, el libro sobre la almohada.~~
+
+Reescrito: ver el 5 en Aprobado.
+
 **56.** ~~«Para arrancar una raíz hay que tener los pies firmes.» [al fundar el segundo pueblo · sólo a quien deja]~~  
 ~~Mientras dejas esto, no cargues de más lo demás. Lo que ya marcha bien en el otro pueblo es tierra firme: apóyate en ella.~~
 
@@ -338,6 +337,9 @@ Empieza muy pequeño, una página, dos minutos. Algo tan chico lo cumples hasta 
 **4.** «El agua nueva sigue el cauce del río viejo.» [al fundar el segundo pueblo · sólo a quien empieza]  
 Átalo a algo que ya haces todos los días, como «al volver del trabajo, leo». Lo de siempre ya pasa solo, así que cuando termina te recuerda lo nuevo sin que tengas que acordarte.
 
+**5.** «El camino que se ve es el que se anda.» [4.º para quien empieza]  
+Deja a la vista lo que necesitas: las zapatillas junto a la puerta, el libro sobre la almohada. Verlo te lo recuerda sin que tengas que pensar.
+
 **81.** «El que empieza sin espada no busca al gigante… busca primero la herrería.» [en la presentación, antes del primer pueblo · a todos]  
 No empieces por lo que más te cuesta. Empieza por algo que puedas sostener. Cada día cumplido es un arma que juntas: confianza, costumbre, ganas. Con eso en la mano, lo difícil llega después y ya no lo enfrentas desarmado.
 
@@ -376,7 +378,7 @@ Decidido por el autor del 1 al 13, y el resto en el orden en que suelen hacer fa
 1. «El que empieza sin espada…» (presentación)
 2. «El roble más grande fue una bellota…» (presentación)
 3. «Cada semilla necesita su rincón de tierra.»
-4. «Lo que el ojo no ve, la mano no lo busca.»
+4. «El camino que se ve es el que se anda.»
 5. «Quien espera el viento perfecto nunca suelta la vela.»
 6. «La abeja vuelve a la flor que le dio miel.»
 7. «No preguntes cuánto llovió. Pregunta si llovió.»

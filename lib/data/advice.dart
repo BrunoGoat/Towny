@@ -312,10 +312,10 @@ const List<Advice> dailyAdvice = [
   ),
   Advice(
     'vista',
-    'Lo que el ojo no ve, la mano no lo busca.',
-    'Déjalo a la vista: el calzado junto a la puerta, el libro sobre la almohada.',
-    'What the eye doesn’t see, the hand doesn’t reach for.',
-    'Leave it in plain sight: shoes by the door, the book on the pillow.',
+    'El camino que se ve es el que se anda.',
+    'Deja a la vista lo que necesitas: las zapatillas junto a la puerta, el libro sobre la almohada. Verlo te lo recuerda sin que tengas que pensar.',
+    'The path you can see is the path you walk.',
+    'Leave what you need in plain sight: your shoes by the door, the book on the pillow. Seeing it reminds you without you having to think.',
     goal: AdviceGoal.start,
   ),
   Advice(
