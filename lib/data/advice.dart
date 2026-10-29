@@ -367,10 +367,10 @@ const List<Advice> dailyAdvice = [
   ),
   Advice(
     'gusto',
-    'La abeja vuelve a la flor que le dio miel.',
-    'Únelo a algo que te guste: tu música solo al caminar, el té bueno solo al estudiar.',
-    'The bee returns to the flower that gave it honey.',
-    'Pair it with something you enjoy: your music only while you walk, the good tea only while you study.',
+    'El viajero repite el camino que pasa por la panadería.',
+    'Júntalo con algo que te guste: tu música favorita solo mientras caminas, tu té preferido solo mientras estudias. Así tu cabeza lo asocia con algo bueno, y lo que se asocia con algo bueno se busca solo.',
+    'The traveller takes again the road that passes the bakery.',
+    'Pair it with something you enjoy: your favourite music only while you walk, your favourite tea only while you study. That way your mind links it to something good, and what is linked to something good gets sought out on its own.',
     goal: AdviceGoal.start,
   ),
   Advice(

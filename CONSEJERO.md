@@ -224,12 +224,6 @@ Decide en calma, el día antes, qué harás y cuándo. Quien despierta con sueñ
 > **Propuesta:** «El camino se elige de día, no a oscuras.»  
 > Decide la noche anterior qué vas a hacer y a qué hora. Cuando llegue el momento, no lo pienses: solo haz lo que decidiste.
 
-**12.** «La abeja vuelve a la flor que le dio miel.» [E12]  
-Únelo a algo que te guste: tu música solo al caminar, el té bueno solo al estudiar.
-
-> **Propuesta:** «Lo que viene con miel se busca solo.»  
-> Júntalo con algo que te guste: tu música favorita solo mientras caminas, tu té preferido solo mientras estudias.
-
 **14.** «El pájaro vuelve a la misma rama, y por eso la rama lo espera.» [E14]  
 Mismo lugar, misma hora, mismo primer gesto. El cuerpo lo reconoce antes que la mente.
 
@@ -267,6 +261,11 @@ Termina con algo amable: un vaso de agua fresca, un rato al sol. Lo que se recue
 > Termina con algo agradable: un vaso de agua fresca, un rato al sol. Lo que recuerdas con gusto, tienes ganas de repetirlo.
 
 ## Ya revisado
+
+**12.** ~~«La abeja vuelve a la flor que le dio miel.» [E12]~~  
+~~Únelo a algo que te guste: tu música solo al caminar, el té bueno solo al estudiar.~~
+
+Reescrito: ver el 12 en Aprobado.
 
 **15.** ~~«Quien espera el viento perfecto nunca suelta la vela.» [E15]~~  
 ~~No esperes a tener ganas. Las ganas llegan después de empezar, no antes.~~
@@ -342,6 +341,9 @@ Deja a la vista lo que necesitas: las zapatillas junto a la puerta, el libro sob
 **15.** «El fuego no espera calor para encenderse: el calor viene del fuego.» [5.º para quien empieza]  
 No esperes a tener ganas para empezar. Las ganas se despiertan con el movimiento, así que casi siempre llegan después de arrancar y casi nunca antes.
 
+**12.** «El viajero repite el camino que pasa por la panadería.» [6.º para quien empieza]  
+Júntalo con algo que te guste: tu música favorita solo mientras caminas, tu té preferido solo mientras estudias. Así tu cabeza lo asocia con algo bueno, y lo que se asocia con algo bueno se busca solo.
+
 **81.** «El que empieza sin espada no busca al gigante… busca primero la herrería.» [en la presentación, antes del primer pueblo · a todos]  
 No empieces por lo que más te cuesta. Empieza por algo que puedas sostener. Cada día cumplido es un arma que juntas: confianza, costumbre, ganas. Con eso en la mano, lo difícil llega después y ya no lo enfrentas desarmado.
 
@@ -382,7 +384,7 @@ Decidido por el autor del 1 al 13, y el resto en el orden en que suelen hacer fa
 3. «Cada semilla necesita su rincón de tierra.»
 4. «El camino que se ve es el que se anda.»
 5. «El fuego no espera calor para encenderse: el calor viene del fuego.»
-6. «La abeja vuelve a la flor que le dio miel.»
+6. «El viajero repite el camino que pasa por la panadería.»
 7. «No preguntes cuánto llovió. Pregunta si llovió.»
 8. «Quien prepara la leña al atardecer tiene fuego en la noche.»
 9. «Cada piedra en el camino es una excusa sentada, esperando.»
