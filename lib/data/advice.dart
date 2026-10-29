@@ -704,7 +704,6 @@ List<String> pathFor(AdviceGoal goal) => switch (goal) {
     'nomedir',
     'preparar',
     'estorbos',
-    'quiendecide',
     'tentacion',
     'paciencia',
     'porque',

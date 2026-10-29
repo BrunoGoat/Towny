@@ -209,12 +209,6 @@ Faltar un día le pasa a cualquiera y no rompe nada. Lo que rompe es el segundo 
 > **Propuesta:** «Tropezar una vez es tropezar. Dos veces, es empezar a caer.»  
 > Faltar un día le pasa a cualquiera y no rompe nada. Lo importante es no faltar dos días seguidos.
 
-**10.** «Que decida quien traza el camino, no quien tropieza en él.» [E10 · D8]  
-Decide en calma, el día antes, qué harás y cuándo. Quien despierta con sueño no debe pensar ni elegir: solo seguir el plan que dejó tu mejor versión.
-
-> **Propuesta:** «El camino se elige de día, no a oscuras.»  
-> Decide la noche anterior qué vas a hacer y a qué hora. Cuando llegue el momento, no lo pienses: solo haz lo que decidiste.
-
 **14.** «El pájaro vuelve a la misma rama, y por eso la rama lo espera.» [E14]  
 Mismo lugar, misma hora, mismo primer gesto. El cuerpo lo reconoce antes que la mente.
 
@@ -246,6 +240,11 @@ Termina con algo amable: un vaso de agua fresca, un rato al sol. Lo que se recue
 > Termina con algo agradable: un vaso de agua fresca, un rato al sol. Lo que recuerdas con gusto, tienes ganas de repetirlo.
 
 ## Ya revisado
+
+**10.** ~~«Que decida quien traza el camino, no quien tropieza en él.» [E10 · D8]~~  
+~~Decide en calma, el día antes, qué harás y cuándo. Quien despierta con sueño no debe pensar ni elegir: solo seguir el plan que dejó tu mejor versión.~~
+
+Sacado del camino de quien empieza: lo cubren el del farol (dejar las cosas listas) y el del sol (la hora fija). Para quien deja sigue, hasta revisar esos.
 
 **11.** ~~«Cada piedra en el camino es una excusa sentada, esperando.» [E11]~~  
 ~~Quita pasos: si entre tú y el hábito hay tres, que quede uno.~~
@@ -397,33 +396,32 @@ Decidido por el autor del 1 al 13, y el resto en el orden en que suelen hacer fa
 7. «La luna no brilla entera cada noche, pero sale siempre.»
 8. «Quien deja el farol encendido no busca la puerta a oscuras.»
 9. «Lo que está a un paso se hace. Lo que está a diez, se piensa.»
-10. «Que decida quien traza el camino, no quien tropieza en él.»
-11. «Nadie le gana al río parado en el medio.»
-12. «El bambú pasa años bajo tierra antes de asomar.»
-13. «Quien sabe para qué soporta casi cualquier cómo.»
-14. «El sol no pregunta si tiene ganas de salir.»
-15. «Una gota no hace un charco. Dos, empiezan.»
-16. «Nadie sube la montaña. Se dan pasos.»
-17. «En invierno el árbol no da frutos, y sigue siendo árbol.»
-18. «Llegar tarde a la fuente igual calma la sed.»
-19. «La buena mañana se siembra la noche anterior.»
-20. «El pájaro vuelve a la misma rama, y por eso la rama lo espera.»
-21. «Una intención es una nube. Una cita es una piedra.»
-22. «No eres lo que haces una vez. Eres lo que haces siempre.»
-23. «La flor no espera a ser perfecta para abrirse.»
-24. «Lo que termina bien, vuelve.»
-25. «El rocío se junta antes de que salga el sol.»
-26. «El sabio arregla el techo cuando hay sol.»
-27. «Mira atrás de vez en cuando: el camino también enseña.»
-28. «La piedra no se gasta por la fuerza del agua, sino por su costumbre.»
-29. «Agradece al día, aunque haya sido pequeño.»
-30. «La semilla no decide dónde cae. Tú sí.»
-31. «Quien persigue dos conejos no atrapa ninguno.»
-32. «El árbol no pide el cielo de un día para otro.»
-33. «Todo río tiene un manantial.»
-34. «Quien se castiga por caer aprende a no levantarse.»
-35. «Una promesa dicha en voz alta pesa más que mil pensadas.»
-36. «Hasta el río se detiene en el lago.»
-37. «Cuando ya no se piensa, es que echó raíz. Entonces se riega.»
-38. «Quien enseña, aprende dos veces.»
-39. «Un ladrillo no es una casa. Mil ladrillos, sí.»
+10. «Nadie le gana al río parado en el medio.»
+11. «El bambú pasa años bajo tierra antes de asomar.»
+12. «Quien sabe para qué soporta casi cualquier cómo.»
+13. «El sol no pregunta si tiene ganas de salir.»
+14. «Una gota no hace un charco. Dos, empiezan.»
+15. «Nadie sube la montaña. Se dan pasos.»
+16. «En invierno el árbol no da frutos, y sigue siendo árbol.»
+17. «Llegar tarde a la fuente igual calma la sed.»
+18. «La buena mañana se siembra la noche anterior.»
+19. «El pájaro vuelve a la misma rama, y por eso la rama lo espera.»
+20. «Una intención es una nube. Una cita es una piedra.»
+21. «No eres lo que haces una vez. Eres lo que haces siempre.»
+22. «La flor no espera a ser perfecta para abrirse.»
+23. «Lo que termina bien, vuelve.»
+24. «El rocío se junta antes de que salga el sol.»
+25. «El sabio arregla el techo cuando hay sol.»
+26. «Mira atrás de vez en cuando: el camino también enseña.»
+27. «La piedra no se gasta por la fuerza del agua, sino por su costumbre.»
+28. «Agradece al día, aunque haya sido pequeño.»
+29. «La semilla no decide dónde cae. Tú sí.»
+30. «Quien persigue dos conejos no atrapa ninguno.»
+31. «El árbol no pide el cielo de un día para otro.»
+32. «Todo río tiene un manantial.»
+33. «Quien se castiga por caer aprende a no levantarse.»
+34. «Una promesa dicha en voz alta pesa más que mil pensadas.»
+35. «Hasta el río se detiene en el lago.»
+36. «Cuando ya no se piensa, es que echó raíz. Entonces se riega.»
+37. «Quien enseña, aprende dos veces.»
+38. «Un ladrillo no es una casa. Mil ladrillos, sí.»
