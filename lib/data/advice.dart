@@ -328,10 +328,10 @@ const List<Advice> dailyAdvice = [
   ),
   Advice(
     'preparar',
-    'Quien prepara la leña al atardecer tiene fuego en la noche.',
-    'Déjalo listo antes: la ropa doblada, la página marcada. Cuando llegue el momento, no habrá nada que decidir.',
-    'Who stacks the wood at dusk has fire at night.',
-    'Get it ready beforehand: clothes folded, page marked. When the moment comes, there’s nothing to decide.',
+    'Quien deja el farol encendido no busca la puerta a oscuras.',
+    'Deja todo listo antes: la ropa doblada, el libro abierto en la página. Cada cosa que falta preparar es una excusa para no empezar. Si ya está todo listo, solo queda hacerlo.',
+    'Who leaves the lantern lit doesn’t grope for the door in the dark.',
+    'Get everything ready beforehand: clothes folded, the book open at the page. Every thing left to prepare is an excuse not to start. If it’s all ready, all that’s left is to do it.',
     goal: AdviceGoal.start,
   ),
   Advice(

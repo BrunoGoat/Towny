@@ -212,12 +212,6 @@ Faltar un día le pasa a cualquiera y no rompe nada. Lo que rompe es el segundo 
 > **Propuesta:** «Tropezar una vez es tropezar. Dos veces, es empezar a caer.»  
 > Faltar un día le pasa a cualquiera y no rompe nada. Lo importante es no faltar dos días seguidos.
 
-**8.** «Quien prepara la leña al atardecer tiene fuego en la noche.» [E8]  
-Déjalo listo antes: la ropa doblada, la página marcada. Cuando llegue el momento, no habrá nada que decidir.
-
-> **Propuesta:** «La leña se corta antes de que llegue el frío.»  
-> Deja todo listo antes: la ropa doblada, el libro abierto en la página. Cuando llegue la hora, no habrá nada que preparar ni que decidir.
-
 **10.** «Que decida quien traza el camino, no quien tropieza en él.» [E10 · D8]  
 Decide en calma, el día antes, qué harás y cuándo. Quien despierta con sueño no debe pensar ni elegir: solo seguir el plan que dejó tu mejor versión.
 
@@ -255,6 +249,11 @@ Termina con algo amable: un vaso de agua fresca, un rato al sol. Lo que se recue
 > Termina con algo agradable: un vaso de agua fresca, un rato al sol. Lo que recuerdas con gusto, tienes ganas de repetirlo.
 
 ## Ya revisado
+
+**8.** ~~«Quien prepara la leña al atardecer tiene fuego en la noche.» [E8]~~  
+~~Déjalo listo antes: la ropa doblada, la página marcada. Cuando llegue el momento, no habrá nada que decidir.~~
+
+Reescrito: ver el 8 en Aprobado.
 
 **24.** ~~«No preguntes cuánto llovió. Pregunta si llovió.» [E24]~~  
 ~~Al principio no importa cuánto: importa que ese día estuviste.~~
@@ -346,6 +345,9 @@ Júntalo con algo que te guste: tu música favorita solo mientras caminas, tu t�
 **24.** «La luna no brilla entera cada noche, pero sale siempre.» [7.º para quien empieza]  
 Al principio no importa cuánto hagas. Importa que ese día lo hiciste. Lo que se repite se vuelve costumbre, aunque sea poco, y una vez que es costumbre agrandarlo es fácil.
 
+**8.** «Quien deja el farol encendido no busca la puerta a oscuras.» [8.º para quien empieza]  
+Deja todo listo antes: la ropa doblada, el libro abierto en la página. Cada cosa que falta preparar es una excusa para no empezar. Si ya está todo listo, solo queda hacerlo.
+
 **81.** «El que empieza sin espada no busca al gigante… busca primero la herrería.» [en la presentación, antes del primer pueblo · a todos]  
 No empieces por lo que más te cuesta. Empieza por algo que puedas sostener. Cada día cumplido es un arma que juntas: confianza, costumbre, ganas. Con eso en la mano, lo difícil llega después y ya no lo enfrentas desarmado.
 
@@ -388,7 +390,7 @@ Decidido por el autor del 1 al 13, y el resto en el orden en que suelen hacer fa
 5. «El fuego no espera calor para encenderse: el calor viene del fuego.»
 6. «El viajero repite el camino que pasa por la panadería.»
 7. «La luna no brilla entera cada noche, pero sale siempre.»
-8. «Quien prepara la leña al atardecer tiene fuego en la noche.»
+8. «Quien deja el farol encendido no busca la puerta a oscuras.»
 9. «Cada piedra en el camino es una excusa sentada, esperando.»
 10. «Que decida quien traza el camino, no quien tropieza en él.»
 11. «Nadie le gana al río parado en el medio.»
