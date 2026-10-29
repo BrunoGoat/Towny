@@ -359,10 +359,10 @@ const List<Advice> dailyAdvice = [
   ),
   Advice(
     'estorbos',
-    'Cada piedra en el camino es una excusa sentada, esperando.',
-    'Quita pasos: si entre tú y el hábito hay tres, que quede uno.',
-    'Every stone on the path is an excuse sitting there waiting for you.',
-    'Remove steps: if there are three between you and the habit, make it one.',
+    'Lo que está a un paso se hace. Lo que está a diez, se piensa.',
+    'Quita los pasos que hay antes de empezar: si entre tú y el hábito hay tres, que quede uno. Cada paso de más es un momento para dudar, y con menos pasos hay menos ocasiones de echarse atrás.',
+    'What is one step away gets done. What is ten steps away gets thought about.',
+    'Remove the steps before you start: if there are three between you and the habit, make it one. Every extra step is a moment to hesitate, and with fewer steps there are fewer chances to back out.',
     goal: AdviceGoal.start,
   ),
   Advice(

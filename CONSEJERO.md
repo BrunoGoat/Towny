@@ -33,9 +33,6 @@ lugar. **E** es a quien empieza un hábito, **D** a quien deja uno.
 **9.** «La buena mañana se siembra la noche anterior.» [E9]  
 Si es de mañana, déjalo todo listo antes de dormir: la ropa a la vista, el agua servida, el camino despejado. Que al despertar no haya nada que buscar ni nada que decidir.
 
-**11.** «Cada piedra en el camino es una excusa sentada, esperando.» [E11]  
-Quita pasos: si entre tú y el hábito hay tres, que quede uno.
-
 **13.** «En invierno el árbol no da frutos, y sigue siendo árbol.» [E13 · D17]  
 Decide ahora cuál es la versión mínima que cuenta. En el día malo, haz esa y nada más.
 
@@ -250,6 +247,11 @@ Termina con algo amable: un vaso de agua fresca, un rato al sol. Lo que se recue
 
 ## Ya revisado
 
+**11.** ~~«Cada piedra en el camino es una excusa sentada, esperando.» [E11]~~  
+~~Quita pasos: si entre tú y el hábito hay tres, que quede uno.~~
+
+Reescrito: ver el 11 en Aprobado.
+
 **8.** ~~«Quien prepara la leña al atardecer tiene fuego en la noche.» [E8]~~  
 ~~Déjalo listo antes: la ropa doblada, la página marcada. Cuando llegue el momento, no habrá nada que decidir.~~
 
@@ -348,6 +350,9 @@ Al principio no importa cuánto hagas. Importa que ese día lo hiciste. Lo que s
 **8.** «Quien deja el farol encendido no busca la puerta a oscuras.» [8.º para quien empieza]  
 Deja todo listo antes: la ropa doblada, el libro abierto en la página. Cada cosa que falta preparar es una excusa para no empezar. Si ya está todo listo, solo queda hacerlo.
 
+**11.** «Lo que está a un paso se hace. Lo que está a diez, se piensa.» [9.º para quien empieza]  
+Quita los pasos que hay antes de empezar: si entre tú y el hábito hay tres, que quede uno. Cada paso de más es un momento para dudar, y con menos pasos hay menos ocasiones de echarse atrás.
+
 **81.** «El que empieza sin espada no busca al gigante… busca primero la herrería.» [en la presentación, antes del primer pueblo · a todos]  
 No empieces por lo que más te cuesta. Empieza por algo que puedas sostener. Cada día cumplido es un arma que juntas: confianza, costumbre, ganas. Con eso en la mano, lo difícil llega después y ya no lo enfrentas desarmado.
 
@@ -391,7 +396,7 @@ Decidido por el autor del 1 al 13, y el resto en el orden en que suelen hacer fa
 6. «El viajero repite el camino que pasa por la panadería.»
 7. «La luna no brilla entera cada noche, pero sale siempre.»
 8. «Quien deja el farol encendido no busca la puerta a oscuras.»
-9. «Cada piedra en el camino es una excusa sentada, esperando.»
+9. «Lo que está a un paso se hace. Lo que está a diez, se piensa.»
 10. «Que decida quien traza el camino, no quien tropieza en él.»
 11. «Nadie le gana al río parado en el medio.»
 12. «El bambú pasa años bajo tierra antes de asomar.»
