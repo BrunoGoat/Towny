@@ -57,9 +57,6 @@ Piensa en los días extraños antes de que lleguen: un viaje, una visita. Si ya 
 **30.** «El árbol no pide el cielo de un día para otro.» [E30]  
 Cuando lo pequeño ya no cueste, añade un poco. Un poco, no el doble: lo que debe seguir siendo fácil es empezar.
 
-**31.** «Quien sabe para qué soporta casi cualquier cómo.» [E31 · D21]  
-Escribe en una línea por qué empezaste. El día que lo olvides, léela.
-
 **32.** «La flor no espera a ser perfecta para abrirse.» [E32]  
 Hecho es mejor que perfecto: un día flojo que cuenta vale más que uno perfecto que nunca llega.
 
@@ -242,6 +239,11 @@ Reescrito: ver el 19 en Aprobado.
 
 Reescrito: ver el 29 en Aprobado.
 
+**31.** ~~«Quien sabe para qué soporta casi cualquier cómo.» [E31 · D21]~~  
+~~Escribe en una línea por qué empezaste. El día que lo olvides, léela.~~
+
+Reescrito: ver el 31 en Aprobado.
+
 **10.** ~~«Que decida quien traza el camino, no quien tropieza en él.» [E10 · D8]~~  
 ~~Decide en calma, el día antes, qué harás y cuándo. Quien despierta con sueño no debe pensar ni elegir: solo seguir el plan que dejó tu mejor versión.~~
 
@@ -359,6 +361,9 @@ No es falta de voluntad. Nadie le gana a algo que tiene al lado todo el día, po
 **29.** «El que riega el bambú sin verlo crecer es el que lo ve llegar al cielo.» [11.º para quien empieza · también para quien deja]  
 Un hábito tarda más de lo que crees en sentirse natural, a veces meses. Los primeros días cuesta igual que siempre, pero por dentro ya está echando raíces. No es que no te salga: es que todavía se está haciendo.
 
+**31.** «Quien mira la estrella no cuenta las piedras del camino.» [12.º para quien empieza · también para quien deja]  
+Los días difíciles las ganas no alcanzan, pero un motivo claro sí. Cuando recuerdas para qué lo haces, el esfuerzo deja de ser un castigo y pasa a ser un precio que vale la pena. Escribe en una línea por qué empezaste. El día que lo olvides, léela.
+
 **81.** «El que empieza sin espada no busca al gigante… busca primero la herrería.» [en la presentación, antes del primer pueblo · a todos]  
 No empieces por lo que más te cuesta. Empieza por algo que puedas sostener. Cada día cumplido es un arma que juntas: confianza, costumbre, ganas. Con eso en la mano, lo difícil llega después y ya no lo enfrentas desarmado.
 
@@ -405,7 +410,7 @@ Decidido por el autor del 1 al 13, y el resto en el orden en que suelen hacer fa
 9. «Lo que está a un paso se hace. Lo que está a diez, se piensa.»
 10. «El que no quiere mojarse no camina bajo la cascada.»
 11. «El que riega el bambú sin verlo crecer es el que lo ve llegar al cielo.»
-12. «Quien sabe para qué soporta casi cualquier cómo.»
+12. «Quien mira la estrella no cuenta las piedras del camino.»
 13. «El sol no pregunta si tiene ganas de salir.»
 14. «Una gota no hace un charco. Dos, empiezan.»
 15. «Nadie sube la montaña. Se dan pasos.»

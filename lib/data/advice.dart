@@ -611,10 +611,10 @@ const List<Advice> dailyAdvice = [
   ),
   Advice(
     'porque',
-    'Quien sabe para qué soporta casi cualquier cómo.',
-    'Escribe en una línea por qué empezaste. El día que lo olvides, léela.',
-    'Who knows the why can bear almost any how.',
-    'Write in one line why you began. On the day you can’t remember, read it.',
+    'Quien mira la estrella no cuenta las piedras del camino.',
+    'Los días difíciles las ganas no alcanzan, pero un motivo claro sí. Cuando recuerdas para qué lo haces, el esfuerzo deja de ser un castigo y pasa a ser un precio que vale la pena. Escribe en una línea por qué empezaste. El día que lo olvides, léela.',
+    'Whoever watches the star doesn’t count the stones on the road.',
+    'On hard days wanting it isn’t enough, but a clear reason is. When you remember what you do it for, the effort stops being a punishment and becomes a price worth paying. Write in one line why you began. On the day you can’t remember, read it.',
   ),
   Advice(
     'perfecto',
