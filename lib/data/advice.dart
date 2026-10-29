@@ -534,10 +534,10 @@ const List<Advice> dailyAdvice = [
   ),
   Advice(
     'diamalo',
-    'En invierno el árbol no da frutos, y sigue siendo árbol.',
-    'Decide ahora cuál es la versión mínima que cuenta. En el día malo, haz esa y nada más.',
-    'In winter the tree bears no fruit, and it’s still a tree.',
-    'Decide now what the smallest version that counts is. On a bad day, do that and nothing more.',
+    'En los días de sequía, el río se hace hilo, pero no deja de correr.',
+    'Hay días en que no da para todo, y eso no es fallar. Decide ahora cuál es la versión mínima que cuenta, así ese día no tienes que pensarlo. Hacer poco mantiene viva la costumbre, y lo que está vivo vuelve a crecer.',
+    'In days of drought the river becomes a thread, but it never stops running.',
+    'Some days there isn’t room for all of it, and that isn’t failing. Decide now what the smallest version that counts is, so on that day you don’t have to think about it. Doing a little keeps the habit alive, and what is alive grows back.',
   ),
   Advice(
     'ganas',

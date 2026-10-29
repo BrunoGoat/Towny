@@ -33,9 +33,6 @@ lugar. **E** es a quien empieza un hábito, **D** a quien deja uno.
 **9.** «La buena mañana se siembra la noche anterior.» [E9]  
 Si es de mañana, déjalo todo listo antes de dormir: la ropa a la vista, el agua servida, el camino despejado. Que al despertar no haya nada que buscar ni nada que decidir.
 
-**13.** «En invierno el árbol no da frutos, y sigue siendo árbol.» [E13 · D17]  
-Decide ahora cuál es la versión mínima que cuenta. En el día malo, haz esa y nada más.
-
 **16.** «Una intención es una nube. Una cita es una piedra.» [E16]  
 Escribe el plan entero: «haré esto, a esta hora, en este lugar».
 
@@ -242,6 +239,11 @@ Reescrito: ver el 7 en Aprobado.
 
 Reescrito: ver el 6 en Aprobado.
 
+**13.** ~~«En invierno el árbol no da frutos, y sigue siendo árbol.» [E13 · D17]~~  
+~~Decide ahora cuál es la versión mínima que cuenta. En el día malo, haz esa y nada más.~~
+
+Reescrito: ver el 13 en Aprobado.
+
 **10.** ~~«Que decida quien traza el camino, no quien tropieza en él.» [E10 · D8]~~  
 ~~Decide en calma, el día antes, qué harás y cuándo. Quien despierta con sueño no debe pensar ni elegir: solo seguir el plan que dejó tu mejor versión.~~
 
@@ -368,6 +370,9 @@ Faltar un día le pasa a cualquiera y no rompe nada. El hábito sigue vivo. Pero
 **6.** «La rueda cuesta en el primer giro. Después gira sola.» [15.º para quien empieza]  
 No te propongas hacerlo entero. Proponte solo empezar. Lo que más cuesta es arrancar, y una vez en marcha seguir cuesta mucho menos, así que casi siempre terminas haciendo más de lo que pensabas.
 
+**13.** «En los días de sequía, el río se hace hilo, pero no deja de correr.» [16.º para quien empieza · también para quien deja]  
+Hay días en que no da para todo, y eso no es fallar. Decide ahora cuál es la versión mínima que cuenta, así ese día no tienes que pensarlo. Hacer poco mantiene viva la costumbre, y lo que está vivo vuelve a crecer.
+
 **81.** «El que empieza sin espada no busca al gigante… busca primero la herrería.» [en la presentación, antes del primer pueblo · a todos]  
 No empieces por lo que más te cuesta. Empieza por algo que puedas sostener. Cada día cumplido es un arma que juntas: confianza, costumbre, ganas. Con eso en la mano, lo difícil llega después y ya no lo enfrentas desarmado.
 
@@ -418,7 +423,7 @@ Decidido por el autor del 1 al 13, y el resto en el orden en que suelen hacer fa
 13. «El sol no pregunta si tiene ganas de salir.»
 14. «El charco no nace de una gota, nace de la que viene detrás.»
 15. «La rueda cuesta en el primer giro. Después gira sola.»
-16. «En invierno el árbol no da frutos, y sigue siendo árbol.»
+16. «En los días de sequía, el río se hace hilo, pero no deja de correr.»
 17. «Llegar tarde a la fuente igual calma la sed.»
 18. «La buena mañana se siembra la noche anterior.»
 19. «El pájaro vuelve a la misma rama, y por eso la rama lo espera.»
