@@ -555,10 +555,10 @@ const List<Advice> dailyAdvice = [
   ),
   Advice(
     'tentacion',
-    'Nadie le gana al río parado en el medio.',
-    'No es falta de voluntad: nadie vence a lo que tiene al lado todo el día. Apártate de lo que te distrae.',
-    'Nobody beats the river standing in the middle of it.',
-    'It isn’t a lack of willpower: nobody beats something sitting next to them all day. Step away from what distracts you.',
+    'El que no quiere mojarse no camina bajo la cascada.',
+    'No es falta de voluntad. Nadie le gana a algo que tiene al lado todo el día, porque la voluntad se cansa y la distracción no. Aleja lo que te distrae: el teléfono en otro cuarto, la tele apagada. Lo que no está cerca no tienta.',
+    'Whoever doesn’t want to get wet doesn’t walk under the waterfall.',
+    'It isn’t a lack of willpower. Nobody beats something sitting next to them all day, because willpower tires and the distraction doesn’t. Put what distracts you out of reach: the phone in another room, the TV off. What isn’t close doesn’t tempt.',
   ),
   Advice(
     'mirar',

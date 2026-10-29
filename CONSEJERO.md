@@ -215,12 +215,6 @@ Mismo lugar, misma hora, mismo primer gesto. El cuerpo lo reconoce antes que la 
 > **Propuesta:** «El sendero que se pisa cada día se abre solo.»  
 > Mismo lugar, misma hora, mismo primer paso. Con el tiempo, el cuerpo arranca antes de que lo pienses.
 
-**19.** «Nadie le gana al río parado en el medio.» [E19 · D18]  
-No es falta de voluntad: nadie vence a lo que tiene al lado todo el día. Apártate de lo que te distrae.
-
-> **Propuesta:** «Es más fácil no cruzarse con el lobo que pelear con él.»  
-> No es falta de voluntad. Nadie le gana a algo que tiene al lado todo el día. Aleja lo que te distrae: el teléfono en otro cuarto, la tele apagada.
-
 **22.** «Quien persigue dos conejos no atrapa ninguno.» [E22 · D25]  
 De uno en uno. Cambiarlo todo a la vez un lunes es la manera más segura de no cambiar nada.
 
@@ -240,6 +234,11 @@ Termina con algo amable: un vaso de agua fresca, un rato al sol. Lo que se recue
 > Termina con algo agradable: un vaso de agua fresca, un rato al sol. Lo que recuerdas con gusto, tienes ganas de repetirlo.
 
 ## Ya revisado
+
+**19.** ~~«Nadie le gana al río parado en el medio.» [E19 · D18]~~  
+~~No es falta de voluntad: nadie vence a lo que tiene al lado todo el día. Apártate de lo que te distrae.~~
+
+Reescrito: ver el 19 en Aprobado.
 
 **10.** ~~«Que decida quien traza el camino, no quien tropieza en él.» [E10 · D8]~~  
 ~~Decide en calma, el día antes, qué harás y cuándo. Quien despierta con sueño no debe pensar ni elegir: solo seguir el plan que dejó tu mejor versión.~~
@@ -352,6 +351,9 @@ Deja todo listo antes: la ropa doblada, el libro abierto en la página. Cada cos
 **11.** «Lo que está a un paso se hace. Lo que está a diez, se piensa.» [9.º para quien empieza]  
 Quita los pasos que hay antes de empezar: si entre tú y el hábito hay tres, que quede uno. Cada paso de más es un momento para dudar, y con menos pasos hay menos ocasiones de echarse atrás.
 
+**19.** «El que no quiere mojarse no camina bajo la cascada.» [10.º para quien empieza · también para quien deja]  
+No es falta de voluntad. Nadie le gana a algo que tiene al lado todo el día, porque la voluntad se cansa y la distracción no. Aleja lo que te distrae: el teléfono en otro cuarto, la tele apagada. Lo que no está cerca no tienta.
+
 **81.** «El que empieza sin espada no busca al gigante… busca primero la herrería.» [en la presentación, antes del primer pueblo · a todos]  
 No empieces por lo que más te cuesta. Empieza por algo que puedas sostener. Cada día cumplido es un arma que juntas: confianza, costumbre, ganas. Con eso en la mano, lo difícil llega después y ya no lo enfrentas desarmado.
 
@@ -396,7 +398,7 @@ Decidido por el autor del 1 al 13, y el resto en el orden en que suelen hacer fa
 7. «La luna no brilla entera cada noche, pero sale siempre.»
 8. «Quien deja el farol encendido no busca la puerta a oscuras.»
 9. «Lo que está a un paso se hace. Lo que está a diez, se piensa.»
-10. «Nadie le gana al río parado en el medio.»
+10. «El que no quiere mojarse no camina bajo la cascada.»
 11. «El bambú pasa años bajo tierra antes de asomar.»
 12. «Quien sabe para qué soporta casi cualquier cómo.»
 13. «El sol no pregunta si tiene ganas de salir.»
