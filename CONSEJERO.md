@@ -236,12 +236,6 @@ Mismo lugar, misma hora, mismo primer gesto. El cuerpo lo reconoce antes que la 
 > **Propuesta:** «El sendero que se pisa cada día se abre solo.»  
 > Mismo lugar, misma hora, mismo primer paso. Con el tiempo, el cuerpo arranca antes de que lo pienses.
 
-**15.** «Quien espera el viento perfecto nunca suelta la vela.» [E15]  
-No esperes a tener ganas. Las ganas llegan después de empezar, no antes.
-
-> **Propuesta:** «Las ganas llegan andando, no esperando.»  
-> No esperes a tener ganas para empezar. Las ganas aparecen después de empezar, casi nunca antes.
-
 **19.** «Nadie le gana al río parado en el medio.» [E19 · D18]  
 No es falta de voluntad: nadie vence a lo que tiene al lado todo el día. Apártate de lo que te distrae.
 
@@ -273,6 +267,11 @@ Termina con algo amable: un vaso de agua fresca, un rato al sol. Lo que se recue
 > Termina con algo agradable: un vaso de agua fresca, un rato al sol. Lo que recuerdas con gusto, tienes ganas de repetirlo.
 
 ## Ya revisado
+
+**15.** ~~«Quien espera el viento perfecto nunca suelta la vela.» [E15]~~  
+~~No esperes a tener ganas. Las ganas llegan después de empezar, no antes.~~
+
+Reescrito: ver el 15 en Aprobado.
 
 **5.** ~~«Lo que el ojo no ve, la mano no lo busca.» [E5]~~  
 ~~Déjalo a la vista: el calzado junto a la puerta, el libro sobre la almohada.~~
@@ -340,6 +339,9 @@ Empieza muy pequeño, una página, dos minutos. Algo tan chico lo cumples hasta 
 **5.** «El camino que se ve es el que se anda.» [4.º para quien empieza]  
 Deja a la vista lo que necesitas: las zapatillas junto a la puerta, el libro sobre la almohada. Verlo te lo recuerda sin que tengas que pensar.
 
+**15.** «El fuego no espera calor para encenderse: el calor viene del fuego.» [5.º para quien empieza]  
+No esperes a tener ganas para empezar. Las ganas se despiertan con el movimiento, así que casi siempre llegan después de arrancar y casi nunca antes.
+
 **81.** «El que empieza sin espada no busca al gigante… busca primero la herrería.» [en la presentación, antes del primer pueblo · a todos]  
 No empieces por lo que más te cuesta. Empieza por algo que puedas sostener. Cada día cumplido es un arma que juntas: confianza, costumbre, ganas. Con eso en la mano, lo difícil llega después y ya no lo enfrentas desarmado.
 
@@ -379,7 +381,7 @@ Decidido por el autor del 1 al 13, y el resto en el orden en que suelen hacer fa
 2. «El roble más grande fue una bellota…» (presentación)
 3. «Cada semilla necesita su rincón de tierra.»
 4. «El camino que se ve es el que se anda.»
-5. «Quien espera el viento perfecto nunca suelta la vela.»
+5. «El fuego no espera calor para encenderse: el calor viene del fuego.»
 6. «La abeja vuelve a la flor que le dio miel.»
 7. «No preguntes cuánto llovió. Pregunta si llovió.»
 8. «Quien prepara la leña al atardecer tiene fuego en la noche.»

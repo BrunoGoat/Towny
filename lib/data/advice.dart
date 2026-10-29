@@ -541,10 +541,10 @@ const List<Advice> dailyAdvice = [
   ),
   Advice(
     'ganas',
-    'Quien espera el viento perfecto nunca suelta la vela.',
-    'No esperes a tener ganas. Las ganas llegan después de empezar, no antes.',
-    'Who waits for the perfect wind never sets sail.',
-    'Don’t wait to feel like it. The wanting comes after you start, not before.',
+    'El fuego no espera calor para encenderse: el calor viene del fuego.',
+    'No esperes a tener ganas para empezar. Las ganas se despiertan con el movimiento, así que casi siempre llegan después de arrancar y casi nunca antes.',
+    'Fire doesn’t wait for warmth to light: the warmth comes from the fire.',
+    'Don’t wait to feel like it before you start. The wanting wakes up with the moving, so it almost always comes after you begin and almost never before.',
   ),
   Advice(
     'identidad',
