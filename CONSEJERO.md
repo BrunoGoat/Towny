@@ -30,9 +30,6 @@ lugar. **E** es a quien empieza un hábito, **D** a quien deja uno.
 
 ### Los de todos los días
 
-**18.** «No eres lo que haces una vez. Eres lo que haces siempre.» [E18 · D26]  
-Cada pieza es un voto por quien quieres ser. No «intento leer»: «soy alguien que lee».
-
 **20.** «Mira atrás de vez en cuando: el camino también enseña.» [E20 · D24]  
 Da un paseo por el pueblo. Lo construido es la prueba de que puedes, y una prueba convence más que las ganas.
 
@@ -249,6 +246,11 @@ Reescrito: ver el 14 en Aprobado.
 
 Queda el dicho, con explicación nueva: ver el 16 en Aprobado.
 
+**18.** ~~«No eres lo que haces una vez. Eres lo que haces siempre.» [E18 · D26]~~  
+~~Cada pieza es un voto por quien quieres ser. No «intento leer»: «soy alguien que lee».~~
+
+Reescrito: ver el 18 en Aprobado.
+
 **10.** ~~«Que decida quien traza el camino, no quien tropieza en él.» [E10 · D8]~~  
 ~~Decide en calma, el día antes, qué harás y cuándo. Quien despierta con sueño no debe pensar ni elegir: solo seguir el plan que dejó tu mejor versión.~~
 
@@ -387,6 +389,9 @@ Empieza siempre con el mismo gesto: prender la misma luz, servirte el mismo té.
 **16.** «Una intención es una nube. Una cita es una piedra.» [19.º para quien empieza]  
 «Algún día» no llega nunca. Escribe el plan entero: «haré esto, a esta hora, en este lugar». Un plan escrito ya está decidido, así que cuando llega el momento no hay nada que pensar, solo cumplirlo.
 
+**18.** «Cada piedra que pones dice quién vive en la casa.» [20.º para quien empieza · también para quien deja]  
+Cuando lo haces por ser alguien, y no solo por llegar a algo, sostenerlo cuesta menos. Cada pieza es un voto por quien quieres ser. No digas «intento leer». Di «soy alguien que lee».
+
 **81.** «El que empieza sin espada no busca al gigante… busca primero la herrería.» [en la presentación, antes del primer pueblo · a todos]  
 No empieces por lo que más te cuesta. Empieza por algo que puedas sostener. Cada día cumplido es un arma que juntas: confianza, costumbre, ganas. Con eso en la mano, lo difícil llega después y ya no lo enfrentas desarmado.
 
@@ -441,7 +446,7 @@ Decidido por el autor del 1 al 13, y el resto en el orden en que suelen hacer fa
 17. «Quien suelta el día porque se le cayó la hora, tira la canasta por una manzana.»
 18. «El que siempre entra por la misma puerta no se pierde en la casa.»
 19. «Una intención es una nube. Una cita es una piedra.»
-20. «No eres lo que haces una vez. Eres lo que haces siempre.»
+20. «Cada piedra que pones dice quién vive en la casa.»
 21. «La flor no espera a ser perfecta para abrirse.»
 22. «Lo que termina bien, vuelve.»
 23. «El rocío se junta antes de que salga el sol.»

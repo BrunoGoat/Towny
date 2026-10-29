@@ -536,10 +536,10 @@ const List<Advice> dailyAdvice = [
   ),
   Advice(
     'identidad',
-    'No eres lo que haces una vez. Eres lo que haces siempre.',
-    'Cada pieza es un voto por quien quieres ser. No «intento leer»: «soy alguien que lee».',
-    'You aren’t what you do once. You are what you always do.',
-    'Every piece is a vote for who you want to be. Not “I’m trying to read”: “I’m someone who reads.”',
+    'Cada piedra que pones dice quién vive en la casa.',
+    'Cuando lo haces por ser alguien, y no solo por llegar a algo, sostenerlo cuesta menos. Cada pieza es un voto por quien quieres ser. No digas «intento leer». Di «soy alguien que lee».',
+    'Every stone you lay says who lives in the house.',
+    'When you do it to be someone, not just to get somewhere, keeping it up costs less. Every piece is a vote for who you want to be. Don’t say “I’m trying to read.” Say “I’m someone who reads.”',
   ),
   Advice(
     'tentacion',
