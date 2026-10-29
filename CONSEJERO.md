@@ -182,12 +182,6 @@ Cien veces elegiste aparecer. La prueba de que puedes está construida ahí afue
 
 Gusta la idea, no el dicho. Primero cómo está hoy, después la propuesta.
 
-**14.** «El pájaro vuelve a la misma rama, y por eso la rama lo espera.» [E14]  
-Mismo lugar, misma hora, mismo primer gesto. El cuerpo lo reconoce antes que la mente.
-
-> **Propuesta:** «El sendero que se pisa cada día se abre solo.»  
-> Mismo lugar, misma hora, mismo primer paso. Con el tiempo, el cuerpo arranca antes de que lo pienses.
-
 **22.** «Quien persigue dos conejos no atrapa ninguno.» [E22 · D25]  
 De uno en uno. Cambiarlo todo a la vez un lunes es la manera más segura de no cambiar nada.
 
@@ -247,6 +241,11 @@ Reescrito: ver el 27 en Aprobado.
 ~~Si es de mañana, déjalo todo listo antes de dormir: la ropa a la vista, el agua servida, el camino despejado. Que al despertar no haya nada que buscar ni nada que decidir.~~
 
 Sacado: repetía el del farol (dejar las cosas listas), y pisaba el del camino que se ve y el de un paso. Borrado de la app, también del libro de quien ya lo tenía.
+
+**14.** ~~«El pájaro vuelve a la misma rama, y por eso la rama lo espera.» [E14]~~  
+~~Mismo lugar, misma hora, mismo primer gesto. El cuerpo lo reconoce antes que la mente.~~
+
+Reescrito: ver el 14 en Aprobado.
 
 **10.** ~~«Que decida quien traza el camino, no quien tropieza en él.» [E10 · D8]~~  
 ~~Decide en calma, el día antes, qué harás y cuándo. Quien despierta con sueño no debe pensar ni elegir: solo seguir el plan que dejó tu mejor versión.~~
@@ -380,6 +379,9 @@ Hay días en que no da para todo, y eso no es fallar. Decide ahora cuál es la v
 **27.** «Quien suelta el día porque se le cayó la hora, tira la canasta por una manzana.» [17.º para quien empieza]  
 Si se te pasó la hora, no des el día por perdido. Hazlo igual, más tarde y más chico, pero hoy. Lo que sostiene la costumbre es no saltear el día, no la hora exacta.
 
+**14.** «El sendero que se pisa cada día se abre solo.» [18.º para quien empieza]  
+Empieza siempre con el mismo gesto: prender la misma luz, servirte el mismo té. Después de unas veces ese gesto avisa solo, y el cuerpo arranca antes de que tengas que pensarlo.
+
 **81.** «El que empieza sin espada no busca al gigante… busca primero la herrería.» [en la presentación, antes del primer pueblo · a todos]  
 No empieces por lo que más te cuesta. Empieza por algo que puedas sostener. Cada día cumplido es un arma que juntas: confianza, costumbre, ganas. Con eso en la mano, lo difícil llega después y ya no lo enfrentas desarmado.
 
@@ -432,7 +434,7 @@ Decidido por el autor del 1 al 13, y el resto en el orden en que suelen hacer fa
 15. «La rueda cuesta en el primer giro. Después gira sola.»
 16. «En los días de sequía, el río se hace hilo, pero no deja de correr.»
 17. «Quien suelta el día porque se le cayó la hora, tira la canasta por una manzana.»
-18. «El pájaro vuelve a la misma rama, y por eso la rama lo espera.»
+18. «El sendero que se pisa cada día se abre solo.»
 19. «Una intención es una nube. Una cita es una piedra.»
 20. «No eres lo que haces una vez. Eres lo que haces siempre.»
 21. «La flor no espera a ser perfecta para abrirse.»

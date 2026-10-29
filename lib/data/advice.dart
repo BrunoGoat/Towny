@@ -363,10 +363,10 @@ const List<Advice> dailyAdvice = [
   ),
   Advice(
     'mismo',
-    'El pájaro vuelve a la misma rama, y por eso la rama lo espera.',
-    'Mismo lugar, misma hora, mismo primer gesto. El cuerpo lo reconoce antes que la mente.',
-    'The bird returns to the same branch, and so the branch waits for it.',
-    'Same place, same time, same first move. The body recognises it before the mind does.',
+    'El sendero que se pisa cada día se abre solo.',
+    'Empieza siempre con el mismo gesto: prender la misma luz, servirte el mismo té. Después de unas veces ese gesto avisa solo, y el cuerpo arranca antes de que tengas que pensarlo.',
+    'The path walked every day opens on its own.',
+    'Always begin with the same gesture: switching on the same light, pouring the same tea. After a few times that gesture gives the signal by itself, and your body gets going before you have to think about it.',
     goal: AdviceGoal.start,
   ),
   Advice(
