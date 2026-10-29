@@ -45,9 +45,6 @@ Da un paseo por el pueblo. Lo construido es la prueba de que puedes, y una prueb
 **21.** «La piedra no se gasta por la fuerza del agua, sino por su costumbre.» [E21 · D27]  
 Que se vuelva aburrido es buena señal: ahí es donde casi todos lo dejan, y donde se queda quien sigue.
 
-**27.** «Llegar tarde a la fuente igual calma la sed.» [E27]  
-Si la hora pasó, hazlo igual: más tarde y más pequeño, pero hoy.
-
 **28.** «El sabio arregla el techo cuando hay sol.» [E28]  
 Piensa en los días extraños antes de que lleguen: un viaje, una visita. Si ya sabes qué harás ese día, nada se derrumba.
 
@@ -244,6 +241,11 @@ Reescrito: ver el 6 en Aprobado.
 
 Reescrito: ver el 13 en Aprobado.
 
+**27.** ~~«Llegar tarde a la fuente igual calma la sed.» [E27]~~  
+~~Si la hora pasó, hazlo igual: más tarde y más pequeño, pero hoy.~~
+
+Reescrito: ver el 27 en Aprobado.
+
 **10.** ~~«Que decida quien traza el camino, no quien tropieza en él.» [E10 · D8]~~  
 ~~Decide en calma, el día antes, qué harás y cuándo. Quien despierta con sueño no debe pensar ni elegir: solo seguir el plan que dejó tu mejor versión.~~
 
@@ -373,6 +375,9 @@ No te propongas hacerlo entero. Proponte solo empezar. Lo que más cuesta es arr
 **13.** «En los días de sequía, el río se hace hilo, pero no deja de correr.» [16.º para quien empieza · también para quien deja]  
 Hay días en que no da para todo, y eso no es fallar. Decide ahora cuál es la versión mínima que cuenta, así ese día no tienes que pensarlo. Hacer poco mantiene viva la costumbre, y lo que está vivo vuelve a crecer.
 
+**27.** «Quien suelta el día porque se le cayó la hora, tira la canasta por una manzana.» [17.º para quien empieza]  
+Si se te pasó la hora, no des el día por perdido. Hazlo igual, más tarde y más chico, pero hoy. Lo que sostiene la costumbre es no saltear el día, no la hora exacta.
+
 **81.** «El que empieza sin espada no busca al gigante… busca primero la herrería.» [en la presentación, antes del primer pueblo · a todos]  
 No empieces por lo que más te cuesta. Empieza por algo que puedas sostener. Cada día cumplido es un arma que juntas: confianza, costumbre, ganas. Con eso en la mano, lo difícil llega después y ya no lo enfrentas desarmado.
 
@@ -424,7 +429,7 @@ Decidido por el autor del 1 al 13, y el resto en el orden en que suelen hacer fa
 14. «El charco no nace de una gota, nace de la que viene detrás.»
 15. «La rueda cuesta en el primer giro. Después gira sola.»
 16. «En los días de sequía, el río se hace hilo, pero no deja de correr.»
-17. «Llegar tarde a la fuente igual calma la sed.»
+17. «Quien suelta el día porque se le cayó la hora, tira la canasta por una manzana.»
 18. «La buena mañana se siembra la noche anterior.»
 19. «El pájaro vuelve a la misma rama, y por eso la rama lo espera.»
 20. «Una intención es una nube. Una cita es una piedra.»

@@ -415,10 +415,10 @@ const List<Advice> dailyAdvice = [
   ),
   Advice(
     'mismodia',
-    'Llegar tarde a la fuente igual calma la sed.',
-    'Si la hora pasó, hazlo igual: más tarde y más pequeño, pero hoy.',
-    'Arriving late at the fountain still quenches your thirst.',
-    'If the time slipped by, do it anyway: later and smaller, but today.',
+    'Quien suelta el día porque se le cayó la hora, tira la canasta por una manzana.',
+    'Si se te pasó la hora, no des el día por perdido. Hazlo igual, más tarde y más chico, pero hoy. Lo que sostiene la costumbre es no saltear el día, no la hora exacta.',
+    'Whoever drops the day because the hour fell throws away the basket for one apple.',
+    'If the time slipped by, don’t give the day up for lost. Do it anyway, later and smaller, but today. What holds the habit up is not skipping the day, not the exact time.',
     goal: AdviceGoal.start,
   ),
 
