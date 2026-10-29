@@ -470,55 +470,34 @@ List<Solid> folkSolids(
         );
 
       case PropKind.lute:
-        // El laúd contra el pecho, cruzado: la caja en pera a lo largo del
-        // mástil, la tapa clara con su boca, y el clavijero doblado hacia
-        // atrás. Nada más: a veinte píxeles lo que se lee es la silueta, y una
-        // cuerda o una clavija ahí es ruido.
-        //
-        // Era una caja recta con un palo pegado en diagonal; el mástil y la
-        // caja tienen que ser una sola línea para que sea un laúd.
+        // El laúd contra el pecho, cruzado: tres piezas en una sola línea.
+        // La caja, clara para que se lea contra cualquier sayo; el mástil,
+        // que sale por fuera de la silueta; y la punta oscura del clavijero.
+        // Nada más: a veinte píxeles lo que se lee es la silueta.
         final m = hold(-1, 0.50, 0.11);
         const ux = 0.79, uy = 0.61; // a lo largo del mástil
-        // Delante del pecho y apoyado en él, no colgando al costado: la
-        // caja casi en el medio y el mástil cruzando hacia el otro hombro.
+        // Delante del pecho y apoyado en él, no colgando al costado.
         final cx = m.$1 + 0.11, cy = m.$2 - 0.05, cz = m.$3 - 0.055;
         (double, double, double) en(double a, double dz) =>
             (cx + ux * a, cy + uy * a, cz + dz);
-        const madera = 0xFFB07A44, tapa = 0xFFEACB8E, oscuro = 0xFF3B2614;
-        // La pera, en dos tramos: ancha abajo y más angosta arriba.
-        for (final (a0, a1, r) in const [
-          (-0.19, -0.06, 0.112),
-          (-0.06, 0.04, 0.084),
-        ]) {
-          link(en(a0, 0), en(a1, 0), r, madera, 0.94, deep: 0.050);
-          link(
-            en(a0 + 0.01, 0.056),
-            en(a1 - 0.006, 0.056),
-            r - 0.016,
-            tapa,
-            1.06,
-            deep: 0.008,
-          );
-        }
-        // La boca.
+        link(en(-0.18, 0), en(0.03, 0), 0.105, 0xFFE2B878, 1.0, deep: 0.050);
+        // El mástil, a ras de la caja —más atrás, cruzando el pecho, rozaba la
+        // barbilla—.
         link(
-          en(-0.045, 0.064),
-          en(-0.005, 0.064),
-          0.024,
-          oscuro,
-          0.84,
-          deep: 0.004,
+          en(0.03, 0.035),
+          en(0.40, 0.035),
+          0.022,
+          0xFFB07A44,
+          1.0,
+          deep: 0.018,
         );
-        // El mástil, a ras de la tapa —más atrás, cruzando el pecho, rozaba la
-        // barbilla—, y el clavijero doblado hacia atrás.
-        link(en(0.04, 0.040), en(0.42, 0.040), 0.022, madera, 1.0, deep: 0.018);
         link(
-          en(0.42, 0.040),
-          en(0.48, -0.045),
-          0.024,
-          oscuro,
+          en(0.40, 0.035),
+          en(0.47, 0.035),
+          0.026,
+          0xFF3B2614,
           0.92,
-          deep: 0.016,
+          deep: 0.020,
         );
 
       case PropKind.drum:
