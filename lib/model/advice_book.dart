@@ -602,7 +602,7 @@ List<String> momentAdvice(AdviceMoment m, AdviceGoal busca) => switch (m) {
   ],
   AdviceMoment.struggling =>
     busca == AdviceGoal.start
-        ? ['chico', 'diamalo', 'estorbos', 'dosminutos', 'ambiente']
+        ? ['chico', 'diamalo', 'estorbos', 'dosminutos']
         : ['q_dificil', 'reemplazo', 'q_sed', 'diamalo', 'q_ola'],
   AdviceMoment.steady => const [],
 };
