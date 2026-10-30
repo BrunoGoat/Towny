@@ -40,9 +40,12 @@ void main() {
           expect(t.trim(), isNotEmpty, reason: a.id);
         }
       }
+      // Todo lo que pasa tiene el suyo, menos el día sin pieza: ése no tiene
+      // uno propio, lo dicen el del charco o el de la mancha, que se
+      // adelantan en el camino al día siguiente.
       expect({
         for (final a in eventAdvice) a.event,
-      }, AdviceEvent.values.toSet());
+      }, AdviceEvent.values.toSet()..remove(AdviceEvent.missedDay));
       for (final id in approvedAdvice) {
         expect(adviceById, contains(id), reason: 'aprobado y no existe: $id');
       }
@@ -309,10 +312,8 @@ void main() {
       bool hay(String id) =>
           libro.unlocked(approved: todos).any((g) => g.$1.id == id);
       expect(hay('nodosveces'), isTrue);
-      expect(hay('ev_falta'), isTrue);
       libro.retractMisses('Leer', DateTime(2026, 3, 9));
       expect(hay('nodosveces'), isFalse);
-      expect(hay('ev_falta'), isFalse);
       // Lo que no era por la falta se queda.
       expect(hay('ev_primera'), isTrue);
     });
@@ -343,7 +344,6 @@ void main() {
           .visit([a, b], now: DateTime(2026, 3, 9), approved: todos)
           .map((x) => x.id);
       // A quien deja algo, lo de atar lo nuevo a lo de siempre no le toca.
-      expect(nuevos, isNot(contains('ev_segundo')));
       expect(nuevos, isNot(contains('despues')));
     });
 
@@ -389,8 +389,6 @@ void main() {
       String? porque(String id) => libro.reasonOf(adviceById[id]!)?.text;
       expect(porque('ev_primera'), contains('1/3'));
       expect(porque('ev_primera'), contains('Leer'));
-      // El día sin pieza fue el 8, entre el 7 y el 9.
-      expect(porque('ev_falta'), contains('8/3'));
       // Volvió el 20, después de diez días sin nada.
       expect(porque('ev_vuelta'), contains('20/3'));
       expect(porque('ev_vuelta'), contains('10'));

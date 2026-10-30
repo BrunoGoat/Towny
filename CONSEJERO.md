@@ -32,36 +32,6 @@ lugar. **E** es a quien empieza un hábito, **D** a quien deja uno.
 
 ### Los que llegan cuando pasa algo
 
-**54.** «Vi la primera piedra posarse.» [la primera pieza]  
-Lo más difícil ya está hecho: empezar. Mañana solo hace falta lo mismo, en el mismo lugar.
-
-**55.** «Ya tienes un río que corre. Deja que el nuevo nazca de él.» [al fundar el segundo pueblo · sólo a quien empieza]  
-Encadénalos: haz lo nuevo justo después de lo que ya te sale. El que ya tiene raíces le presta las suyas al que llega.
-
-**58.** «Siete días. Ya no es casualidad.» [siete días con pieza]  
-Es un comienzo. Ahora importa menos cuánto y más que no se corte.
-
-**59.** «Una luna entera. ¿Notas que pesa menos?» [treinta días con pieza]  
-Mira cuánto menos cuesta que al principio: es la costumbre haciendo su parte.
-
-**60.** «Ayer no viniste. Lo vi. No pasa nada.» [un día sin pieza]  
-Lo único que importa ahora es hoy: que no sean dos.
-
-**61.** «Has vuelto. Eso es lo que hacen quienes de verdad pueden.» [al volver tras tres días o más]  
-No los que nunca fallan: los que siempre vuelven. Empieza pequeño.
-
-**62.** «Vi lo que escribiste en el tablón. Ahora defiéndelo.» [al escribir hora o lugar en el tablón]  
-Hora y lugar escritos. Cuando algo quiera ocupar ese rato, que tenga que pedir permiso.
-
-**63.** «Lo que se escribe, se ve. Lo que se ve, se hace.» [al clavar una nota tuya]  
-Usa el tablón para lo que te ayude a volver: el porqué, el plan, lo que funcionó.
-
-**64.** «Hasta la tierra descansa en invierno.» [al poner a dormir el pueblo]  
-Parar a propósito no es abandonar. Cuando el pueblo despierte, vuelve con la versión más pequeña que tengas.
-
-**65.** «Cien piedras. Ya no necesitas creerme a mí.» [cien piezas]  
-Cien veces elegiste aparecer. La prueba de que puedes está construida ahí afuera.
-
 ### Lo que dice fuera de los consejos
 
 **66.** Al presentarse: «Te doy la bienvenida al valle. Pasa, pasa… aquí nadie corre, ni siquiera el agua.»
@@ -377,6 +347,56 @@ Reescrito: ver el 52 en Aprobado.
 
 Reescrito: ver el 53 en Aprobado.
 
+**54.** ~~«Vi la primera piedra posarse.» [la primera pieza]~~  
+~~Lo más difícil ya está hecho: empezar. Mañana solo hace falta lo mismo, en el mismo lugar.~~
+
+Reescrito: ver el 54 en Aprobado.
+
+**55.** ~~«Ya tienes un río que corre. Deja que el nuevo nazca de él.» [al fundar el segundo pueblo · sólo a quien empieza]~~  
+~~Encadénalos: haz lo nuevo justo después de lo que ya te sale. El que ya tiene raíces le presta las suyas al que llega.~~
+
+Sacado: repetía al 4, el del cauce del río viejo, que sale en el mismo momento. Borrado de la app.
+
+**58.** ~~«Siete días. Ya no es casualidad.» [siete días con pieza]~~  
+~~Es un comienzo. Ahora importa menos cuánto y más que no se corte.~~
+
+Reescrito: ver el 58 en Aprobado.
+
+**59.** ~~«Una luna entera. ¿Notas que pesa menos?» [treinta días con pieza]~~  
+~~Mira cuánto menos cuesta que al principio: es la costumbre haciendo su parte.~~
+
+Reescrito: ver el 59 en Aprobado.
+
+**60.** ~~«Ayer no viniste. Lo vi. No pasa nada.» [un día sin pieza]~~  
+~~Lo único que importa ahora es hoy: que no sean dos.~~
+
+Sacado: lo dicen el del charco y el de la mancha, que se adelantan en el camino al día siguiente de faltar. Borrado de la app.
+
+**61.** ~~«Has vuelto. Eso es lo que hacen quienes de verdad pueden.» [al volver tras tres días o más]~~  
+~~No los que nunca fallan: los que siempre vuelven. Empieza pequeño.~~
+
+Reescrito: ver el 61 en Aprobado.
+
+**62.** ~~«Vi lo que escribiste en el tablón. Ahora defiéndelo.» [al escribir hora o lugar en el tablón]~~  
+~~Hora y lugar escritos. Cuando algo quiera ocupar ese rato, que tenga que pedir permiso.~~
+
+Reescrito: ver el 62 en Aprobado.
+
+**63.** ~~«Lo que se escribe, se ve. Lo que se ve, se hace.» [al clavar una nota tuya]~~  
+~~Usa el tablón para lo que te ayude a volver: el porqué, el plan, lo que funcionó.~~
+
+Reescrito: ver el 63 en Aprobado.
+
+**64.** ~~«Hasta la tierra descansa en invierno.» [al poner a dormir el pueblo]~~  
+~~Parar a propósito no es abandonar. Cuando el pueblo despierte, vuelve con la versión más pequeña que tengas.~~
+
+Reescrito: ver el 64 en Aprobado.
+
+**65.** ~~«Cien piedras. Ya no necesitas creerme a mí.» [cien piezas]~~  
+~~Cien veces elegiste aparecer. La prueba de que puedes está construida ahí afuera.~~
+
+Reescrito: ver el 65 en Aprobado.
+
 # Aprobado
 
 Lo que va a quedar en la app.
@@ -423,64 +443,64 @@ Los días difíciles las ganas no alcanzan, pero un motivo claro sí. Cuando rec
 **7.** «El charco no nace de una gota, nace de la que viene detrás.» [14.º para quien empieza]  
 Faltar un día le pasa a cualquiera y no rompe nada. El hábito sigue vivo. Pero dos días seguidos ya empiezan a armar una costumbre nueva, la de no hacerlo. Si fallaste ayer, hoy hazlo aunque sea chiquito.
 
-**6.** «La rueda cuesta en el primer giro. Después gira sola.» [15.º para quien empieza]  
+**6.** «La rueda cuesta en el primer giro. Después gira sola.» [16.º para quien empieza]  
 No te propongas hacerlo entero. Proponte solo empezar. Lo que más cuesta es arrancar, y una vez en marcha seguir cuesta mucho menos, así que casi siempre terminas haciendo más de lo que pensabas.
 
-**13.** «En los días de sequía, el río se hace hilo, pero no deja de correr.» [16.º para quien empieza]  
+**13.** «En los días de sequía, el río se hace hilo, pero no deja de correr.» [17.º para quien empieza]  
 Hay días en que no da para todo, y eso no es fallar. Decide ahora cuál es la versión mínima que cuenta, así ese día no tienes que pensarlo. Hacer poco mantiene viva la costumbre, y lo que está vivo vuelve a crecer.
 
-**27.** «Quien suelta el día porque se le cayó la hora, tira la canasta por una manzana.» [17.º para quien empieza]  
+**27.** «Quien suelta el día porque se le cayó la hora, tira la canasta por una manzana.» [18.º para quien empieza]  
 Si se te pasó la hora, no des el día por perdido. Hazlo igual, más tarde y más chico, pero hoy. Lo que sostiene la costumbre es no saltear el día, no la hora exacta.
 
-**14.** «El que siempre entra por la misma puerta no se pierde en la casa.» [18.º para quien empieza]  
+**14.** «El que siempre entra por la misma puerta no se pierde en la casa.» [19.º para quien empieza]  
 Empieza siempre con el mismo gesto: prender la misma luz, servirte el mismo té. Después de unas veces ese gesto avisa solo, y el cuerpo arranca antes de que tengas que pensarlo.
 
-**16.** «Una intención es una nube. Una cita es una piedra.» [19.º para quien empieza]  
+**16.** «Una intención es una nube. Una cita es una piedra.» [20.º para quien empieza]  
 «Algún día» no llega nunca. Escribe el plan entero: «haré esto, a esta hora, en este lugar». Un plan escrito ya está decidido, así que cuando llega el momento no hay nada que pensar, solo cumplirlo.
 
-**18.** «Cada piedra que pones dice quién vive en la casa.» [20.º para quien empieza]  
+**18.** «Cada piedra que pones dice quién vive en la casa.» [21.º para quien empieza]  
 Cuando lo haces por ser alguien, y no solo por llegar a algo, sostenerlo cuesta menos. Cada pieza es un voto por quien quieres ser. No digas «intento leer». Di «soy alguien que lee».
 
-**32.** «La flor no espera a ser perfecta para abrirse.» [21.º para quien empieza]  
+**32.** «La flor no espera a ser perfecta para abrirse.» [22.º para quien empieza]  
 Esperar a hacerlo perfecto es otra forma de no hacerlo. Un día flojo igual cuenta, porque lo que forma la costumbre es repetir, no lucirse. Hazlo como salga hoy, y mañana sale un poco mejor.
 
-**36.** «El que siembra al alba no compite con el día.» [22.º para quien empieza]  
+**36.** «El que siembra al alba no compite con el día.» [23.º para quien empieza]  
 Si puedes, hazlo temprano. A la mañana todavía no pasó nada: no hay cansancio, ni imprevistos, ni otros planes. Cuanto más avanza el día, más cosas se meten en el medio.
 
-**28.** «El sabio arregla el techo cuando hay sol.» [23.º para quien empieza]  
+**28.** «El sabio arregla el techo cuando hay sol.» [24.º para quien empieza]  
 Los hábitos no se caen en los días comunes, se caen en los raros: un viaje, una visita, una fiesta. Piensa antes cómo lo harás ese día, aunque sea más chico. Si ya lo tienes decidido, el día raro no te saca del camino.
 
-**20.** «Las huellas detrás de ti dicen más que las promesas delante.» [24.º para quien empieza · también para quien deja]  
+**20.** «Las huellas detrás de ti dicen más que las promesas delante.» [25.º para quien empieza · también para quien deja]  
 Cuando dudes de si puedes, da un paseo por tu pueblo. Cada pieza es un día que cumpliste. Lo que ya hiciste convence más que cualquier ánimo, porque no es una idea, es una prueba.
 
-**21.** «El pan de cada día no tiene gusto a fiesta, y por eso alimenta.» [25.º para quien empieza]  
+**21.** «El pan de cada día no tiene gusto a fiesta, y por eso alimenta.» [26.º para quien empieza]  
 Que se vuelva aburrido es buena señal: quiere decir que ya es costumbre. Ahí es donde casi todos lo dejan, buscando algo nuevo. Quien sigue aunque no tenga gracia es el que se queda con el hábito.
 
-**35.** «El herrero levanta la espada a la luz antes de apagar la fragua.» [26.º para quien empieza · también para quien deja]  
+**35.** «El herrero levanta la espada a la luz antes de apagar la fragua.» [27.º para quien empieza · también para quien deja]  
 Cuando termines, tómate un segundo para decirte «hoy lo hice», aunque haya sido poco. Esa pequeña alegría es lo que tu cabeza recuerda, y lo que se recuerda con gusto se quiere repetir.
 
-**22.** «Atrapa un conejo, y el bosque te enseña a atrapar el siguiente.» [27.º para quien empieza · también para quien deja]  
+**22.** «Atrapa un conejo, y el bosque te enseña a atrapar el siguiente.» [28.º para quien empieza · también para quien deja]  
 Con ganas, dan ganas de cambiar la vida entera de una vez. Pero cambiarlo todo de golpe es la manera más segura de no cambiar nada. Por eso en el valle los pueblos se ganan de a poco: cada uno llega cuando el anterior ya está firme, y con lo que aprendiste en él.
 
-**30.** «El arquero aleja el blanco cuando ya da en el centro.» [28.º para quien empieza]  
+**30.** «El arquero aleja el blanco cuando ya da en el centro.» [29.º para quien empieza]  
 Cuando lo chico ya no te cueste, súmale un poco. Un poco, no el doble. Si lo agrandas de golpe vuelve a costar arrancar, y lo que tiene que seguir siendo fácil es empezar.
 
-**38.** «Quien se castiga por caer aprende a no levantarse.» [29.º para quien empieza · también para quien deja]  
+**38.** «Quien se castiga por caer aprende a no levantarse.» [30.º para quien empieza · también para quien deja]  
 Si fallaste, no te retes. La culpa no te hace volver, te hace evitar el tema, y lo que se evita se abandona. Mira qué pasó, cambia algo chico y sigue.
 
-**37.** «La barca atada al muelle no se la lleva la marea.» [30.º para quien empieza · también para quien deja]  
+**37.** «La barca atada al muelle no se la lleva la marea.» [31.º para quien empieza · también para quien deja]  
 Átate a algo de afuera: queda con alguien a una hora, paga la clase por adelantado. No se trata de contarlo, se trata de que algo te espere. Fallarte a ti mismo es fácil, porque nadie lo nota. Dejar plantado a otro, o perder lo que ya pagaste, cuesta mucho más.
 
-**34.** «La posada no termina el viaje: lo deja seguir.» [31.º para quien empieza]  
+**34.** «La posada no termina el viaje: lo deja seguir.» [32.º para quien empieza]  
 Si necesitas parar, para a propósito y con fecha de vuelta. Una pausa elegida no es abandonar, porque sabes cuándo vuelves. Lo que rompe un hábito no es el descanso, es dejarlo de a poco sin decidirlo.
 
-**39.** «El jardinero no deja de regar porque el árbol ya creció.» [32.º para quien empieza · también para quien deja]  
+**39.** «El jardinero no deja de regar porque el árbol ya creció.» [33.º para quien empieza · también para quien deja]  
 Cuando ya lo haces sin pensarlo, parece que está asegurado, y ahí muchos se confían y lo sueltan. Pero una costumbre se sostiene igual que se hizo: haciéndola. Sigue cuidándola, aunque ya no cueste.
 
-**40.** «El maestro herrero sabe por qué golpea donde golpea.» [33.º para quien empieza · también para quien deja]  
+**40.** «El maestro herrero sabe por qué golpea donde golpea.» [34.º para quien empieza · también para quien deja]  
 Pregúntate de vez en cuando por qué te está saliendo: qué te ayuda, qué te frena. Cuando entiendes cómo funciona tu hábito, sabes arreglarlo el día que algo cambia.
 
-**41.** «Un ladrillo no es una casa. Mil ladrillos, sí.» [34.º para quien empieza · también para quien deja]  
+**41.** «Un ladrillo no es una casa. Mil ladrillos, sí.» [35.º para quien empieza · también para quien deja]  
 Piensa en años, no en días. Un día solo no cambia nada, y por eso a veces parece que no vale la pena. Pero mil días lo cambian todo, y cada uno de esos mil es un día como hoy.
 
 **42.** «Antes del humo, siempre hay una chispa.» [1.º para quien deja]  
@@ -504,11 +524,38 @@ Cómo lo dices cambia cómo lo vives. «Intento no fumar» suena a que todavía 
 **51.** «Una mancha no tiñe toda la tela.» [7.º para quien deja]  
 Si caíste una vez, no lo tires todo diciendo «ya está, lo arruiné». Una recaída no borra todos los días que aguantaste. Lo que importa es la próxima vez que lleguen las ganas: ahí eliges de nuevo.
 
-**52.** «El caballo que tiene sed no se calma con riendas, se calma con agua.» [8.º para quien deja]  
+**52.** «El caballo que tiene sed no se calma con riendas, se calma con agua.» [9.º para quien deja]  
 Muchas veces el mal hábito tapa otra cosa: cansancio, nervios, aburrimiento, soledad. Las ganas son la forma en que esa otra cosa pide atención. Pregúntate qué te falta de verdad cuando aparecen. Si atiendes eso, el hábito deja de llamar tanto.
 
-**53.** «El que cuenta las monedas que se le escapan cierra la bolsa.» [9.º para quien deja]  
+**53.** «El que cuenta las monedas que se le escapan cierra la bolsa.» [10.º para quien deja]  
 El mal hábito cobra en silencio: un poco de dinero, de sueño, de tiempo, de salud, todos los días. Como no se ve, parece gratis. Escribe lo que te cuesta y ponlo donde lo veas. Cuando ves la cuenta, las ganas pesan menos.
+
+**54.** «La primera piedra es la que más pesa. Ya la pusiste.» [la primera pieza]  
+Lo más difícil ya está hecho: empezar. Mañana no tienes que hacer nada nuevo, solo lo mismo que hoy. Cada día que vuelves, cuesta un poco menos.
+
+**58.** «Siete días. Una semana entera es una costumbre que asoma.» [siete días con pieza]  
+Una semana seguida ya no es casualidad, es el comienzo de una costumbre. Ahora lo que importa es que no se corte: cada día que sumas, la cadena se hace más fuerte y cuesta menos seguirla.
+
+**59.** «Treinta días. El camino que al principio era monte ya es sendero.» [treinta días con pieza]  
+Compara con el primer día: lo que antes te costaba un mundo, hoy pesa mucho menos. No es que se haya vuelto fácil de golpe, es la costumbre haciendo su parte. De aquí en adelante, ella te lleva un poco a ti.
+
+**61.** «No gana el que nunca cae, gana el que siempre vuelve.» [al volver tras tres días o más]  
+Volviste, y eso es lo que importa. Los que logran un hábito no son los que nunca fallan, son los que siempre vuelven. No intentes recuperar los días perdidos de golpe: empieza pequeño, y retoma el ritmo de a poco.
+
+**62.** «La cita con uno mismo es la única que nadie más puede cancelar.» [al ponerle hora o lugar en la hoja del hábito]  
+Ya le diste una hora. Ahora ese rato es tuyo: cuando llegue, no lo pienses, solo cumple. Y cuando algo quiera ocuparlo, que tenga que pedir permiso.
+
+**63.** «Quien firma con su nombre, responde con su nombre.» [al clavar cualquier nota tuya en el tablón]  
+Lo que anotas en el tablón no es un adorno, es tu palabra. No se escribe en vano. Tómalo en serio: cuando algo quiera hacerte faltar, acuérdate de que diste tu palabra, y defiéndela.
+
+**64.** «El oso que duerme el invierno sale en primavera con hambre de vivir.» [al poner a dormir el pueblo]  
+Descansar a propósito no es abandonar. Tu pueblo te espera tal como lo dejaste. Cuando despierte, no intentes volver a todo de golpe: empieza con la versión más pequeña que tengas, y deja que el ritmo vuelva solo.
+
+**65.** «Donde arden cien velas, nadie busca el sol.» [cien piezas]  
+Cien veces elegiste volver. A esta altura ya no hace falta que nadie te convenza de que puedes: la prueba está construida ahí afuera, pieza por pieza, y la levantaste tú.
+
+**66.** «Un juramento roto pesa menos la próxima vez que se rompe.» [nuevo · 15.º para quien empieza, detrás del charco · 8.º para quien deja, detrás de la mancha]  
+Fallar puede pasar, y no es el fin. Pero no lo tomes a la ligera: cada vez que te permites una excepción, la próxima cuesta menos, y lo que construiste empieza a valer menos para ti. Cuida tu pueblo y él te cuidará a ti. Que faltar sea un accidente, no una puerta que dejas abierta.
 
 **81.** «El que empieza sin espada no busca al gigante… busca primero la herrería.» [en la presentación, antes del primer pueblo · a todos]  
 No empieces por lo que más te cuesta. Empieza por algo que puedas sostener. Cada día cumplido es un arma que juntas: confianza, costumbre, ganas. Con eso en la mano, lo difícil llega después y ya no lo enfrentas desarmado.
@@ -559,30 +606,31 @@ Decidido por el autor del 1 al 13, y el resto en el orden en que suelen hacer fa
 12. «Quien mira la estrella no cuenta las piedras del camino.»
 13. «El sol no pregunta si tiene ganas de salir.»
 14. «El charco no nace de una gota, nace de la que viene detrás.»
-15. «La rueda cuesta en el primer giro. Después gira sola.»
-16. «En los días de sequía, el río se hace hilo, pero no deja de correr.»
-17. «Quien suelta el día porque se le cayó la hora, tira la canasta por una manzana.»
-18. «El que siempre entra por la misma puerta no se pierde en la casa.»
-19. «Una intención es una nube. Una cita es una piedra.»
-20. «Cada piedra que pones dice quién vive en la casa.»
-21. «La flor no espera a ser perfecta para abrirse.»
-22. «El que siembra al alba no compite con el día.»
-23. «El sabio arregla el techo cuando hay sol.»
-24. «Las huellas detrás de ti dicen más que las promesas delante.»
-25. «El pan de cada día no tiene gusto a fiesta, y por eso alimenta.»
-26. «El herrero levanta la espada a la luz antes de apagar la fragua.»
-27. «Atrapa un conejo, y el bosque te enseña a atrapar el siguiente.»
-28. «El arquero aleja el blanco cuando ya da en el centro.»
-29. «Quien se castiga por caer aprende a no levantarse.»
-30. «La barca atada al muelle no se la lleva la marea.»
-31. «La posada no termina el viaje: lo deja seguir.»
-32. «El jardinero no deja de regar porque el árbol ya creció.»
-33. «El maestro herrero sabe por qué golpea donde golpea.»
-34. «Un ladrillo no es una casa. Mil ladrillos, sí.»
+15. «Un juramento roto pesa menos la próxima vez que se rompe.»
+16. «La rueda cuesta en el primer giro. Después gira sola.»
+17. «En los días de sequía, el río se hace hilo, pero no deja de correr.»
+18. «Quien suelta el día porque se le cayó la hora, tira la canasta por una manzana.»
+19. «El que siempre entra por la misma puerta no se pierde en la casa.»
+20. «Una intención es una nube. Una cita es una piedra.»
+21. «Cada piedra que pones dice quién vive en la casa.»
+22. «La flor no espera a ser perfecta para abrirse.»
+23. «El que siembra al alba no compite con el día.»
+24. «El sabio arregla el techo cuando hay sol.»
+25. «Las huellas detrás de ti dicen más que las promesas delante.»
+26. «El pan de cada día no tiene gusto a fiesta, y por eso alimenta.»
+27. «El herrero levanta la espada a la luz antes de apagar la fragua.»
+28. «Atrapa un conejo, y el bosque te enseña a atrapar el siguiente.»
+29. «El arquero aleja el blanco cuando ya da en el centro.»
+30. «Quien se castiga por caer aprende a no levantarse.»
+31. «La barca atada al muelle no se la lleva la marea.»
+32. «La posada no termina el viaje: lo deja seguir.»
+33. «El jardinero no deja de regar porque el árbol ya creció.»
+34. «El maestro herrero sabe por qué golpea donde golpea.»
+35. «Un ladrillo no es una casa. Mil ladrillos, sí.»
 
 ### El orden para quien deja un mal hábito
 
-Los nueve propios primero, y detrás los que comparte con quien empieza y le sirven igual. Uno por día.
+Los propios primero, y detrás los que comparte con quien empieza y le sirven igual. Uno por día.
 
 1. «Antes del humo, siempre hay una chispa.»
 2. «La oscuridad no se echa a empujones: se enciende una vela.»
@@ -591,16 +639,17 @@ Los nueve propios primero, y detrás los que comparte con quien empieza y le sir
 5. «El potro patea fuerte los primeros días, después se deja montar.»
 6. «El que dice «no puedo» todavía mira la puerta. El que dice «no lo hago» ya la cerró.»
 7. «Una mancha no tiñe toda la tela.»
-8. «El caballo que tiene sed no se calma con riendas, se calma con agua.»
-9. «El que cuenta las monedas que se le escapan cierra la bolsa.»
-10. «Quien mira la estrella no cuenta las piedras del camino.»
-11. «Quien se castiga por caer aprende a no levantarse.»
-12. «Las huellas detrás de ti dicen más que las promesas delante.»
-13. «Atrapa un conejo, y el bosque te enseña a atrapar el siguiente.»
-14. «La barca atada al muelle no se la lleva la marea.»
-15. «El herrero levanta la espada a la luz antes de apagar la fragua.»
-16. «El jardinero no deja de regar porque el árbol ya creció.»
-17. «El maestro herrero sabe por qué golpea donde golpea.»
-18. «Un ladrillo no es una casa. Mil ladrillos, sí.»
+8. «Un juramento roto pesa menos la próxima vez que se rompe.»
+9. «El caballo que tiene sed no se calma con riendas, se calma con agua.»
+10. «El que cuenta las monedas que se le escapan cierra la bolsa.»
+11. «Quien mira la estrella no cuenta las piedras del camino.»
+12. «Quien se castiga por caer aprende a no levantarse.»
+13. «Las huellas detrás de ti dicen más que las promesas delante.»
+14. «Atrapa un conejo, y el bosque te enseña a atrapar el siguiente.»
+15. «La barca atada al muelle no se la lleva la marea.»
+16. «El herrero levanta la espada a la luz antes de apagar la fragua.»
+17. «El jardinero no deja de regar porque el árbol ya creció.»
+18. «El maestro herrero sabe por qué golpea donde golpea.»
+19. «Un ladrillo no es una casa. Mil ladrillos, sí.»
 
 Sacados de este camino porque estaban pensados para empezar algo o los cubre otro: el del charco (lo cubre la mancha), el del río en la sequía, el del bambú (lo cubre el potro), el del pan de cada día, el de la cascada (lo cubre la fruta) y el de la piedra (lo cubre el de la puerta cerrada). Siguen para quien empieza.
