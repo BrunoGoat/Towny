@@ -893,8 +893,12 @@ List<Facet> plazaShadows(
       var z0 = double.infinity, z1 = -double.infinity;
       var r2 = 0.0;
       for (final v in pts) {
-        if (v.y <= alto - 1e-6) continue;
-        final x = v.x + ox * (v.y - alto), z = v.z + oz * (v.y - alto);
+        // Lo que baja más que este suelo se toma donde lo atraviesa, no se
+        // descarta: las patas del tablón nacen en el prado, por debajo del
+        // césped, y sin su pie de la sombra quedaba sólo la tapa de arriba,
+        // un cuadradito suelto lejos de la pata.
+        final h = math.max(0.0, v.y - alto);
+        final x = v.x + ox * h, z = v.z + oz * h;
         suelo.add((x, z));
         if (x < x0) x0 = x;
         if (x > x1) x1 = x;
