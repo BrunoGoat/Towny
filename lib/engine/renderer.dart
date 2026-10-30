@@ -514,13 +514,10 @@ class TownPainter extends CustomPainter {
       pal.ground,
       0.18 + 0.5 * (1 - pal.daylight),
     )!;
-    final borde = Color.lerp(tierra, const Color(0xFF9C7A46), 0.35)!;
     final ancho = 0.2 * town.character.spread;
+    // Sin contorno: la orilla más oscura lo recortaba del prado como una
+    // pegatina, y un camino de tierra se funde con la hierba.
     final relleno = Paint()..color = tierra;
-    final orilla = Paint()
-      ..color = borde
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2;
     for (final ruta in rutas) {
       // De lejos no: una cinta de medio píxel es ruido.
       final c = p.project(V3(ruta.first.$1, 0, ruta.first.$2));
@@ -576,7 +573,6 @@ class TownPainter extends CustomPainter {
       if (roto || izq.length < 2) continue;
       final cinta = Path()..addPolygon([...izq, ...der.reversed], true);
       canvas.drawPath(cinta, relleno);
-      canvas.drawPath(cinta, orilla);
     }
   }
 
