@@ -594,16 +594,14 @@ class AdviceBook extends ChangeNotifier {
 /// un pueblo: si ayer faltó, que no sean dos y sin culpa; si viene costando
 /// hace días, hacerlo más chico y más fácil.
 List<String> momentAdvice(AdviceMoment m, AdviceGoal busca) => switch (m) {
-  AdviceMoment.missedYesterday => [
-    'nodosveces',
-    'nojuzgar',
-    'q_recaida',
-    'diamalo',
-  ],
+  AdviceMoment.missedYesterday =>
+    busca == AdviceGoal.start
+        ? ['nodosveces', 'nojuzgar', 'diamalo']
+        : ['q_recaida', 'nojuzgar'],
   AdviceMoment.struggling =>
     busca == AdviceGoal.start
         ? ['chico', 'diamalo', 'estorbos', 'dosminutos']
-        : ['q_dificil', 'reemplazo', 'q_sed', 'diamalo', 'q_ola'],
+        : ['q_invisible', 'sustituir', 'q_sed', 'q_ola'],
   AdviceMoment.steady => const [],
 };
 
