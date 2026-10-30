@@ -347,9 +347,12 @@ class _SageScreenState extends State<SageScreen> {
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // Lo de atrás: la penumbra, la luz que sale del viejo y el polvo
-          // dorado que sube despacio.
-          const Positioned.fill(child: IgnorePointer(child: _Ambiente())),
+          // Lo de atrás: la penumbra, la luz que sale del viejo, el polvo
+          // dorado que sube despacio y el viento, que sopla más fuerte cada
+          // vez que el viejo dice algo nuevo.
+          Positioned.fill(
+            child: IgnorePointer(child: _Ambiente(soplo: dice.hashCode)),
+          ),
           // Tocar el valle es irse.
           Positioned.fill(
             child: GestureDetector(
@@ -601,7 +604,9 @@ class _SagePrologueViewState extends State<SagePrologueView>
       type: MaterialType.transparency,
       child: Stack(
         children: [
-          const Positioned.fill(child: IgnorePointer(child: _Ambiente())),
+          Positioned.fill(
+            child: IgnorePointer(child: _Ambiente(soplo: dice.hashCode)),
+          ),
           SafeArea(
             // Lo que de verdad hay de alto, y no lo que dice la pantalla: con
             // el botón de fundar debajo del viejo, en un teléfono chico no
@@ -814,11 +819,17 @@ class _Varillas extends CustomPainter {
 }
 
 /// Lo de atrás de la pantalla del viejo: la penumbra, una luz cálida que sale
-/// de donde está él, y motas de polvo dorado subiendo despacio por el aire,
-/// como en un cuarto con una vela. Siempre igual para el mismo instante: las
-/// motas salen de su número, no de un dado.
+/// de donde está él, motas de polvo dorado subiendo despacio por el aire, y
+/// el viento —el que le trae las palabras—: hilos de aire que cruzan la
+/// pantalla, alguna hoja que pasa volando y el polvo que se lo lleva de lado.
+/// Siempre igual para el mismo instante: todo sale de su número, no de un
+/// dado.
 class _Ambiente extends StatefulWidget {
-  const _Ambiente();
+  const _Ambiente({this.soplo = 0});
+
+  /// Cambia cada vez que el viejo dice algo nuevo, y con cada cambio entra
+  /// una ráfaga: el viento que le trae la palabra.
+  final int soplo;
 
   @override
   State<_Ambiente> createState() => _AmbienteState();
@@ -831,6 +842,32 @@ class _AmbienteState extends State<_Ambiente>
     duration: const Duration(seconds: 120),
   )..repeat();
 
+  /// Cuándo entró la última ráfaga, en el reloj de [_reloj].
+  double? _rafaga;
+
+  /// Lo que empujaron al polvo las ráfagas de antes de la última.
+  double _empujado = 0;
+
+  double get _t => _reloj.value * 120;
+
+  /// Lo que lleva desde la última ráfaga. El reloj da la vuelta a los dos
+  /// minutos, y una ráfaga de antes de la vuelta ya se fue.
+  double get _desde {
+    final r = _rafaga;
+    if (r == null) return 99;
+    final d = _t - r;
+    return d < 0 ? d + 120 : d;
+  }
+
+  @override
+  void didUpdateWidget(_Ambiente old) {
+    super.didUpdateWidget(old);
+    if (old.soplo != widget.soplo) {
+      _empujado += _AmbientePainter.empujeDe(_desde);
+      _rafaga = _t;
+    }
+  }
+
   @override
   void dispose() {
     _reloj.dispose();
@@ -840,18 +877,42 @@ class _AmbienteState extends State<_Ambiente>
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
     animation: _reloj,
-    builder: (_, _) =>
-        CustomPaint(painter: _AmbientePainter(_reloj.value * 120)),
+    builder: (_, _) {
+      final desde = _desde;
+      return CustomPaint(
+        painter: _AmbientePainter(
+          _t,
+          desde,
+          _empujado + _AmbientePainter.empujeDe(desde),
+        ),
+      );
+    },
   );
 }
 
 class _AmbientePainter extends CustomPainter {
-  _AmbientePainter(this.t);
+  _AmbientePainter(this.t, this.rafaga, this.empuje);
   final double t;
+
+  /// Segundos desde la última ráfaga.
+  final double rafaga;
+
+  /// Todo lo que las ráfagas empujaron al polvo hasta ahora.
+  final double empuje;
+
+  /// Cuánto sopla ahora, de cero a uno: una brisa que va y viene sola, y
+  /// encima la ráfaga de cada palabra, que entra rápido y se va despacio.
+  double get viento {
+    final brisa =
+        0.18 + 0.12 * (0.5 + 0.5 * math.sin(t * 0.45) * math.sin(t * 0.23 + 2));
+    final r = rafaga < 0.35 ? rafaga / 0.35 : math.exp(-(rafaga - 0.35) / 1.1);
+    return (brisa + 0.82 * r).clamp(0.0, 1.0);
+  }
 
   @override
   void paint(Canvas c, Size s) {
     final todo = Offset.zero & s;
+    final sopla = viento;
     // La penumbra: más oscuro abajo y en los bordes.
     c.drawRect(
       todo,
@@ -872,8 +933,11 @@ class _AmbientePainter extends CustomPainter {
         ).createShader(todo),
     );
     // La luz del viejo: abajo a la izquierda, donde está él, latiendo como
-    // una vela.
-    final late = 0.85 + 0.15 * math.sin(t * 1.3) * math.sin(t * 0.7 + 1);
+    // una vela. Con el viento la llama tiembla un poco más.
+    final late =
+        0.85 +
+        0.15 * math.sin(t * 1.3) * math.sin(t * 0.7 + 1) -
+        0.06 * sopla * (0.5 + 0.5 * math.sin(t * 9));
     final foco = Offset(s.width * 0.22, s.height * 0.8);
     final radio = s.width * 0.75;
     c.drawCircle(
@@ -887,13 +951,26 @@ class _AmbientePainter extends CustomPainter {
           ],
         ).createShader(Rect.fromCircle(center: foco, radius: radio)),
     );
-    // El polvo.
+    _hilos(c, s, sopla);
+    // El polvo: sube despacio, y el viento se lo lleva de lado. Lo que
+    // corre cada mota es la suma del viento que hubo, así que no salta para
+    // atrás cuando la ráfaga se calma.
+    final corrido = t * 10 + empuje * 60;
     for (var i = 0; i < 34; i++) {
       final x0 = hash01(i, 11) * s.width;
       final v = 9 + hash01(i, 12) * 16;
       final alto = s.height * 1.15;
-      final y = s.height - ((t * v + hash01(i, 13) * alto) % alto);
-      final x = x0 + math.sin(t * (0.3 + hash01(i, 14) * 0.4) + i) * 14;
+      final y =
+          s.height -
+          ((t * v + hash01(i, 13) * alto) % alto) +
+          math.sin(t * 3 + i) * 6 * sopla;
+      final ancho = s.width + 40;
+      final x =
+          (x0 +
+                  math.sin(t * (0.3 + hash01(i, 14) * 0.4) + i) * 14 +
+                  corrido * (0.6 + hash01(i, 16) * 0.8)) %
+              ancho -
+          20;
       final brilla = 0.35 + 0.65 * (0.5 + 0.5 * math.sin(t * 1.7 + i * 2.1));
       final tam = 0.8 + hash01(i, 15) * 1.6;
       // Más visibles cerca de la luz.
@@ -912,10 +989,111 @@ class _AmbientePainter extends CustomPainter {
         Paint()..color = const Color(0xFFFFEBC2).withValues(alpha: a),
       );
     }
+    _hojas(c, s, sopla);
+  }
+
+  /// Lo que empujó una ráfaga a los [rafaga] segundos: la integral de su
+  /// forma, para que el polvo avance con ella y no vuelva cuando se calma.
+  static double empujeDe(double rafaga) {
+    if (rafaga >= 99) return 0;
+    if (rafaga < 0.35) return rafaga * rafaga / 0.7;
+    return 0.175 + 1.1 * (1 - math.exp(-(rafaga - 0.35) / 1.1));
+  }
+
+  /// Los hilos de aire: trazos largos y finos que cruzan de izquierda a
+  /// derecha ondulando, más y más claros cuanto más sopla.
+  void _hilos(Canvas c, Size s, double sopla) {
+    const cuantos = 14;
+    for (var i = 0; i < cuantos; i++) {
+      final vel = s.width * (0.35 + hash01(i, 21) * 0.3);
+      final largo = s.width * (0.28 + hash01(i, 22) * 0.3);
+      final vuelta = s.width + largo * 2;
+      final cabeza =
+          (t * vel * (0.6 + sopla) + hash01(i, 23) * vuelta) % vuelta - largo;
+      final y0 = s.height * (0.08 + hash01(i, 24) * 0.8);
+      // Cada hilo se enciende y se apaga en su propio tiempo, y sólo se ve
+      // de verdad cuando sopla.
+      final vive =
+          0.35 +
+          0.65 * (0.5 + 0.5 * math.sin(t * (0.5 + hash01(i, 25) * 0.4) + i));
+      final a = 0.42 * sopla * vive;
+      if (a < 0.01) continue;
+      final onda = 10 + hash01(i, 26) * 16;
+      final fase = hash01(i, 27) * 6.28;
+      final camino = Path();
+      const pasos = 18;
+      for (var k = 0; k <= pasos; k++) {
+        final f = k / pasos;
+        final x = cabeza - largo * (1 - f);
+        final y = y0 + math.sin(x / s.width * 7 + fase + t * 1.2) * onda;
+        k == 0 ? camino.moveTo(x, y) : camino.lineTo(x, y);
+      }
+      final caja = Rect.fromLTWH(cabeza - largo, y0 - onda, largo, onda * 2);
+      c.drawPath(
+        camino,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round
+          ..strokeWidth = 1.4 + hash01(i, 28) * 1.4
+          ..shader = LinearGradient(
+            colors: [
+              const Color(0x00FFF3DA),
+              const Color(0xFFFFF3DA).withValues(alpha: a),
+              const Color(0x00FFF3DA),
+            ],
+            stops: const [0, 0.7, 1],
+          ).createShader(caja),
+      );
+    }
+  }
+
+  /// Unas pocas hojas que el viento trae y se lleva, girando. Sólo cruzan
+  /// con la ráfaga: con la brisa sola no pasa ninguna.
+  void _hojas(Canvas c, Size s, double sopla) {
+    if (rafaga > 4.5) return;
+    const cuantas = 7;
+    for (var i = 0; i < cuantas; i++) {
+      // Cada una sale con un poco de retraso y cruza en unos dos segundos.
+      final f = (rafaga - hash01(i, 31) * 0.5) / (1.6 + hash01(i, 32) * 1.2);
+      if (f < 0 || f > 1) continue;
+      final x = -30 + (s.width + 60) * f;
+      final y =
+          s.height * (0.15 + hash01(i, 33) * 0.6) +
+          math.sin(f * 9 + i) * 22 +
+          f * s.height * 0.08;
+      final gira = f * (8 + hash01(i, 34) * 6) + i;
+      final a = math.sin(f * math.pi).clamp(0.0, 1.0) * 0.95;
+      final tam = 8 + hash01(i, 35) * 6;
+      c.save();
+      c.translate(x, y);
+      c.rotate(gira);
+      // Se ve de canto y de frente según gira: se aplasta en un sentido.
+      c.scale(1, 0.35 + 0.65 * math.cos(gira * 1.7).abs());
+      final hoja = Path()
+        ..moveTo(-tam, 0)
+        ..quadraticBezierTo(0, -tam * 0.55, tam, 0)
+        ..quadraticBezierTo(0, tam * 0.55, -tam, 0)
+        ..close();
+      final tono = Color.lerp(
+        const Color(0xFFC9A04E),
+        const Color(0xFF9DAA5C),
+        hash01(i, 36),
+      )!;
+      c.drawPath(hoja, Paint()..color = tono.withValues(alpha: a));
+      c.drawLine(
+        Offset(-tam, 0),
+        Offset(tam, 0),
+        Paint()
+          ..color = const Color(0xFF5E4A2A).withValues(alpha: a * 0.6)
+          ..strokeWidth = 0.6,
+      );
+      c.restore();
+    }
   }
 
   @override
-  bool shouldRepaint(_AmbientePainter old) => old.t != t;
+  bool shouldRepaint(_AmbientePainter old) =>
+      old.t != t || old.rafaga != rafaga || old.empuje != empuje;
 }
 
 /// Lo que ya dijo y se leyó, el más nuevo arriba, cada cosa en su rollo.
