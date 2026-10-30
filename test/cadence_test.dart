@@ -131,6 +131,32 @@ void main() {
   });
 
   group('el candado, contra tu ritmo', () {
+    test('desde el cuarto pueblo, la puerta pide cada vez más', () {
+      expect(
+        [for (var n = 2; n <= 9; n++) UnlockGoal.shareFor(n)],
+        [0.70, 0.70, 0.75, 0.80, 0.85, 0.90, 0.90, 0.90],
+      );
+      // A diario y catorce días: diez para el segundo, once para el cuarto,
+      // trece para el séptimo.
+      final hoy = DateTime(2026, 5, 20, 12);
+      final h = _habit(now: hoy, on: [for (var d = 0; d < 11; d++) d]);
+      int pide(int pueblo) =>
+          UnlockGoal.of(h, at: hoy, meta: UnlockGoal.shareFor(pueblo)).need;
+      expect(pide(2), 10);
+      expect(pide(4), 11);
+      expect(pide(7), 13);
+      // Once días alcanzan para el cuarto y no para el quinto.
+      expect(UnlockGoal.of(h, at: hoy, meta: UnlockGoal.shareFor(4)).met, true);
+      expect(
+        UnlockGoal.of(h, at: hoy, meta: UnlockGoal.shareFor(5)).met,
+        false,
+      );
+      expect(
+        UnlockGoal.of(h, at: hoy, meta: UnlockGoal.shareFor(5)).metaPercent,
+        80,
+      );
+    });
+
     test('sin poner piezas, pasar el día no abre la puerta', () {
       // Lo que se vio en el teléfono: un día no abría, y al siguiente sí, con
       // las mismas piezas. Se contaba por semanas desde hoy, y al correrse el

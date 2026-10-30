@@ -350,10 +350,12 @@ class Store extends ChangeNotifier {
   bool get unlocked => allowed > habits.length;
 
   /// Lo que pide cada pueblo para abrir el siguiente: su propio ritmo,
-  /// sostenido. Ver [UnlockGoal].
-  List<(Habit, UnlockGoal)> get unlockGoals => [
-    for (final h in habits) (h, UnlockGoal.of(h)),
-  ];
+  /// sostenido, y más sostenido cuantos más pueblos hay. Ver [UnlockGoal] y
+  /// [UnlockGoal.shareFor].
+  List<(Habit, UnlockGoal)> get unlockGoals {
+    final meta = UnlockGoal.shareFor(habits.length + 1);
+    return [for (final h in habits) (h, UnlockGoal.of(h, meta: meta))];
+  }
 
   /// Lo que falta para el siguiente, medido en el pueblo que más lejos está:
   /// como tienen que sostenerse todos a la vez, el que manda es el que va

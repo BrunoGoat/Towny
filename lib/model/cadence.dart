@@ -214,6 +214,7 @@ class UnlockGoal {
     this.resting = false,
     this.restDays = 0,
     this.calendar = const [],
+    this.meta = share,
     double? expectedFull,
     double? expectedLived,
     this.weekStart = DateTime.monday,
@@ -238,6 +239,10 @@ class UnlockGoal {
   /// Cuánto hace falta.
   final int need;
 
+  /// Qué parte de lo esperable pide la puerta de este pueblo: el setenta por
+  /// ciento hasta el tercero, y más a partir del cuarto ([shareFor]).
+  final double meta;
+
   /// Cuánto llevás, ya recortado a tu ritmo semana a semana.
   final int have;
 
@@ -260,7 +265,7 @@ class UnlockGoal {
   final List<(DateTime, DayMark)> calendar;
 
   /// Cuántos días con pieza pide la ventana entera, cada día con el ritmo
-  /// que tenía: el cien por cien, del que [need] es el setenta.
+  /// que tenía: el cien por cien, del que [need] es la [meta].
   final double expectedFull;
 
   /// Lo mismo, contando sólo los días en que el pueblo ya existía: contra
@@ -278,13 +283,13 @@ class UnlockGoal {
   /// contra los que pide su ritmo en la ventana.
   ///
   /// Redondeado de manera que no contradiga a [met] —hace falta llegar a
-  /// [need], que es el setenta por ciento hacia arriba—: llegado nunca dice
+  /// [need], que es la [meta] hacia arriba—: llegado nunca dice
   /// menos que la meta, y sin llegar nunca dice la meta.
   int get percent {
     final p = expectedLived <= 0
         ? 0
         : (100 * have / expectedLived).round().clamp(0, 100);
-    final meta = goalPercent;
+    final meta = metaPercent;
     // Llegado, nunca menos que la meta. Sin llegar con la ventana entera
     // vivida, nunca la meta. Un pueblo más nuevo que la ventana puede ir por
     // encima —va bien— y todavía no llegar: le faltan días, no ganas.
@@ -298,19 +303,38 @@ class UnlockGoal {
   bool get young => expectedLived < expectedFull - 1e-9;
 
   /// Si va al ritmo de la meta, haya llegado o no: lo que pinta la cuenta.
-  bool get onTrack => !resting && percent >= goalPercent;
+  bool get onTrack => !resting && percent >= metaPercent;
+
+  /// La meta de esta puerta, en por ciento: [meta].
+  int get metaPercent => (meta * 100).round();
 
   /// Cuántos días con pieza pide su ritmo entero en la ventana: el cien por
-  /// cien, del que [need] es el setenta.
+  /// cien, del que [need] es la [meta].
   int get expected => math.max(need, expectedFull.round());
 
-  /// La meta, en por ciento: [share].
+  /// La meta de siempre, en por ciento: [share].
   static int get goalPercent => (share * 100).round();
 
-  /// Qué parte de lo esperable hay que juntar.
+  /// Qué parte de lo esperable hay que juntar para los primeros pueblos.
   static const double share = 0.7;
 
-  static UnlockGoal of(Habit h, {DateTime? at}) {
+  /// Qué parte pide la puerta del pueblo número [town].
+  ///
+  /// **Cuantos más pueblos, más se pide.** Hasta el tercero alcanza con el
+  /// setenta por ciento: se puede fallar bastante y seguir. Desde el cuarto,
+  /// para tener todavía más hábitos hay que demostrar que los que ya hay se
+  /// sostienen de verdad: setenta y cinco para el cuarto, ochenta para el
+  /// quinto, ochenta y cinco para el sexto, y noventa del séptimo en
+  /// adelante.
+  static double shareFor(int town) => switch (town) {
+    <= 3 => share,
+    4 => 0.75,
+    5 => 0.80,
+    6 => 0.85,
+    _ => 0.90,
+  };
+
+  static UnlockGoal of(Habit h, {DateTime? at, double meta = share}) {
     final now = at ?? DateTime.now();
     // Lo dicho y no lo visto. Lo visto sale de las mismas piezas que se están
     // contando, así que pedir un setenta por ciento de tu propio ritmo lo
@@ -356,7 +380,7 @@ class UnlockGoal {
       pide += r;
       if (nacido) vivido += r;
     }
-    final need = (share * pide - 1e-9).ceil();
+    final need = (meta * pide - 1e-9).ceil();
     // Los días con pieza dentro de la ventana, de más viejo a más nuevo.
     final dias = <DateTime>[];
     final vistos = <int>{};
@@ -423,6 +447,7 @@ class UnlockGoal {
       resting: h.restAt(now) != null,
       restDays: dormidos,
       calendar: calendar,
+      meta: meta,
       expectedFull: pide,
       expectedLived: vivido,
       weekStart: born.weekday,

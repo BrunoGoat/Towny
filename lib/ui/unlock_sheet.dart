@@ -141,7 +141,7 @@ class _UnlockSheetState extends State<UnlockSheet> {
               ),
             // Lo único que hace falta saber, y nada más: qué cuenta, y que no
             // es una racha.
-            Text(_rule(varios), style: chico),
+            Text(_rule(varios, goal.metaPercent, siguiente), style: chico),
             // Si alguno duerme, lo que lo frena es eso: se dice abajo, junto
             // a la regla, con la misma luna que lleva su nombre.
             if (store.unlockGoals.any((e) => e.$2.resting)) ...[
@@ -181,23 +181,32 @@ class _UnlockSheetState extends State<UnlockSheet> {
     );
   }
 
-  /// Qué hace falta: el setenta por ciento de su ritmo, y los días mínimos
-  /// que pide su barra. Cuántos son, lo dice cada barra.
-  static String _rule(bool varios) {
-    final meta = UnlockGoal.goalPercent;
-    return varios
+  /// Qué hace falta: la [meta] por ciento de su ritmo —el setenta hasta el
+  /// tercer pueblo, y más desde el cuarto—, y los días mínimos que pide su
+  /// barra. Cuántos son, lo dice cada barra.
+  static String _rule(bool varios, int meta, int siguiente) {
+    final sube = siguiente >= 4
         ? tr(
-            'Mantené cada hábito al $meta% de su ritmo. Cuando completes los '
-                'días mínimos de sus barras, se abre el siguiente pueblo.',
-            'Keep each habit at $meta% of its pace. Once you complete the '
-                'minimum days of their bars, the next town opens.',
+            ' Desde el cuarto pueblo, cada uno pide un poco más: para tener '
+                'más hábitos, primero hay que sostener de verdad los que hay.',
+            ' From the fourth town on, each one asks a little more: to have '
+                'more habits, first truly keep up the ones you have.',
           )
-        : tr(
-            'Mantené tu hábito al $meta% de su ritmo. Cuando completes los '
-                'días mínimos de su barra, se abre el siguiente pueblo.',
-            'Keep your habit at $meta% of its pace. Once you complete the '
-                'minimum days of its bar, the next town opens.',
-          );
+        : '';
+    return (varios
+            ? tr(
+                'Mantené cada hábito al $meta% de su ritmo. Cuando completes los '
+                    'días mínimos de sus barras, se abre el siguiente pueblo.',
+                'Keep each habit at $meta% of its pace. Once you complete the '
+                    'minimum days of their bars, the next town opens.',
+              )
+            : tr(
+                'Mantené tu hábito al $meta% de su ritmo. Cuando completes los '
+                    'días mínimos de su barra, se abre el siguiente pueblo.',
+                'Keep your habit at $meta% of its pace. Once you complete the '
+                    'minimum days of its bar, the next town opens.',
+              )) +
+        sube;
   }
 
   /// Los días que hacen falta, uno por casilla, con los ganados encendidos.
