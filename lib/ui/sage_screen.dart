@@ -905,7 +905,7 @@ class _AmbientePainter extends CustomPainter {
   double get viento {
     final brisa =
         0.18 + 0.12 * (0.5 + 0.5 * math.sin(t * 0.45) * math.sin(t * 0.23 + 2));
-    final r = rafaga < 0.35 ? rafaga / 0.35 : math.exp(-(rafaga - 0.35) / 1.1);
+    final r = rafaga < 0.35 ? rafaga / 0.35 : math.exp(-(rafaga - 0.35) / 1.8);
     return (brisa + 0.82 * r).clamp(0.0, 1.0);
   }
 
@@ -951,7 +951,9 @@ class _AmbientePainter extends CustomPainter {
           ],
         ).createShader(Rect.fromCircle(center: foco, radius: radio)),
     );
+    _ola(c, s);
     _hilos(c, s, sopla);
+    _remolino(c, foco);
     // El polvo: sube despacio, y el viento se lo lleva de lado. Lo que
     // corre cada mota es la suma del viento que hubo, así que no salta para
     // atrás cuando la ráfaga se calma.
@@ -988,6 +990,18 @@ class _AmbientePainter extends CustomPainter {
         tam,
         Paint()..color = const Color(0xFFFFEBC2).withValues(alpha: a),
       );
+      // Con el viento fuerte, cada mota se estira en una raya.
+      if (sopla > 0.45) {
+        final largo = (sopla - 0.45) * 46 * (0.6 + hash01(i, 17));
+        c.drawLine(
+          Offset(x - largo, y),
+          Offset(x, y),
+          Paint()
+            ..strokeCap = StrokeCap.round
+            ..strokeWidth = tam * 0.9
+            ..color = const Color(0xFFFFEBC2).withValues(alpha: a * 0.5),
+        );
+      }
     }
     _hojas(c, s, sopla);
   }
@@ -997,13 +1011,13 @@ class _AmbientePainter extends CustomPainter {
   static double empujeDe(double rafaga) {
     if (rafaga >= 99) return 0;
     if (rafaga < 0.35) return rafaga * rafaga / 0.7;
-    return 0.175 + 1.1 * (1 - math.exp(-(rafaga - 0.35) / 1.1));
+    return 0.175 + 1.8 * (1 - math.exp(-(rafaga - 0.35) / 1.8));
   }
 
   /// Los hilos de aire: trazos largos y finos que cruzan de izquierda a
   /// derecha ondulando, más y más claros cuanto más sopla.
   void _hilos(Canvas c, Size s, double sopla) {
-    const cuantos = 14;
+    const cuantos = 18;
     for (var i = 0; i < cuantos; i++) {
       final vel = s.width * (0.35 + hash01(i, 21) * 0.3);
       final largo = s.width * (0.28 + hash01(i, 22) * 0.3);
@@ -1016,7 +1030,7 @@ class _AmbientePainter extends CustomPainter {
       final vive =
           0.35 +
           0.65 * (0.5 + 0.5 * math.sin(t * (0.5 + hash01(i, 25) * 0.4) + i));
-      final a = 0.42 * sopla * vive;
+      final a = 0.62 * sopla * vive;
       if (a < 0.01) continue;
       final onda = 10 + hash01(i, 26) * 16;
       final fase = hash01(i, 27) * 6.28;
@@ -1029,20 +1043,105 @@ class _AmbientePainter extends CustomPainter {
         k == 0 ? camino.moveTo(x, y) : camino.lineTo(x, y);
       }
       final caja = Rect.fromLTWH(cabeza - largo, y0 - onda, largo, onda * 2);
+      final grueso = 1.4 + hash01(i, 28) * 1.6;
+      Shader tinte(double alfa) => LinearGradient(
+        colors: [
+          const Color(0x00FFF3DA),
+          const Color(0xFFFFF3DA).withValues(alpha: alfa),
+          const Color(0x00FFF3DA),
+        ],
+        stops: const [0, 0.7, 1],
+      ).createShader(caja);
+      // El resplandor, ancho y borroso, y encima el hilo; y una hebra más
+      // fina al lado, que el aire no corre en una sola línea.
       c.drawPath(
         camino,
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeCap = StrokeCap.round
-          ..strokeWidth = 1.4 + hash01(i, 28) * 1.4
-          ..shader = LinearGradient(
-            colors: [
-              const Color(0x00FFF3DA),
-              const Color(0xFFFFF3DA).withValues(alpha: a),
-              const Color(0x00FFF3DA),
-            ],
-            stops: const [0, 0.7, 1],
-          ).createShader(caja),
+          ..strokeWidth = grueso * 4
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5)
+          ..shader = tinte(a * 0.45),
+      );
+      c.drawPath(
+        camino,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round
+          ..strokeWidth = grueso
+          ..shader = tinte(a),
+      );
+      c.drawPath(
+        camino.shift(Offset(-largo * 0.08, 5 + hash01(i, 29) * 4)),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round
+          ..strokeWidth = grueso * 0.5
+          ..shader = tinte(a * 0.6),
+      );
+    }
+  }
+
+  /// El frente de la ráfaga: una ola de luz ancha que barre la pantalla de
+  /// izquierda a derecha cuando entra, como el aire que empuja la puerta.
+  void _ola(Canvas c, Size s) {
+    if (rafaga > 2.2) return;
+    final f = rafaga / 1.3;
+    final x = -s.width * 0.5 + s.width * 1.9 * f;
+    final ancho = s.width * 0.45;
+    final a = 0.16 * (1 - (rafaga / 2.2)).clamp(0.0, 1.0);
+    c.save();
+    // Inclinada, como cae el viento.
+    c.translate(x, s.height / 2);
+    c.skew(-0.35, 0);
+    final banda = Rect.fromLTWH(-ancho / 2, -s.height, ancho, s.height * 2);
+    c.drawRect(
+      banda,
+      Paint()
+        ..shader = LinearGradient(
+          colors: [
+            const Color(0x00FFE9B8),
+            const Color(0xFFFFE9B8).withValues(alpha: a),
+            const Color(0x00FFE9B8),
+          ],
+        ).createShader(banda),
+    );
+    c.restore();
+  }
+
+  /// El remolino alrededor del viejo: motas de luz que giran en espiral desde
+  /// él y se abren, como si la palabra le llegara dando vueltas.
+  void _remolino(Canvas c, Offset foco) {
+    if (rafaga > 3.2) return;
+    final vida = (1 - rafaga / 3.2).clamp(0.0, 1.0);
+    final entra = (rafaga / 0.4).clamp(0.0, 1.0);
+    const cuantas = 46;
+    for (var i = 0; i < cuantas; i++) {
+      final k = i / cuantas;
+      final giro = k * math.pi * 5 + rafaga * (3.4 - k * 1.6) + hash01(i, 41);
+      final radio = 18 + k * 120 + rafaga * 46 * (0.5 + k);
+      final p =
+          foco + Offset(math.cos(giro) * radio, math.sin(giro) * radio * 0.55);
+      final a = vida * entra * (0.25 + 0.75 * (1 - k)) * 0.9;
+      // Cada mota deja una estela corta, en el sentido en que gira.
+      final atras =
+          foco +
+          Offset(
+            math.cos(giro - 0.22) * radio,
+            math.sin(giro - 0.22) * radio * 0.55,
+          );
+      c.drawLine(
+        atras,
+        p,
+        Paint()
+          ..strokeCap = StrokeCap.round
+          ..strokeWidth = 1.6 + (1 - k) * 1.6
+          ..color = const Color(0xFFFFE2A0).withValues(alpha: a * 0.55),
+      );
+      c.drawCircle(
+        p,
+        1.4 + (1 - k) * 1.6,
+        Paint()..color = const Color(0xFFFFF4D6).withValues(alpha: a),
       );
     }
   }
@@ -1050,8 +1149,8 @@ class _AmbientePainter extends CustomPainter {
   /// Unas pocas hojas que el viento trae y se lleva, girando. Sólo cruzan
   /// con la ráfaga: con la brisa sola no pasa ninguna.
   void _hojas(Canvas c, Size s, double sopla) {
-    if (rafaga > 4.5) return;
-    const cuantas = 7;
+    if (rafaga > 5) return;
+    const cuantas = 12;
     for (var i = 0; i < cuantas; i++) {
       // Cada una sale con un poco de retraso y cruza en unos dos segundos.
       final f = (rafaga - hash01(i, 31) * 0.5) / (1.6 + hash01(i, 32) * 1.2);
