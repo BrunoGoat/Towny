@@ -408,6 +408,12 @@ class _SageScreenState extends State<SageScreen> {
               ],
             ),
           ),
+          // El remolino, por delante de todo menos del consejo abierto.
+          Positioned.fill(
+            child: IgnorePointer(
+              child: _Ambiente(soplo: dice.hashCode, frente: true),
+            ),
+          ),
           if (_abierto != null)
             Positioned.fill(
               child: _Detalle(
@@ -692,6 +698,12 @@ class _SagePrologueViewState extends State<SagePrologueView>
               },
             ),
           ),
+          // El remolino, por delante de todo menos del consejo abierto.
+          Positioned.fill(
+            child: IgnorePointer(
+              child: _Ambiente(soplo: dice.hashCode, frente: true),
+            ),
+          ),
           if (_abierto != null)
             Positioned.fill(
               child: _Detalle(
@@ -825,11 +837,15 @@ class _Varillas extends CustomPainter {
 /// Siempre igual para el mismo instante: todo sale de su número, no de un
 /// dado.
 class _Ambiente extends StatefulWidget {
-  const _Ambiente({this.soplo = 0});
+  const _Ambiente({this.soplo = 0, this.frente = false});
 
   /// Cambia cada vez que el viejo dice algo nuevo, y con cada cambio entra
   /// una ráfaga: el viento que le trae la palabra.
   final int soplo;
+
+  /// La capa de delante: sólo el remolino, por encima del viejo y de su
+  /// globo, que detrás lo tapaba él.
+  final bool frente;
 
   @override
   State<_Ambiente> createState() => _AmbienteState();
@@ -884,6 +900,7 @@ class _AmbienteState extends State<_Ambiente>
           _t,
           desde,
           _empujado + _AmbientePainter.empujeDe(desde),
+          frente: widget.frente,
         ),
       );
     },
@@ -891,8 +908,11 @@ class _AmbienteState extends State<_Ambiente>
 }
 
 class _AmbientePainter extends CustomPainter {
-  _AmbientePainter(this.t, this.rafaga, this.empuje);
+  _AmbientePainter(this.t, this.rafaga, this.empuje, {this.frente = false});
   final double t;
+
+  /// Ver [_Ambiente.frente].
+  final bool frente;
 
   /// Segundos desde la última ráfaga.
   final double rafaga;
@@ -911,6 +931,13 @@ class _AmbientePainter extends CustomPainter {
 
   @override
   void paint(Canvas c, Size s) {
+    if (frente) {
+      // Encima de la cabeza del viejo, que está abajo a la izquierda con lo
+      // que dice al lado: la palabra le llega dando vueltas.
+      final abajo = math.min(360.0, s.height * 0.42);
+      _remolino(c, Offset(s.width * 0.24, s.height - abajo - 24));
+      return;
+    }
     final todo = Offset.zero & s;
     final sopla = viento;
     // La penumbra: más oscuro abajo y en los bordes.
@@ -951,9 +978,7 @@ class _AmbientePainter extends CustomPainter {
           ],
         ).createShader(Rect.fromCircle(center: foco, radius: radio)),
     );
-    _ola(c, s);
     _hilos(c, s, sopla);
-    _remolino(c, foco);
     // El polvo: sube despacio, y el viento se lo lleva de lado. Lo que
     // corre cada mota es la suma del viento que hubo, así que no salta para
     // atrás cuando la ráfaga se calma.
@@ -1082,33 +1107,6 @@ class _AmbientePainter extends CustomPainter {
     }
   }
 
-  /// El frente de la ráfaga: una ola de luz ancha que barre la pantalla de
-  /// izquierda a derecha cuando entra, como el aire que empuja la puerta.
-  void _ola(Canvas c, Size s) {
-    if (rafaga > 2.2) return;
-    final f = rafaga / 1.3;
-    final x = -s.width * 0.5 + s.width * 1.9 * f;
-    final ancho = s.width * 0.45;
-    final a = 0.16 * (1 - (rafaga / 2.2)).clamp(0.0, 1.0);
-    c.save();
-    // Inclinada, como cae el viento.
-    c.translate(x, s.height / 2);
-    c.skew(-0.35, 0);
-    final banda = Rect.fromLTWH(-ancho / 2, -s.height, ancho, s.height * 2);
-    c.drawRect(
-      banda,
-      Paint()
-        ..shader = LinearGradient(
-          colors: [
-            const Color(0x00FFE9B8),
-            const Color(0xFFFFE9B8).withValues(alpha: a),
-            const Color(0x00FFE9B8),
-          ],
-        ).createShader(banda),
-    );
-    c.restore();
-  }
-
   /// El remolino alrededor del viejo: motas de luz que giran en espiral desde
   /// él y se abren, como si la palabra le llegara dando vueltas.
   void _remolino(Canvas c, Offset foco) {
@@ -1192,7 +1190,10 @@ class _AmbientePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_AmbientePainter old) =>
-      old.t != t || old.rafaga != rafaga || old.empuje != empuje;
+      old.t != t ||
+      old.rafaga != rafaga ||
+      old.empuje != empuje ||
+      old.frente != frente;
 }
 
 /// Lo que ya dijo y se leyó, el más nuevo arriba, cada cosa en su rollo.
