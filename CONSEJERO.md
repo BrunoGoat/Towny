@@ -554,7 +554,7 @@ Descansar a propósito no es abandonar. Tu pueblo te espera tal como lo dejaste.
 **65.** «Donde arden cien velas, nadie busca el sol.» [cien piezas]  
 Cien veces elegiste volver. A esta altura ya no hace falta que nadie te convenza de que puedes: la prueba está construida ahí afuera, pieza por pieza, y la levantaste tú.
 
-**66.** «Un juramento roto pesa menos la próxima vez que se rompe.» [nuevo · 15.º para quien empieza, detrás del charco · 8.º para quien deja, detrás de la mancha]  
+**82.** «Un juramento roto pesa menos la próxima vez que se rompe.» [nuevo · 15.º para quien empieza, detrás del charco · 8.º para quien deja, detrás de la mancha]  
 Fallar puede pasar, y no es el fin. Pero no lo tomes a la ligera: cada vez que te permites una excepción, la próxima cuesta menos, y lo que construiste empieza a valer menos para ti. Cuida tu pueblo y él te cuidará a ti. Que faltar sea un accidente, no una puerta que dejas abierta.
 
 **81.** «El que empieza sin espada no busca al gigante… busca primero la herrería.» [en la presentación, antes del primer pueblo · a todos]  
