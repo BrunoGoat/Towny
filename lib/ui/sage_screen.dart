@@ -167,11 +167,8 @@ class _SageScreenState extends State<SageScreen> {
   /// Lo que dijo al contestar algo, si se acaba de contestar.
   String? _respuesta;
 
-  /// Por qué globo de la presentación va, la primera vez.
-  int _paso = 0;
-
-  /// Si se presentó en esta visita: entonces la pregunta es la de siempre,
-  /// y no la de «un pueblo nuevo…».
+  /// Si es la primera visita: entonces la pregunta es la de siempre, y no
+  /// la de «un pueblo nuevo…».
   bool _sePresento = false;
 
   /// Si se le dijo que todavía no: no vuelve a preguntar mientras se esté
@@ -196,6 +193,12 @@ class _SageScreenState extends State<SageScreen> {
     // teléfono nuevo con un valle de antes de que el libro viajara—, que no
     // se vuelva a presentar como a alguien que recién llega.
     if (!_libro.met && widget.store.habits.any((h) => h.total > 0)) {
+      _libro.meet();
+    }
+    // Y quien llega sin haber pasado por la presentación —la de antes del
+    // primer pueblo— no oye otra aquí: va directo a la pregunta.
+    if (!_libro.met) {
+      _sePresento = true;
       _libro.meet();
     }
   }
@@ -299,17 +302,8 @@ class _SageScreenState extends State<SageScreen> {
       _pidio = true;
       _charla = nextTalk(widget.store, _libro);
     }
-    final intro = SageLines.intro;
-    if (!_libro.met && _paso < intro.length) {
-      // La primera vez se presenta, de a un globo, antes de preguntar nada.
-      dice = intro[_paso];
-      sigue = () => setState(() {
-        _paso++;
-        _sePresento = true;
-        if (_paso >= intro.length) _libro.meet();
-      });
-    } else if (pregunta) {
-      dice = _sePresento || !_libro.met || _libro.noGoals
+    if (pregunta) {
+      dice = _sePresento || _libro.noGoals
           ? SageLines.question
           : SageLines.questionAgain;
       respuestas = [

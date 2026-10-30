@@ -34,36 +34,6 @@ lugar. **E** es a quien empieza un hábito, **D** a quien deja uno.
 
 ### Lo que dice fuera de los consejos
 
-**66.** Al presentarse: «Te doy la bienvenida al valle. Pasa, pasa… aquí nadie corre, ni siquiera el agua.»
-
-**67.** Al presentarse: «Soy el consejero. Llevo en esta plaza más años que sus piedras, mirando cómo crecen los pueblos.»
-
-**68.** Al presentarse: «Vengo a ayudarte a conseguir lo que te propongas: a empezar lo bueno y a dejar lo que hace daño. Una palabra cada día, cuando estés listo para oírla.»
-
-**69.** La pregunta, en el primer pueblo: «Primero, dime: con este pueblo, ¿quieres empezar un buen hábito, o dejar uno malo?»
-
-**70.** La pregunta, en un pueblo nuevo: «Un pueblo nuevo… Dime: aquí, ¿quieres empezar un buen hábito, o dejar uno malo?»
-
-**71.** Respuesta 1: «Empezar un buen hábito»
-
-**72.** Respuesta 2: «Dejar un mal hábito»
-
-**73.** Si elegís empezar: «Un buen hábito es una semilla. Las semillas no tienen prisa, y quien las siembra tampoco debería. Cada día traerá una palabra para que crezca.»
-
-**74.** Si elegís dejar: «Un mal hábito es una raíz torcida. No sale de un tirón: se afloja poco a poco. Cada día traerá una palabra para aflojarla.»
-
-**75.** Cuando ya dijo lo de hoy: «Por hoy ya está dicho lo que había que decir. El resto lo dirá el día.»
-
-**76.** Antes de dar uno: «Hoy el viento trajo una palabra para ti. ¿Quieres oírla?»
-
-**77.** Antes de dar otro más: «Hay algo más que el día dejó para ti. ¿Quieres oírlo?»
-
-**78.** Botón sí: «Sí, dime»
-
-**79.** Botón no: «Todavía no»
-
-**80.** Si le decís que todavía no: «Esperará. Las palabras no se pudren: maduran.»
-
 ## En discusión
 
 Gusta la idea, no el dicho. Primero cómo está hoy, después la propuesta.
@@ -397,6 +367,40 @@ Reescrito: ver el 64 en Aprobado.
 
 Reescrito: ver el 65 en Aprobado.
 
+**66 a 80.** Lo que dice fuera de los consejos, como estaba:
+
+~~**66.** Al presentarse: «Te doy la bienvenida al valle. Pasa, pasa… aquí nadie corre, ni siquiera el agua.»~~
+
+~~**67.** Al presentarse: «Soy el consejero. Llevo en esta plaza más años que sus piedras, mirando cómo crecen los pueblos.»~~
+
+~~**68.** Al presentarse: «Vengo a ayudarte a conseguir lo que te propongas: a empezar lo bueno y a dejar lo que hace daño. Una palabra cada día, cuando estés listo para oírla.»~~
+
+~~**69.** La pregunta, en el primer pueblo: «Primero, dime: con este pueblo, ¿quieres empezar un buen hábito, o dejar uno malo?»~~
+
+~~**70.** La pregunta, en un pueblo nuevo: «Un pueblo nuevo… Dime: aquí, ¿quieres empezar un buen hábito, o dejar uno malo?»~~
+
+~~**71.** Respuesta 1: «Empezar un buen hábito»~~
+
+~~**72.** Respuesta 2: «Dejar un mal hábito»~~
+
+~~**73.** Si elegís empezar: «Un buen hábito es una semilla. Las semillas no tienen prisa, y quien las siembra tampoco debería. Cada día traerá una palabra para que crezca.»~~
+
+~~**74.** Si elegís dejar: «Un mal hábito es una raíz torcida. No sale de un tirón: se afloja poco a poco. Cada día traerá una palabra para aflojarla.»~~
+
+~~**75.** Cuando ya dijo lo de hoy: «Por hoy ya está dicho lo que había que decir. El resto lo dirá el día.»~~
+
+~~**76.** Antes de dar uno: «Hoy el viento trajo una palabra para ti. ¿Quieres oírla?»~~
+
+~~**77.** Antes de dar otro más: «Hay algo más que el día dejó para ti. ¿Quieres oírlo?»~~
+
+~~**78.** Botón sí: «Sí, dime»~~
+
+~~**79.** Botón no: «Todavía no»~~
+
+~~**80.** Si le decís que todavía no: «Esperará. Las palabras no se pudren: maduran.»~~
+
+Revisado: la bienvenida vieja (66, 67 y 68) fuera, porque ya la cubre la presentación de antes del primer pueblo, y quien no pasó por ella va directo a la pregunta. Lo demás, pulido: ver «Lo que dice fuera de los consejos» en Aprobado.
+
 # Aprobado
 
 Lo que va a quedar en la app.
@@ -561,6 +565,32 @@ Fallar puede pasar, y no es el fin. Pero no lo tomes a la ligera: cada vez que t
 No empieces por lo que más te cuesta. Empieza por algo que puedas sostener. Cada día cumplido es un arma que juntas: confianza, costumbre, ganas. Con eso en la mano, lo difícil llega después y ya no lo enfrentas desarmado.
 
 **3** también se da en la presentación, después del 81. Los dos quedan guardados en su libro y no cuentan como el consejo del día: al fundar el primer pueblo, el viejo da el 1.
+
+### Lo que dice fuera de los consejos
+
+**69.** La pregunta, en el primer pueblo: «Antes de seguir, dime: con este pueblo, ¿quieres empezar un buen hábito, o dejar uno malo?»
+
+**70.** La pregunta, en un pueblo nuevo: «Otro pueblo en el valle… Dime: con este, ¿quieres empezar un buen hábito, o dejar uno malo?»
+
+**71.** Respuesta 1: «Empezar un buen hábito»
+
+**72.** Respuesta 2: «Dejar un mal hábito»
+
+**73.** Si elegís empezar: «Un buen hábito es una semilla. Las semillas no tienen prisa, y quien las siembra tampoco debería. Cada día el viento traerá una palabra para que crezca.»
+
+**74.** Si elegís dejar: «Un mal hábito es una raíz torcida. No sale de un tirón: se afloja poco a poco. Cada día el viento traerá una palabra para aflojarla.»
+
+**75.** Cuando ya dijo lo de hoy: «Por hoy ya está dicho lo que había que decir. Lo demás lo traerá mañana el viento.»
+
+**76.** Antes de dar uno: «Hoy el viento trajo una palabra para ti. ¿Quieres oírla?»
+
+**77.** Antes de dar otro más: «El viento dejó algo más para ti. ¿Quieres oírlo?»
+
+**78.** Botón sí: «Sí, dime»
+
+**79.** Botón no: «Todavía no»
+
+**80.** Si le decís que todavía no: «Esperará. Las palabras no se pudren: maduran.»
 
 ### La presentación, antes del primer pueblo
 

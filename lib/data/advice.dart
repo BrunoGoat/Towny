@@ -101,51 +101,22 @@ class Advice {
   String get mean => inEnglish ? meanEn : meanEs;
 }
 
-/// Lo que dice el consejero fuera de los consejos: cómo saluda, la pregunta
-/// del principio y lo que contesta.
+/// Lo que dice el consejero fuera de los consejos: la pregunta del principio
+/// y lo que contesta. Cómo se presenta está en la presentación, más abajo.
 class SageLines {
   SageLines._();
-
-  /// La primera vez que se le habla: se presenta, de a un globo por vez,
-  /// antes de preguntar nada. Como el guía de los juegos que te reciben.
-  static List<String> get intro => [
-    tr(
-      'Te doy la bienvenida al valle. Pasa, pasa… aquí nadie corre, ni '
-          'siquiera el agua.',
-      'Welcome to the valley. Come in, come in… nobody runs here, not even '
-          'the water.',
-    ),
-    tr(
-      'Soy el consejero. Llevo en esta plaza más años que sus piedras, '
-          'mirando cómo crecen los pueblos.',
-      'I am the advisor. I have sat in this square longer than its stones, '
-          'watching towns grow.',
-    ),
-    tr(
-      'Vengo a ayudarte a conseguir lo que te propongas: a empezar lo bueno '
-          'y a dejar lo que hace daño. Una palabra cada día, cuando estés '
-          'listo para oírla.',
-      'I am here to help you reach what you set out to do: to start what is '
-          'good and to leave what harms you. One word each day, when you are '
-          'ready to hear it.',
-    ),
-  ];
 
   /// La pregunta, una vez por pueblo: qué se quiere hacer con este hábito.
   /// Directa, sin metáforas: empezar o dejar.
   static String get question => tr(
-    'Primero, dime: con este pueblo, ¿quieres empezar un buen hábito, o '
-        'dejar uno malo?',
-    'First, tell me: with this town, do you want to start a good habit, or '
-        'leave a bad one?',
+    'Antes de seguir, dime: con este pueblo, ¿quieres empezar un buen hábito, o dejar uno malo?',
+    'Before we go on, tell me: with this town, do you want to start a good habit, or leave a bad one?',
   );
 
   /// La misma, en un pueblo nuevo, a quien ya lo conoce.
   static String get questionAgain => tr(
-    'Un pueblo nuevo… Dime: aquí, ¿quieres empezar un buen hábito, o dejar '
-        'uno malo?',
-    'A new town… Tell me: here, do you want to start a good habit, or leave '
-        'a bad one?',
+    'Otro pueblo en el valle… Dime: con este, ¿quieres empezar un buen hábito, o dejar uno malo?',
+    'Another town in the valley… Tell me: with this one, do you want to start a good habit, or leave a bad one?',
   );
 
   /// Las dos respuestas.
@@ -156,23 +127,18 @@ class SageLines {
 
   /// Lo que dice después de cada una.
   static String get afterStart => tr(
-    'Un buen hábito es una semilla. Las semillas no tienen prisa, y quien '
-        'las siembra tampoco debería. Cada día traerá una palabra para que '
-        'crezca.',
-    'A good habit is a seed. Seeds don’t hurry, and neither should whoever '
-        'sows them. Each day will bring a word to help it grow.',
+    'Un buen hábito es una semilla. Las semillas no tienen prisa, y quien las siembra tampoco debería. Cada día el viento traerá una palabra para que crezca.',
+    'A good habit is a seed. Seeds don’t hurry, and neither should whoever sows them. Each day the wind will bring a word to help it grow.',
   );
   static String get afterQuit => tr(
-    'Un mal hábito es una raíz torcida. No sale de un tirón: se afloja poco '
-        'a poco. Cada día traerá una palabra para aflojarla.',
-    'A bad habit is a crooked root. It doesn’t come out in one pull: it '
-        'loosens little by little. Each day will bring a word to loosen it.',
+    'Un mal hábito es una raíz torcida. No sale de un tirón: se afloja poco a poco. Cada día el viento traerá una palabra para aflojarla.',
+    'A bad habit is a crooked root. It doesn’t come out in one pull: it loosens little by little. Each day the wind will bring a word to loosen it.',
   );
 
   /// Cuando ya dijo lo de hoy y se le vuelve a hablar.
   static String get nothingNew => tr(
-    'Por hoy ya está dicho lo que había que decir. El resto lo dirá el día.',
-    'For today, what had to be said is said. The day will say the rest.',
+    'Por hoy ya está dicho lo que había que decir. Lo demás lo traerá mañana el viento.',
+    'For today, what had to be said is said. The wind will bring the rest tomorrow.',
   );
 
   /// Cuando tiene algo para dar: antes de darlo, pregunta.
@@ -183,8 +149,8 @@ class SageLines {
 
   /// Y si ya dio una y tiene otra.
   static String get readyOther => tr(
-    'Hay algo más que el día dejó para ti. ¿Quieres oírlo?',
-    'There is something more the day left for you. Will you hear it?',
+    'El viento dejó algo más para ti. ¿Quieres oírlo?',
+    'The wind left something more for you. Will you hear it?',
   );
 
   static String get yes => tr('Sí, dime', 'Yes, tell me');
