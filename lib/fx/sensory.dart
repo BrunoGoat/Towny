@@ -156,7 +156,7 @@ class Sensory {
     // Mientras suena la crónica las de fondo no se mueven: si el volumen
     // siguiera subiendo a oscuras, al acabar la cinemática entrarían de golpe
     // a todo trapo en vez de volver despacio.
-    if (_reelOn) return;
+    if (_reelOn || _escena != null) return;
     _musIn = (_musIn + dt / 6.0).clamp(0.0, 1.0);
     final day = dayMix(_tune, hour);
     final level = _musLevel * _musIn;
@@ -201,7 +201,21 @@ class Sensory {
   /// whether the app is even on screen. Pausing rather than turning down: a
   /// paused player costs nothing, and a phone in a pocket should be quiet.
   void settle() {
-    final musicOff = _asleep || !_wants.hearsMusic || _reelOn;
+    final musicOff =
+        _asleep || !_wants.hearsMusic || _reelOn || _escena != null;
+    // La de la pantalla abierta, si hay: suena mientras la app esté a la
+    // vista y la música encendida.
+    final escena = _escena;
+    if (escena != null) {
+      try {
+        if (_asleep || !_wants.hearsMusic) {
+          escena.pause();
+        } else {
+          escena.setVolume(_musLevel.clamp(0.0, 1.0));
+          escena.play();
+        }
+      } catch (_) {}
+    }
     for (var i = 0; i < _mus.length; i++) {
       try {
         if (musicOff) {
@@ -497,6 +511,51 @@ class Sensory {
     } catch (_) {
       // El sonido es un extra, nunca un requisito.
     }
+  }
+
+  // ------------------------------------------------- la de cada personaje
+
+  /// La música de la pantalla que está abierta, si tiene una: el consejero
+  /// la suya, mística y tranquila, y el maestro de obras la suya, de
+  /// taberna. Como con la crónica, mientras suena **la de fondo calla**: son
+  /// dos piezas en dos tonos, y vuelve sola al cerrar.
+  LoopTrack? _escena;
+  String? _escenaDe;
+
+  /// La del consejero y la del maestro de obras.
+  static const String sageTrack = 'mus_sabio.wav';
+  static const String builderTrack = 'mus_taberna.wav';
+
+  /// Que suene [file] en bucle mientras esté abierta su pantalla.
+  Future<void> sceneMusic(String file) async {
+    if (_asleep || !_wants.hearsMusic) return;
+    if (_escenaDe == file && _escena != null) return;
+    _hushScene();
+    _escenaDe = file;
+    try {
+      final p = _escena = LoopTrack();
+      await p.load(file);
+      p.setVolume(_musLevel.clamp(0.0, 1.0));
+      settle();
+    } catch (_) {
+      // El sonido es un extra, nunca un requisito.
+    }
+  }
+
+  /// Callar la de la pantalla que se cierra, si es [file], y devolverle el
+  /// sitio a la de fondo.
+  void hushSceneMusic(String file) {
+    if (_escenaDe != file) return;
+    _hushScene();
+    settle();
+  }
+
+  void _hushScene() {
+    try {
+      _escena?.dispose();
+    } catch (_) {}
+    _escena = null;
+    _escenaDe = null;
   }
 
   /// El archivo. Aquí y no escrito a mano en la pantalla, para que el test que

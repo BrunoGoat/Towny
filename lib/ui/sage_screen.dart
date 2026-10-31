@@ -197,6 +197,8 @@ class _SageScreenState extends State<SageScreen> {
   @override
   void initState() {
     super.initState();
+    // Su música, mística y tranquila, mientras se le habla.
+    Sensory.instance.sceneMusic(Sensory.sageTrack);
     // Quien ya tiene piezas ya conoce el valle: si el libro vino vacío —un
     // teléfono nuevo con un valle de antes de que el libro viajara—, que no
     // se vuelva a presentar como a alguien que recién llega.
@@ -220,6 +222,7 @@ class _SageScreenState extends State<SageScreen> {
 
   @override
   void dispose() {
+    Sensory.instance.hushSceneMusic(Sensory.sageTrack);
     _desliza.dispose();
     super.dispose();
   }
@@ -508,7 +511,15 @@ class _SagePrologueViewState extends State<SagePrologueView>
   final List<(Advice, DateTime)> _ensayo = [];
 
   @override
+  void initState() {
+    super.initState();
+    // La primera vez que se lo ve, ya con su música.
+    Sensory.instance.sceneMusic(Sensory.sageTrack);
+  }
+
+  @override
   void dispose() {
+    Sensory.instance.hushSceneMusic(Sensory.sageTrack);
     _llega.dispose();
     _desliza.dispose();
     super.dispose();
@@ -845,7 +856,11 @@ class _Varillas extends CustomPainter {
 /// Siempre igual para el mismo instante: todo sale de su número, no de un
 /// dado.
 class _Ambiente extends StatefulWidget {
-  const _Ambiente({this.soplo = 0, this.frente = false});
+  const _Ambiente({this.soplo = 0, this.frente = false, this.viento = true});
+
+  /// Si sopla. Es del consejero: en la pantalla del maestro de obras queda la
+  /// penumbra, la luz y el polvo, quietos.
+  final bool viento;
 
   /// Cambia cada vez que el viejo dice algo nuevo, y con cada cambio entra
   /// una ráfaga: el viento que le trae la palabra.
@@ -909,6 +924,7 @@ class _AmbienteState extends State<_Ambiente>
           desde,
           _empujado + _AmbientePainter.empujeDe(desde),
           frente: widget.frente,
+          viento: widget.viento,
         ),
       );
     },
@@ -916,8 +932,17 @@ class _AmbienteState extends State<_Ambiente>
 }
 
 class _AmbientePainter extends CustomPainter {
-  _AmbientePainter(this.t, this.rafaga, this.empuje, {this.frente = false});
+  _AmbientePainter(
+    this.t,
+    this.rafaga,
+    this.empuje, {
+    this.frente = false,
+    this.viento = true,
+  });
   final double t;
+
+  /// Ver [_Ambiente.viento].
+  final bool viento;
 
   /// Ver [_Ambiente.frente].
   final bool frente;
@@ -930,7 +955,7 @@ class _AmbientePainter extends CustomPainter {
 
   /// Cuánto sopla ahora, de cero a uno: una brisa que va y viene sola, y
   /// encima la ráfaga de cada palabra, que entra rápido y se va despacio.
-  double get viento {
+  double get sopla {
     final brisa =
         0.18 + 0.12 * (0.5 + 0.5 * math.sin(t * 0.45) * math.sin(t * 0.23 + 2));
     final r = rafaga < 0.35 ? rafaga / 0.35 : math.exp(-(rafaga - 0.35) / 1.8);
@@ -947,7 +972,7 @@ class _AmbientePainter extends CustomPainter {
       return;
     }
     final todo = Offset.zero & s;
-    final sopla = viento;
+    final sopla = viento ? this.sopla : 0.0;
     // La penumbra: más oscuro abajo y en los bordes.
     c.drawRect(
       todo,
@@ -990,7 +1015,7 @@ class _AmbientePainter extends CustomPainter {
     // El polvo: sube despacio, y el viento se lo lleva de lado. Lo que
     // corre cada mota es la suma del viento que hubo, así que no salta para
     // atrás cuando la ráfaga se calma.
-    final corrido = t * 10 + empuje * 60;
+    final corrido = viento ? t * 10 + empuje * 60 : 0.0;
     for (var i = 0; i < 34; i++) {
       final x0 = hash01(i, 11) * s.width;
       final v = 9 + hash01(i, 12) * 16;
@@ -1201,7 +1226,8 @@ class _AmbientePainter extends CustomPainter {
       old.t != t ||
       old.rafaga != rafaga ||
       old.empuje != empuje ||
-      old.frente != frente;
+      old.frente != frente ||
+      old.viento != viento;
 }
 
 /// Lo que ya dijo y se leyó, el más nuevo arriba, cada cosa en su rollo.
@@ -3235,6 +3261,19 @@ class BuilderScreen extends StatefulWidget {
 class _BuilderScreenState extends State<BuilderScreen> {
   final _Estilo _e = const _Estilo();
 
+  @override
+  void initState() {
+    super.initState();
+    // La suya, de taberna, mientras se le habla.
+    Sensory.instance.sceneMusic(Sensory.builderTrack);
+  }
+
+  @override
+  void dispose() {
+    Sensory.instance.hushSceneMusic(Sensory.builderTrack);
+    super.dispose();
+  }
+
   /// Las dos obras que se preguntan, tomadas al abrir: si la pregunta caduca
   /// mientras se mira, lo que se ve no cambia de golpe.
   late final List<Landmark>? _opciones =
@@ -3361,7 +3400,9 @@ class _BuilderScreenState extends State<BuilderScreen> {
       body: Stack(
         children: [
           Positioned.fill(
-            child: IgnorePointer(child: _Ambiente(soplo: dice.hashCode)),
+            // Sin viento: el viento es del consejero, que es a quien le
+            // trae las palabras.
+            child: IgnorePointer(child: _Ambiente(viento: false)),
           ),
           Positioned.fill(
             child: GestureDetector(

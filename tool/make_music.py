@@ -856,6 +856,146 @@ def regreso():
     out = wow(out, sr, cents=4.0, cycles=(1, 3), seed=11)
     return saturate(out, 1.20)
 
+def sabio():
+    """La del consejero, cuando se le habla. Fa lidio, sesenta y dos.
+
+    Mística sin ser cripta: el lidio —la cuarta subida— es el modo de lo que
+    flota, de lo que no pesa, y sobre acordes que se mueven no suena a
+    suspenso sino a algo antiguo y tranquilo. Cuatro acordes de séptima mayor
+    y novena añadida que van y vuelven, una flauta que dice poco y se calla,
+    y campanas muy de vez en cuando, como el viento que le trae las palabras.
+
+    Ocho compases que dan la vuelta sin costura: la cola de lo último cae
+    sobre el principio."""
+    sr = SR_HI
+    bar, beat = 4 * 60 / 62.0, 60 / 62.0
+    chords = [
+        [n('F2'), n('C3'), n('E3'), n('A3'), n('B3'), n('G4')],   # Fmaj7#11
+        [n('G2'), n('D3'), n('F#3'), n('A3'), n('B3'), n('E4')],  # G6/9
+        [n('E2'), n('B2'), n('D3'), n('G3'), n('A3'), n('E4')],   # Em7(11)
+        [n('A2'), n('E3'), n('G3'), n('B3'), n('C4'), n('E4')],   # Am(add9)
+    ] * 2
+    total = len(chords) * bar
+    out = [0.0] * int((total + 4.0) * sr)
+    for b, notes in enumerate(chords):
+        stack(out, notes, bar + 2.2, sr, cut=680, spread=12, gain=0.78,
+              rise=bar * 0.45, fall=bar * 0.85, at=b * bar, voices=3,
+              tilt=1.9)
+    # La flauta: frases de tres o cuatro notas, y silencio entre una y otra.
+    tema = [
+        (1.0, 'C5', 1.5, .55), (2.5, 'B4', 1.0, .50), (3.5, 'G4', 2.4, .52),
+        (9.0, 'E5', 1.5, .50), (10.5, 'D5', 1.0, .46), (11.5, 'B4', 3.0, .50),
+        (17.0, 'A4', 1.5, .52), (18.5, 'B4', 1.0, .48), (19.5, 'E5', 2.6, .54),
+        (25.0, 'D5', 1.2, .46), (26.2, 'C5', 1.3, .46), (27.5, 'A4', 3.4, .50),
+    ]
+    for at, note, dur, vel in notes_of(tema, beat):
+        breath(out, at, n(note), dur, vel * 0.30, sr, seed=3)
+    # Las campanas, sueltas y altas.
+    luces = [(0.0, 'E6', 3.5, .30), (6.0, 'B5', 3.5, .22),
+             (14.0, 'G6', 4.0, .24), (22.0, 'A5', 3.5, .22),
+             (30.0, 'E6', 3.0, .20)]
+    for at, note, dur, vel in notes_of(luces, beat):
+        bell(out, at, n(note), dur, vel * 0.22, sr)
+    out = lowpass(out, 5200, sr, poles=1)
+    out = highpass(out, 40, sr)
+    return finish(out, total, sr, wet=0.40, size=2.2, cents=5.0, drive=1.15,
+                  seed=21)
+
+
+def golpe(out, at, sr, vel, cuerpo=True, seed=0):
+    """Percusión de taberna: el parche de un tambor de mano —un golpe grave
+    que baja de tono— y, encima, el cascabeleo de un pandero, que es ruido
+    agudo que se apaga rápido."""
+    rnd = random.Random(seed)
+    start = int(at * sr)
+    if cuerpo:
+        ph = 0.0
+        for i in range(int(0.22 * sr)):
+            j = start + i
+            if j >= len(out):
+                break
+            t = i / sr
+            f = 70 + 90 * math.exp(-t * 30)
+            ph += f / sr * TBL
+            out[j] += SIN[int(ph) & MASK] * math.exp(-t * 16) * vel
+    prev = 0.0
+    for i in range(int(0.12 * sr)):
+        j = start + i
+        if j >= len(out):
+            break
+        t = i / sr
+        x = rnd.uniform(-1, 1)
+        hp = x - prev
+        prev = x
+        out[j] += hp * math.exp(-t * 38) * vel * 0.35
+
+
+def taberna():
+    """La del maestro de obras. Una giga en re mayor, seis por ocho.
+
+    De taberna y con gracia: laúd que salta de a corcheas, un bajo que hace
+    um-pa, pandero y tambor, y una melodía que se ríe —saltos, notas
+    repetidas y un tropezón a propósito en el compás seis—. Nada de séptimas
+    tristes: tónica, subdominante y dominante, como se tocaba al lado del
+    fuego."""
+    sr = SR_HI
+    beat = 60 / 132.0          # la corchea
+    bar = 6 * beat
+    BARS = 8
+    total = BARS * bar
+    out = [0.0] * int((total + 2.5) * sr)
+    I, IV, V = ('D', 'F#', 'A'), ('G', 'B', 'D'), ('A', 'C#', 'E')
+    prog = [I, IV, I, V, I, IV, V, I]
+    # El bajo, um-pa: la fundamental en la parte fuerte y la quinta a la mitad.
+    for b, ch in enumerate(prog):
+        t0 = b * bar
+        pluck(out, t0, n(ch[0] + '2'), bar * 0.5, 0.55, sr, damp=0.9960,
+              seed=b)
+        pluck(out, t0 + 3 * beat, n(ch[2] + ('2' if ch[2] in 'AB' else '3')),
+              bar * 0.5, 0.42, sr, damp=0.9960, seed=b + 50)
+        # El acorde, rasgueado corto en el segundo y quinto tiempo.
+        for k, off in enumerate((1, 4)):
+            for v, nota in enumerate(ch):
+                pluck(out, t0 + off * beat + v * 0.012,
+                      n(nota + '3') if nota not in ('A', 'C#') else
+                      n(nota + '3'), beat * 1.4, 0.16, sr, damp=0.9950,
+                      seed=b * 10 + k * 3 + v)
+    # La melodía, en corcheas: (compás, corchea, nota, cuántas corcheas).
+    tono = [
+        (0, 0, 'A4', 2), (0, 2, 'F#4', 1), (0, 3, 'A4', 2), (0, 5, 'D5', 1),
+        (1, 0, 'B4', 2), (1, 2, 'G4', 1), (1, 3, 'B4', 2), (1, 5, 'D5', 1),
+        (2, 0, 'A4', 1), (2, 1, 'B4', 1), (2, 2, 'A4', 1), (2, 3, 'F#4', 1),
+        (2, 4, 'E4', 1), (2, 5, 'D4', 1),
+        (3, 0, 'E4', 2), (3, 2, 'C#4', 1), (3, 3, 'E4', 2), (3, 5, 'A4', 1),
+        (4, 0, 'D5', 1), (4, 1, 'D5', 1), (4, 2, 'D5', 1), (4, 3, 'C#5', 1),
+        (4, 4, 'B4', 1), (4, 5, 'A4', 1),
+        # El tropezón: una nota que se escapa y vuelve.
+        (5, 0, 'B4', 1), (5, 1, 'G#4', 1), (5, 2, 'B4', 1), (5, 3, 'D5', 2),
+        (5, 5, 'B4', 1),
+        (6, 0, 'A4', 1), (6, 1, 'G4', 1), (6, 2, 'F#4', 1), (6, 3, 'E4', 2),
+        (6, 5, 'C#4', 1),
+        (7, 0, 'D4', 3), (7, 3, 'A4', 1), (7, 4, 'F#4', 1), (7, 5, 'E4', 1),
+    ]
+    for b, c, nota, largo in tono:
+        at = b * bar + c * beat
+        pluck(out, at, n(nota), largo * beat + 0.25, 0.62, sr, damp=0.9975,
+              seed=b * 7 + c)
+        # Y la misma nota una octava arriba, bajito: el laúd con su cuerda
+        # doble, que es lo que le da el brillo de taberna.
+        pluck(out, at + 0.006, n(nota) + 12, largo * beat, 0.16, sr,
+              damp=0.9965, seed=b * 7 + c + 99)
+    # Pandero y tambor: fuerte en el uno y el cuatro, cascabel en el resto.
+    for b in range(BARS):
+        for c in range(6):
+            at = b * bar + c * beat
+            fuerte = c in (0, 3)
+            golpe(out, at, sr, 0.42 if fuerte else 0.18, cuerpo=fuerte,
+                  seed=b * 6 + c)
+    out = lowpass(out, 6500, sr, poles=1)
+    out = highpass(out, 45, sr)
+    return finish(out, total, sr, wet=0.16, size=0.9, cents=3.0, drive=1.25,
+                  seed=33)
+
 # ------------------------------------------------------------------ escribir
 
 def loudness(sig):
@@ -903,7 +1043,8 @@ PIECES = (('tarde', tarde), ('sendero', sendero))
 # mezclan según la hora, es una pieza entera que suena sola de principio a fin.
 # Un archivo, y nada que sincronizar en el teléfono — tres reproductores
 # arrancando a la vez se desfasan lo justo para que un acorde llegue partido.
-SOLAS = (('cronica', cronica, 0.220), ('regreso', regreso, 0.200))
+SOLAS = (('cronica', cronica, 0.220), ('regreso', regreso, 0.200),
+         ('sabio', sabio, 0.170), ('taberna', taberna, 0.170))
 
 if __name__ == '__main__':
     import sys
