@@ -571,14 +571,16 @@ class TownPlan {
 
   /// En qué pieza empieza la primera obra del pueblo: desde ahí está el
   /// taller del maestro de obras en la plaza. Las casas de antes no dependen
-  /// de nada que se elija —son de la semilla—, así que esto no cambia nunca
-  /// ni depende de lo escrito.
-  late final int firstWorkFrom = () {
-    for (final w in walk(const [])) {
+  /// de nada que se elija, pero **se leen de lo escrito**: un pueblo que
+  /// anotó sus casas con un catálogo de antes las tiene distintas de las que
+  /// saldrían hoy, y contando con las de hoy su primera obra caía más tarde
+  /// de lo que cayó de verdad —y el taller no aparecía—.
+  int firstWorkFrom([List<String> chronicle = const []]) {
+    for (final w in walk(chronicle)) {
       if (landmarkOf(w.id) != null) return w.from;
     }
     return 1 << 30;
-  }();
+  }
 
   /// Si este pueblo ya terminó el hito [id] con [placed] piezas puestas.
   ///
@@ -843,7 +845,7 @@ class TownLayout {
 
   /// En qué pieza aparece el taller del maestro de obras: la de la primera
   /// obra. Ver [TownPlan.firstWorkFrom].
-  late final int workshopAt = solo ? 1 << 30 : plan.firstWorkFrom;
+  late final int workshopAt = solo ? 1 << 30 : plan.firstWorkFrom(chronicle);
 
   /// Si con [placed] piezas ya está el taller en la plaza.
   bool hasWorkshop(int placed) => placed >= workshopAt;

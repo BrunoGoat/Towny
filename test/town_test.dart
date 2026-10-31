@@ -46,6 +46,7 @@ TownLayout _show(
 );
 
 void main() {
+  _tallerDeLoEscrito();
   group('one achievement is one piece', () {
     test('n achievements produce n pieces, plus one ghost for the next', () {
       for (final n in [0, 1, 7, 30, 200, 900]) {
@@ -672,5 +673,26 @@ void main() {
         expect(anda[i].id, cronica[i]);
       }
     });
+  });
+}
+
+void _tallerDeLoEscrito() {
+  test('el taller sale donde empezó de verdad la primera obra escrita', () {
+    // Un pueblo que anotó su primera obra antes de lo que diría hoy el
+    // catálogo: el taller tiene que estar desde esa pieza, no desde la que
+    // saldría ahora.
+    final plan = TownPlan.of(TownCharacter.all.first, seed: 7);
+    final casas = plan.walk(const []).take(4).toList();
+    final escrito = [for (final w in casas) w.id, 'colmenar'];
+    final desde = casas.fold(0, (a, w) => a + w.cost);
+    expect(plan.firstWorkFrom(escrito), desde);
+    final l = TownLayout(
+      desde + 2,
+      TownCharacter.all.first,
+      seed: 7,
+      chronicle: escrito,
+    );
+    expect(l.hasWorkshop(desde), isTrue);
+    expect(l.hasWorkshop(desde - 1), isFalse);
   });
 }

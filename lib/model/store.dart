@@ -177,7 +177,7 @@ class Store extends ChangeNotifier {
   /// [_tallerVisto].
   bool get workshopUnseen =>
       !firstWorkPending &&
-      habit.total >= plan.firstWorkFrom &&
+      habit.total >= plan.firstWorkFrom(habit.chronicle) &&
       !_tallerVisto.contains(habit.id);
 
   /// Ya lo vio llegar.
@@ -189,7 +189,8 @@ class Store extends ChangeNotifier {
   /// Si el pueblo está por empezar su primera obra: la pregunta que hay es
   /// la primera, y con ella llega el taller del maestro a la plaza.
   bool get firstWorkPending =>
-      pendingChoice != null && habit.total == plan.firstWorkFrom;
+      pendingChoice != null &&
+      habit.total == plan.firstWorkFrom(habit.chronicle);
 
   /// Las obras que el pueblo ya terminó, de la primera a la última, con el
   /// día en que se puso su última piedra.
