@@ -3183,10 +3183,18 @@ class BuilderScreen extends StatefulWidget {
     required this.theme,
     this.onPick,
     this.intro = false,
+    this.trialOptions,
+    this.trialFirst = false,
   });
 
   final Store store;
   final UiTheme theme;
+
+  /// Para probar desde los ajustes de desarrollo: dos obras cualquiera para
+  /// preguntar, sin tocar el pueblo. Elegir no escribe nada. [trialFirst]
+  /// dice si se presenta como la primera vez.
+  final List<Landmark>? trialOptions;
+  final bool trialFirst;
 
   /// Si acaba de llegar y se presenta, aunque no pregunte nada.
   final bool intro;
@@ -3199,13 +3207,21 @@ class BuilderScreen extends StatefulWidget {
     required UiTheme theme,
     ValueChanged<Landmark>? onPick,
     bool intro = false,
+    List<Landmark>? trialOptions,
+    bool trialFirst = false,
   }) => PageRouteBuilder<void>(
     opaque: false,
     barrierColor: Colors.black.withValues(alpha: 0.32),
     transitionDuration: const Duration(milliseconds: 360),
     reverseTransitionDuration: const Duration(milliseconds: 220),
-    pageBuilder: (_, _, _) =>
-        BuilderScreen(store: store, theme: theme, onPick: onPick, intro: intro),
+    pageBuilder: (_, _, _) => BuilderScreen(
+      store: store,
+      theme: theme,
+      onPick: onPick,
+      intro: intro,
+      trialOptions: trialOptions,
+      trialFirst: trialFirst,
+    ),
     transitionsBuilder: (_, a, _, child) => FadeTransition(
       opacity: CurvedAnimation(parent: a, curve: Curves.easeOutCubic),
       child: child,
@@ -3221,12 +3237,47 @@ class _BuilderScreenState extends State<BuilderScreen> {
 
   /// Las dos obras que se preguntan, tomadas al abrir: si la pregunta caduca
   /// mientras se mira, lo que se ve no cambia de golpe.
-  late final List<Landmark>? _opciones = widget.onPick == null
-      ? null
-      : widget.store.pendingChoice;
+  late final List<Landmark>? _opciones =
+      widget.trialOptions ??
+      (widget.onPick == null ? null : widget.store.pendingChoice);
 
   /// Si es la primera obra del pueblo: entonces se presenta.
-  late final bool _primera = widget.store.firstWorkPending;
+  late final bool _primera = widget.trialOptions != null
+      ? widget.trialFirst
+      : widget.store.firstWorkPending;
+
+  /// Lo que dice antes de preguntar, de a un globo; la pregunta es el último.
+  /// Las dos obras no aparecen hasta que llega a ella: primero se presenta,
+  /// o cuenta que juntó materiales, y recién entonces pregunta.
+  late final List<String> _antes = _primera
+      ? [
+          tr(
+            '¡Guau, este pueblo está creciendo bastante! Ya hay muchos '
+                'vecinos. Creo que acá voy a tener trabajo.',
+            'Wow, this town is really growing! There are plenty of '
+                'neighbours already. I think I will find work here.',
+          ),
+          tr(
+            'Soy el maestro de obras. Junté suficientes materiales: ya '
+                'podemos levantar algo más grande que una casa.',
+            'I am the master builder. I have gathered enough materials: we '
+                'can raise something bigger than a house now.',
+          ),
+          tr('¿Qué construimos primero?', 'What shall we build first?'),
+        ]
+      : [
+          tr(
+            'Junté materiales otra vez. Hay para una obra nueva.',
+            'I have gathered materials again. There is enough for a new work.',
+          ),
+          tr('¿Qué construimos ahora?', 'What shall we build now?'),
+        ];
+
+  /// Por qué globo va.
+  int _paso = 0;
+
+  /// Si ya preguntó: entonces se ven las dos obras.
+  bool get _pregunto => _paso >= _antes.length - 1;
 
   /// La que se eligió, mientras se despide.
   Landmark? _elegida;
@@ -3246,7 +3297,7 @@ class _BuilderScreenState extends State<BuilderScreen> {
   void _elegir(Landmark obra) {
     if (_elegida != null) return;
     Sensory.instance.tick();
-    widget.onPick?.call(obra);
+    if (widget.trialOptions == null) widget.onPick?.call(obra);
     setState(() => _elegida = obra);
     Future.delayed(const Duration(milliseconds: 1900), () {
       if (mounted) Navigator.of(context).maybePop();
@@ -3262,17 +3313,7 @@ class _BuilderScreenState extends State<BuilderScreen> {
       );
     }
     if (_opciones != null) {
-      return _primera
-          ? tr(
-              '¡Buenas! Soy el maestro de obras. Llegó piedra para la '
-                  'primera obra grande del pueblo. ¿Qué levantamos?',
-              'Hello! I am the master builder. Stone has come for the '
-                  'town\'s first great work. What shall we raise?',
-            )
-          : tr(
-              'Hay piedra para empezar otra obra. ¿Qué levantamos?',
-              'There is stone to begin another work. What shall we raise?',
-            );
+      return _antes[math.min(_paso, _antes.length - 1)];
     }
     final ahora = widget.store.workUnderway;
     if (ahora != null && widget.intro) {
@@ -3337,13 +3378,20 @@ class _BuilderScreenState extends State<BuilderScreen> {
                 ),
                 Expanded(
                   child: opciones != null
-                      ? _Elegir(
-                          e: e,
-                          opciones: opciones,
-                          elegida: _elegida,
-                          place: widget.store.character,
-                          palette: widget.theme.palette,
-                          onPick: _elegir,
+                      ? AnimatedOpacity(
+                          duration: const Duration(milliseconds: 500),
+                          opacity: _pregunto ? 1 : 0,
+                          child: IgnorePointer(
+                            ignoring: !_pregunto,
+                            child: _Elegir(
+                              e: e,
+                              opciones: opciones,
+                              elegida: _elegida,
+                              place: widget.store.character,
+                              palette: widget.theme.palette,
+                              onPick: _elegir,
+                            ),
+                          ),
                         )
                       : _Hechas(
                           e: e,
@@ -3359,9 +3407,14 @@ class _BuilderScreenState extends State<BuilderScreen> {
                     dice: dice,
                     respuestas: const [],
                     who: _maestro,
-                    more: false,
+                    more: opciones != null && !_pregunto,
                     onNext: opciones != null && _elegida == null
-                        ? null
+                        ? (_pregunto
+                              ? null
+                              : () {
+                                  Sensory.instance.tick();
+                                  setState(() => _paso++);
+                                })
                         : () => Navigator.of(context).maybePop(),
                   ),
                 ),
@@ -3645,4 +3698,14 @@ class _Hechas extends StatelessWidget {
       },
     );
   }
+}
+
+/// Dos obras cualquiera del catálogo, distintas, para los ensayos del
+/// maestro de obras.
+List<Landmark> twoWorksForTrial() {
+  final dado = SeqRandom(DateTime.now().microsecondsSinceEpoch);
+  final a = dado.intN(landmarks.length);
+  var b = dado.intN(landmarks.length);
+  if (b == a) b = (a + 1) % landmarks.length;
+  return [landmarks[a], landmarks[b]];
 }

@@ -145,7 +145,34 @@ class _HomeScreenState extends State<HomeScreen>
     super.dispose();
   }
 
+  /// Los ensayos de la llegada del maestro ya hechos. Ver
+  /// [Appearance.workshopRehearsals].
+  late int _ensayosTaller = Appearance.instance.workshopRehearsals;
+
+  /// Para mirar desde los ajustes de desarrollo: cae el taller en la plaza y
+  /// el maestro se presenta y pregunta, con dos obras cualquiera. No toca el
+  /// pueblo.
+  void _rehearseWorkshop() {
+    Future.delayed(const Duration(milliseconds: 400), () async {
+      if (!mounted) return;
+      await _wall.dropWorkshop();
+      if (!mounted) return;
+      Navigator.of(context).push(
+        BuilderScreen.route(
+          store: widget.store,
+          theme: _theme,
+          trialOptions: twoWorksForTrial(),
+          trialFirst: true,
+        ),
+      );
+    });
+  }
+
   void _onStore() {
+    if (Appearance.instance.workshopRehearsals != _ensayosTaller) {
+      _ensayosTaller = Appearance.instance.workshopRehearsals;
+      _rehearseWorkshop();
+    }
     // Keep the open card in step with the store, so a corrected hour shows up
     // on the card straight away.
     if (_selected != null) {

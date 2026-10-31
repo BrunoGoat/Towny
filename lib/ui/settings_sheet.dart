@@ -3,7 +3,6 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
-import '../core/rng.dart';
 import '../data/demo.dart';
 import '../data/doings.dart';
 import '../data/landmarks.dart';
@@ -23,7 +22,6 @@ import '../model/reel.dart';
 import '../model/sage_talk.dart';
 import '../model/store.dart';
 import '../sync/cloud.dart';
-import 'choice_sheet.dart';
 import 'debug_sheet.dart';
 import 'first_run.dart';
 import 'folk_gallery_screen.dart';
@@ -502,18 +500,53 @@ class _SettingsSheetState extends State<SettingsSheet> {
                 ),
                 _Row(
                   theme: t,
-                  icon: Icons.fork_right,
-                  title: tr('Ver la tarjeta de elegir', 'See the choice card'),
+                  icon: Icons.construction,
+                  title: tr(
+                    'Ver la llegada del maestro',
+                    'See the master builder arrive',
+                  ),
                   subtitle: tr(
-                    'La pregunta que sale al empezar una obra, con dos al azar del '
+                    'La cámara va a la plaza, cae el taller con el maestro, y '
+                        'se presenta y pregunta qué construir, como en la '
+                        'primera obra. Es sólo para mirar: no toca tu pueblo.',
+                    'The camera goes to the square, the workshop falls with '
+                        'the master builder, and he introduces himself and asks '
+                        "what to build, as with the first work. It's only for "
+                        "looking: it doesn't touch your town.",
+                  ),
+                  act: (nav) {
+                    nav.pop();
+                    Appearance.instance.rehearseWorkshop();
+                  },
+                ),
+                _Row(
+                  theme: t,
+                  icon: Icons.fork_right,
+                  title: tr(
+                    'Ver al maestro preguntando',
+                    'See the master builder ask',
+                  ),
+                  subtitle: tr(
+                    'Su pantalla como sale en cada obra nueva: cuenta que juntó '
+                        'materiales y pregunta, con dos obras al azar del '
                         'catálogo. Mirar y ya: no elige nada ni toca tu pueblo.',
-                    'The question that comes up when a work begins, with two random '
-                        "ones from the catalogue. Just to look: it doesn't choose "
+                    'His screen as it comes up with each new work: he says he '
+                        'gathered materials and asks, with two random works '
+                        "from the catalogue. Just to look: it doesn't choose "
                         'anything or touch your town.',
                   ),
                   act: (nav) {
                     nav.pop();
-                    _verLaPregunta(nav, t, store);
+                    Future<void>.delayed(
+                      const Duration(milliseconds: 260),
+                      () => nav.push(
+                        BuilderScreen.route(
+                          store: store,
+                          theme: t,
+                          trialOptions: twoWorksForTrial(),
+                        ),
+                      ),
+                    );
                   },
                 ),
                 _Row(
@@ -1002,40 +1035,6 @@ void _empezarDeCero(NavigatorState nav, UiTheme t, Store store) {
           ),
         ),
       ],
-    ),
-  );
-}
-
-/// La tarjeta de elegir, enseñada por enseñarla.
-///
-/// Sale sola una vez cada varias semanas, cuando toca empezar una obra grande,
-/// y eso la hace la pantalla más difícil de revisar de la app: para verla hay
-/// que esperar a que el pueblo la pida. Desde aquí se abre cuando uno quiera.
-///
-/// **Y no elige nada.** Contestar aquí no empieza ninguna obra, no gasta la
-/// pregunta de verdad y no escribe una línea en la crónica: las dos respuestas
-/// cierran la tarjeta y se acabó. Una herramienta para mirar que además toca
-/// lo que mira no sirve para mirar.
-///
-/// Las dos que salen son del catálogo entero y al azar, no las que le tocarían
-/// al pueblo ahora. Es a propósito: lo que hay que ver de esta pantalla es si
-/// aguanta **cualquier** pareja —un pozo de seis piezas contra una catedral de
-/// treinta y tres, un nombre de una palabra contra «Panteón de los
-/// fundadores»— y para eso la pareja de verdad es la menos útil de todas,
-/// porque es siempre la misma hasta que se construye algo.
-void _verLaPregunta(NavigatorState nav, UiTheme t, Store store) {
-  final dado = SeqRandom(DateTime.now().microsecondsSinceEpoch);
-  final a = dado.intN(landmarks.length);
-  var b = dado.intN(landmarks.length);
-  if (b == a) b = (a + 1) % landmarks.length;
-  showDialog<void>(
-    context: nav.context,
-    barrierColor: sheetScrim(t.dark),
-    builder: (_) => ChoiceSheet(
-      options: [landmarks[a], landmarks[b]],
-      place: store.habit.place,
-      theme: t,
-      onPick: (_) {},
     ),
   );
 }

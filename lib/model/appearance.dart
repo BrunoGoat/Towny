@@ -481,6 +481,17 @@ class Appearance extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Cuántas veces se pidió ver llegar al maestro de obras, desde los
+  /// ajustes de desarrollo: la pantalla del valle mira este número y, cuando
+  /// sube, hace caer el taller en la plaza del pueblo que se mira. Sólo para
+  /// mirar: no toca el pueblo.
+  int get workshopRehearsals => _workshopRehearsals;
+  int _workshopRehearsals = 0;
+  void rehearseWorkshop() {
+    _workshopRehearsals++;
+    notifyListeners();
+  }
+
   /// Volver a la primera vez de verdad: lo que se conteste funda el pueblo.
   ///
   /// Es lo que hace «empezar de cero», con el valle ya vacío. Para mirarla sin

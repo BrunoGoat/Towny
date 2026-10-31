@@ -2184,7 +2184,9 @@ class TownPainter extends CustomPainter {
     // cae no puede salir de lo que se guardó quieto. Son unas pocas cajas.
     final take = math.min(e.placed, l.pieces.length);
     final pueblo = scene.towns.indexOf(e);
-    if (water && l.hasWorkshop(take)) {
+    // Y en un ensayo, aunque el pueblo no tenga todavía su primera obra.
+    final ensayo = pueblo == scene.active && scene.workshopFall != null;
+    if (water && (l.hasWorkshop(take) || ensayo)) {
       final cae = pueblo == scene.active ? scene.workshopFall : null;
       final dy = cae == null ? 0.0 : WorkshopShow.liftAt(cae);
       if (dy != null) {
