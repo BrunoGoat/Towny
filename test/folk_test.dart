@@ -36,7 +36,10 @@ void main() {
       var vistos = 0;
       for (var seed = 1; seed <= 60; seed++) {
         final l = TownLayout(30, TownCharacter.all[seed % 8], seed: seed);
-        final gente = folkOf(l, 30).where((v) => !v.sage && !v.builder).toList();
+        final gente = folkOf(
+          l,
+          30,
+        ).where((v) => !v.sage && !v.builder).toList();
         if (gente.isEmpty) continue;
         final primero = gente.reduce((a, b) => a.home < b.home ? a : b);
         expect(primero.kid, isFalse, reason: 'pueblo $seed');

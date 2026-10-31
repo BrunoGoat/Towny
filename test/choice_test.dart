@@ -496,7 +496,7 @@ void main() {
     /// nunca quieta —él respira y el viento sopla—, así que se avanza el
     /// reloj a mano en vez de esperar a que todo se calme.
     Future<void> abrirMaestro(WidgetTester tester) async {
-      final fila = find.text('Ver al maestro preguntando');
+      final fila = find.text('Ver al constructor preguntando');
       await tester.scrollUntilVisible(fila, 120);
       await tester.ensureVisible(fila);
       await tester.pumpAndSettle();
@@ -506,12 +506,14 @@ void main() {
       }
     }
 
-    testWidgets('enseña al maestro sin que lo pida el pueblo', (tester) async {
+    testWidgets('enseña al constructor sin que lo pida el pueblo', (
+      tester,
+    ) async {
       // La pregunta sale sola una vez cada varias semanas: sin esto, para
       // mirarla hay que esperar a que el pueblo la pida.
       await abrirAjustes(tester);
       await abrirMaestro(tester);
-      expect(find.text('EL MAESTRO DE OBRAS'), findsOneWidget);
+      expect(find.text('EL CONSTRUCTOR'), findsOneWidget);
       expect(
         find.textContaining('Junté materiales otra vez', findRichText: true),
         findsWidgets,
@@ -547,7 +549,7 @@ void main() {
       for (var k = 0; k < 30; k++) {
         await tester.pump(const Duration(milliseconds: 100));
       }
-      expect(find.text('EL MAESTRO DE OBRAS'), findsNothing);
+      expect(find.text('EL CONSTRUCTOR'), findsNothing);
 
       expect(store.habit.chronicle, antes);
       expect(store.habit.pieces.length, piezas);

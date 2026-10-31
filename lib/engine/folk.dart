@@ -341,7 +341,7 @@ class Townsfolk {
       return Townsfolk._(
           builderHome,
           s,
-          'Maestro de obras',
+          'Constructor',
           null,
           r.stops,
           r.stay,
@@ -444,7 +444,7 @@ class Townsfolk {
       return Townsfolk._(
           builderHome,
           s,
-          'Maestro de obras',
+          'Constructor',
           null,
           stops,
           stay,

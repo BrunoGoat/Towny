@@ -3423,9 +3423,9 @@ class _BuilderScreenState extends State<BuilderScreen> {
                 'neighbours already. I think I will find work here.',
           ),
           tr(
-            'Soy el maestro de obras. Junté suficientes materiales: ya '
+            'Soy el constructor. Junté suficientes materiales: ya '
                 'podemos levantar algo más grande que una casa.',
-            'I am the master builder. I have gathered enough materials: we '
+            'I am the builder. I have gathered enough materials: we '
                 'can raise something bigger than a house now.',
           ),
           tr('¿Qué construimos primero?', 'What shall we build first?'),
@@ -3584,65 +3584,132 @@ class _BuilderScreenState extends State<BuilderScreen> {
   }
 }
 
-/// «El maestro de obras», con su filete, y cuántas obras se levantaron.
+/// «El constructor», en un cartel de madera clavado, y cuántas obras se
+/// levantaron.
+///
+/// No es el rótulo del consejero —letra de libro antiguo, dorada, con su
+/// estrellita—, que es de lo místico: esto es de taller. Una tabla de madera
+/// con dos clavos, un poco torcida como quien la colgó a ojo, y letra de
+/// imprenta gruesa, clara sobre la madera.
 class _CabeceraMaestro extends StatelessWidget {
   const _CabeceraMaestro({required this.hechas});
   final int hechas;
 
-  static const Color _oroViejo = Color(0xFFE6CF98);
+  static const Color _crema = Color(0xFFF3E2C0);
+
+  Widget _clavo() => Container(
+    width: 7,
+    height: 7,
+    decoration: const BoxDecoration(
+      shape: BoxShape.circle,
+      gradient: RadialGradient(
+        center: Alignment(-0.35, -0.35),
+        colors: [Color(0xFFD9D6CF), Color(0xFF5E5A54)],
+      ),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
-    final filete = Container(
-      height: 1,
-      width: 26,
-      color: _oroViejo.withValues(alpha: 0.5),
-    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          tr('EL MAESTRO DE OBRAS', 'THE MASTER BUILDER'),
-          style: const TextStyle(
-            fontFamily: 'EBGaramond',
-            fontSize: 19,
-            letterSpacing: 4.5,
-            color: _oroViejo,
-            shadows: [Shadow(color: Color(0xAA000000), blurRadius: 10)],
-          ),
-        ),
-        const SizedBox(height: 3),
-        Row(
-          children: [
-            filete,
-            const SizedBox(width: 6),
-            Icon(
-              Icons.construction,
-              size: 11,
-              color: _oroViejo.withValues(alpha: 0.75),
+        Transform.rotate(
+          angle: -0.025,
+          alignment: Alignment.centerLeft,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFF94683C), Color(0xFF6B4626)],
+              ),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: const Color(0xFF3E2814), width: 2),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x88000000),
+                  blurRadius: 10,
+                  offset: Offset(0, 4),
+                ),
+              ],
             ),
-            const SizedBox(width: 6),
-            filete,
-            const SizedBox(width: 10),
-            if (hechas > 0)
-              Flexible(
-                child: Text(
-                  hechas == 1
-                      ? tr('una obra levantada', 'one work raised')
-                      : tr('$hechas obras levantadas', '$hechas works raised'),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontFamily: 'EBGaramond',
-                    fontStyle: FontStyle.italic,
-                    fontSize: 13,
-                    color: _oroViejo.withValues(alpha: 0.7),
+            child: Stack(
+              children: [
+                // La veta de la madera: dos rayas finas, más oscuras.
+                for (final y in [0.32, 0.70])
+                  Positioned.fill(
+                    child: Align(
+                      alignment: Alignment(0, y * 2 - 1),
+                      child: Container(
+                        height: 1,
+                        color: const Color(0x334A2E14),
+                      ),
+                    ),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 7, 10, 7),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _clavo(),
+                      const SizedBox(width: 10),
+                      const Icon(Icons.handyman, size: 16, color: _crema),
+                      const SizedBox(width: 8),
+                      // Si no entra —un teléfono angosto, la letra grande
+                      // del sistema—, se achica en vez de salirse.
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            tr('EL CONSTRUCTOR', 'THE BUILDER'),
+                            style: const TextStyle(
+                              fontFamily: 'Chronicle',
+                              fontWeight: FontWeight.w700,
+                              fontSize: 17,
+                              letterSpacing: 2.6,
+                              color: _crema,
+                              shadows: [
+                                Shadow(
+                                  color: Color(0xAA2A1A0A),
+                                  offset: Offset(0, 1.5),
+                                  blurRadius: 1,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      _clavo(),
+                    ],
                   ),
                 ),
-              ),
-          ],
+              ],
+            ),
+          ),
         ),
+        if (hechas > 0) ...[
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.only(left: 4),
+            child: Text(
+              hechas == 1
+                  ? tr('una obra levantada', 'one work raised')
+                  : tr('$hechas obras levantadas', '$hechas works raised'),
+              style: TextStyle(
+                fontFamily: 'Chronicle',
+                fontSize: 12.5,
+                letterSpacing: 0.6,
+                color: _crema.withValues(alpha: 0.8),
+                shadows: const [
+                  Shadow(color: Color(0xAA000000), blurRadius: 6),
+                ],
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }

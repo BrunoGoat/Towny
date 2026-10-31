@@ -502,15 +502,15 @@ class _SettingsSheetState extends State<SettingsSheet> {
                   theme: t,
                   icon: Icons.construction,
                   title: tr(
-                    'Ver la llegada del maestro',
-                    'See the master builder arrive',
+                    'Ver la llegada del constructor',
+                    'See the builder arrive',
                   ),
                   subtitle: tr(
-                    'La cámara va a la plaza, cae el taller con el maestro, y '
+                    'La cámara va a la plaza, cae el taller con el constructor, y '
                         'se presenta y pregunta qué construir, como en la '
                         'primera obra. Es sólo para mirar: no toca tu pueblo.',
                     'The camera goes to the square, the workshop falls with '
-                        'the master builder, and he introduces himself and asks '
+                        'the builder, and he introduces himself and asks '
                         "what to build, as with the first work. It's only for "
                         "looking: it doesn't touch your town.",
                   ),
@@ -523,8 +523,8 @@ class _SettingsSheetState extends State<SettingsSheet> {
                   theme: t,
                   icon: Icons.fork_right,
                   title: tr(
-                    'Ver al maestro preguntando',
-                    'See the master builder ask',
+                    'Ver al constructor preguntando',
+                    'See the builder ask',
                   ),
                   subtitle: tr(
                     'Su pantalla como sale en cada obra nueva: cuenta que juntó '
