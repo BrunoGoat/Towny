@@ -32,7 +32,9 @@ Future<void> pasarPresentacion(WidgetTester tester) async {
   }
 
   Future<void> rollo() async {
-    await espera(12);
+    // Primero lo trae el viento: sopla y viene volando, y recién al llegar
+    // sale el rollo.
+    await espera(30);
     final g = await tester.startGesture(Offset(medio, 200));
     for (var i = 0; i < 64; i++) {
       await g.moveBy(const Offset(0, 600 / 64));

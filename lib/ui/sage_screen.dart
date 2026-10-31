@@ -179,6 +179,15 @@ class _SageScreenState extends State<SageScreen> {
   /// la de «un pueblo nuevo…».
   bool _sePresento = false;
 
+  /// Cuántas palabras le trajo el viento en esta visita: cada una, una
+  /// ráfaga. Ver [_Ambiente.soplo].
+  int _vientos = 0;
+
+  /// Lo que dice el globo de la palabra que trajo, mientras lo dice, y si lo
+  /// que trae todavía viene volando: hasta que llega, el globo no sale.
+  String? _vientoDe;
+  bool _volando = false;
+
   /// Si se le dijo que todavía no: no vuelve a preguntar mientras se esté
   /// acá. Lo que tenía para dar sigue esperando.
   bool _espera = false;
@@ -353,16 +362,39 @@ class _SageScreenState extends State<SageScreen> {
       sale = true;
     }
     final alto = MediaQuery.of(context).size.height;
+    // **El viento, sólo cuando trae una palabra.** Primero sopla y algo viene
+    // volando hasta donde va a estar el globo; recién cuando llega, aparece
+    // el globo que lo dice.
+    final trae =
+        _abierto == null &&
+        (dice == SageLines.ready || dice == SageLines.readyOther);
+    if (trae && _vientoDe != dice) {
+      _vientoDe = dice;
+      _vientos++;
+      _volando = true;
+      Future.delayed(_vuela, () {
+        if (mounted) setState(() => _volando = false);
+      });
+    } else if (!trae) {
+      _vientoDe = null;
+    }
+    final volando = _volando;
+    final pad = MediaQuery.of(context).padding.bottom;
+    final abajo = math.min(360.0, alto * 0.42);
+    final destino = Offset(
+      abajo * 0.52 + 46,
+      alto - pad - abajo + abajo * 0.06 + 30,
+    );
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
           // Lo de atrás: la penumbra, la luz que sale del viejo, el polvo
-          // dorado que sube despacio y el viento, que sopla más fuerte cada
-          // vez que el viejo dice algo nuevo.
+          // dorado que sube despacio y el viento, que sopla cuando le trae
+          // una palabra.
           Positioned.fill(
-            child: IgnorePointer(child: _Ambiente(soplo: dice.hashCode)),
+            child: IgnorePointer(child: _Ambiente(soplo: _vientos)),
           ),
           // Tocar el valle es irse.
           Positioned.fill(
@@ -402,8 +434,10 @@ class _SageScreenState extends State<SageScreen> {
                       : math.min(360, alto * 0.42),
                   child: _Habla(
                     e: e,
-                    dice: _abierto != null && _dando ? '' : dice,
-                    respuestas: _abierto != null ? const [] : respuestas,
+                    dice: (_abierto != null && _dando) || volando ? '' : dice,
+                    respuestas: _abierto != null || volando
+                        ? const []
+                        : respuestas,
                     onNext: _abierto != null ? null : sigue,
                     // Los tres puntos dicen que hay más; despedirse no lo es.
                     more: !sale,
@@ -422,7 +456,7 @@ class _SageScreenState extends State<SageScreen> {
           // El remolino, por delante de todo menos del consejo abierto.
           Positioned.fill(
             child: IgnorePointer(
-              child: _Ambiente(soplo: dice.hashCode, frente: true),
+              child: _Ambiente(soplo: _vientos, frente: true, destino: destino),
             ),
           ),
           if (_abierto != null)
@@ -510,6 +544,12 @@ class _SagePrologueViewState extends State<SagePrologueView>
   /// [SagePrologueView.rehearsal].
   final List<(Advice, DateTime)> _ensayo = [];
 
+  /// Cuántos consejos le trajo el viento: cada uno, una ráfaga.
+  int _vientos = 0;
+
+  /// Si el viento está trayendo un consejo ahora mismo.
+  bool _volando = false;
+
   @override
   void initState() {
     super.initState();
@@ -569,13 +609,28 @@ class _SagePrologueViewState extends State<SagePrologueView>
   }
 
   void _sigue() {
+    // Mientras el viento trae el consejo, tocar no hace nada: el globo que se
+    // va todavía se puede tocar, y saltaba una frase de más.
+    if (_volando) return;
     Sensory.instance.tick();
     final abre = SagePrologue.opening.length;
     setState(() => _paso++);
     // Después de lo último de la presentación, el primer consejo; después de
     // lo de en medio, el segundo.
-    if (_paso == abre) _dar(0);
-    if (_paso == abre + 2) _dar(1);
+    // Y cada consejo lo trae el viento: primero sopla y viene volando hasta
+    // el medio, y recién entonces llega el rollo.
+    if (_paso == abre || _paso == abre + 2) {
+      final k = _paso == abre ? 0 : 1;
+      setState(() {
+        _vientos++;
+        _volando = true;
+      });
+      Future.delayed(_vuela, () {
+        if (!mounted) return;
+        _volando = false;
+        _dar(k);
+      });
+    }
   }
 
   void _fundar() {
@@ -630,7 +685,7 @@ class _SagePrologueViewState extends State<SagePrologueView>
       child: Stack(
         children: [
           Positioned.fill(
-            child: IgnorePointer(child: _Ambiente(soplo: dice.hashCode)),
+            child: IgnorePointer(child: _Ambiente(soplo: _vientos)),
           ),
           SafeArea(
             // Lo que de verdad hay de alto, y no lo que dice la pantalla: con
@@ -720,7 +775,7 @@ class _SagePrologueViewState extends State<SagePrologueView>
           // El remolino, por delante de todo menos del consejo abierto.
           Positioned.fill(
             child: IgnorePointer(
-              child: _Ambiente(soplo: dice.hashCode, frente: true),
+              child: _Ambiente(soplo: _vientos, frente: true, alMedio: true),
             ),
           ),
           if (_abierto != null)
@@ -849,6 +904,10 @@ class _Varillas extends CustomPainter {
   bool shouldRepaint(_Varillas old) => false;
 }
 
+/// Lo que tarda el viento en traer una palabra: lo que vuela lo que trae,
+/// desde que sopla hasta que se posa donde va a salir el globo.
+const Duration _vuela = Duration(milliseconds: 1700);
+
 /// Lo de atrás de la pantalla del viejo: la penumbra, una luz cálida que sale
 /// de donde está él, motas de polvo dorado subiendo despacio por el aire, y
 /// el viento —el que le trae las palabras—: hilos de aire que cruzan la
@@ -856,7 +915,19 @@ class _Varillas extends CustomPainter {
 /// Siempre igual para el mismo instante: todo sale de su número, no de un
 /// dado.
 class _Ambiente extends StatefulWidget {
-  const _Ambiente({this.soplo = 0, this.frente = false, this.viento = true});
+  const _Ambiente({
+    this.soplo = 0,
+    this.frente = false,
+    this.viento = true,
+    this.destino,
+    this.alMedio = false,
+  });
+
+  /// Adónde trae el viento la palabra, en la capa de delante: donde va a
+  /// aparecer el globo. Si es nulo y [alMedio], arriba al medio, que es donde
+  /// llega el rollo.
+  final Offset? destino;
+  final bool alMedio;
 
   /// Si sopla. Es del consejero: en la pantalla del maestro de obras queda la
   /// penumbra, la luz y el polvo, quietos.
@@ -899,6 +970,13 @@ class _AmbienteState extends State<_Ambiente>
   }
 
   @override
+  void initState() {
+    super.initState();
+    // Si ya llega con una palabra que traer, sopla desde el primer momento.
+    if (widget.soplo > 0) _rafaga = 0;
+  }
+
+  @override
   void didUpdateWidget(_Ambiente old) {
     super.didUpdateWidget(old);
     if (old.soplo != widget.soplo) {
@@ -925,6 +1003,8 @@ class _AmbienteState extends State<_Ambiente>
           _empujado + _AmbientePainter.empujeDe(desde),
           frente: widget.frente,
           viento: widget.viento,
+          destino: widget.destino,
+          alMedio: widget.alMedio,
         ),
       );
     },
@@ -938,8 +1018,14 @@ class _AmbientePainter extends CustomPainter {
     this.empuje, {
     this.frente = false,
     this.viento = true,
+    this.destino,
+    this.alMedio = false,
   });
   final double t;
+
+  /// Ver [_Ambiente.destino].
+  final Offset? destino;
+  final bool alMedio;
 
   /// Ver [_Ambiente.viento].
   final bool viento;
@@ -965,10 +1051,9 @@ class _AmbientePainter extends CustomPainter {
   @override
   void paint(Canvas c, Size s) {
     if (frente) {
-      // Encima de la cabeza del viejo, que está abajo a la izquierda con lo
-      // que dice al lado: la palabra le llega dando vueltas.
-      final abajo = math.min(360.0, s.height * 0.42);
-      _remolino(c, Offset(s.width * 0.24, s.height - abajo - 24));
+      final adonde =
+          destino ?? (alMedio ? Offset(s.width / 2, s.height * 0.19) : null);
+      if (adonde != null) _trae(c, s, adonde);
       return;
     }
     final todo = Offset.zero & s;
@@ -1140,39 +1225,86 @@ class _AmbientePainter extends CustomPainter {
     }
   }
 
-  /// El remolino alrededor del viejo: motas de luz que giran en espiral desde
-  /// él y se abren, como si la palabra le llegara dando vueltas.
-  void _remolino(Canvas c, Offset foco) {
-    if (rafaga > 3.2) return;
-    final vida = (1 - rafaga / 3.2).clamp(0.0, 1.0);
-    final entra = (rafaga / 0.4).clamp(0.0, 1.0);
-    const cuantas = 46;
-    for (var i = 0; i < cuantas; i++) {
-      final k = i / cuantas;
-      final giro = k * math.pi * 5 + rafaga * (3.4 - k * 1.6) + hash01(i, 41);
-      final radio = 18 + k * 120 + rafaga * 46 * (0.5 + k);
-      final p =
-          foco + Offset(math.cos(giro) * radio, math.sin(giro) * radio * 0.55);
-      final a = vida * entra * (0.25 + 0.75 * (1 - k)) * 0.9;
-      // Cada mota deja una estela corta, en el sentido en que gira.
-      final atras =
-          foco +
-          Offset(
-            math.cos(giro - 0.22) * radio,
-            math.sin(giro - 0.22) * radio * 0.55,
-          );
-      c.drawLine(
-        atras,
-        p,
-        Paint()
-          ..strokeCap = StrokeCap.round
-          ..strokeWidth = 1.6 + (1 - k) * 1.6
-          ..color = const Color(0xFFFFE2A0).withValues(alpha: a * 0.55),
-      );
+  /// Lo que trae el viento: una luz que entra volando por la izquierda con
+  /// la ráfaga, dando una curva, y viene a posarse en [adonde] —donde va a
+  /// aparecer el globo, o el rollo—. Lleva su estela y unas chispas que le
+  /// giran alrededor, y al llegar se abre en un destello: ahí sale lo que
+  /// trajo. Tarda lo mismo que [_vuela].
+  void _trae(Canvas c, Size s, Offset adonde) {
+    final llega = _vuela.inMilliseconds / 1000;
+    if (rafaga > llega + 0.9) return;
+    final p0 = Offset(-s.width * 0.10, s.height * 0.22);
+    final p1 = Offset(s.width * 0.55, s.height * 0.02);
+    final p2 = Offset(s.width * 0.05, adonde.dy - s.height * 0.10);
+    Offset donde(double k) {
+      final u = 1 - k;
+      return p0 * (u * u * u) +
+          p1 * (3 * u * u * k) +
+          p2 * (3 * u * k * k) +
+          adonde * (k * k * k);
+    }
+
+    const sale = 0.15;
+    if (rafaga < llega) {
+      final k = smoothstep(sale, llega, rafaga);
+      if (rafaga < sale) return;
+      final aqui = donde(k);
+      // La estela: lo que fue dejando atrás, cada vez más tenue y chico.
+      for (var i = 14; i >= 1; i--) {
+        final q = donde(math.max(0, k - i * 0.018));
+        final a = (1 - i / 15) * 0.55;
+        c.drawCircle(
+          q,
+          1.2 + 3.0 * (1 - i / 15),
+          Paint()..color = const Color(0xFFFFE6A8).withValues(alpha: a),
+        );
+      }
+      // El brillo, y el punto.
       c.drawCircle(
-        p,
-        1.4 + (1 - k) * 1.6,
-        Paint()..color = const Color(0xFFFFF4D6).withValues(alpha: a),
+        aqui,
+        20,
+        Paint()
+          ..shader = RadialGradient(
+            colors: [
+              const Color(0xFFFFE9B0).withValues(alpha: 0.75),
+              const Color(0x00FFE9B0),
+            ],
+          ).createShader(Rect.fromCircle(center: aqui, radius: 20)),
+      );
+      c.drawCircle(aqui, 4.2, Paint()..color = const Color(0xFFFFF8E6));
+      // Las chispas que le giran alrededor.
+      for (var i = 0; i < 5; i++) {
+        final a = rafaga * 7 + i * math.pi * 2 / 5;
+        final r = 9 + 3 * math.sin(rafaga * 5 + i);
+        c.drawCircle(
+          aqui + Offset(math.cos(a) * r, math.sin(a) * r * 0.7),
+          1.6,
+          Paint()..color = const Color(0xFFFFF1C8).withValues(alpha: 0.85),
+        );
+      }
+      return;
+    }
+    // El destello al llegar: se abre en chispas y se apaga.
+    final f = (rafaga - llega) / 0.9;
+    final brillo = (1 - f).clamp(0.0, 1.0);
+    c.drawCircle(
+      adonde,
+      14 + 40 * f,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [
+            const Color(0xFFFFEDC0).withValues(alpha: 0.6 * brillo),
+            const Color(0x00FFEDC0),
+          ],
+        ).createShader(Rect.fromCircle(center: adonde, radius: 14 + 40 * f)),
+    );
+    for (var i = 0; i < 14; i++) {
+      final a = i * math.pi * 2 / 14 + hash01(i, 71) * 0.4;
+      final r = 6 + 46 * Curves.easeOutCubic.transform(f.clamp(0.0, 1.0));
+      c.drawCircle(
+        adonde + Offset(math.cos(a) * r, math.sin(a) * r),
+        1.8 * brillo + 0.4,
+        Paint()..color = const Color(0xFFFFF1C8).withValues(alpha: brillo),
       );
     }
   }
