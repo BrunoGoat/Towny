@@ -249,6 +249,33 @@ class EffectSystem {
 /// debajo de la tierra, y era la única cosa de toda la app que no caía: en un
 /// pueblo donde cada logro es una piedra que cae, una plaza que emerge del
 /// suelo se lee como un error del dibujo y no como una plaza que se pone.
+/// El taller del maestro de obras cayendo en la plaza, con él dentro: el
+/// día de la primera obra. La misma caída que una pieza, desde más alto,
+/// para que se vea venir desde que la cámara llega.
+class WorkshopShow {
+  const WorkshopShow._();
+
+  /// Cuándo se suelta, en segundos desde que se pidió: lo que tarda la
+  /// cámara en llegar a la plaza.
+  static const double releaseAt = 1.1;
+
+  /// Desde qué altura cae.
+  static const double drop = 3.2;
+
+  /// Cuándo toca el suelo.
+  static double get lands => releaseAt + PlacementFx.fallDuration;
+
+  /// Cuándo ya está todo quieto y puede salir el maestro a preguntar.
+  static double get done => lands + PlacementFx.settleDuration + 0.9;
+
+  /// A qué altura sobre su sitio está a los [t] segundos; nulo mientras no
+  /// se soltó, que entonces no está.
+  static double? liftAt(double t) {
+    if (t < releaseAt) return null;
+    return PlacementFx.fallAt(t - releaseAt, height: drop);
+  }
+}
+
 class FoundingShow {
   const FoundingShow._();
 

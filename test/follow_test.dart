@@ -186,7 +186,7 @@ void main() {
       // Quien la toca mientras lee es porque quiere verla leer.
       final l = TownLayout(160, TownCharacter.all.first, seed: 21);
       var vistos = 0;
-      for (final who in folkOf(l, 160).where((v) => !v.sage)) {
+      for (final who in folkOf(l, 160).where((v) => !v.sage && !v.builder)) {
         for (var t = 30.0; t < 400; t += 37) {
           final antes = who.at(t);
           final hace = antes.act;
@@ -210,7 +210,7 @@ void main() {
     test('cambia de cosa mucho más a menudo que en su ronda de siempre', () {
       final l = TownLayout(160, TownCharacter.all.first, seed: 21);
       // Al consejero no se le sigue: tocarlo abre su menú.
-      final gente = folkOf(l, 160).where((v) => !v.sage).toList();
+      final gente = folkOf(l, 160).where((v) => !v.sage && !v.builder).toList();
       var cAntes = 0.0, cAhora = 0.0, qAntes = 0.0, qAhora = 0.0;
       var cosasAntes = 0, cosasAhora = 0;
       for (final who in gente) {
@@ -277,7 +277,7 @@ void main() {
       // la persona que se estaba siguiendo desaparecía.
       final l = TownLayout(160, TownCharacter.all.first, seed: 21);
       // El consejero no se toca todavía: no tiene ficha.
-      final gente = folkOf(l, 160).where((v) => !v.sage);
+      final gente = folkOf(l, 160).where((v) => !v.sage && !v.builder);
       var probadas = 0;
       for (final who in gente) {
         for (final t in [0.0, 30.0, 80.0, 140.0]) {

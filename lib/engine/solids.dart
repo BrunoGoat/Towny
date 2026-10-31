@@ -1636,6 +1636,27 @@ class PlazaBench {
   /// La altura del asiento en el mundo.
   static double get seatY => Plaza.lawnTop + seat;
 
+  /// Dónde se sienta cada uno: [lado] -1 es la mitad izquierda —la del
+  /// consejero—, 1 la derecha —la del maestro de obras—, mirando desde el
+  /// banco hacia la fuente.
+  static (double, double) seatAt(double cx, double cz, int lado) {
+    const corre = 0.17;
+    final a = turn;
+    return (
+      xAt(cx) + math.cos(a) * corre * lado,
+      zAt(cz) - math.sin(a) * corre * lado,
+    );
+  }
+
+  /// El paso de delante de un asiento: donde se para al llegar y al irse.
+  static (double, double) frontOf((double, double) asiento) {
+    const delante = depth + 0.16;
+    return (
+      asiento.$1 + math.sin(turn) * delante,
+      asiento.$2 + math.cos(turn) * delante,
+    );
+  }
+
   static List<Solid> solidsAt(double cxIn, double czIn) {
     final cx = xAt(cxIn), cz = zAt(czIn);
     const madera = 0xFF7A5E40;
@@ -1712,6 +1733,200 @@ class PlazaBench {
           madera,
           0.96,
         ),
+      ],
+      cx,
+      cz,
+      turn,
+    );
+  }
+}
+
+/// El taller del maestro de obras, en la plaza.
+///
+/// No es una pieza ni se gana: llega solo, el día en que el pueblo va a
+/// empezar su primera obra, y se queda. Es de donde sale el maestro con la
+/// carretilla cuando hay obra, y adonde vuelve a martillar cuando no la hay.
+///
+/// Un galpón chico de madera sobre un zócalo de piedra, con su techo a dos
+/// aguas y la puerta mirando a la fuente; a su derecha la mesa de trabajo,
+/// que es donde martilla, y a su izquierda una pila de tablas. Del lado de la
+/// plaza en que no hay nada: el tablón y el banco están en la otra diagonal.
+class PlazaWorkshop {
+  /// Lo que se aparta del centro de la plaza, en partes de su radio.
+  static const double out = 0.76;
+
+  /// En qué dirección, desde la fuente.
+  static const double _angulo = 225 * math.pi / 180;
+
+  /// Medio ancho y medio fondo del galpón, y alto de la pared y del caballete.
+  static const double half = 0.42, depth = 0.28, wall = 0.62, ridge = 0.98;
+
+  static double get offX => TownLayout.plazaReach * out * math.cos(_angulo);
+  static double get offZ => TownLayout.plazaReach * out * math.sin(_angulo);
+  static double xAt(double cx) => cx + offX;
+  static double zAt(double cz) => cz + offZ;
+
+  /// Hacia dónde mira: a la fuente.
+  static double get turn => math.atan2(-offX, -offZ);
+
+  /// La mesa de trabajo, en el sistema del galpón: a su derecha, un poco por
+  /// delante.
+  static const double _mesaX = half + 0.24, _mesaZ = 0.04;
+  static const double _mesaAncho = 0.17, _mesaFondo = 0.09, mesaAlto = 0.24;
+
+  /// Un punto del sistema del galpón —adelante en +z— llevado a la plaza.
+  static (double, double) _aPlaza(double cx, double cz, double x, double z) {
+    final a = turn, s = math.sin(a), c = math.cos(a);
+    final ox = xAt(cx), oz = zAt(cz);
+    return (ox + x * c + z * s, oz - x * s + z * c);
+  }
+
+  /// Dónde se para el maestro a martillar: delante de la mesa, mirándola.
+  static (double, double) anvilAt(double cx, double cz) =>
+      _aPlaza(cx, cz, _mesaX, _mesaZ + _mesaFondo + 0.16);
+
+  /// Hacia dónde mira martillando: a la mesa, de espaldas a la fuente.
+  static double get anvilFacing => turn + math.pi;
+
+  /// La puerta, por fuera: donde carga y descarga la carretilla.
+  static (double, double) doorAt(double cx, double cz) =>
+      _aPlaza(cx, cz, 0, depth + 0.22);
+
+  /// Hacia dónde mira en la puerta: adentro.
+  static double get doorFacing => turn + math.pi;
+
+  static List<Solid> solidsAt(double cxIn, double czIn) {
+    final cx = xAt(cxIn), cz = zAt(czIn);
+    const piedra = 0xFF8C877C;
+    const tabla = 0xFF9A7650;
+    const viga = 0xFF5E4630;
+    const teja = 0xFF8E5A3C;
+    const hueco = 0xFF3A2C20;
+    const mesa = 0xFF7A5E40;
+    final y0 = Plaza.lawnTop;
+    Solid caja(
+      double x0,
+      double ya,
+      double z0,
+      double x1,
+      double yb,
+      double z1,
+      int tint,
+      double ao,
+    ) => Solid(
+      -1,
+      boxFaces(
+        cx + x0,
+        ya,
+        cz + z0,
+        cx + x1,
+        yb,
+        cz + z1,
+        Surface.own,
+        ao: ao,
+        tint: tint,
+      ),
+    );
+    const zocalo = 0.07, poste = 0.035;
+    return turnedSolids(
+      [
+        // El zócalo de piedra, un poco más ancho que el galpón.
+        caja(
+          -half - 0.03,
+          y0,
+          -depth - 0.03,
+          half + 0.03,
+          y0 + zocalo,
+          depth + 0.03,
+          piedra,
+          0.92,
+        ),
+        // Las paredes de tabla.
+        caja(-half, y0 + zocalo, -depth, half, wall, depth, tabla, 1),
+        // Los postes de las esquinas, oscuros, un pelo por fuera.
+        for (final x in [-half, half])
+          for (final z in [-depth, depth])
+            caja(
+              x - poste,
+              y0 + zocalo,
+              z - poste,
+              x + poste,
+              wall,
+              z + poste,
+              viga,
+              0.9,
+            ),
+        // La puerta: el hueco oscuro, y el dintel.
+        caja(
+          -0.13,
+          y0 + zocalo,
+          depth,
+          0.13,
+          wall - 0.12,
+          depth + 0.012,
+          hueco,
+          0.8,
+        ),
+        caja(
+          -0.16,
+          wall - 0.12,
+          depth,
+          0.16,
+          wall - 0.08,
+          depth + 0.02,
+          viga,
+          0.9,
+        ),
+        // El techo, con su alero.
+        Solid(
+          -1,
+          gableFaces(
+                cx - half - 0.09,
+                wall,
+                cz - depth - 0.11,
+                cx + half + 0.09,
+                ridge,
+                cz + depth + 0.11,
+                true,
+              )
+              .map((f) => Facet(f.v, f.n, Surface.own, ao: f.ao, tint: teja))
+              .toList(),
+        ),
+        // La mesa de trabajo: cuatro patas y el tablero.
+        for (final dx in [-_mesaAncho + 0.03, _mesaAncho - 0.03])
+          for (final dz in [-_mesaFondo + 0.03, _mesaFondo - 0.03])
+            caja(
+              _mesaX + dx - 0.022,
+              y0,
+              _mesaZ + dz - 0.022,
+              _mesaX + dx + 0.022,
+              y0 + mesaAlto - 0.035,
+              _mesaZ + dz + 0.022,
+              viga,
+              0.86,
+            ),
+        caja(
+          _mesaX - _mesaAncho,
+          y0 + mesaAlto - 0.035,
+          _mesaZ - _mesaFondo,
+          _mesaX + _mesaAncho,
+          y0 + mesaAlto,
+          _mesaZ + _mesaFondo,
+          mesa,
+          1,
+        ),
+        // La pila de tablas, a la izquierda: tres, cada una más corta.
+        for (var k = 0; k < 3; k++)
+          caja(
+            -half - 0.30 + k * 0.02,
+            y0 + k * 0.04,
+            0.02 - 0.12 + k * 0.01,
+            -half - 0.06 - k * 0.02,
+            y0 + (k + 1) * 0.04,
+            0.02 + 0.12 - k * 0.01,
+            k.isEven ? tabla : mesa,
+            0.9,
+          ),
       ],
       cx,
       cz,

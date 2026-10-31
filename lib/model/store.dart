@@ -164,6 +164,38 @@ class Store extends ChangeNotifier {
     return marks.length < 2 ? null : marks;
   }
 
+  /// Si el pueblo está por empezar su primera obra: la pregunta que hay es
+  /// la primera, y con ella llega el taller del maestro a la plaza.
+  bool get firstWorkPending =>
+      pendingChoice != null && habit.total == plan.firstWorkFrom;
+
+  /// Las obras que el pueblo ya terminó, de la primera a la última, con el
+  /// día en que se puso su última piedra.
+  List<(Landmark, DateTime)> get finishedWorks {
+    final out = <(Landmark, DateTime)>[];
+    final total = habit.total;
+    for (final w in plan.walk(habit.chronicle)) {
+      if (w.from >= total) break;
+      final mark = TownPlan.landmarkOf(w.id);
+      if (mark == null || w.from + w.cost > total) continue;
+      out.add((mark, habit.pieces[w.from + w.cost - 1].placedAt));
+    }
+    return out;
+  }
+
+  /// La obra que se está levantando ahora y cuántas piezas le faltan, si hay
+  /// una empezada.
+  (Landmark, int)? get workUnderway {
+    final total = habit.total;
+    for (final w in plan.walk(habit.chronicle)) {
+      if (w.from >= total) return null;
+      if (w.from + w.cost <= total) continue;
+      final mark = TownPlan.landmarkOf(w.id);
+      return mark == null ? null : (mark, w.from + w.cost - total);
+    }
+    return null;
+  }
+
   /// Contestar: se escribe en la crónica y de ahí no se mueve nunca más.
   ///
   /// Si lo que llega no es una de las dos que se preguntaron, no pasa nada —

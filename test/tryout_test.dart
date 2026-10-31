@@ -42,7 +42,9 @@ TownLayout _town(int pieces) => TownLayout(pieces, TownCharacter.all.first);
 void main() {
   test('va hasta un sitio de esa clase, lo hace, y vuelve sin saltos', () {
     final t = _town(400);
-    final gente = folkOf(t, 400);
+    // Los vecinos: al consejero y al maestro no se los sigue, y la prueba
+    // es de a quien se sigue.
+    final gente = folkOf(t, 400).where((v) => !v.sage && !v.builder).toList();
     for (final d in Doing.all) {
       final who = gente[d.id.hashCode % gente.length];
       final t0 = 1000.0 + d.id.length;

@@ -569,6 +569,17 @@ class TownPlan {
     }
   }
 
+  /// En qué pieza empieza la primera obra del pueblo: desde ahí está el
+  /// taller del maestro de obras en la plaza. Las casas de antes no dependen
+  /// de nada que se elija —son de la semilla—, así que esto no cambia nunca
+  /// ni depende de lo escrito.
+  late final int firstWorkFrom = () {
+    for (final w in walk(const [])) {
+      if (landmarkOf(w.id) != null) return w.from;
+    }
+    return 1 << 30;
+  }();
+
   /// Si este pueblo ya terminó el hito [id] con [placed] piezas puestas.
   ///
   /// Terminado, no empezado: un observatorio a medio construir no tiene todavía
@@ -829,6 +840,13 @@ class TownLayout {
   /// streets run, and the order it meets the catalogue.
   final TownCharacter character;
   final TownPlan plan;
+
+  /// En qué pieza aparece el taller del maestro de obras: la de la primera
+  /// obra. Ver [TownPlan.firstWorkFrom].
+  late final int workshopAt = solo ? 1 << 30 : plan.firstWorkFrom;
+
+  /// Si con [placed] piezas ya está el taller en la plaza.
+  bool hasWorkshop(int placed) => placed >= workshopAt;
 
   /// One extra piece is always laid out so the app can show a ghost of where
   /// the next one goes.

@@ -89,6 +89,7 @@ class TownScene {
     this.skyNight = 0,
     this.skyLabel = 0,
     this.founding = 1.0,
+    this.workshopFall,
     this.day = 0,
     this.folk = true,
     this.soloFolk,
@@ -188,6 +189,11 @@ class TownScene {
   /// primera vez que se mira.
   final double founding;
 
+  /// Cuánto hace que se soltó el taller del maestro de obras, en segundos, si
+  /// está cayendo en el pueblo activo; nulo si no cae nada. Ver
+  /// [WorkshopShow].
+  final double? workshopFall;
+
   /// Qué día es hoy, como número —`20261001`— o cero si a nadie le importa.
   ///
   /// Lo mira una sola cosa: las matas de hierba que asoman entre la nieve, que
@@ -261,6 +267,19 @@ class TouchMap {
   /// La marca que lleva en el orden el consejero en lugar de [folkData]: un
   /// número que no es de ningún pueblo ni de ninguna casa.
   static const int sageTag = 0x7FFFFFF0;
+
+  /// El maestro de obras o su taller. Tocarlo es ir a hablar con él.
+  /// [regionData] dice de qué pueblo.
+  static const int workshop = -8;
+
+  /// La marca que lleva en el orden lo del maestro de obras de cada pueblo:
+  /// ésta más el número del pueblo. Ver [workshopData].
+  static const int workshopTag = 0x7FFFFF00;
+
+  /// De qué pueblo es lo que lleva la marca [tag], si es del maestro; nulo si
+  /// no.
+  static int? workshopOf(int tag) =>
+      tag >= workshopTag && tag < sageTag ? tag - workshopTag : null;
 
   /// Quién es una persona, en un número: su pueblo y el edificio en el que
   /// vive, que es lo que la distingue de todos los demás.

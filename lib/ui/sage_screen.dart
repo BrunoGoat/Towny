@@ -9,9 +9,11 @@ import '../core/rng.dart';
 import '../data/advice.dart';
 import '../data/character.dart';
 import '../data/doings.dart';
+import '../data/landmarks.dart';
 import '../engine/bsp.dart';
 import '../engine/folk.dart';
 import '../engine/folk_body.dart';
+import '../engine/palette.dart';
 import '../engine/solid.dart';
 import '../engine/town.dart';
 import '../fx/sensory.dart';
@@ -19,6 +21,7 @@ import '../l10n/lang.dart';
 import '../model/advice_book.dart';
 import '../model/sage_talk.dart';
 import '../model/store.dart';
+import 'choice_sheet.dart';
 import 'hold_button.dart';
 import 'sage_scroll.dart';
 import 'style.dart';
@@ -1383,10 +1386,14 @@ class _Habla extends StatelessWidget {
     this.escribe,
     this.more = true,
     this.walking = 0,
+    this.who,
   });
 
   final _Estilo e;
   final String dice;
+
+  /// Quién habla: el viejo si no se dice otra cosa. Ver [SageFigure.who].
+  final Townsfolk? who;
 
   /// Cuánto le falta al viejo para llegar a su sitio, de uno a cero: entra
   /// caminando desde la izquierda. Ver [SageFigure.walking].
@@ -1436,7 +1443,9 @@ class _Habla extends StatelessWidget {
               bottom: 0,
               width: alto * 0.62,
               height: alto,
-              child: IgnorePointer(child: SageFigure(walking: walking)),
+              child: IgnorePointer(
+                child: SageFigure(walking: walking, who: who),
+              ),
             ),
             Positioned(
               left: alto * 0.52,
@@ -2980,7 +2989,11 @@ class _Frente extends CustomPainter {
 /// Las mismas y no un dibujo aparte: si algún día cambia cómo se ve en la
 /// plaza, cambia acá solo.
 class SageFigure extends StatefulWidget {
-  const SageFigure({super.key, this.walking = 0});
+  const SageFigure({super.key, this.walking = 0, this.who});
+
+  /// Quién: el viejo si no se dice otra cosa. El maestro de obras usa la
+  /// misma figura en su pantalla.
+  final Townsfolk? who;
 
   /// Cuánto le falta para llegar, de uno a cero: mientras no es cero viene
   /// caminando, de costado, y al llegar se gira hacia vos. Ver
@@ -3013,7 +3026,11 @@ class _SageFigureState extends State<SageFigure>
   Widget build(BuildContext context) => AnimatedBuilder(
     animation: _reloj,
     builder: (_, _) => CustomPaint(
-      painter: _FiguraPainter(_sabio, _reloj.value * 60, widget.walking),
+      painter: _FiguraPainter(
+        widget.who ?? _sabio,
+        _reloj.value * 60,
+        widget.walking,
+      ),
     ),
   );
 }
@@ -3145,4 +3162,465 @@ class _FiguraPainter extends CustomPainter {
   @override
   bool shouldRepaint(_FiguraPainter old) =>
       old.t != t || old.walking != walking;
+}
+
+/// El maestro de obras, de cerca: la misma pantalla que la del consejero —él
+/// abajo a la izquierda, lo que dice en un globo— para lo suyo, que son las
+/// obras.
+///
+/// Sale de dos maneras. **Cuando el pueblo va a empezar una obra**, a
+/// preguntar cuál: arriba las dos que se pueden levantar, en dos papeles, y
+/// tocar una es elegirla. Y **al tocar su taller o a él en la plaza**, a
+/// contar cómo va la obra de ahora y a enseñar las que ya se levantaron.
+///
+/// Cerrar sin elegir —tocar fuera— deja que decidan ellos: de eso se encarga
+/// quien la abrió, como con la tarjeta de antes.
+class BuilderScreen extends StatefulWidget {
+  const BuilderScreen({
+    super.key,
+    required this.store,
+    required this.theme,
+    this.onPick,
+  });
+
+  final Store store;
+  final UiTheme theme;
+
+  /// Elegir una obra, si se está preguntando. Nulo, sólo cuenta.
+  final ValueChanged<Landmark>? onPick;
+
+  static Route<void> route({
+    required Store store,
+    required UiTheme theme,
+    ValueChanged<Landmark>? onPick,
+  }) => PageRouteBuilder<void>(
+    opaque: false,
+    barrierColor: Colors.black.withValues(alpha: 0.32),
+    transitionDuration: const Duration(milliseconds: 360),
+    reverseTransitionDuration: const Duration(milliseconds: 220),
+    pageBuilder: (_, _, _) =>
+        BuilderScreen(store: store, theme: theme, onPick: onPick),
+    transitionsBuilder: (_, a, _, child) => FadeTransition(
+      opacity: CurvedAnimation(parent: a, curve: Curves.easeOutCubic),
+      child: child,
+    ),
+  );
+
+  @override
+  State<BuilderScreen> createState() => _BuilderScreenState();
+}
+
+class _BuilderScreenState extends State<BuilderScreen> {
+  final _Estilo _e = const _Estilo();
+
+  /// Las dos obras que se preguntan, tomadas al abrir: si la pregunta caduca
+  /// mientras se mira, lo que se ve no cambia de golpe.
+  late final List<Landmark>? _opciones = widget.onPick == null
+      ? null
+      : widget.store.pendingChoice;
+
+  /// Si es la primera obra del pueblo: entonces se presenta.
+  late final bool _primera = widget.store.firstWorkPending;
+
+  /// La que se eligió, mientras se despide.
+  Landmark? _elegida;
+
+  /// El maestro de este pueblo, para dibujarlo.
+  late final Townsfolk _maestro = Townsfolk.builder(
+    TownLayout(0, widget.store.character, seed: widget.store.habit.townSeed),
+    0,
+  );
+
+  void _elegir(Landmark obra) {
+    if (_elegida != null) return;
+    Sensory.instance.tick();
+    widget.onPick?.call(obra);
+    setState(() => _elegida = obra);
+    Future.delayed(const Duration(milliseconds: 1900), () {
+      if (mounted) Navigator.of(context).maybePop();
+    });
+  }
+
+  String get _dice {
+    final elegida = _elegida;
+    if (elegida != null) {
+      return tr(
+        '¡Eso! Mañana mismo empiezo con ${elegida.name}.',
+        'Right! I start on the ${elegida.name} first thing tomorrow.',
+      );
+    }
+    if (_opciones != null) {
+      return _primera
+          ? tr(
+              '¡Buenas! Soy el maestro de obras. Llegó piedra para la '
+                  'primera obra grande del pueblo. ¿Qué levantamos?',
+              'Hello! I am the master builder. Stone has come for the '
+                  'town\'s first great work. What shall we raise?',
+            )
+          : tr(
+              'Hay piedra para empezar otra obra. ¿Qué levantamos?',
+              'There is stone to begin another work. What shall we raise?',
+            );
+    }
+    final ahora = widget.store.workUnderway;
+    if (ahora != null) {
+      final (obra, faltan) = ahora;
+      return faltan == 1
+          ? tr(
+              'Estamos levantando ${obra.name}. Falta una sola pieza.',
+              'We are raising the ${obra.name}. One piece to go.',
+            )
+          : tr(
+              'Estamos levantando ${obra.name}. Faltan $faltan piezas.',
+              'We are raising the ${obra.name}. $faltan pieces to go.',
+            );
+    }
+    return widget.store.finishedWorks.isEmpty
+        ? tr(
+            'Todavía no terminamos ninguna obra. Ya va a llegar la primera.',
+            'We have not finished a work yet. The first one is coming.',
+          )
+        : tr(
+            'Esto es todo lo que levantamos juntos.',
+            'This is everything we have raised together.',
+          );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final e = _e;
+    final alto = MediaQuery.of(context).size.height;
+    final hechas = widget.store.finishedWorks;
+    final opciones = _opciones;
+    final dice = _dice;
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: IgnorePointer(child: _Ambiente(soplo: dice.hashCode)),
+          ),
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: () => Navigator.of(context).maybePop(),
+            ),
+          ),
+          SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(22, 6, 22, 0),
+                  child: _CabeceraMaestro(hechas: hechas.length),
+                ),
+                Expanded(
+                  child: opciones != null
+                      ? _Elegir(
+                          e: e,
+                          opciones: opciones,
+                          elegida: _elegida,
+                          place: widget.store.character,
+                          palette: widget.theme.palette,
+                          onPick: _elegir,
+                        )
+                      : _Hechas(
+                          e: e,
+                          hechas: hechas,
+                          place: widget.store.character,
+                          palette: widget.theme.palette,
+                        ),
+                ),
+                SizedBox(
+                  height: math.min(360, alto * 0.42),
+                  child: _Habla(
+                    e: e,
+                    dice: dice,
+                    respuestas: const [],
+                    who: _maestro,
+                    more: false,
+                    onNext: opciones != null && _elegida == null
+                        ? null
+                        : () => Navigator.of(context).maybePop(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// «El maestro de obras», con su filete, y cuántas obras se levantaron.
+class _CabeceraMaestro extends StatelessWidget {
+  const _CabeceraMaestro({required this.hechas});
+  final int hechas;
+
+  static const Color _oroViejo = Color(0xFFE6CF98);
+
+  @override
+  Widget build(BuildContext context) {
+    final filete = Container(
+      height: 1,
+      width: 26,
+      color: _oroViejo.withValues(alpha: 0.5),
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          tr('EL MAESTRO DE OBRAS', 'THE MASTER BUILDER'),
+          style: const TextStyle(
+            fontFamily: 'EBGaramond',
+            fontSize: 19,
+            letterSpacing: 4.5,
+            color: _oroViejo,
+            shadows: [Shadow(color: Color(0xAA000000), blurRadius: 10)],
+          ),
+        ),
+        const SizedBox(height: 3),
+        Row(
+          children: [
+            filete,
+            const SizedBox(width: 6),
+            Icon(
+              Icons.construction,
+              size: 11,
+              color: _oroViejo.withValues(alpha: 0.75),
+            ),
+            const SizedBox(width: 6),
+            filete,
+            const SizedBox(width: 10),
+            if (hechas > 0)
+              Flexible(
+                child: Text(
+                  hechas == 1
+                      ? tr('una obra levantada', 'one work raised')
+                      : tr('$hechas obras levantadas', '$hechas works raised'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: 'EBGaramond',
+                    fontStyle: FontStyle.italic,
+                    fontSize: 13,
+                    color: _oroViejo.withValues(alpha: 0.7),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Las dos obras que se pueden levantar, en dos papeles, para tocar una.
+class _Elegir extends StatelessWidget {
+  const _Elegir({
+    required this.e,
+    required this.opciones,
+    required this.elegida,
+    required this.place,
+    required this.palette,
+    required this.onPick,
+  });
+
+  final _Estilo e;
+  final List<Landmark> opciones;
+  final Landmark? elegida;
+  final TownCharacter place;
+  final Palette palette;
+  final ValueChanged<Landmark> onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (var i = 0; i < opciones.length; i++) ...[
+                if (i > 0) const SizedBox(width: 12),
+                Expanded(
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 380),
+                    opacity: elegida == null || elegida == opciones[i]
+                        ? 1
+                        : 0.25,
+                    child: AnimatedScale(
+                      duration: const Duration(milliseconds: 380),
+                      curve: Curves.easeOutBack,
+                      scale: elegida == opciones[i] ? 1.04 : 1,
+                      child: Transform.rotate(
+                        // Cada papel, apenas torcido para su lado.
+                        angle: i.isEven ? -0.018 : 0.018,
+                        child: _PapelObra(
+                          e: e,
+                          obra: opciones[i],
+                          place: place,
+                          palette: palette,
+                          onTap: () => onPick(opciones[i]),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Una obra en su papel: el dibujo, el nombre, lo que cuesta y lo que es.
+class _PapelObra extends StatelessWidget {
+  const _PapelObra({
+    required this.e,
+    required this.obra,
+    required this.place,
+    required this.palette,
+    this.onTap,
+  });
+
+  final _Estilo e;
+  final Landmark obra;
+  final TownCharacter place;
+  final Palette palette;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        decoration: BoxDecoration(
+          color: e.papel,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: const Color(0x553B2F22)),
+          boxShadow: e.sombra,
+        ),
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AspectRatio(
+              aspectRatio: 1,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: CustomPaint(
+                  painter: WorkPortrait(
+                    mark: obra,
+                    place: place,
+                    palette: palette,
+                  ),
+                  size: Size.infinite,
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              obra.name,
+              textAlign: TextAlign.center,
+              style: e.habla(19).copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              obra.cost == 1
+                  ? tr('una pieza', 'one piece')
+                  : tr('${obra.cost} piezas', '${obra.cost} pieces'),
+              textAlign: TextAlign.center,
+              style: e.motivo,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              obra.blurb,
+              textAlign: TextAlign.center,
+              style: e.explica.copyWith(fontSize: 14.5),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Las obras ya levantadas, de la última a la primera, con su día.
+class _Hechas extends StatelessWidget {
+  const _Hechas({
+    required this.e,
+    required this.hechas,
+    required this.place,
+    required this.palette,
+  });
+
+  final _Estilo e;
+  final List<(Landmark, DateTime)> hechas;
+  final TownCharacter place;
+  final Palette palette;
+
+  @override
+  Widget build(BuildContext context) {
+    final lista = hechas.reversed.toList();
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 10),
+      itemCount: lista.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 10),
+      itemBuilder: (context, i) {
+        final (obra, dia) = lista[i];
+        return Container(
+          decoration: BoxDecoration(
+            color: e.papel,
+            borderRadius: BorderRadius.circular(6),
+            boxShadow: e.sombra,
+          ),
+          padding: const EdgeInsets.all(8),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 64,
+                height: 64,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: CustomPaint(
+                    painter: WorkPortrait(
+                      mark: obra,
+                      place: place,
+                      palette: palette,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      obra.name,
+                      style: e.habla(18).copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    Text(
+                      tr(
+                        'terminada el ${dia.day}/${dia.month}/${dia.year}',
+                        'finished on ${dia.day}/${dia.month}/${dia.year}',
+                      ),
+                      style: e.motivo,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }

@@ -43,6 +43,7 @@ class Townsfolk {
     this._act,
     this.period, {
     this.sage = false,
+    this.builder = false,
     List<(PropKind?, PropKind?)?>? swapIn,
     List<(PropKind?, PropKind?)?>? swapOut,
     List<PropKind?>? carry,
@@ -101,12 +102,9 @@ class Townsfolk {
     // llegar y al irse: de pie en el sitio del asiento quedaba con medio
     // cuerpo atravesando el banco.
     final mirarBanco = PlazaBench.turn;
-    final asiento = (PlazaBench.xAt(cx), PlazaBench.zAt(cz));
-    const delante = PlazaBench.depth + 0.16;
-    final banco = (
-      asiento.$1 + math.sin(mirarBanco) * delante,
-      asiento.$2 + math.cos(mirarBanco) * delante,
-    );
+    // Su mitad del banco, la izquierda: la otra es del maestro de obras.
+    final asiento = PlazaBench.seatAt(cx, cz, -1);
+    final banco = PlazaBench.frontOf(asiento);
     // (sitio, cuánto se queda, hacia dónde mira, qué hace)
     final ronda = <((double, double), double, double, Doing)>[
       (p195, hashRange(4, 8, s, 61), haciaFuente(p195), Doing.idle),
@@ -245,7 +243,7 @@ class Townsfolk {
   /// queda sentado y en qué vuelta va. Negativo si todavía no llegó; nulo si
   /// no es el consejero. Es el reloj de las palomas (ver `pigeons.dart`).
   ({double since, double sits, int lap})? benchClock(double t) {
-    if (!sage) return null;
+    if (!sage && !builder) return null;
     final u = _uAt(t);
     var acc = 0.0;
     final n = _stops.length;
@@ -275,6 +273,287 @@ class Townsfolk {
 
   /// Si es el consejero. Ver [Townsfolk.sage].
   final bool sage;
+
+  /// Si es el maestro de obras. Ver [Townsfolk.builder].
+  final bool builder;
+
+  /// La casa del maestro de obras, que es su taller y no un edificio del
+  /// pueblo.
+  static const int builderHome = -3;
+
+  /// Con qué reloj anda, si no es el suyo: el maestro, en el pueblo donde
+  /// vive el consejero, anda con el del viejo, y así se encuentran en el
+  /// banco y se paran a charlar a la hora justa. [_desfase] es cuánto va por
+  /// detrás de ese reloj.
+  Townsfolk? _ritmo;
+  double _desfase = 0;
+
+  /// El maestro de obras: el que levanta las obras grandes del pueblo.
+  ///
+  /// Llega con su taller el día de la primera obra ([PlazaWorkshop]) y vive
+  /// en la plaza, como el consejero. Lo que hace depende de si hay obra:
+  ///
+  ///  - **Con obra**, carga la carretilla en la puerta del taller, la lleva
+  ///    hasta la obra por las calles, la descarga, da unas vueltas por ahí
+  ///    mirando cómo va, y vuelve a por más.
+  ///  - **Sin obra**, martilla en su mesa, pasea por la plaza, se sienta en
+  ///    el banco a dar de comer a las palomas, y —donde vive el consejero—
+  ///    se sienta un rato a su lado y se para a charlar con él cuando se
+  ///    cruzan. Para eso anda con el reloj del viejo y su ronda dura dos de
+  ///    las de él: en una se sienta a su lado, en la otra le deja el banco y
+  ///    después lo usa él solo.
+  factory Townsfolk.builder(
+    TownLayout layout,
+    int placed, {
+    Townsfolk? sage,
+    Streets? calles,
+  }) {
+    var s = hash32(layout.seed, 0xB01D, 5);
+    for (var k = 0; k < 4096; k++) {
+      if (!folkIsKid(s) && !folkIsWoman(s)) break;
+      s = hash32(s, 0xB01D, k);
+    }
+    final cx = layout.cx, cz = layout.cz;
+    final yunque = PlazaWorkshop.anvilAt(cx, cz);
+    final puerta = PlazaWorkshop.doorAt(cx, cz);
+    final asiento = PlazaBench.seatAt(cx, cz, 1);
+    final frente = PlazaBench.frontOf(asiento);
+    final mirarBanco = PlazaBench.turn;
+    double hacia((double, double) a, (double, double) b) =>
+        math.atan2(b.$1 - a.$1, b.$2 - a.$2);
+    (double, double) arco(double grados, double r) {
+      final a = grados * math.pi / 180;
+      return (cx + math.cos(a) * r, cz + math.sin(a) * r);
+    }
+
+    final hammer = Doing.hammer;
+    Townsfolk hecho(
+      List<_Cita> citas,
+      double periodo, {
+      List<PropKind?>? carga,
+    }) {
+      final r = _ronda(citas, periodo);
+      return Townsfolk._(
+          builderHome,
+          s,
+          'Maestro de obras',
+          null,
+          r.stops,
+          r.stay,
+          r.facing,
+          r.acts,
+          periodo,
+          builder: true,
+          carry: carga,
+        )
+        .._desfase = r.desfase
+        .._calles = calles
+        .._callesSin = calles;
+    }
+
+    // ¿Hay obra? La primera grande que tiene piezas puestas y no está
+    // terminada. Recién elegida, sin piedra todavía, no hay nada que llevar:
+    // está en la plaza.
+    TownBuilding? obra;
+    for (final b in layout.buildings) {
+      if (!b.isLandmark) continue;
+      final puestas = math.min(math.max(0, placed - b.firstPiece), b.cost);
+      if (puestas > 0 && puestas < b.cost) obra = b;
+    }
+    if (obra != null && calles != null) {
+      // Al pie de la obra, del lado de la plaza, donde haya suelo libre.
+      (double, double) libreCerca(double x, double z) {
+        if (calles.clearAt((x, z))) return (x, z);
+        for (var r = 0.2; r < 2.5; r += 0.2) {
+          for (var k = 0; k < 12; k++) {
+            final a = k * math.pi / 6;
+            final q = (x + math.cos(a) * r, z + math.sin(a) * r);
+            if (calles.clearAt(q)) return q;
+          }
+        }
+        return (x, z);
+      }
+
+      final dx = cx - obra.cx, dz = cz - obra.cz;
+      final d = math.max(1e-6, math.sqrt(dx * dx + dz * dz));
+      final pie = libreCerca(
+        obra.cx + dx / d * (obra.reach + 0.3),
+        obra.cz + dz / d * (obra.reach + 0.3),
+      );
+      // Y dos sitios más alrededor, a los lados, para dar vueltas mirando.
+      final lado = (-dz / d, dx / d);
+      final vuelta1 = libreCerca(
+        pie.$1 + lado.$1 * 0.9,
+        pie.$2 + lado.$2 * 0.9,
+      );
+      final vuelta2 = libreCerca(
+        pie.$1 - lado.$1 * 0.9,
+        pie.$2 - lado.$2 * 0.9,
+      );
+      final mirarObra = hacia(pie, (obra.cx, obra.cz));
+      final ida = calles.route(puerta, pie);
+      final vuelta = calles.route(vuelta2, puerta);
+      // La ronda a mano, con los quiebros de las calles: no va a hora con
+      // nadie.
+      final stops = <(double, double)>[
+        puerta,
+        ...ida,
+        pie,
+        vuelta1,
+        vuelta2,
+        ...vuelta,
+      ];
+      final stay = <double>[
+        4,
+        for (final _ in ida) 0,
+        6,
+        hashRange(3, 5, s, 1),
+        hashRange(3, 5, s, 2),
+        for (final _ in vuelta) 0,
+      ];
+      final facing = <double>[
+        PlazaWorkshop.doorFacing,
+        for (final _ in ida) 0,
+        mirarObra,
+        hacia(vuelta1, (obra.cx, obra.cz)),
+        hacia(vuelta2, (obra.cx, obra.cz)),
+        for (final _ in vuelta) 0,
+      ];
+      final acts = <Doing?>[
+        Doing.unload,
+        for (final _ in ida) null,
+        Doing.unload,
+        Doing.idle,
+        Doing.idle,
+        for (final _ in vuelta) null,
+      ];
+      var periodo = 0.0;
+      for (var i = 0; i < stops.length; i++) {
+        final a = stops[i], b = stops[(i + 1) % stops.length];
+        periodo +=
+            math.sqrt(math.pow(b.$1 - a.$1, 2) + math.pow(b.$2 - a.$2, 2)) /
+                pace +
+            stay[(i + 1) % stops.length];
+      }
+      return Townsfolk._(
+          builderHome,
+          s,
+          'Maestro de obras',
+          null,
+          stops,
+          stay,
+          facing,
+          acts,
+          math.max(periodo, 1),
+          builder: true,
+          carry: [for (final _ in stops) PropKind.barrow],
+        )
+        .._calles = calles
+        .._callesSin = calles;
+    }
+
+    // Sin obra, en la plaza. Los sitios por los que pasea: del lado del
+    // tablón y del taller, lejos del banco.
+    final paseo1 = arco(160 + hashRange(-8, 8, s, 3), 1.35);
+    final paseo2 = arco(200 + hashRange(-8, 8, s, 4), 1.25);
+    double haciaFuente((double, double) p) => hacia(p, (cx, cz));
+
+    final viejo = sage;
+    if (viejo == null) {
+      // Sin el consejero: martilla, pasea, y se sienta solo en el banco.
+      final citas = <_Cita>[
+        _Cita(yunque, 0, 22, hammer, PlazaWorkshop.anvilFacing),
+        _Cita(paseo1, 26, 31, Doing.idle, haciaFuente(paseo1)),
+        _Cita(paseo2, 34, 38, Doing.idle, haciaFuente(paseo2)),
+        _Cita(frente, 42, 42.3, Doing.idle, mirarBanco),
+        _Cita(asiento, 42.7, 70, Doing.bench, mirarBanco),
+        _Cita(frente, 70.4, 70.7, Doing.idle, mirarBanco),
+      ];
+      return hecho(citas, 82);
+    }
+
+    // Con el consejero: a la hora de su ronda. Cuándo llega él a cada
+    // parada, contado desde que sale de la primera.
+    final n = viejo._stops.length;
+    final llega = List<double>.filled(n, 0);
+    var acc = 0.0;
+    for (var i = 0; i < n; i++) {
+      final a = viejo._stops[i], b = viejo._stops[(i + 1) % n];
+      acc +=
+          math.sqrt(math.pow(b.$1 - a.$1, 2) + math.pow(b.$2 - a.$2, 2)) / pace;
+      final j = (i + 1) % n;
+      llega[j] = j == 0 ? acc - viejo.period : acc;
+      acc += viejo._stay[j];
+    }
+    final p = viejo.period;
+    final ib = viejo._act.indexOf(Doing.bench);
+    final sb = viejo._stay[ib];
+    final asienta = math.min(2.4, sb * 0.15);
+    final sienta = llega[ib] + asienta, levanta = llega[ib] + sb - asienta;
+    // La charla: en la parada más lejana del banco, la del extremo del arco,
+    // que es la más larga después del banco.
+    var ic = -1;
+    for (var i = ib + 1; i < n; i++) {
+      if (viejo._act[i] == Doing.idle &&
+          (ic < 0 || viejo._stay[i] > viejo._stay[ic])) {
+        ic = i;
+      }
+    }
+    final donde = viejo._stops[ic];
+    final dfx = cx - donde.$1, dfz = cz - donde.$2;
+    final dfd = math.sqrt(dfx * dfx + dfz * dfz);
+    // Entre él y la fuente, que es hacia donde mira el viejo ahí parado: así
+    // se miran de frente.
+    final charla = (donde.$1 + dfx / dfd * 0.42, donde.$2 + dfz / dfd * 0.42);
+    final citas = <_Cita>[
+      // Primera vuelta del viejo: se sienta con él, y después charlan.
+      _Cita(yunque, 0, 0, hammer, PlazaWorkshop.anvilFacing),
+      _Cita(frente, sienta + 1.2, sienta + 1.5, Doing.idle, mirarBanco),
+      _Cita(asiento, sienta + 1.9, levanta - 3.2, Doing.benchSide, mirarBanco),
+      _Cita(frente, levanta - 2.8, levanta - 2.5, Doing.idle, mirarBanco),
+      _Cita(
+        charla,
+        llega[ic] - 0.6,
+        llega[ic] + viejo._stay[ic],
+        Doing.chat,
+        hacia(charla, donde),
+      ),
+      _Cita(
+        yunque,
+        llega[ic] + viejo._stay[ic] + 4,
+        p + llega[ib] + 4,
+        hammer,
+        PlazaWorkshop.anvilFacing,
+      ),
+      // Segunda: pasea mientras el viejo está en el banco, y cuando se va,
+      // se sienta él solo.
+      _Cita(
+        paseo1,
+        p + llega[ib] + 9,
+        p + llega[ib] + 14,
+        Doing.idle,
+        haciaFuente(paseo1),
+      ),
+      _Cita(
+        paseo2,
+        p + llega[ib] + 18,
+        p + llega[ib] + 22,
+        Doing.idle,
+        haciaFuente(paseo2),
+      ),
+      _Cita(
+        yunque,
+        p + llega[ib] + 26,
+        p + levanta,
+        hammer,
+        PlazaWorkshop.anvilFacing,
+      ),
+      _Cita(frente, p + levanta + 6, p + levanta + 6.3, Doing.idle, mirarBanco),
+      _Cita(asiento, p + levanta + 6.7, 2 * p - 7, Doing.bench, mirarBanco),
+      _Cita(frente, 2 * p - 6.6, 2 * p - 6.3, Doing.idle, mirarBanco),
+    ];
+    return hecho(citas, 2 * p).._ritmo = viejo;
+  }
 
   /// Una persona quieta en el origen, haciendo una cosa y nada más.
   ///
@@ -484,7 +763,12 @@ class Townsfolk {
   ///
   /// Donde sólo cabe una cosa —un crío en la plaza sólo puede tocar el laúd—
   /// la parada es la mitad: hacer lo mismo dieciséis segundos es estar quieto.
-  late final List<double> _spotStay = [
+  ///
+  /// Se rehace cada vez que se lo empieza a seguir, con lo que cabe en los
+  /// sitios de **esa** vuelta: hecho una sola vez, con los de la ronda de
+  /// siempre, una parada corrida a un sitio donde sólo cabe una cosa se
+  /// quedaba con el rato de dos, y hacía la misma cosa veinte segundos.
+  List<double> get _spotStay => _spotStayMemo ??= [
     for (var i = 0; i < _stay.length; i++)
       _act[i] == null
           ? 0.0
@@ -492,6 +776,8 @@ class Townsfolk {
           ? _spotGlance
           : (_spotChoices(i).length > 1 ? _spotStop : _spotFirst + 2.4),
   ];
+
+  List<double>? _spotStayMemo;
 
   /// Lo que puede hacer en la parada [i] cuando la sigue la cámara: lo de
   /// siempre primero, y después todo lo demás que tiene sentido ahí.
@@ -558,6 +844,8 @@ class Townsfolk {
   /// El reloj de su ronda sin dar la vuelta: cuántos segundos lleva de
   /// rondas desde que empezó. De aquí sale en qué vuelta va.
   double _baseAt(double t) {
+    final ritmo = _ritmo;
+    if (ritmo != null) return ritmo._baseAt(t) - _desfase + _shift;
     final nace = debut;
     return (nace == null ? t + hash01(seed, 7) * period : t - nace) + _shift;
   }
@@ -739,7 +1027,7 @@ class Townsfolk {
   void spotlight(double t, {required bool on}) {
     // Al consejero no se le sigue —tocarlo abre su menú—: su ronda es
     // siempre la de quedarse en la plaza, sentándose y levantándose del banco.
-    if (sage || on == spotlit) return;
+    if (sage || builder || on == spotlit) return;
     if (on) {
       // Sigue por donde va en esta vuelta: los mismos sitios en los que
       // estaba, con el horario de cuando la siguen.
@@ -751,6 +1039,7 @@ class Townsfolk {
       _spotActs = _lapActs;
       _spotFacing = _lapFacing;
       _spotMemo.clear();
+      _spotStayMemo = null;
       _spotPeriodMemo = null;
       // Parada en un sitio, sigue con lo que estaba haciendo desde el
       // principio de lo suyo ahí: lo de siempre va primero y dura diez
@@ -774,6 +1063,7 @@ class Townsfolk {
       _spotFacing = null;
       _spotLap = null;
       _spotMemo.clear();
+      _spotStayMemo = null;
       _spotPeriodMemo = null;
       _lapFor(lap);
       final target = _uOf(i, walking, k, _lapStay, _lapStops);
@@ -852,7 +1142,7 @@ class Townsfolk {
   ({FolkAt at, double sink})? _evening(double t, double homeward) {
     // El consejero no tiene adónde ir: se queda en la plaza, de día y de
     // noche.
-    if (sage) return (at: at(t), sink: 0.0);
+    if (sage || builder) return (at: at(t), sink: 0.0);
     final first = !_seen;
     _seen = true;
     if (homeward >= _bedtime) {
@@ -1130,8 +1420,10 @@ class Townsfolk {
         final metido = queda >= 6 && held >= settle && held <= queda - settle;
         // Y en el respiro no se queda congelado: respira y mira alrededor, que
         // es [Doing.idle] y es exactamente lo que hace quien acaba de llegar.
+        // El maestro se sienta en el asiento mismo, sin el paso de delante
+        // que tiene el viejo: sentado, sigue sentado mientras se acomoda.
         final what = !metido
-            ? Doing.idle
+            ? (builder && (acts[j]?.seated ?? false) ? acts[j] : Doing.idle)
             : spot
             ? _spotAct(j, held - settle)
             : acts[j];
@@ -1654,7 +1946,9 @@ List<Townsfolk> _folkOf(
   }
   // El consejero está en la plaza desde que se funda, haya casas o no.
   if (casas.isEmpty) {
-    return [if (hasSage(layout)) Townsfolk.sage(layout)];
+    final solos = <Townsfolk>[];
+    _conElTaller(solos, layout, placed, calles);
+    return solos;
   }
 
   // A dónde va la gente. Pocos sitios y compartidos, que es lo que hace que se
@@ -1966,8 +2260,26 @@ List<Townsfolk> _folkOf(
         ..plazaCentre = layout.solo ? null : (layout.cx, layout.cz),
     );
   }
-  if (hasSage(layout)) out.add(Townsfolk.sage(layout));
+  _conElTaller(out, layout, placed, calles);
   return out;
+}
+
+/// Suma a [out] el consejero, si vive aquí, y el maestro de obras, si ya
+/// tiene su taller en la plaza: el del consejero anda con el reloj del viejo.
+void _conElTaller(
+  List<Townsfolk> out,
+  TownLayout layout,
+  int placed,
+  Streets? calles,
+) {
+  final viejo = hasSage(layout) ? Townsfolk.sage(layout) : null;
+  if (viejo != null) out.add(viejo);
+  if (!layout.solo && layout.hasWorkshop(placed)) {
+    out.add(
+      Townsfolk.builder(layout, placed, sage: viejo, calles: calles)
+        ..plazaCentre = (layout.cx, layout.cz),
+    );
+  }
 }
 
 /// Si en la plaza de [layout] vive el consejero.
@@ -2361,6 +2673,14 @@ List<(double x0, double z0, double x1, double z1)> _blockers(
       PlazaBench.half * 0.8,
       PlazaBench.half * 0.8,
     );
+    // Y el taller del maestro, desde la primera obra: el galpón, un poco
+    // corrido hacia fuera, que es donde está su bulto.
+    if (layout.hasWorkshop(placed)) {
+      final ox = PlazaWorkshop.offX, oz = PlazaWorkshop.offZ;
+      final r = math.sqrt(ox * ox + oz * oz);
+      final k = (r + 0.12) / r;
+      estorbo(cx + ox * k, cz + oz * k, 0.52, 0.52);
+    }
   }
   return out;
 }
@@ -2368,3 +2688,69 @@ List<(double x0, double z0, double x1, double z1)> _blockers(
 /// Lo que abulta una caja, para poner a alguien a su lado sin meterlo dentro.
 double _spanOf((double, double, double, double) c) =>
     math.max(c.$3 - c.$1, c.$4 - c.$2) / 2;
+
+/// Una parada de una ronda con hora: dónde, cuándo se llega, cuándo se va,
+/// qué se hace y hacia dónde se mira. Ver [_ronda].
+class _Cita {
+  const _Cita(this.at, this.llega, this.seVa, this.hace, this.mira);
+  final (double, double) at;
+  final double llega, seVa;
+  final Doing hace;
+  final double mira;
+}
+
+/// Una ronda que llega a cada sitio a su hora, en un reloj de [periodo]
+/// segundos que da la vuelta.
+///
+/// Se sale de cada sitio justo a tiempo de llegar al siguiente a la hora:
+/// lo que se pide de quedarse es un mínimo, y lo que sobra se queda de más.
+/// Si no da el tiempo, se sale cuando se puede y se llega tarde, nunca
+/// antes. El cero de la ronda es la salida de la primera parada, y
+/// [desfase] es esa hora en el reloj de las citas.
+({
+  List<(double, double)> stops,
+  List<double> stay,
+  List<double> facing,
+  List<Doing?> acts,
+  double desfase,
+})
+_ronda(List<_Cita> citas, double periodo) {
+  final n = citas.length;
+  double camino(int i, int j) {
+    final a = citas[i].at, b = citas[j].at;
+    return math.sqrt(math.pow(b.$1 - a.$1, 2) + math.pow(b.$2 - a.$2, 2)) /
+        Townsfolk.pace;
+  }
+
+  // Cuándo se llega de verdad a cada una, empezando por la primera a su hora.
+  final llega = [for (final c in citas) c.llega];
+  for (var i = 1; i < n; i++) {
+    final antes = math.max(citas[i - 1].seVa, llega[i - 1]);
+    llega[i] = math.max(llega[i], antes + camino(i - 1, i));
+  }
+  // Y de cada una se sale lo justo para llegar a la siguiente a su hora.
+  final sale = [
+    for (var i = 0; i < n; i++)
+      (i + 1 < n ? llega[i + 1] : citas[0].llega + periodo) -
+          camino(i, (i + 1) % n),
+  ];
+  for (var i = 0; i < n; i++) {
+    if (sale[i] < llega[i]) sale[i] = llega[i];
+  }
+  // Lo que se queda en la primera es lo que sobra de la vuelta.
+  var resto = periodo;
+  for (var i = 0; i < n; i++) {
+    resto -= camino(i, (i + 1) % n);
+    if (i > 0) resto -= sale[i] - llega[i];
+  }
+  return (
+    stops: [for (final c in citas) c.at],
+    stay: [
+      math.max(0.0, resto),
+      for (var i = 1; i < n; i++) sale[i] - llega[i],
+    ],
+    facing: [for (final c in citas) c.mira],
+    acts: [for (final c in citas) c.hace],
+    desfase: sale[0],
+  );
+}

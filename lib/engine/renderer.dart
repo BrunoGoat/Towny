@@ -1598,7 +1598,7 @@ class TownPainter extends CustomPainter {
     final out = <_Walker>[];
     for (final who in folkOf(e.layout, take)) {
       // De noche cerrada todos en casa, menos el consejero, que no tiene.
-      if (dentro > 0.985 && !who.sage) continue;
+      if (dentro > 0.985 && !who.sage && !who.builder) continue;
       // Quien acaba de nacer todavía no ha salido de casa.
       //
       // La casa cuenta como terminada en cuanto su última pieza entra en la
@@ -1656,7 +1656,29 @@ class TownPainter extends CustomPainter {
         }
       }
 
-      final donde = folkWhere(who, scene.time, dentro);
+      // El maestro, el día que llega: cae dentro de su taller, y cuando el
+      // taller toca el suelo está en la puerta, saludando.
+      final cae = who.builder && mine ? scene.workshopFall : null;
+      var subido = 0.0;
+      if (cae != null) {
+        final dy = WorkshopShow.liftAt(cae);
+        if (dy == null || cae < WorkshopShow.lands) continue;
+        subido = dy;
+      }
+      final donde = cae != null
+          ? (
+              at: FolkAt(
+                PlazaWorkshop.doorAt(e.layout.cx, e.layout.cz).$1,
+                PlazaWorkshop.doorAt(e.layout.cx, e.layout.cz).$2,
+                PlazaWorkshop.turn,
+                0,
+                false,
+                Doing.greet,
+                cae - WorkshopShow.lands,
+              ),
+              sink: 0.0,
+            )
+          : folkWhere(who, scene.time, dentro);
       if (donde == null) continue;
       var at = donde.at;
       if (at.act == Doing.greet) {
@@ -1697,15 +1719,16 @@ class TownPainter extends CustomPainter {
           screen.depth,
           // Sobre lo que pise. La plaza es lo único del pueblo que está
           // levantado del prado y por lo que a la vez se puede andar.
-          e.layout.solo
-              ? 0.0
-              : Plaza.floorAt(
-                  at.x,
-                  at.z,
-                  e.layout.cx,
-                  e.layout.cz,
-                  TownLayout.plazaReach,
-                ),
+          subido +
+              (e.layout.solo
+                  ? 0.0
+                  : Plaza.floorAt(
+                      at.x,
+                      at.z,
+                      e.layout.cx,
+                      e.layout.cz,
+                      TownLayout.plazaReach,
+                    )),
         ),
       );
     }
@@ -1800,12 +1823,15 @@ class TownPainter extends CustomPainter {
     for (final v in folk) {
       // El consejero lleva su propia marca: tocarlo abre lo que te tiene que
       // decir, no la ficha de un vecino.
+      // Y el maestro de obras, la suya: tocarlo es ir a hablar con él.
       final tag = v.who.sage
           ? TouchMap.sageTag
+          : v.who.builder
+          ? TouchMap.workshopTag + town
           : TouchMap.folkData(town, v.who.home);
       // El consejero, cada mucho, da de comer a las palomas desde el banco.
       final pal = scene.palette;
-      final feast = v.who.sage
+      final feast = v.who.sage || v.who.builder
           ? sageFeast(
               v.who,
               e.layout,
@@ -2153,8 +2179,51 @@ class TownPainter extends CustomPainter {
         out.add(Rider(f, seq++, -1));
       }
     }
+    // El taller del maestro de obras, desde la primera obra. Va como el agua
+    // y no archivado con el pueblo: el día que llega cae del cielo, y lo que
+    // cae no puede salir de lo que se guardó quieto. Son unas pocas cajas.
+    final take = math.min(e.placed, l.pieces.length);
+    final pueblo = scene.towns.indexOf(e);
+    if (water && l.hasWorkshop(take)) {
+      final cae = pueblo == scene.active ? scene.workshopFall : null;
+      final dy = cae == null ? 0.0 : WorkshopShow.liftAt(cae);
+      if (dy != null) {
+        final tag = TouchMap.workshopTag + pueblo;
+        // De atrás hacia delante, como las cajas de una persona: son pocas,
+        // convexas y no se atraviesan, así que el centro de cada una alcanza
+        // para el orden entre ellas.
+        double lejos(Solid sol) {
+          var x = 0.0, y = 0.0, z = 0.0, n = 0;
+          for (final f in sol.faces) {
+            for (final v in f.v) {
+              x += v.x;
+              y += v.y;
+              z += v.z;
+              n++;
+            }
+          }
+          return (V3(x / n, y / n, z / n) - p.eye).length;
+        }
+
+        final orden = [..._tallerDe(l)]
+          ..sort((a, b) => lejos(b).compareTo(lejos(a)));
+        for (final sol in orden) {
+          for (final f in sol.faces) {
+            final g = dy.abs() < 1e-4 ? f : f.lifted(dy);
+            final a = g.v.first;
+            if ((p.eye - a).dot(g.n) <= 0) continue;
+            out.add(Rider(g..piece = -1, seq++, tag));
+          }
+        }
+      }
+    }
     return out;
   }
+
+  /// Las cajas del taller de cada pueblo, hechas una vez.
+  final Map<(double, double), List<Solid>> _talleres = {};
+  List<Solid> _tallerDe(TownLayout l) =>
+      _talleres[(l.cx, l.cz)] ??= PlazaWorkshop.solidsAt(l.cx, l.cz);
 
   /// Pinta caras de la gente que acabaron en el mismo sitio del orden, en el
   /// orden en que se pintarían solas, y le dice al dedo de quién es cada una.
@@ -2167,11 +2236,16 @@ class TownPainter extends CustomPainter {
       final antes = _faceCount;
       _plain(p, r.f, pal, light);
       if (r.tag < 0) continue;
-      final quien = r.tag == TouchMap.sageTag ? TouchMap.sage : TouchMap.folk;
+      final taller = TouchMap.workshopOf(r.tag);
+      final quien = taller != null
+          ? TouchMap.workshop
+          : r.tag == TouchMap.sageTag
+          ? TouchMap.sage
+          : TouchMap.folk;
       for (var k = antes; k < _faceCount; k++) {
         _facePool[k]
           ..owner = quien
-          ..data = r.tag;
+          ..data = taller ?? r.tag;
       }
     }
   }
@@ -2242,7 +2316,7 @@ class TownPainter extends CustomPainter {
     if (hasSage(l)) {
       final sabio = folkOf(l, 0).where((v) => v.sage).firstOrNull;
       if (sabio != null) {
-        final bx = PlazaBench.xAt(l.cx), bz = PlazaBench.zAt(l.cz);
+        final (bx, bz) = PlazaBench.seatAt(l.cx, l.cz, -1);
         caer(
           folkSolids(
             sabio,

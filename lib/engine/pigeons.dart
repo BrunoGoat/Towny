@@ -197,7 +197,9 @@ Feast? sageFeast(
   final p = reloj.since, sits = reloj.sits, lap = reloj.lap;
   if (p < 0 || p > sits + _seVan) return null;
   final s = sage.seed;
-  if (hash01(s, lap, 0x9A1) >= _cadaCuanto) return null;
+  // El maestro, cuando se sienta solo, más seguido: es su rato del banco.
+  final cada = sage.builder ? 0.5 : _cadaCuanto;
+  if (hash01(s, lap, 0x9A1) >= cada) return null;
 
   final cx = l.cx, cz = l.cz;
   final bx = PlazaBench.xAt(cx), bz = PlazaBench.zAt(cz);

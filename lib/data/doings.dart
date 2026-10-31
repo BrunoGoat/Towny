@@ -78,6 +78,9 @@ enum PropKind {
 
   /// Un tambor colgado a la altura de la tripa y las dos baquetas.
   drum,
+
+  /// La carretilla del maestro de obras, empujada con la rueda delante.
+  barrow,
 }
 
 /// Una cosa que se hace.
@@ -226,6 +229,56 @@ class Doing {
     weight: 0,
     bob: 0.006,
     rate: 2.2,
+  );
+
+  /// El maestro de obras martillando en su mesa: golpes cortos y seguidos.
+  /// Fuera de [all], como [bench]: sólo lo hace él.
+  static const Doing hammer = Doing(
+    'martillar',
+    'martilla en su mesa',
+    where: Where.square,
+    weight: 0,
+    bob: 0.004,
+    rate: 5.5,
+    lean: 0.03,
+    turn: 0.1,
+  );
+
+  /// Charlando con alguien: se mece un poco y mira al otro, sin irse con la
+  /// vista a otro lado.
+  static const Doing chat = Doing(
+    'charlar',
+    'charla',
+    where: Where.square,
+    weight: 0,
+    bob: 0.006,
+    rate: 1.6,
+    turn: 0.25,
+  );
+
+  /// Sentado en el banco al lado del consejero, que es quien da de comer a
+  /// las palomas. Es [bench] con otro nombre para que las palomas sepan cuál
+  /// de los dos ratos del maestro en el banco es el suyo.
+  static const Doing benchSide = Doing(
+    'banco_al_lado',
+    'se sienta al lado del consejero',
+    where: Where.square,
+    weight: 0,
+    bob: 0.003,
+    rate: 0.35,
+    seated: true,
+  );
+
+  /// Cargando o descargando la carretilla: de pie, un poco inclinado.
+  static const Doing unload = Doing(
+    'descargar',
+    'descarga la carretilla',
+    where: Where.square,
+    weight: 0,
+    bob: 0.008,
+    rate: 1.8,
+    lean: 0.05,
+    turn: 0.3,
   );
 
   static const List<Doing> all = [

@@ -36,7 +36,7 @@ void main() {
       var vistos = 0;
       for (var seed = 1; seed <= 60; seed++) {
         final l = TownLayout(30, TownCharacter.all[seed % 8], seed: seed);
-        final gente = folkOf(l, 30).where((v) => !v.sage).toList();
+        final gente = folkOf(l, 30).where((v) => !v.sage && !v.builder).toList();
         if (gente.isEmpty) continue;
         final primero = gente.reduce((a, b) => a.home < b.home ? a : b);
         expect(primero.kid, isFalse, reason: 'pueblo $seed');
@@ -50,7 +50,7 @@ void main() {
         final t = _town(n);
         // Más el consejero, que no es de ninguna casa.
         expect(
-          folkOf(t, n).where((v) => !v.sage).length,
+          folkOf(t, n).where((v) => !v.sage && !v.builder).length,
           _finished(t, n),
           reason: 'con $n piezas',
         );
@@ -62,7 +62,7 @@ void main() {
       // entera no vive nadie en ella, porque no hay ella.
       final t = _town(1);
       // Nadie más que el consejero, que está en la plaza desde que se funda.
-      expect(folkOf(t, 1).where((v) => !v.sage), isEmpty);
+      expect(folkOf(t, 1).where((v) => !v.sage && !v.builder), isEmpty);
     });
 
     test('nadie sale de una casa a medio pagar', () {
@@ -396,7 +396,7 @@ void main() {
       // mitad del prado sería exactamente el tipo de cosa que convierte un
       // pueblo en un parque de atracciones.
       final t = _town(400);
-      for (final w in folkOf(t, 400).where((v) => !v.sage)) {
+      for (final w in folkOf(t, 400).where((v) => !v.sage && !v.builder)) {
         final donde = w.debugPath, quehace = w.debugActs;
         final casa = t.buildings[w.home];
         for (var i = 0; i < quehace.length; i++) {
@@ -773,6 +773,9 @@ void main() {
           }
           if (!venia) continue;
           venia = false;
+          // Menos el maestro de obras al llegar al banco: se sienta en el
+          // asiento mismo, y llega ya sentándose.
+          if (w.builder && (at.act?.seated ?? false)) continue;
           // Justo después de andar, lo que hay es alguien quieto mirando y no
           // ya metido en faena.
           expect(

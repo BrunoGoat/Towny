@@ -378,6 +378,7 @@ List<Solid> folkSolids(
   void props(Doing act) {
     switch (act.prop) {
       case PropKind.none:
+      case PropKind.barrow:
         break;
 
       case PropKind.broom:
@@ -585,6 +586,42 @@ List<Solid> folkSolids(
   /// suelo.
   void carried(PropKind what) {
     switch (what) {
+      case PropKind.barrow:
+        // La carretilla, empujada: los dos varales desde donde irían las
+        // manos, la caja de tablas por delante y la rueda en el suelo, más
+        // adelante todavía. Con algo cargado —unas piedras— para que se vea
+        // que lleva material y no un cajón vacío.
+        const caja = 0xFF8A6A48, varal = 0xFF5E4630;
+        final rueda = at.moving ? at.gait * 0.9 : 0.0;
+        for (final x in [-0.13, 0.13]) {
+          link(
+            (x, piso + 0.36, 0.14),
+            (x * 0.8, piso + 0.20, 0.56),
+            0.016,
+            varal,
+            0.9,
+          );
+        }
+        box(-0.17, piso + 0.14, 0.34, 0.17, piso + 0.30, 0.66, caja, 0.95);
+        box(-0.13, piso + 0.29, 0.38, 0.13, piso + 0.35, 0.62, 0xFF9C978C, 1.0);
+        // La rueda, de canto, que gira con el paso.
+        final r = 0.075;
+        link(
+          (0, piso + r + math.sin(rueda) * r, 0.74 + math.cos(rueda) * r),
+          (0, piso + r - math.sin(rueda) * r, 0.74 - math.cos(rueda) * r),
+          0.030,
+          varal,
+          0.85,
+          deep: 0.025,
+        );
+        link(
+          (0, piso + r + math.cos(rueda) * r, 0.74 - math.sin(rueda) * r),
+          (0, piso + r - math.cos(rueda) * r, 0.74 + math.sin(rueda) * r),
+          0.030,
+          varal,
+          0.85,
+          deep: 0.025,
+        );
       case PropKind.stool:
         final m = hold(1, 0.05, -0.02);
         const alto = 0.17;
@@ -672,6 +709,22 @@ List<Solid> folkSolids(
     if (detail > 0.25) {
       box(-0.191, 0.015, 0.44, 0.191, 0.396, 0.545, pelo, 1.0);
     }
+    return out;
+  }
+
+  if (who.builder) {
+    _maestro(
+      box,
+      link,
+      at,
+      piel,
+      detail,
+      bob,
+      sentado ? PlazaBench.seat / h : 0,
+      sentado ? feast : null,
+    );
+    final lleva = at.carry;
+    if (lleva != null && detail > 0.1) carried(lleva);
     return out;
   }
 
@@ -1003,54 +1056,226 @@ void _sabio(
       0.95,
     );
   }
-  if (feast != null && detail > 0.25) {
-    // Dando de comer a las palomas (ver `pigeons.dart`). Sin brazos, como
-    // todos: el pan sale solo de la túnica y se le queda en el regazo, y
-    // cada miga se despega sola del pan, sube y sale volando hacia ellas.
-    final (hx, hy, hz) = feast.afloat;
-    final flota = (hx, piso + hy, hz);
-    if (feast.bread > 0) {
-      // Un pan alargado, de corteza tostada, que se va acortando.
-      final largo = 0.075 * (0.35 + 0.65 * feast.bread);
-      final (bx, by, bz) = feast.breadAfloat
-          ? flota
-          : (_panEnRegazo.$1, piso + _panEnRegazo.$2, _panEnRegazo.$3);
+  if (feast != null && detail > 0.25) _pan(box, piso, feast);
+}
+
+/// El pan y la miga de quien da de comer a las palomas desde el banco (ver
+/// `pigeons.dart`): el consejero, o el maestro de obras cuando se sienta solo.
+/// Sin brazos, como todos: el pan sale solo y se le queda en el regazo, y
+/// cada miga se despega sola del pan, sube y sale volando hacia ellas.
+void _pan(
+  void Function(double, double, double, double, double, double, int, double)
+  box,
+  double piso,
+  FeastPose feast,
+) {
+  final (hx, hy, hz) = feast.afloat;
+  final flota = (hx, piso + hy, hz);
+  if (feast.bread > 0) {
+    // Un pan alargado, de corteza tostada, que se va acortando.
+    final largo = 0.075 * (0.35 + 0.65 * feast.bread);
+    final (bx, by, bz) = feast.breadAfloat
+        ? flota
+        : (_panEnRegazo.$1, piso + _panEnRegazo.$2, _panEnRegazo.$3);
+    box(
+      bx - largo,
+      by - 0.032,
+      bz - 0.040,
+      bx + largo,
+      by + 0.032,
+      bz + 0.040,
+      0xFFB57B3E,
+      1.0,
+    );
+    // La miga, clara, donde se partió.
+    box(
+      bx + largo - 0.012,
+      by - 0.026,
+      bz - 0.034,
+      bx + largo + 0.004,
+      by + 0.026,
+      bz + 0.034,
+      0xFFE9D3A4,
+      1.02,
+    );
+  }
+  if (feast.crumb) {
+    // El pellizco de pan, que va solo por el aire.
+    box(
+      flota.$1 - 0.020,
+      flota.$2 - 0.020,
+      flota.$3 - 0.020,
+      flota.$1 + 0.020,
+      flota.$2 + 0.020,
+      flota.$3 + 0.020,
+      0xFFE9D3A4,
+      1.02,
+    );
+  }
+}
+
+/// El maestro de obras: camisa clara, delantal de cuero, gorra de visera,
+/// bigote y el martillo. Ver `Townsfolk.builder`.
+///
+/// Como el consejero, es la persona de cajas de siempre con lo suyo encima,
+/// y con lo que se lee de lejos: el delantal oscuro sobre la camisa clara es
+/// «el que trabaja», y la visera lo separa de cualquier vecino con gorro.
+/// Anda con los saltitos de todos —no es viejo—, y el martillo le flota al
+/// costado como el bastón al viejo: aquí nadie tiene manos.
+void _maestro(
+  void Function(double, double, double, double, double, double, int, double)
+  box,
+  void Function(
+    (double, double, double),
+    (double, double, double),
+    double,
+    int,
+    double,
+  )
+  link,
+  FolkAt at,
+  int piel,
+  double detail,
+  double bob,
+  double asiento,
+  FeastPose? feast,
+) {
+  const camisa = 0xFFD8C7A4;
+  const delantal = 0xFF5A3D26;
+  const gorra = 0xFF4A4A52;
+  const bigote = 0xFF3B2A1E;
+  const mango = 0xFF7A5E40;
+  const hierro = 0xFF5C6066;
+  final sentado = asiento > 0;
+  final piso = sentado
+      ? asiento
+      : at.moving
+      ? 0.045 * math.sin(at.gait).abs()
+      : 0.0;
+  final baja = sentado ? _piernas : 0.0;
+  final y = piso + bob - baja;
+  final martilla = !at.moving && at.act == Doing.hammer;
+  // Martillando se inclina sobre la mesa.
+  final inclina = martilla ? 0.03 : 0.0;
+
+  // El cuerpo, la camisa.
+  box(-0.150, piso, -0.116, 0.150, y + 0.56, 0.116, camisa, 1.0);
+  // El delantal, por delante, del pecho a las rodillas.
+  box(-0.128, piso + 0.05, 0.116, 0.128, y + 0.50, 0.140, delantal, 0.96);
+  if (sentado) {
+    // Las piernas hacia delante, sobre el asiento, y lo que cae del banco.
+    box(
+      -0.150,
+      piso,
+      0.105,
+      0.150,
+      piso + 0.13,
+      0.116 + _piernas,
+      camisa,
+      0.97,
+    );
+    box(
+      -0.128,
+      piso + 0.13,
+      0.105,
+      0.128,
+      piso + 0.15,
+      0.116 + _piernas,
+      delantal,
+      0.95,
+    );
+    box(
+      -0.150,
+      0.0,
+      0.116 + _piernas - 0.11,
+      0.150,
+      piso,
+      0.116 + _piernas,
+      delantal,
+      0.92,
+    );
+  }
+  // La cabeza.
+  box(
+    -0.205,
+    y + 0.520,
+    -0.175 + inclina,
+    0.205,
+    y + 0.950,
+    0.175 + inclina,
+    piel,
+    1.02,
+  );
+  if (detail > 0.25) {
+    // La gorra, y la visera hacia delante.
+    box(
+      -0.214,
+      y + 0.840,
+      -0.184 + inclina,
+      0.214,
+      y + 0.990,
+      0.184 + inclina,
+      gorra,
+      1.0,
+    );
+    box(
+      -0.170,
+      y + 0.840,
+      0.184 + inclina,
+      0.170,
+      y + 0.872,
+      0.285 + inclina,
+      gorra,
+      0.92,
+    );
+    // El bigote.
+    box(
+      -0.115,
+      y + 0.640,
+      0.175 + inclina,
+      0.115,
+      y + 0.690,
+      0.198 + inclina,
+      bigote,
+      0.95,
+    );
+  }
+  if (detail > 0.4) {
+    if (martilla) {
+      // Sobre la mesa que tiene delante: sube y baja de golpe, y pega.
+      final golpe = math.max(0.0, math.sin(at.phase * Doing.hammer.rate));
+      final alto = y + 0.47 + 0.20 * golpe;
+      final cabeza = (0.04, alto, 0.40);
+      link((0.14, alto + 0.05, 0.22), cabeza, 0.016, mango, 0.92);
       box(
-        bx - largo,
-        by - 0.032,
-        bz - 0.040,
-        bx + largo,
-        by + 0.032,
-        bz + 0.040,
-        0xFFB57B3E,
-        1.0,
+        cabeza.$1 - 0.035,
+        cabeza.$2 - 0.035,
+        cabeza.$3 - 0.06,
+        cabeza.$1 + 0.035,
+        cabeza.$2 + 0.035,
+        cabeza.$3 + 0.06,
+        hierro,
+        0.9,
       );
-      // La miga, clara, donde se partió.
+    } else if (at.carry == null && !sentado) {
+      // Al costado, colgando, y va y viene con el paso.
+      final vaiven = at.moving ? 0.05 * math.sin(at.gait * 0.5) : 0.0;
+      final arriba = (0.235, y + 0.30, 0.02 + vaiven);
+      final abajo = (0.235, y + 0.08, 0.04 + vaiven);
+      link(arriba, abajo, 0.016, mango, 0.92);
       box(
-        bx + largo - 0.012,
-        by - 0.026,
-        bz - 0.034,
-        bx + largo + 0.004,
-        by + 0.026,
-        bz + 0.034,
-        0xFFE9D3A4,
-        1.02,
-      );
-    }
-    if (feast.crumb) {
-      // El pellizco de pan, que va solo por el aire.
-      box(
-        flota.$1 - 0.020,
-        flota.$2 - 0.020,
-        flota.$3 - 0.020,
-        flota.$1 + 0.020,
-        flota.$2 + 0.020,
-        flota.$3 + 0.020,
-        0xFFE9D3A4,
-        1.02,
+        abajo.$1 - 0.03,
+        abajo.$2 - 0.035,
+        abajo.$3 - 0.055,
+        abajo.$1 + 0.03,
+        abajo.$2 + 0.035,
+        abajo.$3 + 0.055,
+        hierro,
+        0.9,
       );
     }
   }
+  if (feast != null && detail > 0.25) _pan(box, piso, feast);
 }
 
 /// Dónde queda el pan en el regazo, con la altura sobre el asiento. Es

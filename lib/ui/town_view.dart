@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
@@ -53,6 +54,12 @@ class TownViewController {
   /// A qué distancia va la cámara.
   @visibleForTesting
   double get distanceTarget => _state?._cam.distanceTarget ?? 0.0;
+
+  /// Que caiga el taller del maestro de obras en la plaza del pueblo que se
+  /// mira, con la cámara encima. Termina cuando ya está en el suelo y el
+  /// maestro en la puerta, que es cuando puede salir a preguntar.
+  Future<void> dropWorkshop() =>
+      _state?._dropWorkshop() ?? Future<void>.value();
 
   /// Acercar o alejar como lo haría un gesto, para los tests.
   @visibleForTesting
@@ -198,6 +205,7 @@ class TownView extends StatefulWidget {
     required this.onPaletteChanged,
     this.onFolkTapped,
     this.onSageTapped,
+    this.onWorkshopTapped,
     this.onFolkLost,
   });
 
@@ -207,6 +215,9 @@ class TownView extends StatefulWidget {
 
   /// Se tocó al consejero en la plaza.
   final VoidCallback? onSageTapped;
+
+  /// Se tocó el taller del maestro de obras, o a él, en el pueblo [town].
+  final ValueChanged<int>? onWorkshopTapped;
 
   /// Se dejó de seguir al vecino: se movió la cámara a mano, se tocó otra
   /// cosa, o se metió en su casa al caer la tarde.
@@ -428,6 +439,39 @@ class _TownViewState extends State<TownView>
   /// guarda: es un instante.
   double _founding = 1.0;
 
+  /// Cuánto hace que se soltó el taller del maestro de obras, en segundos;
+  /// muy negativo mientras espera escondido a que lo suelten, y nulo si no
+  /// hay nada que mostrar. Ver [WorkshopShow].
+  double? _workshopFall;
+  Completer<void>? _workshopDone;
+
+  /// El día de la primera obra el taller existe desde que se pone la pieza,
+  /// pero no se tiene que ver hasta que caiga: queda escondido.
+  void _hideWorkshopUntilDropped() {
+    if (_workshopFall == null && widget.store.firstWorkPending) {
+      _workshopFall = -1e9;
+    }
+    // Y si ya no está esperando —se contestó, o se cambió de pueblo—, que
+    // no quede escondido para siempre.
+    final f = _workshopFall;
+    if (f != null && f < 0 && !widget.store.firstWorkPending) {
+      _workshopFall = null;
+    }
+  }
+
+  Future<void> _dropWorkshop() {
+    final c = _workshopDone ??= Completer<void>();
+    final l = _town;
+    // Cerca y un poco desde arriba, mirando el sitio del taller.
+    _cam.travelTarget = PlazaWorkshop.xAt(l.cx) * 0.6 + l.cx * 0.4;
+    _cam.focusZTarget = PlazaWorkshop.zAt(l.cz) * 0.6 + l.cz * 0.4;
+    _cam.distanceTarget = 7.5;
+    _cam.pitchTarget = 0.42;
+    _glide = 2.4;
+    _workshopFall = 0;
+    return c.future;
+  }
+
   /// Cuánto lleva esperando la plaza a que la cámara llegue (ver [_tick]).
   double _arriving = 0;
 
@@ -644,6 +688,27 @@ class _TownViewState extends State<TownView>
       // ya llega mirando el claro, y ahí empieza en seguida, como siempre.
       _founding = _farFromTown > _arrived ? -1.0 : 0.0;
       _arriving = 0;
+    }
+    _hideWorkshopUntilDropped();
+    final cae = _workshopFall;
+    if (cae != null && cae >= 0) {
+      final ahora = cae + dt;
+      if (cae < WorkshopShow.lands && ahora >= WorkshopShow.lands) {
+        final l = _town;
+        _fx.impact(
+          V3(PlazaWorkshop.xAt(l.cx), 0, PlazaWorkshop.zAt(l.cz)),
+          1.0,
+          strength: 0.9,
+        );
+        _cam.shake = 0.045;
+        Sensory.instance.impact(strength: 0.9);
+      }
+      if (cae < WorkshopShow.done && ahora >= WorkshopShow.done) {
+        _workshopDone?.complete();
+        _workshopDone = null;
+      }
+      // Un rato más en la puerta, saludando, y sigue con lo suyo.
+      _workshopFall = ahora >= WorkshopShow.done + 6 ? null : ahora;
     }
     if (_founding < 0) {
       _arriving += dt;
@@ -1717,6 +1782,13 @@ class _TownViewState extends State<TownView>
       _follow(town, home);
       return;
     }
+    // El taller del maestro, o él: tocarlo es ir a hablar con él.
+    if (owner == TouchMap.workshop) {
+      _stopFollowing();
+      Sensory.instance.tick();
+      widget.onWorkshopTapped?.call(_hits.regionData[k]);
+      return;
+    }
     // El viejo de la plaza: tocarlo es ir a hablar con él.
     if (owner == TouchMap.sage) {
       _stopFollowing();
@@ -1824,6 +1896,7 @@ class _TownViewState extends State<TownView>
       tonight: tonightIs,
       skyLabel: _skyLabel(),
       founding: _founding,
+      workshopFall: _workshopFall,
       day: dayKey(DateTime.now()),
       cinematic: Appearance.instance.cinematic,
     );

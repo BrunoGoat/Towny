@@ -20,7 +20,6 @@ import '../model/works_log.dart';
 import 'adrift_sheet.dart';
 import 'board_glyph.dart';
 import 'cadence_sheet.dart';
-import 'choice_sheet.dart';
 import 'cloud_flight.dart';
 import 'first_run.dart';
 import 'folk_gallery_screen.dart';
@@ -362,6 +361,10 @@ class _HomeScreenState extends State<HomeScreen>
               },
               onBoardTapped: _readBoard,
               onSageTapped: _openSage,
+              // El del pueblo que se mira: el de otro pueblo, lejos, no.
+              onWorkshopTapped: (town) {
+                if (town == widget.store.active) _openBuilder();
+              },
               onWhisper: _showWhisper,
               onPaletteChanged: (p) {
                 final next = UiTheme(p);
@@ -778,37 +781,46 @@ class _HomeScreenState extends State<HomeScreen>
     final options = widget.store.pendingChoice;
     if (options == null) return;
     _asking = true;
-    Future.delayed(const Duration(milliseconds: 1100), () {
+    // La primera obra del pueblo trae al maestro: la cámara va a la plaza,
+    // cae su taller con él, y entonces sale a preguntar. Las demás, después
+    // de que la pieza termine de caer.
+    final primera = widget.store.firstWorkPending;
+    Future<void> espera = Future.delayed(const Duration(milliseconds: 1100));
+    if (primera) {
+      espera = espera.then((_) => _wall.dropWorkshop());
+    }
+    espera.then((_) {
       if (!mounted) {
         _asking = false;
         return;
       }
-      final ahora = widget.store.pendingChoice;
-      if (ahora == null) {
+      if (widget.store.pendingChoice == null) {
         _asking = false;
         return;
       }
       Sensory.instance.tick();
-      // En el medio de la pantalla y no subiendo desde abajo. Una hoja que
-      // sube es para lo que uno pide; esto no lo pidió nadie —sale solo, una
-      // vez cada varias semanas— y lo que hace es parar el valle un momento
-      // para preguntar. Eso se pone delante, no debajo.
-      showDialog<void>(
-        context: context,
-        barrierColor: sheetScrim(_theme.dark),
-        builder: (_) => ChoiceSheet(
-          options: ahora,
-          place: widget.store.habit.place,
-          theme: _theme,
-          onPick: (mark) => widget.store.chooseWork(mark.id),
-        ),
-      ).whenComplete(() {
-        _asking = false;
-        // Tocar fuera de la tarjeta también es cerrarla sin contestar, y no
-        // pasa por ningún botón. Si sigue sin contestarse, deciden ellos.
-        widget.store.letThemDecide();
-      });
+      Navigator.of(context)
+          .push(
+            BuilderScreen.route(
+              store: widget.store,
+              theme: _theme,
+              onPick: (mark) => widget.store.chooseWork(mark.id),
+            ),
+          )
+          .whenComplete(() {
+            _asking = false;
+            // Cerrar sin elegir es dejar que decidan ellos.
+            widget.store.letThemDecide();
+          });
     });
+  }
+
+  /// El maestro de obras, desde su taller o tocándolo a él en la plaza: cómo
+  /// va la obra y lo que ya se levantó.
+  void _openBuilder() {
+    Navigator.of(
+      context,
+    ).push(BuilderScreen.route(store: widget.store, theme: _theme));
   }
 
   /// Para no abrir dos hojas si caen dos piezas seguidas muy rápido.
