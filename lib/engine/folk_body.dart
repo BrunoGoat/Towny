@@ -1114,14 +1114,18 @@ void _pan(
   }
 }
 
-/// El maestro de obras: camisa clara, delantal de cuero, gorra de visera,
-/// bigote y el martillo. Ver `Townsfolk.builder`.
+/// El maestro de obras, vestido de su tiempo: túnica de lana teñida hasta
+/// la rodilla con su cinturón, calzas oscuras, el delantal de cuero de la
+/// cintura para abajo, y la capucha con su capita sobre los hombros, la
+/// cara asomando. Barba corta y el martillo. Ver `Townsfolk.builder`.
 ///
 /// Como el consejero, es la persona de cajas de siempre con lo suyo encima,
-/// y con lo que se lee de lejos: el delantal oscuro sobre la camisa clara es
-/// «el que trabaja», y la visera lo separa de cualquier vecino con gorro.
-/// Anda con los saltitos de todos —no es viejo—, y el martillo le flota al
-/// costado como el bastón al viejo: aquí nadie tiene manos.
+/// y con lo que se lee de lejos: la capucha de color le cambia la silueta
+/// de la cabeza y lo separa de cualquier vecino, y el delantal oscuro sobre
+/// la túnica es «el que trabaja». Llevaba gorra de visera y camisa, y se leía
+/// como un obrero de ahora en un pueblo de antes. Anda con los saltitos de
+/// todos —no es viejo—, y el martillo le flota al costado como el bastón al
+/// viejo: aquí nadie tiene manos.
 void _maestro(
   void Function(double, double, double, double, double, double, int, double)
   box,
@@ -1140,10 +1144,12 @@ void _maestro(
   double asiento,
   FeastPose? feast,
 ) {
-  const camisa = 0xFFD8C7A4;
+  const tunica = 0xFF8A4B32; // lana teñida con rubia, rojiza
+  const cinto = 0xFF3B2A1E;
   const delantal = 0xFF5A3D26;
-  const gorra = 0xFF4A4A52;
-  const bigote = 0xFF3B2A1E;
+  const calzas = 0xFF3E3428;
+  const capucha = 0xFF5E6B3E; // verde de monte
+  const barba = 0xFF4A3424;
   const mango = 0xFF7A5E40;
   const hierro = 0xFF5C6066;
   final sentado = asiento > 0;
@@ -1158,12 +1164,46 @@ void _maestro(
   // Martillando se inclina sobre la mesa.
   final inclina = martilla ? 0.03 : 0.0;
 
-  // El cuerpo, la camisa.
-  box(-0.150, piso, -0.116, 0.150, y + 0.56, 0.116, camisa, 1.0);
-  // El delantal, por delante, del pecho a las rodillas.
-  box(-0.128, piso + 0.05, 0.116, 0.128, y + 0.50, 0.140, delantal, 0.96);
+  // Las calzas, abajo, y la túnica encima desde la rodilla.
+  const rodilla = 0.10;
+  if (!sentado) {
+    box(
+      -0.128,
+      piso,
+      -0.098,
+      0.128,
+      piso + rodilla + 0.02,
+      0.098,
+      calzas,
+      0.92,
+    );
+  }
+  box(
+    -0.150,
+    sentado ? piso : piso + rodilla,
+    -0.116,
+    0.150,
+    y + 0.56,
+    0.116,
+    tunica,
+    1.0,
+  );
+  // El cinturón, a la cintura.
+  box(-0.156, y + 0.30, -0.122, 0.156, y + 0.34, 0.122, cinto, 0.9);
+  // El delantal de cuero, del cinto para abajo, por delante.
+  box(
+    -0.122,
+    sentado ? piso + 0.10 : piso + rodilla - 0.02,
+    0.116,
+    0.122,
+    y + 0.31,
+    0.140,
+    delantal,
+    0.96,
+  );
   if (sentado) {
-    // Las piernas hacia delante, sobre el asiento, y lo que cae del banco.
+    // Las piernas hacia delante sobre el asiento —la túnica y el delantal
+    // encima—, y las calzas que bajan hasta el suelo por delante del banco.
     box(
       -0.150,
       piso,
@@ -1171,27 +1211,27 @@ void _maestro(
       0.150,
       piso + 0.13,
       0.116 + _piernas,
-      camisa,
+      tunica,
       0.97,
     );
     box(
-      -0.128,
+      -0.122,
       piso + 0.13,
       0.105,
-      0.128,
+      0.122,
       piso + 0.15,
       0.116 + _piernas,
       delantal,
       0.95,
     );
     box(
-      -0.150,
+      -0.128,
       0.0,
-      0.116 + _piernas - 0.11,
-      0.150,
+      0.116 + _piernas - 0.10,
+      0.128,
       piso,
       0.116 + _piernas,
-      delantal,
+      calzas,
       0.92,
     );
   }
@@ -1207,37 +1247,41 @@ void _maestro(
     1.02,
   );
   if (detail > 0.25) {
-    // La gorra, y la visera hacia delante.
+    // La capucha: arriba, por detrás y por los lados, con la cara
+    // asomando por delante; y la capita sobre los hombros.
     box(
-      -0.214,
-      y + 0.840,
-      -0.184 + inclina,
-      0.214,
-      y + 0.990,
-      0.184 + inclina,
-      gorra,
+      -0.222,
+      y + 0.470,
+      -0.192 + inclina,
+      0.222,
+      y + 1.000,
+      0.115 + inclina,
+      capucha,
       1.0,
     );
     box(
-      -0.170,
-      y + 0.840,
-      0.184 + inclina,
-      0.170,
-      y + 0.872,
-      0.285 + inclina,
-      gorra,
-      0.92,
+      -0.222,
+      y + 0.900,
+      0.115 + inclina,
+      0.222,
+      y + 1.000,
+      0.190 + inclina,
+      capucha,
+      0.97,
     );
-    // El bigote.
+    box(-0.190, y + 0.430, -0.150, 0.190, y + 0.540, 0.150, capucha, 0.95);
+    // La punta de la capucha, colgando por la espalda.
+    box(-0.045, y + 0.560, -0.235, 0.045, y + 0.900, -0.190, capucha, 0.92);
+    // La barba corta, en la parte de abajo de la cara.
     box(
-      -0.115,
-      y + 0.640,
-      0.175 + inclina,
-      0.115,
-      y + 0.690,
-      0.198 + inclina,
-      bigote,
-      0.95,
+      -0.150,
+      y + 0.520,
+      0.170 + inclina,
+      0.150,
+      y + 0.600,
+      0.192 + inclina,
+      barba,
+      0.96,
     );
   }
   if (detail > 0.4) {
