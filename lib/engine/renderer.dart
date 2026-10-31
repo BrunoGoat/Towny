@@ -228,15 +228,19 @@ class TownPainter extends CustomPainter {
     final horizonY = horizonOf(p, size);
     final town = scene.town;
 
-    fondo.drawSky(canvas, size, p, horizonY);
-    fondo.drawGround(canvas, size, horizonY);
-    fondo.drawTufts(canvas, p, size, horizonY);
+    if (scene.backdrop) {
+      fondo.drawSky(canvas, size, p, horizonY);
+      fondo.drawGround(canvas, size, horizonY);
+      fondo.drawTufts(canvas, p, size, horizonY);
+    }
     // La fugaz va antes que las cordilleras: si alguna vez su recorrido
     // tocara una, pasa por detrás, que es donde está de verdad. El recorrido
     // ya se calcula para que no toque ninguna (ver `ShootingStar`); esto es
     // por si la cuenta falla, o si no hay cielo libre donde quepa.
-    fondo.drawShootingStar(canvas, size, p, horizonY);
-    fondo.drawRanges(canvas, p, size, horizonY);
+    if (scene.backdrop) {
+      fondo.drawShootingStar(canvas, size, p, horizonY);
+      fondo.drawRanges(canvas, p, size, horizonY);
+    }
     // Los rayos de sol, en calidad máxima: detrás del pueblo, que los tapa
     // él solo. Salen del cielo y los montes, no del cuadro entero: ver
     // [Cinema.raysBehind].

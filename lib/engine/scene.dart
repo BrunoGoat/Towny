@@ -90,6 +90,7 @@ class TownScene {
     this.skyLabel = 0,
     this.founding = 1.0,
     this.workshopFall,
+    this.backdrop = true,
     this.day = 0,
     this.folk = true,
     this.soloFolk,
@@ -193,6 +194,11 @@ class TownScene {
   /// está cayendo en el pueblo activo; nulo si no cae nada. Ver
   /// [WorkshopShow].
   final double? workshopFall;
+
+  /// Si se pinta lo de detrás —el cielo, el prado y los montes—. Sin eso
+  /// queda sólo lo construido sobre lo que ya hubiera en el lienzo: es lo
+  /// que usa la silueta de una obra en el álbum del constructor.
+  final bool backdrop;
 
   /// Qué día es hoy, como número —`20261001`— o cero si a nadie le importa.
   ///

@@ -3695,9 +3695,10 @@ class _CabeceraMaestro extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(left: 4),
             child: Text(
-              hechas == 1
-                  ? tr('una obra levantada', 'one work raised')
-                  : tr('$hechas obras levantadas', '$hechas works raised'),
+              tr(
+                '$hechas de ${landmarks.length} obras levantadas',
+                '$hechas of ${landmarks.length} works raised',
+              ),
               style: TextStyle(
                 fontFamily: 'Chronicle',
                 fontSize: 12.5,
@@ -3851,7 +3852,13 @@ class _PapelObra extends StatelessWidget {
   }
 }
 
-/// Las obras ya levantadas, de la última a la primera, con su día.
+/// El álbum de las obras: todas las que hay, una por hoja, en dos columnas
+/// que se recorren hacia abajo.
+///
+/// Las que este pueblo ya levantó, iluminadas y con su día; las que todavía
+/// no, en negro —se ve la silueta, no el color—, como las figuritas que
+/// faltan. Ordenadas de las chicas a las grandes, que es el orden en que
+/// suelen llegar.
 class _Hechas extends StatelessWidget {
   const _Hechas({
     required this.e,
@@ -3867,59 +3874,112 @@ class _Hechas extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final lista = hechas.reversed.toList();
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 10),
-      itemCount: lista.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 10),
+    final cuando = {for (final (obra, dia) in hechas) obra.id: dia};
+    final todas = [...landmarks]
+      ..sort((a, b) {
+        final c = a.tier.compareTo(b.tier);
+        return c != 0 ? c : a.cost.compareTo(b.cost);
+      });
+    return GridView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 14,
+        crossAxisSpacing: 12,
+        childAspectRatio: 0.78,
+      ),
+      itemCount: todas.length,
       itemBuilder: (context, i) {
-        final (obra, dia) = lista[i];
-        return Container(
-          decoration: BoxDecoration(
-            color: e.papel,
-            borderRadius: BorderRadius.circular(6),
-            boxShadow: e.sombra,
-          ),
-          padding: const EdgeInsets.all(8),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 64,
-                height: 64,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: CustomPaint(
-                    painter: WorkPortrait(
-                      mark: obra,
-                      place: place,
-                      palette: palette,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      obra.name,
-                      style: e.habla(18).copyWith(fontWeight: FontWeight.w600),
-                    ),
-                    Text(
-                      tr(
-                        'terminada el ${dia.day}/${dia.month}/${dia.year}',
-                        'finished on ${dia.day}/${dia.month}/${dia.year}',
-                      ),
-                      style: e.motivo,
-                    ),
-                  ],
-                ),
-              ),
-            ],
+        final obra = todas[i];
+        final dia = cuando[obra.id];
+        return RepaintBoundary(
+          child: Transform.rotate(
+            // Cada hoja apenas torcida para su lado, como pegadas a mano.
+            angle: (i.isEven ? -1 : 1) * (0.008 + 0.01 * ((i * 7) % 3) / 2),
+            child: _HojaAlbum(
+              e: e,
+              obra: obra,
+              dia: dia,
+              place: place,
+              palette: palette,
+            ),
           ),
         );
       },
+    );
+  }
+}
+
+/// Una hoja del álbum: el dibujo de la obra y su nombre, y debajo el día en
+/// que se levantó, si se levantó.
+class _HojaAlbum extends StatelessWidget {
+  const _HojaAlbum({
+    required this.e,
+    required this.obra,
+    required this.dia,
+    required this.place,
+    required this.palette,
+  });
+
+  final _Estilo e;
+  final Landmark obra;
+  final DateTime? dia;
+  final TownCharacter place;
+  final Palette palette;
+
+  @override
+  Widget build(BuildContext context) {
+    final hecha = dia != null;
+    return Container(
+      decoration: BoxDecoration(
+        color: hecha
+            ? e.papel
+            : Color.lerp(e.papel, const Color(0xFF3B2F22), 0.18),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: const Color(0x553B2F22)),
+        boxShadow: e.sombra,
+      ),
+      padding: const EdgeInsets.all(7),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: CustomPaint(
+                painter: WorkPortrait(
+                  mark: obra,
+                  place: place,
+                  palette: palette,
+                  silhouette: !hecha,
+                ),
+                size: Size.infinite,
+              ),
+            ),
+          ),
+          const SizedBox(height: 7),
+          Text(
+            obra.name,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: e
+                .habla(16)
+                .copyWith(
+                  fontWeight: FontWeight.w600,
+                  height: 1.15,
+                  color: hecha ? e.tinta : e.tinta.withValues(alpha: 0.55),
+                ),
+          ),
+          Text(
+            hecha
+                ? '${dia!.day}/${dia!.month}/${dia!.year}'
+                : tr('por levantar', 'not yet raised'),
+            textAlign: TextAlign.center,
+            style: e.motivo.copyWith(fontSize: 11.5),
+          ),
+        ],
+      ),
     );
   }
 }

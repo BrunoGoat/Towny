@@ -1768,6 +1768,39 @@ class _TownViewState extends State<TownView>
     return 1 - (t - 3.0) / 0.8;
   }
 
+  /// Si [pos] cae dentro del bulto del taller del pueblo que se mira, en
+  /// pantalla: la caja que lo contiene, proyectada.
+  bool _tocaElTaller(Offset pos) {
+    final l = _town;
+    final medida = context.size;
+    if (medida == null || l.solo || !l.hasWorkshop(widget.store.habit.total)) {
+      return false;
+    }
+    final p = _cam.projector(medida.width, medida.height, _time);
+    final x = PlazaWorkshop.xAt(l.cx), z = PlazaWorkshop.zAt(l.cz);
+    var x0 = double.infinity, y0 = double.infinity;
+    var x1 = -double.infinity, y1 = -double.infinity;
+    for (final dx in [-0.75, 0.75]) {
+      for (final dz in [-0.75, 0.75]) {
+        for (final y in [0.0, PlazaWorkshop.ridge + 0.05]) {
+          final q = p.project(V3(x + dx, y, z + dz));
+          if (q == null) return false;
+          x0 = math.min(x0, q.x);
+          x1 = math.max(x1, q.x);
+          y0 = math.min(y0, q.y);
+          y1 = math.max(y1, q.y);
+        }
+      }
+    }
+    // Un poco más chica que la caja: la caja girada es más ancha que el
+    // galpón, y lo que queda en las esquinas es plaza.
+    final mx = (x1 - x0) * 0.12, my = (y1 - y0) * 0.08;
+    return pos.dx > x0 + mx &&
+        pos.dx < x1 - mx &&
+        pos.dy > y0 + my &&
+        pos.dy < y1 - my;
+  }
+
   void _onTapUp(TapUpDetails d) {
     final pos = d.localPosition;
 
@@ -1788,6 +1821,15 @@ class _TownViewState extends State<TownView>
       _stopFollowing();
       Sensory.instance.tick();
       widget.onWorkshopTapped?.call(_hits.regionData[k]);
+      return;
+    }
+    // Y si el dedo cae dentro del bulto del taller en pantalla, también: con
+    // el pueblo dibujado en simple, el taller no siempre queda apuntado cara
+    // a cara, y tocarlo tiene que funcionar igual.
+    if (owner != TouchMap.sage && _tocaElTaller(pos)) {
+      _stopFollowing();
+      Sensory.instance.tick();
+      widget.onWorkshopTapped?.call(widget.store.active);
       return;
     }
     // El viejo de la plaza: tocarlo es ir a hablar con él.

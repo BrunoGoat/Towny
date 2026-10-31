@@ -288,11 +288,16 @@ class WorkPortrait extends CustomPainter {
     required this.mark,
     required this.place,
     required this.palette,
+    this.silhouette = false,
   });
 
   final Landmark mark;
   final TownCharacter place;
   final Palette palette;
+
+  /// En negro, como la figurita que falta: la silueta y nada más, sobre un
+  /// prado apagado. Para el álbum del constructor.
+  final bool silhouette;
 
   /// Desde dónde se mira una obra para que entre entera en un cuadrado de
   /// [size].
@@ -341,7 +346,24 @@ class WorkPortrait extends CustomPainter {
     );
     final cam = frame(layout, size);
 
-    canvas.drawRect(Offset.zero & size, Paint()..color = meadowTone(palette));
+    canvas.drawRect(
+      Offset.zero & size,
+      Paint()
+        ..color = silhouette
+            ? Color.lerp(meadowTone(palette), const Color(0xFF1E1A16), 0.72)!
+            : meadowTone(palette),
+    );
+    if (silhouette) {
+      // Lo que se pinte, todo en negro: sólo queda la forma.
+      canvas.saveLayer(
+        Offset.zero & size,
+        Paint()
+          ..colorFilter = const ColorFilter.mode(
+            Color(0xFF14110E),
+            BlendMode.srcIn,
+          ),
+      );
+    }
     TownPainter(
       TownScene(
         placed: mark.cost,
@@ -361,15 +383,18 @@ class WorkPortrait extends CustomPainter {
         ],
         active: 0,
         labels: false,
+        backdrop: !silhouette,
       ),
       // Un retrato no se toca, así que el mapa que sale no lo lee nadie.
       TouchMap(),
     ).paint(canvas, size);
+    if (silhouette) canvas.restore();
   }
 
   @override
   bool shouldRepaint(WorkPortrait old) =>
       old.mark.id != mark.id ||
       old.place.order != place.order ||
-      old.palette.hour != palette.hour;
+      old.palette.hour != palette.hour ||
+      old.silhouette != silhouette;
 }
