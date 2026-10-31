@@ -19,6 +19,7 @@ import '../engine/town.dart';
 import '../fx/sensory.dart';
 import '../l10n/lang.dart';
 import '../model/advice_book.dart';
+import '../model/habit.dart';
 import '../model/sage_talk.dart';
 import '../model/store.dart';
 import 'choice_sheet.dart';
@@ -3227,7 +3228,13 @@ class _BuilderScreenState extends State<BuilderScreen> {
 
   /// El maestro de este pueblo, para dibujarlo.
   late final Townsfolk _maestro = Townsfolk.builder(
-    TownLayout(0, widget.store.character, seed: widget.store.habit.townSeed),
+    TownLayout(
+      0,
+      widget.store.character,
+      cx: Habit.centreOf(widget.store.habit.slot).$1,
+      cz: Habit.centreOf(widget.store.habit.slot).$2,
+      seed: widget.store.habit.townSeed,
+    ),
     0,
   );
 

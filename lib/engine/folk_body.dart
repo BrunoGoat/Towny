@@ -239,7 +239,13 @@ List<Solid> folkSolids(
   // El consejero, siempre el mismo: de piel clara en todos los valles. La
   // sacaba de su semilla, que cambia con el valle, y en uno nuevo salía de
   // otro color que en su pantalla, donde está el de siempre.
-  final piel = who.sage ? _skin[1] : _skin[hashInt(_skin.length, seed, 3)];
+  // El maestro de obras del primer pueblo, también siempre el mismo:
+  // bronceado. Los de los demás pueblos, como cualquier vecino.
+  final piel = who.sage
+      ? _skin[1]
+      : who.builder && who.firstTown
+      ? _skin[4]
+      : _skin[hashInt(_skin.length, seed, 3)];
   final pelo = _hair[hashInt(_hair.length, seed, 5)];
 
   final act = at.act;
@@ -1117,7 +1123,7 @@ void _pan(
 /// El maestro de obras, vestido de su tiempo: túnica de lana teñida hasta
 /// la rodilla con su cinturón, calzas oscuras, el delantal de cuero de la
 /// cintura para abajo, y la capucha con su capita sobre los hombros, la
-/// cara asomando. Barba corta y el martillo. Ver `Townsfolk.builder`.
+/// cara asomando. Barba y bigote, y el martillo. Ver `Townsfolk.builder`.
 ///
 /// Como el consejero, es la persona de cajas de siempre con lo suyo encima,
 /// y con lo que se lee de lejos: la capucha de color le cambia la silueta
@@ -1270,18 +1276,28 @@ void _maestro(
       0.97,
     );
     box(-0.190, y + 0.430, -0.150, 0.190, y + 0.540, 0.150, capucha, 0.95);
-    // La punta de la capucha, colgando por la espalda.
-    box(-0.045, y + 0.560, -0.235, 0.045, y + 0.900, -0.190, capucha, 0.92);
-    // La barba corta, en la parte de abajo de la cara.
+    // La barba entera: cerrada bajo la cara y bajando un poco hacia el
+    // pecho, y el bigote encima de la boca.
     box(
-      -0.150,
-      y + 0.520,
+      -0.175,
+      y + 0.500,
       0.170 + inclina,
-      0.150,
-      y + 0.600,
-      0.192 + inclina,
+      0.175,
+      y + 0.660,
+      0.200 + inclina,
       barba,
       0.96,
+    );
+    box(-0.120, y + 0.430, 0.120, 0.120, y + 0.520, 0.185, barba, 0.95);
+    box(
+      -0.130,
+      y + 0.680,
+      0.172 + inclina,
+      0.130,
+      y + 0.725,
+      0.198 + inclina,
+      barba,
+      0.97,
     );
   }
   if (detail > 0.4) {

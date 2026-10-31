@@ -277,6 +277,10 @@ class Townsfolk {
   /// Si es el maestro de obras. Ver [Townsfolk.builder].
   final bool builder;
 
+  /// Si es del primer pueblo, el del medio del valle: el maestro de ahí es
+  /// siempre el mismo, como el consejero.
+  bool firstTown = false;
+
   /// La casa del maestro de obras, que es su taller y no un edificio del
   /// pueblo.
   static const int builderHome = -3;
@@ -314,6 +318,7 @@ class Townsfolk {
       s = hash32(s, 0xB01D, k);
     }
     final cx = layout.cx, cz = layout.cz;
+    final primero = cx == 0 && cz == 0;
     final yunque = PlazaWorkshop.anvilAt(cx, cz);
     final puerta = PlazaWorkshop.doorAt(cx, cz);
     final asiento = PlazaBench.seatAt(cx, cz, 1);
@@ -348,7 +353,8 @@ class Townsfolk {
         )
         .._desfase = r.desfase
         .._calles = calles
-        .._callesSin = calles;
+        .._callesSin = calles
+        ..firstTown = primero;
     }
 
     // ¿Hay obra? La primera grande que tiene piezas puestas y no está
@@ -449,7 +455,8 @@ class Townsfolk {
           carry: [for (final _ in stops) PropKind.barrow],
         )
         .._calles = calles
-        .._callesSin = calles;
+        .._callesSin = calles
+        ..firstTown = primero;
     }
 
     // Sin obra, en la plaza. Los sitios por los que pasea: del lado del
