@@ -492,17 +492,30 @@ void main() {
       return store;
     }
 
-    testWidgets('enseña la tarjeta sin que la pida el pueblo', (tester) async {
-      // La pantalla sale sola una vez cada varias semanas: sin esto, para
-      // mirarla hay que esperar a que el pueblo la pida.
-      await abrirAjustes(tester);
-      final fila = find.text('Ver la tarjeta de elegir');
+    /// Abre al maestro preguntando, de prueba. Su pantalla no se queda
+    /// nunca quieta —él respira y el viento sopla—, así que se avanza el
+    /// reloj a mano en vez de esperar a que todo se calme.
+    Future<void> abrirMaestro(WidgetTester tester) async {
+      final fila = find.text('Ver al maestro preguntando');
       await tester.scrollUntilVisible(fila, 120);
       await tester.ensureVisible(fila);
       await tester.pumpAndSettle();
       await tester.tap(fila);
-      await tester.pumpAndSettle();
-      expect(find.text('¿Qué construir?'), findsOneWidget);
+      for (var k = 0; k < 12; k++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
+
+    testWidgets('enseña al maestro sin que lo pida el pueblo', (tester) async {
+      // La pregunta sale sola una vez cada varias semanas: sin esto, para
+      // mirarla hay que esperar a que el pueblo la pida.
+      await abrirAjustes(tester);
+      await abrirMaestro(tester);
+      expect(find.text('EL MAESTRO DE OBRAS'), findsOneWidget);
+      expect(
+        find.textContaining('Junté materiales otra vez', findRichText: true),
+        findsWidgets,
+      );
     });
 
     testWidgets('y contestar ahí no le toca el pueblo a nadie', (tester) async {
@@ -513,14 +526,17 @@ void main() {
       final store = await abrirAjustes(tester);
       final antes = [...store.habit.chronicle];
       final piezas = store.habit.pieces.length;
+      await abrirMaestro(tester);
 
-      final fila = find.text('Ver la tarjeta de elegir');
-      await tester.scrollUntilVisible(fila, 120);
-      await tester.ensureVisible(fila);
-      await tester.pumpAndSettle();
-      await tester.tap(fila);
-      await tester.pumpAndSettle();
-
+      // Hasta que pregunta, las obras no se pueden tocar: se pasa el globo.
+      await tester.tap(
+        find
+            .textContaining('Junté materiales otra vez', findRichText: true)
+            .first,
+      );
+      for (var k = 0; k < 12; k++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
       // Elegir una, que es el camino que sí escribe cuando la pregunta es de
       // verdad. Se toca el retrato porque los nombres de las dos obras salen
       // al azar del catálogo y no se saben de antemano.
@@ -528,8 +544,10 @@ void main() {
         (w) => w is CustomPaint && w.painter is WorkPortrait,
       );
       await tester.tap(retrato.first);
-      await tester.pumpAndSettle();
-      expect(find.text('¿Qué construir?'), findsNothing);
+      for (var k = 0; k < 30; k++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(find.text('EL MAESTRO DE OBRAS'), findsNothing);
 
       expect(store.habit.chronicle, antes);
       expect(store.habit.pieces.length, piezas);
