@@ -3880,13 +3880,46 @@ class _Hechas extends StatelessWidget {
         final c = a.tier.compareTo(b.tier);
         return c != 0 ? c : a.cost.compareTo(b.cost);
       });
+    // **Que asome media hoja más abajo.** El alto de cada fila sale de lo
+    // que hay de alto: entran dos filas enteras y la mitad de la tercera, y
+    // esa mitad cortada es lo que dice que el álbum sigue hacia abajo.
+    return LayoutBuilder(
+      builder: (context, caja) {
+        const arriba = 14.0, entre = 14.0, lados = 16.0, medio = 12.0;
+        final ancho = (caja.maxWidth - 2 * lados - medio) / 2;
+        final fila = ((caja.maxHeight - arriba) / 2.5 - entre).clamp(
+          120.0,
+          ancho / 0.7,
+        );
+        return _grilla(
+          ancho / fila,
+          arriba,
+          entre,
+          lados,
+          medio,
+          todas,
+          cuando,
+        );
+      },
+    );
+  }
+
+  Widget _grilla(
+    double proporcion,
+    double arriba,
+    double entre,
+    double lados,
+    double medio,
+    List<Landmark> todas,
+    Map<String, DateTime> cuando,
+  ) {
     return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      padding: EdgeInsets.fromLTRB(lados, arriba, lados, 16),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        mainAxisSpacing: 14,
-        crossAxisSpacing: 12,
-        childAspectRatio: 0.78,
+        mainAxisSpacing: entre,
+        crossAxisSpacing: medio,
+        childAspectRatio: proporcion,
       ),
       itemCount: todas.length,
       itemBuilder: (context, i) {
