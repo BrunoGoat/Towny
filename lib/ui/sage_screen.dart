@@ -3182,10 +3182,14 @@ class BuilderScreen extends StatefulWidget {
     required this.store,
     required this.theme,
     this.onPick,
+    this.intro = false,
   });
 
   final Store store;
   final UiTheme theme;
+
+  /// Si acaba de llegar y se presenta, aunque no pregunte nada.
+  final bool intro;
 
   /// Elegir una obra, si se está preguntando. Nulo, sólo cuenta.
   final ValueChanged<Landmark>? onPick;
@@ -3194,13 +3198,14 @@ class BuilderScreen extends StatefulWidget {
     required Store store,
     required UiTheme theme,
     ValueChanged<Landmark>? onPick,
+    bool intro = false,
   }) => PageRouteBuilder<void>(
     opaque: false,
     barrierColor: Colors.black.withValues(alpha: 0.32),
     transitionDuration: const Duration(milliseconds: 360),
     reverseTransitionDuration: const Duration(milliseconds: 220),
     pageBuilder: (_, _, _) =>
-        BuilderScreen(store: store, theme: theme, onPick: onPick),
+        BuilderScreen(store: store, theme: theme, onPick: onPick, intro: intro),
     transitionsBuilder: (_, a, _, child) => FadeTransition(
       opacity: CurvedAnimation(parent: a, curve: Curves.easeOutCubic),
       child: child,
@@ -3270,6 +3275,16 @@ class _BuilderScreenState extends State<BuilderScreen> {
             );
     }
     final ahora = widget.store.workUnderway;
+    if (ahora != null && widget.intro) {
+      final (obra, _) = ahora;
+      return tr(
+        '¡Buenas! Soy el maestro de obras. Me instalo acá, en la plaza: '
+            'yo me encargo de ${obra.name} y de todo lo grande que venga.',
+        'Hello! I am the master builder. I am setting up here, in the '
+            'square: I will see to the ${obra.name} and every great work to '
+            'come.',
+      );
+    }
     if (ahora != null) {
       final (obra, faltan) = ahora;
       return faltan == 1
