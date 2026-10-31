@@ -1276,25 +1276,24 @@ void _maestro(
       0.97,
     );
     box(-0.190, y + 0.430, -0.150, 0.190, y + 0.540, 0.150, capucha, 0.95);
-    // La barba entera: cerrada bajo la cara y bajando un poco hacia el
-    // pecho, y el bigote encima de la boca.
+    // La barba entera bajo la cara, y el bigote encima pegado a ella: de
+    // una sola pieza, sin hueco entre las dos.
     box(
       -0.175,
-      y + 0.500,
+      y + 0.520,
       0.170 + inclina,
       0.175,
-      y + 0.660,
+      y + 0.670,
       0.200 + inclina,
       barba,
       0.96,
     );
-    box(-0.120, y + 0.430, 0.120, 0.120, y + 0.520, 0.185, barba, 0.95);
     box(
-      -0.130,
-      y + 0.680,
+      -0.140,
+      y + 0.655,
       0.172 + inclina,
-      0.130,
-      y + 0.725,
+      0.140,
+      y + 0.712,
       0.198 + inclina,
       barba,
       0.97,
