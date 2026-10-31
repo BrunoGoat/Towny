@@ -65,13 +65,17 @@ class _Estilo {
     height: 1.4,
   );
 
-  /// Por qué lo dijo: más chico, en cursiva, como una nota al margen.
+  /// Por qué lo dijo: una nota al margen, escrita a mano. Iba en la misma
+  /// letra de libro que la explicación, apenas en cursiva y más clara, y se
+  /// leía como un renglón más de lo mismo. A mano, más chica, más tenue y
+  /// de un marrón de tinta vieja, se ve que es otra cosa: no lo que dice el
+  /// consejo, sino cuándo te lo dio.
   TextStyle get motivo => TextStyle(
-    fontFamily: 'EBGaramond',
-    fontStyle: FontStyle.italic,
-    color: tinta.withValues(alpha: 0.5),
-    fontSize: 15,
-    height: 1.35,
+    fontFamily: 'ArchitectsDaughter',
+    color: const Color(0xFF6B5236).withValues(alpha: 0.55),
+    fontSize: 13,
+    height: 1.45,
+    letterSpacing: 0.2,
   );
 
   List<BoxShadow> get sombra => [
@@ -2402,7 +2406,16 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
                 style: e.explica,
               ),
               if (motivo != null && motivo.isNotEmpty) ...[
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
+                // Una raya corta separa la nota de la explicación.
+                Center(
+                  child: Container(
+                    width: 44,
+                    height: 1,
+                    color: e.gris.withValues(alpha: 0.35),
+                  ),
+                ),
+                const SizedBox(height: 12),
                 Text(motivo, textAlign: TextAlign.center, style: e.motivo),
               ],
             ],
