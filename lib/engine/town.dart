@@ -636,13 +636,10 @@ class TownPlan {
       if (!written && from >= placed) {
         if (from > placed) return null;
         if (landmarkOf(id) != null) {
-          // Sólo se pregunta por las grandes. Las chicas y las medianas llegan
-          // cada pocas semanas y se eligen solas: preguntar por cada palomar
-          // sería un trámite, y la pregunta tiene que ser una decisión —
-          // catedral o castillo—, que es lo que se pregunta pocas veces al año.
-          final no = landmarkNumber(b);
-          if (tierFor(no) < 2) return null;
-          return (b, landmarkChoices(no, used));
+          // Se pregunta por todas, chicas y grandes. Sólo por las grandes, un
+          // colmenar o un palomar aparecían sin que nadie los eligiera, y la
+          // obra que se empieza es tuya: siempre se elige entre dos.
+          return (b, landmarkChoices(landmarkNumber(b), used));
         }
       }
       if (!id.startsWith(kindMark)) used.add(id);

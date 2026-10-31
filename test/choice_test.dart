@@ -768,11 +768,19 @@ void main() {
       expect(otros, isNot(iguales));
     });
 
-    test('pero se pregunta poco: es una decisión, no un trámite', () {
-      // Una app de un solo botón no puede estar preguntando cada semana. Con
-      // seiscientas piezas —más de un año a una diaria— son un puñado.
-      final asks = _grow(600).asks;
-      expect(asks.length, inInclusiveRange(4, 12), reason: '${asks.length}');
+    test('y se pregunta por cada obra, chica o grande', () {
+      // Ninguna obra del catálogo se empieza sin que se elija entre dos: un
+      // colmenar tampoco. Cada hito de la crónica es una pregunta contestada.
+      final g = _grow(600);
+      final hitos = [
+        for (final id in g.chronicle)
+          if (TownPlan.landmarkOf(id) != null) id,
+      ];
+      expect(g.asks.length, hitos.length);
+      expect(g.asks.map((a) => a.taken).toList(), hitos);
+      for (final a in g.asks) {
+        expect(a.options.length, 2);
+      }
     });
   });
 }

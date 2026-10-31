@@ -147,11 +147,10 @@ class Store extends ChangeNotifier {
   /// sea así — hay un solo botón y ninguna decisión que tomar, y ésa es la
   /// mitad de lo que la hace descansada.
   ///
-  /// Pero una vez cada varias semanas, cuando toca empezar una obra grande, el
+  /// Pero cada vez que toca empezar una obra —un colmenar o una catedral—, el
   /// pueblo pregunta. Dos obras que le tocaban igual de pronto, y la que no
   /// salga sigue la primera de la lista para la próxima vez, así que elegir no
-  /// es renunciar a nada: es decidir el orden de tu propio valle. Es la única
-  /// decisión que hay en toda la app, y por eso tiene que ser rara.
+  /// es renunciar a nada: es decidir el orden de tu propio valle.
   ///
   /// Nulo casi siempre. Deja de serlo justo en la pieza en la que la obra
   /// empezaría, y vuelve a serlo en cuanto se contesta.
