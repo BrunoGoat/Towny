@@ -164,28 +164,6 @@ class Store extends ChangeNotifier {
     return marks.length < 2 ? null : marks;
   }
 
-  /// Los pueblos que ya vieron llegar el taller del maestro de obras.
-  ///
-  /// **Provisorio.** Sólo existe para que quien ya tenía una obra empezada
-  /// antes de que hubiera maestro lo vea caer una vez, al entrar. Cuando eso
-  /// ya pasó, se saca entero: los pueblos nuevos lo ven caer con su primera
-  /// obra, que es [firstWorkPending].
-  static const _tallerKey = 'taller_visto_v1';
-  Set<String> get _tallerVisto => {...?_prefs?.getStringList(_tallerKey)};
-
-  /// Si este pueblo tiene taller y todavía no lo vio llegar. Ver
-  /// [_tallerVisto].
-  bool get workshopUnseen =>
-      !firstWorkPending &&
-      habit.total >= plan.firstWorkFrom(habit.chronicle) &&
-      !_tallerVisto.contains(habit.id);
-
-  /// Ya lo vio llegar.
-  void markWorkshopSeen() {
-    final visto = _tallerVisto..add(habit.id);
-    _prefs?.setStringList(_tallerKey, visto.toList());
-  }
-
   /// Si el pueblo está por empezar su primera obra: la pregunta que hay es
   /// la primera, y con ella llega el taller del maestro a la plaza.
   bool get firstWorkPending =>

@@ -156,7 +156,7 @@ class Sensory {
     // Mientras suena la crónica las de fondo no se mueven: si el volumen
     // siguiera subiendo a oscuras, al acabar la cinemática entrarían de golpe
     // a todo trapo en vez de volver despacio.
-    if (_reelOn || _escena != null) return;
+    if (_reelOn) return;
     _musIn = (_musIn + dt / 6.0).clamp(0.0, 1.0);
     final day = dayMix(_tune, hour);
     final level = _musLevel * _musIn;
@@ -164,10 +164,13 @@ class Sensory {
     for (var i = 0; i < _mus.length && i < 3; i++) {
       // El estado se mueve siempre, con o sin llamada.
       _musAt[i] = approach(_musAt[i], want[i], dt);
-      if (!worthSending(_musAt[i], _musSent[i], want[i])) continue;
-      _musSent[i] = _musAt[i];
+      // Lo que se manda es lo de la hora por lo que deja sonar la pantalla
+      // de un personaje, si hay una abierta.
+      final sale = _musAt[i] * _duck;
+      if (!worthSending(sale, _musSent[i], want[i] * _duck)) continue;
+      _musSent[i] = sale;
       try {
-        _mus[i].setVolume(_musAt[i]);
+        _mus[i].setVolume(sale);
       } catch (_) {}
     }
   }
@@ -201,8 +204,7 @@ class Sensory {
   /// whether the app is even on screen. Pausing rather than turning down: a
   /// paused player costs nothing, and a phone in a pocket should be quiet.
   void settle() {
-    final musicOff =
-        _asleep || !_wants.hearsMusic || _reelOn || _escena != null;
+    final musicOff = _asleep || !_wants.hearsMusic || _reelOn;
     // La de la pantalla abierta, si hay: suena mientras la app esté a la
     // vista y la música encendida.
     final escena = _escena;
@@ -211,7 +213,7 @@ class Sensory {
         if (_asleep || !_wants.hearsMusic) {
           escena.pause();
         } else {
-          escena.setVolume(_musLevel.clamp(0.0, 1.0));
+          escena.setVolume(_escenaVol.clamp(0.0, 1.0));
           escena.play();
         }
       } catch (_) {}
@@ -221,8 +223,9 @@ class Sensory {
         if (musicOff) {
           _mus[i].pause();
         } else {
-          _mus[i].setVolume(_musAt[i].clamp(0.0, 1.0));
-          _musSent[i] = _musAt[i];
+          final v = (_musAt[i] * _duck).clamp(0.0, 1.0);
+          _mus[i].setVolume(v);
+          _musSent[i] = v;
           _mus[i].play();
         }
       } catch (_) {}
@@ -517,10 +520,26 @@ class Sensory {
 
   /// La música de la pantalla que está abierta, si tiene una: el consejero
   /// la suya, mística y tranquila, y el maestro de obras la suya, de
-  /// taberna. Como con la crónica, mientras suena **la de fondo calla**: son
-  /// dos piezas en dos tonos, y vuelve sola al cerrar.
+  /// taberna. Mientras suena **la de fondo baja hasta callar**: son dos
+  /// piezas en dos tonos, y vuelve sola al cerrar.
+  ///
+  /// **Sin cortes.** Al abrir, la del pueblo baja y la del personaje sube a
+  /// la vez, en un segundo y pico; al cerrar, al revés. Antes una se
+  /// apagaba de golpe y la otra entraba entera.
   LoopTrack? _escena;
   String? _escenaDe;
+
+  /// Por dónde va el volumen de la del personaje, y si se está yendo.
+  double _escenaVol = 0;
+  bool _escenaSale = false;
+
+  /// Cuánto suena la de fondo, de cero a uno: baja mientras suena la de un
+  /// personaje. Ver [_paso].
+  double _duck = 1;
+  Timer? _fundido;
+
+  /// Lo que tarda cada fundido.
+  static const double _fundeEn = 1.3;
 
   /// La del consejero y la del maestro de obras.
   static const String sageTrack = 'mus_sabio.wav';
@@ -529,25 +548,32 @@ class Sensory {
   /// Que suene [file] en bucle mientras esté abierta su pantalla.
   Future<void> sceneMusic(String file) async {
     if (_asleep || !_wants.hearsMusic) return;
-    if (_escenaDe == file && _escena != null) return;
+    if (_escenaDe == file && _escena != null) {
+      // Se estaba yendo y se vuelve a abrir: que vuelva a subir.
+      _escenaSale = false;
+      _fundir();
+      return;
+    }
     _hushScene();
     _escenaDe = file;
+    _escenaVol = 0;
+    _escenaSale = false;
     try {
       final p = _escena = LoopTrack();
       await p.load(file);
-      p.setVolume(_musLevel.clamp(0.0, 1.0));
-      settle();
+      p.setVolume(0);
     } catch (_) {
       // El sonido es un extra, nunca un requisito.
     }
+    _fundir();
   }
 
-  /// Callar la de la pantalla que se cierra, si es [file], y devolverle el
-  /// sitio a la de fondo.
+  /// Que se vaya la de la pantalla que se cierra, si es [file], bajando, y
+  /// que vuelva subiendo la de fondo.
   void hushSceneMusic(String file) {
     if (_escenaDe != file) return;
-    _hushScene();
-    settle();
+    _escenaSale = true;
+    _fundir();
   }
 
   void _hushScene() {
@@ -556,6 +582,61 @@ class Sensory {
     } catch (_) {}
     _escena = null;
     _escenaDe = null;
+    _escenaVol = 0;
+    _escenaSale = false;
+  }
+
+  void _fundir() {
+    // Sin la música del pueblo cargada —no hay audio, o es una prueba— no hay
+    // nada que fundir: se llega de una.
+    if (!_musReady) {
+      _paso(_fundeEn);
+      return;
+    }
+    _fundido ??= Timer.periodic(
+      const Duration(milliseconds: 40),
+      (_) => _paso(0.04),
+    );
+  }
+
+  /// Un paso de los dos fundidos: la de fondo hacia donde tiene que estar y
+  /// la del personaje también.
+  void _paso(double dt) {
+    final hay = _escena != null && !_escenaSale;
+    final duckQuiere = hay ? 0.0 : 1.0;
+    final paso = dt / _fundeEn;
+    _duck = duckQuiere > _duck
+        ? math.min(duckQuiere, _duck + paso)
+        : math.max(duckQuiere, _duck - paso);
+    final escenaQuiere = hay ? _musLevel : 0.0;
+    final pasoEscena = paso * math.max(_musLevel, 0.05);
+    _escenaVol = escenaQuiere > _escenaVol
+        ? math.min(escenaQuiere, _escenaVol + pasoEscena)
+        : math.max(escenaQuiere, _escenaVol - pasoEscena);
+    final suena = !_asleep && _wants.hearsMusic;
+    try {
+      final escena = _escena;
+      if (escena != null && suena) {
+        escena.setVolume(_escenaVol.clamp(0.0, 1.0));
+        escena.play();
+      }
+    } catch (_) {}
+    if (!_reelOn && suena) {
+      for (var i = 0; i < _mus.length && i < 3; i++) {
+        final v = (_musAt[i] * _duck).clamp(0.0, 1.0);
+        _musSent[i] = v;
+        try {
+          _mus[i].setVolume(v);
+          _mus[i].play();
+        } catch (_) {}
+      }
+    }
+    if (_escenaSale && _escenaVol <= 0) _hushScene();
+    if (_duck == duckQuiere &&
+        (_escena == null || _escenaVol == escenaQuiere)) {
+      _fundido?.cancel();
+      _fundido = null;
+    }
   }
 
   /// El archivo. Aquí y no escrito a mano en la pantalla, para que el test que

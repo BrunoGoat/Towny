@@ -448,7 +448,7 @@ class _TownViewState extends State<TownView>
   /// El día de la primera obra el taller existe desde que se pone la pieza,
   /// pero no se tiene que ver hasta que caiga: queda escondido.
   void _hideWorkshopUntilDropped() {
-    final espera = widget.store.firstWorkPending || widget.store.workshopUnseen;
+    final espera = widget.store.firstWorkPending;
     if (_workshopFall == null && espera) {
       _workshopFall = -1e9;
     }

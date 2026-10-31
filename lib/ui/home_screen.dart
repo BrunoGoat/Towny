@@ -130,7 +130,6 @@ class _HomeScreenState extends State<HomeScreen>
       _lookForNews();
       _askIfAdrift();
       _askCadence();
-      _workshopArrives();
     });
   }
 
@@ -815,9 +814,7 @@ class _HomeScreenState extends State<HomeScreen>
     final primera = widget.store.firstWorkPending;
     Future<void> espera = Future.delayed(const Duration(milliseconds: 1100));
     if (primera) {
-      espera = espera
-          .then((_) => _wall.dropWorkshop())
-          .then((_) => widget.store.markWorkshopSeen());
+      espera = espera.then((_) => _wall.dropWorkshop());
     }
     espera.then((_) {
       if (!mounted) {
@@ -845,26 +842,12 @@ class _HomeScreenState extends State<HomeScreen>
     });
   }
 
-  /// **Provisorio**: a quien ya tenía una obra empezada antes de que
-  /// existiera el maestro, que le caiga el taller una vez al entrar, y que el
-  /// maestro salga a presentarse. Se saca con [Store.workshopUnseen].
-  void _workshopArrives() {
-    if (!widget.store.workshopUnseen) return;
-    Future.delayed(const Duration(milliseconds: 2500), () async {
-      if (!mounted || !widget.store.workshopUnseen) return;
-      await _wall.dropWorkshop();
-      widget.store.markWorkshopSeen();
-      if (!mounted) return;
-      _openBuilder(intro: true);
-    });
-  }
-
   /// El maestro de obras, desde su taller o tocándolo a él en la plaza: cómo
   /// va la obra y lo que ya se levantó.
-  void _openBuilder({bool intro = false}) {
-    Navigator.of(context).push(
-      BuilderScreen.route(store: widget.store, theme: _theme, intro: intro),
-    );
+  void _openBuilder() {
+    Navigator.of(
+      context,
+    ).push(BuilderScreen.route(store: widget.store, theme: _theme));
   }
 
   /// Para no abrir dos hojas si caen dos piezas seguidas muy rápido.
