@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../core/math3.dart';
@@ -465,3 +466,10 @@ class _GhostButtonState extends State<GhostButton> {
         : Icon(widget.icon, size: 20, color: color, shadows: t.halo);
   }
 }
+
+/// Si se está en un teléfono, sea la app o la web abierta en él: ahí lo que
+/// cuesta mucho de dibujar —desenfocar la pantalla entera, cientos de
+/// degradados por fotograma— se hace más simple, que el teléfono no llega.
+bool get isPhone =>
+    defaultTargetPlatform == TargetPlatform.android ||
+    defaultTargetPlatform == TargetPlatform.iOS;

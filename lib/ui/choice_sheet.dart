@@ -337,8 +337,35 @@ class WorkPortrait extends CustomPainter {
     return cam;
   }
 
+  /// Los retratos ya pintados, grabados: pintar uno es levantar la obra
+  /// entera y ordenar cada cara, y el álbum del constructor tiene una docena
+  /// en pantalla. Grabado, volver a ponerlo es copiarlo. Es lo que hacía que
+  /// entrar a ver al constructor se trabara.
+  static final Map<(String, int, double, bool, double, double), ui.Picture>
+  _grabados = {};
+
   @override
   void paint(Canvas canvas, Size size) {
+    final llave = (
+      mark.id,
+      place.order,
+      palette.hour,
+      silhouette,
+      size.width,
+      size.height,
+    );
+    var grabado = _grabados[llave];
+    if (grabado == null) {
+      final grabadora = ui.PictureRecorder();
+      _pinta(Canvas(grabadora), size);
+      grabado = grabadora.endRecording();
+      if (_grabados.length > 80) _grabados.remove(_grabados.keys.first);
+      _grabados[llave] = grabado;
+    }
+    canvas.drawPicture(grabado);
+  }
+
+  void _pinta(Canvas canvas, Size size) {
     final layout = TownLayout.showcase(
       place,
       landmark: mark,

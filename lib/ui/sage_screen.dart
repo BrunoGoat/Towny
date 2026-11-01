@@ -992,22 +992,27 @@ class _AmbienteState extends State<_Ambiente>
   }
 
   @override
-  Widget build(BuildContext context) => AnimatedBuilder(
-    animation: _reloj,
-    builder: (_, _) {
-      final desde = _desde;
-      return CustomPaint(
-        painter: _AmbientePainter(
-          _t,
-          desde,
-          _empujado + _AmbientePainter.empujeDe(desde),
-          frente: widget.frente,
-          viento: widget.viento,
-          destino: widget.destino,
-          alMedio: widget.alMedio,
-        ),
-      );
-    },
+  // En su propia capa: sin ella, cada fotograma del viento volvía a pintar
+  // todo lo que tiene al lado —el viejo, sus globos, la lista—, y en el
+  // teléfono eso era lo que trababa la pantalla.
+  Widget build(BuildContext context) => RepaintBoundary(
+    child: AnimatedBuilder(
+      animation: _reloj,
+      builder: (_, _) {
+        final desde = _desde;
+        return CustomPaint(
+          painter: _AmbientePainter(
+            _t,
+            desde,
+            _empujado + _AmbientePainter.empujeDe(desde),
+            frente: widget.frente,
+            viento: widget.viento,
+            destino: widget.destino,
+            alMedio: widget.alMedio,
+          ),
+        );
+      },
+    ),
   );
 }
 
@@ -1101,7 +1106,7 @@ class _AmbientePainter extends CustomPainter {
     // corre cada mota es la suma del viento que hubo, así que no salta para
     // atrás cuando la ráfaga se calma.
     final corrido = viento ? t * 10 + empuje * 60 : 0.0;
-    for (var i = 0; i < 34; i++) {
+    for (var i = 0; i < (isPhone ? 22 : 34); i++) {
       final x0 = hash01(i, 11) * s.width;
       final v = 9 + hash01(i, 12) * 16;
       final alto = s.height * 1.15;
@@ -1160,7 +1165,9 @@ class _AmbientePainter extends CustomPainter {
   /// Los hilos de aire: trazos largos y finos que cruzan de izquierda a
   /// derecha ondulando, más y más claros cuanto más sopla.
   void _hilos(Canvas c, Size s, double sopla) {
-    const cuantos = 18;
+    // En el teléfono, menos y sin el resplandor borroso, que es lo más caro
+    // de todo lo que se pinta acá.
+    final cuantos = isPhone ? 10 : 18;
     for (var i = 0; i < cuantos; i++) {
       final vel = s.width * (0.35 + hash01(i, 21) * 0.3);
       final largo = s.width * (0.28 + hash01(i, 22) * 0.3);
@@ -1197,15 +1204,17 @@ class _AmbientePainter extends CustomPainter {
       ).createShader(caja);
       // El resplandor, ancho y borroso, y encima el hilo; y una hebra más
       // fina al lado, que el aire no corre en una sola línea.
-      c.drawPath(
-        camino,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeCap = StrokeCap.round
-          ..strokeWidth = grueso * 4
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5)
-          ..shader = tinte(a * 0.45),
-      );
+      if (!isPhone) {
+        c.drawPath(
+          camino,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeCap = StrokeCap.round
+            ..strokeWidth = grueso * 4
+            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5)
+            ..shader = tinte(a * 0.45),
+        );
+      }
       c.drawPath(
         camino,
         Paint()
@@ -2635,11 +2644,17 @@ class _DetalleState extends State<_Detalle> with TickerProviderStateMixin {
             final velo = _cerrando ? 1 - v : llega;
             // Lo de detrás, desenfocado: los rollos de la lista asomaban por
             // debajo del velo y se mezclaban con el que se lee.
+            // En el teléfono, sin desenfocar: desenfocar lo de detrás en cada
+            // fotograma era el tirón al tocar un globo. Un velo más oscuro
+            // tapa lo mismo.
             return BackdropFilter(
+              enabled: !isPhone,
               filter: ui.ImageFilter.blur(sigmaX: 6 * velo, sigmaY: 6 * velo),
               child: ColoredBox(
                 // El de un consejo nuevo, más oscuro: es un momento.
-                color: Colors.black.withValues(alpha: 0.62 * velo),
+                color: Colors.black.withValues(
+                  alpha: (isPhone ? 0.74 : 0.62) * velo,
+                ),
                 child: LayoutBuilder(
                   builder: (context, box) {
                     final hasta = _hasta;

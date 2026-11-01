@@ -540,14 +540,18 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
                   // El valle, vivo. Va en su propio widget con su propio reloj para
                   // que pintar sesenta cuadros por segundo no reconstruya los campos
                   // de texto.
-                  _Valley(
-                    stage: _step,
-                    leaving: _leaving,
-                    name: _name.text,
-                    symbol: _symbol,
-                    place: _place,
-                    exploring: _exploring,
-                    onExplore: () => _explore(true),
+                  // En su propia capa: lo que se anima encima —el viento del
+                  // viejo, la tarjeta, el salto— no lo obliga a repintarse.
+                  RepaintBoundary(
+                    child: _Valley(
+                      stage: _step,
+                      leaving: _leaving,
+                      name: _name.text,
+                      symbol: _symbol,
+                      place: _place,
+                      exploring: _exploring,
+                      onExplore: () => _explore(true),
+                    ),
                   ),
                   // Dos veladuras: arriba, para que la marca se lea sobre un cielo de
                   // mediodía; abajo, para que la tarjeta se apoye en algo.
@@ -783,7 +787,10 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
       return Transform.scale(
         scale: 1 + 1.6 * e * e * e,
         child: ImageFiltered(
-          enabled: borroso > 0.01,
+          // En el teléfono, sin emborronar: desenfocar la pantalla entera
+          // con el valle moviéndose detrás era lo que trababa el salto, y
+          // con las rayas y el blanco encima casi no se nota la diferencia.
+          enabled: borroso > 0.01 && !isPhone,
           imageFilter: ui.ImageFilter.blur(
             sigmaX: math.max(borroso, 0.01),
             sigmaY: math.max(borroso, 0.01),
@@ -1472,8 +1479,30 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
     }
     _sign = toward(_sign, puesto, 0.45);
     _lift = toward(_lift, widget.stage == 2 && !widget.leaving, 0.7);
+    // En el teléfono, con el valle quieto —nada entrando ni saliendo, sólo
+    // el vaivén lento de la cámara—, se repinta unas pocas veces por
+    // segundo y no sesenta: pintar el pueblo entero en cada fotograma no
+    // dejaba sitio para nada más, y escribiendo el nombre del hábito ni
+    // siquiera llegaba a salir el teclado.
+    bool hecho(double v) => v <= 0 || v >= 1;
+    final quieto =
+        isPhone &&
+        _t >= 1 &&
+        _swap >= 1 &&
+        !widget.leaving &&
+        !widget.exploring &&
+        !_peeking &&
+        hecho(_sign) &&
+        hecho(_lift) &&
+        hecho(_preview) &&
+        hecho(_explore);
+    if (quieto && _time - _pintado < 1 / 8) return;
+    _pintado = _time;
     setState(() {});
   }
+
+  /// Cuándo se repintó por última vez. Ver [_tick].
+  double _pintado = -1;
 
   @override
   void dispose() {
@@ -2795,7 +2824,9 @@ class WarpPainter extends CustomPainter {
   /// De cero a uno, lo que va del salto.
   final double t;
 
-  static const int _rayas = 150;
+  /// Menos en el teléfono, y sin degradado cada una: ciento cincuenta
+  /// degradados nuevos por fotograma trababan el salto.
+  static int get _rayas => isPhone ? 70 : 150;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -2828,17 +2859,34 @@ class WarpPainter extends CustomPainter {
         final p1 = c + dir * (r * lejos);
         final p0 = c + dir * (math.max(0, r - largo) * lejos);
         final alfa = (0.35 + 0.65 * ida) * (1 - smoothstep(0.8, 1.0, ida));
-        canvas.drawLine(
-          p0,
-          p1,
-          Paint()
-            ..strokeWidth = ancho * (1 + 2 * vel)
-            ..strokeCap = StrokeCap.round
-            ..shader = ui.Gradient.linear(p0, p1, [
-              const Color(0x00FFFFFF),
-              Colors.white.withValues(alpha: alfa),
-            ]),
-        );
+        final pincel = Paint()
+          ..strokeWidth = ancho * (1 + 2 * vel)
+          ..strokeCap = StrokeCap.round;
+        if (isPhone) {
+          // La cola, más tenue, y la punta: dos trazos lisos se leen igual
+          // que el degradado y cuestan casi nada.
+          final medio = Offset.lerp(p0, p1, 0.55)!;
+          canvas.drawLine(
+            p0,
+            medio,
+            pincel..color = Colors.white.withValues(alpha: alfa * 0.3),
+          );
+          canvas.drawLine(
+            medio,
+            p1,
+            pincel..color = Colors.white.withValues(alpha: alfa),
+          );
+        } else {
+          canvas.drawLine(
+            p0,
+            p1,
+            pincel
+              ..shader = ui.Gradient.linear(p0, p1, [
+                const Color(0x00FFFFFF),
+                Colors.white.withValues(alpha: alfa),
+              ]),
+          );
+        }
       }
     }
     // La luz del centro, que crece hasta tapar todo.
