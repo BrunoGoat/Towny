@@ -17,6 +17,7 @@ import '../fx/effects.dart';
 import '../fx/sensory.dart';
 import '../l10n/lang.dart';
 import '../model/appearance.dart';
+import '../model/perf_guard.dart';
 import '../model/pledge.dart';
 import '../model/store.dart';
 import '../sync/account.dart';
@@ -278,6 +279,7 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    PerfGuard.instance.enter(PerfScene.bienvenida);
     _leave = AnimationController(vsync: this, duration: FirstRun.leaving);
     _warp = AnimationController(vsync: this, duration: FirstRun.warp)
       ..addListener(() {
@@ -317,6 +319,7 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
 
   @override
   void dispose() {
+    PerfGuard.instance.leave(PerfScene.bienvenida);
     _leave.dispose();
     _warp.dispose();
     _name.dispose();
@@ -1505,6 +1508,7 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
         hecho(_preview) &&
         hecho(_explore);
     if (quieto && _time - _pintado < 1 / 8) return;
+    if (paced && _time - _pintado < 1 / phoneFps - 0.002) return;
     _pintado = _time;
     setState(() {});
   }
@@ -1882,6 +1886,7 @@ class _Motes extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (PerfGuard.instance.off('polvo')) return;
     final dia = const Color(0xFFFFF6E2);
     final luz = const Color(0xFFF4E7A1);
     final c = Color.lerp(dia, luz, night)!;

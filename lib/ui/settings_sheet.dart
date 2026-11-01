@@ -17,6 +17,7 @@ import '../model/advice_book.dart';
 import '../model/appearance.dart';
 import '../model/board_seen.dart';
 import '../model/board_slots.dart';
+import '../model/perf_guard.dart';
 import '../model/piece.dart';
 import '../model/reel.dart';
 import '../model/sage_talk.dart';
@@ -232,6 +233,12 @@ class _SettingsSheetState extends State<SettingsSheet> {
                   (d, v) => d.water = v,
                 ),
               ],
+            ),
+            _Section(
+              theme: t,
+              title: tr('EL DEFENSOR', 'THE GUARD'),
+              icon: Icons.shield_outlined,
+              children: [_Defensor(theme: t)],
             ),
             _Section(
               theme: t,
@@ -1965,6 +1972,121 @@ class _WhichReel extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Lo que hizo el defensor de rendimiento (ver [PerfGuard]): qué apagó, en
+/// el orden en que lo apagó, y qué sigue encendido. Y un botón para volver
+/// a encender todo.
+class _Defensor extends StatelessWidget {
+  const _Defensor({required this.theme});
+  final UiTheme theme;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = theme;
+    final velo = SheetInk.of(t);
+    return ListenableBuilder(
+      listenable: PerfGuard.instance,
+      builder: (context, _) {
+        final g = PerfGuard.instance;
+        final apagadas = [
+          for (final id in g.apagadas)
+            PerfGuard.steps.firstWhere((s) => s.id == id),
+        ];
+        final siguen = [
+          for (final s in PerfGuard.steps)
+            if (!g.off(s.id)) s,
+        ];
+        Widget fila(PerfStep s, bool apagada, [int? orden]) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 2, right: 10),
+                child: Icon(
+                  apagada
+                      ? Icons.remove_circle_outline
+                      : Icons.check_circle_outline,
+                  size: 17,
+                  color: apagada ? _rojo(t) : t.accent,
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      orden == null ? s.nombre : '$orden. ${s.nombre}',
+                      style: _titulo(t).copyWith(fontSize: 14),
+                    ),
+                    Text(s.queHace, style: _nota(t)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+        Widget rotulo(String texto) => Padding(
+          padding: const EdgeInsets.only(top: 12, bottom: 2),
+          child: Text(
+            texto,
+            style: t.bodySoft.copyWith(
+              fontSize: 11.5,
+              letterSpacing: 1.6,
+              fontWeight: FontWeight.w700,
+              color: t.accent,
+              shadows: velo.aliento,
+            ),
+          ),
+        );
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Si la app va lenta, apaga cosas de a una, de la más cara a la '
+              'más barata, empezando por lo que pesa en la pantalla donde '
+              'estás. Cuando ya va bien deja de apagar, y lo apagado queda '
+              'apagado también al volver a abrir la app.'
+              '${g.ultimaMedida > 0 ? ' Última medida: ${g.ultimaMedida.toStringAsFixed(1)} ms por cuadro.' : ''}',
+              style: _nota(t),
+            ),
+            rotulo('APAGADAS POR EL DEFENSOR'),
+            if (apagadas.isEmpty)
+              Text('Ninguna: hasta ahora todo anda bien.', style: _nota(t))
+            else
+              for (var i = 0; i < apagadas.length; i++)
+                fila(apagadas[i], true, i + 1),
+            rotulo('SIGUEN ENCENDIDAS'),
+            if (siguen.isEmpty)
+              Text('Ninguna.', style: _nota(t))
+            else
+              for (final s in siguen) fila(s, false),
+            if (apagadas.isNotEmpty)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: () {
+                    Sensory.instance.tick();
+                    g.reset();
+                  },
+                  style: TextButton.styleFrom(foregroundColor: t.accent),
+                  icon: Icon(Icons.refresh, size: 16, color: t.accent),
+                  label: Text(
+                    'Volver a encender todo',
+                    style: t.bodySoft.copyWith(
+                      fontSize: 12.5,
+                      color: t.accent,
+                      shadows: velo.aliento,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }

@@ -9,6 +9,7 @@ import '../core/rng.dart';
 import '../data/character.dart';
 import '../data/doings.dart';
 import '../fx/effects.dart';
+import '../model/perf_guard.dart';
 import 'backdrop.dart';
 import 'bsp.dart';
 import 'camera.dart';
@@ -1752,7 +1753,8 @@ class TownPainter extends CustomPainter {
     // el más chico— y se pintan del revés, que es el orden en que hay que
     // pintarlos.
     out.sort((a, b) => a.depth.compareTo(b.depth));
-    if (out.length > _folkCap) out.length = _folkCap;
+    final tope = PerfGuard.instance.off('gente') ? 30 : _folkCap;
+    if (out.length > tope) out.length = tope;
     return out.reversed.toList();
   }
 

@@ -20,6 +20,7 @@ import '../fx/sensory.dart';
 import '../l10n/lang.dart';
 import '../model/advice_book.dart';
 import '../model/habit.dart';
+import '../model/perf_guard.dart';
 import '../model/sage_talk.dart';
 import '../model/store.dart';
 import 'choice_sheet.dart';
@@ -206,6 +207,7 @@ class _SageScreenState extends State<SageScreen> {
   @override
   void initState() {
     super.initState();
+    PerfGuard.instance.enter(PerfScene.consejero);
     // Su música, mística y tranquila, mientras se le habla.
     Sensory.instance.sceneMusic(Sensory.sageTrack);
     // Quien ya tiene piezas ya conoce el valle: si el libro vino vacío —un
@@ -231,6 +233,7 @@ class _SageScreenState extends State<SageScreen> {
 
   @override
   void dispose() {
+    PerfGuard.instance.leave(PerfScene.consejero);
     Sensory.instance.hushSceneMusic(Sensory.sageTrack);
     _desliza.dispose();
     super.dispose();
@@ -553,12 +556,14 @@ class _SagePrologueViewState extends State<SagePrologueView>
   @override
   void initState() {
     super.initState();
+    PerfGuard.instance.enter(PerfScene.consejero);
     // La primera vez que se lo ve, ya con su música.
     Sensory.instance.sceneMusic(Sensory.sageTrack);
   }
 
   @override
   void dispose() {
+    PerfGuard.instance.leave(PerfScene.consejero);
     Sensory.instance.hushSceneMusic(Sensory.sageTrack);
     _llega.dispose();
     _desliza.dispose();
@@ -996,9 +1001,9 @@ class _AmbienteState extends State<_Ambiente>
   // todo lo que tiene al lado —el viejo, sus globos, la lista—, y en el
   // teléfono eso era lo que trababa la pantalla.
   Widget build(BuildContext context) => RepaintBoundary(
-    child: AnimatedBuilder(
+    child: Paced(
       animation: _reloj,
-      builder: (_, _) {
+      builder: (_) {
         final desde = _desde;
         return CustomPaint(
           painter: _AmbientePainter(
@@ -1101,12 +1106,13 @@ class _AmbientePainter extends CustomPainter {
           ],
         ).createShader(Rect.fromCircle(center: foco, radius: radio)),
     );
-    _hilos(c, s, sopla);
+    if (!PerfGuard.instance.off('viento')) _hilos(c, s, sopla);
     // El polvo: sube despacio, y el viento se lo lleva de lado. Lo que
     // corre cada mota es la suma del viento que hubo, así que no salta para
     // atrás cuando la ráfaga se calma.
     final corrido = viento ? t * 10 + empuje * 60 : 0.0;
-    for (var i = 0; i < (isPhone ? 22 : 34); i++) {
+    final motas = PerfGuard.instance.off('polvo') ? 0 : (isPhone ? 22 : 34);
+    for (var i = 0; i < motas; i++) {
       final x0 = hash01(i, 11) * s.width;
       final v = 9 + hash01(i, 12) * 16;
       final alto = s.height * 1.15;
@@ -1151,7 +1157,7 @@ class _AmbientePainter extends CustomPainter {
         );
       }
     }
-    _hojas(c, s, sopla);
+    if (!PerfGuard.instance.off('polvo')) _hojas(c, s, sopla);
   }
 
   /// Lo que empujó una ráfaga a los [rafaga] segundos: la integral de su
@@ -3197,13 +3203,18 @@ class _SageFigureState extends State<SageFigure>
   }
 
   @override
-  Widget build(BuildContext context) => AnimatedBuilder(
-    animation: _reloj,
-    builder: (_, _) => CustomPaint(
-      painter: _FiguraPainter(
-        widget.who ?? _sabio,
-        _reloj.value * 60,
-        widget.walking,
+  // En su capa y a su paso: el viejo se recalcula entero en cada dibujo
+  // —cajas, orden, sombra—, y no hace falta que sea más de treinta veces por
+  // segundo para que respire igual.
+  Widget build(BuildContext context) => RepaintBoundary(
+    child: Paced(
+      animation: _reloj,
+      builder: (_) => CustomPaint(
+        painter: _FiguraPainter(
+          widget.who ?? _sabio,
+          _reloj.value * 60,
+          widget.walking,
+        ),
       ),
     ),
   );
@@ -3405,12 +3416,14 @@ class _BuilderScreenState extends State<BuilderScreen> {
   @override
   void initState() {
     super.initState();
+    PerfGuard.instance.enter(PerfScene.consejero);
     // La suya, de taberna, mientras se le habla.
     Sensory.instance.sceneMusic(Sensory.builderTrack);
   }
 
   @override
   void dispose() {
+    PerfGuard.instance.leave(PerfScene.consejero);
     Sensory.instance.hushSceneMusic(Sensory.builderTrack);
     super.dispose();
   }

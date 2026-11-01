@@ -2,9 +2,11 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import '../core/math3.dart';
 import '../engine/palette.dart';
+import '../model/perf_guard.dart';
 
 /// UI chrome derived from whatever the sky is doing right now, so the interface
 /// belongs to the scene instead of sitting on top of it.
@@ -473,3 +475,79 @@ class _GhostButtonState extends State<GhostButton> {
 bool get isPhone =>
     defaultTargetPlatform == TargetPlatform.android ||
     defaultTargetPlatform == TargetPlatform.iOS;
+
+/// Cuántas veces por segundo se vuelve a dibujar lo que se mueve solo, en
+/// el teléfono.
+///
+/// Los teléfonos de ahora refrescan noventa o ciento veinte veces por
+/// segundo, y cada una de esas veces el pueblo, el viento o el viejo se
+/// vuelven a calcular enteros. Con el dedo en la pantalla el teléfono sube
+/// el procesador y llega; al soltar lo baja para ahorrar batería y no llega,
+/// y se traba. A treinta se ve igual de suelto y es un tercio del trabajo.
+double get phoneFps => PerfGuard.instance.fps;
+
+/// Si lo que se mueve solo va con tope de [phoneFps]: en el teléfono
+/// siempre, y en cualquier sitio si el defensor de rendimiento lo bajó.
+bool get paced => isPhone || PerfGuard.instance.off('cuadros');
+
+/// Como un `AnimatedBuilder`, pero en el teléfono se rehace como mucho
+/// [fps] veces por segundo. Mide con el reloj de los fotogramas, que en las
+/// pruebas es el fingido, así que las pruebas ven lo mismo que el teléfono.
+class Paced extends StatefulWidget {
+  const Paced({
+    super.key,
+    required this.animation,
+    required this.builder,
+    this.fps,
+  });
+
+  final Listenable animation;
+  final WidgetBuilder builder;
+  final double? fps;
+
+  @override
+  State<Paced> createState() => _PacedState();
+}
+
+class _PacedState extends State<Paced> {
+  Duration? _ultimo;
+
+  void _cambio() {
+    if (!paced) {
+      setState(() {});
+      return;
+    }
+    final ahora = SchedulerBinding.instance.currentFrameTimeStamp;
+    final antes = _ultimo;
+    final paso = Duration(
+      microseconds: (1e6 / (widget.fps ?? phoneFps)).round() - 2000,
+    );
+    if (antes != null && ahora - antes < paso && ahora >= antes) return;
+    _ultimo = ahora;
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    widget.animation.addListener(_cambio);
+  }
+
+  @override
+  void didUpdateWidget(Paced old) {
+    super.didUpdateWidget(old);
+    if (old.animation != widget.animation) {
+      old.animation.removeListener(_cambio);
+      widget.animation.addListener(_cambio);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.animation.removeListener(_cambio);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.builder(context);
+}

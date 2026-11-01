@@ -521,8 +521,7 @@ class _HomeScreenState extends State<HomeScreen>
                   listenable: store,
                   builder: (_, _) => store.hasWorkshop
                       ? GhostButton(
-                          glyph: (c) =>
-                              BuilderGlyph(color: c, shadows: t.halo),
+                          glyph: (c) => BuilderGlyph(color: c, shadows: t.halo),
                           theme: t,
                           tooltip: tr('El constructor', 'The builder'),
                           onTap: _openBuilder,

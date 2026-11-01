@@ -19,6 +19,7 @@ import 'model/arrival.dart';
 import 'model/board_seen.dart';
 import 'model/board_slots.dart';
 import 'model/changes.dart';
+import 'model/perf_guard.dart';
 import 'model/reel.dart';
 import 'model/store.dart';
 import 'sync/cloud.dart';
@@ -266,6 +267,7 @@ class _PuebloAppState extends State<PuebloApp> with WidgetsBindingObserver {
     // No necesita conexión: sólo lee la sesión guardada.
     await Cloud.instance.init();
     await Appearance.instance.load();
+    await PerfGuard.instance.load();
     await BoardSlots.instance.load();
     await BoardSeen.instance.load();
     await LocalChanges.instance.load();

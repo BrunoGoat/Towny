@@ -486,6 +486,9 @@ void main() {
       expect(find.text('Modo rápido'), findsOneWidget);
       final mirar = find.text('PARA MIRAR');
       await tester.scrollUntilVisible(mirar, 120);
+      // Entero a la vista: asomando por el borde, el toque caía fuera.
+      await tester.ensureVisible(mirar);
+      await tester.pumpAndSettle();
       await tester.tap(mirar);
       await tester.pumpAndSettle();
       expect(find.text('Modo rápido'), findsNothing);

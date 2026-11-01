@@ -29,9 +29,10 @@ import '../model/board.dart';
 import '../model/board_slots.dart';
 import '../model/census.dart';
 import '../model/habit.dart';
+import '../model/perf_guard.dart';
 import '../model/piece.dart';
 import '../model/store.dart';
-import 'style.dart' show isPhone;
+import 'style.dart' show isPhone, paced, phoneFps;
 import 'unlock_sheet.dart' show townOrdinal;
 
 /// Handle the surrounding UI uses to drive the wall.
@@ -823,11 +824,13 @@ class _TownViewState extends State<TownView>
     // constructor, una hoja— o con el teclado abierto, el pueblo se repinta
     // unas pocas veces por segundo: detrás de un velo no se nota, y pintarlo
     // entero sesenta veces por segundo dejaba sin aire a lo de delante.
-    if (isPhone &&
-        (_tapado || _teclado) &&
-        _placement == null &&
-        _time - _pintado < 1 / 8) {
-      return;
+    // Y siempre, en el teléfono, a lo sumo treinta veces por segundo: ver
+    // [phoneFps].
+    if (paced) {
+      final paso = isPhone && (_tapado || _teclado) && _placement == null
+          ? 1 / 8
+          : 1 / phoneFps - 0.002;
+      if (_time - _pintado < paso && _time >= _pintado) return;
     }
     _pintado = _time;
     if (mounted) setState(() {});
@@ -1960,7 +1963,8 @@ class _TownViewState extends State<TownView>
       founding: _founding,
       workshopFall: _workshopFall,
       day: dayKey(DateTime.now()),
-      cinematic: Appearance.instance.cinematic,
+      cinematic:
+          Appearance.instance.cinematic && !PerfGuard.instance.off('calidad'),
     );
 
     return Listener(
