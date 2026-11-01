@@ -181,21 +181,38 @@ class _BuilderGlyphPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..color = color;
 
-    // La capucha: en punta arriba, y cayendo sobre los hombros.
+    // La capucha, echada hacia atrás: en punta arriba y cayendo a los
+    // hombros, abierta por delante. Cerrada alrededor de la cara se leía
+    // como un pasamontañas.
     final capucha = Path()
-      ..moveTo(2.8, 18.4)
-      ..cubicTo(1.8, 10.0, 4.6, 2.2, 10.0, 1.4)
-      ..cubicTo(15.4, 2.2, 18.2, 10.0, 17.2, 18.4)
-      ..quadraticBezierTo(10.0, 20.2, 2.8, 18.4);
-    // El hueco de la cara, con la barba corta y redonda abajo.
-    final cara = Path()
-      ..moveTo(5.6, 11.2)
-      ..cubicTo(5.2, 5.0, 14.8, 5.0, 14.4, 11.2)
-      ..cubicTo(14.4, 15.0, 12.4, 16.8, 10.0, 16.8)
-      ..cubicTo(7.6, 16.8, 5.6, 15.0, 5.6, 11.2);
+      ..moveTo(2.4, 19.0)
+      ..cubicTo(1.6, 12.0, 3.0, 4.2, 9.2, 1.2)
+      ..cubicTo(15.6, 2.4, 18.4, 11.0, 17.6, 19.0);
+    // El borde de la capucha sobre la frente: un arco, y nada más.
+    final borde = Path()
+      ..moveTo(4.4, 10.6)
+      ..cubicTo(4.0, 4.0, 16.0, 4.0, 15.6, 10.6);
+    final cejas = Path()
+      ..moveTo(6.5, 8.0)
+      ..quadraticBezierTo(7.7, 7.2, 8.9, 7.9)
+      ..moveTo(11.1, 7.9)
+      ..quadraticBezierTo(12.3, 7.2, 13.5, 8.0);
+    // La barba, corta y llena, de oreja a oreja por debajo del bigote.
+    final barba = Path()
+      ..moveTo(4.6, 10.8)
+      ..cubicTo(4.2, 14.4, 6.2, 17.6, 10.0, 17.8)
+      ..cubicTo(13.8, 17.6, 15.8, 14.4, 15.4, 10.8);
+    final bigote = Path()
+      ..moveTo(10.0, 12.0)
+      ..cubicTo(8.8, 11.3, 7.0, 11.6, 6.2, 13.0)
+      ..moveTo(10.0, 12.0)
+      ..cubicTo(11.2, 11.3, 13.0, 11.6, 13.8, 13.0);
     final todo = Path()
       ..addPath(capucha, Offset.zero)
-      ..addPath(cara, Offset.zero);
+      ..addPath(borde, Offset.zero)
+      ..addPath(barba, Offset.zero)
+      ..addPath(cejas, Offset.zero)
+      ..addPath(bigote, Offset.zero);
 
     for (final s in shadows ?? const <Shadow>[]) {
       final blur = math.min(s.blurRadius / k, 3.2);
@@ -209,30 +226,36 @@ class _BuilderGlyphPainter extends CustomPainter {
           ..maskFilter = ui.MaskFilter.blur(ui.BlurStyle.normal, blur),
       );
     }
-    // La barba, maciza a media tinta: del bigote para abajo, todo barba.
-    final barba = Path()
-      ..moveTo(5.6, 11.2)
-      ..cubicTo(7.0, 11.0, 8.6, 10.8, 10.0, 11.6)
-      ..cubicTo(11.4, 10.8, 13.0, 11.0, 14.4, 11.2)
-      ..cubicTo(14.4, 15.0, 12.4, 16.8, 10.0, 16.8)
-      ..cubicTo(7.6, 16.8, 5.6, 15.0, 5.6, 11.2)
+    // La barba maciza a media tinta debajo del bigote, como la del viejo.
+    final debajo = Path()
+      ..moveTo(4.6, 10.8)
+      ..lineTo(6.2, 13.0)
+      ..cubicTo(7.0, 11.6, 8.8, 11.3, 10.0, 12.0)
+      ..cubicTo(11.2, 11.3, 13.0, 11.6, 13.8, 13.0)
+      ..lineTo(15.4, 10.8)
+      ..cubicTo(15.8, 14.4, 13.8, 17.6, 10.0, 17.8)
+      ..cubicTo(6.2, 17.6, 4.2, 14.4, 4.6, 10.8)
       ..close();
     canvas.drawPath(
-      barba,
+      debajo,
       Paint()..color = color.withValues(alpha: color.a * 0.7),
     );
-    canvas.drawPath(todo, linea);
-    // El bigote, de trazo lleno encima de la barba.
+    canvas.drawPath(capucha, linea);
+    canvas.drawPath(borde, linea);
+    canvas.drawPath(barba, linea);
     canvas.drawPath(
-      Path()
-        ..moveTo(6.8, 12.6)
-        ..quadraticBezierTo(10.0, 10.8, 13.2, 12.6),
-      linea..strokeWidth = 1.35,
+      cejas,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.4
+        ..strokeCap = StrokeCap.round
+        ..color = color,
     );
-    // Los ojos, abiertos: dos puntos.
+    canvas.drawPath(bigote, linea..strokeWidth = 1.35);
+    // Los ojos, abiertos y alegres: dos puntos.
     final ojo = Paint()..color = color;
-    canvas.drawCircle(const Offset(7.9, 8.9), 0.85, ojo);
-    canvas.drawCircle(const Offset(12.1, 8.9), 0.85, ojo);
+    canvas.drawCircle(const Offset(7.7, 9.6), 0.8, ojo);
+    canvas.drawCircle(const Offset(12.3, 9.6), 0.8, ojo);
     canvas.restore();
   }
 

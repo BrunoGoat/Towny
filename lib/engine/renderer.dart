@@ -1823,8 +1823,21 @@ class TownPainter extends CustomPainter {
     int town,
   ) {
     final out = <Rider>[];
-    if (folk.isEmpty) return out;
+    // El taller va entre la gente, de atrás hacia delante con ella: cada
+    // caja suya antes de quien esté más cerca, y después de quien esté más
+    // lejos.
+    final taller = _tallerRiders(p, e);
+    var tj = 0;
+    void tallerHasta(double lejos) {
+      for (; tj < taller.length && taller[tj].$1 >= lejos; tj++) {
+        for (final r in taller[tj].$2) {
+          out.add(Rider(r.f, out.length, r.tag));
+        }
+      }
+    }
+
     for (final v in folk) {
+      tallerHasta((V3(v.at.x, v.y0 + v.size * 0.4, v.at.z) - p.eye).length);
       // El consejero lleva su propia marca: tocarlo abre lo que te tiene que
       // decir, no la ficha de un vecino.
       // Y el maestro de obras, la suya: tocarlo es ir a hablar con él.
@@ -1945,6 +1958,8 @@ class TownPainter extends CustomPainter {
       // Y las de delante, después.
       palomasHasta(double.negativeInfinity);
     }
+    // Y lo que quede del taller, que está más cerca que todos.
+    tallerHasta(double.negativeInfinity);
     return out;
   }
 
@@ -2183,47 +2198,50 @@ class TownPainter extends CustomPainter {
         out.add(Rider(f, seq++, -1));
       }
     }
-    // El taller del maestro de obras, desde la primera obra. Va como el agua
-    // y no archivado con el pueblo: el día que llega cae del cielo, y lo que
-    // cae no puede salir de lo que se guardó quieto. Son unas pocas cajas.
+    return out;
+  }
+
+  /// Las cajas del taller del constructor, cada una con lo lejos que queda
+  /// del ojo, de la más lejana a la más cercana. Van con la gente y no con
+  /// el agua: el agua se pinta toda en el sitio de la fuente, y el taller ahí
+  /// se pintaba encima de quien pasara por delante de él.
+  List<(double, List<Rider>)> _tallerRiders(Projector p, TownEntry e) {
+    final l = e.layout;
+    if (l.solo) return const [];
     final take = math.min(e.placed, l.pieces.length);
     final pueblo = scene.towns.indexOf(e);
     // Y en un ensayo, aunque el pueblo no tenga todavía su primera obra.
     final ensayo = pueblo == scene.active && scene.workshopFall != null;
-    if (water && (l.hasWorkshop(take) || ensayo)) {
-      final cae = pueblo == scene.active ? scene.workshopFall : null;
-      final dy = cae == null ? 0.0 : WorkshopShow.liftAt(cae);
-      if (dy != null) {
-        final tag = TouchMap.workshopTag + pueblo;
-        // De atrás hacia delante, como las cajas de una persona: son pocas,
-        // convexas y no se atraviesan, así que el centro de cada una alcanza
-        // para el orden entre ellas.
-        double lejos(Solid sol) {
-          var x = 0.0, y = 0.0, z = 0.0, n = 0;
-          for (final f in sol.faces) {
-            for (final v in f.v) {
-              x += v.x;
-              y += v.y;
-              z += v.z;
-              n++;
-            }
-          }
-          return (V3(x / n, y / n, z / n) - p.eye).length;
-        }
-
-        final orden = [..._tallerDe(l)]
-          ..sort((a, b) => lejos(b).compareTo(lejos(a)));
-        for (final sol in orden) {
-          for (final f in sol.faces) {
-            final g = dy.abs() < 1e-4 ? f : f.lifted(dy);
-            final a = g.v.first;
-            if ((p.eye - a).dot(g.n) <= 0) continue;
-            out.add(Rider(g..piece = -1, seq++, tag));
-          }
+    if (!l.hasWorkshop(take) && !ensayo) return const [];
+    final cae = pueblo == scene.active ? scene.workshopFall : null;
+    final dy = cae == null ? 0.0 : WorkshopShow.liftAt(cae);
+    if (dy == null) return const [];
+    final tag = TouchMap.workshopTag + pueblo;
+    double lejos(Solid sol) {
+      var x = 0.0, y = 0.0, z = 0.0, n = 0;
+      for (final f in sol.faces) {
+        for (final v in f.v) {
+          x += v.x;
+          y += v.y;
+          z += v.z;
+          n++;
         }
       }
+      return (V3(x / n, y / n + dy, z / n) - p.eye).length;
     }
-    return out;
+
+    final out = <(double, List<Rider>)>[];
+    for (final sol in _tallerDe(l)) {
+      final caras = <Rider>[];
+      for (final f in sol.faces) {
+        final g = dy.abs() < 1e-4 ? f : f.lifted(dy);
+        final a = g.v.first;
+        if ((p.eye - a).dot(g.n) <= 0) continue;
+        caras.add(Rider(g..piece = -1, 0, tag));
+      }
+      if (caras.isNotEmpty) out.add((lejos(sol), caras));
+    }
+    return out..sort((a, b) => b.$1.compareTo(a.$1));
   }
 
   /// Las cajas del taller de cada pueblo, hechas una vez.
