@@ -15,6 +15,7 @@ import 'package:towny/engine/renderer.dart';
 import 'package:towny/engine/scene.dart';
 import 'package:towny/engine/season.dart';
 import 'package:towny/engine/solid.dart';
+import 'package:towny/engine/solids.dart';
 import 'package:towny/engine/town.dart';
 import 'package:towny/fx/effects.dart';
 
@@ -792,6 +793,33 @@ void main() {
         }
       }
       expect(visto, greaterThan(20), reason: 'no se vio ninguna llegada');
+    });
+  });
+
+  group('el maestro de obras', () {
+    test('rodea la fuente, nunca la cruza', () {
+      // Iba en línea recta de su mesa a charlar con el viejo, y la recta
+      // pasaba por encima del pilón: se le veía atravesando el agua.
+      final pilon = Plaza.basinOf(TownLayout.plazaReach);
+      var vistos = 0;
+      for (var seed = 1; seed <= 24; seed++) {
+        final l = TownLayout(400, TownCharacter.all[seed % 8], seed: seed);
+        for (final w in folkOf(l, 400).where((v) => v.builder)) {
+          vistos++;
+          for (var k = 0; k < 4000; k++) {
+            final at = w.at(w.period * 2 * k / 4000);
+            final d = math.sqrt(
+              math.pow(at.x - l.cx, 2) + math.pow(at.z - l.cz, 2),
+            );
+            expect(
+              d,
+              greaterThan(pilon + 0.1),
+              reason: 'el maestro del valle $seed se mete en la fuente',
+            );
+          }
+        }
+      }
+      expect(vistos, greaterThan(10));
     });
   });
 

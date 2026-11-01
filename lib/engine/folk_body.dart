@@ -957,7 +957,8 @@ void _sabio(
   }
 
   final y = piso + bob - baja; // a lo que se suma la altura de cada parte
-  const corva = 0.035; // lo que adelanta la cabeza
+  // lo que adelanta la cabeza, y más cuando habla
+  final corva = 0.035 + 0.03 * _habla(at, 0);
 
   // La túnica, hasta el suelo y un poco más ancha abajo.
   box(-0.160, piso, -0.125, 0.160, y + 0.56, 0.125, tunica, 1.0);
@@ -1130,8 +1131,7 @@ void _pan(
 /// de la cabeza y lo separa de cualquier vecino, y el delantal oscuro sobre
 /// la túnica es «el que trabaja». Llevaba gorra de visera y camisa, y se leía
 /// como un obrero de ahora en un pueblo de antes. Anda con los saltitos de
-/// todos —no es viejo—, y el martillo le flota al costado como el bastón al
-/// viejo: aquí nadie tiene manos.
+/// todos —no es viejo—, y el martillo lo lleva colgado del cinto.
 void _maestro(
   void Function(double, double, double, double, double, double, int, double)
   box,
@@ -1167,8 +1167,9 @@ void _maestro(
   final baja = sentado ? _piernas : 0.0;
   final y = piso + bob - baja;
   final martilla = !at.moving && at.act == Doing.hammer;
-  // Martillando se inclina sobre la mesa.
-  final inclina = martilla ? 0.03 : 0.0;
+  // Martillando se inclina sobre la mesa; charlando, asiente cuando le
+  // toca hablar.
+  final inclina = martilla ? 0.03 : 0.03 * _habla(at, math.pi);
 
   // Las calzas, abajo, y la túnica encima desde la rodilla.
   const rodilla = 0.10;
@@ -1184,12 +1185,13 @@ void _maestro(
       0.92,
     );
   }
+  // La túnica, hasta los hombros: de ahí para arriba es la capita.
   box(
     -0.150,
     sentado ? piso : piso + rodilla,
     -0.116,
     0.150,
-    y + 0.56,
+    y + 0.45,
     0.116,
     tunica,
     1.0,
@@ -1202,7 +1204,7 @@ void _maestro(
     sentado ? piso + 0.10 : piso + rodilla - 0.02,
     0.116,
     0.122,
-    y + 0.31,
+    y + 0.30,
     0.140,
     delantal,
     0.96,
@@ -1213,7 +1215,7 @@ void _maestro(
     box(
       -0.150,
       piso,
-      0.105,
+      0.116,
       0.150,
       piso + 0.13,
       0.116 + _piernas,
@@ -1223,7 +1225,7 @@ void _maestro(
     box(
       -0.122,
       piso + 0.13,
-      0.105,
+      0.116,
       0.122,
       piso + 0.15,
       0.116 + _piernas,
@@ -1241,61 +1243,81 @@ void _maestro(
       0.92,
     );
   }
-  // La cabeza.
+  // La cabeza y la capucha, a cualquier distancia: es lo que le distingue
+  // de lejos. Y **ninguna caja metida dentro de otra**: se pintan de atrás
+  // hacia delante por su centro, y con la cara dentro de la capucha, según
+  // desde dónde se mirara la cara se pintaba encima y se comía trozos de
+  // capucha. Así que la cara es sólo la parte de delante, y la capucha la
+  // rodea por detrás, por arriba y por los lados sin tocarla por dentro.
+  const cara0 = 0.115, cara1 = 0.175;
+  // La capita, sobre los hombros.
+  box(-0.190, y + 0.450, -0.150, 0.190, y + 0.540, 0.150, capucha, 0.95);
+  // La capucha: la parte de atrás, hasta la cara.
+  box(
+    -0.222,
+    y + 0.540,
+    -0.192 + inclina,
+    0.222,
+    y + 1.000,
+    cara0 + inclina,
+    capucha,
+    1.0,
+  );
+  // Los dos lados de la cara y el borde de arriba, que le enmarcan.
+  for (final lado in [-1.0, 1.0]) {
+    box(
+      lado < 0 ? -0.222 : 0.205,
+      y + 0.540,
+      cara0 + inclina,
+      lado < 0 ? -0.205 : 0.222,
+      y + 0.900,
+      cara1 + inclina,
+      capucha,
+      0.97,
+    );
+  }
+  box(
+    -0.222,
+    y + 0.900,
+    cara0 + inclina,
+    0.222,
+    y + 1.000,
+    0.190 + inclina,
+    capucha,
+    0.97,
+  );
+  // La cara.
   box(
     -0.205,
-    y + 0.520,
-    -0.175 + inclina,
+    y + 0.540,
+    cara0 + inclina,
     0.205,
-    y + 0.950,
-    0.175 + inclina,
+    y + 0.900,
+    cara1 + inclina,
     piel,
     1.02,
   );
   if (detail > 0.25) {
-    // La capucha: arriba, por detrás y por los lados, con la cara
-    // asomando por delante; y la capita sobre los hombros.
-    box(
-      -0.222,
-      y + 0.470,
-      -0.192 + inclina,
-      0.222,
-      y + 1.000,
-      0.115 + inclina,
-      capucha,
-      1.0,
-    );
-    box(
-      -0.222,
-      y + 0.900,
-      0.115 + inclina,
-      0.222,
-      y + 1.000,
-      0.190 + inclina,
-      capucha,
-      0.97,
-    );
-    box(-0.190, y + 0.430, -0.150, 0.190, y + 0.540, 0.150, capucha, 0.95);
     // La barba bajo la cara y el bigote encima, unidos por los costados, y
     // entre los dos una raya de piel: la boca.
     box(
       -0.175,
-      y + 0.520,
-      0.170 + inclina,
+      y + 0.540,
+      cara1 + inclina,
       0.175,
       y + 0.620,
-      0.200 + inclina,
+      0.205 + inclina,
       barba,
       0.96,
     );
     for (final lado in [-1.0, 1.0]) {
       box(
-        lado < 0 ? -0.175 : 0.095,
-        y + 0.615,
-        0.170 + inclina,
-        lado < 0 ? -0.095 : 0.175,
-        y + 0.665,
-        0.200 + inclina,
+        lado < 0 ? -0.175 : 0.140,
+        y + 0.620,
+        cara1 + inclina,
+        lado < 0 ? -0.140 : 0.175,
+        y + 0.712,
+        0.205 + inclina,
         barba,
         0.96,
       );
@@ -1303,10 +1325,10 @@ void _maestro(
     box(
       -0.140,
       y + 0.655,
-      0.172 + inclina,
+      cara1 + inclina,
       0.140,
       y + 0.712,
-      0.198 + inclina,
+      0.203 + inclina,
       barba,
       0.97,
     );
@@ -1329,17 +1351,19 @@ void _maestro(
         0.9,
       );
     } else if (at.carry == null && !sentado) {
-      // Al costado, colgando, y va y viene con el paso.
-      final vaiven = at.moving ? 0.05 * math.sin(at.gait * 0.5) : 0.0;
-      final arriba = (0.235, y + 0.30, 0.02 + vaiven);
-      final abajo = (0.235, y + 0.08, 0.04 + vaiven);
+      // Metido en el cinto, al costado: el mango pasa por dentro del cinto
+      // y cuelga pegado a la túnica, con la cabeza abajo, que va y viene
+      // un poco con el paso. Antes colgaba a un palmo, flotando en el aire.
+      final vaiven = at.moving ? 0.03 * math.sin(at.gait * 0.5) : 0.0;
+      final arriba = (0.172, y + 0.36, 0.02);
+      final abajo = (0.176, y + 0.13, 0.03 + vaiven);
       link(arriba, abajo, 0.016, mango, 0.92);
       box(
-        abajo.$1 - 0.03,
-        abajo.$2 - 0.035,
+        abajo.$1 - 0.022,
+        abajo.$2 - 0.030,
         abajo.$3 - 0.055,
-        abajo.$1 + 0.03,
-        abajo.$2 + 0.035,
+        abajo.$1 + 0.022,
+        abajo.$2 + 0.030,
         abajo.$3 + 0.055,
         hierro,
         0.9,
@@ -1347,6 +1371,16 @@ void _maestro(
     }
   }
   if (feast != null && detail > 0.25) _pan(box, piso, feast);
+}
+
+/// Cuánto adelanta la cabeza quien charla, de cero a uno: hablan por
+/// turnos —el viejo en una mitad del compás y el maestro en la otra, que es
+/// lo que dice [turno]— y quien habla cabecea, que es lo que se lee de lejos
+/// como alguien diciendo algo. Cero si no está charlando.
+double _habla(FolkAt at, double turno) {
+  if (at.moving || at.act != Doing.chat) return 0;
+  final toca = smoothstep(0.2, 0.6, math.sin(at.phase * 0.9 + turno));
+  return toca * (0.5 + 0.5 * math.sin(at.phase * 7.0));
 }
 
 /// Dónde queda el pan en el regazo, con la altura sobre el asiento. Es

@@ -1408,9 +1408,9 @@ class NoticeBoard {
   /// Half the width of the plank people read.
   /// Two thirds of a metre across and shoulder high, near enough — smaller
   /// than a house wall and bigger than the thumb that has to find it.
-  static const double reach = 0.37;
-  static const double low = 0.52, high = 1.02;
-  static const double _post = 0.065, _top = 1.08;
+  static const double reach = 0.31;
+  static const double low = 0.50, high = 0.92;
+  static const double _post = 0.06, _top = 0.98;
 
   /// Dónde queda dentro de la plaza, medido desde su centro.
   ///
@@ -1759,7 +1759,9 @@ class PlazaWorkshop {
   static const double _angulo = 225 * math.pi / 180;
 
   /// Medio ancho y medio fondo del galpón, y alto de la pared y del caballete.
-  static const double half = 0.42, depth = 0.28, wall = 0.62, ridge = 0.98;
+  /// Un tercio más grande de lo que fue: al lado del tablón se perdía, y
+  /// es la casa de alguien.
+  static const double half = 0.55, depth = 0.36, wall = 0.80, ridge = 1.26;
 
   static double get offX => TownLayout.plazaReach * out * math.cos(_angulo);
   static double get offZ => TownLayout.plazaReach * out * math.sin(_angulo);
@@ -1858,21 +1860,21 @@ class PlazaWorkshop {
             ),
         // La puerta: el hueco oscuro, y el dintel.
         caja(
-          -0.13,
+          -0.16,
           y0 + zocalo,
           depth,
-          0.13,
-          wall - 0.12,
+          0.16,
+          wall - 0.15,
           depth + 0.012,
           hueco,
           0.8,
         ),
         caja(
-          -0.16,
-          wall - 0.12,
+          -0.20,
+          wall - 0.15,
           depth,
-          0.16,
-          wall - 0.08,
+          0.20,
+          wall - 0.10,
           depth + 0.02,
           viga,
           0.9,
@@ -1881,12 +1883,12 @@ class PlazaWorkshop {
         Solid(
           -1,
           gableFaces(
-                cx - half - 0.09,
+                cx - half - 0.11,
                 wall,
-                cz - depth - 0.11,
-                cx + half + 0.09,
+                cz - depth - 0.13,
+                cx + half + 0.11,
                 ridge,
-                cz + depth + 0.11,
+                cz + depth + 0.13,
                 true,
               )
               .map((f) => Facet(f.v, f.n, Surface.own, ao: f.ao, tint: teja))

@@ -170,6 +170,15 @@ class Store extends ChangeNotifier {
       pendingChoice != null &&
       habit.total == plan.firstWorkFrom(habit.chronicle);
 
+  /// Si el pueblo de ahora ya tiene el taller del constructor en la plaza:
+  /// desde su primera obra, y no mientras todavía la está eligiendo, que es
+  /// cuando cae.
+  bool get hasWorkshop {
+    final primera = plan.firstWorkFrom(habit.chronicle);
+    return habit.total > primera ||
+        (habit.total == primera && !firstWorkPending);
+  }
+
   /// Las obras que el pueblo ya terminó, de la primera a la última, con el
   /// día en que se puso su última piedra.
   List<(Landmark, DateTime)> get finishedWorks {

@@ -139,3 +139,104 @@ class _SageGlyphPainter extends CustomPainter {
   bool shouldRepaint(_SageGlyphPainter old) =>
       old.color != color || old.shadows != shadows;
 }
+
+/// El botón del constructor, al lado del del consejero y del mismo trazo: su
+/// cara de frente dentro de la capucha, que es lo que le distingue de lejos
+/// en la plaza, con la barba corta y llena y el bigote unido a ella.
+class BuilderGlyph extends StatelessWidget {
+  const BuilderGlyph({
+    super.key,
+    required this.color,
+    this.size = 20,
+    this.shadows,
+  });
+
+  final Color color;
+  final double size;
+  final List<Shadow>? shadows;
+
+  @override
+  Widget build(BuildContext context) => CustomPaint(
+    size: Size.square(size),
+    painter: _BuilderGlyphPainter(color, shadows),
+  );
+}
+
+class _BuilderGlyphPainter extends CustomPainter {
+  _BuilderGlyphPainter(this.color, this.shadows);
+
+  final Color color;
+  final List<Shadow>? shadows;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final k = size.width / 20;
+    canvas.save();
+    canvas.scale(k);
+    const trazo = 1.25;
+    final linea = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = trazo
+      ..strokeJoin = StrokeJoin.round
+      ..strokeCap = StrokeCap.round
+      ..color = color;
+
+    // La capucha: en punta arriba, y cayendo sobre los hombros.
+    final capucha = Path()
+      ..moveTo(2.8, 18.4)
+      ..cubicTo(1.8, 10.0, 4.6, 2.2, 10.0, 1.4)
+      ..cubicTo(15.4, 2.2, 18.2, 10.0, 17.2, 18.4)
+      ..quadraticBezierTo(10.0, 20.2, 2.8, 18.4);
+    // El hueco de la cara, con la barba corta y redonda abajo.
+    final cara = Path()
+      ..moveTo(5.6, 11.2)
+      ..cubicTo(5.2, 5.0, 14.8, 5.0, 14.4, 11.2)
+      ..cubicTo(14.4, 15.0, 12.4, 16.8, 10.0, 16.8)
+      ..cubicTo(7.6, 16.8, 5.6, 15.0, 5.6, 11.2);
+    final todo = Path()
+      ..addPath(capucha, Offset.zero)
+      ..addPath(cara, Offset.zero);
+
+    for (final s in shadows ?? const <Shadow>[]) {
+      final blur = math.min(s.blurRadius / k, 3.2);
+      if (blur <= 0) continue;
+      canvas.drawPath(
+        todo.shift(s.offset / k),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = trazo
+          ..color = s.color
+          ..maskFilter = ui.MaskFilter.blur(ui.BlurStyle.normal, blur),
+      );
+    }
+    // La barba, maciza a media tinta: del bigote para abajo, todo barba.
+    final barba = Path()
+      ..moveTo(5.6, 11.2)
+      ..cubicTo(7.0, 11.0, 8.6, 10.8, 10.0, 11.6)
+      ..cubicTo(11.4, 10.8, 13.0, 11.0, 14.4, 11.2)
+      ..cubicTo(14.4, 15.0, 12.4, 16.8, 10.0, 16.8)
+      ..cubicTo(7.6, 16.8, 5.6, 15.0, 5.6, 11.2)
+      ..close();
+    canvas.drawPath(
+      barba,
+      Paint()..color = color.withValues(alpha: color.a * 0.7),
+    );
+    canvas.drawPath(todo, linea);
+    // El bigote, de trazo lleno encima de la barba.
+    canvas.drawPath(
+      Path()
+        ..moveTo(6.8, 12.6)
+        ..quadraticBezierTo(10.0, 10.8, 13.2, 12.6),
+      linea..strokeWidth = 1.35,
+    );
+    // Los ojos, abiertos: dos puntos.
+    final ojo = Paint()..color = color;
+    canvas.drawCircle(const Offset(7.9, 8.9), 0.85, ojo);
+    canvas.drawCircle(const Offset(12.1, 8.9), 0.85, ojo);
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_BuilderGlyphPainter old) =>
+      old.color != color || old.shadows != shadows;
+}

@@ -358,7 +358,11 @@ class TouchMap {
       owner == sky ||
       owner == sign ||
       owner == folk ||
-      owner == sage;
+      owner == sage ||
+      // El maestro de obras y su taller: faltaba, y tocarlo a él sólo
+      // funcionaba si el dedo caía justo encima, sin margen, cosa que en
+      // alguien que mide doce píxeles no pasa casi nunca.
+      owner == workshop;
 
   /// Qué se toca en [pos]: lo que se ve bajo el dedo y, si eso no se puede
   /// tocar, lo tocable que se vea más cerca a menos de [reach] píxeles. Un

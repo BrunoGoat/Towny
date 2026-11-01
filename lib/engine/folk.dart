@@ -337,7 +337,11 @@ class Townsfolk {
       double periodo, {
       List<PropKind?>? carga,
     }) {
-      final r = _ronda(citas, periodo);
+      final r = _ronda(
+        citas,
+        periodo,
+        rodea: (cx, cz, Plaza.basinOf(TownLayout.plazaReach) + 0.2),
+      );
       return Townsfolk._(
           builderHome,
           s,
@@ -509,9 +513,16 @@ class Townsfolk {
     final donde = viejo._stops[ic];
     final dfx = cx - donde.$1, dfz = cz - donde.$2;
     final dfd = math.sqrt(dfx * dfx + dfz * dfz);
-    // Entre él y la fuente, que es hacia donde mira el viejo ahí parado: así
-    // se miran de frente.
-    final charla = (donde.$1 + dfx / dfd * 0.42, donde.$2 + dfz / dfd * 0.42);
+    // A su lado, en la misma vuelta alrededor de la fuente y a un paso largo
+    // de distancia: más cerca del agua se metía en el pilón, y pegado a él
+    // no se leía como una charla sino como un choque.
+    final rv = math.max(dfd, Plaza.basinOf(TownLayout.plazaReach) + 0.35);
+    final av = math.atan2(donde.$2 - cz, donde.$1 - cx) - 0.62 / rv;
+    final charla = (cx + math.cos(av) * rv, cz + math.sin(av) * rv);
+    // Y el viejo, ahí parado, se vuelve hacia él y charla: mirando cada uno
+    // a la fuente no parecían hablarse.
+    viejo._facing[ic] = hacia(donde, charla);
+    viejo._act[ic] = Doing.chat;
     final citas = <_Cita>[
       // Primera vuelta del viejo: se sienta con él, y después charlan.
       _Cita(yunque, 0, 0, hammer, PlazaWorkshop.anvilFacing),
@@ -2685,8 +2696,8 @@ List<(double x0, double z0, double x1, double z1)> _blockers(
     if (layout.hasWorkshop(placed)) {
       final ox = PlazaWorkshop.offX, oz = PlazaWorkshop.offZ;
       final r = math.sqrt(ox * ox + oz * oz);
-      final k = (r + 0.12) / r;
-      estorbo(cx + ox * k, cz + oz * k, 0.52, 0.52);
+      final k = (r + 0.15) / r;
+      estorbo(cx + ox * k, cz + oz * k, 0.66, 0.66);
     }
   }
   return out;
@@ -2721,12 +2732,59 @@ class _Cita {
   List<Doing?> acts,
   double desfase,
 })
-_ronda(List<_Cita> citas, double periodo) {
+_ronda(
+  List<_Cita> citas,
+  double periodo, {
+  (double, double, double)? rodea,
+}) {
   final n = citas.length;
+  double largo((double, double) a, (double, double) b) =>
+      math.sqrt(math.pow(b.$1 - a.$1, 2) + math.pow(b.$2 - a.$2, 2));
+  // Los quiebros para ir de una a la siguiente sin meterse en la fuente:
+  // si la recta pasa por encima del pilón, se va por el borde, por el lado
+  // más corto.
+  List<(double, double)> rodeo((double, double) a, (double, double) b) {
+    final o = rodea;
+    if (o == null) return const [];
+    final (ox, oz, radio) = o;
+    final dx = b.$1 - a.$1, dz = b.$2 - a.$2;
+    final l2 = dx * dx + dz * dz;
+    if (l2 < 1e-9) return const [];
+    final t = (((ox - a.$1) * dx + (oz - a.$2) * dz) / l2).clamp(0.0, 1.0);
+    final qx = a.$1 + dx * t - ox, qz = a.$2 + dz * t - oz;
+    if (qx * qx + qz * qz >= radio * radio) return const [];
+    final ta = math.atan2(a.$2 - oz, a.$1 - ox);
+    var giro = math.atan2(b.$2 - oz, b.$1 - ox) - ta;
+    while (giro > math.pi) {
+      giro -= 2 * math.pi;
+    }
+    while (giro < -math.pi) {
+      giro += 2 * math.pi;
+    }
+    final tramos = math.max(2, (giro.abs() / (math.pi / 7)).ceil());
+    // Un poco por fuera, para que la cuerda entre dos quiebros tampoco
+    // roce el borde.
+    final r = radio / math.cos(giro.abs() / tramos / 2);
+    return [
+      for (var k = 1; k < tramos; k++)
+        (
+          ox + math.cos(ta + giro * k / tramos) * r,
+          oz + math.sin(ta + giro * k / tramos) * r,
+        ),
+    ];
+  }
+
+  final vias = [
+    for (var i = 0; i < n; i++) rodeo(citas[i].at, citas[(i + 1) % n].at),
+  ];
   double camino(int i, int j) {
-    final a = citas[i].at, b = citas[j].at;
-    return math.sqrt(math.pow(b.$1 - a.$1, 2) + math.pow(b.$2 - a.$2, 2)) /
-        Townsfolk.pace;
+    var d = 0.0;
+    var desde = citas[i].at;
+    for (final q in vias[i]) {
+      d += largo(desde, q);
+      desde = q;
+    }
+    return (d + largo(desde, citas[j].at)) / Townsfolk.pace;
   }
 
   // Cuándo se llega de verdad a cada una, empezando por la primera a su hora.
@@ -2750,14 +2808,26 @@ _ronda(List<_Cita> citas, double periodo) {
     resto -= camino(i, (i + 1) % n);
     if (i > 0) resto -= sale[i] - llega[i];
   }
+  final quedas = [
+    math.max(0.0, resto),
+    for (var i = 1; i < n; i++) sale[i] - llega[i],
+  ];
   return (
-    stops: [for (final c in citas) c.at],
-    stay: [
-      math.max(0.0, resto),
-      for (var i = 1; i < n; i++) sale[i] - llega[i],
+    stops: [
+      for (var i = 0; i < n; i++) ...[citas[i].at, ...vias[i]],
     ],
-    facing: [for (final c in citas) c.mira],
-    acts: [for (final c in citas) c.hace],
+    stay: [
+      for (var i = 0; i < n; i++) ...[quedas[i], for (final _ in vias[i]) 0.0],
+    ],
+    facing: [
+      for (var i = 0; i < n; i++) ...[
+        citas[i].mira,
+        for (final _ in vias[i]) 0.0,
+      ],
+    ],
+    acts: [
+      for (var i = 0; i < n; i++) ...[citas[i].hace, for (final _ in vias[i]) null],
+    ],
     desfase: sale[0],
   );
 }

@@ -694,14 +694,17 @@ class _SagePrologueViewState extends State<SagePrologueView>
             child: LayoutBuilder(
               builder: (context, caja) {
                 final alto = caja.maxHeight;
-                final boton = listo ? 122.0 : 0.0;
+                // El sitio del botón de fundar está guardado desde el
+                // principio, vacío hasta que sale: si se abría al final,
+                // empujaba al viejo hacia arriba justo cuando terminaba de
+                // hablar.
+                const boton = 122.0;
                 // En un teléfono chico, una parte más grande de la pantalla:
-                // los globos de la presentación son largos.
+                // los globos de la presentación son largos. Y siempre la
+                // misma, por lo mismo.
                 final habla = math
                     .min(
-                      listo
-                          ? math.min(400, alto * 0.56)
-                          : math.min(360, alto * 0.52),
+                      math.min(400, alto * 0.56),
                       math.max(0, alto - boton - 70),
                     )
                     .toDouble();
@@ -727,9 +730,7 @@ class _SagePrologueViewState extends State<SagePrologueView>
                     ),
                     // Lo último es largo y va con el botón debajo: más alto, que
                     // si no el globo cortaba la última frase.
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 360),
-                      curve: Curves.easeOutCubic,
+                    SizedBox(
                       height: habla,
                       child: _Habla(
                         e: e,
@@ -746,9 +747,8 @@ class _SagePrologueViewState extends State<SagePrologueView>
                     ),
                     // Al terminar, en vez de «mantener», fundar: el mismo gesto
                     // de aguantar con el que después se pone cada pieza.
-                    AnimatedSize(
-                      duration: const Duration(milliseconds: 420),
-                      curve: Curves.easeOutCubic,
+                    SizedBox(
+                      height: boton,
                       child: listo
                           ? Center(
                               child: TweenAnimationBuilder<double>(
@@ -765,7 +765,7 @@ class _SagePrologueViewState extends State<SagePrologueView>
                                 ),
                               ),
                             )
-                          : const SizedBox(width: double.infinity),
+                          : null,
                     ),
                   ],
                 );
