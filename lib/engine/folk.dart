@@ -384,57 +384,89 @@ class Townsfolk {
         return (x, z);
       }
 
-      final dx = cx - obra.cx, dz = cz - obra.cz;
-      final d = math.max(1e-6, math.sqrt(dx * dx + dz * dz));
-      final pie = libreCerca(
-        obra.cx + dx / d * (obra.reach + 0.3),
-        obra.cz + dz / d * (obra.reach + 0.3),
-      );
-      // Y dos sitios más alrededor, a los lados, para dar vueltas mirando.
-      final lado = (-dz / d, dx / d);
-      final vuelta1 = libreCerca(
-        pie.$1 + lado.$1 * 0.9,
-        pie.$2 + lado.$2 * 0.9,
-      );
-      final vuelta2 = libreCerca(
-        pie.$1 - lado.$1 * 0.9,
-        pie.$2 - lado.$2 * 0.9,
-      );
+      // Dónde para con la carretilla: pegado a lo que ya está levantado de
+      // la obra, del lado al que se llega antes desde el taller. Antes
+      // paraba a un paso del radio de la obra —que es lo que va a ocupar
+      // terminada, no lo que ocupa ahora— y quedaba lejos, mirando una obra
+      // a tres metros.
+      double largoDe(
+        (double, double) a,
+        List<(double, double)> q,
+        (double, double) b,
+      ) {
+        var d = 0.0;
+        var desde = a;
+        for (final r in [...q, b]) {
+          d += math.sqrt(
+            math.pow(r.$1 - desde.$1, 2) + math.pow(r.$2 - desde.$2, 2),
+          );
+          desde = r;
+        }
+        return d;
+      }
+
+      (double, double)? mejor;
+      var ida = const <(double, double)>[];
+      var corto = double.infinity;
+      // Los sitios candidatos: al lado de cada pieza ya puesta de la obra,
+      // por sus cuatro caras y sus cuatro esquinas, donde haya suelo libre.
+      // De ésos, los doce más cerca del taller en línea recta, y de esos
+      // doce el que tenga el camino más corto de verdad por las calles.
+      final obraIdx = obra.index;
+      final candidatos = <(double, double)>[];
+      for (final pz in layout.pieces) {
+        if (pz.building != obraIdx || pz.index >= placed) continue;
+        final hx = pz.w / 2 + 0.38, hz = pz.d / 2 + 0.38;
+        for (final (sx, sz) in const [
+          (1.0, 0.0),
+          (-1.0, 0.0),
+          (0.0, 1.0),
+          (0.0, -1.0),
+          (1.0, 1.0),
+          (1.0, -1.0),
+          (-1.0, 1.0),
+          (-1.0, -1.0),
+        ]) {
+          final q = (pz.cx + sx * hx, pz.cz + sz * hz);
+          if (calles.clearAt(q)) candidatos.add(q);
+        }
+      }
+      double recta((double, double) q) =>
+          math.pow(q.$1 - puerta.$1, 2) + math.pow(q.$2 - puerta.$2, 2) + 0.0;
+      candidatos.sort((a, b) => recta(a).compareTo(recta(b)));
+      for (final sitio in candidatos.take(12)) {
+        final q = calles.route(puerta, sitio);
+        if (q.isEmpty && !calles.clearLine(puerta, sitio)) continue;
+        final d = largoDe(puerta, q, sitio);
+        if (d < corto) {
+          corto = d;
+          mejor = sitio;
+          ida = q;
+        }
+      }
+      final pie = mejor ?? libreCerca(obra.cx, obra.cz);
       final mirarObra = hacia(pie, (obra.cx, obra.cz));
-      final ida = calles.route(puerta, pie);
-      final vuelta = calles.route(vuelta2, puerta);
-      // La ronda a mano, con los quiebros de las calles: no va a hora con
-      // nadie.
-      final stops = <(double, double)>[
-        puerta,
-        ...ida,
-        pie,
-        vuelta1,
-        vuelta2,
-        ...vuelta,
-      ];
+      final vuelta = calles.route(pie, puerta);
+      // La ronda a mano, con los quiebros de las calles: carga en el
+      // taller, va por el camino más corto, descarga mirando la obra y
+      // vuelve por el mismo. No va a hora con nadie.
+      final stops = <(double, double)>[puerta, ...ida, pie, ...vuelta];
       final stay = <double>[
         4,
         for (final _ in ida) 0,
-        6,
-        hashRange(3, 5, s, 1),
-        hashRange(3, 5, s, 2),
+        hashRange(7, 9, s, 1),
         for (final _ in vuelta) 0,
       ];
       final facing = <double>[
         PlazaWorkshop.doorFacing,
         for (final _ in ida) 0,
         mirarObra,
-        hacia(vuelta1, (obra.cx, obra.cz)),
-        hacia(vuelta2, (obra.cx, obra.cz)),
         for (final _ in vuelta) 0,
       ];
       final acts = <Doing?>[
         Doing.unload,
         for (final _ in ida) null,
         Doing.unload,
-        Doing.idle,
-        Doing.idle,
         for (final _ in vuelta) null,
       ];
       var periodo = 0.0;
@@ -2732,11 +2764,7 @@ class _Cita {
   List<Doing?> acts,
   double desfase,
 })
-_ronda(
-  List<_Cita> citas,
-  double periodo, {
-  (double, double, double)? rodea,
-}) {
+_ronda(List<_Cita> citas, double periodo, {(double, double, double)? rodea}) {
   final n = citas.length;
   double largo((double, double) a, (double, double) b) =>
       math.sqrt(math.pow(b.$1 - a.$1, 2) + math.pow(b.$2 - a.$2, 2));
@@ -2826,7 +2854,10 @@ _ronda(
       ],
     ],
     acts: [
-      for (var i = 0; i < n; i++) ...[citas[i].hace, for (final _ in vias[i]) null],
+      for (var i = 0; i < n; i++) ...[
+        citas[i].hace,
+        for (final _ in vias[i]) null,
+      ],
     ],
     desfase: sale[0],
   );

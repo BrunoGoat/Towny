@@ -821,6 +821,49 @@ void main() {
       }
       expect(vistos, greaterThan(10));
     });
+
+    test('con obra, descarga pegado a lo que ya está levantado', () {
+      // Paraba a un paso del radio que va a tener la obra terminada, que
+      // con pocas piezas puestas era quedarse a metros de la obra.
+      var vistos = 0;
+      for (var seed = 1; seed <= 30; seed++) {
+        for (final placed in [30, 60, 120, 200]) {
+          final l = TownLayout(placed, TownCharacter.all[seed % 8], seed: seed);
+          TownBuilding? obra;
+          for (final b in l.buildings) {
+            if (!b.isLandmark) continue;
+            final p = math.min(math.max(0, placed - b.firstPiece), b.cost);
+            if (p > 0 && p < b.cost) obra = b;
+          }
+          if (obra == null) continue;
+          final w = folkOf(l, placed).where((v) => v.builder).firstOrNull;
+          if (w == null) continue;
+          final puerta = PlazaWorkshop.doorAt(l.cx, l.cz);
+          for (var k = 0; k < 3000; k++) {
+            final at = w.at(w.period * k / 3000);
+            if (at.moving || at.act != Doing.unload) continue;
+            if ((at.x - puerta.$1).abs() + (at.z - puerta.$2).abs() < 0.3) {
+              continue;
+            }
+            var cerca = 99.0;
+            for (final p in l.pieces) {
+              if (p.building != obra.index || p.index >= placed) continue;
+              final dx = math.max(0.0, (at.x - p.cx).abs() - p.w / 2);
+              final dz = math.max(0.0, (at.z - p.cz).abs() - p.d / 2);
+              cerca = math.min(cerca, math.sqrt(dx * dx + dz * dz));
+            }
+            expect(
+              cerca,
+              lessThan(0.7),
+              reason: 'valle $seed con $placed: descarga lejos de la obra',
+            );
+            vistos++;
+            break;
+          }
+        }
+      }
+      expect(vistos, greaterThan(20));
+    });
   });
 
   group('tumbarse', () {

@@ -593,41 +593,122 @@ List<Solid> folkSolids(
   void carried(PropKind what) {
     switch (what) {
       case PropKind.barrow:
-        // La carretilla, empujada: los dos varales desde donde irían las
-        // manos, la caja de tablas por delante y la rueda en el suelo, más
-        // adelante todavía. Con algo cargado —unas piedras— para que se vea
-        // que lleva material y no un cajón vacío.
-        const caja = 0xFF8A6A48, varal = 0xFF5E4630;
-        final rueda = at.moving ? at.gait * 0.9 : 0.0;
-        for (final x in [-0.13, 0.13]) {
+        // La carretilla. La rueda va **siempre en el suelo** y es el punto
+        // sobre el que todo gira: los varales van de las manos al eje, la
+        // caja va encima de los varales, y las dos patas de atrás cuelgan
+        // de ellos. Andando, las manos la levantan y las patas no tocan;
+        // parado, la baja hasta que apoya en las patas. Antes todo iba
+        // colgado de la altura del cuerpo, que da saltitos al andar, y con
+        // cada paso la rueda se despegaba del suelo.
+        const caja = 0xFF8A6A48, varal = 0xFF5E4630, hierro = 0xFF4A4A4E;
+        const radio = 0.085, eje = 0.80, atras = 0.12;
+        final ejeY = radio;
+        // Dónde van las manos: a la altura de las manos andando, y abajo
+        // —con la carretilla apoyada en sus patas— parado.
+        final manos = at.moving ? piso + 0.30 : 0.155;
+        double alto(double z) =>
+            ejeY + (manos - ejeY) * (eje - z) / (eje - atras);
+        // Los varales, de las manos hasta el eje, por fuera de la caja.
+        for (final x in [-0.15, 0.15]) {
           link(
-            (x, piso + 0.36, 0.14),
-            (x * 0.8, piso + 0.20, 0.56),
+            (x, manos, atras),
+            (x * 0.45, ejeY + 0.01, eje),
             0.016,
             varal,
             0.9,
           );
         }
-        box(-0.17, piso + 0.14, 0.34, 0.17, piso + 0.30, 0.66, caja, 0.95);
-        box(-0.13, piso + 0.29, 0.38, 0.13, piso + 0.35, 0.62, 0xFF9C978C, 1.0);
-        // La rueda, de canto, que gira con el paso.
-        final r = 0.075;
-        link(
-          (0, piso + r + math.sin(rueda) * r, 0.74 + math.cos(rueda) * r),
-          (0, piso + r - math.sin(rueda) * r, 0.74 - math.cos(rueda) * r),
-          0.030,
-          varal,
-          0.85,
-          deep: 0.025,
+        // Las patas de atrás, que bajan de los varales.
+        final zPata = 0.40;
+        for (final x in [-0.12, 0.12]) {
+          link(
+            (x, alto(zPata), zPata),
+            (x, alto(zPata) - 0.15, zPata - 0.01),
+            0.014,
+            varal,
+            0.88,
+          );
+        }
+        // La caja, encima de los varales y con su misma inclinación, entre
+        // las patas y la rueda: el fondo, los dos costados y los dos
+        // testeros, cada uno como una tabla que va de atrás a delante.
+        const z0 = 0.36, z1 = 0.70;
+        double fondo(double z) => alto(z) + 0.035;
+        void tabla(
+          double x,
+          double y,
+          double za,
+          double zb,
+          double grueso,
+          double ancho,
+        ) => link(
+          (x, fondo(za) + y, za),
+          (x, fondo(zb) + y, zb),
+          grueso,
+          caja,
+          0.93,
+          deep: ancho,
         );
-        link(
-          (0, piso + r + math.cos(rueda) * r, 0.74 - math.sin(rueda) * r),
-          (0, piso + r - math.cos(rueda) * r, 0.74 + math.sin(rueda) * r),
-          0.030,
-          varal,
-          0.85,
-          deep: 0.025,
-        );
+        tabla(0, 0, z0, z1, 0.013, 0.16);
+        for (final x in [-0.148, 0.148]) {
+          tabla(x, 0.065, z0, z1, 0.065, 0.012);
+        }
+        tabla(0, 0.06, z0, z0 + 0.024, 0.06, 0.136);
+        tabla(0, 0.045, z1 - 0.024, z1, 0.045, 0.136);
+        // Lo que lleva: unas piedras. Descargando, se van vaciando de a una
+        // al suelo, por delante de la rueda, y vuelve a empezar.
+        const piedra = 0xFF9C978C;
+        final descarga = !at.moving && at.act == Doing.unload;
+        final ciclo = descarga ? (at.phase * 0.55) % 1.0 : 0.0;
+        for (var k = 0; k < 3; k++) {
+          final px = -0.07 + k * 0.07;
+          final pz = 0.45 + (k.isEven ? 0.05 : 0.14);
+          final py = fondo(pz) + 0.013;
+          box(
+            px - 0.045,
+            py,
+            pz - 0.045,
+            px + 0.045,
+            py + 0.075 + (k == 1 ? 0.02 : 0),
+            pz + 0.045,
+            piedra,
+            k == 1 ? 1.02 : 0.96,
+          );
+        }
+        final base = fondo(0.55);
+        if (descarga) {
+          // Una piedra que sale de la caja en arco y cae a la pila.
+          final t = ciclo;
+          final px = lerpD(0.0, 0.26, t);
+          final pz = lerpD(0.55, 0.92, t);
+          final py = lerpD(base + 0.12, 0.0, t) + 0.22 * math.sin(math.pi * t);
+          box(
+            px - 0.04,
+            py,
+            pz - 0.04,
+            px + 0.04,
+            py + 0.07,
+            pz + 0.04,
+            piedra,
+            1.0,
+          );
+          // Y la pila en el suelo, al lado de la rueda.
+          box(0.20, 0.0, 0.86, 0.34, 0.06, 0.98, piedra, 0.94);
+          box(0.24, 0.06, 0.89, 0.31, 0.10, 0.95, piedra, 0.98);
+        }
+        // La rueda, de canto y apoyada en el suelo: un aro de ocho tramos
+        // que gira con lo que anda, con dos rayos en cruz y el eje.
+        final gira = at.moving ? -at.gait * 0.9 : 0.0;
+        (double, double, double) aro(double a) =>
+            (0.0, ejeY + math.sin(a) * radio, eje + math.cos(a) * radio);
+        for (var k = 0; k < 8; k++) {
+          final a = gira + k * math.pi / 4;
+          link(aro(a), aro(a + math.pi / 4), 0.018, hierro, 0.85, deep: 0.022);
+        }
+        for (final a in [gira, gira + math.pi / 2]) {
+          link(aro(a), aro(a + math.pi), 0.009, varal, 0.85, deep: 0.012);
+        }
+        link((-0.05, ejeY, eje), (0.05, ejeY, eje), 0.014, hierro, 0.85);
       case PropKind.stool:
         final m = hold(1, 0.05, -0.02);
         const alto = 0.17;
