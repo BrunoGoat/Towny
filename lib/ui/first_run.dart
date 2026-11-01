@@ -691,6 +691,7 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
                                         ),
                                       ),
                                       child: _Card(
+                                        key: _laTarjeta,
                                         step: _step,
                                         child: _content(),
                                       ),
@@ -1353,6 +1354,11 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
   /// a su sitio sobre el claro.
   double _lift = 0;
 
+  /// Lo que subió el cartel porque se abrió el teclado: la tarjeta sube con
+  /// él y lo tapaba, así que el cartel se va arriba de todo, más chico.
+  double _alza = 0;
+  bool _teclado = false;
+
   /// El pueblo de muestra de cada comarca, hecho una vez. Trescientas piezas:
   /// un pueblo hecho y derecho, con sus hitos, que es lo que se quiere mirar
   /// para elegir — y explorar, con [_Valley.exploring].
@@ -1479,6 +1485,7 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
     }
     _sign = toward(_sign, puesto, 0.45);
     _lift = toward(_lift, widget.stage == 2 && !widget.leaving, 0.7);
+    _alza = toward(_alza, _teclado, 0.3);
     // En el teléfono, con el valle quieto —nada entrando ni saliendo, sólo
     // el vaivén lento de la cámara—, se repinta unas pocas veces por
     // segundo y no sesenta: pintar el pueblo entero en cada fotograma no
@@ -1494,6 +1501,7 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
         !_peeking &&
         hecho(_sign) &&
         hecho(_lift) &&
+        hecho(_alza) &&
         hecho(_preview) &&
         hecho(_explore);
     if (quieto && _time - _pintado < 1 / 8) return;
@@ -1512,6 +1520,7 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    _teclado = MediaQuery.viewInsetsOf(context).bottom > 0;
     final a = Appearance.instance;
     final hora = a.hourNow;
     final pal = Palette.forMoment(hora, season: a.season);
@@ -1622,6 +1631,19 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
     double muestra,
     double vista,
   ) {
+    final arriba = math.max(_lift, _alza);
+    // Con el teclado, arriba de todo si queda sitio encima de la tarjeta; si
+    // la tarjeta llega hasta ahí, el cartel se apaga en vez de quedar tapado
+    // a medias.
+    final alto = MediaQuery.of(context).padding.top + 18;
+    final tarjeta = _laTarjeta.currentContext?.findRenderObject();
+    final tope = tarjeta is RenderBox && tarjeta.hasSize
+        ? tarjeta.localToGlobal(Offset.zero).dy
+        : double.infinity;
+    // Lo que se ve del cartel termina unos ciento diez puntos más abajo de
+    // donde se lo cuelga: va centrado en su destello.
+    final cabe = clampD((tope - (alto + 112)) / 14, 0, 1);
+    final seVe = lerpD(1, cabe, Curves.easeInOutCubic.transform(_alza));
     final cartel = _sign > 0.001
         ? _cam
               .projector(box.maxWidth, box.maxHeight, 0)
@@ -1668,27 +1690,32 @@ class _ValleyState extends State<_Valley> with SingleTickerProviderStateMixin {
             // Sobre el claro, o arriba de todo mientras se elige la comarca.
             top: lerpD(
               cartel.y - 74,
-              MediaQuery.of(context).padding.top + 18,
-              Curves.easeInOutCubic.transform(_lift),
+              alto,
+              Curves.easeInOutCubic.transform(arriba),
             ),
             child: IgnorePointer(
               child: Opacity(
                 // Al recorrer el pueblo, arriba va el nombre de la comarca.
                 opacity:
                     Curves.easeOut.transform(_sign) *
-                    (1 - Curves.easeInOutCubic.transform(_explore)),
+                    (1 - Curves.easeInOutCubic.transform(_explore)) *
+                    seVe,
                 child: Transform.translate(
                   offset: Offset(
                     (cartel.x - box.maxWidth / 2) *
-                        (1 - Curves.easeInOutCubic.transform(_lift)),
+                        (1 - Curves.easeInOutCubic.transform(arriba)),
                     10 * (1 - _sign),
                   ),
-                  child: _ClearingSign(
-                    name: widget.name.trim(),
-                    symbol: widget.symbol,
-                    settle: _settledAt == null
-                        ? 1
-                        : clampD((_time - _settledAt!) / 1.6, 0, 1),
+                  child: Transform.scale(
+                    scale: 1 - 0.18 * Curves.easeInOutCubic.transform(_alza),
+                    alignment: Alignment.topCenter,
+                    child: _ClearingSign(
+                      name: widget.name.trim(),
+                      symbol: widget.symbol,
+                      settle: _settledAt == null
+                          ? 1
+                          : clampD((_time - _settledAt!) / 1.6, 0, 1),
+                    ),
                   ),
                 ),
               ),
@@ -2126,8 +2153,12 @@ class _FoundingName extends StatelessWidget {
 // ---------------------------------------------------------------- la tarjeta
 
 /// El vidrio donde van las preguntas, con el recorrido arriba.
+/// La tarjeta de las preguntas, para saber dónde empieza: el cartel del
+/// valle sube por encima de ella con el teclado, si cabe.
+final GlobalKey _laTarjeta = GlobalKey();
+
 class _Card extends StatelessWidget {
-  const _Card({required this.step, required this.child});
+  const _Card({super.key, required this.step, required this.child});
 
   final int step;
   final Widget child;
