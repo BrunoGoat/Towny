@@ -818,13 +818,22 @@ class Townsfolk {
   /// sitios de **esa** vuelta: hecho una sola vez, con los de la ronda de
   /// siempre, una parada corrida a un sitio donde sólo cabe una cosa se
   /// quedaba con el rato de dos, y hacía la misma cosa veinte segundos.
+  // Con lo que hace en **esta** vuelta, que es la que se sigue: con lo de
+  // siempre, a quien en esta vuelta le tocaba sentarse donde de costumbre
+  // sólo mira, se le daba la parada corta de mirar y se levantaba a los
+  // pocos segundos de tocarla.
   List<double> get _spotStay => _spotStayMemo ??= [
     for (var i = 0; i < _stay.length; i++)
-      _act[i] == null
+      (_spotActs ?? _act)[i] == null
           ? 0.0
-          : _act[i] == Doing.idle
+          : (_spotActs ?? _act)[i] == Doing.idle
           ? _spotGlance
-          : (_spotChoices(i).length > 1 ? _spotStop : _spotFirst + 2.4),
+          : (_spotChoices(i).length > 1 ? _spotStop : _spotFirst + 2.4) +
+                // Y las idas a la puerta a por lo que trae y a dejarlo, que
+                // no son estar haciéndolo: sin sumarlas, a quien se sentaba
+                // en su banqueta se le comían el rato sentado.
+                (_swapAt(_swapIn, i) != null ? _swapLength : 0.0) +
+                (_swapAt(_swapOut, i) != null ? _swapLength : 0.0),
   ];
 
   List<double>? _spotStayMemo;
@@ -1096,10 +1105,14 @@ class Townsfolk {
       // segundos (ver [_spotFirst]). Si se cayera en el mismo segundo de la
       // parada, que con el horario nuevo es otra cosa, el libro que estaba
       // leyendo desaparecía al tocarla.
+      // Contando, si lo trajo de casa, lo que tardó en ir a buscarlo: si no,
+      // se le volvía a mandar a la puerta en el momento de tocarla.
+      final j = (i + 1) % _spotStops!.length;
+      final fue = _swapAt(_swapIn, j) != null ? _swapLength : 0.0;
       final target = _uOf(
         i,
         walking,
-        walking ? k : math.min(k, 1.25),
+        walking ? k : math.min(k, fue + 1.25),
         _spotStay,
         _spotStops!,
       );

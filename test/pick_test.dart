@@ -96,6 +96,9 @@ void main() {
       for (final abajo in layout.pieces) {
         for (final arriba in layout.pieces) {
           if (identical(abajo, arriba)) continue;
+          // Sólo las puestas: el plano trae una de más, la que va a caer
+          // después, que no se dibuja y no se puede tocar.
+          if (arriba.index >= 60 || abajo.index >= 60) continue;
           if ((arriba.cx - abajo.cx).abs() > 0.15) continue;
           if ((arriba.cz - abajo.cz).abs() > 0.15) continue;
           if (arriba.y0 < abajo.y1 - 0.01) continue;

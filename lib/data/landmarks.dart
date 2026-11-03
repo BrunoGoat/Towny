@@ -144,7 +144,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'cruz',
     'Cruz de término',
-    6,
+    5,
     0,
     'Marca el lugar donde empieza el hogar. Recibe a quien llega y '
         'acompaña a quien parte.',
@@ -152,9 +152,9 @@ final List<Landmark> landmarks = [
       m.plinth(1.6, 1.6, 0.24);
       m.plinth(1.15, 1.15, 0.24);
       m.plinth(0.8, 0.8, 0.24);
-      m.post(0.26, 1.9, at: m.y);
+      // El palo de una pieza, de la base hasta por encima de los brazos.
+      m.post(0.26, 2.2, at: m.y - 0.02);
       m.beam(1.05, 0.26, 0.26, at: m.y + 1.5);
-      m.post(0.26, 0.4, at: m.y + 1.76);
     },
     rigid: true,
   ),
@@ -356,7 +356,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'molinoViento',
     'Molino de viento',
-    13,
+    10,
     1,
     'El viento convertido en harina. Mientras giran las aspas, hay pan '
         'para todos.',
@@ -386,8 +386,6 @@ final List<Landmark> landmarks = [
       // eje: el rotor entero volando medio metro por delante del molino, que
       // de frente no se nota y de costado es lo único que se ve.
       m.sails(4.0, dz: -1.15, at: coronilla - 0.5);
-      m.stair(0.95, 0.42, 0.85, dz: 1.6);
-      m.outbuilding(1.35, 1.15, 0.9, 0.5, dx: 2.4, dz: 1.5);
     },
     rigid: true,
   ),
@@ -623,25 +621,21 @@ final List<Landmark> landmarks = [
   Landmark(
     'escuela',
     'Escuela de gramática',
-    13,
+    10,
     1,
     'Donde los niños aprenden a leer el mundo. Cada lección es una '
         'puerta que se abre.',
     (m) {
-      m.plinth(3.2, 2.3, 0.34);
+      m.plinth(3.4, 2.8, 0.34, dz: 0.1);
       m.floor(2.9, 2.0, 1.3);
       m.floor(2.85, 1.95, 1.1);
       m.roof(3.25, 2.4, 0.95);
-      m.arcade(2.8, 1.15, 0.7, dz: 1.4, at: 0);
-      m.beam(3.0, 0.8, 0.18, dz: 1.4, at: 1.15);
+      m.arcade(2.8, 1.3, 0.7, dz: 1.0, at: 0);
+      m.beam(3.0, 0.8, 0.18, dz: 1.0, at: 1.25);
       m.dormer(0.65, 0.6, dx: -0.9, dz: 0.75);
       m.dormer(0.65, 0.6, dx: 0.9, dz: 0.75);
-      m.chimney(0.32, 0.95, dx: -1.1);
-      // La espadaña de la campana, en su propia torrecilla y desde el suelo.
-      m.box(PieceKind.floor, 0.95, 0.95, 2.7, dx: 1.75, dz: -1.15, at: 0);
-      m.spire(1.1, 1.1, 0.95, dx: 1.75, dz: -1.15, at: 2.7);
       m.tree(1.25, 2.3, dx: -2.4, dz: 1.5);
-      m.stair(1.5, 0.34, 0.7, dz: 1.8);
+      m.stair(2.8, 0.34, 0.7, dz: 1.45);
     },
   ),
 
@@ -680,23 +674,23 @@ final List<Landmark> landmarks = [
       m.plinth(2.5, 3.4, 0.34);
       m.floor(2.2, 3.1, 1.45);
       m.roof(2.55, 3.45, 1.15, along: false);
-      m.box(PieceKind.floor, 1.15, 1.15, 2.9, dz: -2.3, at: 0);
+      m.box(PieceKind.floor, 1.15, 1.15, 2.9, dz: -2.1, at: 0);
       m.box(
         PieceKind.parapet,
         1.35,
         1.35,
         0.32,
-        dz: -2.3,
+        dz: -2.1,
         ridge: true,
         at: 2.9,
       );
-      m.spire(1.2, 1.2, 1.15, dz: -2.3, at: 3.22);
-      m.arcade(2.1, 1.05, 0.5, dz: 1.65, at: 0);
-      m.roof(2.35, 0.75, 0.42, dz: 1.67, at: 1.05);
-      m.stair(1.35, 0.34, 0.7, dz: 2.1);
+      m.spire(1.2, 1.2, 1.15, dz: -2.1, at: 3.22);
+      m.arcade(1.5, 1.5, 0.5, dz: 1.55, at: 0);
+      m.roof(1.8, 1.0, 0.3, dz: 1.6, at: 1.4);
+      m.stair(1.5, 0.34, 0.7, dz: 1.85);
       m.tree(1.25, 2.5, dx: 1.95, dz: 1.55);
       m.tree(1.15, 2.2, dx: -1.95, dz: 1.55);
-      m.palisade(3.2, 0.55, dx: -1.85, along: false);
+      m.palisade(3.2, 0.55, dx: -1.85, dz: -0.3, along: false);
     },
   ),
 
