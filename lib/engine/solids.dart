@@ -2154,10 +2154,25 @@ class Plaza {
   /// Pequeña a propósito. Hay un hito que es una fuente y cuesta sus piezas;
   /// ésta es el pilón de una plaza de pueblo, que es otra cosa y tiene que
   /// parecerlo: un brocal bajo con agua, sin surtidor ni figuras.
+  /// Cuánto tapa la luz la sombra clara de la fuente: la del agua y la de lo
+  /// que va por encima del pilón. La del pilón es entera (uno).
+  static const double waterShadow = 0.55;
+
+  /// Si [b] es de la fuente de la plaza de ([cx], [cz]) y asoma por encima
+  /// del brocal del pilón: el pilar, la taza, el caño.
+  static bool isFountainTop(Aabb b, double cx, double cz) {
+    final r = basinOf(TownLayout.plazaReach);
+    final mx = (b.x0 + b.x1) / 2 - cx, mz = (b.z0 + b.z1) / 2 - cz;
+    return mx * mx + mz * mz < r * r * 0.25 && b.y1 > _rimTop + 0.01;
+  }
+
+  /// Lo alto del brocal del pilón.
+  static const double _rimTop = 0.40;
+
   static List<Solid> _fountain(double cx, double cz, double r) {
     final taza = basinOf(r) / 1.14;
     const suelo = 0.035;
-    const alto = 0.40;
+    const alto = _rimTop;
     return [
       // El escalón sobre el que se apoya, que es lo que la levanta del
       // enlosado y le da sombra propia.

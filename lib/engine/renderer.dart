@@ -1591,8 +1591,8 @@ class TownPainter extends CustomPainter {
   /// **La sombra del agua, quieta y suave.** Salía del agua de cada
   /// fotograma, y como el velo se rasga en hilos y gotas que nunca caen
   /// iguales, la sombra temblaba entera sobre el enlosado. Ahora es la del
-  /// agua en un instante fijo, guardada por pueblo, y del mismo gris que la
-  /// de la piedra; lo único que se mueve en ella es la del surtidor, que es
+  /// agua en un instante fijo, guardada por pueblo, y más clara que la del
+  /// pilón; lo único que se mueve en ella es la del surtidor, que es
   /// lo que sube.
   static Iterable<ShadowCaster> _sombraAgua(
     TownLayout l,
@@ -1627,11 +1627,11 @@ class TownPainter extends CustomPainter {
 
   static final Map<(double, double, bool), List<ShadowCaster>> _aguaQuieta = {};
 
-  /// Toda del mismo tono que la de la piedra de la fuente: cada hilo de
-  /// agua tapaba según lo transparente que fuera, y la sombra salía en
-  /// retazos de grises distintos, con la del pilar más oscura en medio.
+  /// Toda de un solo tono, el claro de la fuente ([Plaza.waterShadow]):
+  /// cada hilo de agua tapaba según lo transparente que fuera, y la sombra
+  /// salía en retazos de grises distintos.
   static Iterable<ShadowCaster> _suave(Iterable<ShadowCaster> c) =>
-      c.map((s) => (pts: s.pts, k: 1.0));
+      c.map((s) => (pts: s.pts, k: Plaza.waterShadow));
 
   /// Si [f] es del surtidor: lo que sube por el medio, sobre el agua de la
   /// taza de arriba.

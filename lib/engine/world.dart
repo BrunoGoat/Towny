@@ -552,14 +552,20 @@ BuiltTown _build(TownLayout layout, int placed, BuiltTown? before) {
   }
 
   /// Files one lot of furniture: not a piece, so it belongs to no achievement.
-  void furnish(List<Solid> solids, {bool board = false}) {
+  void furnish(
+    List<Solid> solids, {
+    bool board = false,
+    double Function(Aabb box)? tono,
+  }) {
     for (final solid in solids) {
       final box = Aabb.of(solid.faces);
       if (box == null) continue;
       asFurniture(solid, box);
       if (board) asBoard(solid);
       final sombra = casterOfSolid(solid);
-      if (sombra != null) sombras.add(sombra);
+      if (sombra != null) {
+        sombras.add(tono == null ? sombra : (pts: sombra.pts, k: tono(box)));
+      }
       file(solid, box, const <int>{});
     }
   }
@@ -590,6 +596,12 @@ BuiltTown _build(TownLayout layout, int placed, BuiltTown? before) {
         grass: layout.character.lawn.toARGB32(),
         mata: layout.character.order,
       ),
+      // La fuente echa dos sombras: oscura la del pilón de abajo, y clara
+      // —la misma que la del agua— la de lo que asoma por encima: el pilar,
+      // la taza y el caño, que se leen junto con el agua que cae.
+      tono: (b) => Plaza.isFountainTop(b, layout.cx, layout.cz)
+          ? Plaza.waterShadow
+          : 1.0,
     );
     furnish(PlazaBench.solidsAt(layout.cx, layout.cz));
     final board = NoticeBoard.solidsAt(
