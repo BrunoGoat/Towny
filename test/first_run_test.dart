@@ -75,7 +75,7 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('antes de nada, el viejo: se presenta, da dos consejos y '
+    testWidgets('antes de nada, el viejo: se presenta, da su consejo y '
         'deja el botón para fundar', (tester) async {
       await tester.pumpWidget(
         _marco(
@@ -98,7 +98,7 @@ void main() {
         findsWidgets,
       );
       await pasarPresentacion(tester);
-      // Sus dos consejos quedaron en su libro, leídos, y ya se presentó.
+      // Su consejo quedó en su libro, leído, y ya se presentó.
       expect(
         AdviceBook.instance.read().map((g) => g.$1.id),
         containsAll(prologueAdvice),
@@ -107,6 +107,30 @@ void main() {
       // Y del salto sale la primera pregunta, sin vuelta atrás al viejo.
       expect(find.text('¿Qué hábito querés desarrollar?'), findsOneWidget);
       expect(find.byIcon(Icons.arrow_back_rounded), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('si se sale antes de fundar, la presentación vuelve de cero', (
+      tester,
+    ) async {
+      // Se vio la presentación, se ganó el consejo, y se cerró la app en el
+      // nombre del hábito: al volver, el viejo se presenta otra vez y el
+      // libro no puede tener ya lo que va a dar.
+      AdviceBook.instance.give(adviceById[prologueAdvice.first]!);
+      AdviceBook.instance.meet();
+      await tester.pumpWidget(
+        _marco(
+          FirstRun(onDone: (_, _, {required character, why, identity}) {}),
+        ),
+      );
+      await _asentar(tester);
+      expect(AdviceBook.instance.read(), isEmpty);
+      expect(AdviceBook.instance.met, isFalse);
+      await pasarPresentacion(tester);
+      expect(
+        AdviceBook.instance.read().map((g) => g.$1.id),
+        containsAll(prologueAdvice),
+      );
       expect(tester.takeException(), isNull);
     });
 

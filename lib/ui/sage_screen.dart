@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -559,6 +560,20 @@ class _SagePrologueViewState extends State<SagePrologueView>
     PerfGuard.instance.enter(PerfScene.consejero);
     // La primera vez que se lo ve, ya con su música.
     Sensory.instance.sceneMusic(Sensory.sageTrack);
+    // Si se vuelve a ver es porque se salió antes de fundar —en el nombre
+    // del hábito, por ejemplo— y empieza todo otra vez: también el libro.
+    // Si no, volvía a presentarse con el consejo ya ganado en la lista.
+    // Sólo mientras ningún pueblo le contestó nada, que es cuando todo lo
+    // que hay en el libro es de esta presentación.
+    // Después del primer cuadro: borrar avisa a quien lo escucha, y eso no
+    // puede pasar en medio de armar la pantalla.
+    if (!widget.rehearsal && _libro.noGoals) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || _paso > 0) return;
+        _libro.forget();
+        unawaited(_libro.flush());
+      });
+    }
   }
 
   @override
