@@ -2064,8 +2064,30 @@ class TownPainter extends CustomPainter {
     final l = e.layout;
     if (l.solo || !scene.cinematic) return const [];
     final take = math.min(e.placed, l.pieces.length);
-    return [..._plazaQuieta(l, take, pal), ...plazaShadows(l, 0, pal, moving)];
+    return _sombrasEnOrden(l, take, pal, moving);
   }
+
+  /// Las sombras de la plaza en el orden en que se pintan, que es el que
+  /// decide cuál queda encima donde se pisan: primero lo que se transparenta
+  /// —el agua de la fuente, clara—, después lo quieto y al final la gente.
+  /// Iba lo quieto primero, y el agua, que se mueve, tapaba la sombra
+  /// oscura del pilón de la fuente.
+  static List<Facet> _sombrasEnOrden(
+    TownLayout l,
+    int take,
+    Palette pal,
+    Iterable<ShadowCaster> moving,
+  ) => [
+    ...plazaShadows(l, 0, pal, [
+      for (final c in moving)
+        if (c.k < 1) c,
+    ]),
+    ..._plazaQuieta(l, take, pal),
+    ...plazaShadows(l, 0, pal, [
+      for (final c in moving)
+        if (c.k >= 1) c,
+    ]),
+  ];
 
   /// Si [f] es un trozo del suelo de la plaza —el césped, el bordillo o su
   /// canto, mirando arriba—, pinta encima las [sombras] de su altura,
@@ -2235,10 +2257,7 @@ class TownPainter extends CustomPainter {
     var seq = (water ? -1 : -2) << 20;
     if (shadows && scene.cinematic) {
       final take = math.min(e.placed, l.pieces.length);
-      for (final f in [
-        ..._plazaQuieta(l, take, pal),
-        ...plazaShadows(l, 0, pal, moving),
-      ]) {
+      for (final f in _sombrasEnOrden(l, take, pal, moving)) {
         out.add(Rider(f, seq++, -1));
       }
     }
