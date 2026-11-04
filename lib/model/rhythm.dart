@@ -36,6 +36,19 @@ List<DateTime> daysOf(Habit h) {
   return list;
 }
 
+/// Desde qué día cuenta un hábito para su ritmo: el de su primera pieza.
+///
+/// No el día en que se fundó. Un hábito nuevo se funda casi siempre el día que
+/// se desbloquea, con las ganas de lo nuevo, y ese día o los siguientes muchas
+/// veces no tocaba: contarlos como días sin pieza era empezar con fallos que no
+/// lo eran. El hábito arranca de verdad con su primera pieza, y desde ahí se
+/// cuenta todo —lo que se lleva y lo que se afloja—. Sin piezas, nulo: todavía
+/// no cuenta nada.
+DateTime? countsFrom(Habit h) {
+  final dias = daysOf(h);
+  return dias.isEmpty ? null : dias.first;
+}
+
 /// Qué fue de un día del calendario.
 ///
 /// Tres estados y no dos, porque un día dormido no es un día en blanco. Sin
@@ -164,11 +177,9 @@ Consistency consistencyOf(Habit h, {DateTime? at, double perWeek = 7}) {
   if (days.isEmpty) return const Consistency(0, 0);
 
   var from = shiftDays(today, -(Consistency.window - 1));
-  // Ni antes de que existiera el hábito ni antes de su primera pieza: repartir
-  // tus piezas entre días en los que no había dónde ponerlas es inventarse
-  // fallos.
-  var born = dayStart(h.createdAt);
-  if (days.first.isBefore(born)) born = days.first;
+  // Desde su primera pieza ([countsFrom]): repartir tus piezas entre días en
+  // los que el hábito todavía no había arrancado es inventarse fallos.
+  final born = days.first;
   if (born.isAfter(from)) from = born;
 
   final on = <int>{for (final d in days) dayKey(d)};

@@ -80,11 +80,8 @@ Notice? ahead(
   // Desde cuándo hay hábito. Lo antes de las dos cosas: normalmente el día que
   // se fundó, pero unas piezas anteriores a su propia fecha de creación —datos
   // traídos de otra parte— no pueden dar una ventana negativa.
-  var nace = dayStart(h.createdAt);
-  if (h.pieces.isNotEmpty) {
-    final primera = dayStart(h.pieces.first.placedAt);
-    if (primera.isBefore(nace)) nace = primera;
-  }
+  // Desde su primera pieza: ver [countsFrom].
+  final nace = countsFrom(h) ?? today;
   final desde = nace.isAfter(shiftDays(today, -29))
       ? nace
       : shiftDays(today, -29);

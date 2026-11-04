@@ -46,8 +46,8 @@ double? observedRate(Habit h, {DateTime? at}) {
   final today = dayStart(at ?? DateTime.now());
   final days = daysOf(h);
   if (days.isEmpty) return null;
-  var born = dayStart(h.createdAt);
-  if (days.first.isBefore(born)) born = days.first;
+  // Desde la primera pieza: ver [countsFrom].
+  final born = days.first;
   var from = DateTime(today.year, today.month, today.day - 27);
   if (born.isAfter(from)) from = born;
   var span = 0, on = 0;
@@ -135,7 +135,8 @@ bool cadenceDue(Habit h, {DateTime? at}) {
 /// con pieza el hueco no aparece nunca.
 (int pieces, int days) sinceStartOf(Habit h, {DateTime? at}) {
   final today = dayStart(at ?? DateTime.now());
-  var born = dayStart(h.createdAt);
+  // Desde la primera pieza: ver [countsFrom].
+  var born = today;
   var pieces = 0;
   for (final p in h.pieces) {
     final d = dayStart(p.placedAt);
@@ -343,7 +344,9 @@ class UnlockGoal {
     final f = h.perWeek ?? 7.0;
     final window = f >= 3 ? 14 : 28;
     final today = dayStart(now);
-    final born = dayStart(h.createdAt);
+    // El hábito cuenta desde su primera pieza ([countsFrom]); sin ninguna,
+    // desde mañana: todavía no hay días suyos.
+    final born = countsFrom(h) ?? shiftDays(today, 1);
     // **La ventana cuenta días despiertos.** Un día en pausa sin pieza no
     // cuenta ni a favor ni en contra: la ventana se corre hacia atrás para
     // saltarlo. Pausar una semana y volver a los dos días no tira lo que se

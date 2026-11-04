@@ -115,8 +115,16 @@ void main() {
     test('lo que se cuenta son los días desde que empezó, no los de pieza', () {
       // Cuatro piezas en una semana no son «cuatro piezas en cuatro días»:
       // eso parece ir a diario. Son cuatro en siete.
-      final h = _habit(now: now, age: 7, on: [0, 1, 3, 5]);
+      final h = _habit(now: now, age: 7, on: [0, 1, 3, 7]);
       expect(sinceStartOf(h, at: now), (4, 7));
+    });
+
+    test('y empieza con su primera pieza, no el día que se fundó', () {
+      // Fundado hace diez días y empezado hace siete: los tres primeros no
+      // tocaba, y no son días sin pieza.
+      final h = _habit(now: now, age: 10, on: [0, 1, 3, 7]);
+      expect(sinceStartOf(h, at: now), (4, 7));
+      expect(consistencyOf(h, at: now).of, 8);
     });
 
     test('cada dos días y cada dos semanas se distinguen de lo demás', () {
@@ -485,7 +493,7 @@ void main() {
       tester,
     ) async {
       final hoy = DateTime.now();
-      final h = _habit(now: hoy, age: 8, on: [0, 1, 1, 3, 5]);
+      final h = _habit(now: hoy, age: 8, on: [0, 1, 1, 3, 8]);
       double? elegido;
       for (final hora in [13.0, 23.0]) {
         tester.view.physicalSize = const Size(320, 640);

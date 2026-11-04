@@ -321,9 +321,9 @@ IdentityStanding? identityStanding(Habit h, {DateTime? at}) {
 
   final hoy = dayStart(at ?? DateTime.now());
   final conPieza = <int>{for (final d in daysOf(h)) dayKey(d)};
-  var nace = dayStart(h.createdAt);
+  // Desde su primera pieza: ver [countsFrom].
   final dias = daysOf(h);
-  if (dias.isNotEmpty && dias.first.isBefore(nace)) nace = dias.first;
+  final nace = dias.isEmpty ? hoy : dias.first;
 
   // Cada semana: cuántos días contaban —despiertos y dentro de la vida del
   // pueblo— y en cuántos hubo pieza.
