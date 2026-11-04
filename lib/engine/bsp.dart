@@ -149,7 +149,9 @@ class Rider {
       case _Side.on:
         (eyeFront ? front : back).add(r);
       case _Side.spanning:
-        final (a, b) = _cut(r.f, n, d, withDecals: false);
+        // Con lo que lleva pintado encima, partido con ella: la puerta y
+        // las ventanas del taller se perdían en cuanto un plano lo cortaba.
+        final (a, b) = _cut(r.f, n, d, withDecals: true);
         if (a != null) front.add(Rider(a, r.seq, r.tag));
         if (b != null) back.add(Rider(b, r.seq, r.tag));
     }

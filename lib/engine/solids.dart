@@ -1835,7 +1835,7 @@ class PlazaWorkshop {
         tint: tint,
       ),
     );
-    const zocalo = 0.07, poste = 0.035;
+    const zocalo = 0.07;
     return turnedSolids(
       [
         // El zócalo de piedra, un poco más ancho que el galpón.
@@ -1849,42 +1849,12 @@ class PlazaWorkshop {
           piedra,
           0.92,
         ),
-        // Las paredes de tabla.
-        caja(-half, y0 + zocalo, -depth, half, wall, depth, tabla, 1),
-        // Los postes de las esquinas, oscuros, un pelo por fuera.
-        for (final x in [-half, half])
-          for (final z in [-depth, depth])
-            caja(
-              x - poste,
-              y0 + zocalo,
-              z - poste,
-              x + poste,
-              wall,
-              z + poste,
-              viga,
-              0.9,
-            ),
-        // La puerta: el hueco oscuro, y el dintel.
-        caja(
-          -0.16,
-          y0 + zocalo,
-          depth,
-          0.16,
-          wall - 0.15,
-          depth + 0.012,
-          hueco,
-          0.8,
-        ),
-        caja(
-          -0.20,
-          wall - 0.15,
-          depth,
-          0.20,
-          wall - 0.10,
-          depth + 0.02,
-          viga,
-          0.9,
-        ),
+        // Las paredes de tabla, y pintado sobre ellas lo que antes eran
+        // cajas sueltas: los postes de las esquinas, la puerta y su dintel,
+        // y las ventanas. Como cajas, los postes asomaban por encima del
+        // alero y el dintel, que sobresalía un dedo, se pintaba delante de
+        // quien estuviera en la puerta. Pintados, son la pared.
+        Solid(-1, _paredes(cx, cz, y0 + zocalo, tabla, viga, hueco)),
         // El techo, con su alero.
         Solid(
           -1,
@@ -1923,11 +1893,134 @@ class PlazaWorkshop {
           mesa,
           1,
         ),
+        // El tejadillo sobre la mesa, de tabla, apoyado en la pared y en dos
+        // palos: es lo que dice taller y no cabaña —se trabaja fuera, a
+        // cubierto—.
+        caja(
+          half,
+          _tejadillo,
+          _mesaZ - _mesaFondo - 0.10,
+          _mesaX + _mesaAncho + 0.04,
+          _tejadillo + 0.03,
+          _mesaZ + _mesaFondo + 0.10,
+          viga,
+          0.92,
+        ),
+        for (final dz in [-_mesaFondo - 0.08, _mesaFondo + 0.08])
+          caja(
+            _mesaX + _mesaAncho + 0.005,
+            y0,
+            _mesaZ + dz - 0.018,
+            _mesaX + _mesaAncho + 0.04,
+            _tejadillo,
+            _mesaZ + dz + 0.018,
+            viga,
+            0.86,
+          ),
       ],
       cx,
       cz,
       turn,
     );
+  }
+
+  /// A qué altura va el tejadillo de la mesa.
+  static const double _tejadillo = 0.62;
+
+  /// Las cuatro paredes del galpón, con lo que va pintado encima: los postes
+  /// de las esquinas, la puerta de dos hojas con su dintel delante, y una
+  /// ventana a cada lado, que de noche se enciende con el maestro dentro.
+  static List<Facet> _paredes(
+    double cx,
+    double cz,
+    double y0,
+    int tabla,
+    int viga,
+    int hueco,
+  ) {
+    const poste = 0.06, ras = 0.004;
+    final caras = boxFaces(
+      cx - half,
+      y0,
+      cz - depth,
+      cx + half,
+      wall,
+      cz + depth,
+      Surface.own,
+      tint: tabla,
+    );
+    // Un rectángulo sobre la cara [f], de [a] a [b] a lo largo de ella y de
+    // [ya] a [yb] de alto, contados desde su primera esquina.
+    Facet pinta(
+      Facet f,
+      double a,
+      double b,
+      double ya,
+      double yb,
+      Surface s,
+      int tint,
+    ) {
+      final p0 = f.v[0], p1 = f.v[1];
+      final dx = p1.x - p0.x, dz = p1.z - p0.z;
+      final l = math.sqrt(dx * dx + dz * dz);
+      final tx = dx / l, tz = dz / l;
+      final ox = p0.x + f.n.x * ras, oz = p0.z + f.n.z * ras;
+      V3 en(double u, double y) => V3(ox + tx * u, y, oz + tz * u);
+      return Facet(
+        [en(a, ya), en(b, ya), en(b, yb), en(a, yb)],
+        f.n,
+        s,
+        tint: tint,
+      );
+    }
+
+    for (final f in caras) {
+      if (f.n.y.abs() > 0.5) continue;
+      final ancho = f.n.z.abs() > 0.5 ? 2 * half : 2 * depth;
+      final d = <Facet>[
+        // Los postes, en los dos cantos.
+        pinta(f, 0, poste, y0, wall, Surface.own, viga),
+        pinta(f, ancho - poste, ancho, y0, wall, Surface.own, viga),
+      ];
+      if (f.n.z > 0.5) {
+        // De frente: la puerta ancha, de dos hojas, y el dintel encima.
+        final m = ancho / 2;
+        d
+          ..add(
+            pinta(f, m - 0.22, m - 0.01, y0, wall - 0.16, Surface.own, hueco),
+          )
+          ..add(
+            pinta(f, m + 0.01, m + 0.22, y0, wall - 0.16, Surface.own, hueco),
+          )
+          ..add(
+            pinta(
+              f,
+              m - 0.27,
+              m + 0.27,
+              wall - 0.16,
+              wall - 0.10,
+              Surface.own,
+              viga,
+            ),
+          );
+      } else if (f.n.x.abs() > 0.5) {
+        // A los lados, una ventana.
+        final m = ancho / 2;
+        d.add(
+          pinta(
+            f,
+            m - 0.09,
+            m + 0.09,
+            y0 + 0.36,
+            y0 + 0.54,
+            Surface.window,
+            hueco,
+          ),
+        );
+      }
+      f.decals = d;
+    }
+    return caras;
   }
 }
 

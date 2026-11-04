@@ -925,6 +925,44 @@ void main() {
       expect(sentados, greaterThan(100));
     });
 
+    test('de noche duerme en el taller, y el viejo sigue en la plaza', () {
+      var vistos = 0;
+      for (var seed = 1; seed <= 12; seed++) {
+        final l = TownLayout(120, TownCharacter.all[seed % 8], seed: seed);
+        final gente = folkOf(l, 120);
+        final m = gente.where((v) => v.builder).firstOrNull;
+        final v = gente.where((v) => v.sage).firstOrNull;
+        if (m == null || v == null) continue;
+        vistos++;
+        // De día, por ahí.
+        expect(folkWhere(m, 10, 0), isNotNull);
+        // Se va a la caída de la tarde: anda hasta la puerta del taller y
+        // se mete.
+        final puerta = PlazaWorkshop.doorAt(l.cx, l.cz);
+        ({FolkAt at, double sink})? ultimo;
+        var t = 20.0;
+        for (; t < 400; t += 0.1) {
+          final r = folkWhere(m, t, 0.9);
+          if (r == null) break;
+          ultimo = r;
+        }
+        expect(t, lessThan(400), reason: 'valle $seed: no se acuesta nunca');
+        final u = ultimo!;
+        expect(
+          math.sqrt(
+            math.pow(u.at.x - puerta.$1, 2) + math.pow(u.at.z - puerta.$2, 2),
+          ),
+          lessThan(0.05),
+          reason: 'valle $seed: no entra por la puerta del taller',
+        );
+        expect(folkWhere(m, t + 30, 1), isNull);
+        expect(folkWhere(v, t + 30, 1), isNotNull);
+        // Y a la mañana vuelve a salir.
+        expect(folkWhere(m, t + 60, 0), isNotNull);
+      }
+      expect(vistos, greaterThan(5));
+    });
+
     test('ni él ni el viejo son nunca críos, ni bajitos', () {
       for (var seed = 1; seed <= 200; seed++) {
         final l = TownLayout(400, TownCharacter.all[seed % 8], seed: seed);

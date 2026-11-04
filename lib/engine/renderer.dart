@@ -324,7 +324,7 @@ class TownPainter extends CustomPainter {
         _aguaPintada[i] = _plazaRiders(p, e, scene.palette, shadows: false);
         _sombraMovil[i] = [
           ..._casterDe(_gentePintada[i]!),
-          ..._casterDe(_aguaPintada[i]!),
+          ..._sombraAgua(e.layout, scene.palette, _aguaPintada[i]!),
         ];
       }
     }
@@ -1431,7 +1431,8 @@ class TownPainter extends CustomPainter {
       final sombras = _plazaShadowFacets(
         e,
         pal,
-        _sombraMovil[w] ?? [..._casterDe(gente), ..._casterDe(agua)],
+        _sombraMovil[w] ??
+            [..._casterDe(gente), ..._sombraAgua(e.layout, pal, agua)],
       );
       final vecinos = gente;
       // **El suelo de la plaza, antes que todo lo del pueblo.** Debajo de él
@@ -1585,6 +1586,63 @@ class TownPainter extends CustomPainter {
       g.$1.addAll(c.pts);
     }
     return [for (final (pts, k) in juntos.values) (pts: pts, k: k)];
+  }
+
+  /// **La sombra del agua, quieta y suave.** Salía del agua de cada
+  /// fotograma, y como el velo se rasga en hilos y gotas que nunca caen
+  /// iguales, la sombra temblaba entera sobre el enlosado. Ahora es la del
+  /// agua en un instante fijo, guardada por pueblo, y algo más clara que la
+  /// de lo macizo; lo único que se mueve en ella es la del surtidor, que es
+  /// lo que sube.
+  static Iterable<ShadowCaster> _sombraAgua(
+    TownLayout l,
+    Palette pal,
+    List<Rider> agua,
+  ) {
+    final quieta = _aguaQuieta.putIfAbsent(
+      (l.cx, l.cz, pal.isDaylight),
+      () => _suave(
+        _casterDe([
+          for (final f in fountainWater(
+            l,
+            V3(l.cx + 9, 3, l.cz + 7),
+            0,
+            pal,
+            detail: 0.5,
+          ))
+            if (!_esSurtidor(l, f)) Rider(f, 0, -1),
+        ]),
+      ).toList(),
+    );
+    return [
+      ...quieta,
+      ..._suave(
+        _casterDe([
+          for (final r in agua)
+            if (_esSurtidor(l, r.f)) r,
+        ]),
+      ),
+    ];
+  }
+
+  static final Map<(double, double, bool), List<ShadowCaster>> _aguaQuieta = {};
+
+  static Iterable<ShadowCaster> _suave(Iterable<ShadowCaster> c) =>
+      c.map((s) => (pts: s.pts, k: s.k * 0.75));
+
+  /// Si [f] es del surtidor: lo que sube por el medio, sobre el agua de la
+  /// taza de arriba.
+  static bool _esSurtidor(TownLayout l, Facet f) {
+    var sx = 0.0, sy = 0.0, sz = 0.0;
+    for (final v in f.v) {
+      sx += v.x;
+      sy += v.y;
+      sz += v.z;
+    }
+    final n = f.v.length;
+    final dx = sx / n - l.cx, dz = sz / n - l.cz;
+    final r = Plaza.bowlOf(TownLayout.plazaReach) * 0.45;
+    return sy / n > Plaza.bowlWater + 0.03 && dx * dx + dz * dz < r * r;
   }
 
   final Map<int, List<_Walker>> _folkNow = {};
@@ -2579,6 +2637,22 @@ class TownPainter extends CustomPainter {
     final decals = f.decals;
     if (decals == null) return;
     for (final g in decals) {
+      if (g.surface == Surface.window) {
+        // La ventana del taller: oscura de día y encendida de noche, que
+        // es cuando el maestro está dentro.
+        _buildingNow = null;
+        final c = _window(
+          p,
+          g,
+          at.x,
+          at.z,
+          pal,
+          !pal.isDaylight,
+          Color(colour),
+        );
+        _push(p, g.v, c, null, null);
+        continue;
+      }
       final c = hazeAt(
         _shade(g.n, _plainTone(g, pal), light, pal, g.ao, 0, 0, g.surface),
         p,
@@ -2745,7 +2819,7 @@ class TownPainter extends CustomPainter {
           piece.cz,
           pal,
         );
-        return _window(p, f, piece, pal, night, pared);
+        return _window(p, f, piece.cx, piece.cz, pal, night, pared);
       case Surface.plank:
         // Las tablas de una ventana clausurada. Salían cuando un pueblo se
         // quedaba sin nadie, y un pueblo ya no se queda sin nadie.
@@ -3212,14 +3286,15 @@ class TownPainter extends CustomPainter {
   int _window(
     Projector p,
     Facet f,
-    TownPiece piece,
+    double x,
+    double z,
     Palette pal,
     bool night,
     Color pared,
   ) {
     if (!night) {
       final dark = Color.lerp(pal.ink, pal.stoneCool, 0.30)!;
-      return hazeAt(dark, p, piece.cx, piece.cz, pal).toARGB32();
+      return hazeAt(dark, p, x, z, pal).toARGB32();
     }
     const colour = Color(0xFFFFD79A);
     // A lit window is a light, not a yellow rectangle. Remember where it fell

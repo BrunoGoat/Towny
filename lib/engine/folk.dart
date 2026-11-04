@@ -1312,8 +1312,16 @@ class Townsfolk {
   /// [folkWhere].
   ({FolkAt at, double sink})? _evening(double t, double homeward) {
     // El consejero no tiene adónde ir: se queda en la plaza, de día y de
-    // noche.
-    if (sage || builder) return (at: at(t), sink: 0.0);
+    // noche. El maestro de obras duerme en su taller: de noche no trabaja.
+    if (sage) return (at: at(t), sink: 0.0);
+    final centro = plazaCentre;
+    if (builder && centro == null) return (at: at(t), sink: 0.0);
+    final puerta = builder
+        ? PlazaWorkshop.doorAt(centro!.$1, centro.$2)
+        : door;
+    final entrando = builder
+        ? PlazaWorkshop.doorFacing
+        : _facing.first + math.pi;
     final first = !_seen;
     _seen = true;
     if (homeward >= _bedtime) {
@@ -1332,7 +1340,7 @@ class Townsfolk {
         final from = (now.x, now.z);
         h = _homing = (
           t0: t,
-          path: [from, ..._ruta(from, door), door],
+          path: [from, ..._ruta(from, puerta), puerta],
           // Si lleva algo que sacó de casa, se lo lleva a casa.
           carry: now.carry,
         );
@@ -1350,9 +1358,9 @@ class Townsfolk {
       }
       return (
         at: FolkAt(
-          door.$1,
-          door.$2,
-          _facing.first + math.pi,
+          puerta.$1,
+          puerta.$2,
+          entrando,
           0,
           false,
         ).carrying(h.carry),
@@ -1364,7 +1372,9 @@ class Townsfolk {
       final estaba = _inside;
       _inside = false;
       _homing = null;
-      _resumeAtDoor(t);
+      // El maestro, si va al compás del viejo, no se descompasa: sale y
+      // sigue donde iría su día.
+      if (!builder || _ritmo == null) _resumeAtDoor(t);
       if (estaba) _outAt = t;
     }
     final out = _outAt;
