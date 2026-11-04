@@ -329,7 +329,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'hornoPan',
     'Panadería',
-    12,
+    11,
     0,
     'Cada casa trae su masa y se lleva su pan. El calor de un solo horno '
         'alimenta a todo el pueblo.',
@@ -338,9 +338,9 @@ final List<Landmark> landmarks = [
       // fachada, el mostrador con los panes de cara a la calle y el cartel
       // con su pan colgado del brazo de hierro. Y pegado al costado el horno
       // de ladrillo, subido a su poyo y cerrándose en hiladas hasta el tiro,
-      // con la leña al lado.
-      m.plinth(3.1, 2.1, 0.18);
-      final base = m.y;
+      // de cara a la calle.
+      // Sobre el césped, sin zócalo de piedra.
+      const base = 0.0;
       const tx = -0.6, fondo = 1.3;
       const frente = fondo / 2;
       m.box(PieceKind.floor, 1.5, fondo, 0.85, dx: tx, at: base, ridge: true);

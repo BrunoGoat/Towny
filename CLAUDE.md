@@ -11,5 +11,7 @@
   una, marcarla como completada en Todoist.
 - Las revisiones de textos del consejero se llevan en `CONSEJERO.md`; lo que
   falta por hacer en la app, en `PENDIENTES.md`.
+- La revisión de las obras (estructuras) para el lanzamiento se lleva en
+  `ESTRUCTURAS.md`: pendientes arriba, en discusión, y aprobadas abajo.
 - Nunca pedir ni compartir la contraseña de la base de datos ni la clave
   secreta de Supabase.
