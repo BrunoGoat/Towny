@@ -15,6 +15,7 @@ import '../engine/clear_view.dart';
 import '../engine/folk.dart';
 import '../engine/folk_body.dart';
 import '../engine/palette.dart';
+import '../engine/render_debug.dart';
 import '../engine/renderer.dart';
 import '../engine/scene.dart';
 import '../engine/shooting_star.dart';
@@ -830,7 +831,11 @@ class _TownViewState extends State<TownView>
     // Y siempre, en el teléfono, a lo sumo treinta veces por segundo: ver
     // [phoneFps].
     if (paced) {
-      final paso = isPhone && (_tapado || _teclado) && _placement == null
+      final paso =
+          isPhone &&
+              (_tapado || _teclado) &&
+              _placement == null &&
+              !RenderDebug.instance.fullBackground
           ? 1 / 8
           : 1 / phoneFps - 0.002;
       if (_time - _pintado < paso && _time >= _pintado) return;

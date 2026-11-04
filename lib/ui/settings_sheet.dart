@@ -185,6 +185,19 @@ class _SettingsSheetState extends State<SettingsSheet> {
                   style: _nota(t),
                 ),
                 efecto(
+                  'Fondo a velocidad normal',
+                  'Background at full speed',
+                  'El pueblo de detrás se sigue dibujando a su velocidad de '
+                      'siempre con el consejero, el constructor o una hoja '
+                      'abierta encima. Apagado, en el teléfono se dibuja unas '
+                      'pocas veces por segundo mientras tanto.',
+                  'The town behind keeps drawing at its usual speed with the '
+                      'advisor, the builder or a sheet open on top. Off, on a '
+                      'phone it draws a few times a second meanwhile.',
+                  dbg.fullBackground,
+                  (d, v) => d.fullBackground = v,
+                ),
+                efecto(
                   'Sombras',
                   'Shadows',
                   'Las que echan las casas y la gente con calidad máxima.',

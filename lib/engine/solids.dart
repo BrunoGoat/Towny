@@ -1741,8 +1741,10 @@ class PlazaBench {
 /// que es donde martilla, y a su izquierda una pila de tablas. Del lado de la
 /// plaza en que no hay nada: el tablón y el banco están en la otra diagonal.
 class PlazaWorkshop {
-  /// Lo que se aparta del centro de la plaza, en partes de su radio.
-  static const double out = 0.76;
+  /// Lo que se aparta del centro de la plaza, en partes de su radio: lo
+  /// justo para que quepa entero sobre la hierba, alero incluido. Más afuera
+  /// se pasaba del bordillo.
+  static const double out = 0.66;
 
   /// En qué dirección, desde la fuente.
   static const double _angulo = 225 * math.pi / 180;
@@ -1750,7 +1752,11 @@ class PlazaWorkshop {
   /// Medio ancho y medio fondo del galpón, y alto de la pared y del caballete.
   /// Un tercio más grande de lo que fue: al lado del tablón se perdía, y
   /// es la casa de alguien.
-  static const double half = 0.55, depth = 0.36, wall = 0.80, ridge = 1.26;
+  static const double half = 0.50, depth = 0.32, wall = 0.80, ridge = 1.26;
+
+  /// Lo que sobresale el alero del tejado por los lados y por delante y
+  /// detrás.
+  static const double _aleroX = 0.08, _aleroZ = 0.08;
 
   static double get offX => TownLayout.plazaReach * out * math.cos(_angulo);
   static double get offZ => TownLayout.plazaReach * out * math.sin(_angulo);
@@ -1762,7 +1768,7 @@ class PlazaWorkshop {
 
   /// La mesa de trabajo, en el sistema del galpón: a su derecha, un poco por
   /// delante.
-  static const double _mesaX = half + 0.24, _mesaZ = 0.04;
+  static const double _mesaX = half + 0.24, _mesaZ = -0.05;
   static const double _mesaAncho = 0.17, _mesaFondo = 0.09, mesaAlto = 0.24;
 
   /// Un punto del sistema del galpón —adelante en +z— llevado a la plaza.
@@ -1772,12 +1778,14 @@ class PlazaWorkshop {
     return (ox + x * c + z * s, oz - x * s + z * c);
   }
 
-  /// Dónde se para el maestro a martillar: delante de la mesa, mirándola.
+  /// Dónde se para el maestro a martillar: del lado de afuera de la mesa,
+  /// mirándola y mirando al taller. Del lado de la fuente quedaba en el
+  /// camino del consejero, que se paraba a un palmo de él.
   static (double, double) anvilAt(double cx, double cz) =>
-      _aPlaza(cx, cz, _mesaX, _mesaZ + _mesaFondo + 0.16);
+      _aPlaza(cx, cz, _mesaX + _mesaAncho + 0.17, _mesaZ);
 
-  /// Hacia dónde mira martillando: a la mesa, de espaldas a la fuente.
-  static double get anvilFacing => turn + math.pi;
+  /// Hacia dónde mira martillando: a la mesa y al taller.
+  static double get anvilFacing => turn - math.pi / 2;
 
   /// La puerta, por fuera: donde carga y descarga la carretilla.
   static (double, double) doorAt(double cx, double cz) =>
@@ -1872,12 +1880,12 @@ class PlazaWorkshop {
         Solid(
           -1,
           gableFaces(
-                cx - half - 0.11,
+                cx - half - _aleroX,
                 wall,
-                cz - depth - 0.13,
-                cx + half + 0.11,
+                cz - depth - _aleroZ,
+                cx + half + _aleroX,
                 ridge,
-                cz + depth + 0.13,
+                cz + depth + _aleroZ,
                 true,
               )
               .map((f) => Facet(f.v, f.n, Surface.own, ao: f.ao, tint: teja))

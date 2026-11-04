@@ -850,11 +850,12 @@ void main() {
             final d = math.sqrt(
               math.pow(a.x - b.x, 2) + math.pow(a.z - b.z, 2),
             );
-            // Lo que mide de ancho una persona: se pueden rozar al pasar,
-            // pero no meterse uno dentro del otro.
+            // Lo que mide de ancho una persona —el cuerpo, de 0,32 por
+            // nueve décimas de alto—, con un centímetro de holgura: se pueden
+            // rozar al pasar, pero no meterse uno dentro del otro.
             expect(
               d,
-              greaterThan(0.3),
+              greaterThan(0.28),
               reason: 'valle $seed: se atraviesan a los ${t.round()} s',
             );
           }

@@ -208,7 +208,9 @@ void main() {
         }
         expect(hubo, isTrue);
         expect(vistas, inInclusiveRange(3, 5));
-        final fin = sageFeast(sabio, l, t0 + sits, h: 0.5)!;
+        // Justo antes de levantarse: en el segundo mismo ya está de pie, y
+        // de pie no hay regazo en el que mirar si queda pan.
+        final fin = sageFeast(sabio, l, t0 + sits - 0.05, h: 0.5)!;
         expect(fin.crumbs, isEmpty, reason: 'no quedan migas');
         expect(fin.pose!.bread, 0, reason: 'ni pan');
         expect(

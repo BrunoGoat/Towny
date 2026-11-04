@@ -18,6 +18,13 @@ class RenderDebug extends ChangeNotifier {
   /// Y lo que anda por el pueblo.
   bool folk = true, water = true;
 
+  /// El pueblo de detrás a su velocidad de siempre, aunque haya otra
+  /// pantalla encima —el consejero, el constructor, una hoja— o el teclado
+  /// abierto. Apagado, en el teléfono se dibuja unas pocas veces por segundo
+  /// mientras tanto. Para probar si se puede dejar siempre a velocidad
+  /// normal sin que se trabe lo de delante.
+  bool fullBackground = false;
+
   void set(void Function(RenderDebug d) cambio) {
     cambio(this);
     notifyListeners();

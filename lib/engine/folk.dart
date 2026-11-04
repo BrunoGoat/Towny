@@ -90,7 +90,14 @@ class Townsfolk {
 
     double haciaFuente((double, double) p) => math.atan2(cx - p.$1, cz - p.$2);
     double radio(int i) => hashRange(1.2, 1.45, s, i, 52);
-    double giro(int i) => hashRange(-12, 12, s, i, 51);
+    // A los dos lados del taller del constructor —que está en 225— se abren
+    // hacia afuera: cerca de él quedaban debajo de su alero, o pegadas a la
+    // mesa en la que martilla.
+    double giro(int i) => switch (i) {
+      0 => hashRange(-14, -4, s, i, 51),
+      1 => hashRange(4, 14, s, i, 51),
+      _ => hashRange(-12, 12, s, i, 51),
+    };
     // El arco, de punta a punta, y el banco en medio con su paso de delante:
     // se llega al banco de frente, no atravesándolo por la punta.
     final p195 = arco(195 + giro(0), radio(0));
@@ -504,7 +511,7 @@ class Townsfolk {
     // Sin obra, en la plaza. Los sitios por los que pasea: del lado del
     // tablón y del taller, lejos del banco.
     final paseo1 = arco(160 + hashRange(-8, 8, s, 3), 1.35);
-    final paseo2 = arco(200 + hashRange(-8, 8, s, 4), 1.25);
+    final paseo2 = arco(195 + hashRange(-8, 4, s, 4), 1.25);
     double haciaFuente((double, double) p) => hacia(p, (cx, cz));
 
     final viejo = sage;
@@ -1385,15 +1392,14 @@ class Townsfolk {
     const paso = 0.4, aviso = 0.8;
     final centro = plazaCentre;
     if (centro == null) return r;
-    // Y junto al banco no: ahí se sientan uno al lado del otro a propósito.
-    // Se apaga de a poco al acercarse a él, para que sentarse no sea un
-    // salto.
+    // Y cuando él va a sentarse al banco al lado del viejo, no: ahí están
+    // juntos a propósito. Se apaga de a poco al acercarse él al banco, para
+    // que sentarse no sea un salto; si sólo pasa por delante, se aparta igual.
     final banco = (PlazaBench.xAt(centro.$1), PlazaBench.zAt(centro.$2));
-    final alBanco = math.min(
-      math.sqrt(math.pow(r.x - banco.$1, 2) + math.pow(r.z - banco.$2, 2)),
-      math.sqrt(math.pow(v.x - banco.$1, 2) + math.pow(v.z - banco.$2, 2)),
+    final alBanco = math.sqrt(
+      math.pow(r.x - banco.$1, 2) + math.pow(r.z - banco.$2, 2),
     );
-    final lejosDelBanco = smoothstep(0.55, 1.0, alBanco);
+    final lejosDelBanco = smoothstep(0.55, 0.9, alBanco);
     if (lejosDelBanco <= 0) return r;
     final wx = r.x - v.x, wz = r.z - v.z;
     if (wx * wx + wz * wz > math.pow(paso + aviso, 2)) return r;
@@ -1411,11 +1417,11 @@ class Townsfolk {
     final nx = -az, nz = ax;
     final costado = wx * nx + wz * nz;
     final delante = wx * ax + wz * az;
-    // De frente justo, por la derecha, como en cualquier vereda: sin eso, a
-    // quien venía derecho hacia el otro no le tocaba ningún lado y pasaba
-    // por dentro. Mientras se cruzan, de qué lado queda cada uno no cambia,
-    // así que no se cambia de lado a mitad de camino.
-    final lado = smoothstep(-0.06, 0.06, costado + 0.08) * 2 - 1;
+    // Hacia el lado por el que ya iba a pasar —mientras se cruzan, de qué
+    // lado queda cada uno no cambia, así que no se cambia de lado a mitad de
+    // camino—, decidido neto: a medias, el que venía casi de frente se corría
+    // la mitad de lo que hacía falta y pasaba por dentro igual.
+    final lado = smoothstep(-0.02, 0.02, costado) * 2 - 1;
     final falta = lado * paso - costado;
     if (falta * lado <= 0) return r;
     final cuanto =
@@ -2825,8 +2831,8 @@ List<(double x0, double z0, double x1, double z1)> _blockers(
     if (layout.hasWorkshop(placed)) {
       final ox = PlazaWorkshop.offX, oz = PlazaWorkshop.offZ;
       final r = math.sqrt(ox * ox + oz * oz);
-      final k = (r + 0.15) / r;
-      estorbo(cx + ox * k, cz + oz * k, 0.66, 0.66);
+      final k = (r + 0.12) / r;
+      estorbo(cx + ox * k, cz + oz * k, 0.6, 0.6);
     }
   }
   return out;
