@@ -85,10 +85,11 @@ Entre paréntesis, cuántas piezas cuesta.
 
 ## En discusión
 
-- Panadería (11): sin la base de piedra, las piezas apoyadas sobre el césped.
-  Falta mirarla.
 
 ---
 
 ## Aprobadas
 
+- Panadería (11): tienda de dos plantas con toldo a rayas, mostrador con
+  panes y cartel del pan; al costado, separado, el horno de barro con su
+  poyo, el tiro y la boca. Sobre el césped, sin zócalo.
