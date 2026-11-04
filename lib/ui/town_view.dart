@@ -127,6 +127,9 @@ class TownViewController {
 
   /// Lleva la cámara al hueco donde va a caer la que viene.
   void lookAtNext() => _state?.lookAtNext();
+
+  /// Bajar del valle al pueblo de ahora, como tocando su cartel.
+  void frameTown() => _state?._frameTown();
   double get travel => _state?._cam.travelTarget ?? 0;
 
   Palette? get palette => _state?._palette;
@@ -1440,6 +1443,10 @@ class _TownViewState extends State<TownView>
   /// empieza otro en la otra punta del pueblo, y lo que uno quiere ver es
   /// dónde va a caer y no dónde cayó.
   void lookAtNext() {
+    // Desde el valle, primero se baja al pueblo: si no, la cámara iba al
+    // hueco pero se quedaba allá arriba, y de tan lejos se volvía a disparar
+    // el vuelo al valle —las nubes, y nada—.
+    if (_aloft) _frameTown();
     final p = _town.pieceFor(_town.placed) ?? _town.pieceFor(_town.placed - 1);
     if (p != null) goTo(p.cx, p.cz);
   }

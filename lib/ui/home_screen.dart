@@ -138,6 +138,7 @@ class _HomeScreenState extends State<HomeScreen>
     widget.store.removeListener(_onStore);
     Appearance.instance.removeListener(_onStore);
     _whisperTimer?.cancel();
+    _abierta.dispose();
     _signTimer?.cancel();
     _tryNoteGone?.cancel();
     _flight.dispose();
@@ -156,7 +157,8 @@ class _HomeScreenState extends State<HomeScreen>
       if (!mounted) return;
       await _wall.dropWorkshop();
       if (!mounted) return;
-      Navigator.of(context).push(
+      _conBoton(
+        'constructor',
         BuilderScreen.route(
           store: widget.store,
           theme: _theme,
@@ -290,12 +292,23 @@ class _HomeScreenState extends State<HomeScreen>
   /// dibujo y no se usa para nada, porque las ocho suenan igual.
   void _wishOn(String id) => Sensory.instance.star();
 
+  /// Qué pantalla de personaje está abierta encima del pueblo —'viejo' o
+  /// 'constructor'—, para encender su botón mientras dura, como el del
+  /// valle cuando se está arriba.
+  final ValueNotifier<String?> _abierta = ValueNotifier(null);
+
+  /// Abre [ruta] con el botón de [quien] encendido hasta que se cierre.
+  Future<void> _conBoton(String quien, Route<void> ruta) {
+    _abierta.value = quien;
+    return Navigator.of(context).push(ruta).whenComplete(() {
+      if (_abierta.value == quien) _abierta.value = null;
+    });
+  }
+
   /// El consejero, desde el botón.
   void _openSage() {
     Sensory.instance.tick();
-    Navigator.of(
-      context,
-    ).push(SageScreen.route(store: widget.store, theme: _theme));
+    _conBoton('viejo', SageScreen.route(store: widget.store, theme: _theme));
   }
 
   /// El tablón de este pueblo, desde el botón.
@@ -500,11 +513,16 @@ class _HomeScreenState extends State<HomeScreen>
                 // También cuando tiene algo que hablar: un tropiezo, la
                 // identidad, la semana.
                 ListenableBuilder(
-                  listenable: Listenable.merge([AdviceBook.instance, store]),
+                  listenable: Listenable.merge([
+                    AdviceBook.instance,
+                    store,
+                    _abierta,
+                  ]),
                   builder: (_, _) => GhostButton(
                     glyph: (c) => SageGlyph(color: c, shadows: t.halo),
                     theme: t,
                     tooltip: tr('El consejero', 'The advisor'),
+                    on: _abierta.value == 'viejo',
                     dot:
                         AdviceBook.instance.unseen() > 0 ||
                             AdviceBook.instance.goalOf(store.habit.id) ==
@@ -518,12 +536,13 @@ class _HomeScreenState extends State<HomeScreen>
                 // Y el constructor, debajo del viejo, en cuanto tiene su
                 // taller en la plaza.
                 ListenableBuilder(
-                  listenable: store,
+                  listenable: Listenable.merge([store, _abierta]),
                   builder: (_, _) => store.hasWorkshop
                       ? GhostButton(
                           glyph: (c) => BuilderGlyph(color: c, shadows: t.halo),
                           theme: t,
                           tooltip: tr('El constructor', 'The builder'),
+                          on: _abierta.value == 'constructor',
                           onTap: _openBuilder,
                         )
                       : const SizedBox.shrink(),
@@ -640,7 +659,16 @@ class _HomeScreenState extends State<HomeScreen>
                 widget.store.select(i);
                 _announceTown();
               },
-              onManage: _openHabits,
+              // En el valle, tocar el propio pueblo lleva a él, como su
+              // cartel; abajo en el pueblo abre su hoja.
+              onManage: () {
+                if (_wall.aloft) {
+                  Sensory.instance.tick();
+                  _wall.frameTown();
+                } else {
+                  _openHabits();
+                }
+              },
               onAdd: _addHabit,
               wall: _wall,
               onPlace: () {
@@ -839,28 +867,28 @@ class _HomeScreenState extends State<HomeScreen>
         return;
       }
       Sensory.instance.tick();
-      Navigator.of(context)
-          .push(
-            BuilderScreen.route(
-              store: widget.store,
-              theme: _theme,
-              onPick: (mark) => widget.store.chooseWork(mark.id),
-            ),
-          )
-          .whenComplete(() {
-            _asking = false;
-            // Cerrar sin elegir es dejar que decidan ellos.
-            widget.store.letThemDecide();
-          });
+      _conBoton(
+        'constructor',
+        BuilderScreen.route(
+          store: widget.store,
+          theme: _theme,
+          onPick: (mark) => widget.store.chooseWork(mark.id),
+        ),
+      ).whenComplete(() {
+        _asking = false;
+        // Cerrar sin elegir es dejar que decidan ellos.
+        widget.store.letThemDecide();
+      });
     });
   }
 
   /// El maestro de obras, desde su taller o tocándolo a él en la plaza: cómo
   /// va la obra y lo que ya se levantó.
   void _openBuilder() {
-    Navigator.of(
-      context,
-    ).push(BuilderScreen.route(store: widget.store, theme: _theme));
+    _conBoton(
+      'constructor',
+      BuilderScreen.route(store: widget.store, theme: _theme),
+    );
   }
 
   /// Para no abrir dos hojas si caen dos piezas seguidas muy rápido.
@@ -1021,7 +1049,13 @@ class _HomeScreenState extends State<HomeScreen>
   /// asunto. Pedirlo de las dos maneras tiene que llevar al mismo sitio por el
   /// mismo camino.
   void _flyToValley() {
-    if (_flying || !_wall.hasValley || _wall.aloft) return;
+    // Ya arriba, el mismo botón baja al pueblo del que se salió.
+    if (!_flying && _wall.aloft) {
+      Sensory.instance.tick();
+      _wall.frameTown();
+      return;
+    }
+    if (_flying || !_wall.hasValley) return;
     // El cartel del pueblo se va con el pueblo.
     //
     // Aparece en mitad de la pantalla al llegar a uno y dura dos segundos y
