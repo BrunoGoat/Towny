@@ -877,6 +877,47 @@ void main() {
       expect(vistos, greaterThan(10));
     });
 
+    test('al empezar la obra va a buscar la carretilla, no aparece con ella', () {
+      // Se busca la pieza con la que un pueblo empieza su obra.
+      TownLayout? antes, despues;
+      for (var seed = 1; seed <= 30 && despues == null; seed++) {
+        for (var n = 20; n < 300; n++) {
+          final a = TownLayout(n, TownCharacter.all[seed % 8], seed: seed);
+          final b = TownLayout(n + 1, TownCharacter.all[seed % 8], seed: seed);
+          final ma = folkOf(a, n).where((v) => v.builder).firstOrNull;
+          final mb = folkOf(b, n + 1).where((v) => v.builder).firstOrNull;
+          if (ma == null || mb == null) continue;
+          if (!ma.onWorks && mb.onWorks) {
+            antes = a;
+            despues = b;
+            break;
+          }
+        }
+      }
+      expect(despues, isNotNull, reason: 'ningún pueblo empezó una obra');
+      final ma = folkOf(antes!, antes.placed).firstWhere((v) => v.builder);
+      final mb = folkOf(despues!, despues.placed).firstWhere((v) => v.builder);
+      const t0 = 500.0;
+      ma.watch(t0);
+      final estaba = ma.at(t0);
+      mb.watch(t0 + 0.02);
+      final ahora = mb.at(t0 + 0.04);
+      // Sigue donde estaba, sin carretilla, y echa a andar.
+      expect(
+        math.sqrt(
+          math.pow(ahora.x - estaba.x, 2) + math.pow(ahora.z - estaba.z, 2),
+        ),
+        lessThan(0.15),
+      );
+      expect(ahora.carry, isNull);
+      // Y un rato después ya la lleva, que la cargó en el taller.
+      var cargo = false;
+      for (var k = 0; k < 600 && !cargo; k++) {
+        cargo = mb.at(t0 + k * 0.5).carry == PropKind.barrow;
+      }
+      expect(cargo, isTrue);
+    });
+
     test('con obra, descarga pegado a lo que ya está levantado', () {
       // Paraba a un paso del radio que va a tener la obra terminada, que
       // con pocas piezas puestas era quedarse a metros de la obra.

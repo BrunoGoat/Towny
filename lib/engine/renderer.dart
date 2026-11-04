@@ -1622,6 +1622,9 @@ class TownPainter extends CustomPainter {
       if (who.sage && take == 0 && who.debut == null) {
         who.arriveNow(e.layout, scene.time);
       }
+      // El constructor del pueblo que se mira: si acaba de empezar una
+      // obra, que vaya a buscar la carretilla en vez de aparecer con ella.
+      if (mine && who.builder) who.watch(scene.time);
       final nace = who.debut;
       if (nace != null && scene.time < nace) continue;
       // Descartar **antes** de calcular dónde anda.

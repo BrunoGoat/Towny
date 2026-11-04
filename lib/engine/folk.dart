@@ -303,6 +303,84 @@ class Townsfolk {
   /// ella. Ver [at].
   Townsfolk? _esquiva;
 
+  // ------------------------------------------------- empezar la obra
+
+  /// Si este constructor anda con la carretilla, que es andar con obra.
+  bool get onWorks => builder && _carry.contains(PropKind.barrow);
+
+  /// Lo que se sabe del constructor de cada pueblo entre un plano y el
+  /// siguiente —se rehace con cada pieza—: dónde se le vio por última vez,
+  /// si andaba con obra, y, si empezó una en esta sesión, cuándo y desde
+  /// dónde.
+  static final Map<(double, double), (double, double, double)> _vistoEn = {};
+  static final Map<(double, double), bool> _conObra = {};
+  static final Map<(double, double), (double, double, double)> _empezo = {};
+
+  /// Cuándo salió de la plaza a buscar la carretilla, desde dónde, y cuándo
+  /// llega a la puerta del taller, si acaba de empezar una obra.
+  double? _obraDesde, _obraLlega;
+  (double, double)? _obraDe;
+
+  /// Lo mira la escena en cada fotograma del pueblo que se está mirando, en
+  /// el segundo [t]: si ahora anda con obra y hasta recién no, es que se
+  /// acaba de poner la primera piedra. **No aparece de golpe con la
+  /// carretilla en la otra punta del pueblo**: va andando desde donde
+  /// estaba hasta la puerta del taller, la carga ahí, y recién sale.
+  void watch(double t) {
+    final key = plazaCentre;
+    if (!builder || key == null) return;
+    final antes = _conObra[key];
+    final ahora = onWorks;
+    _conObra[key] = ahora;
+    if (ahora && antes == false && !_empezo.containsKey(key)) {
+      final visto = _vistoEn[key];
+      if (visto != null && (t - visto.$1).abs() < 2) {
+        _empezo[key] = (t, visto.$2, visto.$3);
+        _obraEnHora();
+      }
+    }
+    if (!ahora) _empezo.remove(key);
+    final r = at(t);
+    _vistoEn[key] = (t, r.x, r.z);
+  }
+
+  /// Pone en hora la ronda con obra si empezó en esta sesión: antes, el
+  /// paseo hasta la puerta; al llegar, la carga, que es el principio de su
+  /// ronda.
+  void _obraEnHora() {
+    final key = plazaCentre;
+    final e = key == null ? null : _empezo[key];
+    if (e == null || _stops.isEmpty) return;
+    final puerta = _stops.first;
+    final d = math.sqrt(
+      math.pow(puerta.$1 - e.$2, 2) + math.pow(puerta.$2 - e.$3, 2),
+    );
+    _obraDesde = e.$1;
+    _obraDe = (e.$2, e.$3);
+    _obraLlega = e.$1 + d / pace;
+    // La carga en la puerta es lo último de la vuelta: al llegar, se está
+    // al principio de esa parada.
+    debut = _obraLlega! - (period - _stay.first);
+  }
+
+  /// El paseo hasta la puerta del taller, sin la carretilla, si [t] cae ahí.
+  FolkAt? _aBuscarla(double t) {
+    final desde = _obraDesde, llega = _obraLlega, de = _obraDe;
+    if (desde == null || llega == null || de == null) return null;
+    if (t < desde || t >= llega) return null;
+    final a = _stops.first;
+    final k = (t - desde) / math.max(1e-6, llega - desde);
+    final dx = a.$1 - de.$1, dz = a.$2 - de.$2;
+    final d = math.sqrt(dx * dx + dz * dz);
+    return FolkAt(
+      de.$1 + dx * k,
+      de.$2 + dz * k,
+      math.atan2(dx, dz),
+      d * k / stride * 2 * math.pi,
+      true,
+    );
+  }
+
   /// El maestro de obras: el que levanta las obras grandes del pueblo.
   ///
   /// Llega con su taller el día de la primera obra ([PlazaWorkshop]) y vive
@@ -505,7 +583,8 @@ class Townsfolk {
         .._calles = calles
         .._callesSin = calles
         .._esquiva = sage
-        ..firstTown = primero;
+        ..firstTown = primero
+        .._obraEnHora();
     }
 
     // Sin obra, en la plaza. Los sitios por los que pasea: del lado del
@@ -1490,6 +1569,8 @@ class Townsfolk {
       i < l.length ? l[i] : null;
 
   FolkAt _at(double t) {
+    final aBuscarla = _aBuscarla(t);
+    if (aBuscarla != null) return aBuscarla;
     final llega = _greetAt;
     if (llega != null && t >= llega && t < llega + greetLength) {
       return _llegando(t - llega);
