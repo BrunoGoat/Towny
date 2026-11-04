@@ -631,9 +631,14 @@ List<Solid> ringSolids(
   int? tint,
 }) {
   final out = <Solid>[];
+  // Cada tramo se mete un pelo en el de al lado. Cara de junta contra cara de
+  // junta, en el mismo plano, el orden de pintado no sabía cuál iba delante y
+  // a veces la ponía sobre el césped: en cada vértice de la plaza asomaba una
+  // raya de piedra. Metida dentro del tramo vecino, la tapa él.
+  const solape = 0.004;
   for (var k = 0; k < sides; k++) {
-    final a0 = math.pi / sides + k * 2 * math.pi / sides;
-    final a1 = math.pi / sides + (k + 1) * 2 * math.pi / sides;
+    final a0 = math.pi / sides + k * 2 * math.pi / sides - solape;
+    final a1 = math.pi / sides + (k + 1) * 2 * math.pi / sides + solape;
     (double, double) at(double r, double a) =>
         (cx + r * math.cos(a), cz - r * math.sin(a));
     final (xi0, zi0) = at(rIn, a0);

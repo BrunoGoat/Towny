@@ -1306,18 +1306,29 @@ class TownLayout {
 
     // A tree wants far less than a garden: somewhere to stand its trunk. It
     // goes on the corner of the plot, which is both where the room is and
-    // where anybody would put one, and its crown is allowed out over the roof
-    // — that is what a tree beside a house does, and since geometry that runs
-    // through other geometry is cut where the two cross, it is drawn right
-    // when it does.
+    // where anybody would put one.
+    //
+    // **Con la copa fuera de la casa.** Se dejaba asomar por encima del
+    // tejado, y en el Robledal —casas altas, árboles en casi todas— las hojas
+    // atravesaban las paredes y se pisaban con las piezas. Ahora el tronco va
+    // lo bastante lejos de la esquina para que la copa entera quede fuera, y
+    // si no cabe en el solar, el árbol es más chico; si ni así, no hay árbol.
     if (wantTree) {
-      const corner = [(0.7, 0.7), (-0.7, 0.7), (-0.7, -0.7), (0.7, -0.7)];
+      const corner = [(1.0, 1.0), (-1.0, 1.0), (-1.0, -1.0), (1.0, -1.0)];
       final c = corner[(dir + (wantGarden ? 2 : 1)) % 4];
-      final off = half * 0.98 + 0.34;
+      // Lo que mide de medio ancho la copa más ancha de un árbol de [size]:
+      // ver [Yard.treeAt].
+      const copa = 0.41 * 1.14;
+      var size = math.min(plotPitch * 0.34, 1.05);
+      // Hasta dónde puede llegar sin meterse en lo del vecino.
+      final tope = plotPitch * 0.72;
+      if (half + 0.05 + 2 * copa * size > tope) {
+        size = (tope - half - 0.05) / (2 * copa);
+      }
+      final off = half + 0.05 + copa * size;
       final x = b.cx + c.$1 * off;
       final z = b.cz + c.$2 * off;
-      final size = math.min(plotPitch * 0.34, 1.05);
-      if (!_inPlaza(x, z, size * 0.6)) {
+      if (size >= 0.4 && !_inPlaza(x, z, size * 0.6)) {
         b.treeX = x;
         b.treeZ = z;
         b.treeSize = size;
