@@ -12,6 +12,7 @@ import '../model/board.dart';
 import '../model/board_seen.dart';
 import '../model/cadence.dart';
 import '../model/census.dart';
+import '../model/cost_changes.dart';
 import '../model/habit.dart';
 import '../model/piece.dart';
 import '../model/sage_talk.dart';
@@ -21,6 +22,7 @@ import 'adrift_sheet.dart';
 import 'board_glyph.dart';
 import 'cadence_sheet.dart';
 import 'cloud_flight.dart';
+import 'cost_change_notice.dart';
 import 'first_run.dart';
 import 'folk_gallery_screen.dart';
 import 'habits_sheet.dart';
@@ -130,7 +132,20 @@ class _HomeScreenState extends State<HomeScreen>
       _lookForNews();
       _askIfAdrift();
       _askCadence();
+      _avisaCostes();
     });
+  }
+
+  /// Si alguna obra ya empezada pasó a costar otra cantidad de piezas desde
+  /// la última vez, se avisa. Ver `cost_changes.dart`.
+  Future<void> _avisaCostes() async {
+    final cambios = await CostMemory.check(widget.store.habits);
+    if (cambios.isEmpty || !mounted) return;
+    await showDialog<void>(
+      context: context,
+      barrierColor: sheetScrim(_theme.dark),
+      builder: (_) => CostChangeNotice(changes: cambios, theme: _theme),
+    );
   }
 
   @override
