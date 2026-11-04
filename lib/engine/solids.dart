@@ -121,7 +121,22 @@ List<Solid> solidsOf(
       return _mostrador(i, s, x0, y0, z0, x1, y1, z1);
 
     case PieceKind.sign:
-      return _cartel(i, x0, y0, z0, x1, y1, z1);
+      return _cartel(i, x0, y0, z0, x1, y1, z1, piece.motif);
+
+    case PieceKind.barrel:
+      return _tonel(i, piece, y0, y1);
+
+    case PieceKind.haystack:
+      return _almiar(i, piece, y0, y1);
+
+    case PieceKind.cloth:
+      return _tendedero(i, x0, y0, z0, x1, y1, z1, piece.alongX);
+
+    case PieceKind.millstone:
+      return _muela(i, piece, y0, y1);
+
+    case PieceKind.hens:
+      return _gallinas(i, s, x0, y0, z0, x1, y1, z1);
 
     case PieceKind.tree:
       final ht = y1 - y0;
@@ -1805,10 +1820,10 @@ class PlazaWorkshop {
   /// más afuera que [doorAt], para que la carretilla, que va delante, no
   /// atraviese la pared. Desde aquí entra andando y desaparece por la puerta.
   static (double, double) barrowDoorAt(double cx, double cz) =>
-      _aPlaza(cx, cz, 0, depth + 0.40);
+      _aPlaza(cx, cz, 0, depth + 0.32);
 
   /// Lo que anda desde [barrowDoorAt] hasta perderse por la puerta.
-  static const double barrowWalkIn = 0.30;
+  static const double barrowWalkIn = 0.24;
 
   /// La puerta, por fuera.
   static (double, double) doorAt(double cx, double cz) =>
@@ -2513,12 +2528,15 @@ List<Solid> _cartel(
   double x1,
   double y1,
   double z1,
+  Motif motif,
 ) {
   final cx = (x0 + x1) / 2;
   const g = 0.03;
   final tablaArriba = y1 - 0.08;
   final zc = z0 + (z1 - z0) * 0.62;
-  final media = (x1 - x0) / 2;
+  // Lo que mide la tabla: lo que da de sí el brazo por delante de la pared,
+  // y lo que deja de alto.
+  final media = math.min((z1 - z0) * 0.34, (tablaArriba - y0) / 2) * 2;
   return [
     // El brazo.
     Solid(
@@ -2566,20 +2584,407 @@ List<Solid> _cartel(
         tint: _madera,
       ),
     ),
-    // El pan pintado, a los dos lados.
+    // Lo que tiene pintado, a los dos lados.
+    ..._emblema(
+      i,
+      motif == Motif.none ? Motif.bread : motif,
+      cx,
+      zc,
+      y0 + (tablaArriba - y0) / 2,
+      media * 0.5 * 0.8,
+    ),
+  ];
+}
+
+/// El dibujo de un cartel, en relieve a los dos lados de la tabla: centrado en
+/// ([zc], [ym]) y de [r] de radio, en el plano de la tabla (x = [cx]).
+List<Solid> _emblema(
+  int i,
+  Motif m,
+  double cx,
+  double zc,
+  double ym,
+  double r,
+) {
+  // Rectángulos en unidades del radio: (u0, v0, u1, v1, color), u a lo
+  // largo de la tabla y v para arriba.
+  const pan = 0xFFC98A3E, hierro = 0xFF3A3A3E, oro = 0xFFE2B33C;
+  const barro = 0xFFB4643A, blanco = 0xFFEEE8DA, rojo = 0xFFA8382E;
+  const azul = 0xFF3E5E8E, uva = 0xFF6A3A6E, verde = 0xFF5E7A3A;
+  final rects = <(double, double, double, double, int)>[
+    ...switch (m) {
+      Motif.bread || Motif.none => [
+        (-0.85, -0.35, 0.85, 0.35, pan),
+        (-0.6, 0.35, 0.6, 0.6, pan),
+      ],
+      Motif.horseshoe => [
+        (-0.75, -0.8, -0.4, 0.6, hierro),
+        (0.4, -0.8, 0.75, 0.6, hierro),
+        (-0.75, 0.45, 0.75, 0.8, hierro),
+      ],
+      Motif.coin => [
+        (-0.75, -0.45, 0.75, 0.45, oro),
+        (-0.45, -0.75, 0.45, 0.75, oro),
+      ],
+      Motif.jug || Motif.clay => [
+        (-0.5, -0.8, 0.5, 0.35, barro),
+        (-0.25, 0.35, 0.25, 0.75, barro),
+        (0.5, -0.3, 0.8, 0.2, barro),
+      ],
+      Motif.oil => [
+        (-0.5, -0.8, 0.5, 0.35, verde),
+        (-0.25, 0.35, 0.25, 0.75, verde),
+      ],
+      Motif.mortar => [
+        (-0.75, -0.75, 0.75, 0.05, blanco),
+        (-0.1, 0.05, 0.15, 0.85, pan),
+      ],
+      Motif.quill => [
+        (-0.15, -0.85, 0.15, 0.85, blanco),
+        (-0.45, -0.2, 0.15, 0.6, blanco),
+        (-0.6, -0.95, 0.6, -0.75, hierro),
+      ],
+      Motif.book => [
+        (-0.85, -0.6, -0.05, 0.6, rojo),
+        (0.05, -0.6, 0.85, 0.6, rojo),
+        (-0.8, -0.5, -0.1, 0.5, blanco),
+        (0.1, -0.5, 0.8, 0.5, blanco),
+      ],
+      Motif.bed => [
+        (-0.85, -0.5, 0.85, 0.15, rojo),
+        (-0.85, 0.15, -0.3, 0.5, blanco),
+      ],
+      Motif.cloth => [
+        (-0.8, -0.8, -0.3, 0.8, azul),
+        (-0.25, -0.8, 0.25, 0.8, rojo),
+        (0.3, -0.8, 0.8, 0.8, oro),
+      ],
+      Motif.grapes => [
+        (-0.6, 0.0, 0.6, 0.5, uva),
+        (-0.4, -0.45, 0.4, 0.0, uva),
+        (-0.15, -0.85, 0.15, -0.45, uva),
+        (-0.05, 0.5, 0.05, 0.85, verde),
+      ],
+    },
+  ];
+  return [
+    for (final (u0, v0, u1, v1, c) in rects)
+      Solid(
+        i,
+        boxFaces(
+          cx - 0.034,
+          ym + v0 * r,
+          zc + u0 * r,
+          cx + 0.034,
+          ym + v1 * r,
+          zc + u1 * r,
+          Surface.own,
+          ao: 1.06,
+          tint: c,
+        ),
+      ),
+  ];
+}
+
+/// Un tonel de madera de pie con sus aros, o una tinaja de barro (o de
+/// aceite, verdosa), más ancha de panza que de boca.
+List<Solid> _tonel(int i, TownPiece p, double y0, double y1) {
+  final cx = p.cx, cz = p.cz, r = math.min(p.w, p.d) / 2, h = y1 - y0;
+  // Redondos de ocho lados: en cajas se leían como cajones.
+  Solid caja(double rr, double ya, double yb, int tint, double ao) => Solid(
+    i,
+    prismFaces(Plaza.ring(cx, cz, rr), ya, yb, Surface.own, ao: ao, tint: tint),
+  );
+  if (p.motif == Motif.clay || p.motif == Motif.oil) {
+    final c = p.motif == Motif.clay ? 0xFFB4643A : 0xFF8C7A4A;
+    return [
+      caja(r * 0.62, y0, y0 + h * 0.18, c, 0.86),
+      caja(r, y0 + h * 0.18, y0 + h * 0.68, c, 0.96),
+      caja(r * 0.72, y0 + h * 0.68, y0 + h * 0.86, c, 1.0),
+      caja(r * 0.42, y0 + h * 0.86, y1, c, 1.04),
+    ];
+  }
+  const madera = 0xFF8A6238, aro = 0xFF3E3A36;
+  return [
+    caja(r * 0.88, y0, y0 + h * 0.12, madera, 0.9),
+    caja(r, y0 + h * 0.12, y0 + h * 0.88, madera, 0.98),
+    caja(r * 0.88, y0 + h * 0.88, y1, madera, 1.02),
+    caja(r * 1.03, y0 + h * 0.2, y0 + h * 0.27, aro, 0.85),
+    caja(r * 1.03, y0 + h * 0.73, y0 + h * 0.8, aro, 0.85),
+  ];
+}
+
+/// El almiar: la paja apilada en montón alrededor de un palo, cerrándose
+/// hacia arriba, con la punta del palo asomando.
+List<Solid> _almiar(int i, TownPiece p, double y0, double y1) {
+  final cx = p.cx, cz = p.cz, r = math.min(p.w, p.d) / 2, h = y1 - y0;
+  const paja = 0xFFD8B65A, palo = 0xFF6B573F;
+  final out = <Solid>[];
+  const capas = [
+    (1.0, 0.0, 0.42),
+    (0.86, 0.42, 0.62),
+    (0.66, 0.62, 0.78),
+    (0.42, 0.78, 0.9),
+  ];
+  var k = 0;
+  for (final (rr, a, b) in capas) {
+    out.add(
+      Solid(
+        i,
+        boxFaces(
+          cx - r * rr,
+          y0 + h * a,
+          cz - r * rr,
+          cx + r * rr,
+          y0 + h * b,
+          cz + r * rr,
+          Surface.own,
+          ao: 0.92 + 0.04 * k++,
+          tint: paja,
+        ),
+      ),
+    );
+  }
+  out.add(
     Solid(
       i,
       boxFaces(
-        cx - 0.032,
-        y0 + (tablaArriba - y0) * 0.28,
-        zc - media * 0.3,
-        cx + 0.032,
-        y0 + (tablaArriba - y0) * 0.72,
-        zc + media * 0.3,
+        cx - 0.03,
+        y0 + h * 0.9,
+        cz - 0.03,
+        cx + 0.03,
+        y1,
+        cz + 0.03,
         Surface.own,
-        ao: 1.08,
-        tint: _corteza,
+        ao: 0.9,
+        tint: palo,
+      ),
+    ),
+  );
+  return out;
+}
+
+/// El tendedero de los tejedores: dos palos, la cuerda, y las telas teñidas
+/// colgando de colores.
+List<Solid> _tendedero(
+  int i,
+  double x0,
+  double y0,
+  double z0,
+  double x1,
+  double y1,
+  double z1,
+  bool along,
+) {
+  const palo = 0xFF6B573F;
+  const colores = [0xFF3E5E8E, 0xFFA8382E, 0xFFD8A83A, 0xFF5E7A3A];
+  final out = <Solid>[];
+  final largo = along ? x1 - x0 : z1 - z0;
+  final cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
+  (double, double, double, double) tramo(double a, double b, double ancho) =>
+      along
+      ? (x0 + a, cz - ancho, x0 + b, cz + ancho)
+      : (cx - ancho, z0 + a, cx + ancho, z0 + b);
+  for (final a in [0.0, largo - 0.06]) {
+    final (ax, az, bx, bz) = tramo(a, a + 0.06, 0.03);
+    out.add(
+      Solid(
+        i,
+        boxFaces(ax, y0, az, bx, y1, bz, Surface.own, ao: 0.9, tint: palo),
+      ),
+    );
+  }
+  final (cx0, cz0, cx1, cz1) = tramo(0.06, largo - 0.06, 0.008);
+  out.add(
+    Solid(
+      i,
+      boxFaces(
+        cx0,
+        y1 - 0.03,
+        cz0,
+        cx1,
+        y1 - 0.015,
+        cz1,
+        Surface.own,
+        ao: 0.9,
+        tint: palo,
+      ),
+    ),
+  );
+  const telas = 4;
+  final paso = (largo - 0.2) / telas;
+  for (var k = 0; k < telas; k++) {
+    final a = 0.1 + k * paso + paso * 0.08,
+        b = 0.1 + (k + 1) * paso - paso * 0.08;
+    final (tx0, tz0, tx1, tz1) = tramo(a, b, 0.012);
+    final cae = (y1 - y0) * (0.45 + 0.12 * (k % 2));
+    out.add(
+      Solid(
+        i,
+        boxFaces(
+          tx0,
+          y1 - 0.03 - cae,
+          tz0,
+          tx1,
+          y1 - 0.03,
+          tz1,
+          Surface.own,
+          ao: 1.0,
+          tint: colores[k % colores.length],
+        ),
+      ),
+    );
+  }
+  return out;
+}
+
+/// La muela de la almazara: la piedra redonda de canto sobre su pila.
+List<Solid> _muela(int i, TownPiece p, double y0, double y1) {
+  final cx = p.cx, cz = p.cz, w = p.w / 2, d = p.d / 2, h = y1 - y0;
+  const piedra = 0xFF9A9488, pila = 0xFF7E786C, palo = 0xFF6B573F;
+  final r = h * 0.38, yc = y0 + h * 0.3 + r;
+  return [
+    Solid(
+      i,
+      boxFaces(
+        cx - w,
+        y0,
+        cz - d,
+        cx + w,
+        y0 + h * 0.3,
+        cz + d,
+        Surface.own,
+        ao: 0.88,
+        tint: pila,
+      ),
+    ),
+    // La rueda: dos cajas cruzadas dan un octógono de canto.
+    Solid(
+      i,
+      boxFaces(
+        cx - r,
+        yc - r * 0.42,
+        cz - 0.09,
+        cx + r,
+        yc + r * 0.42,
+        cz + 0.09,
+        Surface.own,
+        ao: 1.0,
+        tint: piedra,
+      ),
+    ),
+    Solid(
+      i,
+      boxFaces(
+        cx - r * 0.42,
+        yc - r,
+        cz - 0.09,
+        cx + r * 0.42,
+        yc + r,
+        cz + 0.09,
+        Surface.own,
+        ao: 1.0,
+        tint: piedra,
+      ),
+    ),
+    // El eje y el palo que la hace girar.
+    Solid(
+      i,
+      boxFaces(
+        cx - 0.03,
+        y0 + h * 0.3,
+        cz - 0.03,
+        cx + 0.03,
+        y1,
+        cz + 0.03,
+        Surface.own,
+        ao: 0.9,
+        tint: palo,
+      ),
+    ),
+    Solid(
+      i,
+      boxFaces(
+        cx - w,
+        y1 - 0.06,
+        cz - 0.03,
+        cx + w,
+        y1,
+        cz + 0.03,
+        Surface.own,
+        ao: 0.9,
+        tint: palo,
       ),
     ),
   ];
+}
+
+/// Las gallinas sueltas por el corral: blancas y rojizas, con su cresta.
+List<Solid> _gallinas(
+  int i,
+  int seed,
+  double x0,
+  double y0,
+  double z0,
+  double x1,
+  double y1,
+  double z1,
+) {
+  final out = <Solid>[];
+  final h = y1 - y0;
+  for (var k = 0; k < 5; k++) {
+    final x = x0 + (x1 - x0) * (0.12 + 0.76 * hash01(seed, 300 + k));
+    final z = z0 + (z1 - z0) * (0.12 + 0.76 * hash01(seed, 320 + k));
+    final c = k.isEven ? 0xFFEDE6D6 : 0xFFA8643A;
+    final t = h * 0.6;
+    out.add(
+      Solid(
+        i,
+        boxFaces(
+          x - t * 0.6,
+          y0,
+          z - t * 0.4,
+          x + t * 0.6,
+          y0 + t,
+          z + t * 0.4,
+          Surface.own,
+          ao: 1.0,
+          tint: c,
+        ),
+      ),
+    );
+    out.add(
+      Solid(
+        i,
+        boxFaces(
+          x + t * 0.35,
+          y0 + t * 0.7,
+          z - t * 0.18,
+          x + t * 0.75,
+          y1,
+          z + t * 0.18,
+          Surface.own,
+          ao: 1.02,
+          tint: c,
+        ),
+      ),
+    );
+    out.add(
+      Solid(
+        i,
+        boxFaces(
+          x + t * 0.48,
+          y1,
+          z - t * 0.06,
+          x + t * 0.66,
+          y1 + t * 0.2,
+          z + t * 0.06,
+          Surface.own,
+          ao: 1.0,
+          tint: 0xFFB8302A,
+        ),
+      ),
+    );
+  }
+  return out;
 }

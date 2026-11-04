@@ -58,8 +58,23 @@ enum PieceKind {
   counter,
 
   /// Un cartel colgado de un brazo de hierro que sale de la pared hacia la
-  /// calle, con un pan pintado.
+  /// calle, con el dibujo de su oficio ([Spec.motif]).
   sign,
+
+  /// Un tonel de madera, o una tinaja de barro o de aceite ([Spec.motif]).
+  barrel,
+
+  /// Un almiar: paja amontonada alrededor de un palo.
+  haystack,
+
+  /// Un tendedero con telas teñidas colgando.
+  cloth,
+
+  /// Una muela de piedra de canto sobre su pila, con el palo que la gira.
+  millstone,
+
+  /// Gallinas sueltas.
+  hens,
 }
 
 /// One piece of a building, before it is given to an achievement.
@@ -73,10 +88,32 @@ class Spec {
     required this.y0,
     required this.y1,
     required this.alongX,
+    this.motif = Motif.none,
   });
   final PieceKind kind;
   final double cx, cz, w, d, y0, y1;
   final bool alongX;
+
+  /// Lo que lleva pintado o de qué es, en las piezas que lo dicen: el
+  /// dibujo de un cartel, el barro o la madera de un tonel.
+  final Motif motif;
+}
+
+/// El dibujo de un cartel de oficio, o el material de lo que lo tiene.
+enum Motif {
+  none,
+  bread,
+  horseshoe,
+  coin,
+  jug,
+  mortar,
+  quill,
+  book,
+  bed,
+  cloth,
+  grapes,
+  clay,
+  oil,
 }
 
 /// The hand that lays the pieces.
@@ -141,9 +178,11 @@ class Mason {
     double y0,
     double y1, {
     bool? along,
+    Motif motif = Motif.none,
   }) {
     out.add(
       Spec(
+        motif: motif,
         kind: kind,
         cx: cx + dx * spread,
         cz: cz + dz * spread,
@@ -168,12 +207,13 @@ class Mason {
     bool ridge = false,
     double? at,
     bool? along,
+    Motif motif = Motif.none,
   }) {
     // A roof is the one thing whose height is not the town's height: how steep
     // this place builds is a fourth number, on top of the other three.
     if (k == PieceKind.roof || k == PieceKind.thatch) ht *= pitch;
     final base = at ?? y;
-    _add(k, dx, dz, w, d, base, base + ht, along: along);
+    _add(k, dx, dz, w, d, base, base + ht, along: along, motif: motif);
     if (k == PieceKind.roof || k == PieceKind.thatch) {
       _roofs.add(_Roof(dx, dz, w, d, base, ht, along ?? alongX));
     }
@@ -445,6 +485,128 @@ class Mason {
   );
 
   // --------------------------------------------------------------- shortcuts
+
+  /// El cartel de un oficio, colgado de la fachada que da a la calle en
+  /// [front] (la z de la cara de la pared), con su dibujo.
+  void sign(
+    Motif motif, {
+    double dx = 0,
+    required double front,
+    double at = 1,
+  }) => box(
+    PieceKind.sign,
+    0.1,
+    0.7,
+    0.42,
+    dx: dx,
+    dz: front + 0.2,
+    at: at,
+    ridge: true,
+    motif: motif,
+  );
+
+  /// Un tonel —o una tinaja, con [motif] de barro o de aceite— en el suelo.
+  void barrel(
+    double side,
+    double ht, {
+    double dx = 0,
+    double dz = 0,
+    double at = 0,
+    Motif motif = Motif.none,
+  }) => box(
+    PieceKind.barrel,
+    side,
+    side,
+    ht,
+    dx: dx,
+    dz: dz,
+    at: at,
+    ridge: true,
+    motif: motif,
+  );
+
+  /// Un almiar.
+  void haystack(double side, double ht, {double dx = 0, double dz = 0}) => box(
+    PieceKind.haystack,
+    side,
+    side,
+    ht,
+    dx: dx,
+    dz: dz,
+    at: 0,
+    ridge: true,
+  );
+
+  /// Un tendedero con telas, de [len] de largo.
+  void cloths(
+    double len,
+    double ht, {
+    double dx = 0,
+    double dz = 0,
+    bool along = true,
+  }) => box(
+    PieceKind.cloth,
+    along ? len : 0.2,
+    along ? 0.2 : len,
+    ht,
+    dx: dx,
+    dz: dz,
+    at: 0,
+    ridge: true,
+    along: along,
+  );
+
+  /// Una muela de piedra sobre su pila.
+  void millstone(double side, double ht, {double dx = 0, double dz = 0}) => box(
+    PieceKind.millstone,
+    side,
+    side * 0.7,
+    ht,
+    dx: dx,
+    dz: dz,
+    at: 0,
+    ridge: true,
+  );
+
+  /// Gallinas sueltas en un rectángulo.
+  void hens(double w, double d, {double dx = 0, double dz = 0}) =>
+      box(PieceKind.hens, w, d, 0.3, dx: dx, dz: dz, at: 0, ridge: true);
+
+  /// Un toldo a rayas que sale de la fachada en [front] hacia la calle.
+  void awning(
+    double w,
+    double reach, {
+    double dx = 0,
+    required double front,
+    required double at,
+    double drop = 0.3,
+  }) => box(
+    PieceKind.awning,
+    w,
+    reach + 0.15,
+    drop,
+    dx: dx,
+    dz: front + (reach - 0.15) / 2,
+    at: at,
+    ridge: true,
+  );
+
+  /// Un mostrador con lo que se vende encima, delante de la fachada.
+  void counter(
+    double w, {
+    double dx = 0,
+    required double front,
+    double at = 0,
+  }) => box(
+    PieceKind.counter,
+    w,
+    0.32,
+    0.46,
+    dx: dx,
+    dz: front + 0.16,
+    at: at,
+    ridge: true,
+  );
 
   /// A shaft of [storeys] storeys. One piece each, so the cost is honest.
   void shaft(double side, int storeys, double storeyH, {double taper = 0}) {

@@ -2944,6 +2944,14 @@ class TownPainter extends CustomPainter {
         case PieceKind.palisade:
         case PieceKind.chimney:
         case PieceKind.dormer:
+        case PieceKind.awning:
+        case PieceKind.counter:
+        case PieceKind.sign:
+        case PieceKind.barrel:
+        case PieceKind.haystack:
+        case PieceKind.cloth:
+        case PieceKind.millstone:
+        case PieceKind.hens:
           break;
         default:
           porCasa.putIfAbsent(pc.building, () => []).add(pc);

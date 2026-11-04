@@ -6,7 +6,7 @@ import '../data/landmarks.dart';
 import '../l10n/lang.dart';
 import 'mason.dart';
 
-export 'mason.dart' show PieceKind;
+export 'mason.dart' show PieceKind, Motif;
 
 /// One achievement, as a piece of a building.
 ///
@@ -27,7 +27,11 @@ class TownPiece {
     required this.y1,
     required this.seed,
     this.alongX = true,
+    this.motif = Motif.none,
   });
+
+  /// Lo que lleva pintado, o de qué es: ver [Spec.motif].
+  final Motif motif;
 
   /// Which achievement laid this piece.
   final int index;
@@ -819,6 +823,7 @@ class TownLayout {
           y1: p.y1,
           seed: hash32(building.seed, pieces.length, 31),
           alongX: p.alongX,
+          motif: p.motif,
         ),
       );
       if (p.y1 > building.peakY) building.peakY = p.y1;
@@ -1020,6 +1025,7 @@ class TownLayout {
             y1: p.y1,
             seed: hash32(seed, index, 31),
             alongX: p.alongX,
+            motif: p.motif,
           ),
         );
         if (p.y1 > building.peakY) building.peakY = p.y1;

@@ -215,18 +215,19 @@ final List<Landmark> landmarks = [
   Landmark(
     'pajar',
     'Pajar',
-    6,
+    7,
     0,
     'La cosecha del verano, guardada para el invierno. Previsión hecha '
         'de paja dorada.',
     (m) {
-      // Un pajar no tiene ventanas ni tejas: es un muro ciego con un portón y
-      // un techo de paja gordo. Con planta de vivienda y tejado de teja era
-      // una casa más, que es lo que se vio en la hoja de contacto.
+      // El pajar se lee por la paja: muro ciego bajo un techo de paja gordo,
+      // y delante los almiares, la paja amontonada alrededor de su palo. La
+      // caja que hacía de portón se leía como un cajón pegado a una casa.
       m.box(PieceKind.plinth, 2.5, 2.0, 0.22, at: 0);
       m.box(PieceKind.parapet, 2.15, 1.7, 1.3, at: 0.22);
       m.box(PieceKind.thatch, 2.6, 2.15, 1.05, at: 1.52);
-      m.box(PieceKind.parapet, 1.05, 0.42, 0.85, dz: 0.95, at: 0);
+      m.haystack(0.95, 1.25, dx: -0.75, dz: 1.75);
+      m.haystack(0.8, 1.05, dx: 0.55, dz: 1.85);
       m.field(2.2, 0.9, dz: -1.75);
       m.palisade(2.5, 0.6, dz: -2.2);
     },
@@ -251,42 +252,53 @@ final List<Landmark> landmarks = [
   Landmark(
     'gallinero',
     'Gallinero',
-    5,
+    6,
     0,
     'Huevos frescos cada mañana. Un comienzo sencillo y generoso para '
         'cada día.',
     (m) {
+      // La caseta de las gallinas con su rampa, el corral al lado cerrado
+      // con su empalizada, y las gallinas sueltas picoteando delante: sin
+      // ellas era una casita con una valla.
       m.plinth(1.6, 1.3, 0.32);
       m.floor(1.3, 1.05, 0.78);
       m.box(PieceKind.thatch, 1.55, 1.3, 0.5);
       m.stair(0.6, 0.32, 0.72, dz: 0.95);
-      m.palisade(2.3, 0.62, dz: 1.4);
+      m.palisade(2.1, 0.62, dx: -1.15, dz: 0.75, along: false);
+      m.hens(2.0, 0.85, dz: 1.35);
     },
   ),
 
   Landmark(
     'alfar',
     'Alfarería',
-    7,
+    12,
     0,
     'Del barro nacen cántaros, platos y tejas. Las manos del alfarero '
         'dan forma al pueblo.',
     (m) {
+      // El taller del alfarero y, al lado, el horno de cocer: de ladrillo,
+      // cerrándose en hiladas hasta el tiro. Delante, los cántaros y las
+      // tinajas recién hechos secándose al sol, y el cartel con su cántaro.
+      // La balsa de barro, al otro lado.
       m.plinth(2.0, 1.7, 0.22);
       m.floor(1.7, 1.45, 1.0);
       m.box(PieceKind.thatch, 2.05, 1.8, 0.62);
-      m.dome(1.25, 1.25, 0.95, dx: 1.55, at: 0);
-      m.box(
-        PieceKind.chimney,
-        0.26,
-        0.26,
-        0.5,
-        dx: 1.55,
-        ridge: true,
-        at: 0.72,
-      );
-      m.water(1.15, 1.15, dx: -1.5, dz: 0.95);
-      m.palisade(1.9, 0.55, dz: -1.35);
+      var y = 0.0;
+      for (final (lado, alto) in const [
+        (1.2, 0.55),
+        (0.95, 0.2),
+        (0.62, 0.16),
+      ]) {
+        m.box(PieceKind.chimney, lado, lado, alto, dx: 1.6, at: y, ridge: true);
+        y += alto;
+      }
+      m.box(PieceKind.chimney, 0.22, 0.22, 0.42, dx: 1.6, at: y, ridge: true);
+      m.barrel(0.42, 0.55, dx: -0.55, dz: 1.2, motif: Motif.clay);
+      m.barrel(0.34, 0.42, dx: 0.0, dz: 1.3, motif: Motif.clay);
+      m.barrel(0.42, 0.55, dx: 0.5, dz: 1.2, motif: Motif.clay);
+      m.sign(Motif.clay, dx: -0.65, front: 0.72, at: 0.62);
+      m.water(1.15, 1.15, dx: -1.6, dz: 0.95);
     },
   ),
 
@@ -298,12 +310,16 @@ final List<Landmark> landmarks = [
     'Una mirada alta y despierta sobre el valle. Gracias a ella, el '
         'pueblo duerme en paz.',
     (m) {
+      // Una torre de vigía es de piedra y ciega casi entera; sólo arriba, en
+      // la garita, tiene ventanas, que es desde donde se mira. Con ventanas
+      // en todos los pisos se leía como una casa alta.
       m.plinth(1.9, 1.9, 0.34);
-      m.shaft(1.35, 4, 0.82);
+      m.box(PieceKind.parapet, 1.4, 1.4, 1.1);
+      m.box(PieceKind.parapet, 1.36, 1.36, 1.0);
+      m.box(PieceKind.parapet, 1.32, 1.32, 0.9);
+      m.floor(1.35, 1.35, 0.82);
       m.parapet(1.7, 1.7, 0.46);
-      // La bandera, en la almena y no en la punta del chapitel. Clavada
-      // arriba del todo, el mástil salía del vértice de un cono y lo que se
-      // veía era una bandera flotando en el aire por encima de la torre.
+      // La bandera, en la almena y no en la punta del chapitel.
       m.banner(1.15, dx: 0.5, dz: 0.5, at: m.y);
       m.stair(0.95, 0.44, 0.85, dz: 1.3);
     },
@@ -452,14 +468,15 @@ final List<Landmark> landmarks = [
   Landmark(
     'potro',
     'Potro de herrar',
-    9,
+    12,
     0,
     'Donde se calza a los que tiran del arado. Un buen herraje es un '
         'campo más arado.',
     (m) {
       // El armazón donde se sujeta al animal: cuatro postes gruesos, dos
-      // travesaños por los lados y el tejadito de tabla encima; al lado, el
-      // yunque sobre su tronco.
+      // travesaños por los lados, el yugo de delante donde va la cabeza y el
+      // tejadito de tabla encima; al lado, el cartel de la herradura, el
+      // tonel del agua y un poco de heno.
       m.box(PieceKind.plinth, 2.1, 1.4, 0.12, at: 0);
       final base = m.y;
       for (final (x, z) in const [
@@ -472,8 +489,11 @@ final List<Landmark> landmarks = [
       }
       m.beam(1.7, 0.12, 0.14, dz: -0.45, at: base + 0.7);
       m.beam(1.7, 0.12, 0.14, dz: 0.45, at: base + 0.7);
+      m.beam(0.14, 1.0, 0.2, dx: -0.75, at: base + 0.95);
       m.roof(2.0, 1.35, 0.35, at: base + 1.3);
-      m.box(PieceKind.parapet, 0.4, 0.3, 0.5, dx: 1.45, dz: 0.3, at: 0);
+      m.sign(Motif.horseshoe, dx: 0.75, front: 0.45, at: base + 0.82);
+      m.barrel(0.42, 0.55, dx: 1.45, dz: 0.35);
+      m.haystack(0.6, 0.55, dx: 1.45, dz: -0.4);
     },
   ),
 
@@ -524,46 +544,49 @@ final List<Landmark> landmarks = [
     'Oro líquido de olivos centenarios. Un regalo de generaciones que '
         'se sigue cosechando.',
     (m) {
-      // El olivar delante y la prensa detrás, y **todo lo que está al lado
-      // dice a qué altura está**. Lo de antes ponía el cobertizo de la viga
-      // con un `plinth`, que se apila sobre la línea de obra: el cobertizo
-      // salía flotando a la altura del tejado de la casa, y la viga y el
-      // poste debajo de él, en el aire.
+      // El molino de aceite: la nave, y al aire la muela de piedra de canto
+      // sobre su pila, que es lo que dice «almazara»; las tinajas del aceite
+      // al lado y el olivar detrás.
       m.plinth(2.8, 2.2, 0.32, dz: 1.2);
       m.floor(2.5, 1.95, 1.2, dz: 1.2);
       m.roof(2.85, 2.3, 0.8, dz: 1.2);
       m.chimney(0.32, 0.95, dx: 0.85, dz: 1.2);
-      m.box(PieceKind.plinth, 1.8, 1.8, 0.3, dx: -2.3, dz: 1.2, at: 0);
-      m.post(0.32, 1.6, dx: -2.3, dz: 1.2, at: 0.3);
-      m.beam(2.3, 0.3, 0.28, dx: -2.3, dz: 1.2, at: 1.6);
+      m.millstone(1.5, 1.3, dx: -2.4, dz: 1.3);
+      m.barrel(0.5, 0.7, dx: -2.75, dz: 2.35, motif: Motif.oil);
+      m.barrel(0.5, 0.7, dx: -2.1, dz: 2.4, motif: Motif.oil);
+      m.sign(Motif.oil, dx: -0.6, front: 2.175, at: 0.75);
       m.tree(1.35, 2.0, dx: -2.2, dz: -1.7);
       m.tree(1.35, 1.9, dx: -0.6, dz: -2.2);
       m.tree(1.35, 2.1, dx: 1.0, dz: -1.7);
       m.tree(1.25, 1.8, dx: 2.4, dz: -2.2);
       m.tree(1.25, 1.9, dx: 2.6, dz: 0.2);
       m.field(4.2, 1.1, dz: -3.1);
-      m.palisade(3.4, 0.55, dx: -3.2, along: false);
     },
   ),
 
   Landmark(
     'cerveceria',
     'Cervecería',
-    12,
+    14,
     1,
     'Grano, agua y paciencia hechos celebración. Aquí el día termina en '
         'buena compañía.',
     (m) {
+      // La cervecería: la casa con su cartel de la jarra, y lo que la
+      // distingue de una casa —los toneles apilados delante, la caldera de
+      // cobre al costado con su tiro— y el campo de cebada detrás.
       m.plinth(2.7, 2.2, 0.32);
       m.floor(2.4, 1.9, 1.2);
       m.floor(2.35, 1.85, 1.05);
       m.roof(2.75, 2.3, 0.85);
       m.chimney(0.36, 1.15, dx: -0.75);
-      m.dome(1.3, 1.3, 0.95, dx: 2.0, at: 0);
-      m.box(PieceKind.chimney, 0.3, 0.3, 0.6, dx: 2.0, ridge: true, at: 0.72);
-      m.water(1.3, 1.3, dx: -2.1, dz: 1.1);
-      m.dome(0.55, 0.55, 0.48, dx: -1.5, dz: 1.6, at: 0);
-      m.dome(0.55, 0.55, 0.48, dx: -0.75, dz: 1.6, at: 0);
+      m.box(PieceKind.chimney, 1.1, 1.1, 0.7, dx: 2.0, at: 0, ridge: true);
+      m.box(PieceKind.chimney, 0.8, 0.8, 0.22, dx: 2.0, at: 0.7, ridge: true);
+      m.box(PieceKind.chimney, 0.26, 0.26, 0.6, dx: 2.0, at: 0.92, ridge: true);
+      m.sign(Motif.jug, dx: 0.7, front: 0.95, at: 1.0);
+      m.barrel(0.5, 0.62, dx: -1.45, dz: 1.55);
+      m.barrel(0.5, 0.62, dx: -0.85, dz: 1.6);
+      m.barrel(0.5, 0.62, dx: -1.15, dz: 1.6, at: 0.62);
       m.field(2.8, 1.1, dz: -2.2);
       m.tree(1.0, 1.7, dx: 2.3, dz: -1.5);
     },
@@ -600,7 +623,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'ceca',
     'Casa de la moneda',
-    14,
+    15,
     1,
     'Monedas con el sello del pueblo, que viajan lejos y llevan su '
         'nombre con orgullo.',
@@ -630,6 +653,7 @@ final List<Landmark> landmarks = [
         at: 3.1,
       );
       m.banner(1.05, dx: 1.6, dz: -1.5, at: 3.42);
+      m.sign(Motif.coin, dx: 0.7, front: 0.9, at: 1.75);
       m.stair(1.3, 0.4, 0.75, dz: 1.5);
     },
   ),
@@ -637,25 +661,24 @@ final List<Landmark> landmarks = [
   Landmark(
     'tejedores',
     'Gremio de tejedores',
-    13,
+    11,
     1,
     'Hilos que se cruzan para hacer algo más fuerte. Un oficio que se '
         'sostiene entre todos.',
     (m) {
+      // El gremio: la casa grande con el soportal donde se vende, y delante
+      // los tendederos con las telas teñidas de colores, que es lo que se ve
+      // desde lejos. El cartel con las telas, en la esquina.
       m.plinth(2.9, 2.3, 0.34);
       m.floor(2.6, 2.0, 1.25);
       m.floor(2.55, 1.95, 1.1);
-      // El desván abierto donde se seca el paño: es lo que se ve desde la
-      // calle y lo que lo distingue de las otras casas altas.
       m.arcade(2.5, 1.0, 1.9, rise: true);
       m.roof(2.95, 2.4, 0.9);
       m.dormer(0.7, 0.6, dz: 0.95);
       m.chimney(0.32, 0.95, dx: -0.95);
-      m.post(0.18, 1.6, dx: -2.4, dz: 2.1, at: 0);
-      m.post(0.18, 1.6, dx: 2.4, dz: 2.1, at: 0);
-      m.beam(4.8, 0.2, 0.16, dz: 2.1, at: 1.6);
-      m.banner(0.95, dx: -1.2, dz: 2.1, at: 1.76);
-      m.banner(0.95, dx: 1.2, dz: 2.1, at: 1.76);
+      m.sign(Motif.cloth, dx: 1.0, front: 1.0, at: 1.4);
+      m.cloths(2.2, 1.5, dx: -1.2, dz: 2.1);
+      m.cloths(2.2, 1.35, dx: 1.25, dz: 2.25);
       m.field(2.8, 1.0, dz: -2.3);
     },
   ),
@@ -663,21 +686,23 @@ final List<Landmark> landmarks = [
   Landmark(
     'hospederia',
     'Hospital de peregrinos',
-    15,
+    16,
     1,
     'Un techo y un plato caliente para el viajero. La hospitalidad '
         'hecha piedra.',
     (m) {
+      // El hospital de peregrinos: la casa larga con el soportal donde se
+      // espera, el pozo para el que llega con sed y el cartel de la cama.
       m.plinth(3.7, 2.5, 0.34);
       m.floor(3.4, 2.2, 1.3);
       m.floor(3.35, 2.15, 1.1);
       m.roof(3.75, 2.6, 1.0);
-      // El soportal delante, donde se espera y se duerme si no hay sitio.
       m.arcade(3.3, 1.2, 0.75, dz: 1.6, at: 0);
       m.roof(3.5, 1.05, 0.45, dz: 1.62, at: 1.2);
       m.dormer(0.7, 0.6, dx: -1.15, dz: 0.8);
       m.dormer(0.7, 0.6, dx: 1.15, dz: 0.8);
       m.chimney(0.34, 1.05, dx: -1.3);
+      m.sign(Motif.bed, dx: 1.5, front: 1.1, at: 1.55);
       m.box(PieceKind.plinth, 1.0, 1.0, 0.26, dx: -2.8, dz: 1.3, at: 0);
       m.box(
         PieceKind.parapet,
@@ -699,21 +724,22 @@ final List<Landmark> landmarks = [
   Landmark(
     'botica',
     'Botica',
-    11,
+    12,
     1,
     'Hierbas, saber y cuidado al alcance de todos. Aquí empieza la '
         'curación.',
     (m) {
+      // La botica: la casa del boticario con su cartel del almirez, las
+      // tinajas de los ungüentos en la puerta y el huerto de hierbas al lado.
       m.plinth(2.3, 1.9, 0.3);
       m.floor(2.0, 1.65, 1.15);
       m.floor(1.95, 1.6, 1.05);
       m.roof(2.35, 2.0, 0.8);
       m.dormer(0.6, 0.55, dz: 0.72);
       m.chimney(0.3, 0.9, dx: -0.6);
-      // El rótulo cuelga de un poste plantado en la calle. Antes colgaba de
-      // una altura escrita a mano y lo que se veía era un cartel en el aire.
-      m.post(0.16, 1.45, dx: 1.1, dz: 1.05, at: 0);
-      m.banner(0.75, dx: 1.1, dz: 1.05, at: 1.45);
+      m.sign(Motif.mortar, dx: 0.55, front: 0.825, at: 1.0);
+      m.barrel(0.32, 0.42, dx: 0.2, dz: 1.2, motif: Motif.clay);
+      m.barrel(0.32, 0.42, dx: 0.6, dz: 1.2, motif: Motif.clay);
       m.field(1.1, 1.0, dx: -1.75, dz: 1.0);
       m.field(1.1, 1.0, dx: -1.75, dz: -0.25);
       m.tree(0.95, 1.7, dx: 1.8, dz: -1.35);
@@ -723,7 +749,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'escuela',
     'Escuela de gramática',
-    10,
+    11,
     1,
     'Donde los niños aprenden a leer el mundo. Cada lección es una '
         'puerta que se abre.',
@@ -736,6 +762,9 @@ final List<Landmark> landmarks = [
       m.beam(3.0, 0.8, 0.18, dz: 1.0, at: 1.25);
       m.dormer(0.65, 0.6, dx: -0.9, dz: 0.75);
       m.dormer(0.65, 0.6, dx: 0.9, dz: 0.75);
+      // El cartel del libro, colgado del soportal: lo que dice que aquí se
+      // enseña y no se vive.
+      m.sign(Motif.book, dx: 1.25, front: 1.35, at: 1.43);
       m.tree(1.25, 2.3, dx: -2.4, dz: 1.5);
       m.stair(2.8, 0.34, 0.7, dz: 1.45);
     },
@@ -744,11 +773,13 @@ final List<Landmark> landmarks = [
   Landmark(
     'escribania',
     'Escribanía',
-    12,
+    11,
     1,
     'La palabra escrita que guarda los acuerdos y la memoria. Aquí la '
         'confianza tiene su casa.',
     (m) {
+      // La escribanía: tres plantas estrechas, la escalera exterior hasta la
+      // puerta de arriba, donde se firma, y el cartel de la pluma.
       m.plinth(2.4, 2.0, 0.32);
       m.floor(2.1, 1.7, 1.2);
       m.floor(2.05, 1.65, 1.1);
@@ -756,11 +787,9 @@ final List<Landmark> landmarks = [
       m.roof(2.45, 2.05, 0.85);
       m.dormer(0.6, 0.55, dz: 0.78);
       m.chimney(0.3, 0.9, dx: -0.7);
-      // La escalera de fuera, que es de donde se sube al despacho.
       m.stair(0.9, 1.52, 1.35, dz: 1.55);
       m.box(PieceKind.porch, 0.95, 0.55, 0.5, dz: 1.15, at: 1.52);
-      m.post(0.16, 1.35, dx: 1.2, dz: 1.2, at: 0);
-      m.banner(0.75, dx: 1.2, dz: 1.2, at: 1.35);
+      m.sign(Motif.quill, dx: 0.8, front: 0.85, at: 1.25);
       m.tree(1.0, 1.9, dx: -1.95, dz: -1.25);
     },
   ),
@@ -883,13 +912,14 @@ final List<Landmark> landmarks = [
   Landmark(
     'bodega',
     'Bodega',
-    12,
+    13,
     1,
     'En la penumbra fresca, el vino madura sin prisa. La paciencia '
         'también se cosecha.',
     (m) {
-      // Media bodega está enterrada: lo que se ve son los lomos de tierra, los
-      // respiraderos y las portadas. Nada de esto es una casa con tejado.
+      // La bodega: media está enterrada —los lomos de tierra con su
+      // respiradero— y se entra por las bocas de piedra. Lo que la dice son
+      // los toneles en la puerta, el cartel de las uvas y la viña detrás.
       m.dome(1.9, 2.7, 0.95, dx: -1.7, at: 0);
       m.dome(1.9, 2.7, 0.95, dx: 0.4, at: 0);
       m.box(
@@ -902,23 +932,15 @@ final List<Landmark> landmarks = [
         ridge: true,
         at: 0.7,
       );
-      m.box(
-        PieceKind.chimney,
-        0.32,
-        0.32,
-        0.55,
-        dx: 0.4,
-        dz: -0.6,
-        ridge: true,
-        at: 0.7,
-      );
       m.box(PieceKind.parapet, 1.25, 1.0, 0.95, dx: -1.7, dz: 1.55, at: 0);
       m.box(PieceKind.parapet, 1.25, 1.0, 0.95, dx: 0.4, dz: 1.55, at: 0);
+      m.sign(Motif.grapes, dx: 0.4, front: 2.05, at: 0.45);
       m.outbuilding(1.7, 1.35, 1.0, 0.58, dx: 2.5, dz: -0.4);
-      m.box(PieceKind.parapet, 0.95, 0.4, 0.32, dx: 1.7, dz: 1.7, at: 0);
+      m.barrel(0.5, 0.62, dx: 1.5, dz: 1.75);
+      m.barrel(0.5, 0.62, dx: 2.1, dz: 1.75);
+      m.barrel(0.5, 0.62, dx: 1.8, dz: 1.75, at: 0.62);
       m.field(3.8, 1.0, dz: -2.5);
       m.palisade(3.8, 0.55, dz: -3.0);
-      m.tree(1.1, 2.0, dx: 2.5, dz: 1.6);
     },
   ),
 
@@ -974,11 +996,14 @@ final List<Landmark> landmarks = [
   Landmark(
     'herreriaMayor',
     'Herrería mayor',
-    13,
+    14,
     1,
     'Fuego, hierro y fuerza. De su yunque salen las herramientas que '
         'levantan el pueblo.',
     (m) {
+      // La herrería: la nave de las fraguas con sus dos chimeneas gordas y el
+      // cobertizo abierto delante, donde se trabaja; el pilón de templar,
+      // los toneles del agua y el carbón, y el cartel de la herradura.
       m.plinth(3.2, 2.4, 0.34);
       m.floor(2.9, 2.1, 1.55);
       m.roof(3.3, 2.5, 0.95);
@@ -986,9 +1011,10 @@ final List<Landmark> landmarks = [
       m.chimney(0.4, 1.25, dx: 0.9);
       m.arcade(2.8, 1.25, 0.85, dz: 1.55, at: 0);
       m.roof(3.0, 1.05, 0.45, dz: 1.6, at: 1.25);
+      m.sign(Motif.horseshoe, dx: 1.2, front: 1.05, at: 0.75);
       m.water(1.35, 1.15, dx: -2.5, dz: 0.6);
-      m.dome(0.95, 0.95, 0.58, dx: 2.4, dz: -0.8, at: 0);
-      m.dome(0.85, 0.85, 0.5, dx: 2.4, dz: 0.35, at: 0);
+      m.barrel(0.5, 0.62, dx: 2.4, dz: -0.6);
+      m.barrel(0.5, 0.62, dx: 2.4, dz: 0.1);
       m.box(PieceKind.parapet, 0.7, 0.7, 0.52, dx: 2.4, dz: 1.5, at: 0);
       m.palisade(3.6, 0.6, dz: -2.1);
       m.tree(1.05, 1.9, dx: -2.7, dz: -1.6);
@@ -1214,10 +1240,17 @@ final List<Landmark> landmarks = [
       m.box(PieceKind.parapet, 0.5, 6.4, 1.5, dx: 3.0, at: 0);
       m.plinth(5.0, 5.0, 0.9);
       m.plinth(4.4, 4.4, 0.6);
-      m.box(PieceKind.parapet, 4.0, 4.0, 1.7, at: m.y);
-      m.box(PieceKind.parapet, 3.95, 3.95, 1.6, at: m.y + 1.7);
-      m.box(PieceKind.parapet, 3.9, 3.9, 1.6, at: m.y + 3.3);
-      m.floor(3.85, 3.85, 1.5, dx: 0, dz: 0);
+      // La torre, de piedra y ciega abajo; las ventanas, sólo en lo alto.
+      // Toda lisa se leía como un cajón con almenas, y con ventanas en todos
+      // los pisos, como una casa de vecinos.
+      final pie = m.y;
+      m.box(PieceKind.parapet, 4.0, 4.0, 1.7, at: pie);
+      m.box(PieceKind.parapet, 3.95, 3.95, 1.6, at: pie + 1.7);
+      m.box(PieceKind.parapet, 3.9, 3.9, 1.6, at: pie + 3.3);
+      // Se apilaban sin subir la hilada, y la planta de las ventanas caía
+      // abajo, dentro de las otras: la torre salía achatada.
+      m.y = pie + 4.9;
+      m.floor(3.85, 3.85, 1.5);
       final remate = m.y;
       m.parapet(4.5, 4.5, 0.62);
       for (final c in const [
@@ -1238,7 +1271,7 @@ final List<Landmark> landmarks = [
         );
       }
       m.banner(1.5, at: remate + 0.62);
-      m.box(PieceKind.floor, 1.5, 1.5, 2.2, dx: 2.4, dz: 2.4, at: 0);
+      m.box(PieceKind.parapet, 1.5, 1.5, 2.2, dx: 2.4, dz: 2.4, at: 0);
       m.stair(1.5, 1.5, 2.4, dz: 3.4);
       m.arcade(1.4, 1.5, 0.7, dz: 2.55, at: 1.5);
       m.water(1.3, 1.3, dx: -2.6, dz: 3.4);

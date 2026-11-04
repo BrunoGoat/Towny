@@ -1027,7 +1027,16 @@ void main() {
           final bx = PlazaBench.xAt(l.cx), bz = PlazaBench.zAt(l.cz);
           double alBanco(FolkAt q) =>
               math.sqrt(math.pow(q.x - bx, 2) + math.pow(q.z - bz, 2));
+          // Ni metiéndose por la puerta del taller: ya se está yendo. Ni
+          // contra el pilón de la fuente: ahí no tiene hacia dónde correrse,
+          // y lo más que pasa es que se rozan.
+          final pilon = Plaza.basinOf(TownLayout.plazaReach) + 0.11;
+          final alPilon = math.sqrt(
+            math.pow(a.x - l.cx, 2) + math.pow(a.z - l.cz, 2),
+          );
           final juntos =
+              a.sink > 0 ||
+              alPilon < pilon + 0.03 ||
               (a.act?.seated ?? false) ||
               (b.act?.seated ?? false) ||
               a.act == Doing.chat ||
