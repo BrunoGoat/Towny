@@ -822,6 +822,43 @@ void main() {
       expect(vistos, greaterThan(10));
     });
 
+    test('las piedras descargadas no vuelven a la carretilla, y en el taller '
+        'entra vacía y sale llena', () {
+      var descargas = 0, entradas = 0;
+      for (var seed = 1; seed <= 30; seed++) {
+        final l = TownLayout(120, TownCharacter.all[seed % 8], seed: seed);
+        final w = folkOf(l, 120).where((v) => v.onWorks).firstOrNull;
+        if (w == null) continue;
+        FolkAt? antes;
+        for (var k = 0; k < 6000; k++) {
+          final a = w.at(w.period * k / 6000);
+          final p = antes;
+          antes = a;
+          if (p == null || a.moving || p.moving) continue;
+          // Terminada la descarga, la caja queda vacía hasta irse.
+          if (p.act == Doing.unload && a.act != Doing.unload) {
+            expect(
+              a.carry,
+              PropKind.barrowEmpty,
+              reason: 'valle $seed: las piedras vuelven a la caja',
+            );
+            descargas++;
+          }
+          // Y en el taller: se hunde por la puerta con la vacía y sale con
+          // la llena.
+          if (p.sink < 0.99 && a.sink >= 0.99) {
+            expect(p.carry, PropKind.barrowEmpty, reason: 'valle $seed');
+            entradas++;
+          }
+          if (p.sink >= 0.99 && a.sink < 0.99) {
+            expect(a.carry, PropKind.barrow, reason: 'valle $seed');
+          }
+        }
+      }
+      expect(descargas, greaterThan(5));
+      expect(entradas, greaterThan(5));
+    });
+
     test('ni él ni el viejo son nunca críos, ni bajitos', () {
       for (var seed = 1; seed <= 200; seed++) {
         final l = TownLayout(400, TownCharacter.all[seed % 8], seed: seed);

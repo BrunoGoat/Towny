@@ -3917,6 +3917,9 @@ class _Hechas extends StatelessWidget {
     final cuando = {for (final (obra, dia) in hechas) obra.id: dia};
     final todas = [...landmarks]
       ..sort((a, b) {
+        // Las ya levantadas, primero: es lo que se viene a mirar.
+        final ha = cuando.containsKey(a.id), hb = cuando.containsKey(b.id);
+        if (ha != hb) return ha ? -1 : 1;
         final c = a.tier.compareTo(b.tier);
         return c != 0 ? c : a.cost.compareTo(b.cost);
       });

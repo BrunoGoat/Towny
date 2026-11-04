@@ -1738,7 +1738,7 @@ class PlazaBench {
 ///
 /// Un galpón chico de madera sobre un zócalo de piedra, con su techo a dos
 /// aguas y la puerta mirando a la fuente; a su derecha la mesa de trabajo,
-/// que es donde martilla, y a su izquierda una pila de tablas. Del lado de la
+/// que es donde martilla. Del lado de la
 /// plaza en que no hay nada: el tablón y el banco están en la otra diagonal.
 class PlazaWorkshop {
   /// Lo que se aparta del centro de la plaza, en partes de su radio: lo
@@ -1787,7 +1787,16 @@ class PlazaWorkshop {
   /// Hacia dónde mira martillando: a la mesa y al taller.
   static double get anvilFacing => turn - math.pi / 2;
 
-  /// La puerta, por fuera: donde carga y descarga la carretilla.
+  /// Donde se para con la carretilla para meterse en el taller: un poco
+  /// más afuera que [doorAt], para que la carretilla, que va delante, no
+  /// atraviese la pared. Desde aquí entra andando y desaparece por la puerta.
+  static (double, double) barrowDoorAt(double cx, double cz) =>
+      _aPlaza(cx, cz, 0, depth + 0.40);
+
+  /// Lo que anda desde [barrowDoorAt] hasta perderse por la puerta.
+  static const double barrowWalkIn = 0.30;
+
+  /// La puerta, por fuera.
   static (double, double) doorAt(double cx, double cz) =>
       _aPlaza(cx, cz, 0, depth + 0.22);
 
@@ -1914,18 +1923,6 @@ class PlazaWorkshop {
           mesa,
           1,
         ),
-        // La pila de tablas, a la izquierda: tres, cada una más corta.
-        for (var k = 0; k < 3; k++)
-          caja(
-            -half - 0.30 + k * 0.02,
-            y0 + k * 0.04,
-            0.02 - 0.12 + k * 0.01,
-            -half - 0.06 - k * 0.02,
-            y0 + (k + 1) * 0.04,
-            0.02 + 0.12 - k * 0.01,
-            k.isEven ? tabla : mesa,
-            0.9,
-          ),
       ],
       cx,
       cz,

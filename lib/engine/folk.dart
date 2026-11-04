@@ -409,7 +409,7 @@ class Townsfolk {
     final cx = layout.cx, cz = layout.cz;
     final primero = cx == 0 && cz == 0;
     final yunque = PlazaWorkshop.anvilAt(cx, cz);
-    final puerta = PlazaWorkshop.doorAt(cx, cz);
+    final puerta = PlazaWorkshop.barrowDoorAt(cx, cz);
     final asiento = PlazaBench.seatAt(cx, cz, 1);
     final frente = PlazaBench.frontOf(asiento);
     final mirarBanco = PlazaBench.turn;
@@ -541,20 +541,24 @@ class Townsfolk {
       // taller, va por el camino más corto, descarga mirando la obra y
       // vuelve por el mismo. No va a hora con nadie.
       final stops = <(double, double)>[puerta, ...ida, pie, ...vuelta];
+      // En el taller entra con la carretilla vacía, desaparece por la
+      // puerta y sale con ella llena: la carga no se ve, como en casa.
       final stay = <double>[
-        4,
+        _swapLength + 0.4,
         for (final _ in ida) 0,
         hashRange(7, 9, s, 1),
         for (final _ in vuelta) 0,
       ];
       final facing = <double>[
-        PlazaWorkshop.doorFacing,
+        // De espaldas a la puerta, como quien sale de su casa: entra dándose
+        // la vuelta y sale mirando a la plaza.
+        PlazaWorkshop.turn,
         for (final _ in ida) 0,
         mirarObra,
         for (final _ in vuelta) 0,
       ];
       final acts = <Doing?>[
-        Doing.unload,
+        Doing.idle,
         for (final _ in ida) null,
         Doing.unload,
         for (final _ in vuelta) null,
@@ -578,6 +582,7 @@ class Townsfolk {
           acts,
           math.max(periodo, 1),
           builder: true,
+          swapIn: [(PropKind.barrowEmpty, PropKind.barrow)],
           // Llena del taller a la obra, vacía de vuelta.
           carry: [
             for (var i = 0; i < stops.length; i++)
@@ -1630,11 +1635,20 @@ class Townsfolk {
         final look = facings[j];
         // A la puerta a por algo, o a dejarlo: entra, y sale con lo otro.
         final entra = _swapAt(_swapIn, j), sale = _swapAt(_swapOut, j);
+        // El maestro, con la carretilla delante, entra andando hasta
+        // perderse por la puerta del taller.
+        final avanza = builder ? PlazaWorkshop.barrowWalkIn : 0.0;
         if (entra != null && held < _swapLength) {
-          return _enLaPuerta(to, look, held, entra);
+          return _enLaPuerta(to, look, held, entra, avanza: avanza);
         }
         if (sale != null && held > stay - _swapLength) {
-          return _enLaPuerta(to, look, held - (stay - _swapLength), sale);
+          return _enLaPuerta(
+            to,
+            look,
+            held - (stay - _swapLength),
+            sale,
+            avanza: avanza,
+          );
         }
         // Lo que queda de la parada, sin las idas a la puerta.
         final antes = entra != null ? _swapLength : 0.0;
@@ -1681,7 +1695,14 @@ class Townsfolk {
         // Lo que trae en las manos, mientras no lo esté usando: la banqueta
         // que acaba de sacar, el barreño con el que llega al agua. Usándolo,
         // está en el suelo y lo pinta lo que hace.
-        final enMano = entra != null ? entra.$2 : _carryAt(i);
+        // Y lo que ya descargó no vuelve a la caja: pasado el gesto, lleva
+        // lo del tramo siguiente.
+        final acabo = !metido && held > settle && acts[j] == Doing.unload;
+        final enMano = entra != null
+            ? entra.$2
+            : acabo
+            ? _carryAt(j)
+            : _carryAt(i);
         final usando = metido && (what?.fetched ?? false);
         // La fase del gesto cuenta desde que se puso a ello y no desde que
         // llegó: si contara desde la llegada, el gesto empezaría por la mitad.
@@ -1826,8 +1847,9 @@ FolkAt _enLaPuerta(
   (double, double) at,
   double look,
   double t,
-  (PropKind?, PropKind?) swap,
-) {
+  (PropKind?, PropKind?) swap, {
+  double avanza = 0,
+}) {
   const fuera = _swapLength - _puertaEntra - _puertaDentro;
   final saliendo = t >= _puertaEntra + _puertaDentro;
   final dentro = t < _puertaEntra
@@ -1835,9 +1857,11 @@ FolkAt _enLaPuerta(
       : !saliendo
       ? 1.0
       : 1 - (t - _puertaEntra - _puertaDentro) / fuera;
+  // Hacia la puerta: lo contrario de donde mira la parada.
+  final d = avanza * dentro.clamp(0.0, 1.0);
   return FolkAt.full(
-    at.$1,
-    at.$2,
+    at.$1 - math.sin(look) * d,
+    at.$2 - math.cos(look) * d,
     saliendo ? look : look + math.pi,
     0,
     false,
