@@ -822,6 +822,60 @@ void main() {
       expect(vistos, greaterThan(10));
     });
 
+    test('no se atraviesa con el viejo, ni salta para esquivarlo', () {
+      var vistos = 0;
+      for (var seed = 1; seed <= 24; seed++) {
+        final l = TownLayout(400, TownCharacter.all[seed % 8], seed: seed);
+        final gente = folkOf(l, 400);
+        final maestro = gente.where((v) => v.builder).firstOrNull;
+        final viejo = gente.where((v) => v.sage).firstOrNull;
+        if (maestro == null || viejo == null) continue;
+        vistos++;
+        FolkAt? antes;
+        for (var k = 0; k < 6000; k++) {
+          final t = maestro.period * 2 * k / 6000;
+          final a = maestro.at(t), b = viejo.at(t);
+          // Junto al banco se sientan y se levantan uno al lado del otro, a
+          // propósito.
+          final bx = PlazaBench.xAt(l.cx), bz = PlazaBench.zAt(l.cz);
+          double alBanco(FolkAt q) =>
+              math.sqrt(math.pow(q.x - bx, 2) + math.pow(q.z - bz, 2));
+          final juntos =
+              (a.act?.seated ?? false) ||
+              (b.act?.seated ?? false) ||
+              a.act == Doing.chat ||
+              alBanco(a) < 0.8 ||
+              alBanco(b) < 0.8;
+          if (!juntos) {
+            final d = math.sqrt(
+              math.pow(a.x - b.x, 2) + math.pow(a.z - b.z, 2),
+            );
+            // Lo que mide de ancho una persona: se pueden rozar al pasar,
+            // pero no meterse uno dentro del otro.
+            expect(
+              d,
+              greaterThan(0.3),
+              reason: 'valle $seed: se atraviesan a los ${t.round()} s',
+            );
+          }
+          final p = antes;
+          if (p != null && a.moving && p.moving) {
+            final paso = math.sqrt(
+              math.pow(a.x - p.x, 2) + math.pow(a.z - p.z, 2),
+            );
+            final dt = maestro.period * 2 / 6000;
+            expect(
+              paso,
+              lessThan(Townsfolk.pace * dt * 4 + 0.02),
+              reason: 'valle $seed: salta a los ${t.round()} s',
+            );
+          }
+          antes = a;
+        }
+      }
+      expect(vistos, greaterThan(10));
+    });
+
     test('con obra, descarga pegado a lo que ya está levantado', () {
       // Paraba a un paso del radio que va a tener la obra terminada, que
       // con pocas piezas puestas era quedarse a metros de la obra.

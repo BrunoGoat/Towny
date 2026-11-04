@@ -292,6 +292,10 @@ class Townsfolk {
   Townsfolk? _ritmo;
   double _desfase = 0;
 
+  /// El viejo de la plaza, para hacerle sitio al cruzarse: con obra o sin
+  /// ella. Ver [at].
+  Townsfolk? _esquiva;
+
   /// El maestro de obras: el que levanta las obras grandes del pueblo.
   ///
   /// Llega con su taller el día de la primera obra ([PlazaWorkshop]) y vive
@@ -358,6 +362,7 @@ class Townsfolk {
         .._desfase = r.desfase
         .._calles = calles
         .._callesSin = calles
+        .._esquiva = sage
         ..firstTown = primero;
     }
 
@@ -492,6 +497,7 @@ class Townsfolk {
         )
         .._calles = calles
         .._callesSin = calles
+        .._esquiva = sage
         ..firstTown = primero;
     }
 
@@ -549,7 +555,10 @@ class Townsfolk {
     // de distancia: más cerca del agua se metía en el pilón, y pegado a él
     // no se leía como una charla sino como un choque.
     final rv = math.max(dfd, Plaza.basinOf(TownLayout.plazaReach) + 0.35);
-    final av = math.atan2(donde.$2 - cz, donde.$1 - cx) - 0.62 / rv;
+    // Del lado de más allá de su parada, que es por donde llega el maestro
+    // rodeando la fuente: del lado de acá llegaba el viejo, y los dos venían
+    // por el mismo camino al mismo tiempo, uno metido en el otro.
+    final av = math.atan2(donde.$2 - cz, donde.$1 - cx) + 0.62 / rv;
     final charla = (cx + math.cos(av) * rv, cz + math.sin(av) * rv);
     // Y el viejo, ahí parado, se vuelve hacia él y charla: mirando cada uno
     // a la fuente no parecían hablarse.
@@ -1360,6 +1369,81 @@ class Townsfolk {
   /// ronda da la vuelta sola, así que esto vale para cualquier [t] por grande
   /// que sea.
   FolkAt at(double t) {
+    final r = _enPie(t);
+    final viejo = _esquiva;
+    if (!builder || viejo == null) return r;
+    // El maestro y el viejo andan por la misma plaza con el mismo reloj, y
+    // cuando se cruzaban se atravesaban. El maestro le hace sitio: si se
+    // acerca a menos de un paso, se aparta hacia afuera de él lo que falte,
+    // sin meterse en la fuente. Sentados juntos en el banco o charlando están
+    // cerca a propósito, y ahí no.
+    final v = viejo.at(t);
+    // Como cualquiera que se cruza con alguien: se corre de costado respecto
+    // de cómo se están acercando, hacia el lado por el que ya iba a pasar, lo
+    // justo para no meterse uno en el otro —un cuerpo y un poco—, y de a
+    // poco desde un poco antes, para no andar más rápido que un paso.
+    const paso = 0.4, aviso = 0.8;
+    final centro = plazaCentre;
+    if (centro == null) return r;
+    // Y junto al banco no: ahí se sientan uno al lado del otro a propósito.
+    // Se apaga de a poco al acercarse a él, para que sentarse no sea un
+    // salto.
+    final banco = (PlazaBench.xAt(centro.$1), PlazaBench.zAt(centro.$2));
+    final alBanco = math.min(
+      math.sqrt(math.pow(r.x - banco.$1, 2) + math.pow(r.z - banco.$2, 2)),
+      math.sqrt(math.pow(v.x - banco.$1, 2) + math.pow(v.z - banco.$2, 2)),
+    );
+    final lejosDelBanco = smoothstep(0.55, 1.0, alBanco);
+    if (lejosDelBanco <= 0) return r;
+    final wx = r.x - v.x, wz = r.z - v.z;
+    if (wx * wx + wz * wz > math.pow(paso + aviso, 2)) return r;
+    // Cómo se acercan: lo que anda cada uno en una décima de segundo.
+    const h = 0.05;
+    final r0 = _enPie(t - h), r1 = _enPie(t + h);
+    final v0 = viejo.at(t - h), v1 = viejo.at(t + h);
+    final ux = (r1.x - r0.x) - (v1.x - v0.x);
+    final uz = (r1.z - r0.z) - (v1.z - v0.z);
+    final ul = math.sqrt(ux * ux + uz * uz);
+    // Quietos los dos —o andando juntos—: nadie va a pasar por encima de
+    // nadie, y donde se quedan ya está pensado para que no se pisen.
+    if (ul < 1e-5) return r;
+    final ax = ux / ul, az = uz / ul;
+    final nx = -az, nz = ax;
+    final costado = wx * nx + wz * nz;
+    final delante = wx * ax + wz * az;
+    // De frente justo, por la derecha, como en cualquier vereda: sin eso, a
+    // quien venía derecho hacia el otro no le tocaba ningún lado y pasaba
+    // por dentro. Mientras se cruzan, de qué lado queda cada uno no cambia,
+    // así que no se cambia de lado a mitad de camino.
+    final lado = smoothstep(-0.06, 0.06, costado + 0.08) * 2 - 1;
+    final falta = lado * paso - costado;
+    if (falta * lado <= 0) return r;
+    final cuanto =
+        (1 - smoothstep(0.0, aviso, delante.abs())) * lejosDelBanco;
+    var x = r.x + nx * falta * cuanto, z = r.z + nz * falta * cuanto;
+    // Sin meterse en la fuente.
+    final borde = Plaza.basinOf(TownLayout.plazaReach) + 0.11;
+    final ox = x - centro.$1, oz = z - centro.$2;
+    final od = math.sqrt(ox * ox + oz * oz);
+    if (od < borde && od > 1e-6) {
+      x = centro.$1 + ox / od * borde;
+      z = centro.$2 + oz / od * borde;
+    }
+    return FolkAt.full(
+      x,
+      z,
+      r.heading,
+      r.gait,
+      r.moving,
+      act: r.act,
+      phase: r.phase,
+      carry: r.carry,
+      sink: r.sink,
+    );
+  }
+
+  /// [at] sin hacerle sitio a nadie.
+  FolkAt _enPie(double t) {
     final r = _at(t);
     // Sentado en el banco, en el asiento; de pie, la parada está delante. Se
     // corre de una a otra al sentarse y al levantarse, a paso de andar: de
