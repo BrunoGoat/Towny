@@ -280,6 +280,9 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     PerfGuard.instance.enter(PerfScene.bienvenida);
+    // Fundar un pueblo es un momento aparte: suena con la música del
+    // consejero, la mística, y no con la del valle de todos los días.
+    Sensory.instance.sceneMusic(Sensory.sageTrack);
     _leave = AnimationController(vsync: this, duration: FirstRun.leaving);
     _warp = AnimationController(vsync: this, duration: FirstRun.warp)
       ..addListener(() {
@@ -320,6 +323,7 @@ class _FirstRunState extends State<FirstRun> with TickerProviderStateMixin {
   @override
   void dispose() {
     PerfGuard.instance.leave(PerfScene.bienvenida);
+    Sensory.instance.hushSceneMusic(Sensory.sageTrack);
     _leave.dispose();
     _warp.dispose();
     _name.dispose();

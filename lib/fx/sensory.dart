@@ -545,8 +545,15 @@ class Sensory {
   static const String sageTrack = 'mus_sabio.wav';
   static const String builderTrack = 'mus_taberna.wav';
 
+  /// Cuántas pantallas abiertas piden cada música. Crear un hábito suena con
+  /// la del consejero, y dentro de esa pantalla está su presentación, que la
+  /// pide también: la presentación, al terminar, no puede llevársela mientras
+  /// se sigue creando el hábito.
+  final Map<String, int> _piden = {};
+
   /// Que suene [file] en bucle mientras esté abierta su pantalla.
   Future<void> sceneMusic(String file) async {
+    _piden[file] = (_piden[file] ?? 0) + 1;
     if (_asleep || !_wants.hearsMusic) return;
     if (_escenaDe == file && _escena != null) {
       // Se estaba yendo y se vuelve a abrir: que vuelva a subir.
@@ -571,6 +578,12 @@ class Sensory {
   /// Que se vaya la de la pantalla que se cierra, si es [file], bajando, y
   /// que vuelva subiendo la de fondo.
   void hushSceneMusic(String file) {
+    final quedan = (_piden[file] ?? 1) - 1;
+    if (quedan > 0) {
+      _piden[file] = quedan;
+      return;
+    }
+    _piden.remove(file);
     if (_escenaDe != file) return;
     _escenaSale = true;
     _fundir();
