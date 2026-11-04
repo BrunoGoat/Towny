@@ -11,8 +11,10 @@ import '../engine/camera.dart';
 import '../engine/palette.dart';
 import '../engine/shooting_star.dart';
 import '../engine/sigils.dart';
+import '../engine/solids.dart';
 import '../engine/star_draw.dart';
 import '../engine/tones.dart';
+import '../engine/town.dart';
 import '../fx/sensory.dart';
 import '../l10n/lang.dart';
 import '../model/board_seen.dart';
@@ -1151,7 +1153,7 @@ class BoardPainter extends CustomPainter {
     );
     Offset? apunta(double az, double el) => skyPoint(p, az, el, minDen: 0.08);
     _sky(canvas, size, horizon);
-    _ground(canvas, size, horizon);
+    _ground(canvas, size, horizon, p);
     if (fugaz != null) {
       StarDraw.sky(canvas, size, apunta, horizon, fugaz, palette.starAlpha);
     }
@@ -1181,13 +1183,81 @@ class BoardPainter extends CustomPainter {
     );
   }
 
-  void _ground(Canvas canvas, Size size, double horizon) {
+  void _ground(Canvas canvas, Size size, double horizon, Projector p) {
     final hy = clampD(horizon, -size.height, size.height * 2);
     if (hy > size.height) return;
+    final prado = meadowTone(palette);
     canvas.drawRect(
       Rect.fromLTWH(0, hy, size.width, size.height - hy),
-      Paint()..color = meadowTone(palette),
+      Paint()..color = prado,
     );
+    _plaza(canvas, p, prado);
+  }
+
+  /// Lo que hay al pie del tablón: la plaza. Uno se acercó a él andando por
+  /// el césped, así que debajo y alrededor está la hierba de la plaza, y por
+  /// detrás del tablón, a unos pasos, el bordillo de piedra del octógono y el
+  /// prado de más allá. Era un llano verde sin nada, y no parecía que uno
+  /// estuviera de pie en el pueblo.
+  ///
+  /// En las medidas de esta escena, que tiene el tablón unas siete veces más
+  /// grande que el del pueblo: la plaza crece lo mismo, con su centro —la
+  /// fuente— detrás de la cámara, que es desde donde se mira el tablón.
+  void _plaza(Canvas canvas, Projector p, Color prado) {
+    const escala = 7.0;
+    const radio = TownLayout.plazaReach * escala;
+    const centro = Plaza.boardOut * TownLayout.plazaReach * escala;
+    const alto = 0.3;
+    List<V3> octogono(double r, double y) => [
+      for (var k = 0; k < 8; k++)
+        () {
+          // Con un lado de cara al tablón, como en la plaza de verdad.
+          final a = -math.pi / 2 + math.pi / 8 + k * math.pi / 4;
+          return V3(math.cos(a) * r, y, centro + math.sin(a) * r);
+        }(),
+    ];
+    final canto = _lit(const Color(Plaza.edgeTint), 0.96);
+    final piedra = _lit(const Color(Plaza.kerbTint), 1.0);
+    final cara = _lit(const Color(Plaza.kerbTint), 0.78);
+    final cesped = Color.lerp(prado, const Color(0xFFB9C77A), 0.10)!;
+    _sueloPlano(canvas, p, octogono(radio, alto), canto);
+    _sueloPlano(canvas, p, octogono(radio * 0.975, alto), piedra);
+    _sueloPlano(canvas, p, octogono(radio * 0.9, 0), cesped);
+    // Y la cara de dentro del bordillo, que se ve de pie en la hierba.
+    final abajo = octogono(radio * 0.9, 0);
+    final arriba = octogono(radio * 0.9, alto);
+    for (var k = 0; k < 8; k++) {
+      final j = (k + 1) % 8;
+      _sueloPlano(canvas, p, [abajo[k], abajo[j], arriba[j], arriba[k]], cara);
+    }
+  }
+
+  /// Un polígono del suelo, recortado por delante del ojo: la plaza pasa por
+  /// debajo de la cámara, y lo que queda detrás no se proyecta.
+  void _sueloPlano(Canvas canvas, Projector p, List<V3> mundo, Color color) {
+    final cam = [for (final v in mundo) p.cameraOf(v)];
+    final cerca = p.near + 0.02;
+    final dentro = <V3>[];
+    for (var i = 0; i < cam.length; i++) {
+      final a = cam[i], b = cam[(i + 1) % cam.length];
+      final ain = a.z >= cerca, bin = b.z >= cerca;
+      if (ain) dentro.add(a);
+      if (ain != bin) {
+        final t = (cerca - a.z) / (b.z - a.z);
+        dentro.add(V3(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, cerca));
+      }
+    }
+    if (dentro.length < 3) return;
+    final path = Path()
+      ..moveTo(
+        p.screenX(dentro[0].x, dentro[0].z),
+        p.screenY(dentro[0].y, dentro[0].z),
+      );
+    for (final q in dentro.skip(1)) {
+      path.lineTo(p.screenX(q.x, q.z), p.screenY(q.y, q.z));
+    }
+    path.close();
+    canvas.drawPath(path, Paint()..color = color);
   }
 
   /// La sombra que echa el tablón en la hierba. Sin ella el tablón flota.
