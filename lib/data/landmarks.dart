@@ -389,7 +389,7 @@ final List<Landmark> landmarks = [
       // El horno de barro: el poyo de piedra, el cuerpo, la bóveda que se
       // cierra en una sola hilada, el tiro y la boca. Con más escalones se
       // leía como una pirámide.
-      const ox = 0.78;
+      const ox = 1.0;
       m.box(
         PieceKind.parapet,
         1.3,
