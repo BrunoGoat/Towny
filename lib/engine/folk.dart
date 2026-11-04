@@ -1487,54 +1487,24 @@ class Townsfolk {
   FolkAt at(double t) {
     final r = _enPie(t);
     final viejo = _esquiva;
-    if (!builder || viejo == null) return r;
-    // El maestro y el viejo andan por la misma plaza con el mismo reloj, y
-    // cuando se cruzaban se atravesaban. El maestro le hace sitio: si se
-    // acerca a menos de un paso, se aparta hacia afuera de él lo que falte,
-    // sin meterse en la fuente. Sentados juntos en el banco o charlando están
-    // cerca a propósito, y ahí no.
-    final v = viejo.at(t);
-    // Como cualquiera que se cruza con alguien: se corre de costado respecto
-    // de cómo se están acercando, hacia el lado por el que ya iba a pasar, lo
-    // justo para no meterse uno en el otro —un cuerpo y un poco—, y de a
-    // poco desde un poco antes, para no andar más rápido que un paso.
-    const paso = 0.4, aviso = 0.8;
     final centro = plazaCentre;
-    if (centro == null) return r;
-    // Y cuando él va a sentarse al banco al lado del viejo, no: ahí están
-    // juntos a propósito. Se apaga de a poco al acercarse él al banco, para
-    // que sentarse no sea un salto; si sólo pasa por delante, se aparta igual.
-    final banco = (PlazaBench.xAt(centro.$1), PlazaBench.zAt(centro.$2));
-    final alBanco = math.sqrt(
-      math.pow(r.x - banco.$1, 2) + math.pow(r.z - banco.$2, 2),
-    );
-    final lejosDelBanco = smoothstep(0.55, 0.9, alBanco);
-    if (lejosDelBanco <= 0) return r;
-    final wx = r.x - v.x, wz = r.z - v.z;
-    if (wx * wx + wz * wz > math.pow(paso + aviso, 2)) return r;
-    // Cómo se acercan: lo que anda cada uno en una décima de segundo.
-    const h = 0.05;
-    final r0 = _enPie(t - h), r1 = _enPie(t + h);
-    final v0 = viejo.at(t - h), v1 = viejo.at(t + h);
-    final ux = (r1.x - r0.x) - (v1.x - v0.x);
-    final uz = (r1.z - r0.z) - (v1.z - v0.z);
-    final ul = math.sqrt(ux * ux + uz * uz);
-    // Quietos los dos —o andando juntos—: nadie va a pasar por encima de
-    // nadie, y donde se quedan ya está pensado para que no se pisen.
-    if (ul < 1e-5) return r;
-    final ax = ux / ul, az = uz / ul;
-    final nx = -az, nz = ax;
-    final costado = wx * nx + wz * nz;
-    final delante = wx * ax + wz * az;
-    // Hacia el lado por el que ya iba a pasar —mientras se cruzan, de qué
-    // lado queda cada uno no cambia, así que no se cambia de lado a mitad de
-    // camino—, decidido neto: a medias, el que venía casi de frente se corría
-    // la mitad de lo que hacía falta y pasaba por dentro igual.
-    final lado = smoothstep(-0.02, 0.02, costado) * 2 - 1;
-    final falta = lado * paso - costado;
-    if (falta * lado <= 0) return r;
-    final cuanto = (1 - smoothstep(0.0, aviso, delante.abs())) * lejosDelBanco;
-    var x = r.x + nx * falta * cuanto, z = r.z + nz * falta * cuanto;
+    if (!builder || viejo == null || centro == null) return r;
+    // Lo que se corre, alisado en algo más de medio segundo: lo que lo
+    // decide —cómo se acercan, de qué lado queda el viejo— cambia de golpe
+    // cuando uno de los dos se para o dobla, y sin alisar el maestro daba
+    // saltos de un palmo.
+    var ex = 0.0, ez = 0.0;
+    const muestras = 7, ancho = 0.6;
+    for (var k = 0; k < muestras; k++) {
+      final s = t + (k / (muestras - 1) - 0.5) * ancho;
+      final (dx, dz) = _empuje(s, viejo, centro);
+      ex += dx;
+      ez += dz;
+    }
+    ex /= muestras;
+    ez /= muestras;
+    if (ex == 0 && ez == 0) return r;
+    var x = r.x + ex, z = r.z + ez;
     // Sin meterse en la fuente.
     final borde = Plaza.basinOf(TownLayout.plazaReach) + 0.11;
     final ox = x - centro.$1, oz = z - centro.$2;
@@ -1554,6 +1524,52 @@ class Townsfolk {
       carry: r.carry,
       sink: r.sink,
     );
+  }
+
+  /// Lo que se aparta el maestro del viejo en el segundo [t], sin alisar.
+  ///
+  /// El maestro y el viejo andan por la misma plaza con el mismo reloj, y
+  /// cuando se cruzaban se atravesaban. El maestro le hace sitio: si se
+  /// acerca a menos de un paso, se aparta lo que falte. Sentados juntos en el
+  /// banco o charlando están cerca a propósito, y ahí no.
+  (double, double) _empuje(double t, Townsfolk viejo, (double, double) centro) {
+    final r = _enPie(t);
+    final v = viejo.at(t);
+    // Como cualquiera que se cruza con alguien: se corre de costado respecto
+    // de cómo se están acercando, hacia el lado por el que ya iba a pasar, lo
+    // justo para no meterse uno en el otro —un cuerpo y un poco—, y de a
+    // poco desde un poco antes.
+    const paso = 0.55, aviso = 0.8;
+    // Y cuando él va a sentarse al banco al lado del viejo, no: ahí están
+    // juntos a propósito. Se apaga de a poco al acercarse él al banco.
+    final banco = (PlazaBench.xAt(centro.$1), PlazaBench.zAt(centro.$2));
+    final alBanco = math.sqrt(
+      math.pow(r.x - banco.$1, 2) + math.pow(r.z - banco.$2, 2),
+    );
+    final lejosDelBanco = smoothstep(0.55, 0.9, alBanco);
+    if (lejosDelBanco <= 0) return (0, 0);
+    final wx = r.x - v.x, wz = r.z - v.z;
+    if (wx * wx + wz * wz > math.pow(paso + aviso, 2)) return (0, 0);
+    // Cómo se acercan: lo que anda cada uno en una décima de segundo.
+    const h = 0.05;
+    final r0 = _enPie(t - h), r1 = _enPie(t + h);
+    final v0 = viejo.at(t - h), v1 = viejo.at(t + h);
+    final ux = (r1.x - r0.x) - (v1.x - v0.x);
+    final uz = (r1.z - r0.z) - (v1.z - v0.z);
+    final ul = math.sqrt(ux * ux + uz * uz);
+    // Quietos los dos —o andando juntos—: nadie va a pasar por encima de
+    // nadie, y donde se quedan ya está pensado para que no se pisen.
+    if (ul < 1e-5) return (0, 0);
+    final ax = ux / ul, az = uz / ul;
+    final nx = -az, nz = ax;
+    final costado = wx * nx + wz * nz;
+    final delante = wx * ax + wz * az;
+    // Hacia el lado por el que ya iba a pasar, decidido neto.
+    final lado = smoothstep(-0.02, 0.02, costado) * 2 - 1;
+    final falta = lado * paso - costado;
+    if (falta * lado <= 0) return (0, 0);
+    final cuanto = (1 - smoothstep(0.0, aviso, delante.abs())) * lejosDelBanco;
+    return (nx * falta * cuanto, nz * falta * cuanto);
   }
 
   /// [at] sin hacerle sitio a nadie.
@@ -2841,7 +2857,6 @@ List<(double x, double z, double reach, Where kind)> _sitesOf(
 /// tiene a nadie haciendo cosas de agua, que es lo correcto.
 const Set<String> _wet = {
   'pozo',
-  'salinas',
   'alfar',
   'cerveceria',
   'claustro',

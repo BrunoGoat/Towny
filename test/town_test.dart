@@ -280,6 +280,9 @@ void main() {
       // una casa corriente en su lugar.
       expect(TownPlan.landmarkOf('horno'), isNull);
       expect(TownPlan.landmarkOf('porqueriza'), isNull);
+      expect(TownPlan.landmarkOf('camposanto'), isNull);
+      expect(TownPlan.landmarkOf('almenara'), isNull);
+      expect(TownPlan.landmarkOf('salinas'), isNull);
     });
 
     test('toda obra se arma en el pueblo igual que en su receta', () {
@@ -569,7 +572,7 @@ void main() {
     test('every town still opens with something worth waiting for', () {
       // Different, but never worse: an honest shuffle hands out a pigsty
       // before the mill, and that is a bad first month whichever plot it is.
-      const dreary = {'camposanto', 'horca'};
+      const dreary = {'horca'};
       for (final c in TownCharacter.all) {
         for (final id in road(c, 4)) {
           expect(

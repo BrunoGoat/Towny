@@ -49,20 +49,10 @@ const Map<String, (String, String)> landmarksEn = {
     "From clay come jugs, plates and roof tiles. The potter's hands "
         "give the town its shape.",
   ),
-  'camposanto': (
-    'Churchyard',
-    'A garden of memory for those who came before. Here the town honors '
-        'its roots.',
-  ),
   'atalaya': (
     'Watchtower',
     'A high, watchful eye over the valley. Because of it, the town '
         'sleeps in peace.',
-  ),
-  'almenara': (
-    'Signal fire',
-    'A fire on high that links town to town. The light that says: we '
-        'are here.',
   ),
   'molinoViento': (
     'Windmill',
@@ -83,11 +73,6 @@ const Map<String, (String, String)> landmarksEn = {
     'Covered market',
     'Under one roof meet the fields, the crafts and the people. A heart '
         'that beats every week.',
-  ),
-  'salinas': (
-    'Salt pans',
-    'Sea and sun working together. The salt that preserves and gives '
-        'flavor to life.',
   ),
   'ceca': (
     'Mint',
@@ -299,5 +284,20 @@ const Map<String, (String, String)> landmarksEn = {
     "Founders' pantheon",
     'Eternal honor to those who founded the town. Their dream lives on '
         'in every stone.',
+  ),
+  'hornoPan': (
+    'Bread oven',
+    'Every house brings its dough and takes home its bread. The heat of '
+        'one feeds the whole town.',
+  ),
+  'lavadero': (
+    'Wash house',
+    'Running water, soap and conversation. Here everybody hears '
+        'everything.',
+  ),
+  'potro': (
+    'Shoeing frame',
+    'Where the beasts that pull the plough get their shoes. A good '
+        'shoeing is one more field ploughed.',
   ),
 };

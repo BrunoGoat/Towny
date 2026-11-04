@@ -236,9 +236,9 @@ class TownPlan {
   }
 
   /// Las obras que no abren un pueblo: se dejan para un poco más tarde dentro
-  /// de su nivel. Un camposanto es lo que tiene un pueblo que ya lleva años,
+  /// de su nivel. Una horca es lo que tiene un pueblo que ya lleva años,
   /// no lo primero que se levanta.
-  static const Set<String> _somber = {'camposanto', 'horca'};
+  static const Set<String> _somber = {'horca'};
 
   /// Lo que cuesta una obra barata y una cara de cada nivel, para saber dónde
   /// cae una obra dentro del suyo.

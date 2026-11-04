@@ -291,28 +291,6 @@ final List<Landmark> landmarks = [
   ),
 
   Landmark(
-    'camposanto',
-    'Camposanto',
-    8,
-    0,
-    'Un jardín de memoria para quienes vinieron antes. Aquí el pueblo '
-        'honra sus raíces.',
-    (m) {
-      // Tapia de piedra y no estacas: el corral, el colmenar y éste eran el
-      // mismo cerco con otro nombre, y a un metro de distancia no se sabía
-      // cuál era cuál. Y baja, que lo que hay que ver es lo de dentro.
-      m.box(PieceKind.parapet, 3.3, 0.26, 0.58, dz: -1.62, at: 0);
-      m.box(PieceKind.parapet, 3.3, 0.26, 0.58, dz: 1.62, at: 0);
-      m.box(PieceKind.parapet, 0.26, 3.5, 0.58, dx: -1.62, at: 0);
-      m.box(PieceKind.parapet, 0.26, 3.5, 0.58, dx: 1.62, at: 0);
-      m.plinth(0.95, 0.95, 0.28, dx: -0.5);
-      m.post(0.24, 1.5, dx: -0.5, at: m.y);
-      m.beam(0.85, 0.24, 0.24, dx: -0.5, at: m.y + 1.16);
-      m.tree(0.95, 2.7, dx: 1.05, dz: 1.05);
-    },
-  ),
-
-  Landmark(
     'atalaya',
     'Atalaya',
     8,
@@ -332,22 +310,83 @@ final List<Landmark> landmarks = [
   ),
 
   Landmark(
-    'almenara',
-    'Almenara',
-    10,
+    'hornoPan',
+    'Horno de pan',
+    7,
     0,
-    'Un fuego en lo alto que une pueblo con pueblo. La luz que dice: '
-        'aquí estamos.',
+    'Cada casa trae su masa y se lleva su pan. El calor de uno solo '
+        'alimenta a todo el pueblo.',
     (m) {
-      m.plinth(2.1, 2.1, 0.34);
-      m.stair(1.15, 0.56, 1.0, dz: -1.5);
-      m.shaft(1.5, 3, 0.9);
-      m.parapet(1.9, 1.9, 0.5);
-      final almena = m.y;
-      m.box(PieceKind.chimney, 0.9, 0.9, 0.62, at: almena, ridge: true);
-      m.post(0.34, 0.42, dx: -0.72, dz: -0.72, at: almena);
-      m.post(0.34, 0.42, dx: 0.72, dz: 0.72, at: almena);
-      m.palisade(2.7, 0.6, dz: 1.5);
+      // El cuarto del hornero con su tejado, y pegada al costado la bóveda
+      // redonda del horno con su chimenea: es lo que lo distingue de una
+      // casa. Y la leña apilada delante.
+      m.plinth(2.6, 1.7, 0.22);
+      final base = m.y;
+      m.box(PieceKind.floor, 1.25, 1.3, 1.0, dx: -0.55, at: base, ridge: true);
+      m.dome(1.25, 1.25, 0.95, dx: 0.62, at: base);
+      m.box(PieceKind.parapet, 0.55, 0.16, 0.42, dx: 0.62, dz: 0.66, at: base);
+      m.roof(1.5, 1.55, 0.55, dx: -0.55, at: base + 1.0);
+      m.box(
+        PieceKind.chimney,
+        0.3,
+        0.3,
+        0.62,
+        dx: 0.62,
+        at: base + 0.72,
+        ridge: true,
+      );
+      m.box(PieceKind.parapet, 0.95, 0.38, 0.36, dx: -0.55, dz: 1.15, at: 0);
+    },
+  ),
+
+  Landmark(
+    'lavadero',
+    'Lavadero',
+    8,
+    0,
+    'Agua corriente, jabón y conversación. Aquí se enteran todos de '
+        'todo.',
+    (m) {
+      // Una pileta larga de piedra con su agua, la losa de delante donde se
+      // refriega, y un tejado a dos aguas sobre dos postes; el caño echa el
+      // agua en una punta.
+      m.plinth(2.8, 1.7, 0.18);
+      final base = m.y;
+      m.box(PieceKind.parapet, 2.2, 0.95, 0.36, at: base, ridge: true);
+      m.box(PieceKind.water, 1.95, 0.7, 0.04, at: base + 0.3, ridge: true);
+      m.box(PieceKind.parapet, 2.2, 0.3, 0.3, dz: 0.62, at: base);
+      m.post(0.2, 1.45, dx: -1.2, at: base);
+      m.post(0.2, 1.45, dx: 1.2, at: base);
+      m.roof(2.8, 1.75, 0.5, at: base + 1.45);
+      m.post(0.12, 0.62, dx: -0.95, dz: -0.35, at: base + 0.3);
+    },
+  ),
+
+  Landmark(
+    'potro',
+    'Potro de herrar',
+    9,
+    0,
+    'Donde se calza a los que tiran del arado. Un buen herraje es un '
+        'campo más arado.',
+    (m) {
+      // El armazón donde se sujeta al animal: cuatro postes gruesos, dos
+      // travesaños por los lados y el tejadito de tabla encima; al lado, el
+      // yunque sobre su tronco.
+      m.box(PieceKind.plinth, 2.1, 1.4, 0.12, at: 0);
+      final base = m.y;
+      for (final (x, z) in const [
+        (-0.75, -0.45),
+        (0.75, -0.45),
+        (-0.75, 0.45),
+        (0.75, 0.45),
+      ]) {
+        m.post(0.2, 1.3, dx: x, dz: z, at: base);
+      }
+      m.beam(1.7, 0.12, 0.14, dz: -0.45, at: base + 0.7);
+      m.beam(1.7, 0.12, 0.14, dz: 0.45, at: base + 0.7);
+      m.roof(2.0, 1.35, 0.35, at: base + 1.3);
+      m.box(PieceKind.parapet, 0.4, 0.3, 0.5, dx: 1.45, dz: 0.3, at: 0);
     },
   ),
 
@@ -468,30 +507,6 @@ final List<Landmark> landmarks = [
       m.tree(1.15, 2.1, dx: 2.8, dz: -1.6);
       m.tree(0.95, 1.7, dx: -2.8, dz: -1.6);
       m.box(PieceKind.parapet, 1.4, 0.42, 0.34, dx: -2.75, dz: -0.3, at: 0);
-    },
-  ),
-
-  Landmark(
-    'salinas',
-    'Salinas',
-    15,
-    1,
-    'El mar y el sol trabajando juntos. La sal que conserva y da sabor '
-        'a la vida.',
-    (m) {
-      for (var i = 0; i < 3; i++) {
-        for (var j = 0; j < 2; j++) {
-          m.water(1.7, 1.7, dx: -1.9 + i * 1.9, dz: -1.0 + j * 2.0);
-        }
-      }
-      m.box(PieceKind.parapet, 5.6, 0.3, 0.26, at: 0);
-      m.palisade(5.4, 0.45, dz: -2.2);
-      m.palisade(5.4, 0.45, dz: 2.2);
-      m.dome(1.25, 1.25, 1.05, dx: 3.0, dz: 1.2, at: 0);
-      m.dome(1.0, 1.0, 0.85, dx: 3.1, dz: -0.3, at: 0);
-      m.outbuilding(1.5, 1.25, 0.9, 0.5, dx: 3.0, dz: -1.7);
-      m.post(0.18, 1.35, dx: -3.1, at: 0);
-      m.beam(0.5, 3.4, 0.16, dx: -3.1, at: 1.35);
     },
   ),
 
