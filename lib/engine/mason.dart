@@ -75,6 +75,9 @@ enum PieceKind {
 
   /// Gallinas sueltas.
   hens,
+
+  /// Una colmena de paja trenzada, en su banquito, con la piquera oscura.
+  hive,
 }
 
 /// One piece of a building, before it is given to an achievement.
@@ -567,6 +570,10 @@ class Mason {
     at: 0,
     ridge: true,
   );
+
+  /// Una colmena de paja.
+  void hive(double side, double ht, {double dx = 0, double dz = 0}) =>
+      box(PieceKind.hive, side, side, ht, dx: dx, dz: dz, at: 0, ridge: true);
 
   /// Gallinas sueltas en un rectángulo.
   void hens(double w, double d, {double dx = 0, double dz = 0}) =>

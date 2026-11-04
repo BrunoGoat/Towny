@@ -138,6 +138,9 @@ List<Solid> solidsOf(
     case PieceKind.hens:
       return _gallinas(i, s, x0, y0, z0, x1, y1, z1);
 
+    case PieceKind.hive:
+      return _colmena(i, piece, y0, y1);
+
     case PieceKind.tree:
       final ht = y1 - y0;
       final trunk = piece.w * 0.16;
@@ -2986,5 +2989,71 @@ List<Solid> _gallinas(
       ),
     );
   }
+  return out;
+}
+
+/// La colmena: un banquito de madera y encima la paja trenzada en roscos que
+/// se cierran hacia arriba, con la piquera oscura delante (+z).
+List<Solid> _colmena(int i, TownPiece p, double y0, double y1) {
+  final cx = p.cx, cz = p.cz, r = math.min(p.w, p.d) / 2, h = y1 - y0;
+  const paja = 0xFFC9A55A, banco = 0xFF6B573F;
+  final pie = y0 + h * 0.18;
+  final out = <Solid>[
+    Solid(
+      i,
+      boxFaces(
+        cx - r * 0.85,
+        y0,
+        cz - r * 0.85,
+        cx + r * 0.85,
+        pie,
+        cz + r * 0.85,
+        Surface.own,
+        ao: 0.88,
+        tint: banco,
+      ),
+    ),
+  ];
+  var y = pie;
+  for (final (rr, alto) in const [
+    (0.92, 0.26),
+    (0.84, 0.2),
+    (0.68, 0.18),
+    (0.46, 0.12),
+    (0.22, 0.06),
+  ]) {
+    final yb = y + (h - (pie - y0)) * alto / 0.82;
+    out.add(
+      Solid(
+        i,
+        prismFaces(
+          Plaza.ring(cx, cz, r * rr),
+          y,
+          yb,
+          Surface.own,
+          ao: 0.94 + (0.92 - rr) * 0.15,
+          tint: paja,
+        ),
+      ),
+    );
+    y = yb;
+  }
+  // La piquera.
+  out.add(
+    Solid(
+      i,
+      boxFaces(
+        cx - r * 0.18,
+        pie,
+        cz + r * 0.82,
+        cx + r * 0.18,
+        pie + h * 0.1,
+        cz + r * 0.95,
+        Surface.own,
+        ao: 0.6,
+        tint: 0xFF2E2620,
+      ),
+    ),
+  );
   return out;
 }

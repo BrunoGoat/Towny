@@ -187,9 +187,10 @@ final List<Landmark> landmarks = [
     (m) {
       m.plinth(2.6, 1.2, 0.22);
       final banco = m.y;
-      m.dome(0.54, 0.54, 0.5, dx: -0.82, at: banco);
-      m.dome(0.54, 0.54, 0.5, at: banco);
-      m.dome(0.54, 0.54, 0.5, dx: 0.82, at: banco);
+      // Las colmenas de paja, en fila sobre el poyo.
+      m.box(PieceKind.hive, 0.6, 0.6, 0.72, dx: -0.82, at: banco, ridge: true);
+      m.box(PieceKind.hive, 0.6, 0.6, 0.72, at: banco, ridge: true);
+      m.box(PieceKind.hive, 0.6, 0.6, 0.72, dx: 0.82, at: banco, ridge: true);
       m.palisade(2.9, 0.8, dz: -1.15);
       m.tree(1.1, 1.8, dx: 1.75, dz: -1.15);
     },
@@ -1102,7 +1103,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'vinedo',
     'Viñedo del cabildo',
-    14,
+    15,
     1,
     'Cepas que hunden sus raíces en la historia del pueblo. De ellas '
         'brota la alegría de las fiestas.',
@@ -1117,8 +1118,10 @@ final List<Landmark> landmarks = [
       m.floor(2.1, 1.6, 1.25, dz: 2.6);
       m.roof(2.45, 1.95, 0.75, dz: 2.6);
       m.chimney(0.3, 0.9, dx: 0.6, dz: 2.6);
-      m.dome(0.55, 0.55, 0.48, dx: -1.6, dz: 2.6, at: 0);
-      m.dome(0.55, 0.55, 0.48, dx: -2.25, dz: 2.6, at: 0);
+      // Los toneles del vino y el cartel de las uvas.
+      m.barrel(0.5, 0.62, dx: -1.6, dz: 2.6);
+      m.barrel(0.5, 0.62, dx: -2.25, dz: 2.6);
+      m.sign(Motif.grapes, dx: 0.6, front: 3.4, at: 0.7);
       m.water(1.05, 1.05, dx: 2.1, dz: 1.9);
       m.tree(1.05, 1.8, dx: -2.7, dz: -2.6);
     },
@@ -1132,11 +1135,12 @@ final List<Landmark> landmarks = [
     'Una miel tan buena que lleva el nombre del pueblo más allá del '
         'valle.',
     (m) {
+      // Dos filas de colmenas de paja.
       for (var i = 0; i < 4; i++) {
-        m.dome(0.62, 0.62, 0.56, dx: -1.9 + i * 1.25, dz: -1.25, at: 0);
+        m.hive(0.66, 0.8, dx: -1.9 + i * 1.25, dz: -1.25);
       }
       for (var i = 0; i < 4; i++) {
-        m.dome(0.62, 0.62, 0.56, dx: -1.9 + i * 1.25, at: 0);
+        m.hive(0.66, 0.8, dx: -1.9 + i * 1.25);
       }
       m.outbuilding(1.7, 1.35, 1.0, 0.58, dz: 2.2);
       m.palisade(4.8, 0.7, dz: -1.95);
