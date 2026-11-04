@@ -1191,7 +1191,7 @@ class BoardPainter extends CustomPainter {
       Rect.fromLTWH(0, hy, size.width, size.height - hy),
       Paint()..color = prado,
     );
-    _plaza(canvas, p, prado);
+    _plaza(canvas, p, prado, size);
   }
 
   /// Lo que hay al pie del tablón: la plaza. Uno se acercó a él andando por
@@ -1203,10 +1203,15 @@ class BoardPainter extends CustomPainter {
   /// En las medidas de esta escena, que tiene el tablón unas siete veces más
   /// grande que el del pueblo: la plaza crece lo mismo, con su centro —la
   /// fuente— detrás de la cámara, que es desde donde se mira el tablón.
-  void _plaza(Canvas canvas, Projector p, Color prado) {
+  void _plaza(Canvas canvas, Projector p, Color prado, Size size) {
     const escala = 7.0;
     const radio = TownLayout.plazaReach * escala;
-    const centro = Plaza.boardOut * TownLayout.plazaReach * escala;
+    // **El bordillo de detrás, a media pata.** Se ve tan cerca como haga
+    // falta para que, en pantalla, el pie de su cara de dentro quede a la
+    // mitad de las patas del tablón: más lejos asomaba por encima de ellas,
+    // a media tabla, y parecía un murete detrás del tablón.
+    final pie = _fondoAMediaPata(size);
+    final centro = pie + (radio - _ancho) * math.cos(math.pi / 8);
     // Bajito: a la altura de un bordillo y no de un murete.
     const alto = 0.15;
     List<V3> octogono(double r, double y) => [
@@ -1222,15 +1227,52 @@ class BoardPainter extends CustomPainter {
     final cara = _lit(const Color(Plaza.kerbTint), 0.78);
     final cesped = Color.lerp(prado, const Color(0xFFB9C77A), 0.10)!;
     _sueloPlano(canvas, p, octogono(radio, alto), canto);
-    _sueloPlano(canvas, p, octogono(radio * 0.975, alto), piedra);
-    _sueloPlano(canvas, p, octogono(radio * 0.9, 0), cesped);
+    _sueloPlano(canvas, p, octogono(radio - 0.05, alto), piedra);
+    _sueloPlano(canvas, p, octogono((radio - _ancho), 0), cesped);
     // Y la cara de dentro del bordillo, que se ve de pie en la hierba.
-    final abajo = octogono(radio * 0.9, 0);
-    final arriba = octogono(radio * 0.9, alto);
+    final abajo = octogono((radio - _ancho), 0);
+    final arriba = octogono((radio - _ancho), alto);
     for (var k = 0; k < 8; k++) {
       final j = (k + 1) % 8;
       _sueloPlano(canvas, p, [abajo[k], abajo[j], arriba[j], arriba[k]], cara);
     }
+  }
+
+  /// Lo ancho del bordillo. Más angosto que en el pueblo agrandado: visto a
+  /// media pata queda cerca, y con aquel ancho era una franja de piedra de
+  /// un tercio de la pantalla.
+  static const double _ancho = 0.28;
+
+  /// Dónde, detrás del tablón (z negativa), cae en pantalla el suelo a la
+  /// altura de la mitad de sus patas, con la cámara quieta de frente. Con la
+  /// de cada fotograma el bordillo se corría al llegar y al acercarse.
+  double _fondoAMediaPata(Size size) {
+    final quieta = OrbitCamera()
+      ..focusY = plan.midY
+      ..focusZ = 0
+      ..travel = 0
+      ..yaw = 0
+      ..pitch = 0
+      ..distance = cam.distanceTarget;
+    final p = quieta.projector(size.width, size.height, 0);
+    const deSiempre =
+        (Plaza.boardOut - 0.9 * 0.924) * TownLayout.plazaReach * 7.0;
+    final meta = p.project(V3(0, plan.low / 2, 0));
+    if (meta == null) return deSiempre;
+    double yDe(double z) => p.project(V3(0, 0, z))?.y ?? double.infinity;
+    var cerca = -0.05, lejos = -60.0;
+    // Más lejos, más arriba en pantalla. Si ni lo más lejos sube hasta ahí,
+    // o ni lo más cerca baja, la de siempre.
+    if (yDe(lejos) > meta.y || yDe(cerca) < meta.y) return deSiempre;
+    for (var i = 0; i < 40; i++) {
+      final medio = (cerca + lejos) / 2;
+      if (yDe(medio) > meta.y) {
+        cerca = medio;
+      } else {
+        lejos = medio;
+      }
+    }
+    return (cerca + lejos) / 2;
   }
 
   /// Un polígono del suelo, recortado por delante del ojo: la plaza pasa por
