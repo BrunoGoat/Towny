@@ -1207,7 +1207,8 @@ class BoardPainter extends CustomPainter {
     const escala = 7.0;
     const radio = TownLayout.plazaReach * escala;
     const centro = Plaza.boardOut * TownLayout.plazaReach * escala;
-    const alto = 0.3;
+    // Bajito: a la altura de un bordillo y no de un murete.
+    const alto = 0.15;
     List<V3> octogono(double r, double y) => [
       for (var k = 0; k < 8; k++)
         () {

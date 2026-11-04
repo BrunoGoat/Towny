@@ -68,7 +68,7 @@ void main() {
     );
   });
 
-  test('al tocarla sale su nombre encima, y sólo ahí', () async {
+  test('al tocarla sale su nombre debajo, y sólo ahí', () async {
     final c = constellations.firstWhere((c) => c.id == 'casiopea');
     // Se busca hacia dónde mirar para tenerla entera en pantalla.
     for (var yaw = 0.0; yaw < 6.3; yaw += 0.25) {
@@ -81,7 +81,7 @@ void main() {
       if (hits.skies.isEmpty) continue;
       final (con, _) = await _pintar(_noche(cam, c, 1));
       final box = hits.skies.first.rect;
-      var encima = 0, fuera = 0;
+      var debajo = 0, fuera = 0;
       for (var y = 0; y < _h; y++) {
         for (var x = 0; x < _w; x++) {
           final i = (y * _w + x) * 4;
@@ -90,15 +90,15 @@ void main() {
               (con[i + 1] - sin[i + 1]).abs() +
               (con[i + 2] - sin[i + 2]).abs();
           if (d < 40) continue;
-          if (y < box.top + 16 && y > box.top - 60) {
-            encima++;
+          if (y > box.bottom - 16 && y < box.bottom + 60) {
+            debajo++;
           } else {
             fuera++;
           }
         }
       }
       expect(
-        encima,
+        debajo,
         greaterThan(30),
         reason: 'no se ve el nombre ($fuera fuera, caja $box)',
       );

@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:towny/data/advice.dart';
-import 'package:towny/data/demo.dart';
 import 'package:towny/model/advice_book.dart';
 import 'package:towny/model/appearance.dart';
 import 'package:towny/model/board_seen.dart';
@@ -13,6 +12,8 @@ import 'package:towny/model/store.dart';
 import 'package:towny/sync/merge.dart';
 import 'package:towny/sync/remote.dart';
 import 'package:towny/sync/tables.dart';
+
+import 'demo_valley.dart';
 
 /// Una nube de mentira: guarda las filas en memoria por su clave, como una
 /// base de datos, y se puede apagar. Devuelve las fechas a la manera de

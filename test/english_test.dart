@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:towny/data/character.dart';
-import 'package:towny/data/demo.dart';
 import 'package:towny/data/doings.dart';
 import 'package:towny/data/folknames.dart';
 import 'package:towny/data/landmarks.dart';
@@ -33,6 +32,7 @@ import 'package:towny/ui/settings_sheet.dart';
 import 'package:towny/ui/style.dart';
 import 'package:towny/ui/unlock_sheet.dart';
 
+import 'demo_valley.dart';
 import 'prologue_helper.dart';
 
 /// La app entera en inglés, y nada de castellano colado.

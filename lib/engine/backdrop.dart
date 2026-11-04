@@ -178,7 +178,8 @@ class Backdrop {
 
     // El nombre no está siempre: un rótulo flotando sobre el valle no es una
     // cosa del cielo, es una etiqueta encima del cielo. Sale al tocarla, chico
-    // y encima de la figura, y a los pocos segundos se va.
+    // y debajo de la figura —encima quedaba contra el borde de arriba, entre
+    // los números—, y a los pocos segundos se va.
     final rotulo = scene.skyLabel;
     if (rotulo > 0.01) {
       final tp = TextPainter(
@@ -204,7 +205,7 @@ class Backdrop {
       // dejaba pegado al borde, acompañando a la cámara.
       tp.paint(
         canvas,
-        Offset((x0 + x1) / 2 - tp.width / 2, y0 - 12 - tp.height),
+        Offset((x0 + x1) / 2 - tp.width / 2, y1 + 12),
       );
     }
   }

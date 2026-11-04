@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import '../data/character.dart';
 import '../data/symbols.dart';
 import '../fx/sensory.dart';
-import '../l10n/dates.dart';
 import '../l10n/lang.dart';
 import '../model/cadence.dart';
 import '../model/habit.dart';
@@ -352,47 +351,59 @@ class _HabitsSheetState extends State<HabitsSheet> {
     key: ValueKey(ch.region),
     crossAxisAlignment: CrossAxisAlignment.center,
     children: [
-      Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _hair(velo, 26),
-          const SizedBox(width: 10),
-          HabitSigil(
-            symbol: ch.symbol,
-            color: t.accent.withValues(alpha: 0.85),
-            size: 17,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            ch.region.toUpperCase(),
-            style: t.label.copyWith(
-              fontSize: 11,
-              color: t.accent,
-              letterSpacing: 2.4,
-              shadows: velo.aliento,
+      // Si en un teléfono angosto no entra con la fecha, se achica entera en
+      // vez de salirse.
+      FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _hair(velo, 18),
+            const SizedBox(width: 10),
+            HabitSigil(
+              symbol: ch.symbol,
+              color: t.accent.withValues(alpha: 0.85),
+              size: 17,
             ),
-          ),
-          const SizedBox(width: 10),
-          _hair(velo, 26),
-        ],
-      ),
-      // Y desde cuándo: el día en que se fundó.
-      const SizedBox(height: 3),
-      Text(
-        tr(
-          'Fundado el ${fullDate(widget.store.habit.createdAt)}',
-          'Founded on ${fullDate(widget.store.habit.createdAt)}',
-        ),
-        style: t.bodySoft.copyWith(
-          fontSize: 11.5,
-          height: 1.1,
-          color: velo.cuerpo.withValues(alpha: 0.62),
-          fontStyle: FontStyle.italic,
-          shadows: velo.aliento,
+            const SizedBox(width: 8),
+            Text(
+              ch.region.toUpperCase(),
+              style: t.label.copyWith(
+                fontSize: 11,
+                color: t.accent,
+                letterSpacing: 2.4,
+                shadows: velo.aliento,
+              ),
+            ),
+            // Y desde cuándo, al lado: una banderita —la que se clava al fundar
+            // un sitio— y la fecha, sin palabras.
+            const SizedBox(width: 12),
+            Icon(
+              Icons.flag_outlined,
+              size: 13,
+              color: velo.cuerpo.withValues(alpha: 0.62),
+            ),
+            const SizedBox(width: 3),
+            Text(
+              _fecha(widget.store.habit.createdAt),
+              style: t.bodySoft.copyWith(
+                fontSize: 11.5,
+                color: velo.cuerpo.withValues(alpha: 0.62),
+                shadows: velo.aliento,
+              ),
+            ),
+            const SizedBox(width: 10),
+            _hair(velo, 18),
+          ],
         ),
       ),
     ],
   );
+
+  /// «27/10/2026»; en inglés, mes y día al revés.
+  static String _fecha(DateTime d) => inEnglish
+      ? '${d.month}/${d.day}/${d.year}'
+      : '${d.day}/${d.month}/${d.year}';
 
   /// Un filete de pelo. Es la única raya que dibuja esta hoja, y de ella salen
   /// todas sus separaciones.

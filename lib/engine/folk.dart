@@ -787,10 +787,16 @@ class Townsfolk {
   /// Si es un crío. Más chico, y es el que salta a la comba o corre detrás de
   /// una mariposa — que es lo que hace un crío en un pueblo donde no hay nada
   /// más que hacer.
-  bool get kid => folkIsKid(seed);
+  ///
+  /// El consejero y el constructor nunca: son quienes son, y un crío
+  /// sentado en el banco dando consejos o empujando la carretilla no lo es.
+  bool get kid => !sage && !builder && folkIsKid(seed);
 
-  /// Lo que mide, contra lo que mide una persona hecha.
-  double get build => buildOf(seed);
+  /// Lo que mide, contra lo que mide una persona hecha. El consejero y el
+  /// constructor, siempre de persona hecha y de las altas: con la talla de
+  /// cualquier vecino, alguno salía tan bajo que parecía un crío.
+  double get build =>
+      sage || builder ? 1.02 + hash01(seed, 14) * 0.06 : buildOf(seed);
 
   /// Lo que mide quien sale de la semilla [seed]. Ver [build].
   static double buildOf(int seed) => folkIsKid(seed)

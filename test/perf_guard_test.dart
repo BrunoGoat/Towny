@@ -10,6 +10,29 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     g.debugClear();
     await g.load();
+    await g.setEnabled(true);
+  });
+
+  test('de fábrica está apagado y no apaga nada', () async {
+    SharedPreferences.setMockInitialValues({});
+    g.debugClear();
+    await g.load();
+    expect(g.enabled, isFalse);
+    for (var i = 0; i < 180; i++) {
+      g.debugFeed(60);
+    }
+    expect(g.apagadas, isEmpty);
+  });
+
+  test('si se apaga, vuelve a encender lo que había apagado', () async {
+    for (var i = 0; i < 90; i++) {
+      g.debugFeed(60);
+    }
+    expect(g.apagadas, isNotEmpty);
+    await g.setEnabled(false);
+    expect(g.apagadas, isEmpty);
+    expect(g.off('resplandor'), isFalse);
+    await g.setEnabled(true);
   });
 
   void ventana(double ms) {

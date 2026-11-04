@@ -3,7 +3,6 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
-import '../data/demo.dart';
 import '../data/doings.dart';
 import '../data/landmarks.dart';
 import '../engine/render_debug.dart';
@@ -27,7 +26,6 @@ import 'debug_sheet.dart';
 import 'first_run.dart';
 import 'folk_gallery_screen.dart';
 import 'gallery_screen.dart';
-import 'notice_board.dart';
 import 'overlays.dart';
 import 'reel_screen.dart';
 import 'sage_screen.dart';
@@ -183,19 +181,6 @@ class _SettingsSheetState extends State<SettingsSheet> {
                         'watch the counter. Reopening the app turns them all on.',
                   ),
                   style: _nota(t),
-                ),
-                efecto(
-                  'Fondo a velocidad normal',
-                  'Background at full speed',
-                  'El pueblo de detrás se sigue dibujando a su velocidad de '
-                      'siempre con el consejero, el constructor o una hoja '
-                      'abierta encima. Apagado, en el teléfono se dibuja unas '
-                      'pocas veces por segundo mientras tanto.',
-                  'The town behind keeps drawing at its usual speed with the '
-                      'advisor, the builder or a sheet open on top. Off, on a '
-                      'phone it draws a few times a second meanwhile.',
-                  dbg.fullBackground,
-                  (d, v) => d.fullBackground = v,
                 ),
                 efecto(
                   'Sombras',
@@ -466,38 +451,6 @@ class _SettingsSheetState extends State<SettingsSheet> {
                     ),
                   ],
                 ],
-              ],
-            ),
-            _Section(
-              theme: t,
-              title: tr('EL TABLÓN', 'THE NOTICE BOARD'),
-              icon: Icons.push_pin_outlined,
-              children: [
-                _Row(
-                  theme: t,
-                  icon: Icons.auto_stories_outlined,
-                  title: tr(
-                    'Ver el tablón con un pueblo lleno',
-                    'See the board of a full town',
-                  ),
-                  subtitle: tr(
-                    'Un valle de mentira: entrenar durante 300 días. Trae un dado '
-                        'que vuelve a repartirlo con notas al azar, para ver si el '
-                        'texto cabe también en las que no salen nunca.',
-                    'A pretend valley: training for 300 days. It comes with a die '
-                        'that deals it again with random notes, to check that the text '
-                        'also fits in the ones that hardly ever come up.',
-                  ),
-                  page: () {
-                    final valle = demoValley();
-                    return NoticeBoardScreen(
-                      valley: valle,
-                      habit: valle.first,
-                      theme: t,
-                      dice: true,
-                    );
-                  },
-                ),
               ],
             ),
             _Section(
@@ -2058,6 +2011,15 @@ class _Defensor extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            _Switch(
+              theme: t,
+              title: 'Encendido',
+              subtitle:
+                  'Apagado de fábrica. Al apagarlo vuelve a encender todo lo '
+                  'que hubiera apagado.',
+              on: g.enabled,
+              onChanged: g.setEnabled,
+            ),
             Text(
               'Si la app va lenta, apaga cosas de a una, de la más cara a la '
               'más barata, empezando por lo que pesa en la pantalla donde '

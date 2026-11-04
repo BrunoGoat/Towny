@@ -15,7 +15,6 @@ import '../engine/clear_view.dart';
 import '../engine/folk.dart';
 import '../engine/folk_body.dart';
 import '../engine/palette.dart';
-import '../engine/render_debug.dart';
 import '../engine/renderer.dart';
 import '../engine/scene.dart';
 import '../engine/shooting_star.dart';
@@ -33,7 +32,7 @@ import '../model/habit.dart';
 import '../model/perf_guard.dart';
 import '../model/piece.dart';
 import '../model/store.dart';
-import 'style.dart' show isPhone, paced, phoneFps;
+import 'style.dart' show paced, phoneFps;
 import 'unlock_sheet.dart' show townOrdinal;
 
 /// Handle the surrounding UI uses to drive the wall.
@@ -824,30 +823,20 @@ class _TownViewState extends State<TownView>
       widget.onPaletteChanged(pal);
     }
 
-    // En el teléfono, con otra pantalla encima —el consejero, el
-    // constructor, una hoja— o con el teclado abierto, el pueblo se repinta
-    // unas pocas veces por segundo: detrás de un velo no se nota, y pintarlo
-    // entero sesenta veces por segundo dejaba sin aire a lo de delante.
-    // Y siempre, en el teléfono, a lo sumo treinta veces por segundo: ver
-    // [phoneFps].
+    // En el teléfono, a lo sumo treinta veces por segundo: ver [phoneFps].
+    // También con otra pantalla encima —el consejero, el constructor, una
+    // hoja— o con el teclado abierto: se probó dibujarlo más despacio
+    // mientras tanto, y a velocidad normal se ve mejor y no se traba.
     if (paced) {
-      final paso =
-          isPhone &&
-              (_tapado || _teclado) &&
-              _placement == null &&
-              !RenderDebug.instance.fullBackground
-          ? 1 / 8
-          : 1 / phoneFps - 0.002;
+      final paso = 1 / phoneFps - 0.002;
       if (_time - _pintado < paso && _time >= _pintado) return;
     }
     _pintado = _time;
     if (mounted) setState(() {});
   }
 
-  /// Cuándo se repintó por última vez, si hay algo encima o el teclado
-  /// abierto. Ver [_tick].
+  /// Cuándo se repintó por última vez. Ver [_tick].
   double _pintado = -1;
-  bool _tapado = false, _teclado = false;
 
   /// The slow turn around a finished landmark, and the slower one the town
   /// takes on its own when nobody has touched it for a while.
@@ -1943,8 +1932,6 @@ class _TownViewState extends State<TownView>
 
   @override
   Widget build(BuildContext context) {
-    _tapado = !(ModalRoute.of(context)?.isCurrent ?? true);
-    _teclado = MediaQuery.viewInsetsOf(context).bottom > 0;
     final store = widget.store;
     // Alguna noche hay una figura ahí arriba y otras no; la decide la propia
     // noche. Ya no hace falta tener un observatorio en pie para verla: el cielo

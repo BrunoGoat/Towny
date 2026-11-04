@@ -8,7 +8,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:towny/core/math3.dart';
 import 'package:towny/core/rng.dart';
-import 'package:towny/data/demo.dart';
 import 'package:towny/engine/backdrop.dart';
 import 'package:towny/engine/board_plan.dart';
 import 'package:towny/engine/camera.dart';
@@ -31,6 +30,8 @@ import 'package:towny/ui/note_font.dart';
 import 'package:towny/ui/notice_board.dart';
 import 'package:towny/ui/paper_ink.dart';
 import 'package:towny/ui/style.dart';
+
+import 'demo_valley.dart';
 
 void main() {
   // El valle de mentira existe para una sola cosa: enseñar el tablón lleno.

@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:towny/data/demo.dart';
 import 'package:towny/model/appearance.dart';
 import 'package:towny/model/board_seen.dart';
 import 'package:towny/model/board_slots.dart';
@@ -12,6 +11,8 @@ import 'package:towny/model/habit.dart';
 import 'package:towny/model/store.dart';
 import 'package:towny/sync/remote.dart';
 import 'package:towny/sync/tables.dart';
+
+import 'demo_valley.dart';
 
 /// Un valle con todo lo que un valle puede tener escrito: el de la
 /// demostración, más un plan entero, notas, una pausa y vecinos.

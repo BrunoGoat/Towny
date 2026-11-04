@@ -15,10 +15,10 @@
 /// siempre el mismo pueblo — se puede volver a mirar una nota y seguir ahí.
 library;
 
-import '../core/rng.dart';
-import '../l10n/lang.dart';
-import '../model/habit.dart';
-import '../model/piece.dart';
+import 'package:towny/core/rng.dart';
+import 'package:towny/l10n/lang.dart';
+import 'package:towny/model/habit.dart';
+import 'package:towny/model/piece.dart';
 
 /// Los dos pueblos, el de entrenar primero.
 List<Habit> demoValley([DateTime? at]) {

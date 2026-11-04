@@ -44,6 +44,29 @@ class PerfGuard extends ChangeNotifier {
   static final PerfGuard instance = PerfGuard._();
 
   static const String _key = 'perf_guard_v1';
+  static const String _keyOn = 'perf_guard_on_v1';
+
+  /// Si el defensor está encendido. **Apagado de fábrica**: quien no tiene
+  /// la hoja de desarrollo vería que se le apagan cosas sin poder volver a
+  /// prenderlas. Se enciende desde Ajustes, Desarrollo, El defensor.
+  bool get enabled => _on;
+  bool _on = false;
+
+  Future<void> setEnabled(bool v) async {
+    if (v == _on) return;
+    _on = v;
+    try {
+      await _prefs?.setBool(_keyOn, v);
+    } catch (_) {}
+    if (v) {
+      _reiniciar();
+      _escuchar();
+      notifyListeners();
+    } else {
+      // Apagarlo vuelve a encender todo lo que había apagado.
+      await reset();
+    }
+  }
 
   /// Todo lo que puede apagar, de lo que más cuesta a lo que menos.
   static const List<PerfStep> steps = [
@@ -116,7 +139,7 @@ class PerfGuard extends ChangeNotifier {
   SharedPreferences? _prefs;
 
   /// Si el defensor apagó [id].
-  bool off(String id) => _apagadas.contains(id);
+  bool off(String id) => _on && _apagadas.contains(id);
 
   /// Lo apagado, en el orden en que se apagó.
   final List<String> _orden = [];
@@ -150,12 +173,19 @@ class PerfGuard extends ChangeNotifier {
   Future<void> load() async {
     try {
       _prefs = await SharedPreferences.getInstance();
+      _on = _prefs!.getBool(_keyOn) ?? false;
       final guardadas = _prefs!.getStringList(_key) ?? const [];
       for (final id in guardadas) {
         if (steps.any((s) => s.id == id) && _apagadas.add(id)) _orden.add(id);
       }
     } catch (_) {
       // Sin dónde guardar, el defensor trabaja igual; sólo no recuerda.
+    }
+    if (!_on) {
+      // Apagado: lo que hubiera apagado antes, cuando venía encendido de
+      // fábrica, vuelve a estar encendido.
+      if (_orden.isNotEmpty) await reset();
+      return;
     }
     _aplicar();
     _escuchar();
@@ -264,6 +294,7 @@ class PerfGuard extends ChangeNotifier {
   }
 
   void _anotar(double ms) {
+    if (!_on) return;
     _costes.add(ms);
     if (_costes.length < _ventana) return;
     _costes.sort();
