@@ -329,7 +329,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'hornoPan',
     'Panadería',
-    15,
+    12,
     0,
     'Cada casa trae su masa y se lleva su pan. El calor de un solo horno '
         'alimenta a todo el pueblo.',
@@ -386,7 +386,9 @@ final List<Landmark> landmarks = [
         at: base + 0.98,
         ridge: true,
       );
-      // El horno.
+      // El horno de barro: el poyo de piedra, el cuerpo, la bóveda que se
+      // cierra en una sola hilada, el tiro y la boca. Con más escalones se
+      // leía como una pirámide.
       const ox = 0.78;
       m.box(
         PieceKind.parapet,
@@ -399,47 +401,37 @@ final List<Landmark> landmarks = [
         ridge: true,
       );
       final poyo = base + 0.36;
-      var y = poyo;
-      for (final (lado, alto) in const [
-        (1.12, 0.4),
-        (0.96, 0.14),
-        (0.78, 0.12),
-        (0.52, 0.1),
-      ]) {
-        m.box(
-          PieceKind.chimney,
-          lado,
-          lado,
-          alto,
-          dx: ox,
-          dz: -0.15,
-          at: y,
-          ridge: true,
-        );
-        y += alto;
-      }
+      m.box(
+        PieceKind.chimney,
+        1.12,
+        1.12,
+        0.44,
+        dx: ox,
+        dz: -0.15,
+        at: poyo,
+        ridge: true,
+      );
+      m.box(
+        PieceKind.chimney,
+        0.8,
+        0.8,
+        0.2,
+        dx: ox,
+        dz: -0.15,
+        at: poyo + 0.44,
+        ridge: true,
+      );
       m.box(
         PieceKind.chimney,
         0.2,
         0.2,
-        0.45,
+        0.42,
         dx: ox,
-        dz: -0.22,
-        at: y,
+        dz: -0.2,
+        at: poyo + 0.64,
         ridge: true,
       );
       m.arcade(0.44, 0.32, 0.1, dx: ox, dz: 0.41, at: poyo, along: true);
-      // La leña, en la esquina, sin tapar la boca.
-      m.box(
-        PieceKind.parapet,
-        0.36,
-        0.5,
-        0.34,
-        dx: 1.32,
-        dz: 0.72,
-        at: base,
-        ridge: true,
-      );
     },
   ),
 

@@ -2469,38 +2469,49 @@ List<Solid> _mostrador(
   for (var k = 0; k < 3; k++) {
     final cx = x0 + w * (0.18 + 0.22 * k);
     final r = math.min(d * 0.32, w * 0.09);
-    out.add(
-      Solid(
-        i,
-        boxFaces(
-          cx - r,
-          tapa,
-          cz - r,
-          cx + r,
-          tapa + alto * 0.7,
-          cz + r,
-          Surface.own,
-          ao: 1.04,
-          tint: _corteza,
+    // Redonda y abombada: tres roscos de ocho lados que se cierran hacia
+    // arriba. En cajas se leía como una bandeja.
+    var ya = tapa;
+    for (final (rr, hasta, c) in const [
+      (1.0, 0.5, _corteza),
+      (0.84, 0.82, 0xFFCF9446),
+      (0.55, 1.0, 0xFFD9A055),
+    ]) {
+      final yb = tapa + alto * hasta;
+      out.add(
+        Solid(
+          i,
+          prismFaces(
+            Plaza.ring(cx, cz, r * rr),
+            ya,
+            yb,
+            Surface.own,
+            ao: 1.04,
+            tint: c,
+          ),
         ),
-      ),
-    );
-    out.add(
-      Solid(
-        i,
-        boxFaces(
-          cx - r * 0.62,
-          tapa + alto * 0.7,
-          cz - r * 0.62,
-          cx + r * 0.62,
-          tapa + alto,
-          cz + r * 0.62,
-          Surface.own,
-          ao: 1.08,
-          tint: 0xFFD9A055,
+      );
+      ya = yb;
+    }
+    // Los cortes de arriba, tostados: dos rayas cruzando la hogaza.
+    for (final dz in [-0.3, 0.3]) {
+      out.add(
+        Solid(
+          i,
+          boxFaces(
+            cx - r * 0.62,
+            tapa + alto * 0.82,
+            cz + r * dz * 0.9 - r * 0.1,
+            cx + r * 0.62,
+            tapa + alto * 0.82 + 0.01,
+            cz + r * dz * 0.9 + r * 0.1,
+            Surface.own,
+            ao: 0.9,
+            tint: 0xFF8A5424,
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
   out.add(
     Solid(
@@ -2518,6 +2529,26 @@ List<Solid> _mostrador(
       ),
     ),
   );
+  // Y los cortes de la barra, de través.
+  for (var k = 0; k < 3; k++) {
+    final x = x0 + w * (0.78 + 0.06 * k);
+    out.add(
+      Solid(
+        i,
+        boxFaces(
+          x - w * 0.012,
+          tapa + alto * 0.45,
+          cz - d * 0.12,
+          x + w * 0.012,
+          tapa + alto * 0.45 + 0.006,
+          cz + d * 0.12,
+          Surface.own,
+          ao: 0.9,
+          tint: 0xFF8A5424,
+        ),
+      ),
+    );
+  }
   return out;
 }
 
