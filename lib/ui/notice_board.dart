@@ -554,21 +554,65 @@ class _BlankPaperState extends State<_BlankPaper> {
   static const int _topeTitulo = 70, _topeDebajo = 110;
 
   @override
+  void initState() {
+    super.initState();
+    widget.title.addListener(_cambio);
+    widget.below.addListener(_cambio);
+  }
+
+  @override
+  void dispose() {
+    widget.title.removeListener(_cambio);
+    widget.below.removeListener(_cambio);
+    super.dispose();
+  }
+
+  void _cambio() => setState(() {});
+
+  @override
   Widget build(BuildContext context) {
     final mq = MediaQuery.of(context);
     final ancho = math.min(mq.size.width - 16, 460.0);
     final alto = ancho * PaperInk.box.height / PaperInk.box.width;
     final k = ancho / PaperInk.box.width;
     final letra = NoteFont.rotulador;
-    TextStyle estilo(double size, double alpha, FontWeight w) => TextStyle(
+    // **Del mismo tamaño que la nota que se va a clavar.** Se escribía con
+    // una letra fija, grande, y la nota que bajaba a esperar sitio salía con
+    // la suya —la que cabe en el papel, más chica o más grande según lo que
+    // diga—, así que el texto cambiaba de tamaño al terminar de escribir. Ahora
+    // se maqueta la nota con lo escrito y se escribe con su cuerpo de letra,
+    // agrandado a lo que mide este papel.
+    final t = widget.title.text.trim(), y = widget.below.text.trim();
+    final nota = PaperInk(
+      Notice(
+        NoticeKind.mine,
+        t.isEmpty ? tr('Un título', 'A title') : t,
+        y.isEmpty ? 'x' : y,
+        more: '',
+      ),
+    );
+    TextStyle estilo(
+      double px,
+      double alpha,
+      FontWeight w, {
+      double spacing = 0,
+    }) => TextStyle(
       fontFamily: letra.family,
-      fontSize: size * k * letra.scale,
+      fontSize: px * k,
       height: PaperInk.lineHeight,
+      letterSpacing: spacing * k,
       fontWeight: w,
       color: BoardPlan.ink.withValues(alpha: alpha),
     );
-    final grande = estilo(23, 1, FontWeight.w700);
-    final chica = estilo(15, 0.74, FontWeight.w400);
+    // Sin renglón debajo, la nota se escribe de corrido, con otra letra: la
+    // de la nota así, mientras no se escriba nada debajo.
+    final corrida = y.isEmpty && t.isNotEmpty
+        ? PaperInk(Notice(NoticeKind.mine, t, ''))
+        : null;
+    final grande = corrida != null
+        ? estilo(corrida.saidFontSize, 0.92, FontWeight.w500)
+        : estilo(nota.saidFontSize, 1, FontWeight.w700, spacing: 0.15);
+    final chica = estilo(nota.becauseFontSize, 0.74, FontWeight.w400);
     InputDecoration pista(String texto, TextStyle s) => InputDecoration(
       isDense: true,
       contentPadding: EdgeInsets.zero,

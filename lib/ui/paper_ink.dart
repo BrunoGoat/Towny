@@ -284,6 +284,12 @@ class PaperInk {
     ellipsis: '…',
   )..layout(maxWidth: width);
 
+  /// El cuerpo de letra con que quedó el titular, y el del renglón de
+  /// debajo, en píxeles del rectángulo [box]: lo que usa la hoja en blanco
+  /// para escribir del mismo tamaño que la nota que después se clava.
+  double get saidFontSize => _said.text?.style?.fontSize ?? saidSize;
+  double get becauseFontSize => _because.text?.style?.fontSize ?? becauseSize;
+
   /// Si al papel no le cabe lo que lleva escrito, ni encogiéndolo.
   bool get overflows => !_cabe;
 
