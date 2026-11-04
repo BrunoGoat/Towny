@@ -114,6 +114,15 @@ List<Solid> solidsOf(
     case PieceKind.arcade:
       return _arcade(piece, y0, y1);
 
+    case PieceKind.awning:
+      return _toldo(i, x0, y0, z0, x1, y1, z1);
+
+    case PieceKind.counter:
+      return _mostrador(i, s, x0, y0, z0, x1, y1, z1);
+
+    case PieceKind.sign:
+      return _cartel(i, x0, y0, z0, x1, y1, z1);
+
     case PieceKind.tree:
       final ht = y1 - y0;
       final trunk = piece.w * 0.16;
@@ -2351,5 +2360,226 @@ class Plaza {
       mata: mata,
     ),
     ..._fountain(cx, cz, reach),
+  ];
+}
+
+// ------------------------------------------------------------ la panadería
+
+const int _madera = 0xFF7A5634, _hierro = 0xFF3E3E42, _corteza = 0xFFC98A3E;
+
+/// El toldo: tela a rayas que sale de la pared por arriba (en [z0], a [y1])
+/// y baja hacia la calle hasta [z1], con el fleco colgando en la punta. Las
+/// rayas van de la pared a la calle, alternando crema y rojo.
+List<Solid> _toldo(
+  int i,
+  double x0,
+  double y0,
+  double z0,
+  double x1,
+  double y1,
+  double z1,
+) {
+  const grueso = 0.025, fleco = 0.07;
+  final bajo = y0 + fleco;
+  final out = <Solid>[];
+  const rayas = 6;
+  for (var k = 0; k < rayas; k++) {
+    final a = x0 + (x1 - x0) * k / rayas, b = x0 + (x1 - x0) * (k + 1) / rayas;
+    out.add(
+      Solid(
+        i,
+        hexFaces(
+          [
+            V3(a, bajo - grueso, z1),
+            V3(b, bajo - grueso, z1),
+            V3(b, y1 - grueso, z0),
+            V3(a, y1 - grueso, z0),
+            V3(a, bajo, z1),
+            V3(b, bajo, z1),
+            V3(b, y1, z0),
+            V3(a, y1, z0),
+          ],
+          Surface.own,
+          ao: 1.0,
+          tint: k.isEven ? 0xFFEDE3C8 : 0xFFB0413A,
+        ),
+      ),
+    );
+  }
+  // El fleco de delante, de punta a punta.
+  out.add(
+    Solid(
+      i,
+      boxFaces(
+        x0,
+        y0,
+        z1 - 0.02,
+        x1,
+        bajo,
+        z1,
+        Surface.own,
+        ao: 0.92,
+        tint: 0xFFB0413A,
+      ),
+    ),
+  );
+  return out;
+}
+
+/// El mostrador: un banco de madera a la altura de la cintura, y encima los
+/// panes —hogazas redondas y una barra—, dorados.
+List<Solid> _mostrador(
+  int i,
+  int seed,
+  double x0,
+  double y0,
+  double z0,
+  double x1,
+  double y1,
+  double z1,
+) {
+  final tapa = y0 + (y1 - y0) * 0.72;
+  final out = <Solid>[
+    Solid(
+      i,
+      boxFaces(x0, y0, z0, x1, tapa, z1, Surface.own, ao: 0.9, tint: _madera),
+    ),
+  ];
+  final w = x1 - x0, d = z1 - z0, alto = y1 - tapa;
+  final cz = (z0 + z1) / 2;
+  // Tres hogazas y una barra, a lo largo.
+  for (var k = 0; k < 3; k++) {
+    final cx = x0 + w * (0.18 + 0.22 * k);
+    final r = math.min(d * 0.32, w * 0.09);
+    out.add(
+      Solid(
+        i,
+        boxFaces(
+          cx - r,
+          tapa,
+          cz - r,
+          cx + r,
+          tapa + alto * 0.7,
+          cz + r,
+          Surface.own,
+          ao: 1.04,
+          tint: _corteza,
+        ),
+      ),
+    );
+    out.add(
+      Solid(
+        i,
+        boxFaces(
+          cx - r * 0.62,
+          tapa + alto * 0.7,
+          cz - r * 0.62,
+          cx + r * 0.62,
+          tapa + alto,
+          cz + r * 0.62,
+          Surface.own,
+          ao: 1.08,
+          tint: 0xFFD9A055,
+        ),
+      ),
+    );
+  }
+  out.add(
+    Solid(
+      i,
+      boxFaces(
+        x0 + w * 0.74,
+        tapa,
+        cz - d * 0.16,
+        x0 + w * 0.94,
+        tapa + alto * 0.45,
+        cz + d * 0.16,
+        Surface.own,
+        ao: 1.02,
+        tint: _corteza,
+      ),
+    ),
+  );
+  return out;
+}
+
+/// El cartel: un brazo de hierro que sale de la pared (en [z0]) a lo alto y
+/// la tabla colgando de él, con un pan pintado a cada lado.
+List<Solid> _cartel(
+  int i,
+  double x0,
+  double y0,
+  double z0,
+  double x1,
+  double y1,
+  double z1,
+) {
+  final cx = (x0 + x1) / 2;
+  const g = 0.03;
+  final tablaArriba = y1 - 0.08;
+  final zc = z0 + (z1 - z0) * 0.62;
+  final media = (x1 - x0) / 2;
+  return [
+    // El brazo.
+    Solid(
+      i,
+      boxFaces(
+        cx - g / 2,
+        y1 - g,
+        z0,
+        cx + g / 2,
+        y1,
+        z1,
+        Surface.own,
+        ao: 0.9,
+        tint: _hierro,
+      ),
+    ),
+    // Las dos cadenitas.
+    for (final dz in [-0.2, 0.2])
+      Solid(
+        i,
+        boxFaces(
+          cx - 0.008,
+          tablaArriba,
+          zc + dz * media - 0.008,
+          cx + 0.008,
+          y1 - g,
+          zc + dz * media + 0.008,
+          Surface.own,
+          ao: 0.9,
+          tint: _hierro,
+        ),
+      ),
+    // La tabla, de canto a la calle: se lee al pasar por delante.
+    Solid(
+      i,
+      boxFaces(
+        cx - 0.02,
+        y0,
+        zc - media * 0.5,
+        cx + 0.02,
+        tablaArriba,
+        zc + media * 0.5,
+        Surface.own,
+        ao: 0.95,
+        tint: _madera,
+      ),
+    ),
+    // El pan pintado, a los dos lados.
+    Solid(
+      i,
+      boxFaces(
+        cx - 0.032,
+        y0 + (tablaArriba - y0) * 0.28,
+        zc - media * 0.3,
+        cx + 0.032,
+        y0 + (tablaArriba - y0) * 0.72,
+        zc + media * 0.3,
+        Surface.own,
+        ao: 1.08,
+        tint: _corteza,
+      ),
+    ),
   ];
 }

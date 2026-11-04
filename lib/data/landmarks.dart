@@ -311,31 +311,118 @@ final List<Landmark> landmarks = [
 
   Landmark(
     'hornoPan',
-    'Horno de pan',
-    7,
+    'Panadería',
+    15,
     0,
-    'Cada casa trae su masa y se lleva su pan. El calor de uno solo '
+    'Cada casa trae su masa y se lleva su pan. El calor de un solo horno '
         'alimenta a todo el pueblo.',
     (m) {
-      // El cuarto del hornero con su tejado, y pegada al costado la bóveda
-      // redonda del horno con su chimenea: es lo que lo distingue de una
-      // casa. Y la leña apilada delante.
-      m.plinth(2.6, 1.7, 0.22);
+      // Lo que dice «panadería» y no «casa»: el toldo a rayas sobre la
+      // fachada, el mostrador con los panes de cara a la calle y el cartel
+      // con su pan colgado del brazo de hierro. Y pegado al costado el horno
+      // de ladrillo, subido a su poyo y cerrándose en hiladas hasta el tiro,
+      // con la leña al lado.
+      m.plinth(3.1, 2.1, 0.18);
       final base = m.y;
-      m.box(PieceKind.floor, 1.25, 1.3, 1.0, dx: -0.55, at: base, ridge: true);
-      m.dome(1.25, 1.25, 0.95, dx: 0.62, at: base);
-      m.box(PieceKind.parapet, 0.55, 0.16, 0.42, dx: 0.62, dz: 0.66, at: base);
-      m.roof(1.5, 1.55, 0.55, dx: -0.55, at: base + 1.0);
+      const tx = -0.6, fondo = 1.3;
+      const frente = fondo / 2;
+      m.box(PieceKind.floor, 1.5, fondo, 0.85, dx: tx, at: base, ridge: true);
       m.box(
-        PieceKind.chimney,
-        0.3,
-        0.3,
-        0.62,
-        dx: 0.62,
-        at: base + 0.72,
+        PieceKind.floor,
+        1.4,
+        fondo - 0.1,
+        0.7,
+        dx: tx,
+        at: base + 0.85,
         ridge: true,
       );
-      m.box(PieceKind.parapet, 0.95, 0.38, 0.36, dx: -0.55, dz: 1.15, at: 0);
+      m.roof(1.65, 1.5, 0.55, dx: tx, at: base + 1.55);
+      // El toldo, de la fachada hacia la calle; el mostrador debajo.
+      m.box(
+        PieceKind.awning,
+        1.45,
+        0.7,
+        0.3,
+        dx: tx,
+        dz: frente + 0.2,
+        at: base + 0.6,
+        ridge: true,
+      );
+      m.box(
+        PieceKind.counter,
+        1.15,
+        0.32,
+        0.46,
+        dx: tx,
+        dz: frente + 0.14,
+        at: base,
+        ridge: true,
+      );
+      // El cartel, en la esquina, entre las dos plantas.
+      m.box(
+        PieceKind.sign,
+        0.1,
+        0.7,
+        0.42,
+        dx: tx - 0.62,
+        dz: frente + 0.2,
+        at: base + 0.98,
+        ridge: true,
+      );
+      // El horno.
+      const ox = 0.78;
+      m.box(
+        PieceKind.parapet,
+        1.3,
+        1.3,
+        0.36,
+        dx: ox,
+        dz: -0.15,
+        at: base,
+        ridge: true,
+      );
+      final poyo = base + 0.36;
+      var y = poyo;
+      for (final (lado, alto) in const [
+        (1.12, 0.4),
+        (0.96, 0.14),
+        (0.78, 0.12),
+        (0.52, 0.1),
+      ]) {
+        m.box(
+          PieceKind.chimney,
+          lado,
+          lado,
+          alto,
+          dx: ox,
+          dz: -0.15,
+          at: y,
+          ridge: true,
+        );
+        y += alto;
+      }
+      m.box(
+        PieceKind.chimney,
+        0.2,
+        0.2,
+        0.45,
+        dx: ox,
+        dz: -0.22,
+        at: y,
+        ridge: true,
+      );
+      m.arcade(0.44, 0.32, 0.1, dx: ox, dz: 0.41, at: poyo, along: true);
+      // La leña, en la esquina, sin tapar la boca.
+      m.box(
+        PieceKind.parapet,
+        0.36,
+        0.5,
+        0.34,
+        dx: 1.32,
+        dz: 0.72,
+        at: base,
+        ridge: true,
+      );
     },
   ),
 

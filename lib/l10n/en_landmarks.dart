@@ -286,9 +286,9 @@ const Map<String, (String, String)> landmarksEn = {
         'in every stone.',
   ),
   'hornoPan': (
-    'Bread oven',
+    'Bakery',
     'Every house brings its dough and takes home its bread. The heat of '
-        'one feeds the whole town.',
+        'one oven feeds the whole town.',
   ),
   'lavadero': (
     'Wash house',

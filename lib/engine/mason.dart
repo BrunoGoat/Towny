@@ -50,6 +50,16 @@ enum PieceKind {
 
   /// A flight of steps.
   stair,
+
+  /// Un toldo de tela a rayas, de la pared hacia la calle (+z), bajando.
+  awning,
+
+  /// Un mostrador de madera con panes encima, de cara a la calle.
+  counter,
+
+  /// Un cartel colgado de un brazo de hierro que sale de la pared hacia la
+  /// calle, con un pan pintado.
+  sign,
 }
 
 /// One piece of a building, before it is given to an achievement.
