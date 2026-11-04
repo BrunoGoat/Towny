@@ -43,6 +43,20 @@ class _RestSheetState extends State<RestSheet> {
   /// no llega con una respuesta puesta.
   int? _days;
 
+  /// Si se eligió una cantidad de días a mano, y cuántos: tres meses de
+  /// techo, como el tramo más largo de la lista.
+  bool _aMano = false;
+  int _cuantos = 3;
+  static const int _tope = 90;
+
+  void _elegirAMano(int n) {
+    setState(() {
+      _aMano = true;
+      _cuantos = n.clamp(1, _tope);
+      _days = _cuantos;
+    });
+  }
+
   /// Los tramos que se ofrecen. Una semana porque es lo que dura un viaje
   /// corto; un mes porque es lo que dura una mudanza o un examen; y tres
   /// meses como techo, porque más allá de una estación lo honesto es
@@ -150,7 +164,7 @@ class _RestSheetState extends State<RestSheet> {
               SheetChoice(
                 theme: t,
                 velo: velo,
-                on: dias == span.$1,
+                on: !_aMano && dias == span.$1,
                 title: span.$2,
                 hint: span.$3,
                 // El día en que vuelve, al lado: una pausa siempre tiene
@@ -159,16 +173,86 @@ class _RestSheetState extends State<RestSheet> {
                   dayMonthShort(_wakeOn(span.$1)),
                   style: t.bodySoft.copyWith(
                     fontSize: 12,
-                    color: dias == span.$1 ? t.accent : velo.tenue,
-                    fontWeight: dias == span.$1
+                    color: !_aMano && dias == span.$1 ? t.accent : velo.tenue,
+                    fontWeight: !_aMano && dias == span.$1
                         ? FontWeight.w600
                         : FontWeight.w400,
                   ),
                 ),
                 onTap: () {
                   Sensory.instance.tick();
-                  setState(() => _days = span.$1);
+                  setState(() {
+                    _aMano = false;
+                    _days = span.$1;
+                  });
                 },
+              ),
+            // Y cualquier otra cantidad: tres días por un fin de semana
+            // largo, doce por un viaje que no es una semana ni dos.
+            SheetChoice(
+              theme: t,
+              velo: velo,
+              on: _aMano,
+              title: tr('Otra cantidad de días', 'Another number of days'),
+              hint: _aMano
+                  ? (_cuantos == 1
+                        ? tr('un día', 'one day')
+                        : tr('$_cuantos días', '$_cuantos days'))
+                  : tr('de 1 a $_tope', 'from 1 to $_tope'),
+              trailing: _aMano
+                  ? Text(
+                      dayMonthShort(_wakeOn(_cuantos)),
+                      style: t.bodySoft.copyWith(
+                        fontSize: 12,
+                        color: t.accent,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    )
+                  : null,
+              onTap: () {
+                Sensory.instance.tick();
+                _elegirAMano(_cuantos);
+              },
+            ),
+            if (_aMano)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      onPressed: _cuantos > 1
+                          ? () {
+                              Sensory.instance.tick();
+                              _elegirAMano(_cuantos - 1);
+                            }
+                          : null,
+                      icon: Icon(Icons.remove, color: velo.cuerpo),
+                    ),
+                    SizedBox(
+                      width: 92,
+                      child: Text(
+                        _cuantos == 1
+                            ? tr('1 día', '1 day')
+                            : tr('$_cuantos días', '$_cuantos days'),
+                        textAlign: TextAlign.center,
+                        style: t.title.copyWith(
+                          color: velo.cuerpo,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: _cuantos < _tope
+                          ? () {
+                              Sensory.instance.tick();
+                              _elegirAMano(_cuantos + 1);
+                            }
+                          : null,
+                      icon: Icon(Icons.add, color: velo.cuerpo),
+                    ),
+                  ],
+                ),
               ),
             const SizedBox(height: 16),
             SheetAccent(
