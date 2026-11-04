@@ -489,15 +489,15 @@ class _SageScreenState extends State<SageScreen> {
 }
 
 /// La primera vez, antes de fundar nada: el viejo, en su pantalla de siempre
-/// y sobre el valle vacío, cuenta cómo funciona todo, da dos consejos de
+/// y sobre el valle vacío, cuenta cómo funciona todo, da un consejo de
 /// verdad —para que se vea cómo es recibir uno— y deja abajo el botón para
 /// fundar el primer pueblo ([onFound]).
 ///
 /// **Por qué antes y no después.** El primer pueblo se elegía sin saber nada,
 /// y quien llega cansado de otras apps suele elegir justo lo que más le
 /// cuesta. Contado antes, el hábito se elige sabiendo que conviene empezar por
-/// lo que se puede sostener. Los dos consejos quedan en su libro, ya leídos, y
-/// al fundar el viejo tiene uno nuevo.
+/// lo que se puede sostener. El consejo queda en su libro, ya leído, y al
+/// fundar el viejo tiene uno nuevo.
 class SagePrologueView extends StatefulWidget {
   const SagePrologueView({
     super.key,
@@ -536,7 +536,7 @@ class _SagePrologueViewState extends State<SagePrologueView>
   final ScrollController _desliza = ScrollController();
 
   /// Por qué globo va: primero los de [SagePrologue.opening]; después el
-  /// primer consejo, lo de en medio, el segundo, y los dos últimos.
+  /// consejo, y los dos últimos.
   int _paso = 0;
 
   Advice? _abierto;
@@ -620,12 +620,12 @@ class _SagePrologueViewState extends State<SagePrologueView>
     Sensory.instance.tick();
     final abre = SagePrologue.opening.length;
     setState(() => _paso++);
-    // Después de lo último de la presentación, el primer consejo; después de
-    // lo de en medio, el segundo.
-    // Y cada consejo lo trae el viento: primero sopla y viene volando hasta
-    // el medio, y recién entonces llega el rollo.
-    if (_paso == abre || _paso == abre + 2) {
-      final k = _paso == abre ? 0 : 1;
+    // Después de lo último de la presentación, el consejo. Uno solo: con dos,
+    // el segundo le quitaba peso al que de verdad tiene que quedar.
+    // Y lo trae el viento: primero sopla y viene volando hasta el medio, y
+    // recién entonces llega el rollo.
+    if (_paso == abre) {
+      const k = 0;
       setState(() {
         _vientos++;
         _volando = true;
@@ -672,18 +672,15 @@ class _SagePrologueViewState extends State<SagePrologueView>
     if (_paso < abre.length) {
       dice = abre[_paso];
       sigue = _sigue;
-    } else if (_paso == abre.length || _paso == abre.length + 2) {
+    } else if (_paso == abre.length) {
       dice = '';
     } else if (_paso == abre.length + 1) {
-      dice = SagePrologue.between;
-      sigue = _sigue;
-    } else if (_paso == abre.length + 3) {
       dice = SagePrologue.closing.first;
       sigue = _sigue;
     } else {
       dice = SagePrologue.closing.last;
     }
-    final listo = _paso > abre.length + 3 && _abierto == null;
+    final listo = _paso > abre.length + 1 && _abierto == null;
 
     return Material(
       type: MaterialType.transparency,

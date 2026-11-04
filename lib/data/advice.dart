@@ -219,10 +219,6 @@ class SagePrologue {
     ),
   ];
 
-  /// Entre el primer consejo y el segundo.
-  static String get between =>
-      tr('Y una más, para el camino.', 'And one more, for the road.');
-
   /// Lo último, en dos globos: el botón sale con el segundo. Uno solo no
   /// entraba en el globo de un teléfono chico.
   static List<String> get closing => [
@@ -243,11 +239,13 @@ class SagePrologue {
       tr('FUNDAR MI PRIMER PUEBLO', 'FOUND MY FIRST TOWN');
 }
 
-/// Los dos consejos de la presentación, en el orden en que los da: el de
-/// empezar por lo que se puede sostener, y el de empezar chico. Ya quedan
-/// ganados y leídos al fundar el primer pueblo, y no cuentan como el consejo
-/// del día: ese mismo día, con el pueblo fundado, el viejo tiene uno nuevo.
-const List<String> prologueAdvice = ['herreria', 'chico'];
+/// El consejo de la presentación: el de empezar por lo que se puede
+/// sostener. Queda ganado y leído al fundar el primer pueblo, y no cuenta
+/// como el consejo del día: ese mismo día, con el pueblo fundado, el viejo
+/// tiene uno nuevo. Iban dos —también el de la bellota, empezar chico—, y el
+/// segundo le quitaba peso al primero: el de la bellota llega después, por
+/// su camino de siempre.
+const List<String> prologueAdvice = ['herreria'];
 
 /// Los consejos de todos los días. El orden en que se ganan lo da [pathFor].
 const List<Advice> dailyAdvice = [
@@ -596,7 +594,8 @@ List<String> pathFor(AdviceGoal goal) => switch (goal) {
   // para qué. Lo demás va detrás, por cuándo suele hacer falta: lo de las
   // primeras semanas —hora, el día que se falta, el día malo—, lo de afinar
   // la costumbre, lo de cuando ya cuesta menos o aburre, y lo de los meses.
-  // «chico» lo da en la presentación; está acá para que tenga camino.
+  // «chico» es el primero: se daba en la presentación, y ahora llega el
+  // primer día después de fundar.
   AdviceGoal.start => const [
     'chico',
     'lugar',

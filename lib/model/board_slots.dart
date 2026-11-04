@@ -75,13 +75,13 @@ class BoardSlots extends ChangeNotifier {
     var nuevo = false;
     for (var i = 0; i < said.length && i < slots; i++) {
       if (out[i] >= 0) continue;
-      // Las hojas de la guía, en orden de lectura: se leen una detrás de
-      // otra, y la que presenta el tablón tiene que ser la primera que se ve
-      // al entrar. Los huecos ya van así —de arriba abajo y de izquierda a
-      // derecha—, así que es el primero libre. Lo demás, sorteado.
-      final hueco = said[i].kind == NoticeKind.guia
-          ? _first(taken, slots)
-          : _free(ids[i], taken, slots);
+      // Todas en el primer hueco libre, lo más a la izquierda posible: los
+      // huecos ya van así —de arriba abajo y de izquierda a derecha—, así que
+      // lo nuevo se encuentra siempre en el mismo lado. Antes, menos las
+      // hojas de la guía, se sorteaban: tenía sentido cuando el tablón
+      // estaba lleno de lo que decían los vecinos, y sin eso sólo
+      // desordenaba.
+      final hueco = _first(taken, slots);
       out[i] = hueco;
       taken.add(hueco);
       _where[ids[i]] = hueco;
@@ -159,32 +159,14 @@ class BoardSlots extends ChangeNotifier {
   /// En qué hueco está ahora mismo ese papel, si es que está en alguno.
   int? slotOf(String townId, String id) => _where['$townId/$id'];
 
-  /// El hueco que le toca a un papel que se clava hoy por primera vez.
-  ///
-  /// Se sortea de su propio nombre, y desde ahí se va probando a saltos de un
-  /// paso que no divide al número de huecos: así se recorren todos y no se
-  /// amontonan a la derecha del primer intento, que es lo que pasa cuando se
-  /// prueba de uno en uno.
+  /// El hueco que le toca a un papel que se clava hoy por primera vez: el
+  /// primero libre.
   static int _first(Set<int> taken, int slots) {
     for (var at = 0; at < slots; at++) {
       if (!taken.contains(at)) return at;
     }
     return 0;
   }
-
-  static int _free(String id, Set<int> taken, int slots) {
-    final semilla = stableHash(id);
-    final paso = _steps[hashInt(_steps.length, semilla, 1)];
-    var at = hashInt(slots, semilla, 2);
-    for (var k = 0; k < slots; k++) {
-      if (!taken.contains(at)) return at;
-      at = (at + paso) % slots;
-    }
-    return 0;
-  }
-
-  /// Pasos primos con diez, que es el número de huecos del tablón.
-  static const List<int> _steps = [1, 3, 7, 9];
 
   Timer? _soon;
 

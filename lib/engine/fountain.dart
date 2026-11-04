@@ -313,7 +313,10 @@ List<Facet> fountainWater(
   // lámina: entre un hilo y el de al lado hay agua. Al caer se estira y se
   // rasga —cada trozo de lámina a su altura— y lo que llega al pilón son
   // hilos, y de los hilos, gotas.
-  final hilos = fino ? 18 : (medio ? 14 : 10);
+  // Siempre los mismos, se mire de cerca o de lejos: con menos hilos al
+  // alejarse, la fuente cambiaba de cuántos chorros tenía al hacer zoom.
+  // Lo que se simplifica de lejos es cada hilo, no cuántos hay.
+  const hilos = 18;
   final dtVelo = fino ? 0.036 : 0.055;
   final caeVelo = math.sqrt(2 * (Plaza.bowlLip - pilon) / _g) + 0.1;
   final cuantasVelo = (caeVelo / dtVelo).ceil() + 2;

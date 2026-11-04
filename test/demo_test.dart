@@ -1008,8 +1008,10 @@ void main() {
       for (final t in textos) Notice(NoticeKind.guia, t, 'porque sí'),
     ];
 
-    test('reparte sin repetir hueco y sin dejarlas en fila', () {
-      // Las notas de verdad, una de cada clase: ésas van sorteadas.
+    test('reparte sin repetir hueco, lo más a la izquierda posible', () {
+      // Se sorteaban, y sin los dichos de los vecinos sólo desordenaba: una
+      // nota nueva va al primer hueco libre, para encontrarla siempre del
+      // mismo lado.
       final said = [
         for (final k in NoticeKind.values)
           if (k != NoticeKind.guia && k != NoticeKind.mine)
@@ -1021,16 +1023,7 @@ void main() {
         said,
         slots: NoticeBoard.capacity,
       );
-      expect(huecos.length, n);
-      expect(huecos.toSet().length, n, reason: 'dos papeles en el mismo hueco');
-      for (final h in huecos) {
-        expect(h, inInclusiveRange(0, NoticeBoard.capacity - 1));
-      }
-      expect(
-        huecos,
-        isNot([for (var i = 0; i < n; i++) i]),
-        reason: 'los clavó en fila, que es lo que no se quería',
-      );
+      expect(huecos, [for (var i = 0; i < n; i++) i]);
     });
 
     test('la guía, en cambio, en orden de lectura', () {

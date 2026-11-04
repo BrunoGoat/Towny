@@ -1315,9 +1315,6 @@ void _hangWindows(
   final filas = math.max(1, (h / 2.6).floor());
   final alto = h / filas;
   final hw = 0.15 * (1 - 0.28 * thick);
-  // How far the opening is set back into the wall, as the width of the shadow
-  // it throws around itself.
-  final jamb = 0.062 * thick;
   for (final f in faces) {
     if (f.n.y.abs() > 0.01) continue;
     final onZ = f.n.z.abs() > 0.5;
@@ -1343,17 +1340,9 @@ void _hangWindows(
         List<V3> rect(double a, double b, double p0, double p1) => onZ
             ? [V3(a, p0, out), V3(b, p0, out), V3(b, p1, out), V3(a, p1, out)]
             : [V3(out, p0, a), V3(out, p0, b), V3(out, p1, b), V3(out, p1, a)];
-        // The reveal first, so the opening is painted inside it: unlit, because
-        // the inside of a hole in a thick wall is a shadow and not a surface.
-        if (jamb > 0.002) {
-          decals.add(
-            Facet(
-              rect(c - hw - jamb, c + hw + jamb, wy0 - jamb, wy1 + jamb),
-              f.n,
-              Surface.hollow,
-            )..data = i,
-          );
-        }
+        // Sin el derrame alrededor: era un marco de un color casi igual al de
+        // la ventana, y de lejos ensuciaba más de lo que contaba. La ventana
+        // es un solo color.
         decals.add(
           Facet(rect(c - hw, c + hw, wy0, wy1), f.n, Surface.window)..data = i,
         );

@@ -52,8 +52,6 @@ Future<void> pasarPresentacion(WidgetTester tester) async {
     await globo(l);
   }
   await rollo();
-  await globo(SagePrologue.between);
-  await rollo();
   await globo(SagePrologue.closing.first);
   await espera(12);
   final boton = find.byKey(const ValueKey('fundar-primero'));
