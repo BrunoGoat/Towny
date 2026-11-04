@@ -79,8 +79,12 @@ enum PropKind {
   /// Un tambor colgado a la altura de la tripa y las dos baquetas.
   drum,
 
-  /// La carretilla del maestro de obras, empujada con la rueda delante.
+  /// La carretilla del maestro de obras, empujada con la rueda delante, con
+  /// piedras: del taller a la obra.
   barrow,
+
+  /// La misma carretilla, vacía: de la obra al taller.
+  barrowEmpty,
 }
 
 /// Una cosa que se hace.

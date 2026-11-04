@@ -385,6 +385,7 @@ List<Solid> folkSolids(
     switch (act.prop) {
       case PropKind.none:
       case PropKind.barrow:
+      case PropKind.barrowEmpty:
         break;
 
       case PropKind.broom:
@@ -593,6 +594,7 @@ List<Solid> folkSolids(
   void carried(PropKind what) {
     switch (what) {
       case PropKind.barrow:
+      case PropKind.barrowEmpty:
         // La carretilla. La rueda va **siempre en el suelo** y es el punto
         // sobre el que todo gira: los varales van de las manos al eje, la
         // caja va encima de los varales, y las dos patas de atrás cuelgan
@@ -655,46 +657,68 @@ List<Solid> folkSolids(
         }
         tabla(0, 0.06, z0, z0 + 0.024, 0.06, 0.136);
         tabla(0, 0.045, z1 - 0.024, z1, 0.045, 0.136);
-        // Lo que lleva: unas piedras. Descargando, se van vaciando de a una
-        // al suelo, por delante de la rueda, y vuelve a empezar.
+        // Lo que lleva: tres piedras, que se ven ir y venir de verdad.
+        // Descargando en la obra salen de la caja de a una, en arco, y entran
+        // en la obra que tiene delante; cargando en la puerta del taller
+        // salen de la puerta y caen en la caja. Andando, la caja va llena
+        // hacia la obra y vacía de vuelta. Antes las piedras de la caja no se
+        // movían nunca y una cuarta, sola, aparecía y desaparecía en el aire.
         const piedra = 0xFF9C978C;
-        final descarga = !at.moving && at.act == Doing.unload;
-        final ciclo = descarga ? (at.phase * 0.55) % 1.0 : 0.0;
-        for (var k = 0; k < 3; k++) {
+        const cadaUna = 1.5;
+        final llena = what == PropKind.barrow;
+        final faena = !at.moving && at.act == Doing.unload;
+        // Cuántas van ya, y por dónde va la que está en el aire.
+        final hechas = faena ? (at.phase / cadaUna).floor().clamp(0, 3) : 0;
+        final vuela = faena && hechas < 3
+            ? (at.phase - hechas * cadaUna) / cadaUna
+            : -1.0;
+        (double, double, double) hueco(int k) {
           final px = -0.07 + k * 0.07;
           final pz = 0.45 + (k.isEven ? 0.05 : 0.14);
-          final py = fondo(pz) + 0.013;
+          return (px, fondo(pz) + 0.013, pz);
+        }
+
+        void canto((double, double, double) c, double tam, int k) {
+          if (tam <= 0.01) return;
+          final a = 0.045 * tam, alto = (0.075 + (k == 1 ? 0.02 : 0)) * tam;
           box(
-            px - 0.045,
-            py,
-            pz - 0.045,
-            px + 0.045,
-            py + 0.075 + (k == 1 ? 0.02 : 0),
-            pz + 0.045,
+            c.$1 - a,
+            c.$2,
+            c.$3 - a,
+            c.$1 + a,
+            c.$2 + alto,
+            c.$3 + a,
             piedra,
             k == 1 ? 1.02 : 0.96,
           );
         }
-        final base = fondo(0.55);
-        if (descarga) {
-          // Una piedra que sale de la caja en arco y cae a la pila.
-          final t = ciclo;
-          final px = lerpD(0.0, 0.26, t);
-          final pz = lerpD(0.55, 0.92, t);
-          final py = lerpD(base + 0.12, 0.0, t) + 0.22 * math.sin(math.pi * t);
-          box(
-            px - 0.04,
-            py,
-            pz - 0.04,
-            px + 0.04,
-            py + 0.07,
-            pz + 0.04,
-            piedra,
-            1.0,
+
+        // Las que están en la caja: descargando, las que faltan tirar —se
+        // tira primero la de arriba—; cargando, las que ya entraron.
+        for (var k = 0; k < 3; k++) {
+          final enCaja = faena
+              ? (llena ? k < 3 - hechas - (vuela >= 0 ? 1 : 0) : k < hechas)
+              : llena;
+          if (enCaja) canto(hueco(k), 1, k);
+        }
+        if (vuela >= 0) {
+          final f = smoothstep(0.0, 1.0, vuela.clamp(0.0, 1.0));
+          // La obra, por delante de la rueda; la puerta del taller, lo mismo.
+          const fuera = (0.08, 0.30, 1.22);
+          final k = llena ? 2 - hechas : hechas;
+          final caja = hueco(k);
+          final de = llena ? caja : fuera;
+          final a = llena ? fuera : caja;
+          final c = (
+            lerpD(de.$1, a.$1, f),
+            lerpD(de.$2, a.$2, f) + 0.22 * math.sin(math.pi * f),
+            lerpD(de.$3, a.$3, f),
           );
-          // Y la pila en el suelo, al lado de la rueda.
-          box(0.20, 0.0, 0.86, 0.34, 0.06, 0.98, piedra, 0.94);
-          box(0.24, 0.06, 0.89, 0.31, 0.10, 0.95, piedra, 0.98);
+          // Entra en la obra achicándose, o sale de la puerta creciendo.
+          final tam = llena
+              ? 1 - smoothstep(0.7, 1.0, f)
+              : smoothstep(0.0, 0.3, f);
+          canto(c, tam, k);
         }
         // La rueda, de canto y apoyada en el suelo: un aro de ocho tramos
         // que gira con lo que anda, con dos rayos en cruz y el eje.

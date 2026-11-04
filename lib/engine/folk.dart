@@ -578,7 +578,11 @@ class Townsfolk {
           acts,
           math.max(periodo, 1),
           builder: true,
-          carry: [for (final _ in stops) PropKind.barrow],
+          // Llena del taller a la obra, vacía de vuelta.
+          carry: [
+            for (var i = 0; i < stops.length; i++)
+              i <= ida.length ? PropKind.barrow : PropKind.barrowEmpty,
+          ],
         )
         .._calles = calles
         .._callesSin = calles
