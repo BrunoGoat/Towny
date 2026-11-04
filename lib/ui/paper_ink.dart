@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../core/math3.dart';
 import '../engine/board_plan.dart';
 import '../model/appearance.dart';
 import '../model/notice.dart';
@@ -378,9 +379,24 @@ class PaperInk {
       Paint()..color = BoardPlan.ink.withValues(alpha: 0.2),
     );
     if (!rotula) return;
+    // Cada rótulo, centrado bajo su barra y con todo el sitio que le dejan
+    // libre los de al lado: con veinticuatro horas o un mes de días cada
+    // barra es un hilo, y un «18» o un «1/11» que tenía que caber en el ancho
+    // de una barra salía cortado en «1…», que no se entendía.
+    final paso = w + hueco;
     for (var i = 0; i < bars.length; i++) {
       final text = notice.ticks[i];
       if (text.isEmpty) continue;
+      var libre = 1;
+      for (var j = i + 1; j < bars.length && notice.ticks[j].isEmpty; j++) {
+        libre++;
+      }
+      var antes = 1;
+      for (var j = i - 1; j >= 0 && notice.ticks[j].isEmpty; j--) {
+        antes++;
+      }
+      final cabe =
+          paso * math.min(libre, antes).clamp(1, 6).toDouble() * 2 - hueco;
       final on =
           notice.mark >= 0 && i >= notice.mark && i < notice.mark + notice.span;
       final tp = TextPainter(
@@ -394,9 +410,13 @@ class PaperInk {
         ),
         textDirection: TextDirection.ltr,
         maxLines: 1,
-        ellipsis: '…',
-      )..layout(maxWidth: w * (bars.length > 8 ? 1.0 : 1.6));
-      tp.paint(canvas, Offset(i * (w + hueco) + (w - tp.width) / 2, h + 5));
+      )..layout(maxWidth: math.max(cabe, w * 1.6));
+      final x = clampD(
+        i * paso + (w - tp.width) / 2,
+        0,
+        math.max(0.0, size.width - tp.width),
+      );
+      tp.paint(canvas, Offset(x, h + 5));
     }
   }
 }
