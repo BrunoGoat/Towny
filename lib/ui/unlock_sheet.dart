@@ -421,7 +421,7 @@ class _Detail extends StatelessWidget {
     }
     final semana = inEnglish
         ? const ['M', 'T', 'W', 'T', 'F', 'S', 'S']
-        : const ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+        : const ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
     final dias = [
       for (var i = 0; i < 7; i++) semana[(g.weekStart - 1 + i) % 7],
     ];

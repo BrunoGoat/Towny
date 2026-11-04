@@ -42,10 +42,6 @@ class TopBar extends StatelessWidget {
     final t = theme;
     final habit = store.habit;
     final asleep = habit.resting;
-    // Lo que sustituyó a la racha: de los días que contaban, en cuántos hubo
-    // pieza. Un número que una mala semana baja un poco y no tira al suelo, y
-    // que por lo tanto se puede mirar un día malo sin que duela mirarlo.
-    final firme = store.consistency;
     final hoy = store.today;
     final ultima = store.lastPlacedAt;
     // Two doors, because there are two different things behind them: the
@@ -85,27 +81,9 @@ class TopBar extends StatelessWidget {
                         style: t.label.copyWith(shadows: t.halo),
                       ),
                     ),
-                    // Acá iba la racha. Ahora va cuántos de los días que
-                    // contaban tienen pieza, que es lo mismo que preguntaba la
-                    // racha contestado de una manera que admite un mal día. No
-                    // se dice hasta que hay dos semanas de las que hablar: «1 de
-                    // 1» el primer día no es una medida de nada.
-                    if (firme.enough) ...[
-                      const SizedBox(width: 14),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 1),
-                        child: Text(
-                          tr(
-                            '${firme.done}/${firme.of} DÍAS',
-                            '${firme.done}/${firme.of} DAYS',
-                          ),
-                          style: t.label.copyWith(
-                            shadows: t.halo,
-                            color: t.fg.withValues(alpha: 0.44),
-                          ),
-                        ),
-                      ),
-                    ],
+                    // Acá iba cuántos días de los que contaban tenían pieza.
+                    // Fuera: no decía nada que no esté ya en el tablón y en la
+                    // hoja de desbloquear el pueblo siguiente.
                     // Lo de hoy, al lado de la racha y con el mismo peso: son la
                     // misma clase de cosa —cuánto llevás— vista de cerca y de
                     // lejos. Cuando todavía no hay ninguna no se dice «0 HOY»:

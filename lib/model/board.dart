@@ -165,10 +165,10 @@ List<Notice> guideNotices(Habit h, {bool firstTown = true}) {
     hoja(
       'Vos también podés clavar tus notas.',
       'You can pin your own notes too.',
-      'Con «Clavar una nota», abajo. Para quitar una, abrila y tocá '
-          '«Quitarla».',
-      'With “Pin a note”, at the bottom. To remove one, open it and tap '
-          '“Remove it”.',
+      'Tocá la hoja con el signo de más, abajo a la derecha. Para quitar una, '
+          'abrila y tocá «Quitarla».',
+      'Tap the sheet with the plus sign, bottom right. To remove one, open '
+          'it and tap “Remove it”.',
     ),
     hoja(
       'Mantené el dedo sobre una hoja para moverla.',

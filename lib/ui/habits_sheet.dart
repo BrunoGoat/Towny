@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../data/character.dart';
 import '../data/symbols.dart';
 import '../fx/sensory.dart';
+import '../l10n/dates.dart';
 import '../l10n/lang.dart';
 import '../model/cadence.dart';
 import '../model/habit.dart';
@@ -374,6 +375,21 @@ class _HabitsSheetState extends State<HabitsSheet> {
           const SizedBox(width: 10),
           _hair(velo, 26),
         ],
+      ),
+      // Y desde cuándo: el día en que se fundó.
+      const SizedBox(height: 3),
+      Text(
+        tr(
+          'Fundado el ${fullDate(widget.store.habit.createdAt)}',
+          'Founded on ${fullDate(widget.store.habit.createdAt)}',
+        ),
+        style: t.bodySoft.copyWith(
+          fontSize: 11.5,
+          height: 1.1,
+          color: velo.cuerpo.withValues(alpha: 0.62),
+          fontStyle: FontStyle.italic,
+          shadows: velo.aliento,
+        ),
       ),
     ],
   );
@@ -1065,7 +1081,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
                     _reelSlot(t, velo),
                     const SizedBox(height: 14),
                     _theLines(t, velo),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 180),
                       child: _region(t, velo, ch),
@@ -1073,7 +1089,7 @@ class _HabitsSheetState extends State<HabitsSheet> {
                     // Sin botón de guardar: se escribe según se teclea, así
                     // que no hay nada que confirmar ni nada que perder al
                     // cerrar.
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 6),
                     _hair(velo),
                     const SizedBox(height: 2),
                     _exits(t, velo),
