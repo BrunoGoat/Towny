@@ -1804,6 +1804,15 @@ class TownPainter extends CustomPainter {
   /// distingue una costura, y el árbol cuesta.
   static const double _folkExact = 36;
 
+  /// Si quien está en ([x], [z]) se pinta con todo —pelo, barba, lo que
+  /// lleva—: siempre que [eye] esté a distancia de mirar un pueblo, y no el
+  /// valle.
+  static bool folkWhole(V3 eye, double x, double z) {
+    const alcance = OrbitCamera.townFraming * 1.25;
+    final dx = x - eye.x, dz = z - eye.z, dy = eye.y;
+    return dx * dx + dy * dy + dz * dz <= alcance * alcance;
+  }
+
   void _paintFolk(
     Projector p,
     TownEntry e,
@@ -1908,14 +1917,12 @@ class TownPainter extends CustomPainter {
         lift: v.y0,
         eye: p.eye,
         feast: feast?.pose,
-        // Tres escalones y no dos: por debajo de catorce píxeles se van las
-        // piernas y las mariposas, y por debajo de ocho se van también los
-        // brazos.
-        detail: v.pixels > 14
-            ? 1.0
-            : v.pixels > 8
-            ? 0.35
-            : 0.05,
+        // **Entera mientras se mire el pueblo.** Antes se le iban el pelo, la
+        // barba o la capucha según los píxeles que ocupara, y al alejar la
+        // cámara a una le desaparecía la melena de golpe. Ahora sólo se
+        // simplifica mirando el valle, con la misma frontera que los muebles
+        // de la plaza: más allá del encuadre de un pueblo.
+        detail: folkWhole(p.eye, v.at.x, v.at.z) ? 1.0 : 0.05,
       );
 
       // **De atrás hacia delante, y no en el orden en que se hicieron.**

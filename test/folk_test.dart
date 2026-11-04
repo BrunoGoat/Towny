@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:towny/core/math3.dart';
 import 'package:towny/data/character.dart';
 import 'package:towny/data/doings.dart';
 import 'package:towny/data/folknames.dart';
@@ -796,6 +797,36 @@ void main() {
     });
   });
 
+  group('de lejos', () {
+    test('mirando un pueblo no se le va a nadie ninguna parte', () {
+      // El pelo de ellas, la barba y la capucha del maestro, el bastón del
+      // viejo: se iban según los píxeles, y al alejar la cámara a una se le
+      // caía la melena. Ahora sólo se simplifica mirando el valle.
+      for (final d in [2.0, 9.0, 30.0, OrbitCamera.townFraming]) {
+        for (final pitch in [0.3, 0.6, 1.2]) {
+          final eye = V3(0, d * math.sin(pitch), d * math.cos(pitch));
+          expect(TownPainter.folkWhole(eye, 0, 0), isTrue, reason: 'a $d');
+        }
+      }
+      // Y mirando el valle entero, sí.
+      expect(TownPainter.folkWhole(V3(0, 150, 150), 0, 0), isFalse);
+    });
+
+    test('con todo, ellas llevan su melena y el maestro su capucha', () {
+      final l = TownLayout(400, TownCharacter.all[1], seed: 3);
+      final gente = folkOf(l, 400);
+      int cajas(Townsfolk v, double detail) =>
+          folkSolids(v, v.at(0), 0.6, detail: detail).length;
+      final ella = gente.firstWhere(
+        (v) => !v.sage && !v.builder && folkIsWoman(v.seed),
+      );
+      expect(cajas(ella, 1), greaterThan(cajas(ella, 0.05)));
+      for (final v in gente.where((v) => v.builder || v.sage)) {
+        expect(cajas(v, 1), greaterThan(cajas(v, 0.05)));
+      }
+    });
+  });
+
   group('el maestro de obras', () {
     test('rodea la fuente, nunca la cruza', () {
       // Iba en línea recta de su mesa a charlar con el viejo, y la recta
@@ -857,6 +888,41 @@ void main() {
       }
       expect(descargas, greaterThan(5));
       expect(entradas, greaterThan(5));
+    });
+
+    test('se sienta como el viejo: delante del banco, y de ahí al asiento', () {
+      var sentados = 0;
+      for (var seed = 1; seed <= 24; seed++) {
+        final l = TownLayout(400, TownCharacter.all[seed % 8], seed: seed);
+        final w = folkOf(l, 400).where((v) => v.builder).firstOrNull;
+        if (w == null || w.onWorks) continue;
+        final asiento = PlazaBench.seatAt(l.cx, l.cz, 1);
+        final frente = PlazaBench.frontOf(asiento);
+        final paso = math.sqrt(
+          math.pow(frente.$1 - asiento.$1, 2) +
+              math.pow(frente.$2 - asiento.$2, 2),
+        );
+        for (var k = 0; k < 6000; k++) {
+          final a = w.at(w.period * k / 6000);
+          final d = math.sqrt(
+            math.pow(a.x - asiento.$1, 2) + math.pow(a.z - asiento.$2, 2),
+          );
+          if (a.act?.seated ?? false) {
+            // Sentado, en el asiento; al sentarse y al levantarse se corre
+            // desde el paso de delante.
+            if (d < 0.02) sentados++;
+          } else {
+            // De pie no se mete en el banco: como mucho, en el paso de
+            // delante.
+            expect(
+              d,
+              greaterThan(paso * 0.9),
+              reason: 'valle $seed: de pie dentro del banco',
+            );
+          }
+        }
+      }
+      expect(sentados, greaterThan(100));
     });
 
     test('ni él ni el viejo son nunca críos, ni bajitos', () {

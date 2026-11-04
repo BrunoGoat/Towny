@@ -445,6 +445,7 @@ class Townsfolk {
           carry: carga,
         )
         .._desfase = r.desfase
+        .._asiento = asiento
         .._calles = calles
         .._callesSin = calles
         .._esquiva = sage
@@ -609,9 +610,10 @@ class Townsfolk {
         _Cita(yunque, 0, 22, hammer, PlazaWorkshop.anvilFacing),
         _Cita(paseo1, 26, 31, Doing.idle, haciaFuente(paseo1)),
         _Cita(paseo2, 34, 38, Doing.idle, haciaFuente(paseo2)),
-        _Cita(frente, 42, 42.3, Doing.idle, mirarBanco),
-        _Cita(asiento, 42.7, 70, Doing.bench, mirarBanco),
-        _Cita(frente, 70.4, 70.7, Doing.idle, mirarBanco),
+        // Como el viejo: se para delante del banco, de espaldas a él, y se
+        // corre al asiento ya sentado. Andando hasta el asiento atravesaba
+        // el banco.
+        _Cita(frente, 42, 70.7, Doing.bench, mirarBanco),
       ];
       return hecho(citas, 82);
     }
@@ -662,9 +664,7 @@ class Townsfolk {
     final citas = <_Cita>[
       // Primera vuelta del viejo: se sienta con él, y después charlan.
       _Cita(yunque, 0, 0, hammer, PlazaWorkshop.anvilFacing),
-      _Cita(frente, sienta + 1.2, sienta + 1.5, Doing.idle, mirarBanco),
-      _Cita(asiento, sienta + 1.9, levanta - 3.2, Doing.benchSide, mirarBanco),
-      _Cita(frente, levanta - 2.8, levanta - 2.5, Doing.idle, mirarBanco),
+      _Cita(frente, sienta + 1.2, levanta - 2.5, Doing.benchSide, mirarBanco),
       _Cita(
         charla,
         llega[ic] - 0.6,
@@ -702,9 +702,7 @@ class Townsfolk {
         hammer,
         PlazaWorkshop.anvilFacing,
       ),
-      _Cita(frente, p + levanta + 6, p + levanta + 6.3, Doing.idle, mirarBanco),
-      _Cita(asiento, p + levanta + 6.7, 2 * p - 7, Doing.bench, mirarBanco),
-      _Cita(frente, 2 * p - 6.6, 2 * p - 6.3, Doing.idle, mirarBanco),
+      _Cita(frente, p + levanta + 6, 2 * p - 6.3, Doing.bench, mirarBanco),
     ];
     return hecho(citas, 2 * p).._ritmo = viejo;
   }
@@ -1551,8 +1549,18 @@ class Townsfolk {
     final a = _asiento;
     final llega = _greetAt;
     final llegando = llega != null && t >= llega && t < llega + greetLength;
-    if (a != null && r.act == Doing.bench && !llegando) {
-      final i = _act.indexOf(Doing.bench);
+    final sentado = r.act == Doing.bench || r.act == Doing.benchSide;
+    var i = -1;
+    if (a != null && sentado && !r.moving && !llegando) {
+      // La parada del banco en la que está: el maestro tiene dos.
+      for (var k = 0; k < _stops.length; k++) {
+        if (_act[k] == r.act && _stops[k].$1 == r.x && _stops[k].$2 == r.z) {
+          i = k;
+          break;
+        }
+      }
+    }
+    if (a != null && i >= 0) {
       final stay = _stay[i];
       final sits = stay - 2 * math.min(2.4, stay * 0.15);
       final k =
@@ -1678,20 +1686,24 @@ class Townsfolk {
         final metido = queda >= 6 && held >= settle && held <= queda - settle;
         // Y en el respiro no se queda congelado: respira y mira alrededor, que
         // es [Doing.idle] y es exactamente lo que hace quien acaba de llegar.
-        // El maestro se sienta en el asiento mismo, sin el paso de delante
-        // que tiene el viejo: sentado, sigue sentado mientras se acomoda.
         final what = !metido
-            ? (builder && (acts[j]?.seated ?? false) ? acts[j] : Doing.idle)
+            ? Doing.idle
             : spot
             ? _spotAct(j, held - settle)
             : acts[j];
         // La cabeza se va yendo a mirar alrededor, y cuánto depende de en qué
         // ande: quien pica piedra no levanta la vista y quien no hace nada la
         // levanta todo el rato.
-        final sway =
-            math.sin(held * 0.7 + hash01(seed, 9) * 6) *
-            0.18 *
-            (what?.turn ?? 1.0);
+        //
+        // Pero no en una parada de paso ni con la carretilla en las manos:
+        // ahí el vaivén, lento, se leía como alguien girando sobre sí mismo
+        // muy despacio —y la carretilla dando la vuelta con él—.
+        final dePaso = queda < 6 || _carryAt(i) != null;
+        final sway = dePaso && (sage || builder)
+            ? 0.0
+            : math.sin(held * 0.7 + hash01(seed, 9) * 6) *
+                  0.18 *
+                  (what?.turn ?? 1.0);
         // Lo que trae en las manos, mientras no lo esté usando: la banqueta
         // que acaba de sacar, el barreño con el que llega al agua. Usándolo,
         // está en el suelo y lo pinta lo que hace.
