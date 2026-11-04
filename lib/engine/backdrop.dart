@@ -203,10 +203,7 @@ class Backdrop {
       // Clavado a la figura, como las estrellas: si la figura se va por un
       // borde, el nombre se va con ella. Sujetarlo dentro de la pantalla lo
       // dejaba pegado al borde, acompañando a la cámara.
-      tp.paint(
-        canvas,
-        Offset((x0 + x1) / 2 - tp.width / 2, y1 + 12),
-      );
+      tp.paint(canvas, Offset((x0 + x1) / 2 - tp.width / 2, y1 + 12));
     }
   }
 

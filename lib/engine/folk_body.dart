@@ -484,9 +484,14 @@ List<Solid> folkSolids(
         // clavijero.
         // Nada más: a veinte píxeles lo que se lee es la silueta.
         final m = hold(-1, 0.50, 0.11);
-        const ux = 0.79, uy = 0.61; // a lo largo del mástil
+        // A lo largo del mástil, que se mece con lo que toca: sube y baja la
+        // punta, y la caja late a cada rasgueo. Quieto parecía que lo tenía
+        // de adorno.
+        final mece = 0.16 * math.sin(beat * 0.6);
+        final ux = math.cos(0.657 + mece), uy = math.sin(0.657 + mece);
+        final rasgueo = 0.014 * math.max(0.0, math.sin(beat * 2));
         // Delante del pecho y apoyado en él, no colgando al costado.
-        final cx = m.$1 + 0.11, cy = m.$2 - 0.05, cz = m.$3 - 0.055;
+        final cx = m.$1 + 0.11, cy = m.$2 - 0.05 + rasgueo, cz = m.$3 - 0.055;
         (double, double, double) en(double a, double dz) =>
             (cx + ux * a, cy + uy * a, cz + dz);
         link(en(-0.18, 0), en(0.03, 0), 0.105, 0xFFE2B878, 1.0, deep: 0.050);
@@ -519,24 +524,44 @@ List<Solid> folkSolids(
         );
 
       case PropKind.drum:
-        // El tambor colgado delante de la tripa, con la piel clara arriba, y
-        // las dos baquetas bajando una y otra. La caja roja y los aros oscuros
-        // son lo que lo separa de un cubo.
+        // El tamboril de las fiestas de antes: caja de madera clara, dos aros
+        // oscuros, la piel de cabra arriba y las cuerdas que la tensan
+        // cruzando la caja en zigzag. La caja
+        // roja de antes se leía como un tambor de banda, no como uno de
+        // plaza de pueblo.
         final y0 = piso + 0.22 + bob, y1 = y0 + 0.20;
         const z0 = 0.16, z1 = 0.40;
-        box(-0.130, y0, z0, 0.130, y1, z1, 0xFFA34A30, 0.95);
+        const madera = 0xFFA07A4C, aro = 0xFF4A3220, cuerda = 0xFFE0CFA4;
+        box(-0.130, y0, z0, 0.130, y1, z1, madera, 0.95);
         for (final ay in [y0 - 0.005, y1 - 0.030]) {
-          box(
-            -0.142,
-            ay,
-            z0 - 0.012,
-            0.142,
-            ay + 0.035,
-            z1 + 0.012,
-            0xFF5A3A24,
-            0.90,
+          box(-0.142, ay, z0 - 0.012, 0.142, ay + 0.035, z1 + 0.012, aro, 0.90);
+        }
+        // Las cuerdas, de aro a aro, por la cara de delante y por los lados.
+        const n = 4;
+        for (var k = 0; k < n; k++) {
+          final xa = -0.130 + 0.260 * k / n, xb = -0.130 + 0.260 * (k + 1) / n;
+          final abajo = k.isEven;
+          link(
+            (xa, abajo ? y0 + 0.03 : y1 - 0.03, z1 + 0.014),
+            (xb, abajo ? y1 - 0.03 : y0 + 0.03, z1 + 0.014),
+            0.010,
+            cuerda,
+            1.02,
           );
         }
+        for (final sx in [-1.0, 1.0]) {
+          for (var k = 0; k < 2; k++) {
+            final za = z0 + 0.24 * k / 2, zb = z0 + 0.24 * (k + 1) / 2;
+            link(
+              (sx * 0.144, k.isEven ? y0 + 0.03 : y1 - 0.03, za),
+              (sx * 0.144, k.isEven ? y1 - 0.03 : y0 + 0.03, zb),
+              0.010,
+              cuerda,
+              0.98,
+            );
+          }
+        }
+        // La piel, clara.
         box(
           -0.118,
           y1,

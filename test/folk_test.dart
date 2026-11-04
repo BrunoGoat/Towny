@@ -827,6 +827,42 @@ void main() {
     });
   });
 
+  group('cada uno en su sitio', () {
+    test('quien se tumba no queda encima de nadie', () {
+      var vistos = 0;
+      for (var seed = 1; seed <= 16; seed++) {
+        final l = TownLayout(300, TownCharacter.all[seed % 8], seed: seed);
+        final gente = folkOf(l, 300).where((v) => !v.sage && !v.builder);
+        for (var k = 0; k < 300; k++) {
+          final t = k * 1.7;
+          final quietos = [
+            for (final v in gente)
+              if (v.at(t) case final a when !a.moving && a.act != null) a,
+          ];
+          for (var i = 0; i < quietos.length; i++) {
+            for (var j = i + 1; j < quietos.length; j++) {
+              final a = quietos[i], b = quietos[j];
+              if (!a.act!.lying && !b.act!.lying) continue;
+              vistos++;
+              final d = math.sqrt(
+                math.pow(a.x - b.x, 2) + math.pow(a.z - b.z, 2),
+              );
+              // Medio cuerpo tumbado y medio de pie: a menos, se pisan.
+              expect(
+                d,
+                greaterThan(0.4),
+                reason:
+                    'valle $seed a los ${t.round()} s: ${a.act!.id} '
+                    'y ${b.act!.id} uno encima del otro',
+              );
+            }
+          }
+        }
+      }
+      expect(vistos, greaterThan(50));
+    });
+  });
+
   group('el maestro de obras', () {
     test('rodea la fuente, nunca la cruza', () {
       // Iba en línea recta de su mesa a charlar con el viejo, y la recta

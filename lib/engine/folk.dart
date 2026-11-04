@@ -1080,11 +1080,15 @@ class Townsfolk {
         final antes = stops[i - 1], despues = stops[(i + 1) % n];
         final anda = largo(antes, stops[i]) + largo(stops[i], despues);
         // A veces, otra cosa de las que se hacen en ese sitio.
+        // Quien se tumba, en su sitio de siempre, que se eligió lejos de
+        // los demás: corrido, caía encima de otro.
+        if (suya.lying) continue;
         final otras = _spotChoices(i);
         var que = suya;
         if (otras.length > 1 && hash01(seed, lap, i, 41) < 0.45) {
           que = otras[1 + hashInt(otras.length - 1, seed, lap, i * 7 + 42)];
         }
+        if (que.lying) que = suya;
         for (var intento = 0; intento < 10; intento++) {
           final h = i * 16 + intento;
           final r = hashRange(0.35, 1.4, seed, lap, h, 43);
@@ -1102,6 +1106,13 @@ class Townsfolk {
             hace = suya;
           }
           if (!libre(antes, p) || !libre(p, despues)) continue;
+          // Ni encima de quien se tumba.
+          if (_tumbados.any((o) {
+            final dx = p.$1 - o.$1, dz = p.$2 - o.$2;
+            return dx * dx + dz * dz < (o.$3 + 0.22) * (o.$3 + 0.22);
+          })) {
+            continue;
+          }
           // Y con aire alrededor: corrido a un sitio nuevo, que no quede
           // pegado a nada construido. Los sitios de siempre se eligieron
           // lejos de las paredes; éste tiene que estarlo también.
@@ -1294,6 +1305,10 @@ class Townsfolk {
   /// Si está dentro de su casa.
   bool _inside = false;
 
+  /// Dónde se tumba la gente de su pueblo y cuánto ocupa: en las vueltas
+  /// que cambian de sitio no se va a hacer otra cosa ahí encima.
+  List<(double, double, double)> _tumbados = const [];
+
   /// La vuelta a casa de esta tarde, si va de camino: desde cuándo y por
   /// dónde.
   ({double t0, List<(double, double)> path, PropKind? carry})? _homing;
@@ -1316,9 +1331,7 @@ class Townsfolk {
     if (sage) return (at: at(t), sink: 0.0);
     final centro = plazaCentre;
     if (builder && centro == null) return (at: at(t), sink: 0.0);
-    final puerta = builder
-        ? PlazaWorkshop.doorAt(centro!.$1, centro.$2)
-        : door;
+    final puerta = builder ? PlazaWorkshop.doorAt(centro!.$1, centro.$2) : door;
     final entrando = builder
         ? PlazaWorkshop.doorFacing
         : _facing.first + math.pi;
@@ -1357,13 +1370,7 @@ class Townsfolk {
         return null;
       }
       return (
-        at: FolkAt(
-          puerta.$1,
-          puerta.$2,
-          entrando,
-          0,
-          false,
-        ).carrying(h.carry),
+        at: FolkAt(puerta.$1, puerta.$2, entrando, 0, false).carrying(h.carry),
         sink: into,
       );
     }
@@ -1526,8 +1533,7 @@ class Townsfolk {
     final lado = smoothstep(-0.02, 0.02, costado) * 2 - 1;
     final falta = lado * paso - costado;
     if (falta * lado <= 0) return r;
-    final cuanto =
-        (1 - smoothstep(0.0, aviso, delante.abs())) * lejosDelBanco;
+    final cuanto = (1 - smoothstep(0.0, aviso, delante.abs())) * lejosDelBanco;
     var x = r.x + nx * falta * cuanto, z = r.z + nz * falta * cuanto;
     // Sin meterse en la fuente.
     final borde = Plaza.basinOf(TownLayout.plazaReach) + 0.11;
@@ -2281,6 +2287,13 @@ List<Townsfolk> _folkOf(
           int traido,
         })
       >[];
+  // Dónde se queda ya cada uno a hacer lo suyo, y cuánto sitio ocupa: los
+  // que vienen después no se ponen encima.
+  final ocupados = <(double, double, double, bool)>[
+    // Las puertas, todas desde el principio: quien se tumba no lo hace en
+    // el umbral de nadie, aunque esa casa venga después en la lista.
+    for (final b in casas) _puertaDe(layout, b, huella, calles),
+  ];
   // La primera casa del pueblo, la de su primer vecino: ver [adultSeed].
   final primera = layout.buildings
       .where((b) => !b.isLandmark)
@@ -2293,11 +2306,8 @@ List<Townsfolk> _folkOf(
     // propia pared: si cae dentro, el vecino empieza el día dentro de su casa
     // y sale de ella atravesándola.
     final dx = layout.cx - b.cx, dz = layout.cz - b.cz;
-    final d = math.sqrt(dx * dx + dz * dz);
-    final c = huella[b.index];
-    final fuera = (c == null ? b.reach * 0.7 : _spanOf(c)) + 0.30;
-    final paso = d < 0.001 ? 1.0 : fuera / d;
-    final door = calles.onStreets((b.cx + dx * paso, b.cz + dz * paso));
+    final pd = _puertaDe(layout, b, huella, calles);
+    final door = (pd.$1, pd.$2);
 
     // Tres recados y a casa. Tres y no más porque una ronda más larga es una
     // ronda que no se ve entera de una sentada.
@@ -2314,8 +2324,12 @@ List<Townsfolk> _folkOf(
     // delante —el tocón, las gallinas, el taburete—, así que se le metía en
     // la pared.
     final look = <double>[math.atan2(dx, dz)];
+    final adonde = <(double, double, double, Where)?>[null];
+    final puestos = <int>[0];
     for (var k = 0; k < 3; k++) {
       final s = sitios[hashInt(sitios.length, seed, 20 + k)];
+      adonde.add(s);
+      puestos.add(hashInt(8, seed, 30 + k));
       // Alrededor del sitio y no encima: se ponen en corro mirando al medio,
       // que es lo que hace la gente delante de un tablón o de una fuente.
       // En ocho sitios alrededor y no en cualquiera: con el ángulo libre, dos
@@ -2399,7 +2413,67 @@ List<Townsfolk> _folkOf(
       cambia(dwell);
       cambia(doing);
       cambia(look);
+      cambia(adonde);
+      cambia(puestos);
       traido = 1;
+    }
+    // Y que no se pisen: lo que hace cada uno necesita su sitio, y quien se
+    // tumba en el prado no puede quedar encima de otro que se tumbó en el
+    // mismo puesto. Si el suyo está tomado, otro puesto del mismo corro.
+    final h0 = h;
+    double ocupa(Doing d) => d.lying ? h0 * 0.85 : 0.22;
+    // Lo que le sobra de sitio a quien hace [d] en [p]: negativo, se pisa.
+    // Sólo cuenta quien está tumbado: de pie, dos en el mismo puesto a
+    // horas distintas es un corro, y a la misma se apartan al llegar.
+    double holgura((double, double) p, Doing d) {
+      final r = ocupa(d);
+      var m = double.infinity;
+      for (final o in ocupados) {
+        if (!d.lying && !o.$4) continue;
+        final dx = p.$1 - o.$1, dz = p.$2 - o.$2;
+        m = math.min(m, math.sqrt(dx * dx + dz * dz) - r - o.$3);
+      }
+      return m;
+    }
+
+    bool libre((double, double) p, Doing d) => holgura(p, d) >= 0;
+    for (var k = 1; k < stops.length; k++) {
+      final sitio = adonde[k];
+      if (sitio == null || libre(stops[k], doing[k])) continue;
+      final d = doing[k];
+      // Si no queda ninguno libre, el más despejado.
+      var mejor = holgura(stops[k], d);
+      // Los otros puestos del corro, y si están todos tomados, un corro
+      // más abierto alrededor del mismo sitio.
+      for (var j = 1; j < 40; j++) {
+        final a = (puestos[k] + j) % 8 * math.pi / 4;
+        final r = sitio.$3 * (1 + 0.7 * (j ~/ 8)) + (j ~/ 8) * 0.4;
+        final (donde, que, mira) = _fitting(
+          calles,
+          h,
+          crio,
+          calles.onStreets((
+            sitio.$1 + math.sin(a) * r,
+            sitio.$2 + math.cos(a) * r,
+          )),
+          math.atan2(-math.sin(a), -math.cos(a)),
+          [
+            for (final o in [d, ..._byWhere[d.where]!])
+              if (o.fetched == d.fetched) o,
+          ],
+          step: true,
+        );
+        final hay = holgura(donde, que);
+        if (hay <= mejor) continue;
+        mejor = hay;
+        stops[k] = donde;
+        doing[k] = que;
+        look[k] = mira;
+        if (hay >= 0) break;
+      }
+    }
+    for (var k = 1; k < stops.length; k++) {
+      ocupados.add((stops[k].$1, stops[k].$2, ocupa(doing[k]), doing[k].lying));
     }
     planes.add((
       b: b,
@@ -2419,6 +2493,11 @@ List<Townsfolk> _folkOf(
   }
 
   final out = <Townsfolk>[];
+  // Dónde se tumba cada uno: las vueltas que cambian de sitio no van ahí.
+  final tumbados = [
+    for (final o in ocupados)
+      if (o.$4) (o.$1, o.$2, o.$3),
+  ];
   for (final pl in planes) {
     final stops = pl.stops;
     // Lo que se trae de casa para el primer recado, si se trae algo.
@@ -2547,6 +2626,7 @@ List<Townsfolk> _folkOf(
         .._calles = calles
         .._callesSin = calles
         .._h = pl.h
+        .._tumbados = tumbados
         ..plazaCentre = layout.solo ? null : (layout.cx, layout.cz),
     );
   }
@@ -2701,6 +2781,23 @@ bool _fitsAt(
 
 /// A dónde va la gente de [layout]: la plaza, los hitos terminados y tres
 /// rincones del prado, cada uno con la clase de sitio que es.
+/// La puerta de la casa [b], del lado por el que se sale al pueblo y justo
+/// fuera de su pared, y lo que ocupa quien está en ella, que no se tumba.
+(double, double, double, bool) _puertaDe(
+  TownLayout layout,
+  TownBuilding b,
+  Map<int, (double x0, double z0, double x1, double z1)> huella,
+  Streets calles,
+) {
+  final dx = layout.cx - b.cx, dz = layout.cz - b.cz;
+  final d = math.sqrt(dx * dx + dz * dz);
+  final c = huella[b.index];
+  final fuera = (c == null ? b.reach * 0.7 : _spanOf(c)) + 0.30;
+  final paso = d < 0.001 ? 1.0 : fuera / d;
+  final p = calles.onStreets((b.cx + dx * paso, b.cz + dz * paso));
+  return (p.$1, p.$2, 0.22, false);
+}
+
 List<(double x, double z, double reach, Where kind)> _sitesOf(
   TownLayout layout,
   int placed,
