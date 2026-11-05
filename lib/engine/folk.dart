@@ -541,16 +541,13 @@ class Townsfolk {
       // La ronda a mano, con los quiebros de las calles: carga en el
       // taller, va por el camino más corto, descarga mirando la obra y
       // vuelve por el mismo. No va a hora con nadie.
-      // Y en la obra no sólo descarga: después se queda martillando lo que
-      // trajo, con la carretilla aparcada al lado (ver `_maestro`).
-      final stops = <(double, double)>[puerta, ...ida, pie, pie, ...vuelta];
+      final stops = <(double, double)>[puerta, ...ida, pie, ...vuelta];
       // En el taller entra con la carretilla vacía, desaparece por la
       // puerta y sale con ella llena: la carga no se ve, como en casa.
       final stay = <double>[
         _swapLength + 0.4,
         for (final _ in ida) 0,
         hashRange(7, 9, s, 1),
-        hashRange(9, 12, s, 2),
         for (final _ in vuelta) 0,
       ];
       final facing = <double>[
@@ -559,14 +556,12 @@ class Townsfolk {
         PlazaWorkshop.turn,
         for (final _ in ida) 0,
         mirarObra,
-        mirarObra,
         for (final _ in vuelta) 0,
       ];
       final acts = <Doing?>[
         Doing.idle,
         for (final _ in ida) null,
         Doing.unload,
-        Doing.hammer,
         for (final _ in vuelta) null,
       ];
       var periodo = 0.0;

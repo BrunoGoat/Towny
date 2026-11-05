@@ -873,18 +873,7 @@ List<Solid> folkSolids(
       sentado ? feast : null,
     );
     final lleva = at.carry;
-    if (lleva != null && detail > 0.1) {
-      if (!at.moving && at.act == Doing.hammer) {
-        // Martillando en la obra: la carretilla, aparcada a su izquierda.
-        correX = -0.62;
-        correZ = -0.25;
-        carried(lleva);
-        correX = 0;
-        correZ = 0;
-      } else {
-        carried(lleva);
-      }
-    }
+    if (lleva != null && detail > 0.1) carried(lleva);
     return out;
   }
 
