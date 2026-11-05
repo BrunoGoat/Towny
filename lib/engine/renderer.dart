@@ -1971,9 +1971,35 @@ class TownPainter extends CustomPainter {
       }
 
       palomasHasta(suyo);
+      // Dando de comer, mira hacia donde tira las migas: a las palomas. Se
+      // vuelve en el asiento lo que da de sí un cuerpo sentado, no más.
+      var deCara = v.at;
+      final come = feast?.pose;
+      if (come != null && feast!.pigeons.isNotEmpty) {
+        var sx = 0.0, sz = 0.0;
+        for (final b in feast.pigeons) {
+          sx += b.at.x;
+          sz += b.at.z;
+        }
+        final n = feast.pigeons.length;
+        final hacia = math.atan2(sx / n - v.at.x, sz / n - v.at.z);
+        var d = (hacia - v.at.heading) % (2 * math.pi);
+        if (d > math.pi) d -= 2 * math.pi;
+        deCara = FolkAt.full(
+          v.at.x,
+          v.at.z,
+          v.at.heading + clampD(d, -0.7, 0.7),
+          v.at.gait,
+          v.at.moving,
+          act: v.at.act,
+          phase: v.at.phase,
+          carry: v.at.carry,
+          sink: v.at.sink,
+        );
+      }
       final solids = folkSolids(
         v.who,
-        v.at,
+        deCara,
         v.size,
         lift: v.y0,
         eye: p.eye,

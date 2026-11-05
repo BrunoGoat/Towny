@@ -167,11 +167,17 @@ List<Solid> folkSolids(
   // barril— y que en la Sierra, donde las plantas son más altas, la gente sale
   // más alta pero igual de ancha. Con una sola unidad, una persona es la misma
   // persona en todas las regiones y a cualquier talla.
-  V3 world(double x, double y, double z) => V3(
-    at.x + (x * cos + z * sin) * h,
-    lift + y * h,
-    at.z + (-x * sin + z * cos) * h,
-  );
+  // Corrimiento en el sistema de la persona, para dibujar algo suyo al lado
+  // y no en las manos: la carretilla aparcada mientras martilla.
+  var correX = 0.0, correZ = 0.0;
+  V3 world(double x, double y, double z) {
+    final xx = x + correX, zz = z + correZ;
+    return V3(
+      at.x + (xx * cos + zz * sin) * h,
+      lift + y * h,
+      at.z + (-xx * sin + zz * cos) * h,
+    );
+  }
 
   final out = <Solid>[];
   void box(
@@ -529,6 +535,9 @@ List<Solid> folkSolids(
         // cruzando la caja en zigzag. La caja
         // roja de antes se leía como un tambor de banda, no como uno de
         // plaza de pueblo.
+        // Colgado del cuerpo: se mece con él cuando baila.
+        correX = wag;
+        correZ = lean * 1.5;
         final y0 = piso + 0.22 + bob, y1 = y0 + 0.20;
         const z0 = 0.16, z1 = 0.40;
         const madera = 0xFFA07A4C, aro = 0xFF4A3220, cuerda = 0xFFE0CFA4;
@@ -573,7 +582,8 @@ List<Solid> folkSolids(
           1.08,
         );
         for (final s in [1.0, -1.0]) {
-          final alza = 0.5 + 0.5 * math.cos(beat + (s > 0 ? 0 : math.pi));
+          // Las baquetas, rápidas: cuatro golpes por cada vaivén del cuerpo.
+          final alza = 0.5 + 0.5 * math.cos(beat * 4 + (s > 0 ? 0 : math.pi));
           final punta = (s * 0.055, y1 + 0.020 + alza * 0.20, 0.29);
           final mano = (s * 0.215, y1 + 0.110 + alza * 0.14, 0.20);
           link(mano, punta, 0.015, 0xFFD8C08A, 1.0);
@@ -588,6 +598,9 @@ List<Solid> folkSolids(
             1.04,
           );
         }
+
+        correX = 0;
+        correZ = 0;
 
       case PropKind.stool:
         // Una banqueta de tres patas, a la altura a la que se sienta quien se
@@ -860,7 +873,18 @@ List<Solid> folkSolids(
       sentado ? feast : null,
     );
     final lleva = at.carry;
-    if (lleva != null && detail > 0.1) carried(lleva);
+    if (lleva != null && detail > 0.1) {
+      if (!at.moving && at.act == Doing.hammer) {
+        // Martillando en la obra: la carretilla, aparcada a su izquierda.
+        correX = -0.62;
+        correZ = -0.25;
+        carried(lleva);
+        correX = 0;
+        correZ = 0;
+      } else {
+        carried(lleva);
+      }
+    }
     return out;
   }
 

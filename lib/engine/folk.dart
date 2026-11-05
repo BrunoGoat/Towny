@@ -541,13 +541,16 @@ class Townsfolk {
       // La ronda a mano, con los quiebros de las calles: carga en el
       // taller, va por el camino más corto, descarga mirando la obra y
       // vuelve por el mismo. No va a hora con nadie.
-      final stops = <(double, double)>[puerta, ...ida, pie, ...vuelta];
+      // Y en la obra no sólo descarga: después se queda martillando lo que
+      // trajo, con la carretilla aparcada al lado (ver `_maestro`).
+      final stops = <(double, double)>[puerta, ...ida, pie, pie, ...vuelta];
       // En el taller entra con la carretilla vacía, desaparece por la
       // puerta y sale con ella llena: la carga no se ve, como en casa.
       final stay = <double>[
         _swapLength + 0.4,
         for (final _ in ida) 0,
         hashRange(7, 9, s, 1),
+        hashRange(9, 12, s, 2),
         for (final _ in vuelta) 0,
       ];
       final facing = <double>[
@@ -556,12 +559,14 @@ class Townsfolk {
         PlazaWorkshop.turn,
         for (final _ in ida) 0,
         mirarObra,
+        mirarObra,
         for (final _ in vuelta) 0,
       ];
       final acts = <Doing?>[
         Doing.idle,
         for (final _ in ida) null,
         Doing.unload,
+        Doing.hammer,
         for (final _ in vuelta) null,
       ];
       var periodo = 0.0;
@@ -1371,7 +1376,7 @@ class Townsfolk {
       }
       return (
         at: FolkAt(puerta.$1, puerta.$2, entrando, 0, false).carrying(h.carry),
-        sink: into,
+        sink: builder ? (into >= 0.999 ? 1.0 : 0.0) : into,
       );
     }
     if (_inside || _homing != null) {
@@ -1391,7 +1396,7 @@ class Townsfolk {
       if (k >= 1 || k < 0) {
         _outAt = null;
       } else {
-        sink = 1 - k;
+        sink = builder ? 0.0 : 1 - k;
       }
     }
     final ahora = at(t);
@@ -1565,7 +1570,8 @@ class Townsfolk {
     final costado = wx * nx + wz * nz;
     final delante = wx * ax + wz * az;
     // Hacia el lado por el que ya iba a pasar, decidido neto.
-    final lado = smoothstep(-0.02, 0.02, costado) * 2 - 1;
+    // De frente, por la derecha: a medias no se apartaba ninguno.
+    final lado = smoothstep(-0.07, -0.02, costado) * 2 - 1;
     final falta = lado * paso - costado;
     if (falta * lado <= 0) return (0, 0);
     final cuanto = (1 - smoothstep(0.0, aviso, delante.abs())) * lejosDelBanco;
@@ -1910,7 +1916,9 @@ FolkAt _enLaPuerta(
     0,
     false,
     act: Doing.idle,
-    sink: dentro.clamp(0.0, 1.0),
+    // El maestro no se achica por la puerta: llega hasta ella y desaparece,
+    // como cualquiera que entra en su casa detrás de su pared.
+    sink: avanza > 0 ? (dentro >= 0.999 ? 1.0 : 0.0) : dentro.clamp(0.0, 1.0),
     carry: saliendo ? swap.$2 : swap.$1,
   );
 }
