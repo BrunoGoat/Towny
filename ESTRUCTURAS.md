@@ -13,6 +13,10 @@ días.
 
 Entre paréntesis, cuántas piezas cuesta.
 
+**Regla: ninguna obra tiene puerta.** Ni puerta en arco, ni portón, ni
+portal de entrada. Sí valen los soportales y galerías de arcos (claustros,
+mercados, lonjas), los arcos altos de los campanarios y la boca de un horno.
+
 **Qué cambia de un pueblo a otro y qué no:**
 - **Cambia** (se estira según la región): la arquitectura. Zócalos, pisos,
   paredes, tejados, chimeneas, cúpulas, arcos, escaleras, parapetos, y el

@@ -78,6 +78,27 @@ enum PieceKind {
 
   /// Una colmena de paja trenzada, en su banquito, con la piquera oscura.
   hive,
+
+  /// Un piso de entramado: pared encalada con las vigas de madera oscura a la
+  /// vista —soleras, esquineros, pies derechos y riostras— y sus ventanas.
+  timber,
+
+  /// Una planta de piedra clara, con ventanas: la de abajo de una casa de
+  /// entramado, de otro material que la cal de arriba pero sin saltar a la
+  /// vista.
+  stonewall,
+
+  /// The same stone, blind: a cellar, a store, a brewhouse, no windows.
+  cellar,
+
+  /// La caldera de cobre de cocer la cerveza, con su campana y el caño.
+  kettle,
+
+  /// Una pila de sacos de grano.
+  sacks,
+
+  /// Una mesa de taberna con sus dos bancos y las jarras encima.
+  table,
 }
 
 /// One piece of a building, before it is given to an achievement.
@@ -203,6 +224,9 @@ class Mason {
     PieceKind.millstone,
     PieceKind.hens,
     PieceKind.hive,
+    PieceKind.kettle,
+    PieceKind.sacks,
+    PieceKind.table,
     PieceKind.banner,
     PieceKind.wheel,
     PieceKind.sail,
@@ -322,6 +346,10 @@ class Mason {
   /// A storey with windows in it.
   void floor(double w, double d, double ht, {double dx = 0, double dz = 0}) =>
       box(PieceKind.floor, w, d, ht, dx: dx, dz: dz);
+
+  /// Un piso de entramado de madera, con ventanas.
+  void timber(double w, double d, double ht, {double dx = 0, double dz = 0}) =>
+      box(PieceKind.timber, w, d, ht, dx: dx, dz: dz);
 
   /// A stone base, wider than what stands on it.
   void plinth(double w, double d, double ht, {double dx = 0, double dz = 0}) =>
@@ -610,6 +638,7 @@ class Mason {
     double dz = 0,
     double at = 0,
     Motif motif = Motif.none,
+    bool lying = false,
   }) => box(
     PieceKind.barrel,
     side,
@@ -620,6 +649,8 @@ class Mason {
     at: at,
     ridge: true,
     motif: motif,
+    // Acostado, de punta a punta a lo ancho.
+    along: lying ? false : null,
     // Sobre el suelo o sobre otro tonel: también su altura es la suya.
     fixed: true,
   );

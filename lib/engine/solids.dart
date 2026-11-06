@@ -33,6 +33,26 @@ List<Solid> solidsOf(
       _hangWindows(faces, y0, y1, place);
       return [Solid(i, faces)];
 
+    case PieceKind.stonewall || PieceKind.cellar:
+      final piedra = boxFaces(
+        x0,
+        y0,
+        z0,
+        x1,
+        y1,
+        z1,
+        Surface.own,
+        tint: 0xFFD6C9AE,
+        ao: 0.97,
+      );
+      if (piece.kind == PieceKind.stonewall) {
+        _hangWindows(piedra, y0, y1, place);
+      }
+      return [Solid(i, piedra)];
+
+    case PieceKind.timber:
+      return [Solid(i, _entramado(x0, y0, z0, x1, y1, z1, place))];
+
     case PieceKind.porch:
       // Lo que queda de la palabra «porche» ahora que la puerta se fue: la
       // tarima de un soportal, el embarcadero de una barca, la visera sobre un
@@ -140,6 +160,15 @@ List<Solid> solidsOf(
 
     case PieceKind.hive:
       return _colmena(i, piece, y0, y1);
+
+    case PieceKind.kettle:
+      return _caldera(i, piece, y0, y1);
+
+    case PieceKind.sacks:
+      return _sacos(i, piece, y0, y1);
+
+    case PieceKind.table:
+      return _mesaTaberna(i, x0, y0, z0, x1, y1, z1);
 
     case PieceKind.tree:
       final ht = y1 - y0;
@@ -2739,6 +2768,65 @@ List<Solid> _tonel(int i, TownPiece p, double y0, double y1) {
     ];
   }
   const madera = 0xFF8A6238, aro = 0xFF3E3A36;
+  if (!p.alongX) {
+    // Acostado, de punta a punta en x: el tonel de enseña de una taberna.
+    final r = (y1 - y0) / 2, yc = (y0 + y1) / 2, x0 = p.cx - p.w / 2;
+    final x1 = p.cx + p.w / 2;
+    List<Facet> rodaja(double a, double b, double rr) {
+      // Un octógono de canto, en el plano yz, extruido de a a b.
+      final pts = [
+        for (var k = 0; k < 8; k++)
+          (
+            cz + rr * math.cos(math.pi / 8 + k * math.pi / 4),
+            yc + rr * math.sin(math.pi / 8 + k * math.pi / 4),
+          ),
+      ];
+      final out = <Facet>[];
+      for (var k = 0; k < 8; k++) {
+        final (z0, y0_) = pts[k];
+        final (z1, y1_) = pts[(k + 1) % 8];
+        out.add(
+          Facet(
+            [V3(a, y0_, z0), V3(b, y0_, z0), V3(b, y1_, z1), V3(a, y1_, z1)],
+            Facet.normalOf([
+              V3(a, y0_, z0),
+              V3(b, y0_, z0),
+              V3(b, y1_, z1),
+            ], away: V3((a + b) / 2, yc, cz)),
+            Surface.own,
+            tint: madera,
+          ),
+        );
+      }
+      for (final (x, sgn) in [(a, -1.0), (b, 1.0)]) {
+        final v = [for (final (z, y) in pts) V3(x, y, z)];
+        out.add(
+          Facet(
+            sgn > 0 ? v : v.reversed.toList(),
+            V3(sgn, 0, 0),
+            Surface.own,
+            tint: 0xFFA07A48,
+          ),
+        );
+      }
+      return out;
+    }
+
+    final w = x1 - x0;
+    return [
+      Solid(i, rodaja(x0, x0 + w * 0.12, r * 0.88)),
+      Solid(i, rodaja(x0 + w * 0.12, x1 - w * 0.12, r)),
+      Solid(i, rodaja(x1 - w * 0.12, x1, r * 0.88)),
+      Solid(i, [
+        for (final f in rodaja(x0 + w * 0.22, x0 + w * 0.29, r * 1.04))
+          Facet(f.v, f.n, f.surface, tint: aro),
+      ]),
+      Solid(i, [
+        for (final f in rodaja(x1 - w * 0.29, x1 - w * 0.22, r * 1.04))
+          Facet(f.v, f.n, f.surface, tint: aro),
+      ]),
+    ];
+  }
   return [
     caja(r * 0.88, y0, y0 + h * 0.12, madera, 0.9),
     caja(r, y0 + h * 0.12, y0 + h * 0.88, madera, 0.98),
@@ -3086,5 +3174,198 @@ List<Solid> _colmena(int i, TownPiece p, double y0, double y1) {
       ),
     ),
   );
+  return out;
+}
+
+/// Un piso de entramado: la pared encalada, las ventanas, y por encima de la
+/// cal sólo el marco de madera oscura —la solera de abajo, la de arriba y los
+/// esquineros—. Con pies derechos y riostras en cruz quedaba recargado.
+List<Facet> _entramado(
+  double x0,
+  double y0,
+  double z0,
+  double x1,
+  double y1,
+  double z1,
+  TownCharacter? place,
+) {
+  const cal = 0xFFEDE6D4, madera = 0xFF4E3A2A, ras = 0.006;
+  final faces = boxFaces(x0, y0, z0, x1, y1, z1, Surface.own, tint: cal);
+  _hangWindows(faces, y0, y1, place);
+  final h = y1 - y0, g = math.min(0.07, h * 0.08);
+  for (var k = 0; k < faces.length; k++) {
+    final f = faces[k];
+    if (f.n.y.abs() > 0.01) continue;
+    final onZ = f.n.z.abs() > 0.5;
+    var lo = double.infinity, hi = -double.infinity, out = 0.0;
+    for (final p in f.v) {
+      final t = onZ ? p.x : p.z;
+      if (t < lo) lo = t;
+      if (t > hi) hi = t;
+      out = (onZ ? p.z : p.x) + (onZ ? f.n.z : f.n.x) * ras;
+    }
+    V3 en(double t, double y) => onZ ? V3(t, y, out) : V3(out, y, t);
+    Facet viga(List<V3> v) => Facet(v, f.n, Surface.own, tint: madera, ao: 0.9);
+    Facet rect(double a, double b, double ya, double yb) =>
+        viga([en(a, ya), en(b, ya), en(b, yb), en(a, yb)]);
+    final vigas = <Facet>[
+      rect(lo, hi, y0, y0 + g),
+      rect(lo, hi, y1 - g, y1),
+      rect(lo, lo + g, y0, y1),
+      rect(hi - g, hi, y0, y1),
+    ];
+    faces[k] = Facet(
+      f.v,
+      f.n,
+      f.surface,
+      ao: f.ao,
+      tint: f.tint,
+      // Las vigas primero y las ventanas encima: la ventana corta la viga.
+      decals: [...vigas, ...?f.decals],
+    );
+  }
+  return faces;
+}
+
+/// La caldera de cobre: el fogón de piedra, la panza de cobre con su borde,
+/// la campana que se cierra encima y el caño que sube.
+List<Solid> _caldera(int i, TownPiece p, double y0, double y1) {
+  final cx = p.cx, cz = p.cz, r = math.min(p.w, p.d) / 2, h = y1 - y0;
+  const cobre = 0xFFB8733A, cobreClaro = 0xFFD08A48, piedra = 0xFF7E786C;
+  Solid aro(double rr, double ya, double yb, int c, double ao) => Solid(
+    i,
+    prismFaces(Plaza.ring(cx, cz, rr), ya, yb, Surface.own, ao: ao, tint: c),
+  );
+  return [
+    aro(r * 0.92, y0, y0 + h * 0.14, piedra, 0.86),
+    aro(r, y0 + h * 0.14, y0 + h * 0.5, cobre, 1.0),
+    aro(r * 1.05, y0 + h * 0.5, y0 + h * 0.56, cobreClaro, 1.06),
+    aro(r * 0.8, y0 + h * 0.56, y0 + h * 0.66, cobre, 1.02),
+    aro(r * 0.52, y0 + h * 0.66, y0 + h * 0.74, cobre, 1.04),
+    aro(r * 0.14, y0 + h * 0.74, y1, cobreClaro, 1.0),
+  ];
+}
+
+/// Los sacos de cebada, apilados de a tres y uno encima.
+List<Solid> _sacos(int i, TownPiece p, double y0, double y1) {
+  final h = (y1 - y0) / 2;
+  const arpillera = 0xFFAE9466, atado = 0xFF6E5C3E;
+  final out = <Solid>[];
+  final along = p.w >= p.d;
+  final largo = along ? p.w : p.d, ancho = along ? p.d : p.w;
+  final paso = largo / 3;
+  void saco(double t, double ya, double s) {
+    final c = -largo / 2 + paso * (t + 0.5);
+    final cx = along ? p.cx + c : p.cx, cz = along ? p.cz : p.cz + c;
+    final rr = math.min(paso, ancho) * 0.5 * s;
+    out.add(
+      Solid(
+        i,
+        prismFaces(
+          Plaza.ring(cx, cz, rr),
+          ya,
+          ya + h * 0.82,
+          Surface.own,
+          ao: 0.98,
+          tint: arpillera,
+        ),
+      ),
+    );
+    out.add(
+      Solid(
+        i,
+        prismFaces(
+          Plaza.ring(cx, cz, rr * 0.4),
+          ya + h * 0.82,
+          ya + h,
+          Surface.own,
+          ao: 0.9,
+          tint: atado,
+        ),
+      ),
+    );
+  }
+
+  for (var t = 0; t < 3; t++) {
+    saco(t.toDouble(), y0, 1);
+  }
+  saco(0.5, y0 + h * 0.8, 0.95);
+  saco(1.5, y0 + h * 0.8, 0.9);
+  return out;
+}
+
+/// La mesa de la taberna, en la calle: el tablero sobre sus patas, un banco a
+/// cada lado y tres jarras encima.
+List<Solid> _mesaTaberna(
+  int i,
+  double x0,
+  double y0,
+  double z0,
+  double x1,
+  double y1,
+  double z1,
+) {
+  const madera = 0xFF7A5634, clara = 0xFF9A7448, jarra = 0xFFB8865A;
+  final h = y1 - y0, w = x1 - x0, d = z1 - z0;
+  final mz0 = z0 + d * 0.3, mz1 = z1 - d * 0.3;
+  final tapa = y0 + h * 0.7;
+  Solid caja(
+    double a,
+    double ya,
+    double c,
+    double b,
+    double yb,
+    double e,
+    int t,
+    double ao,
+  ) => Solid(i, boxFaces(a, ya, c, b, yb, e, Surface.own, ao: ao, tint: t));
+  final out = <Solid>[
+    caja(x0, tapa - h * 0.08, mz0, x1, tapa, mz1, clara, 1.04),
+    for (final x in [x0 + w * 0.08, x1 - w * 0.08 - w * 0.06])
+      caja(
+        x,
+        y0,
+        mz0 + d * 0.06,
+        x + w * 0.06,
+        tapa - h * 0.08,
+        mz1 - d * 0.06,
+        madera,
+        0.88,
+      ),
+    // Los bancos.
+    for (final (a, b) in [(z0, z0 + d * 0.18), (z1 - d * 0.18, z1)])
+      caja(x0 + w * 0.05, y0, a, x1 - w * 0.05, y0 + h * 0.42, b, madera, 0.94),
+  ];
+  for (var k = 0; k < 3; k++) {
+    final cx = x0 + w * (0.25 + 0.25 * k);
+    final cz = (mz0 + mz1) / 2 + (k.isOdd ? d * 0.06 : -d * 0.06);
+    final r = math.min(w, d) * 0.045;
+    out.add(
+      Solid(
+        i,
+        prismFaces(
+          Plaza.ring(cx, cz, r),
+          tapa,
+          tapa + h * 0.22,
+          Surface.own,
+          ao: 1.04,
+          tint: jarra,
+        ),
+      ),
+    );
+    out.add(
+      Solid(
+        i,
+        prismFaces(
+          Plaza.ring(cx, cz, r * 0.85),
+          tapa + h * 0.22,
+          tapa + h * 0.27,
+          Surface.own,
+          ao: 1.1,
+          tint: 0xFFF2EAD8,
+        ),
+      ),
+    );
+  }
   return out;
 }

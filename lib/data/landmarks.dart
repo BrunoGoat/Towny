@@ -606,57 +606,69 @@ final List<Landmark> landmarks = [
   Landmark(
     'cerveceria',
     'Cervecería',
-    14,
+    12,
     1,
     'Grano, agua y paciencia hechos celebración. Aquí el día termina en '
         'buena compañía.',
     (m) {
-      // La cervecería: la casa con su cartel de la jarra, y lo que la
-      // distingue de una casa —los toneles apilados delante, la caldera de
-      // cobre al costado con su tiro— y el campo de cebada detrás.
-      m.plinth(2.7, 2.2, 0.32);
-      m.floor(2.4, 1.9, 1.2);
-      m.floor(2.35, 1.85, 1.05);
-      m.roof(2.75, 2.3, 0.85);
-      m.chimney(0.36, 1.15, dx: -0.75);
-      m.anchor(2.0, 0);
+      // Lo que hace que se lea como cervecería y no como una casa grande:
+      // - el hastial a la calle: la casa angosta y honda, con el triángulo
+      //   del tejado mirando de frente y los pisos de entramado sobresaliendo,
+      //   como las tabernas de siempre; de costado era una lámina de tejado;
+      // - pocas ventanas, dos por piso: con cuatro iguales era una oficina;
+      // - el tonel grande acostado sobre el ala de la cocción, que es la
+      //   enseña y se ve de lejos, y el cartel de la jarra, grande;
+      // - la mesa con sus bancos y las jarras en la calle: aquí se bebe.
+      m.box(PieceKind.stonewall, 1.6, 2.1, 0.95);
+      final baja = m.y;
+      m.timber(1.75, 2.25, 0.85);
+      m.timber(1.9, 2.4, 0.8);
+      m.roof(2.15, 2.65, 1.6, along: false);
+      m.chimney(0.36, 1.4, dx: 0.45, dz: -0.75);
+      // El cartel, colgado de la esquina bajo el voladizo: de frente no
+      // tapa ninguna ventana y de costado se lee entero.
       m.box(
-        PieceKind.chimney,
-        1.1,
-        1.1,
-        0.7,
-        dx: 2.0,
+        PieceKind.sign,
+        0.12,
+        1.0,
+        0.6,
+        dx: -0.74,
+        dz: 1.4,
+        at: baja - 0.4,
+        ridge: true,
+        motif: Motif.jug,
+      );
+      // El ala de la cocción, pegada a la casa y ciega: es donde se
+      // cuece y se guarda, no tiene ventanas. El tejado es un faldón que
+      // baja de la pared de la casa hacia el costado (la otra mitad queda
+      // dentro de la casa), así es parte del mismo edificio y su faldón
+      // mira para el mismo lado que el de la casa: el mismo color.
+      m.box(
+        PieceKind.cellar,
+        1.4,
+        1.9,
+        1.0,
+        dx: 1.5,
+        dz: 0.0,
         at: 0,
         ridge: true,
-        fixed: true,
       );
+      m.roof(3.0, 2.15, 1.05, dx: 0.8, dz: 0.0, at: 1.0, along: false);
+      // La enseña: el tonel grande acostado contra el frente del ala.
+      m.barrel(1.0, 0.66, dx: 1.55, dz: 0.95 + 0.33, at: 0, lying: true);
+      // En la calle, la mesa con las jarras y dos toneles.
       m.box(
-        PieceKind.chimney,
-        0.8,
-        0.8,
-        0.22,
-        dx: 2.0,
-        at: 0.7,
+        PieceKind.table,
+        1.25,
+        0.95,
+        0.52,
+        dx: -0.05,
+        dz: 1.85,
+        at: 0,
         ridge: true,
-        fixed: true,
       );
-      m.box(
-        PieceKind.chimney,
-        0.26,
-        0.26,
-        0.6,
-        dx: 2.0,
-        at: 0.92,
-        ridge: true,
-        fixed: true,
-      );
-      m.unanchor();
-      m.sign(Motif.jug, dx: 0.7, front: 0.95, at: 1.0);
-      m.barrel(0.5, 0.62, dx: -1.45, dz: 1.55);
-      m.barrel(0.5, 0.62, dx: -0.85, dz: 1.6);
-      m.barrel(0.5, 0.62, dx: -1.15, dz: 1.6, at: 0.62);
-      m.field(2.8, 1.1, dz: -2.2);
-      m.tree(1.0, 1.7, dx: 2.3, dz: -1.5);
+      m.barrel(0.5, 0.64, dx: -1.3, dz: 0.85);
+      m.barrel(0.42, 0.52, dx: -1.3, dz: 0.25);
     },
   ),
 
@@ -865,7 +877,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'capilla',
     'Capilla',
-    12,
+    11,
     1,
     'Un rincón de recogimiento y de paz. Pequeña por fuera, inmensa por '
         'dentro.',
@@ -884,7 +896,6 @@ final List<Landmark> landmarks = [
         at: 2.9,
       );
       m.spire(1.2, 1.2, 1.15, dz: -2.1, at: 3.22);
-      m.arcade(1.5, 1.5, 0.5, dz: 1.55, at: 0);
       m.roof(1.8, 1.0, 0.3, dz: 1.6, at: 1.4);
       m.stair(1.5, 0.34, 0.7, dz: 1.85);
       m.tree(1.25, 2.5, dx: 1.95, dz: 1.55);
@@ -1220,7 +1231,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'castillo',
     'Castillo',
-    52,
+    51,
     2,
     'Muros firmes que protegen a todo el valle. La seguridad que '
         'permite soñar en grande.',
@@ -1260,7 +1271,6 @@ final List<Landmark> landmarks = [
         m.spire(2.0, 2.0, 1.3, dx: c.$1, dz: c.$2, at: 3.62);
       }
       m.box(PieceKind.parapet, 3.2, 1.7, 2.9, dz: 4.2, at: 0);
-      m.arcade(1.3, 1.9, 1.8, dz: 4.2, at: 0);
       m.box(PieceKind.parapet, 3.5, 2.0, 0.46, dz: 4.2, ridge: true, at: 2.9);
       m.banner(1.35, dx: -1.05, dz: 4.2, at: 3.36);
       m.banner(1.35, dx: 1.05, dz: 4.2, at: 3.36);
@@ -1298,7 +1308,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'homenaje',
     'Torre del homenaje',
-    23,
+    22,
     2,
     'La torre más alta, donde se juran lealtades. Desde arriba se '
         'contempla todo lo construido.',
@@ -1344,7 +1354,6 @@ final List<Landmark> landmarks = [
       m.banner(1.5, at: remate + 0.62);
       m.box(PieceKind.parapet, 1.5, 1.5, 2.2, dx: 2.4, dz: 2.4, at: 0);
       m.stair(1.5, 1.5, 2.4, dz: 3.4);
-      m.arcade(1.4, 1.5, 0.7, dz: 2.55, at: 1.5);
       m.water(1.3, 1.3, dx: -2.6, dz: 3.4);
       m.tree(1.3, 2.4, dx: 3.4, dz: -3.2);
       m.tree(1.2, 2.2, dx: -3.4, dz: -3.4);
@@ -1390,7 +1399,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'muralla',
     'Lienzo de muralla',
-    23,
+    22,
     2,
     'Piedra sobre piedra, un abrazo que rodea al pueblo. Juntos y a '
         'salvo.',
@@ -1407,7 +1416,6 @@ final List<Landmark> landmarks = [
       }
       m.water(11.4, 1.8, dz: -2.2);
       m.box(PieceKind.plinth, 2.2, 2.0, 0.3, dz: -2.2, at: 0);
-      m.arcade(1.5, 2.0, 1.0, at: 0);
       m.stair(1.6, 2.6, 2.4, dz: 2.4);
       m.banner(1.4, dx: -4.2, dz: 0.6, at: 3.85);
       m.banner(1.4, dx: 4.2, dz: 0.6, at: 3.85);
@@ -1605,7 +1613,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'iglesia',
     'Iglesia',
-    21,
+    20,
     2,
     'El lugar donde el pueblo se reúne en los momentos más importantes '
         'de la vida.',
@@ -1627,7 +1635,6 @@ final List<Landmark> landmarks = [
       // punta se queda en el aire donde se construye plano.
       m.box(PieceKind.floor, 2.5, 2.5, 1.3, dz: -1.6, at: 3.05);
       m.dome(2.7, 2.7, 1.5, dz: -1.6, at: 4.35);
-      m.arcade(2.4, 2.0, 0.6, dz: 5.5, at: 0);
       m.box(PieceKind.parapet, 0.42, 0.5, 1.3, dx: -1.95, dz: 1.2, at: 0.45);
       m.box(PieceKind.parapet, 0.42, 0.5, 1.3, dx: 1.95, dz: 1.2, at: 0.45);
       m.stair(2.2, 0.45, 0.9, dz: 5.8);
@@ -1643,7 +1650,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'catedral',
     'Catedral',
-    33,
+    32,
     2,
     'La fe y el esfuerzo de generaciones, hechos piedra y luz hacia el '
         'cielo.',
@@ -1678,7 +1685,6 @@ final List<Landmark> landmarks = [
         m.box(PieceKind.parapet, 0.45, 0.6, 3.4, dx: -2.4, dz: dz, at: 0.5);
         m.box(PieceKind.parapet, 0.45, 0.6, 3.4, dx: 2.4, dz: dz, at: 0.5);
       }
-      m.arcade(2.6, 2.4, 0.7, dz: 5.6, at: 0);
       m.box(PieceKind.parapet, 3.0, 0.8, 0.6, dz: 5.6, ridge: true, at: 2.4);
       m.stair(3.0, 0.5, 0.9, dz: 5.95);
       m.box(PieceKind.parapet, 0.6, 0.6, 1.4, dz: -5.0, at: 4.7);
@@ -1693,7 +1699,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'monasterio',
     'Monasterio',
-    27,
+    26,
     2,
     'Una vida dedicada al silencio, al estudio y al trabajo. Un faro de '
         'saber y serenidad.',
@@ -1734,7 +1740,6 @@ final List<Landmark> landmarks = [
       m.field(3.0, 1.6, dx: 1.4, dz: -4.4);
       m.tree(1.3, 2.4, dx: 4.6, dz: -4.4);
       m.tree(1.2, 2.2, dx: -5.0, dz: 4.4);
-      m.arcade(2.0, 1.8, 0.6, dz: -5.4, at: 0);
       m.stair(1.8, 0.4, 0.8, dz: -6.0);
     },
     scale: 0.65,
@@ -1743,7 +1748,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'abadia',
     'Abadía',
-    24,
+    23,
     2,
     'Oración, trabajo y generosidad. En los tiempos difíciles, sus '
         'puertas siempre están abiertas.',
@@ -1771,7 +1776,6 @@ final List<Landmark> landmarks = [
       m.box(PieceKind.plinth, 5.0, 6.4, 0.4, dx: 3.2, dz: -1.0, at: 0);
       m.box(PieceKind.floor, 4.5, 5.8, 2.6, dx: 3.2, dz: -1.0, at: 0.4);
       m.roof(4.9, 6.2, 1.8, dx: 3.2, dz: -1.0, along: false, at: 3.0);
-      m.arcade(2.0, 2.0, 0.7, dx: 3.2, dz: 2.2, at: 0);
       m.dome(1.8, 2.4, 0.9, dx: 3.4, dz: 3.6, at: 0);
       m.box(
         PieceKind.chimney,
@@ -1795,7 +1799,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'colegiata',
     'Colegiata',
-    22,
+    21,
     2,
     'Una iglesia majestuosa que refleja la ambición y el orgullo de su '
         'gente.',
@@ -1829,7 +1833,6 @@ final List<Landmark> landmarks = [
       m.field(1.6, 1.6, dx: 2.6, dz: -0.4);
       m.water(0.9, 0.9, dx: 2.6, dz: -0.4);
       m.box(PieceKind.parapet, 0.55, 0.55, 1.3, dx: -1.6, dz: -3.4, at: 3.45);
-      m.arcade(2.2, 1.9, 0.6, dx: -1.6, dz: 4.6, at: 0);
       m.stair(2.0, 0.45, 0.85, dz: 4.9);
       m.tree(1.3, 2.5, dx: -3.8, dz: -3.0);
       m.tree(1.2, 2.2, dx: 4.6, dz: 3.0);
@@ -1873,7 +1876,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'mezquita',
     'Mezquita',
-    21,
+    20,
     2,
     'Patios serenos y arcos sin fin. La llamada a la oración marca el '
         'ritmo del barrio.',
@@ -1907,7 +1910,6 @@ final List<Landmark> landmarks = [
       m.tree(1.2, 2.1, dx: 1.6, dz: 4.2);
       m.tree(1.2, 2.0, dx: -0.2, dz: 2.6);
       m.tree(1.2, 2.1, dx: -0.2, dz: 4.2);
-      m.arcade(2.2, 2.0, 0.6, dz: 5.4, at: 0);
       m.stair(2.0, 0.45, 0.85, dz: 5.9);
     },
     scale: 0.65,
@@ -1916,7 +1918,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'baptisterio',
     'Baptisterio',
-    18,
+    17,
     2,
     'Aquí cada nueva vida recibe su nombre y su lugar en la comunidad.',
     (m) {
@@ -1930,7 +1932,6 @@ final List<Landmark> landmarks = [
       m.dome(3.9, 3.9, 2.0, at: 5.25);
       m.box(PieceKind.floor, 1.2, 1.2, 0.9, at: 6.55);
       m.spire(1.4, 1.4, 1.0, at: 7.45);
-      m.arcade(2.4, 2.2, 0.8, dz: 2.4, at: 0.95);
       m.box(PieceKind.parapet, 2.8, 1.0, 0.5, dz: 2.4, ridge: true, at: 3.15);
       m.stair(2.6, 0.95, 1.2, dz: 3.5);
       m.water(1.6, 1.6, dx: -3.4, dz: -1.6);
@@ -1947,7 +1948,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'hospitalMayor',
     'Hospital mayor',
-    21,
+    19,
     2,
     'Cuidado para todo el que lo necesite. La compasión del pueblo '
         'convertida en institución.',
@@ -1965,8 +1966,6 @@ final List<Landmark> landmarks = [
       m.dome(3.3, 3.3, 1.9, at: 5.3);
       m.box(PieceKind.floor, 1.0, 1.0, 0.8, at: 7.2);
       m.spire(1.2, 1.2, 0.9, at: 8.0);
-      m.arcade(2.6, 2.2, 0.7, dz: 5.2, at: 0);
-      m.box(PieceKind.parapet, 3.0, 0.9, 0.5, dz: 5.2, ridge: true, at: 2.2);
       m.stair(2.4, 0.45, 0.9, dz: 5.9);
       m.water(1.4, 1.4, dx: -3.4, dz: -3.4);
       m.box(PieceKind.plinth, 1.1, 1.1, 0.3, dx: -3.4, dz: -3.4, at: 0);
@@ -1982,7 +1981,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'universidad',
     'Universidad',
-    30,
+    29,
     2,
     'La casa del saber, que atrae mentes de todas partes. Aquí se '
         'forman quienes darán forma al futuro.',
@@ -2020,7 +2019,6 @@ final List<Landmark> landmarks = [
       m.water(1.3, 1.3);
       m.box(PieceKind.plinth, 1.0, 1.0, 0.3, at: 0);
       m.box(PieceKind.parapet, 0.8, 0.8, 0.45, ridge: true, at: 0.3);
-      m.arcade(2.8, 2.6, 1.5, dz: 4.4, at: 0.4);
       m.box(PieceKind.parapet, 3.2, 1.7, 0.6, dz: 4.4, ridge: true, at: 3.0);
       m.banner(1.4, dx: -1.4, dz: 4.4, at: 3.6);
       m.banner(1.4, dx: 1.4, dz: 4.4, at: 3.6);
@@ -2033,7 +2031,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'biblioteca',
     'Biblioteca',
-    21,
+    19,
     2,
     'El conocimiento de la humanidad reunido bajo un mismo techo. Cada '
         'libro es una voz que atraviesa los siglos.',
@@ -2049,8 +2047,6 @@ final List<Landmark> landmarks = [
         m.box(PieceKind.parapet, 0.5, 0.7, 3.8, dx: -2.5, dz: dz, at: 1.0);
         m.box(PieceKind.parapet, 0.5, 0.7, 3.8, dx: 2.5, dz: dz, at: 1.0);
       }
-      m.arcade(3.0, 2.6, 0.8, dz: 5.0, at: 1.0);
-      m.box(PieceKind.parapet, 3.4, 1.0, 0.6, dz: 5.0, ridge: true, at: 3.6);
       m.stair(3.2, 1.0, 1.0, dz: 5.9);
       m.box(PieceKind.parapet, 1.4, 0.5, 0.4, dx: -3.4, dz: 4.4, at: 0);
       m.box(PieceKind.parapet, 1.4, 0.5, 0.4, dx: 3.4, dz: 4.4, at: 0);
@@ -2102,7 +2098,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'coso',
     'Coso y graderío',
-    28,
+    27,
     2,
     'Un gran escenario al aire libre donde todo el pueblo vibra a la '
         'vez.',
@@ -2132,7 +2128,6 @@ final List<Landmark> landmarks = [
       }
       m.box(PieceKind.plinth, 2.6, 1.6, 0.35, dz: 5.4, at: 0);
       m.stair(2.2, 0.35, 0.9, dz: 5.9);
-      m.arcade(2.4, 2.6, 1.3, dz: 4.4, at: 0);
       m.box(PieceKind.parapet, 3.0, 1.6, 0.5, dz: 4.4, ridge: true, at: 2.6);
       m.box(PieceKind.parapet, 3.4, 0.5, 0.6, dz: -5.4, at: 0);
       m.tree(1.3, 2.4, dx: -5.5, dz: -5.0);
@@ -2144,7 +2139,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'jardin',
     'Jardín del palacio',
-    27,
+    25,
     2,
     'Flores, fuentes y sombra para el descanso. La belleza cultivada '
         'por puro amor a ella.',
@@ -2177,8 +2172,6 @@ final List<Landmark> landmarks = [
       m.tree(1.4, 2.6, dx: 5.0, dz: -5.0);
       m.tree(1.4, 2.8, dx: -5.0, dz: 5.0);
       m.tree(1.4, 2.6, dx: 5.0, dz: 5.0);
-      m.arcade(2.2, 1.9, 0.5, dz: 5.6, at: 0);
-      m.box(PieceKind.parapet, 2.6, 0.9, 0.45, dz: 5.6, ridge: true, at: 1.9);
     },
     scale: 0.65,
   ),
