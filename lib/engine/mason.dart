@@ -120,6 +120,13 @@ enum PieceKind {
   /// Un espantapájaros: el palo, la camisa con los brazos abiertos, la
   /// cabeza de paja y el sombrero.
   scarecrow,
+
+  /// Fardos de paja apilados: una fila abajo y otra encima, más corta.
+  bales,
+
+  /// Un tejado a dos aguas de paja: gordo, del color de la paja y no del de
+  /// las tejas del pueblo.
+  strawroof,
 }
 
 /// One piece of a building, before it is given to an achievement.
@@ -254,6 +261,7 @@ class Mason {
     PieceKind.flowers,
     PieceKind.bed,
     PieceKind.scarecrow,
+    PieceKind.bales,
     PieceKind.banner,
     PieceKind.wheel,
     PieceKind.sail,

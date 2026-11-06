@@ -360,21 +360,41 @@ final List<Landmark> landmarks = [
   Landmark(
     'pajar',
     'Pajar',
-    7,
+    5,
     0,
     'La cosecha del verano, guardada para el invierno. Previsión hecha '
         'de paja dorada.',
     (m) {
-      // El pajar se lee por la paja: muro ciego bajo un techo de paja gordo,
-      // y delante los almiares, la paja amontonada alrededor de su palo. La
-      // caja que hacía de portón se leía como un cajón pegado a una casa.
-      m.box(PieceKind.plinth, 2.5, 2.0, 0.22, at: 0);
-      m.box(PieceKind.parapet, 2.15, 1.7, 1.3, at: 0.22);
-      m.box(PieceKind.thatch, 2.6, 2.15, 1.05, at: 1.52);
-      m.haystack(0.95, 1.25, dx: -0.75, dz: 1.75);
-      m.haystack(0.8, 1.05, dx: 0.55, dz: 1.85);
-      m.field(2.2, 0.9, dz: -1.75);
-      m.palisade(2.5, 0.6, dz: -2.2);
+      // Lo que dice «pajar»: la paja por todos lados y en grande.
+      // - el pajar de piedra, bajo y con sus ventanas, con su tejado gordo
+      //   de paja, del color de la paja y no del de las tejas del pueblo;
+      // - delante, los dos almiares: la paja amontonada alrededor de su palo,
+      //   redondos y en punta, sin escalones;
+      // - al costado, separados de la casa, unos fardos apilados.
+      // Sin el zócalo, el campo ni la empalizada. Todo corrido un poco a la
+      // izquierda, para que los fardos no se salgan del solar.
+      const x = -0.25;
+      m.box(PieceKind.stonewall, 2.2, 1.6, 1.0, dx: x);
+      m.box(PieceKind.strawroof, 2.65, 2.1, 1.25, dx: x, ridge: true);
+      m.haystack(1.0, 1.5, dx: x - 0.65, dz: 1.7);
+      m.haystack(0.8, 1.2, dx: x + 0.55, dz: 1.95);
+      // Medidos desde la pared de la casa, no desde el medio de la obra:
+      // así quedan a un paso de ella en todos los pueblos, sea la casa
+      // ancha o angosta.
+      const pared = x + 1.1;
+      m.anchor(pared, 0.3);
+      m.box(
+        PieceKind.bales,
+        1.3,
+        0.75,
+        0.75,
+        dx: pared + 0.28 + 0.65,
+        dz: 0.3,
+        at: 0,
+        ridge: true,
+        fixed: true,
+      );
+      m.unanchor();
     },
   ),
 

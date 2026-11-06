@@ -2989,6 +2989,8 @@ class TownPainter extends CustomPainter {
         case PieceKind.flowers:
         case PieceKind.bed:
         case PieceKind.scarecrow:
+        case PieceKind.bales:
+        case PieceKind.strawroof:
           break;
         default:
           porCasa.putIfAbsent(pc.building, () => []).add(pc);

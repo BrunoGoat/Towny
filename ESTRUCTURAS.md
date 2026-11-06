@@ -78,7 +78,6 @@ mercados, lonjas), los arcos altos de los campanarios y la boca de un horno.
 
 ### Chicas
 
-- Pajar (7)
 - Corral (6)
 - Gallinero (6)
 - Alfarería (12)
@@ -185,3 +184,9 @@ mercados, lonjas), los arcos altos de los campanarios y la boca de un horno.
   (repollos o zapallos, en damero), y el espantapájaros atrás en el medio.
   Sin empalizadas ni árboles. Es un objeto: mide lo mismo en todos los
   pueblos.
+
+- Pajar (5): casa de piedra clara, baja y con ventanas, con un tejado gordo
+  de paja del color de la paja (no del de las tejas del pueblo). Delante,
+  dos almiares redondos que terminan en punta, sin escalones, con el palo
+  asomando. Al costado, a un paso de la pared en todos los pueblos, unos
+  fardos apilados en dos capas.

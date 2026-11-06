@@ -179,6 +179,12 @@ List<Solid> solidsOf(
     case PieceKind.scarecrow:
       return _espantapajaros(i, piece, y0, y1);
 
+    case PieceKind.bales:
+      return _fardos(i, x0, y0, z0, x1, y1, z1);
+
+    case PieceKind.strawroof:
+      return _techoPaja(i, piece, x0, y0, z0, x1, y1, z1);
+
     case PieceKind.well:
       return _pozo(i, piece, x0, y0, z0, x1, y1, z1);
 
@@ -2917,31 +2923,22 @@ List<Solid> _tonel(int i, TownPiece p, double y0, double y1) {
 /// hacia arriba, con la punta del palo asomando.
 List<Solid> _almiar(int i, TownPiece p, double y0, double y1) {
   final cx = p.cx, cz = p.cz, r = math.min(p.w, p.d) / 2, h = y1 - y0;
-  const paja = 0xFFD8B65A, palo = 0xFF6B573F;
-  final out = <Solid>[];
-  const capas = [
-    (1.0, 0.0, 0.42),
-    (0.86, 0.42, 0.62),
-    (0.66, 0.62, 0.78),
-    (0.42, 0.78, 0.9),
+  const paja = 0xFFD2B262, palo = 0xFF6B573F;
+  // El perfil: barrigón abajo y cerrándose en punta redonda, de un solo
+  // color, sin escalones. (alto, radio), en fracciones.
+  const perfil = [
+    (0.0, 0.9),
+    (0.22, 1.0),
+    (0.5, 0.88),
+    (0.74, 0.58),
+    (0.9, 0.24),
   ];
-  var k = 0;
-  for (final (rr, a, b) in capas) {
+  final out = <Solid>[];
+  for (var k = 0; k + 1 < perfil.length; k++) {
+    final (ha, ra) = perfil[k];
+    final (hb, rb) = perfil[k + 1];
     out.add(
-      Solid(
-        i,
-        boxFaces(
-          cx - r * rr,
-          y0 + h * a,
-          cz - r * rr,
-          cx + r * rr,
-          y0 + h * b,
-          cz + r * rr,
-          Surface.own,
-          ao: 0.92 + 0.04 * k++,
-          tint: paja,
-        ),
-      ),
+      Solid(i, _tronco(cx, cz, r * ra, r * rb, y0 + h * ha, y0 + h * hb, paja)),
     );
   }
   out.add(
@@ -2949,7 +2946,7 @@ List<Solid> _almiar(int i, TownPiece p, double y0, double y1) {
       i,
       boxFaces(
         cx - 0.03,
-        y0 + h * 0.9,
+        y0 + h * 0.86,
         cz - 0.03,
         cx + 0.03,
         y1,
@@ -2960,6 +2957,48 @@ List<Solid> _almiar(int i, TownPiece p, double y0, double y1) {
       ),
     ),
   );
+  return out;
+}
+
+/// Un tronco de cono de ocho lados, cerrado arriba y abajo.
+List<Facet> _tronco(
+  double cx,
+  double cz,
+  double ra,
+  double rb,
+  double ya,
+  double yb,
+  int c,
+) {
+  final a = Plaza.ring(cx, cz, ra), b = Plaza.ring(cx, cz, rb);
+  final mid = V3(cx, (ya + yb) / 2, cz);
+  final out = <Facet>[
+    Facet(
+      [for (final (x, z) in b) V3(x, yb, z)],
+      const V3(0, 1, 0),
+      Surface.own,
+      tint: c,
+    ),
+    Facet(
+      [for (final (x, z) in a.reversed) V3(x, ya, z)],
+      const V3(0, -1, 0),
+      Surface.own,
+      ao: 0.6,
+      tint: c,
+    ),
+  ];
+  for (var k = 0; k < a.length; k++) {
+    final n = (k + 1) % a.length;
+    final v = [
+      V3(a[k].$1, ya, a[k].$2),
+      V3(a[n].$1, ya, a[n].$2),
+      V3(b[n].$1, yb, b[n].$2),
+      V3(b[k].$1, yb, b[k].$2),
+    ];
+    out.add(
+      Facet(v, Facet.normalOf(v, away: mid), Surface.own, ao: 0.96, tint: c),
+    );
+  }
   return out;
 }
 
@@ -3940,5 +3979,80 @@ List<Solid> _espantapajaros(int i, TownPiece p, double y0, double y1) {
       sombrero,
       0.95,
     ),
+  ];
+}
+
+/// Fardos de paja apilados en capas, cada capa trabada sobre la de abajo y
+/// la de arriba un fardo más corta. Cada fardo es un bloque grande de color
+/// liso de paja, en dos tonos alternados, con una junta entre fardo y fardo:
+/// sin ataduras ni rayas, que de lejos ensuciaban.
+List<Solid> _fardos(
+  int i,
+  double x0,
+  double y0,
+  double z0,
+  double x1,
+  double y1,
+  double z1,
+) {
+  const paja = 0xFFD8BC6C, pajaSombra = 0xFFC7AA5C;
+  const largo = 0.72;
+  final capas = math.max(1, ((y1 - y0) / 0.34).round());
+  final out = <Solid>[];
+  final alto = (y1 - y0) / capas;
+  for (var capa = 0; capa < capas; capa++) {
+    final ya = y0 + alto * capa;
+    final a = x0 + largo / 2 * capa;
+    final b = x1 - largo / 2 * capa;
+    if (b - a < largo * 0.8) break;
+    final n = math.max(1, ((b - a) / largo).round());
+    final paso = (b - a) / n;
+    for (var k = 0; k < n; k++) {
+      const g = 0.015;
+      out.add(
+        Solid(
+          i,
+          boxFaces(
+            a + paso * k + g,
+            ya,
+            z0 + g,
+            a + paso * (k + 1) - g,
+            ya + alto - g,
+            z1 - g,
+            Surface.own,
+            ao: 0.97,
+            tint: (k + capa).isEven ? paja : pajaSombra,
+          ),
+        ),
+      );
+    }
+  }
+  return out;
+}
+
+/// El tejado de paja: la misma forma a dos aguas, pero del color de la paja,
+/// más oscura en los hastiales, que es donde se ve el corte del haz.
+List<Solid> _techoPaja(
+  int i,
+  TownPiece p,
+  double x0,
+  double y0,
+  double z0,
+  double x1,
+  double y1,
+  double z1,
+) {
+  const paja = 0xFFB3914C, corte = 0xFF957638;
+  return [
+    Solid(i, [
+      for (final f in gableFaces(x0, y0, z0, x1, y1, z1, p.alongX))
+        Facet(
+          f.v,
+          f.n,
+          Surface.own,
+          ao: f.n.y.abs() < 0.01 ? 0.92 : 1.0,
+          tint: f.n.y.abs() < 0.01 ? corte : paja,
+        ),
+    ]),
   ];
 }
