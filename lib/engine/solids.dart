@@ -200,6 +200,27 @@ List<Solid> solidsOf(
     case PieceKind.tools:
       return _herramientas(i, x0, y0, z0, x1, y1, z1);
 
+    case PieceKind.adobe:
+      final adobe = boxFaces(
+        x0,
+        y0,
+        z0,
+        x1,
+        y1,
+        z1,
+        Surface.own,
+        ao: 0.97,
+        tint: 0xFFD9B88E,
+      );
+      _hangWindows(adobe, y0, y1, place);
+      return [Solid(i, adobe)];
+
+    case PieceKind.kiln:
+      return _hornoAlfar(i, x0, y0, z0, x1, y1, z1);
+
+    case PieceKind.pottery:
+      return _cacharros(i, x0, y0, z0, x1, y1, z1);
+
     case PieceKind.well:
       return _pozo(i, piece, x0, y0, z0, x1, y1, z1);
 
@@ -4476,5 +4497,171 @@ List<Solid> _herramientas(
   final dzP = (puntaP.z - pieP.z) / (puntaP.y - pieP.y);
   final hoja0 = V3(px, y0 + 0.01, pieP.z - (pieP.y - y0) * dzP);
   out.add(Solid(i, _vara(hoja0, pieP, 0.16, hierro, grueso: 0.025)));
+  return out;
+}
+
+/// El horno de cocer: un bloque cuadrado de ladrillo, un poco más angosto
+/// arriba, y en el frente (z1) la boca oscura con el fuego adentro. La boca
+/// de un horno es la única abertura que las obras pueden tener.
+List<Solid> _hornoAlfar(
+  int i,
+  double x0,
+  double y0,
+  double z0,
+  double x1,
+  double y1,
+  double z1,
+) {
+  const ladrillo = 0xFFA4583A, ladrilloClaro = 0xFFA9603F;
+  const boca = 0xFF2E1E18, fuego = 0xFFE88A2E;
+  final h = y1 - y0, cx = (x0 + x1) / 2;
+  final cuerpo = y0 + h * 0.72;
+  final m = math.min(x1 - x0, z1 - z0) * 0.12;
+  final abajo = boxFaces(
+    x0,
+    y0,
+    z0,
+    x1,
+    cuerpo,
+    z1,
+    Surface.own,
+    ao: 0.95,
+    tint: ladrillo,
+  );
+  final w = (x1 - x0) * 0.2, alto = h * 0.36;
+  for (var k = 0; k < abajo.length; k++) {
+    final f = abajo[k];
+    if (f.n.z < 0.5) continue;
+    abajo[k] = Facet(
+      f.v,
+      f.n,
+      f.surface,
+      ao: f.ao,
+      tint: f.tint,
+      decals: [
+        Facet(
+          [
+            V3(cx - w, y0, z1),
+            V3(cx + w, y0, z1),
+            V3(cx + w, y0 + alto, z1),
+            V3(cx - w, y0 + alto, z1),
+          ],
+          f.n,
+          Surface.own,
+          tint: boca,
+        ),
+        Facet(
+          [
+            V3(cx - w * 0.7, y0, z1),
+            V3(cx + w * 0.7, y0, z1),
+            V3(cx + w * 0.7, y0 + alto * 0.45, z1),
+            V3(cx - w * 0.7, y0 + alto * 0.45, z1),
+          ],
+          f.n,
+          Surface.own,
+          tint: fuego,
+        ),
+      ],
+    );
+  }
+  return [
+    Solid(i, abajo),
+    Solid(
+      i,
+      boxFaces(
+        x0 + m,
+        cuerpo,
+        z0 + m,
+        x1 - m,
+        y1,
+        z1 - m,
+        Surface.own,
+        ao: 1.0,
+        tint: ladrilloClaro,
+      ),
+    ),
+  ];
+}
+
+/// Los cacharros a la venta, sobre una tarima baja de tablas, hechos de
+/// cajas como todo el pueblo: dos cántaros —la panza, el cuello, la boca y
+/// dos asas— de dos tonos de barro.
+/// Grandes, pocos y con pocas partes.
+List<Solid> _cacharros(
+  int i,
+  double x0,
+  double y0,
+  double z0,
+  double x1,
+  double y1,
+  double z1,
+) {
+  const tabla = 0xFF7A5A3A, barro = 0xFFB4643A, barroClaro = 0xFFC98A5E;
+  final tarima = math.min(0.1, (y1 - y0) * 0.14);
+  final suelo = y0 + tarima;
+  final h = y1 - suelo, cz = (z0 + z1) / 2, w = x1 - x0;
+  final r = math.min(w * 0.17, (z1 - z0) * 0.42);
+  final out = <Solid>[
+    Solid(
+      i,
+      boxFaces(x0, y0, z0, x1, suelo, z1, Surface.own, ao: 0.92, tint: tabla),
+    ),
+  ];
+  // Una caja cuadrada centrada en (cx, cz), de medio lado [m].
+  void caja(double cx, double m, double ya, double yb, int c, double ao) =>
+      out.add(
+        Solid(
+          i,
+          boxFaces(
+            cx - m,
+            ya,
+            cz - m,
+            cx + m,
+            yb,
+            cz + m,
+            Surface.own,
+            ao: ao,
+            tint: c,
+          ),
+        ),
+      );
+  // Un cántaro hecho de cajas, como todo en el pueblo: la panza ancha, el
+  // cuello angosto, la boca y las dos asas.
+  void cantaro(double cx, double alto, int c) {
+    // Tres cajas, sin escalonar: la panza alta, el cuello fino y la boca,
+    // que se abre. Más alto que ancho, que es lo que lo hace cántaro.
+    caja(cx, r * 0.5, suelo, suelo + alto * 0.64, c, 1.0);
+    caja(cx, r * 0.22, suelo + alto * 0.64, suelo + alto * 0.88, c, 1.02);
+    caja(cx, r * 0.34, suelo + alto * 0.88, suelo + alto, c, 1.04);
+    // Las asas: un lazo a cada lado del cuello, de la panza hasta arriba.
+    for (final lado in [-1.0, 1.0]) {
+      // Una barra que va de [a] a [b] hacia este lado del cuello.
+      void barra(double a, double b, double ya, double yb) {
+        final p0 = cx + lado * a, p1 = cx + lado * b;
+        out.add(
+          Solid(
+            i,
+            boxFaces(
+              math.min(p0, p1),
+              ya,
+              cz - 0.03,
+              math.max(p0, p1),
+              yb,
+              cz + 0.03,
+              Surface.own,
+              ao: 0.95,
+              tint: c,
+            ),
+          ),
+        );
+      }
+
+      barra(r * 0.4, r * 0.5, suelo + alto * 0.64, suelo + alto * 0.86);
+      barra(r * 0.22, r * 0.5, suelo + alto * 0.82, suelo + alto * 0.86);
+    }
+  }
+
+  cantaro(x0 + w * 0.28, h, barro);
+  cantaro(x0 + w * 0.72, h * 0.82, barroClaro);
   return out;
 }

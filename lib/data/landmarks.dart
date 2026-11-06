@@ -546,53 +546,75 @@ final List<Landmark> landmarks = [
   Landmark(
     'alfar',
     'Alfarería',
-    12,
+    6,
     0,
     'Del barro nacen cántaros, platos y tejas. Las manos del alfarero '
         'dan forma al pueblo.',
     (m) {
-      // El taller del alfarero y, al lado, el horno de cocer: de ladrillo,
-      // cerrándose en hiladas hasta el tiro. Delante, los cántaros y las
-      // tinajas recién hechos secándose al sol, y el cartel con su cántaro.
-      // La balsa de barro, al otro lado.
-      m.plinth(2.0, 1.7, 0.22);
-      m.floor(1.7, 1.45, 1.0);
-      m.box(PieceKind.thatch, 2.05, 1.8, 0.62);
-      m.anchor(1.6, 0);
-      var y = 0.0;
-      for (final (lado, alto) in const [
-        (1.2, 0.55),
-        (0.95, 0.2),
-        (0.62, 0.16),
-      ]) {
-        m.box(
-          PieceKind.chimney,
-          lado,
-          lado,
-          alto,
-          dx: 1.6,
-          at: y,
-          ridge: true,
-          fixed: true,
-        );
-        y += alto;
-      }
+      // Lo que dice «alfarería»: el barro y el fuego.
+      // - el taller de adobe, encalado en ocre, el color del barro, más ancho
+      //   que hondo y con un tejado de una sola caída que baja hacia la
+      //   calle: otra cara que la de una casa;
+      // - al costado, el horno de cocer: un bloque cuadrado de ladrillo con la
+      //   boca abierta y el fuego adentro, y su tiro;
+      // - delante, los cacharros a la venta sobre su tarima: dos cántaros con
+      //   asas, hechos de cajas como todo el pueblo; y el
+      //   cartel del cántaro. Pocas cosas: con más, quedaba recargada.
+      // Sin la balsa ni el horno escalonado, que parecía una torta.
+      m.box(PieceKind.adobe, 2.0, 1.25, 1.1, dx: -0.35);
+      m.box(
+        PieceKind.leanto,
+        2.3,
+        1.6,
+        0.55,
+        dx: -0.35,
+        dz: 0.05,
+        at: 1.05,
+        ridge: true,
+      );
+      // El cartel en la esquina de la izquierda, donde no hay nada delante.
+      m.sign(Motif.clay, dx: -1.2, front: 0.625, at: 0.6);
+      // El horno y lo de afuera, medidos desde la pared de la casa: a un paso
+      // de ella en todos los pueblos.
+      const pared = -0.35 + 1.0;
+      m.anchor(pared, 0);
+      m.box(
+        PieceKind.kiln,
+        1.05,
+        1.05,
+        0.95,
+        dx: pared + 0.3 + 0.525,
+        dz: -0.1,
+        at: 0,
+        ridge: true,
+        fixed: true,
+      );
       m.box(
         PieceKind.chimney,
-        0.22,
-        0.22,
-        0.42,
-        dx: 1.6,
-        at: y,
+        0.24,
+        0.24,
+        0.55,
+        dx: pared + 0.3 + 0.525,
+        dz: -0.3,
+        at: 0.95,
         ridge: true,
         fixed: true,
       );
       m.unanchor();
-      m.barrel(0.42, 0.55, dx: -0.55, dz: 1.2, motif: Motif.clay);
-      m.barrel(0.34, 0.42, dx: 0.0, dz: 1.3, motif: Motif.clay);
-      m.barrel(0.42, 0.55, dx: 0.5, dz: 1.2, motif: Motif.clay);
-      m.sign(Motif.clay, dx: -0.65, front: 0.72, at: 0.62);
-      m.water(1.15, 1.15, dx: -1.6, dz: 0.95);
+      const frente = 0.625;
+      m.anchor(0, frente);
+      m.box(
+        PieceKind.pottery,
+        1.225,
+        0.595,
+        0.63,
+        dx: -0.15,
+        dz: frente + 0.4,
+        at: 0,
+        ridge: true,
+        fixed: true,
+      );
+      m.unanchor();
     },
   ),
 

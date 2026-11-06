@@ -39,25 +39,31 @@ Entre paréntesis, cuántas piezas cuesta.
 4. **Que tenga sentido.** Si en la vida real no sería así, se nota: la sala
    donde se hace la cerveza no lleva ventanas, la chimenea va donde se
    cocina, un cartel no tapa una ventana.
-5. **Las reglas valen para todas** (ver abajo): ninguna tiene puerta, los
+5. **Todo a escala.** Los objetos miden lo que miden de verdad al lado de
+   la casa: la planta baja es como una persona y media de alto, así que un
+   cántaro llega a la rodilla, un tonel a la cintura y una colmena poco
+   más. Un objeto agrandado para que se vea se lee como un juguete puesto
+   al lado de la casa. Si no se entiende chico, hay que cambiar su forma,
+   no su tamaño.
+6. **Las reglas valen para todas** (ver abajo): ninguna tiene puerta, los
    objetos miden lo mismo en todos los pueblos y nada queda flotando.
-6. **Mirarla con ojo crítico antes de mostrarla.** Sacarle una foto de
+7. **Mirarla con ojo crítico antes de mostrarla.** Sacarle una foto de
    frente, como la vería un jugador, decir qué falla y por qué, y mejorarla.
    No alcanza con que "esté bien".
-7. **Cambia el tamaño, no la estética.** De un pueblo a otro una obra puede
+8. **Cambia el tamaño, no la estética.** De un pueblo a otro una obra puede
    ser más alta, más ancha o tener el tejado más empinado, pero tiene que
    verse igual que en la Ribera: las partes se tocan en los mismos puntos.
    Por ejemplo, el tejadito del ala de la cervecería llega siempre justo
    hasta arriba del primer piso de madera, sea el tejado más o menos
    empinado, y nunca trepa por la casa.
-8. **Cada obra, con lo suyo.** Las piezas se pueden reutilizar, pero no
+9. **Cada obra, con lo suyo.** Las piezas se pueden reutilizar, pero no
    como salida fácil: la pared de cal con vigas se hizo para la cervecería,
    y si se pone en todas, todas se parecen y ninguna dice lo suyo. Si una
    obra necesita algo propio, se hace una pieza nueva para ella (el
    cobertizo de tablas del corral, el tejado de paja del pajar, el brocal
    del pozo), siempre dentro de los demás criterios: lo propio tiene que
    seguir siendo del mismo pueblo.
-9. **Cómo se trabaja.** Mientras se diseña: fotos, ajustes rápidos, y sin
+10. **Cómo se trabaja.** Mientras se diseña: fotos, ajustes rápidos, y sin
    pruebas ni subidas en el medio hasta que se diga "probá los tests y
    subí". Las fotos de referencia son una guía para que tenga el mismo
    espíritu, siempre adaptada al estilo de Towny.
@@ -91,7 +97,6 @@ mercados, lonjas), los arcos altos de los campanarios y la boca de un horno.
 ### Chicas
 
 - Gallinero (6)
-- Alfarería (12)
 - Lavadero (8)
 - Potro de herrar (12)
 
@@ -209,3 +214,10 @@ mercados, lonjas), los arcos altos de los campanarios y la boca de un horno.
   tablas, cuadrado, con su ventanuco y un tejado de una sola caída, y la horca
   y la pala apoyadas en el frente. Es un objeto: mide lo mismo en todos los
   pueblos.
+
+- Alfarería (6): taller de adobe en ocre, el color del barro, más ancho que
+  hondo y con un tejado de una sola caída hacia la calle; el cartel del
+  cántaro en la esquina izquierda. Al lado, a un paso de la pared, el horno
+  de cocer: un bloque cuadrado de ladrillo con la boca abierta y el fuego
+  adentro, y su tiro. Delante, sobre una tarima, dos cántaros hechos de tres
+  cajas (panza, cuello y boca) con sus asas, a escala.

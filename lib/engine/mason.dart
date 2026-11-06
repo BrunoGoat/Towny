@@ -145,6 +145,18 @@ enum PieceKind {
 
   /// Las herramientas apoyadas contra una pared: la horca y la pala.
   tools,
+
+  /// La pared de adobe de la alfarería: encalada en ocre, el color del
+  /// barro, con sus ventanas.
+  adobe,
+
+  /// El horno de cocer cerámica: un bloque de ladrillo con la boca abierta
+  /// y el fuego adentro.
+  kiln,
+
+  /// Los cacharros a la venta sobre su tarima de tablas: dos cántaros con
+  /// asas.
+  pottery,
 }
 
 /// One piece of a building, before it is given to an achievement.
@@ -283,8 +295,9 @@ class Mason {
     PieceKind.railfence,
     PieceKind.sheep,
     PieceKind.shed,
-    PieceKind.leanto,
     PieceKind.tools,
+    PieceKind.kiln,
+    PieceKind.pottery,
     PieceKind.banner,
     PieceKind.wheel,
     PieceKind.sail,
