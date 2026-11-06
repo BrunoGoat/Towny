@@ -405,7 +405,17 @@ class Mason {
   /// the oak country came up a hand's breadth above the straw, or not at all.
   void chimney(double side, double ht, {double dx = 0, double dz = 0}) {
     if (pitch > 1) {
-      final tejas = _tilesAt(dx, dz) - y;
+      // Medido en la esquina más alta y no en el medio: en un tejado
+      // empinado la pendiente sube mucho de un canto al otro de la
+      // chimenea, y medida en el medio quedaba casi al ras de las tejas por
+      // el lado de arriba. Así asoma lo mismo que en un tejado normal.
+      var tejas = _tilesAt(dx, dz) - y;
+      for (final ex in [-side / 2, side / 2]) {
+        for (final ez in [-side / 2, side / 2]) {
+          final t = _tilesAt(dx + ex, dz + ez) - y;
+          if (t > tejas) tejas = t;
+        }
+      }
       if (tejas > 0) ht += tejas * (1 - 1 / pitch);
     }
     box(PieceKind.chimney, side, side, ht, dx: dx, dz: dz, ridge: true);

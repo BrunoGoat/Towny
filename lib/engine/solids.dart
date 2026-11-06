@@ -3189,7 +3189,10 @@ List<Facet> _entramado(
   double z1,
   TownCharacter? place,
 ) {
-  const cal = 0xFFEDE6D4, madera = 0xFF4E3A2A, ras = 0.006;
+  // Las vigas, al ras de la pared como las ventanas: si asoman, aunque sea
+  // un pelo, de costado la ventana se pinta encima de una viga que tiene
+  // delante.
+  const cal = 0xFFEDE6D4, madera = 0xFF4E3A2A, ras = 0.0;
   final faces = boxFaces(x0, y0, z0, x1, y1, z1, Surface.own, tint: cal);
   _hangWindows(faces, y0, y1, place);
   final h = y1 - y0, g = math.min(0.07, h * 0.08);

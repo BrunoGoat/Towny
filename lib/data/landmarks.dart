@@ -624,7 +624,7 @@ final List<Landmark> landmarks = [
       m.timber(1.75, 2.25, 0.85);
       m.timber(1.9, 2.4, 0.8);
       m.roof(2.15, 2.65, 1.6, along: false);
-      m.chimney(0.36, 1.4, dx: 0.45, dz: -0.75);
+      m.chimney(0.36, 2.15, dx: 0, dz: -0.7);
       // El cartel, colgado de la esquina bajo el voladizo: de frente no
       // tapa ninguna ventana y de costado se lee entero.
       m.box(
