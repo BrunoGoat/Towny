@@ -99,6 +99,16 @@ enum PieceKind {
 
   /// Una mesa de taberna con sus dos bancos y las jarras encima.
   table,
+
+  /// El brocal de un pozo, redondo y con el agua oscura adentro; si es más
+  /// largo que ancho, un pilón de piedra con agua.
+  well,
+
+  /// El torno de un pozo: el rodillo con su manivela, la soga y el balde.
+  windlass,
+
+  /// Un poste de madera.
+  woodpost,
 }
 
 /// One piece of a building, before it is given to an achievement.
@@ -227,6 +237,9 @@ class Mason {
     PieceKind.kettle,
     PieceKind.sacks,
     PieceKind.table,
+    PieceKind.well,
+    PieceKind.windlass,
+    PieceKind.woodpost,
     PieceKind.banner,
     PieceKind.wheel,
     PieceKind.sail,
@@ -323,7 +336,11 @@ class Mason {
   }) {
     // A roof is the one thing whose height is not the town's height: how steep
     // this place builds is a fourth number, on top of the other three.
-    if (k == PieceKind.roof || k == PieceKind.thatch) ht *= pitch;
+    // Salvo el de un objeto —el tejadito de un pozo—, que mide lo mismo en
+    // todas partes.
+    if ((k == PieceKind.roof || k == PieceKind.thatch) && !fixed) {
+      ht *= pitch;
+    }
     final base = at ?? y;
     _add(
       k,

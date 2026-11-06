@@ -74,7 +74,6 @@ mercados, lonjas), los arcos altos de los campanarios y la boca de un horno.
 
 ### Chicas
 
-- Pozo del concejo (7)
 - Palomar (7)
 - Colmenar (6)
 - Huerto del cura (6)
@@ -118,7 +117,7 @@ mercados, lonjas), los arcos altos de los campanarios y la boca de un horno.
 - Lienzo de muralla (23)
 - Alcázar (32)
 - Palacio del señor (23)
-- Casa del concejo (20)
+- Casa comunal (20)
 - Lonja de mercaderes (20)
 - Iglesia (21)
 - Catedral (33)
@@ -164,3 +163,9 @@ mercados, lonjas), los arcos altos de los campanarios y la boca de un horno.
   mesa con bancos y tres jarras, el cartel de la jarra colgado de la
   esquina y la pareja de toneles al costado, que se pone como una sola
   pieza. Sin puerta.
+
+- Pozo comunal (6): brocal redondo de piedra con el agua oscura adentro, dos
+  postes de madera asentados en piedras redondas, el torno con la soga y un
+  balde grande colgando sobre la boca, y el tejadito alto a dos aguas.
+  Delante, el pilón con agua para los animales. Sobre el césped, sin
+  plataforma. Es un objeto: mide lo mismo en todos los pueblos.

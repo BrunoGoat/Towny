@@ -6,7 +6,7 @@ library;
 const Map<String, (String, String)> landmarksEn = {
   // ---------------------------------------------------------- el catálogo
   'pozo': (
-    'Council well',
+    'Communal well',
     'Clean water, close at hand for everyone. Around the well, the '
         'square and the life of the town are born.',
   ),
@@ -198,7 +198,7 @@ const Map<String, (String, String)> landmarksEn = {
         'its very best.',
   ),
   'concejo': (
-    'Council house',
+    'Communal house',
     "Where the town's voices are heard and decisions are made together. "
         "Self-government made into a house.",
   ),

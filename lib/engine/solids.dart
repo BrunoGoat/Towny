@@ -170,6 +170,43 @@ List<Solid> solidsOf(
     case PieceKind.table:
       return _mesaTaberna(i, x0, y0, z0, x1, y1, z1);
 
+    case PieceKind.well:
+      return _pozo(i, piece, x0, y0, z0, x1, y1, z1);
+
+    case PieceKind.windlass:
+      return _torno(i, x0, y0, z0, x1, y1, z1);
+
+    case PieceKind.woodpost:
+      // Asentado en una piedra redonda, un poco más ancha que el poste.
+      final pie = math.min(0.16, (y1 - y0) * 0.12);
+      return [
+        Solid(
+          i,
+          prismFaces(
+            Plaza.ring(piece.cx, piece.cz, (x1 - x0) * 0.95),
+            y0,
+            y0 + pie,
+            Surface.own,
+            ao: 0.94,
+            tint: 0xFFAFA38A,
+          ),
+        ),
+        Solid(
+          i,
+          boxFaces(
+            x0,
+            y0 + pie,
+            z0,
+            x1,
+            y1,
+            z1,
+            Surface.own,
+            ao: 0.92,
+            tint: _maderaPozo,
+          ),
+        ),
+      ];
+
     case PieceKind.tree:
       final ht = y1 - y0;
       final trunk = piece.w * 0.16;
@@ -3402,4 +3439,128 @@ List<Solid> _mesaTaberna(
     );
   }
   return out;
+}
+
+const _maderaPozo = 0xFF6E5236;
+
+/// El brocal: redondo, de piedra, con su borde más claro y el agua oscura
+/// adentro. Si es más largo que ancho, un pilón: la piedra y el agua a ras.
+List<Solid> _pozo(
+  int i,
+  TownPiece p,
+  double x0,
+  double y0,
+  double z0,
+  double x1,
+  double y1,
+  double z1,
+) {
+  const piedra = 0xFFAFA38A, borde = 0xFFBDB197, agua = 0xFF2F4E5E;
+  if ((p.w - p.d).abs() > 0.15) {
+    final g = math.min(p.w, p.d) * 0.16;
+    return [
+      Solid(
+        i,
+        boxFaces(x0, y0, z0, x1, y1, z1, Surface.own, ao: 0.95, tint: piedra),
+      ),
+      Solid(
+        i,
+        boxFaces(
+          x0 + g,
+          y1,
+          z0 + g,
+          x1 - g,
+          y1 + 0.006,
+          z1 - g,
+          Surface.own,
+          ao: 1.0,
+          tint: agua,
+        ),
+      ),
+    ];
+  }
+  final cx = p.cx, cz = p.cz, r = math.min(p.w, p.d) / 2, h = y1 - y0;
+  Solid aro(double rr, double ya, double yb, int c, double ao) => Solid(
+    i,
+    prismFaces(Plaza.ring(cx, cz, rr), ya, yb, Surface.own, ao: ao, tint: c),
+  );
+  return [
+    aro(r * 0.94, y0, y1 - h * 0.14, piedra, 0.94),
+    aro(r, y1 - h * 0.14, y1, borde, 1.04),
+    aro(r * 0.72, y1, y1 + 0.006, agua, 1.0),
+  ];
+}
+
+/// El torno, de punta a punta a lo ancho entre los dos postes: arriba el
+/// rodillo con la soga enrollada y la manivela en una punta, y la soga que
+/// baja hasta el balde, colgado sobre la boca del pozo.
+List<Solid> _torno(
+  int i,
+  double x0,
+  double y0,
+  double z0,
+  double x1,
+  double y1,
+  double z1,
+) {
+  const soga = 0xFFC9B07A, hierro = 0xFF3E3A36, balde = 0xFF8A6238;
+  final cz = (z0 + z1) / 2, cx = (x0 + x1) / 2;
+  final rr = math.min(0.07, (z1 - z0) / 2);
+  Solid caja(
+    double a,
+    double ya,
+    double c,
+    double b,
+    double yb,
+    double d,
+    int t,
+    double ao,
+  ) => Solid(i, boxFaces(a, ya, c, b, yb, d, Surface.own, ao: ao, tint: t));
+  final top = y1 - rr * 2;
+  // El balde, grande: que se vea de lejos colgando sobre la boca.
+  const br = 0.27;
+  final bBot = y0 + 0.16, bTop = math.min(y0 + 0.64, top - 0.2);
+  return [
+    // El rodillo.
+    caja(x0, top, cz - rr, x1, y1, cz + rr, _maderaPozo, 0.95),
+    // La soga enrollada, en el medio del rodillo.
+    caja(
+      cx - 0.12,
+      top - 0.01,
+      cz - rr - 0.01,
+      cx + 0.12,
+      y1 + 0.01,
+      cz + rr + 0.01,
+      soga,
+      1.0,
+    ),
+    // La manivela: el brazo que baja y el mango que sale.
+    caja(x1, top - 0.16, cz - 0.02, x1 + 0.04, y1 - rr, cz + 0.02, hierro, 0.9),
+    caja(x1, top - 0.16, cz, x1 + 0.04, top - 0.12, cz + 0.12, hierro, 0.9),
+    // La soga que baja.
+    caja(cx - 0.012, bTop, cz - 0.012, cx + 0.012, top, cz + 0.012, soga, 1.0),
+    // El balde, con su aro.
+    Solid(
+      i,
+      prismFaces(
+        Plaza.ring(cx, cz, br * 0.85),
+        bBot,
+        bTop,
+        Surface.own,
+        ao: 0.95,
+        tint: balde,
+      ),
+    ),
+    Solid(
+      i,
+      prismFaces(
+        Plaza.ring(cx, cz, br * 0.9),
+        bTop - (bTop - bBot) * 0.22,
+        bTop - (bTop - bBot) * 0.1,
+        Surface.own,
+        ao: 0.9,
+        tint: hierro,
+      ),
+    ),
+  ];
 }

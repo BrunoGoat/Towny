@@ -126,7 +126,7 @@ vuelta y **subiendo pieza a pieza**.
 Sesenta que se distinguen valen más que sesenta con diez repetidas.
 
 **Hitos chicos**
-- [ ] Pozo del concejo
+- [ ] Pozo comunal
 - [ ] Cruz de término
 - [ ] Palomar
 - [ ] Colmenar
@@ -172,7 +172,7 @@ Sesenta que se distinguen valen más que sesenta con diez repetidas.
 - [ ] Lienzo de muralla
 - [ ] Alcázar
 - [ ] Palacio del señor
-- [ ] Casa del concejo
+- [ ] Casa comunal
 - [ ] Lonja de mercaderes
 - [ ] Iglesia
 - [ ] Catedral

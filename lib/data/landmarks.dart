@@ -132,20 +132,73 @@ final List<Landmark> landmarks = [
   // The small works: a day's walk apart in a real village, a week apart here.
   Landmark(
     'pozo',
-    'Pozo del concejo',
-    7,
+    'Pozo comunal',
+    6,
     0,
     'Agua limpia y cerca para todos. Alrededor del pozo nacen la plaza '
         'y la vida del pueblo.',
     (m) {
-      m.plinth(1.5, 1.5, 0.26);
-      m.parapet(1.1, 1.1, 0.6);
-      final brocal = m.y;
-      m.post(0.16, 1.2, dx: -0.46, at: brocal);
-      m.post(0.16, 1.2, dx: 0.46, at: brocal);
-      m.beam(1.15, 0.2, 0.16, at: brocal + 1.2);
-      m.roof(1.55, 1.25, 0.44, at: brocal + 1.36);
-      m.box(PieceKind.parapet, 1.3, 0.4, 0.3, dz: 1.25, at: 0);
+      // Lo que dice «pozo» y no «caja con techo»:
+      // - el brocal redondo de piedra, con el agua oscura adentro;
+      // - el torno de madera con la soga y el balde grande colgando sobre la
+      //   boca;
+      // - el tejadito a dos aguas, alto, sobre los postes de madera, cada
+      //   uno asentado en su piedra redonda;
+      // - delante, el pilón con agua para los animales.
+      // Sobre el césped, sin plataforma. Es un objeto: mide lo mismo en
+      // todos los pueblos, como en la Ribera.
+      m.anchor(0, 0);
+      const boca = 0.62, alto = 1.8;
+      m.box(PieceKind.well, 1.15, 1.15, boca, at: 0, ridge: true, fixed: true);
+      m.box(
+        PieceKind.woodpost,
+        0.13,
+        0.13,
+        alto,
+        dx: -0.62,
+        at: 0,
+        ridge: true,
+        fixed: true,
+      );
+      m.box(
+        PieceKind.woodpost,
+        0.13,
+        0.13,
+        alto,
+        dx: 0.62,
+        at: 0,
+        ridge: true,
+        fixed: true,
+      );
+      m.box(
+        PieceKind.windlass,
+        1.11,
+        0.16,
+        alto - 0.08 - boca,
+        at: boca,
+        ridge: true,
+        fixed: true,
+      );
+      m.box(
+        PieceKind.roof,
+        1.55,
+        1.05,
+        0.55,
+        at: alto,
+        ridge: true,
+        fixed: true,
+      );
+      m.box(
+        PieceKind.well,
+        1.1,
+        0.45,
+        0.36,
+        dz: 1.15,
+        at: 0,
+        ridge: true,
+        fixed: true,
+      );
+      m.unanchor();
     },
   ),
 
@@ -1537,7 +1590,7 @@ final List<Landmark> landmarks = [
 
   Landmark(
     'concejo',
-    'Casa del concejo',
+    'Casa comunal',
     20,
     2,
     'Donde se escuchan las voces del pueblo y se decide en común. El '

@@ -322,6 +322,9 @@ void main() {
           // por un número y a lo alto por otro—, así que cada pieza tiene que
           // ser la del taller multiplicada por esos dos números.
           final ref = receta.out.indexWhere((r) => r.w > 0.2 && !r.fixed);
+          // Una obra que es toda objeto —el pozo— no se estira: la mide la
+          // prueba siguiente.
+          if (ref < 0) continue;
           final ancho = hechas[ref].w / receta.out[ref].w;
           final ox = hechas[ref].cx - receta.out[ref].cx * ancho;
           final oz = hechas[ref].cz - receta.out[ref].cz * ancho;
