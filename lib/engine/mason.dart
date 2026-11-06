@@ -127,6 +127,24 @@ enum PieceKind {
   /// Un tejado a dos aguas de paja: gordo, del color de la paja y no del de
   /// las tejas del pueblo.
   strawroof,
+
+  /// Una cerca baja de palos: los postes y dos travesaños, de punta a punta
+  /// por lo largo.
+  railfence,
+
+  /// Unas ovejas sueltas: tres, cada una mirando para su lado.
+  sheep,
+
+  /// Un cobertizo de tablas: la caja de madera lisa con sus cuatro postes
+  /// de esquina más oscuros y un ventanuco.
+  shed,
+
+  /// Un tejado de una sola caída, más alto atrás que adelante, del color de
+  /// las tejas del pueblo.
+  leanto,
+
+  /// Las herramientas apoyadas contra una pared: la horca y la pala.
+  tools,
 }
 
 /// One piece of a building, before it is given to an achievement.
@@ -262,6 +280,11 @@ class Mason {
     PieceKind.bed,
     PieceKind.scarecrow,
     PieceKind.bales,
+    PieceKind.railfence,
+    PieceKind.sheep,
+    PieceKind.shed,
+    PieceKind.leanto,
+    PieceKind.tools,
     PieceKind.banner,
     PieceKind.wheel,
     PieceKind.sail,

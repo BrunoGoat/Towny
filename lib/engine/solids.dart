@@ -185,6 +185,21 @@ List<Solid> solidsOf(
     case PieceKind.strawroof:
       return _techoPaja(i, piece, x0, y0, z0, x1, y1, z1);
 
+    case PieceKind.railfence:
+      return _cerca(i, x0, y0, z0, x1, y1, z1);
+
+    case PieceKind.sheep:
+      return _ovejas(i, x0, y0, z0, x1, y1, z1);
+
+    case PieceKind.shed:
+      return _cobertizo(i, x0, y0, z0, x1, y1, z1);
+
+    case PieceKind.leanto:
+      return [Solid(i, _faldon(x0, y0, z0, x1, y1, z1))];
+
+    case PieceKind.tools:
+      return _herramientas(i, x0, y0, z0, x1, y1, z1);
+
     case PieceKind.well:
       return _pozo(i, piece, x0, y0, z0, x1, y1, z1);
 
@@ -4055,4 +4070,411 @@ List<Solid> _techoPaja(
         ),
     ]),
   ];
+}
+
+/// Una cerca baja de palos: postes cada poco más de medio metro y dos
+/// travesaños corridos, todo de madera lisa.
+List<Solid> _cerca(
+  int i,
+  double x0,
+  double y0,
+  double z0,
+  double x1,
+  double y1,
+  double z1,
+) {
+  const madera = 0xFF7A5A3A, palo = 0xFF6A4C30;
+  final largoX = (x1 - x0) >= (z1 - z0);
+  final largo = largoX ? x1 - x0 : z1 - z0;
+  final cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
+  final h = y1 - y0;
+  const t = 0.05, r = 0.035;
+  final n = math.max(1, (largo / 0.6).ceil());
+  final out = <Solid>[];
+  for (var k = 0; k <= n; k++) {
+    final u = (largoX ? x0 : z0) + largo * k / n;
+    final (ax, az) = largoX ? (u, cz) : (cx, u);
+    out.add(
+      Solid(
+        i,
+        boxFaces(
+          ax - t,
+          y0,
+          az - t,
+          ax + t,
+          y1,
+          az + t,
+          Surface.own,
+          ao: 0.9,
+          tint: palo,
+        ),
+      ),
+    );
+  }
+  for (final at in [0.45, 0.85]) {
+    final y = y0 + h * at;
+    out.add(
+      Solid(
+        i,
+        largoX
+            ? boxFaces(
+                x0,
+                y - r,
+                cz - r,
+                x1,
+                y + r,
+                cz + r,
+                Surface.own,
+                ao: 0.95,
+                tint: madera,
+              )
+            : boxFaces(
+                cx - r,
+                y - r,
+                z0,
+                cx + r,
+                y + r,
+                z1,
+                Surface.own,
+                ao: 0.95,
+                tint: madera,
+              ),
+      ),
+    );
+  }
+  return out;
+}
+
+/// Las ovejas no se archivan con lo quieto: andan por el corral, así que se
+/// dibujan cada fotograma (ver `ovejaFacets` y el pintor). La pieza sólo
+/// marca el rectángulo por donde pastan.
+List<Solid> _ovejas(
+  int i,
+  double x0,
+  double y0,
+  double z0,
+  double x1,
+  double y1,
+  double z1,
+) => const [];
+
+/// Una oveja parada en ([cx], [y0], [cz]) mirando hacia [rumbo] (radianes,
+/// cero hacia +x), de tamaño [t] (uno, una grande; menos, un cordero).
+/// Gordita: el cuerpo de lana con el lomo redondeado, la cara oscura con las
+/// orejas para los costados y el copete de lana encima, las patas oscuras y
+/// la colita.
+List<Facet> ovejaFacets(
+  double cx,
+  double y0,
+  double cz,
+  double rumbo,
+  double t,
+) {
+  const lana = 0xFFE4DED0, lanaSombra = 0xFFD2CBBB, cara = 0xFF38302B;
+  final fx = math.cos(rumbo), fz = math.sin(rumbo);
+  final sx = -fz, sz = fx;
+  V3 en(double l, double y, double c) =>
+      V3(cx + fx * l + sx * c, y, cz + fz * l + sz * c);
+  final out = <Facet>[];
+  // Una caja en coordenadas de la oveja: l hacia adelante, c al costado.
+  void caja(
+    double la,
+    double ya,
+    double ca,
+    double lb,
+    double yb,
+    double cb,
+    int col,
+    double ao,
+  ) {
+    final v = [
+      en(la, ya, ca),
+      en(lb, ya, ca),
+      en(lb, ya, cb),
+      en(la, ya, cb),
+      en(la, yb, ca),
+      en(lb, yb, ca),
+      en(lb, yb, cb),
+      en(la, yb, cb),
+    ];
+    final mid = en((la + lb) / 2, (ya + yb) / 2, (ca + cb) / 2);
+    for (final q in const [
+      [0, 1, 2, 3],
+      [4, 7, 6, 5],
+      [0, 4, 5, 1],
+      [1, 5, 6, 2],
+      [2, 6, 7, 3],
+      [3, 7, 4, 0],
+    ]) {
+      final f = [for (final k in q) v[k]];
+      out.add(
+        Facet(
+          f,
+          Facet.normalOf(f, away: mid),
+          Surface.own,
+          ao: ao,
+          tint: col,
+        ),
+      );
+    }
+  }
+
+  final largo = 0.5 * t, ancho = 0.34 * t, pata = 0.12 * t;
+  final cuerpo = 0.27 * t;
+  final hl = largo / 2, hc = ancho / 2;
+  final p = 0.028 * t;
+  for (final (pl, pc) in [(-1, -1), (1, -1), (-1, 1), (1, 1)]) {
+    final l = pl * (hl - 0.07 * t), c = pc * (hc - 0.07 * t);
+    caja(l - p, y0, c - p, l + p, y0 + pata + 0.02, c + p, cara, 0.9);
+  }
+  final y1c = y0 + pata + cuerpo * 0.68;
+  caja(-hl, y0 + pata, -hc, hl, y1c, hc, lana, 1.0);
+  final i2 = 0.045 * t;
+  caja(
+    -hl + i2,
+    y1c,
+    -hc + i2,
+    hl - i2,
+    y0 + pata + cuerpo,
+    hc - i2,
+    lana,
+    1.04,
+  );
+  final c0 = 0.045 * t, lc = -(hl + 0.03 * t);
+  caja(
+    lc - c0,
+    y1c - 0.06 * t,
+    -c0,
+    lc + c0,
+    y1c + 0.02 * t,
+    c0,
+    lanaSombra,
+    0.98,
+  );
+  final lf = hl + 0.05 * t, c = 0.075 * t;
+  final ya = y0 + pata + cuerpo * 0.38, yb = y0 + pata + cuerpo + 0.04 * t;
+  caja(lf - c, ya, -c, lf + c, yb, c, cara, 0.95);
+  for (final lado in [-1.0, 1.0]) {
+    final oc = lado * (c + 0.04 * t);
+    final e = 0.035 * t, f = 0.022 * t;
+    caja(
+      lf - f,
+      yb - 0.07 * t,
+      oc - e,
+      lf + f,
+      yb - 0.035 * t,
+      oc + e,
+      cara,
+      0.9,
+    );
+  }
+  final k = c * 0.8;
+  caja(lf - k, yb, -k, lf + k, yb + 0.05 * t, k, lana, 1.04);
+  return out;
+}
+
+/// El cobertizo de tablas: una caja de madera de color liso, con los cuatro
+/// postes de las esquinas más oscuros y un ventanuco oscuro en el frente.
+/// Sin vetas ni tablas dibujadas: el color de la madera alcanza.
+List<Solid> _cobertizo(
+  int i,
+  double x0,
+  double y0,
+  double z0,
+  double x1,
+  double y1,
+  double z1,
+) {
+  const tabla = 0xFF9A7650, poste = 0xFF5E4430, hueco = 0xFF3A3028;
+  final h = y1 - y0;
+  final caja = boxFaces(
+    x0,
+    y0,
+    z0,
+    x1,
+    y1,
+    z1,
+    Surface.own,
+    ao: 0.95,
+    tint: tabla,
+  );
+  // El ventanuco, en la cara de adelante (z1).
+  for (var k = 0; k < caja.length; k++) {
+    final f = caja[k];
+    if (f.n.z < 0.5) continue;
+    final cx = (x0 + x1) / 2, ya = y0 + h * 0.5, yb = y0 + h * 0.75;
+    const a = 0.12;
+    caja[k] = Facet(
+      f.v,
+      f.n,
+      f.surface,
+      ao: f.ao,
+      tint: f.tint,
+      decals: [
+        Facet(
+          [
+            V3(cx - a, ya, z1),
+            V3(cx + a, ya, z1),
+            V3(cx + a, yb, z1),
+            V3(cx - a, yb, z1),
+          ],
+          f.n,
+          Surface.own,
+          tint: hueco,
+        ),
+      ],
+    );
+  }
+  const t = 0.055;
+  return [
+    Solid(i, caja),
+    for (final (x, z) in [(x0, z0), (x1, z0), (x0, z1), (x1, z1)])
+      Solid(
+        i,
+        boxFaces(
+          x - t,
+          y0,
+          z - t,
+          x + t,
+          y1 + 0.01,
+          z + t,
+          Surface.own,
+          ao: 0.9,
+          tint: poste,
+        ),
+      ),
+  ];
+}
+
+/// Un tejado de una sola caída: alto atrás (z0) y bajo adelante (z1), con
+/// sus dos costados en triángulo. Del color de las tejas del pueblo.
+List<Facet> _faldon(
+  double x0,
+  double y0,
+  double z0,
+  double x1,
+  double y1,
+  double z1,
+) {
+  final grueso = math.min(0.06, (y1 - y0) * 0.2);
+  final mid = V3((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
+  Facet cara(List<V3> v) =>
+      Facet(v, Facet.normalOf(v, away: mid), Surface.tile);
+  // Abajo atrás, arriba atrás, abajo adelante (más el grueso del alero).
+  final a0 = V3(x0, y0, z0), a1 = V3(x1, y0, z0);
+  final b0 = V3(x0, y1, z0), b1 = V3(x1, y1, z0);
+  final c0 = V3(x0, y0, z1), c1 = V3(x1, y0, z1);
+  final d0 = V3(x0, y0 + grueso, z1), d1 = V3(x1, y0 + grueso, z1);
+  return [
+    cara([b0, b1, d1, d0]), // la caída
+    cara([a0, c0, c1, a1]), // abajo
+    cara([a0, a1, b1, b0]), // atrás
+    cara([c0, d0, d1, c1]), // el canto del alero
+    cara([a0, b0, d0, c0]), // costado
+    cara([a1, c1, d1, b1]), // costado
+  ];
+}
+
+/// Una vara de [a] a [b], de [t] de ancho (a lo largo de [ancho]) y
+/// [grueso] de grueso (lo mismo que [t] si no se dice): para lo que está
+/// inclinado, que una caja derecha no puede.
+List<Facet> _vara(
+  V3 a,
+  V3 b,
+  double t,
+  int c, {
+  V3 ancho = const V3(1, 0, 0),
+  double? grueso,
+}) {
+  final d = b - a;
+  final l = math.sqrt(d.x * d.x + d.y * d.y + d.z * d.z);
+  final u = V3(d.x / l, d.y / l, d.z / l);
+  // Un eje de lado, perpendicular a la vara, y el otro perpendicular a los
+  // dos.
+  var s = V3(
+    ancho.x - u.x * (ancho.x * u.x + ancho.y * u.y + ancho.z * u.z),
+    ancho.y - u.y * (ancho.x * u.x + ancho.y * u.y + ancho.z * u.z),
+    ancho.z - u.z * (ancho.x * u.x + ancho.y * u.y + ancho.z * u.z),
+  );
+  final sl = math.sqrt(s.x * s.x + s.y * s.y + s.z * s.z);
+  s = V3(s.x / sl * t / 2, s.y / sl * t / 2, s.z / sl * t / 2);
+  var w = V3(
+    u.y * s.z - u.z * s.y,
+    u.z * s.x - u.x * s.z,
+    u.x * s.y - u.y * s.x,
+  );
+  final wl = math.sqrt(w.x * w.x + w.y * w.y + w.z * w.z);
+  final g = grueso ?? t;
+  w = V3(w.x / wl * g / 2, w.y / wl * g / 2, w.z / wl * g / 2);
+  V3 q(V3 o, double i, double j) => V3(
+    o.x + s.x * i + w.x * j,
+    o.y + s.y * i + w.y * j,
+    o.z + s.z * i + w.z * j,
+  );
+  final mid = V3((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
+  Facet cara(List<V3> v) =>
+      Facet(v, Facet.normalOf(v, away: mid), Surface.own, ao: 0.92, tint: c);
+  const esq = [(-1.0, -1.0), (1.0, -1.0), (1.0, 1.0), (-1.0, 1.0)];
+  final out = <Facet>[
+    cara([for (final (i, j) in esq) q(a, i, j)]),
+    cara([for (final (i, j) in esq.reversed) q(b, i, j)]),
+  ];
+  for (var k = 0; k < 4; k++) {
+    final (i0, j0) = esq[k];
+    final (i1, j1) = esq[(k + 1) % 4];
+    out.add(cara([q(a, i0, j0), q(a, i1, j1), q(b, i1, j1), q(b, i0, j0)]));
+  }
+  return out;
+}
+
+/// La horca y la pala apoyadas contra la pared que queda detrás (en z0):
+/// el pie adelante, en el suelo, y la punta arriba contra la pared.
+List<Solid> _herramientas(
+  int i,
+  double x0,
+  double y0,
+  double z0,
+  double x1,
+  double y1,
+  double z1,
+) {
+  const mango = 0xFF8A6A44, hierro = 0xFF5A5652;
+  final h = y1 - y0, w = x1 - x0;
+  final out = <Solid>[];
+  // La horca, a la izquierda, con los dientes para arriba.
+  final hx = x0 + w * 0.3;
+  final pieH = V3(hx, y0, z1), puntaH = V3(hx, y0 + h * 0.72, z0 + 0.02);
+  out.add(Solid(i, _vara(pieH, puntaH, 0.035, mango)));
+  // El travesaño y los tres dientes, en el mismo plano inclinado.
+  final dz = (puntaH.z - pieH.z) / (puntaH.y - pieH.y);
+  double zA(double y) => pieH.z + (y - pieH.y) * dz;
+  final yT = puntaH.y;
+  out.add(
+    Solid(
+      i,
+      _vara(
+        V3(hx - 0.1, yT, zA(yT)),
+        V3(hx + 0.1, yT, zA(yT)),
+        0.03,
+        hierro,
+        ancho: const V3(0, 1, 0),
+      ),
+    ),
+  );
+  for (final dx in [-0.085, 0.0, 0.085]) {
+    out.add(
+      Solid(
+        i,
+        _vara(V3(hx + dx, yT, zA(yT)), V3(hx + dx, y1, zA(y1)), 0.022, hierro),
+      ),
+    );
+  }
+  // La pala, a la derecha, con la hoja abajo.
+  final px = x0 + w * 0.72;
+  final pieP = V3(px, y0 + h * 0.26, z1 - 0.06), puntaP = V3(px, y1, z0 + 0.02);
+  out.add(Solid(i, _vara(pieP, puntaP, 0.035, mango)));
+  final dzP = (puntaP.z - pieP.z) / (puntaP.y - pieP.y);
+  final hoja0 = V3(px, y0 + 0.01, pieP.z - (pieP.y - y0) * dzP);
+  out.add(Solid(i, _vara(hoja0, pieP, 0.16, hierro, grueso: 0.025)));
+  return out;
 }

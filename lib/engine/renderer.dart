@@ -631,6 +631,31 @@ class TownPainter extends CustomPainter {
     // después: una sombra pintada al final es una mancha encima de la hierba
     // y de todo lo que haya en medio. Pintada aquí la tapa cualquier cosa que
     // esté delante, que es lo que hace una sombra.
+    // Y debajo de cada oveja, por lo mismo.
+    final tOvejas = pal.isDaylight ? scene.time : 0.0;
+    for (final b in town.buildings) {
+      for (var k = 0; k < b.placedPieces; k++) {
+        final j = b.firstPiece + k;
+        if (j >= town.pieces.length) break;
+        final piece = town.pieces[j];
+        if (piece.kind != PieceKind.sheep) continue;
+        for (final (x, z, _, tam) in rebano(piece, tOvejas)) {
+          final at = p.project(V3(x, 0.007, z));
+          if (at == null) continue;
+          final r = p.focal / at.depth * 0.32 * tam;
+          if (r < 1.1) continue;
+          canvas.drawCircle(
+            Offset(at.x, at.y),
+            r,
+            Paint()
+              ..shader = ui.Gradient.radial(Offset(at.x, at.y), r, [
+                pal.ink.withValues(alpha: 0.26 * pal.daylight),
+                pal.ink.withValues(alpha: 0),
+              ]),
+          );
+        }
+      }
+    }
     for (final v in folk) {
       final at = p.project(V3(v.at.x, 0.007, v.at.z));
       if (at == null) continue;
@@ -1434,8 +1459,11 @@ class TownPainter extends CustomPainter {
         _sombraMovil[w] ??
             [..._casterDe(gente), ..._sombraAgua(e.layout, pal, agua)],
       );
-      final abejas = _abejas(p, e, take, night);
-      final vecinos = abejas.isEmpty ? gente : [...gente, ...abejas];
+      final animales = [
+        ..._abejas(p, e, take, night),
+        ..._ovejasQueAndan(p, e, take, night),
+      ];
+      final vecinos = animales.isEmpty ? gente : [...gente, ...animales];
       // **El suelo de la plaza, antes que todo lo del pueblo.** Debajo de él
       // no hay nada, así que no puede tapar a nadie que deba verse: lo que
       // está encima —la gente, las palomas, el pan, los muebles— se pinta
@@ -2991,6 +3019,11 @@ class TownPainter extends CustomPainter {
         case PieceKind.scarecrow:
         case PieceKind.bales:
         case PieceKind.strawroof:
+        case PieceKind.railfence:
+        case PieceKind.sheep:
+        case PieceKind.shed:
+        case PieceKind.leanto:
+        case PieceKind.tools:
           break;
         default:
           porCasa.putIfAbsent(pc.building, () => []).add(pc);
@@ -3634,6 +3667,108 @@ class TownPainter extends CustomPainter {
         shade,
       );
     }
+  }
+
+  /// Dónde está cada animal de un rebaño en el instante [t]: (x, z, rumbo,
+  /// tamaño). Dos ovejas grandes, cada una en su mitad del corral, y un
+  /// corderito.
+  ///
+  /// Se mueven como en los juegos de bloques: un rato quietas pastando,
+  /// unos pasos cortos hasta otro sitio, y otra vez quietas. Mucho
+  /// movimiento se robaba la atención del pueblo. El corderito anda por la
+  /// zona de su madre, cerca pero no pegado, y arranca un poco después que
+  /// ella.
+  static List<(double, double, double, double)> rebano(
+    TownPiece piece,
+    double t,
+  ) {
+    final x0 = piece.x0, z0 = piece.z0;
+    final w = piece.x1 - piece.x0, d = piece.z1 - piece.z0;
+    const paso = 2.2;
+    (double, double) adentro(double x, double z) => (
+      x.clamp(piece.x0 + 0.2, piece.x1 - 0.2),
+      z.clamp(piece.z0 + 0.2, piece.z1 - 0.2),
+    );
+    (double, double, double) anda(
+      int k,
+      double u0,
+      double u1,
+      double v0,
+      double v1, {
+      double atraso = 0,
+      (double, double) Function(int n)? destino,
+    }) {
+      final periodo = 8.0 + 4.0 * hash01(piece.seed, 81, k);
+      final tt = t - atraso + periodo * hash01(piece.seed, 83, k);
+      final n = (tt / periodo).floor();
+      final local = tt - n * periodo;
+      (double, double) meta(int m) =>
+          destino?.call(m) ??
+          (
+            x0 + w * (u0 + (u1 - u0) * hash01(piece.seed, 85 + k, m)),
+            z0 + d * (v0 + (v1 - v0) * hash01(piece.seed, 87 + k, m)),
+          );
+      final (ax, az) = meta(n - 1);
+      final (bx, bz) = meta(n);
+      final (px, pz) = meta(n - 2);
+      final arranca = periodo - paso;
+      if (local < arranca) {
+        // Quieta donde llegó, mirando para donde venía.
+        return (ax, az, math.atan2(az - pz, ax - px));
+      }
+      final s = (local - arranca) / paso;
+      final e = s * s * (3 - 2 * s);
+      return (
+        ax + (bx - ax) * e,
+        az + (bz - az) * e,
+        math.atan2(bz - az, bx - ax),
+      );
+    }
+
+    final (ax, az, ar) = anda(0, 0.12, 0.42, 0.2, 0.8);
+    final (bx, bz, br) = anda(1, 0.62, 0.88, 0.42, 0.85);
+    // El corderito: sus metas son las de la madre, corridas tres cuartos de metro
+    // largo para un lado que cambia cada vez, para que no la toque.
+    (double, double) cerca(int m) {
+      final fase = hash01(piece.seed, 89, m) * 6.28;
+      final hx = x0 + w * (0.12 + 0.3 * hash01(piece.seed, 85, m));
+      final hz = z0 + d * (0.2 + 0.6 * hash01(piece.seed, 87, m));
+      return adentro(hx + math.cos(fase) * 0.75, hz + math.sin(fase) * 0.75);
+    }
+
+    var (cx, cz, cr) = anda(0, 0, 1, 0, 1, atraso: 1.3, destino: cerca);
+    // Si en el camino se le arrima demasiado a una grande, se corre lo justo
+    // para no tocarla: nunca una oveja metida dentro de otra.
+    for (final (ox, oz) in [(ax, az), (bx, bz)]) {
+      final dx = cx - ox, dz = cz - oz;
+      final dist = math.sqrt(dx * dx + dz * dz);
+      const minimo = 0.66;
+      if (dist < minimo) {
+        final (ux, uz) = dist < 1e-6 ? (1.0, 0.0) : (dx / dist, dz / dist);
+        (cx, cz) = adentro(ox + ux * minimo, oz + uz * minimo);
+      }
+    }
+    return [(ax, az, ar, 1.0), (bx, bz, br, 1.0), (cx, cz, cr, 0.68)];
+  }
+
+  /// Las ovejas de los corrales de un pueblo, dibujadas cada fotograma. Van
+  /// por el árbol como la gente, por lo mismo que las abejas. De noche se
+  /// quedan quietas.
+  List<Rider> _ovejasQueAndan(Projector p, TownEntry e, int take, bool night) {
+    final out = <Rider>[];
+    final pieces = e.layout.pieces;
+    final t = night ? 0.0 : scene.time;
+    for (var j = 0; j < take && j < pieces.length; j++) {
+      final piece = pieces[j];
+      if (piece.kind != PieceKind.sheep) continue;
+      for (final (x, z, rumbo, tam) in rebano(piece, t)) {
+        for (final f in ovejaFacets(x, piece.y0, z, rumbo, tam)) {
+          f.piece = -1;
+          out.add(Rider(f, 200000 + out.length, -1));
+        }
+      }
+    }
+    return out;
   }
 
   /// Las abejas de las colmenas de un pueblo: tres por colmena, dando

@@ -31,6 +31,11 @@ Entre paréntesis, cuántas piezas cuesta.
 3. **Que se vea como una sola cosa.** Sin contrastes fuertes entre
    materiales ni tejados de dos colores. Lo que es parte del edificio se ve
    pegado, no como una casita aparte.
+   **Regla: todo es cuadrado.** Los edificios son de planta cuadrada o
+   rectangular, con tejados de dos o cuatro aguas o de una sola caída; nada
+   redondo (ni chozas, ni torres ochavadas, ni techos cónicos). Lo redondo
+   queda para objetos chicos: el brocal del pozo, los toneles, las colmenas,
+   los almiares.
 4. **Que tenga sentido.** Si en la vida real no sería así, se nota: la sala
    donde se hace la cerveza no lleva ventanas, la chimenea va donde se
    cocina, un cartel no tapa una ventana.
@@ -45,7 +50,14 @@ Entre paréntesis, cuántas piezas cuesta.
    Por ejemplo, el tejadito del ala de la cervecería llega siempre justo
    hasta arriba del primer piso de madera, sea el tejado más o menos
    empinado, y nunca trepa por la casa.
-8. **Cómo se trabaja.** Mientras se diseña: fotos, ajustes rápidos, y sin
+8. **Cada obra, con lo suyo.** Las piezas se pueden reutilizar, pero no
+   como salida fácil: la pared de cal con vigas se hizo para la cervecería,
+   y si se pone en todas, todas se parecen y ninguna dice lo suyo. Si una
+   obra necesita algo propio, se hace una pieza nueva para ella (el
+   cobertizo de tablas del corral, el tejado de paja del pajar, el brocal
+   del pozo), siempre dentro de los demás criterios: lo propio tiene que
+   seguir siendo del mismo pueblo.
+9. **Cómo se trabaja.** Mientras se diseña: fotos, ajustes rápidos, y sin
    pruebas ni subidas en el medio hasta que se diga "probá los tests y
    subí". Las fotos de referencia son una guía para que tenga el mismo
    espíritu, siempre adaptada al estilo de Towny.
@@ -78,7 +90,6 @@ mercados, lonjas), los arcos altos de los campanarios y la boca de un horno.
 
 ### Chicas
 
-- Corral (6)
 - Gallinero (6)
 - Alfarería (12)
 - Lavadero (8)
@@ -190,3 +201,11 @@ mercados, lonjas), los arcos altos de los campanarios y la boca de un horno.
   dos almiares redondos que terminan en punta, sin escalones, con el palo
   asomando. Al costado, a un paso de la pared en todos los pueblos, unos
   fardos apilados en dos capas.
+
+- Corral (9): cerrado por los cuatro lados con una cerca baja de palos. Adentro
+  dos ovejas y un corderito que se mueven como en los juegos de bloques: un
+  rato quietas, unos pasos cortos y otra vez quietas; el corderito anda cerca
+  de su madre pero por su cuenta. El pilón con agua. Al lado, el cobertizo de
+  tablas, cuadrado, con su ventanuco y un tejado de una sola caída, y la horca
+  y la pala apoyadas en el frente. Es un objeto: mide lo mismo en todos los
+  pueblos.

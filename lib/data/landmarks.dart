@@ -401,16 +401,125 @@ final List<Landmark> landmarks = [
   Landmark(
     'corral',
     'Corral',
-    6,
+    9,
     0,
     'Cada animal a salvo bajo el cielo de la noche. El cuidado de cada '
         'día hecho refugio.',
     (m) {
-      m.palisade(3.2, 0.95, dz: -1.6);
-      m.palisade(3.2, 0.95, dz: 1.6);
-      m.palisade(3.2, 0.95, dx: -1.6, along: false);
-      m.outbuilding(1.35, 1.15, 0.9, 0.46, dx: 1.05, dz: -0.85);
-      m.box(PieceKind.parapet, 1.3, 0.34, 0.3, dx: 0.3, dz: 0.95, at: 0);
+      // Lo que dice «corral»:
+      // - el corral cerrado por los cuatro lados con la cerca baja de palos,
+      //   que deja ver lo de adentro: las ovejas y el corderito, y el pilón
+      //   con agua;
+      // - al lado, el cobertizo donde se guardan las cosas del corral: una
+      //   caja de tablas, cuadrada como todo el pueblo, con sus postes de
+      //   esquina y un ventanuco, bajo un tejado de una sola caída; y
+      //   apoyadas en el frente, la horca y la pala.
+      // Es un objeto: mide lo mismo en todos los pueblos.
+      m.anchor(0, 0);
+      const x0 = -1.7, x1 = 0.75, z0 = -0.95, z1 = 1.3;
+      m.box(
+        PieceKind.railfence,
+        x1 - x0,
+        0.12,
+        0.6,
+        dx: (x0 + x1) / 2,
+        dz: z1,
+        at: 0,
+        ridge: true,
+        fixed: true,
+      );
+      m.box(
+        PieceKind.railfence,
+        x1 - x0,
+        0.12,
+        0.6,
+        dx: (x0 + x1) / 2,
+        dz: z0,
+        at: 0,
+        ridge: true,
+        fixed: true,
+      );
+      m.box(
+        PieceKind.railfence,
+        0.12,
+        z1 - z0,
+        0.6,
+        dx: x0,
+        dz: (z0 + z1) / 2,
+        at: 0,
+        ridge: true,
+        fixed: true,
+      );
+      m.box(
+        PieceKind.railfence,
+        0.12,
+        z1 - z0,
+        0.6,
+        dx: x1,
+        dz: (z0 + z1) / 2,
+        at: 0,
+        ridge: true,
+        fixed: true,
+      );
+      m.box(
+        PieceKind.sheep,
+        1.9,
+        1.5,
+        0.02,
+        dx: -0.55,
+        dz: 0.15,
+        at: 0,
+        ridge: true,
+        fixed: true,
+      );
+      m.box(
+        PieceKind.well,
+        0.8,
+        0.34,
+        0.3,
+        dx: 0.1,
+        dz: -0.6,
+        at: 0,
+        ridge: true,
+        fixed: true,
+      );
+      // El cobertizo, al lado del corral.
+      const hx = 1.7, hz = -0.3, hw = 1.05, hd = 1.0, alto = 0.95;
+      m.box(
+        PieceKind.shed,
+        hw,
+        hd,
+        alto,
+        dx: hx,
+        dz: hz,
+        at: 0,
+        ridge: true,
+        fixed: true,
+      );
+      m.box(
+        PieceKind.leanto,
+        hw + 0.3,
+        hd + 0.35,
+        0.45,
+        dx: hx,
+        dz: hz + 0.05,
+        at: alto - 0.05,
+        ridge: true,
+        fixed: true,
+      );
+      // Las herramientas, a un costado del frente, sin tapar el ventanuco.
+      m.box(
+        PieceKind.tools,
+        0.55,
+        0.32,
+        0.95,
+        dx: hx - 0.3,
+        dz: hz + hd / 2 + 0.16,
+        at: 0,
+        ridge: true,
+        fixed: true,
+      );
+      m.unanchor();
     },
   ),
 
