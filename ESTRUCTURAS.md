@@ -28,7 +28,8 @@ Entre paréntesis, cuántas piezas cuesta.
 - Los objetos siguen yendo a su lugar: un cartel queda en su pared, a su
   altura, aunque la pared sea más alta o más baja.
 - El toldo y el mostrador de una tienda son objetos, pero de ancho siguen a
-  su fachada: en un pueblo de casas angostas no se salen de ella.
+  su fachada: en un pueblo de casas angostas no se salen de ella. Y el toldo
+  cuelga siempre justo debajo del techo de la planta baja, sea alta o baja.
 - Un conjunto fijo puede medirse desde lo que tiene al lado: el horno de la
   panadería guarda siempre la misma distancia a la tienda.
 

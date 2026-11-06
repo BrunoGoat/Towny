@@ -387,14 +387,13 @@ final List<Landmark> landmarks = [
         PieceKind.awning,
         1.45,
         0.7,
-        0.3,
+        0.24,
         dx: tx,
         dz: frente + 0.2,
-        at: base + 0.6,
+        // Colgado justo debajo del techo de la planta baja, sea alta o baja:
+        // a media fachada no parecía un toldo.
+        at: base + 0.82 - 0.24 * m.objectHeight / m.storey,
         ridge: true,
-        // A la altura de siempre, sobre el mostrador, sea alta o baja la
-        // planta.
-        fixed: true,
       );
       m.box(
         PieceKind.counter,

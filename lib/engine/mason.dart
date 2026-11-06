@@ -186,6 +186,10 @@ class Mason {
 
   /// Lo que mide un objeto de ancho y de alto por cada unidad de la receta.
   double get _ow => size * objectSpread;
+
+  /// Lo que mide de alto un objeto por cada unidad de la receta, para colgar
+  /// uno a una altura de la casa: ver el toldo de la panadería.
+  double get objectHeight => _oh;
   double get _oh => size * objectStorey;
 
   /// Las piezas que son objetos y no arquitectura: miden siempre lo mismo.
