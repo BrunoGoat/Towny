@@ -2827,6 +2827,37 @@ List<Solid> _tonel(int i, TownPiece p, double y0, double y1) {
       ]),
     ];
   }
+  List<Solid> dePie(double cx, double cz, double r, double y1) {
+    final h = y1 - y0;
+    Solid caja(double rr, double ya, double yb, int tint, double ao) => Solid(
+      i,
+      prismFaces(
+        Plaza.ring(cx, cz, rr),
+        ya,
+        yb,
+        Surface.own,
+        ao: ao,
+        tint: tint,
+      ),
+    );
+    return [
+      caja(r * 0.88, y0, y0 + h * 0.12, madera, 0.9),
+      caja(r, y0 + h * 0.12, y0 + h * 0.88, madera, 0.98),
+      caja(r * 0.88, y0 + h * 0.88, y1, madera, 1.02),
+      caja(r * 1.03, y0 + h * 0.2, y0 + h * 0.27, aro, 0.85),
+      caja(r * 1.03, y0 + h * 0.73, y0 + h * 0.8, aro, 0.85),
+    ];
+  }
+
+  // La pareja: el grande delante y el chico detrás, en lo hondo de la pieza.
+  if (p.d > p.w * 1.5) {
+    final rg = p.w / 2, rc = rg * 0.84;
+    final z0 = p.cz - p.d / 2, z1 = p.cz + p.d / 2;
+    return [
+      ...dePie(cx, z1 - rg, rg, y1),
+      ...dePie(cx, z0 + rc, rc, y0 + h * 0.82),
+    ];
+  }
   return [
     caja(r * 0.88, y0, y0 + h * 0.12, madera, 0.9),
     caja(r, y0 + h * 0.12, y0 + h * 0.88, madera, 0.98),

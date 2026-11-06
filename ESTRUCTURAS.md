@@ -89,7 +89,6 @@ mercados, lonjas), los arcos altos de los campanarios y la boca de un horno.
 
 - Molino de viento (10)
 - Almazara y olivar (14)
-- Cervecería (14)
 - Mercado cubierto (13)
 - Casa de la moneda (15)
 - Gremio de tejedores (11)
@@ -156,3 +155,12 @@ mercados, lonjas), los arcos altos de los campanarios y la boca de un horno.
 - Cruz de término (5): tres escalones de piedra y el palo de una sola pieza,
   de la base hasta por encima de los brazos. Mantiene sus proporciones en
   todos los pueblos.
+
+- Cervecería (11): casa angosta con el triángulo del tejado a la calle,
+  planta baja de piedra clara y dos pisos de madera que sobresalen, y la
+  chimenea sobre el caballete. Pegada al costado, la sala de la cocción,
+  sin ventanas, con un tejadito de una sola caída que llega siempre hasta
+  arriba del primer piso de madera. Delante, el tonel grande acostado, la
+  mesa con bancos y tres jarras, el cartel de la jarra colgado de la
+  esquina y la pareja de toneles al costado, que se pone como una sola
+  pieza. Sin puerta.

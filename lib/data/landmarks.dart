@@ -606,7 +606,7 @@ final List<Landmark> landmarks = [
   Landmark(
     'cerveceria',
     'Cervecería',
-    12,
+    11,
     1,
     'Grano, agua y paciencia hechos celebración. Aquí el día termina en '
         'buena compañía.',
@@ -678,8 +678,7 @@ final List<Landmark> landmarks = [
         at: 0,
         ridge: true,
       );
-      m.barrel(0.5, 0.64, dx: -1.3, dz: 0.85);
-      m.barrel(0.42, 0.52, dx: -1.3, dz: 0.25);
+      m.barrel(0.5, 0.64, dx: -1.3, dz: 0.55, deep: 1.1);
     },
   ),
 

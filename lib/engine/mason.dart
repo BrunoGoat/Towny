@@ -649,10 +649,13 @@ class Mason {
     double at = 0,
     Motif motif = Motif.none,
     bool lying = false,
+    // Más hondo que ancho: una pareja de toneles, uno grande delante y uno
+    // más chico detrás, que se ponen juntos como una sola pieza.
+    double? deep,
   }) => box(
     PieceKind.barrel,
     side,
-    side,
+    deep ?? side,
     ht,
     dx: dx,
     dz: dz,
