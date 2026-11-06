@@ -13,6 +13,33 @@ días.
 
 Entre paréntesis, cuántas piezas cuesta.
 
+## Qué buscamos en cada obra
+
+1. **Que se entienda qué es de un vistazo.** Una obra no es "una casa con
+   un cartel": la panadería tiene que oler a pan y la cervecería tiene que
+   decir "acá se toma algo". Lo cuentan las cosas del oficio (el horno, los
+   panes, los toneles, la mesa con jarras). Si se tapa el nombre y no se
+   adivina qué es, todavía no está.
+2. **Fachera pero simple.** Pocas cosas bien elegidas, en lugar de muchos
+   detalles. Nada de texturas recargadas. Lo que no suma a que se lea el
+   oficio, sobra (banderas, árboles, leña, zócalos o sacos puestos de
+   relleno).
+3. **Que se vea como una sola cosa.** Sin contrastes fuertes entre
+   materiales ni tejados de dos colores. Lo que es parte del edificio se ve
+   pegado, no como una casita aparte.
+4. **Que tenga sentido.** Si en la vida real no sería así, se nota: la sala
+   donde se hace la cerveza no lleva ventanas, la chimenea va donde se
+   cocina, un cartel no tapa una ventana.
+5. **Las reglas valen para todas** (ver abajo): ninguna tiene puerta, los
+   objetos miden lo mismo en todos los pueblos y nada queda flotando.
+6. **Mirarla con ojo crítico antes de mostrarla.** Sacarle una foto de
+   frente, como la vería un jugador, decir qué falla y por qué, y mejorarla.
+   No alcanza con que "esté bien".
+7. **Cómo se trabaja.** Mientras se diseña: fotos, ajustes rápidos, y sin
+   pruebas ni subidas en el medio hasta que se diga "probá los tests y
+   subí". Las fotos de referencia son una guía para que tenga el mismo
+   espíritu, siempre adaptada al estilo de Towny.
+
 **Regla: ninguna obra tiene puerta.** Ni puerta en arco, ni portón, ni
 portal de entrada. Sí valen los soportales y galerías de arcos (claustros,
 mercados, lonjas), los arcos altos de los campanarios y la boca de un horno.
