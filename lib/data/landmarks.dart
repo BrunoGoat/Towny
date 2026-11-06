@@ -334,23 +334,22 @@ final List<Landmark> landmarks = [
   Landmark(
     'atalaya',
     'Atalaya',
-    8,
+    7,
     0,
     'Una mirada alta y despierta sobre el valle. Gracias a ella, el '
         'pueblo duerme en paz.',
     (m) {
-      // Una torre de vigía es de piedra y ciega casi entera; sólo arriba, en
-      // la garita, tiene ventanas, que es desde donde se mira. Con ventanas
-      // en todos los pisos se leía como una casa alta.
-      m.plinth(1.9, 1.9, 0.34);
-      m.box(PieceKind.parapet, 1.4, 1.4, 1.1);
-      m.box(PieceKind.parapet, 1.36, 1.36, 1.0);
-      m.box(PieceKind.parapet, 1.32, 1.32, 0.9);
-      m.floor(1.35, 1.35, 0.82);
-      m.parapet(1.7, 1.7, 0.46);
-      // La bandera, en la almena y no en la punta del chapitel.
-      m.banner(1.15, dx: 0.5, dz: 0.5, at: m.y);
-      m.stair(0.95, 0.44, 0.85, dz: 1.3);
+      // Una torre de vigía: de piedra y ciega, sobre un zócalo bajo, que se
+      // angosta al subir en tres cuerpos. Arriba el voladizo de piedra que
+      // sobresale, la garita con sus ventanas, que es desde donde se vigila,
+      // y el tejado en punta con su alero.
+      m.plinth(1.75, 1.75, 0.22);
+      m.box(PieceKind.parapet, 1.46, 1.46, 1.15);
+      m.box(PieceKind.parapet, 1.36, 1.36, 1.05);
+      m.box(PieceKind.parapet, 1.26, 1.26, 0.95);
+      m.box(PieceKind.parapet, 1.72, 1.72, 0.2);
+      m.floor(1.48, 1.48, 0.72);
+      m.spire(2.1, 2.1, 1.3);
     },
   ),
 

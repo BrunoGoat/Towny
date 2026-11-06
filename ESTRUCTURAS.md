@@ -45,7 +45,6 @@ Entre paréntesis, cuántas piezas cuesta.
 - Corral (6)
 - Gallinero (6)
 - Alfarería (12)
-- Atalaya (8)
 - Lavadero (8)
 - Potro de herrar (12)
 
@@ -103,6 +102,10 @@ Entre paréntesis, cuántas piezas cuesta.
 - Panteón de los fundadores (18)
 
 ## En discusión
+
+- Atalaya (7): rehecha. Torre de piedra sobre un zócalo bajo, tres cuerpos
+  que se angostan, voladizo de piedra, garita con ventanas y tejado en
+  punta. Falta mirarla.
 
 
 ---
