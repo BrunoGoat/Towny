@@ -109,6 +109,9 @@ enum PieceKind {
 
   /// Un poste de madera.
   woodpost,
+
+  /// Unos girasoles en fila, en su cajón de madera.
+  flowers,
 }
 
 /// One piece of a building, before it is given to an achievement.
@@ -240,6 +243,7 @@ class Mason {
     PieceKind.well,
     PieceKind.windlass,
     PieceKind.woodpost,
+    PieceKind.flowers,
     PieceKind.banner,
     PieceKind.wheel,
     PieceKind.sail,

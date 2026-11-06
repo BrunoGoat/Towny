@@ -21,9 +21,13 @@ Entre paréntesis, cuántas piezas cuesta.
    panes, los toneles, la mesa con jarras). Si se tapa el nombre y no se
    adivina qué es, todavía no está.
 2. **Fachera pero simple.** Pocas cosas bien elegidas, en lugar de muchos
-   detalles. Nada de texturas recargadas. Lo que no suma a que se lea el
-   oficio, sobra (banderas, árboles, leña, zócalos o sacos puestos de
-   relleno).
+   detalles. Lo que no suma a que se lea el oficio, sobra (banderas,
+   árboles, leña, zócalos o sacos puestos de relleno).
+   **Regla: nada de texturas detalladas en paredes ni tejados.** Ni piedras
+   dibujadas una por una, ni tejas, ni vetas: cada pared y cada tejado es de
+   un color liso, para mantener el aspecto minimalista. Lo único que se
+   dibuja sobre una pared son las ventanas, las vigas del entramado y cosas
+   así de grandes y contadas.
 3. **Que se vea como una sola cosa.** Sin contrastes fuertes entre
    materiales ni tejados de dos colores. Lo que es parte del edificio se ve
    pegado, no como una casita aparte.
@@ -74,8 +78,6 @@ mercados, lonjas), los arcos altos de los campanarios y la boca de un horno.
 
 ### Chicas
 
-- Palomar (7)
-- Colmenar (6)
 - Huerto del cura (6)
 - Pajar (7)
 - Corral (6)
@@ -138,6 +140,9 @@ mercados, lonjas), los arcos altos de los campanarios y la boca de un horno.
 
 ## En discusión
 
+- Palomar (7): dos intentos que no convencieron (torre ochavada con
+  agujeros y palomas; torre cuadrada de entramado con bocas y tablitas). En
+  la app sigue el de antes.
 - Atalaya (7): rehecha. Torre de piedra sobre un zócalo bajo, tres cuerpos
   que se angostan, voladizo de piedra, garita con ventanas y tejado en
   punta. Falta mirarla.
@@ -169,3 +174,9 @@ mercados, lonjas), los arcos altos de los campanarios y la boca de un horno.
   balde grande colgando sobre la boca, y el tejadito alto a dos aguas.
   Delante, el pilón con agua para los animales. Sobre el césped, sin
   plataforma. Es un objeto: mide lo mismo en todos los pueblos.
+
+- Colmenar (7): las tres colmenas de paja en fila bajo un tejadito a dos
+  aguas sobre dos postes de madera, como el del pozo, con abejas volando
+  sobre cada colmena (de noche no salen). Delante, girasoles en un cajón de
+  madera con césped, cada uno mirando para su lado. Es un objeto: mide lo
+  mismo en todos los pueblos.

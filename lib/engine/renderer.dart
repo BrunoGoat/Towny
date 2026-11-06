@@ -1434,7 +1434,8 @@ class TownPainter extends CustomPainter {
         _sombraMovil[w] ??
             [..._casterDe(gente), ..._sombraAgua(e.layout, pal, agua)],
       );
-      final vecinos = gente;
+      final abejas = _abejas(p, e, take, night);
+      final vecinos = abejas.isEmpty ? gente : [...gente, ...abejas];
       // **El suelo de la plaza, antes que todo lo del pueblo.** Debajo de él
       // no hay nada, así que no puede tapar a nadie que deba verse: lo que
       // está encima —la gente, las palomas, el pan, los muebles— se pinta
@@ -2985,6 +2986,7 @@ class TownPainter extends CustomPainter {
         case PieceKind.well:
         case PieceKind.windlass:
         case PieceKind.woodpost:
+        case PieceKind.flowers:
           break;
         default:
           porCasa.putIfAbsent(pc.building, () => []).add(pc);
@@ -3628,6 +3630,66 @@ class TownPainter extends CustomPainter {
         shade,
       );
     }
+  }
+
+  /// Las abejas de las colmenas de un pueblo: tres por colmena, dando
+  /// vueltas por encima de ella a distintas alturas y velocidades, subiendo y
+  /// bajando un poco. Cada una es un cuadradito amarillo con su franja
+  /// oscura, de cara a quien mira. De noche duermen.
+  ///
+  /// Van por el árbol como la gente y las palomas —cada una cae en su hoja y
+  /// se pinta en su lugar—, no como una hoja más: así no cambian el orden de
+  /// nada de lo que ya estaba.
+  List<Rider> _abejas(Projector p, TownEntry e, int take, bool night) {
+    if (night) return const [];
+    final out = <Rider>[];
+    final eye = p.eye;
+    final pieces = e.layout.pieces;
+    for (var j = 0; j < take && j < pieces.length; j++) {
+      final piece = pieces[j];
+      if (piece.kind != PieceKind.hive) continue;
+      final cx = piece.cx, cz = piece.cz;
+      final r0 = math.min(piece.w, piece.d) / 2;
+      for (var k = 0; k < 3; k++) {
+        final fase = hash01(piece.seed, 31 + k) * 6.28;
+        final vel = 1.6 + 0.9 * hash01(piece.seed, 41 + k);
+        final ang = scene.time * vel * (k.isEven ? 1 : -1) + fase;
+        final rad = r0 * (0.45 + 0.4 * hash01(piece.seed, 51 + k));
+        final x = cx + math.cos(ang) * rad;
+        final z = cz + math.sin(ang) * rad;
+        final y =
+            piece.y1 +
+            0.1 +
+            0.08 * k +
+            0.05 * math.sin(scene.time * (3.1 + k) + fase);
+        // De cara al ojo: el costado perpendicular a la mirada.
+        final nx = eye.x - x, nz = eye.z - z;
+        final l = math.sqrt(nx * nx + nz * nz);
+        if (l < 1e-6) continue;
+        final rx = -nz / l, rz = nx / l;
+        final n = V3(nx / l, 0, nz / l);
+        List<V3> cuadro(double a) => [
+          V3(x - rx * a, y - 0.06, z - rz * a),
+          V3(x + rx * a, y - 0.06, z + rz * a),
+          V3(x + rx * a, y + 0.06, z + rz * a),
+          V3(x - rx * a, y + 0.06, z - rz * a),
+        ];
+        out.add(
+          Rider(
+            Facet(
+              cuadro(0.06),
+              n,
+              Surface.own,
+              tint: 0xFFF2C230,
+              decals: [Facet(cuadro(0.018), n, Surface.own, tint: 0xFF2E2418)],
+            )..piece = -1,
+            100000 + out.length,
+            -1,
+          ),
+        );
+      }
+    }
+    return out;
   }
 
   /// Four sails on a windmill's cap, turning.

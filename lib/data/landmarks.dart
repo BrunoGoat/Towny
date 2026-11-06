@@ -241,19 +241,72 @@ final List<Landmark> landmarks = [
   Landmark(
     'colmenar',
     'Colmenar',
-    6,
+    7,
     0,
     'Miel para la mesa y cera para la luz. Un pequeño reino de trabajo '
         'y armonía.',
     (m) {
-      m.plinth(2.6, 1.2, 0.22);
-      final banco = m.y;
-      // Las colmenas de paja, en fila sobre el poyo.
-      m.box(PieceKind.hive, 0.6, 0.6, 0.72, dx: -0.82, at: banco, ridge: true);
-      m.box(PieceKind.hive, 0.6, 0.6, 0.72, at: banco, ridge: true);
-      m.box(PieceKind.hive, 0.6, 0.6, 0.72, dx: 0.82, at: banco, ridge: true);
-      m.palisade(2.9, 0.8, dz: -1.15);
-      m.tree(1.1, 1.8, dx: 1.75, dz: -1.15);
+      // Lo que dice «colmenar» y no «tres bultos en una losa»: las tres
+      // colmenas de paja en fila, con su piquera, a la sombra de un
+      // tejadito a dos aguas sobre dos postes de madera, como el del pozo.
+      // Sin el árbol ni la empalizada, que estaban de relleno.
+      // Es un objeto: mide lo mismo en todos los pueblos, y las colmenas no
+      // se amontonan donde las casas son angostas.
+      m.anchor(0, 0);
+      for (final x in [-0.82, 0.0, 0.82]) {
+        m.box(
+          PieceKind.hive,
+          0.6,
+          0.6,
+          0.72,
+          dx: x,
+          at: 0,
+          ridge: true,
+          fixed: true,
+        );
+      }
+      m.box(
+        PieceKind.woodpost,
+        0.13,
+        0.13,
+        1.25,
+        dx: -1.25,
+        at: 0,
+        ridge: true,
+        fixed: true,
+      );
+      m.box(
+        PieceKind.woodpost,
+        0.13,
+        0.13,
+        1.25,
+        dx: 1.25,
+        at: 0,
+        ridge: true,
+        fixed: true,
+      );
+      m.box(
+        PieceKind.roof,
+        2.85,
+        1.35,
+        0.6,
+        at: 1.25,
+        ridge: true,
+        fixed: true,
+      );
+      // Delante, los girasoles en su cajón, de donde sacan el néctar; las abejas vuelan
+      // solas sobre cada colmena.
+      m.box(
+        PieceKind.flowers,
+        2.6,
+        0.38,
+        0.85,
+        dz: 1.0,
+        at: 0,
+        ridge: true,
+        fixed: true,
+      );
+      m.unanchor();
     },
   ),
 

@@ -170,6 +170,9 @@ List<Solid> solidsOf(
     case PieceKind.table:
       return _mesaTaberna(i, x0, y0, z0, x1, y1, z1);
 
+    case PieceKind.flowers:
+      return _flores(i, x0, y0, z0, x1, y1, z1);
+
     case PieceKind.well:
       return _pozo(i, piece, x0, y0, z0, x1, y1, z1);
 
@@ -3563,4 +3566,167 @@ List<Solid> _torno(
       ),
     ),
   ];
+}
+
+/// Girasoles en su cajón de madera: el cajón con el césped a la vista, y en
+/// fila el tallo, dos hojas y la flor grande, amarilla con el centro marrón,
+/// cada una mirando para su lado. Se leen como flores al instante.
+List<Solid> _flores(
+  int i,
+  double x0,
+  double y0,
+  double z0,
+  double x1,
+  double y1,
+  double z1,
+) {
+  const tallo = 0xFF4E7A34, petalo = 0xFFF0C53A, centro = 0xFF6B4524;
+  const madera = 0xFF7A5A3A, cesped = 0xFF5E8A3C;
+  // El cajón, y el césped un poco más abajo que el borde.
+  final caja = math.min(0.2, (y1 - y0) * 0.26);
+  final g = math.min(0.05, (z1 - z0) * 0.14);
+  final suelo = y0 + caja - 0.03;
+  final h = y1 - suelo, cz = (z0 + z1) / 2;
+  final n = math.max(1, ((x1 - x0) / 0.5).round());
+  final paso = (x1 - x0) / n;
+  final out = <Solid>[
+    Solid(
+      i,
+      boxFaces(
+        x0,
+        y0,
+        z0,
+        x1,
+        y0 + caja,
+        z1,
+        Surface.own,
+        ao: 0.92,
+        tint: madera,
+      ),
+    ),
+    Solid(
+      i,
+      boxFaces(
+        x0 + g,
+        y0 + caja,
+        z0 + g,
+        x1 - g,
+        y0 + caja + 0.006,
+        z1 - g,
+        Surface.own,
+        ao: 0.9,
+        tint: cesped,
+      ),
+    ),
+  ];
+  // Un disco de ocho lados que mira hacia [ang] (cero, a la calle), con la
+  // cara de atrás a [da] y la de adelante a [db] de su centro.
+  List<Facet> disco(
+    double cx,
+    double cy,
+    double cz,
+    double r,
+    double ang,
+    double da,
+    double db,
+    int c,
+  ) {
+    final fx = math.sin(ang), fz = math.cos(ang);
+    final rx = fz, rz = -fx;
+    V3 en(double u, double v, double d) =>
+        V3(cx + rx * u + fx * d, cy + v, cz + rz * u + fz * d);
+    final pts = [
+      for (var k = 0; k < 8; k++)
+        (
+          r * math.cos(math.pi / 8 + k * math.pi / 4),
+          r * math.sin(math.pi / 8 + k * math.pi / 4),
+        ),
+    ];
+    final mid = en(0, 0, (da + db) / 2);
+    final f = <Facet>[
+      Facet(
+        [for (final (u, v) in pts) en(u, v, db)],
+        V3(fx, 0, fz),
+        Surface.own,
+        tint: c,
+      ),
+      Facet(
+        [for (final (u, v) in pts.reversed) en(u, v, da)],
+        V3(-fx, 0, -fz),
+        Surface.own,
+        ao: 0.8,
+        tint: c,
+      ),
+    ];
+    for (var k = 0; k < 8; k++) {
+      final (ua, va) = pts[k];
+      final (ub, vb) = pts[(k + 1) % 8];
+      final v = [
+        en(ua, va, da),
+        en(ub, vb, da),
+        en(ub, vb, db),
+        en(ua, va, db),
+      ];
+      f.add(
+        Facet(v, Facet.normalOf(v, away: mid), Surface.own, ao: 0.9, tint: c),
+      );
+    }
+    return f;
+  }
+
+  // Para dónde mira cada una: casi todas hacia la calle, pero ninguna igual.
+  const giros = [-0.55, 0.35, -0.15, 0.7, -0.8, 0.2, 0.5, -0.35];
+  for (var k = 0; k < n; k++) {
+    final cx = x0 + paso * (k + 0.5);
+    // Desparejos de alto, como de verdad.
+    final alto = h * (k.isEven ? 1.0 : 0.84);
+    final r = math.min(paso * 0.42, alto * 0.24);
+    final cabeza = suelo + alto - r;
+    const t = 0.028;
+    out.add(
+      Solid(
+        i,
+        boxFaces(
+          cx - t,
+          y0,
+          cz - t,
+          cx + t,
+          cabeza,
+          cz + t,
+          Surface.own,
+          ao: 0.9,
+          tint: tallo,
+        ),
+      ),
+    );
+    // Las hojas, una a cada lado a distinta altura.
+    for (final (lado, at) in [(-1.0, 0.35), (1.0, 0.55)]) {
+      final hy = suelo + (cabeza - suelo) * at;
+      out.add(
+        Solid(
+          i,
+          boxFaces(
+            lado < 0 ? cx - r * 0.75 : cx + t,
+            hy,
+            cz - 0.04,
+            lado < 0 ? cx - t : cx + r * 0.75,
+            hy + 0.05,
+            cz + 0.04,
+            Surface.own,
+            ao: 0.92,
+            tint: tallo,
+          ),
+        ),
+      );
+    }
+    final giro = giros[k % giros.length];
+    out.add(Solid(i, disco(cx, cabeza, cz, r, giro, t, t + 0.04, petalo)));
+    out.add(
+      Solid(
+        i,
+        disco(cx, cabeza, cz, r * 0.45, giro, t + 0.04, t + 0.07, centro),
+      ),
+    );
+  }
+  return out;
 }
