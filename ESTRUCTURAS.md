@@ -38,7 +38,6 @@ Entre paréntesis, cuántas piezas cuesta.
 ### Chicas
 
 - Pozo del concejo (7)
-- Cruz de término (5)
 - Palomar (7)
 - Colmenar (6)
 - Huerto del cura (6)
@@ -113,3 +112,7 @@ Entre paréntesis, cuántas piezas cuesta.
 - Panadería (11): tienda de dos plantas con toldo a rayas, mostrador con
   panes y cartel del pan; al costado, separado, el horno de barro con su
   poyo, el tiro y la boca. Sobre el césped, sin zócalo.
+
+- Cruz de término (5): tres escalones de piedra y el palo de una sola pieza,
+  de la base hasta por encima de los brazos. Mantiene sus proporciones en
+  todos los pueblos.
