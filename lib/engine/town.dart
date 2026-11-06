@@ -1374,6 +1374,8 @@ class TownLayout {
       storey: (propio ? 1.0 : character.storey) * aprieto,
       pitch: propio ? 1.0 : character.pitch,
       size: aprieto,
+      objectSpread: propio ? 1.0 : TownCharacter.reference.spread,
+      objectStorey: propio ? 1.0 : TownCharacter.reference.storey,
     );
 
     final mark = b.landmark;

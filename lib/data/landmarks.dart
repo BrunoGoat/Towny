@@ -421,7 +421,9 @@ final List<Landmark> landmarks = [
       // cierra en una sola hilada, el tiro y la boca. Con más escalones se
       // leía como una pirámide.
       const ox = 1.0;
-      m.anchor(ox, -0.15);
+      // Medido desde el costado de la tienda, para que entre los dos quede
+      // siempre el mismo paso de césped, sea la tienda ancha o angosta.
+      m.anchor(tx + 0.75, -0.15);
       m.box(
         PieceKind.parapet,
         1.3,

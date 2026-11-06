@@ -141,6 +141,8 @@ class Mason {
     this.storey = 1.0,
     this.pitch = 1.0,
     this.size = 1.0,
+    this.objectSpread = 1.0,
+    this.objectStorey = 1.0,
   });
 
   final double cx, cz;
@@ -175,6 +177,17 @@ class Mason {
   /// de la receta por [size], que es sólo la escala de la obra.
   final double size;
 
+  /// Las proporciones con que se ven los objetos en todos los pueblos: las de
+  /// la Ribera, que es el pueblo de referencia (ver `TownCharacter.reference`).
+  /// Así en la Ribera nada cambia, y en los demás los objetos se ven como
+  /// allí. Una obra que no toma las proporciones de la comarca (`rigid`) no
+  /// las toma tampoco para sus objetos: van a uno.
+  final double objectSpread, objectStorey;
+
+  /// Lo que mide un objeto de ancho y de alto por cada unidad de la receta.
+  double get _ow => size * objectSpread;
+  double get _oh => size * objectStorey;
+
   /// Las piezas que son objetos y no arquitectura: miden siempre lo mismo.
   static const Set<PieceKind> fixedKinds = {
     PieceKind.awning,
@@ -190,6 +203,12 @@ class Mason {
     PieceKind.wheel,
     PieceKind.sail,
     PieceKind.tree,
+  };
+
+  /// Objetos que van de punta a punta de una fachada: de ancho, el de ella.
+  static const Set<PieceKind> _deFachada = {
+    PieceKind.awning,
+    PieceKind.counter,
   };
 
   final List<Spec> out = [];
@@ -235,21 +254,22 @@ class Mason {
     final ancla = fixed ? _ancla : null;
     final px = ancla == null
         ? dx * spread
-        : ancla.$1 * spread + (dx - ancla.$1) * size;
+        : ancla.$1 * spread + (dx - ancla.$1) * _ow;
     final pz = ancla == null
         ? dz * spread
-        : ancla.$2 * spread + (dz - ancla.$2) * size;
-    final base = fixed ? y0 * size : y0 * storey;
+        : ancla.$2 * spread + (dz - ancla.$2) * _ow;
+    final base = fixed ? y0 * _oh : y0 * storey;
     final ya = objeto || valla ? base : y0 * storey;
-    final yb = objeto || valla ? base + (y1 - y0) * size : y1 * storey;
+    final yb = objeto || valla ? base + (y1 - y0) * _oh : y1 * storey;
     out.add(
       Spec(
         motif: motif,
         kind: kind,
         cx: cx + px,
         cz: cz + pz,
-        w: objeto ? w * size : w * spread,
-        d: objeto ? d * size : d * spread,
+        // El toldo y el mostrador, de ancho el de la fachada en la que van.
+        w: objeto && !_deFachada.contains(kind) ? w * _ow : w * spread,
+        d: objeto ? d * _ow : d * spread,
         y0: ya,
         y1: yb,
         alongX: along ?? alongX,
@@ -514,7 +534,7 @@ class Mason {
     required double at,
   }) {
     // El eje, a la altura estirada de la torre; las aspas, de su tamaño.
-    final y0 = at - diameter * size / (2 * storey);
+    final y0 = at - diameter * _oh / (2 * storey);
     _add(PieceKind.sail, dx, dz, diameter, diameter, y0, y0 + diameter);
   }
 
@@ -572,7 +592,7 @@ class Mason {
     0.7,
     0.42,
     dx: dx,
-    dz: front + 0.2 * size / spread,
+    dz: front + 0.2 * _ow / spread,
     at: at,
     ridge: true,
     motif: motif,
@@ -665,7 +685,7 @@ class Mason {
     reach + 0.15,
     drop,
     dx: dx,
-    dz: front + (reach - 0.15) / 2 * size / spread,
+    dz: front + (reach - 0.15) / 2 * _ow / spread,
     at: at,
     ridge: true,
   );
@@ -682,7 +702,7 @@ class Mason {
     0.32,
     0.46,
     dx: dx,
-    dz: front + 0.16 * size / spread,
+    dz: front + 0.16 * _ow / spread,
     at: at,
     ridge: true,
   );

@@ -343,10 +343,16 @@ void main() {
             final donde = '${mark.id} pieza $i (${r.kind.name}) en ${c.region}';
             // Los objetos no se estiran: ver la prueba siguiente.
             if (r.fixed) {
-              expect(p.w, closeTo(r.w * mark.scale, 1e-6), reason: donde);
+              // Con las proporciones de la Ribera, el pueblo de referencia.
+              final ref = TownCharacter.reference;
+              final ow = mark.scale * (mark.rigid ? 1.0 : ref.spread);
+              final oh = mark.scale * (mark.rigid ? 1.0 : ref.storey);
+              if (r.kind != PieceKind.awning && r.kind != PieceKind.counter) {
+                expect(p.w, closeTo(r.w * ow, 1e-6), reason: donde);
+              }
               expect(
                 p.y1 - p.y0,
-                closeTo((r.y1 - r.y0) * mark.scale, 1e-6),
+                closeTo((r.y1 - r.y0) * oh, 1e-6),
                 reason: donde,
               );
               continue;
@@ -405,6 +411,10 @@ void main() {
       }
     });
 
+    test('el pueblo de referencia de los objetos es la Ribera', () {
+      expect(TownCharacter.reference.regionEs, 'Ribera');
+    });
+
     test('lo que es objeto mide lo mismo en todos los pueblos', () {
       // Las paredes y los tejados son lo que cambia de una comarca a otra; una
       // colmena, un cartel, un tonel o las aspas de un molino, no.
@@ -417,7 +427,9 @@ void main() {
           mark.build(receta);
           final medidas = <int, (double, double, double)>{
             for (var i = 0; i < hechas.length; i++)
-              if (receta.out[i].fixed)
+              if (receta.out[i].fixed &&
+                  receta.out[i].kind != PieceKind.awning &&
+                  receta.out[i].kind != PieceKind.counter)
                 i: (hechas[i].w, hechas[i].d, hechas[i].y1 - hechas[i].y0),
           };
           final a = antes;
@@ -463,6 +475,8 @@ void main() {
             storey: (propio ? 1.0 : c.storey) * l.scale,
             pitch: propio ? 1.0 : c.pitch,
             size: l.scale,
+            objectSpread: propio ? 1.0 : TownCharacter.reference.spread,
+            objectStorey: propio ? 1.0 : TownCharacter.reference.storey,
           );
           l.build(m);
           final built = m.finish(l.cost);

@@ -147,6 +147,11 @@ class TownCharacter {
   /// meet it in the same order. Sin número: el catálogo crece.
   final int order;
 
+  /// El pueblo de referencia: con sus proporciones se ven los objetos de las
+  /// obras —colmenas, carteles, toneles— en todos los pueblos. Ver
+  /// `Mason.objectSpread`.
+  static TownCharacter get reference => all.first;
+
   static const List<TownCharacter> all = [
     TownCharacter(
       regionEs: 'Ribera',
