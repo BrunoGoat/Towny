@@ -653,7 +653,18 @@ final List<Landmark> landmarks = [
         at: 0,
         ridge: true,
       );
-      m.roof(3.0, 2.15, 1.05, dx: 0.8, dz: 0.0, at: 1.0, along: false);
+      // El faldón llega siempre hasta arriba del primer piso de madera y no
+      // más: en un pueblo de tejados empinados no trepa por la casa. Lo que
+      // se empina el sitio se descuenta, así se ve igual que en la Ribera.
+      m.roof(
+        3.0,
+        2.15,
+        (baja + 0.85 - 1.0) / m.pitch,
+        dx: 0.8,
+        dz: 0.0,
+        at: 1.0,
+        along: false,
+      );
       // La enseña: el tonel grande acostado contra el frente del ala.
       m.barrel(1.0, 0.66, dx: 1.55, dz: 0.95 + 0.33, at: 0, lying: true);
       // En la calle, la mesa con las jarras y dos toneles.

@@ -35,7 +35,13 @@ Entre paréntesis, cuántas piezas cuesta.
 6. **Mirarla con ojo crítico antes de mostrarla.** Sacarle una foto de
    frente, como la vería un jugador, decir qué falla y por qué, y mejorarla.
    No alcanza con que "esté bien".
-7. **Cómo se trabaja.** Mientras se diseña: fotos, ajustes rápidos, y sin
+7. **Cambia el tamaño, no la estética.** De un pueblo a otro una obra puede
+   ser más alta, más ancha o tener el tejado más empinado, pero tiene que
+   verse igual que en la Ribera: las partes se tocan en los mismos puntos.
+   Por ejemplo, el tejadito del ala de la cervecería llega siempre justo
+   hasta arriba del primer piso de madera, sea el tejado más o menos
+   empinado, y nunca trepa por la casa.
+8. **Cómo se trabaja.** Mientras se diseña: fotos, ajustes rápidos, y sin
    pruebas ni subidas en el medio hasta que se diga "probá los tests y
    subí". Las fotos de referencia son una guía para que tenga el mismo
    espíritu, siempre adaptada al estilo de Towny.
