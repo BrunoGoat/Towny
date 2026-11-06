@@ -386,16 +386,26 @@ seis— y la *Site URL* en la web.
 - [ ] Si la usa más gente: un SMTP de verdad (Resend con dominio propio) en
   vez del Gmail, que es para pocos correos.
 
-- [ ] **Más adelante: cifrar los textos personales** antes de subirlos, para
-  que ni quien administra la base sepa qué dicen: el nombre del hábito, el
-  *para qué*, lo más chico que cuenta, *quién sos*, dónde, el plan, los
-  tropiezos y las notas del tablón. Hoy ningún otro usuario los puede leer
-  (las políticas de cada tabla), pero el dueño del proyecto sí, en el Table
-  Editor. Lo difícil es la llave: tiene que estar en todos los aparatos de la
-  persona y no en el servidor, así que pide algo que sólo ella sepa (una
-  frase aparte del correo), y si la olvida esos textos no se recuperan. Las
-  consultas de lo que aprende el valle no se enteran: usan números y fechas,
-  nunca textos.
+- **Privacidad: como la mayoría de las apps de tareas y hábitos.** Los datos
+  viajan cifrados al servidor y Supabase los guarda cifrados en el disco;
+  las políticas de cada tabla hacen que ningún otro usuario vea lo de otro.
+  Lo que falta es de palabra y de cuidado, no de código:
+- [ ] **Antes del lanzamiento: la política de privacidad.** Qué se guarda
+  (los pueblos, los hábitos y sus textos, las piezas y las fechas), para
+  qué, que nadie lo mira, que no se vende ni se comparte, cómo pedir que se
+  borre todo, y que lo que aprende el valle usa sólo números y fechas,
+  nunca textos. Enlazada desde Ajustes y desde donde se pide la cuenta.
+- [ ] Cuidar quién tiene la clave secreta de Supabase: sólo el dueño del
+  proyecto, nunca en el repositorio ni en la app.
+- [ ] **Más adelante, y opcional: cifrar de punta a punta lo más íntimo**
+  (las notas del tablón y los tropiezos), para quien lo active, como hacen
+  los diarios personales. La llave no puede pasar por el correo ni por el
+  servidor: quien entra al correo ya entra a la cuenta, y el cifrado no
+  protegería nada. Caminos posibles: la huella o la cara con las llaves de
+  acceso (la llave viaja en el llavero de Apple o de Google), o un código de
+  recuperación que se anota una vez y se pasa a otro aparato con un QR. Si
+  se pierde, esos textos no se recuperan, pero el pueblo sí: por eso es
+  opcional y sólo para lo más personal.
 
 **Idea, sin armar todavía: lo que aprende el valle de todos.** Lo de cada uno
 ya lo dice el tablón desde el teléfono; lo que sólo sale de la nube es lo que
