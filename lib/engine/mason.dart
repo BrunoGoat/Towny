@@ -112,6 +112,14 @@ enum PieceKind {
 
   /// Unos girasoles en fila, en su cajón de madera.
   flowers,
+
+  /// Un bancal de huerta: el cajón de madera con la tierra y dos filas de
+  /// hortalizas, repollos y zapallos.
+  bed,
+
+  /// Un espantapájaros: el palo, la camisa con los brazos abiertos, la
+  /// cabeza de paja y el sombrero.
+  scarecrow,
 }
 
 /// One piece of a building, before it is given to an achievement.
@@ -244,6 +252,8 @@ class Mason {
     PieceKind.windlass,
     PieceKind.woodpost,
     PieceKind.flowers,
+    PieceKind.bed,
+    PieceKind.scarecrow,
     PieceKind.banner,
     PieceKind.wheel,
     PieceKind.sail,

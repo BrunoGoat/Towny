@@ -312,18 +312,48 @@ final List<Landmark> landmarks = [
 
   Landmark(
     'huerto',
-    'Huerto del cura',
-    6,
+    'Huerto',
+    5,
     0,
     'Tierra cuidada que da más de lo que pide. Lo que crece aquí se '
         'comparte con todos.',
     (m) {
-      m.field(2.4, 1.2, dz: -0.7);
-      m.field(2.4, 1.2, dz: 0.7);
-      m.palisade(2.8, 0.6, dz: -1.4);
-      m.palisade(2.8, 0.6, dz: 1.4);
-      m.tree(1.0, 1.6, dx: -1.5);
-      m.tree(0.95, 1.5, dx: 1.5);
+      // Lo que dice «huerto» y no «un césped con rayas»:
+      // - los bancales de madera con la tierra a la vista y las hortalizas
+      //   grandes y contadas, repollos y zapallos;
+      // - el espantapájaros en el medio, con su sombrero;
+      // - sin las empalizadas ni los árboles, que estaban de relleno.
+      // Es un objeto: mide lo mismo en todos los pueblos.
+      m.anchor(0, 0);
+      for (final (x, z) in [
+        (-0.8, -0.55),
+        (0.8, -0.55),
+        (-0.8, 0.55),
+        (0.8, 0.55),
+      ]) {
+        m.box(
+          PieceKind.bed,
+          1.35,
+          0.8,
+          0.42,
+          dx: x,
+          dz: z,
+          at: 0,
+          ridge: true,
+          fixed: true,
+        );
+      }
+      m.box(
+        PieceKind.scarecrow,
+        0.8,
+        0.2,
+        1.5,
+        dz: -1.25,
+        at: 0,
+        ridge: true,
+        fixed: true,
+      );
+      m.unanchor();
     },
   ),
 

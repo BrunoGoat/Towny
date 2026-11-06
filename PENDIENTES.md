@@ -130,7 +130,7 @@ Sesenta que se distinguen valen más que sesenta con diez repetidas.
 - [ ] Cruz de término
 - [ ] Palomar
 - [ ] Colmenar
-- [ ] Huerto del cura
+- [ ] Huerto
 - [ ] Pajar
 - [ ] Corral
 - [ ] Gallinero

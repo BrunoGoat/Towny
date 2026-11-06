@@ -26,7 +26,7 @@ const Map<String, (String, String)> landmarksEn = {
         'harmony.',
   ),
   'huerto': (
-    "The priest's garden",
+    'Vegetable garden',
     'Tended soil that gives more than it asks. What grows here is '
         'shared with everyone.',
   ),

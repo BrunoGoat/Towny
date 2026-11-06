@@ -173,6 +173,12 @@ List<Solid> solidsOf(
     case PieceKind.flowers:
       return _flores(i, x0, y0, z0, x1, y1, z1);
 
+    case PieceKind.bed:
+      return _bancal(i, x0, y0, z0, x1, y1, z1);
+
+    case PieceKind.scarecrow:
+      return _espantapajaros(i, piece, y0, y1);
+
     case PieceKind.well:
       return _pozo(i, piece, x0, y0, z0, x1, y1, z1);
 
@@ -3729,4 +3735,210 @@ List<Solid> _flores(
     );
   }
   return out;
+}
+
+/// Un bancal de huerta: el cajón de madera, la tierra a ras del borde, y dos
+/// filas de hortalizas grandes y contadas, de una sola clase por bancal:
+/// repollos verdes o zapallos naranjas, en damero entre los bancales, para
+/// que se lea como huerta de un vistazo y sin ruido.
+List<Solid> _bancal(
+  int i,
+  double x0,
+  double y0,
+  double z0,
+  double x1,
+  double y1,
+  double z1,
+) {
+  const madera = 0xFF7A5A3A, tierra = 0xFF5A4030;
+  const repollo = 0xFF6E9A44, repolloClaro = 0xFF9CC266;
+  const zapallo = 0xFFDD8A2E, cabito = 0xFF4E6A2C;
+  final caja = math.min(0.2, (y1 - y0) * 0.45);
+  final g = math.min(0.05, (z1 - z0) * 0.08);
+  final suelo = y0 + caja;
+  final out = <Solid>[
+    Solid(
+      i,
+      boxFaces(
+        x0,
+        y0,
+        z0,
+        x1,
+        suelo - 0.02,
+        z1,
+        Surface.own,
+        ao: 0.92,
+        tint: madera,
+      ),
+    ),
+    Solid(
+      i,
+      boxFaces(
+        x0 + g,
+        suelo - 0.02,
+        z0 + g,
+        x1 - g,
+        suelo,
+        z1 - g,
+        Surface.own,
+        ao: 0.9,
+        tint: tierra,
+      ),
+    ),
+  ];
+  Solid aro(
+    double cx,
+    double cz,
+    double r,
+    double ya,
+    double yb,
+    int c,
+    double ao,
+  ) => Solid(
+    i,
+    prismFaces(Plaza.ring(cx, cz, r), ya, yb, Surface.own, ao: ao, tint: c),
+  );
+  final alto = y1 - suelo;
+  final n = math.max(1, ((x1 - x0 - 2 * g) / 0.42).floor());
+  final paso = (x1 - x0 - 2 * g) / n;
+  final r = math.min(paso * 0.36, (z1 - z0) * 0.21);
+  // De qué es este bancal: en damero según dónde queda.
+  final repollos = ((x0 + x1) > 0) == ((z0 + z1) > 0);
+  for (var fila = 0; fila < 2; fila++) {
+    final cz = z0 + (z1 - z0) * (fila == 0 ? 0.3 : 0.7);
+    for (var k = 0; k < n; k++) {
+      final cx = x0 + g + paso * (k + 0.5);
+      if (repollos) {
+        // El repollo: la mata ancha y el cogollo claro encima.
+        out.add(aro(cx, cz, r, suelo, suelo + alto * 0.6, repollo, 0.95));
+        out.add(
+          aro(
+            cx,
+            cz,
+            r * 0.6,
+            suelo + alto * 0.6,
+            suelo + alto,
+            repolloClaro,
+            1.02,
+          ),
+        );
+      } else {
+        // El zapallo: bajo y redondo, con su cabito.
+        out.add(aro(cx, cz, r * 1.05, suelo, suelo + alto * 0.7, zapallo, 1.0));
+        out.add(
+          aro(
+            cx,
+            cz,
+            r * 0.2,
+            suelo + alto * 0.7,
+            suelo + alto * 0.95,
+            cabito,
+            0.95,
+          ),
+        );
+      }
+    }
+  }
+  return out;
+}
+
+/// El espantapájaros: el palo clavado, el travesaño de los brazos con las
+/// mangas de paja, la camisa, la cabeza de paja y el sombrero de ala ancha.
+List<Solid> _espantapajaros(int i, TownPiece p, double y0, double y1) {
+  const palo = 0xFF6E5236, camisa = 0xFFA4523A, paja = 0xFFE0C068;
+  const sombrero = 0xFF4A3A2A;
+  final cx = p.cx, cz = p.cz, h = y1 - y0;
+  final brazos = math.max(p.w, p.d) / 2;
+  Solid caja(
+    double ax,
+    double ay,
+    double az,
+    double bx,
+    double by,
+    double bz,
+    int c,
+    double ao,
+  ) => Solid(i, boxFaces(ax, ay, az, bx, by, bz, Surface.own, ao: ao, tint: c));
+  const t = 0.035;
+  final hombro = y0 + h * 0.66;
+  final cuello = y0 + h * 0.74;
+  final cabeza = y0 + h * 0.86;
+  return [
+    caja(cx - t, y0, cz - t, cx + t, cuello, cz + t, palo, 0.9),
+    // Los brazos: el travesaño y la paja que asoma en las puntas.
+    caja(
+      cx - brazos,
+      hombro - 0.035,
+      cz - 0.035,
+      cx + brazos,
+      hombro + 0.035,
+      cz + 0.035,
+      camisa,
+      0.95,
+    ),
+    caja(
+      cx - brazos - 0.06,
+      hombro - 0.03,
+      cz - 0.03,
+      cx - brazos,
+      hombro + 0.03,
+      cz + 0.03,
+      paja,
+      1.0,
+    ),
+    caja(
+      cx + brazos,
+      hombro - 0.03,
+      cz - 0.03,
+      cx + brazos + 0.06,
+      hombro + 0.03,
+      cz + 0.03,
+      paja,
+      1.0,
+    ),
+    // La camisa.
+    caja(
+      cx - 0.13,
+      y0 + h * 0.42,
+      cz - 0.07,
+      cx + 0.13,
+      hombro + 0.04,
+      cz + 0.07,
+      camisa,
+      0.96,
+    ),
+    // La cabeza de paja.
+    Solid(
+      i,
+      prismFaces(
+        Plaza.ring(cx, cz, 0.1),
+        cuello,
+        cabeza,
+        Surface.own,
+        ao: 1.0,
+        tint: paja,
+      ),
+    ),
+    // El sombrero: el ala y la copa.
+    caja(
+      cx - 0.18,
+      cabeza,
+      cz - 0.18,
+      cx + 0.18,
+      cabeza + 0.03,
+      cz + 0.18,
+      sombrero,
+      0.95,
+    ),
+    caja(
+      cx - 0.09,
+      cabeza + 0.03,
+      cz - 0.09,
+      cx + 0.09,
+      y1,
+      cz + 0.09,
+      sombrero,
+      0.95,
+    ),
+  ];
 }

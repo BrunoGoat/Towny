@@ -78,7 +78,6 @@ mercados, lonjas), los arcos altos de los campanarios y la boca de un horno.
 
 ### Chicas
 
-- Huerto del cura (6)
 - Pajar (7)
 - Corral (6)
 - Gallinero (6)
@@ -180,3 +179,9 @@ mercados, lonjas), los arcos altos de los campanarios y la boca de un horno.
   sobre cada colmena (de noche no salen). Delante, girasoles en un cajón de
   madera con césped, cada uno mirando para su lado. Es un objeto: mide lo
   mismo en todos los pueblos.
+
+- Huerto (5), antes «Huerto del cura»: cuatro bancales de madera con la
+  tierra a la vista, cada uno con una sola hortaliza, pocas y grandes
+  (repollos o zapallos, en damero), y el espantapájaros atrás en el medio.
+  Sin empalizadas ni árboles. Es un objeto: mide lo mismo en todos los
+  pueblos.
