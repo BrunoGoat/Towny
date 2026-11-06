@@ -494,6 +494,28 @@ class _SettingsSheetState extends State<SettingsSheet> {
                 ),
                 _Row(
                   theme: t,
+                  icon: Icons.price_change_outlined,
+                  title: tr(
+                    'Ver el aviso de cambio de costo',
+                    'See the cost change notice',
+                  ),
+                  subtitle: tr(
+                    'El aviso que aparece al abrir la app cuando una obra '
+                        'empezada pasó a costar otra cantidad de piezas, con '
+                        'dos cambios de ejemplo. Es sólo para mirar: no toca '
+                        'tu pueblo.',
+                    'The notice shown on opening the app when a work already '
+                        'started now costs a different number of pieces, with '
+                        "two sample changes. It's only for looking: it "
+                        "doesn't touch your town.",
+                  ),
+                  act: (nav) {
+                    nav.pop();
+                    Appearance.instance.rehearseCostNotice();
+                  },
+                ),
+                _Row(
+                  theme: t,
                   icon: Icons.fork_right,
                   title: tr(
                     'Ver al constructor preguntando',

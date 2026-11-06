@@ -492,6 +492,17 @@ class Appearance extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Cuántas veces se pidió ver el aviso de que unas obras cambiaron de
+  /// costo, desde los ajustes de desarrollo: la pantalla del valle mira este
+  /// número y, cuando sube, lo muestra con unos cambios inventados. Sólo para
+  /// mirar: no toca el pueblo ni lo que se recuerda de los costos.
+  int get costNoticeRehearsals => _costNoticeRehearsals;
+  int _costNoticeRehearsals = 0;
+  void rehearseCostNotice() {
+    _costNoticeRehearsals++;
+    notifyListeners();
+  }
+
   /// Volver a la primera vez de verdad: lo que se conteste funda el pueblo.
   ///
   /// Es lo que hace «empezar de cero», con el valle ya vacío. Para mirarla sin

@@ -184,10 +184,52 @@ class _HomeScreenState extends State<HomeScreen>
     });
   }
 
+  /// Los ensayos del aviso de costos ya hechos. Ver
+  /// [Appearance.costNoticeRehearsals].
+  late int _ensayosCostes = Appearance.instance.costNoticeRehearsals;
+
+  /// Para mirar desde los ajustes de desarrollo: el aviso de que unas obras
+  /// cambiaron de costo, con dos cambios inventados en el pueblo que se
+  /// mira: uno que deja piezas a favor y otro que pide piezas de más. No toca
+  /// nada guardado.
+  void _rehearseCostNotice() {
+    Future.delayed(const Duration(milliseconds: 300), () async {
+      if (!mounted) return;
+      final pueblo = widget.store.habit.name;
+      final cerveceria = landmarks.firstWhere((l) => l.id == 'cerveceria');
+      final otra = landmarks.firstWhere((l) => l.id != 'cerveceria');
+      final cambios = [
+        CostChange(
+          town: pueblo,
+          id: cerveceria.id,
+          name: cerveceria.name,
+          before: cerveceria.cost + 3,
+          after: cerveceria.cost,
+        ),
+        CostChange(
+          town: pueblo,
+          id: otra.id,
+          name: otra.name,
+          before: otra.cost,
+          after: otra.cost + 2,
+        ),
+      ];
+      await showDialog<void>(
+        context: context,
+        barrierColor: sheetScrim(_theme.dark),
+        builder: (_) => CostChangeNotice(changes: cambios, theme: _theme),
+      );
+    });
+  }
+
   void _onStore() {
     if (Appearance.instance.workshopRehearsals != _ensayosTaller) {
       _ensayosTaller = Appearance.instance.workshopRehearsals;
       _rehearseWorkshop();
+    }
+    if (Appearance.instance.costNoticeRehearsals != _ensayosCostes) {
+      _ensayosCostes = Appearance.instance.costNoticeRehearsals;
+      _rehearseCostNotice();
     }
     // Keep the open card in step with the store, so a corrected hour shows up
     // on the card straight away.
