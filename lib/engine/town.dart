@@ -1373,6 +1373,7 @@ class TownLayout {
       spread: (propio ? 1.0 : character.spread) * aprieto,
       storey: (propio ? 1.0 : character.storey) * aprieto,
       pitch: propio ? 1.0 : character.pitch,
+      size: aprieto,
     );
 
     final mark = b.landmark;

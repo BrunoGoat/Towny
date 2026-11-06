@@ -321,19 +321,36 @@ void main() {
           // obra es estirarla entera, igual en todas sus piezas —a lo ancho
           // por un número y a lo alto por otro—, así que cada pieza tiene que
           // ser la del taller multiplicada por esos dos números.
-          final ref = receta.out.indexWhere((r) => r.w > 0.2);
+          final ref = receta.out.indexWhere((r) => r.w > 0.2 && !r.fixed);
           final ancho = hechas[ref].w / receta.out[ref].w;
           final ox = hechas[ref].cx - receta.out[ref].cx * ancho;
           final oz = hechas[ref].cz - receta.out[ref].cz * ancho;
           final alzado = receta.out.indexWhere(
-            (r) => r.y1 - r.y0 > 0.2 && !techoDe(r.kind),
+            (r) =>
+                r.y1 - r.y0 > 0.2 &&
+                !techoDe(r.kind) &&
+                !r.fixed &&
+                r.kind != PieceKind.palisade,
           );
-          final alto =
-              (hechas[alzado].y1 - hechas[alzado].y0) /
-              (receta.out[alzado].y1 - receta.out[alzado].y0);
+          // Sin nada alto que no sea objeto —un huerto—, lo que estira la
+          // comarca a lo alto.
+          final alto = alzado < 0
+              ? (mark.rigid ? 1.0 : c.storey) * mark.scale
+              : (hechas[alzado].y1 - hechas[alzado].y0) /
+                    (receta.out[alzado].y1 - receta.out[alzado].y0);
           for (var i = 0; i < hechas.length; i++) {
             final r = receta.out[i], p = hechas[i];
             final donde = '${mark.id} pieza $i (${r.kind.name}) en ${c.region}';
+            // Los objetos no se estiran: ver la prueba siguiente.
+            if (r.fixed) {
+              expect(p.w, closeTo(r.w * mark.scale, 1e-6), reason: donde);
+              expect(
+                p.y1 - p.y0,
+                closeTo((r.y1 - r.y0) * mark.scale, 1e-6),
+                reason: donde,
+              );
+              continue;
+            }
             expect(p.cx, closeTo(ox + r.cx * ancho, 1e-6), reason: donde);
             expect(p.cz, closeTo(oz + r.cz * ancho, 1e-6), reason: donde);
             expect(p.w, closeTo(r.w * ancho, 1e-6), reason: donde);
@@ -341,7 +358,8 @@ void main() {
             if (r.kind != PieceKind.dormer) {
               expect(p.y0, closeTo(r.y0 * alto, 1e-6), reason: donde);
             }
-            if (!techoDe(r.kind)) {
+            // La empalizada, a lo largo sí; de alto, la de siempre.
+            if (!techoDe(r.kind) && r.kind != PieceKind.palisade) {
               expect(p.y1, closeTo(r.y1 * alto, 1e-6), reason: donde);
             }
             // La comarca puede techar de paja lo que la receta techa de teja.
@@ -387,6 +405,37 @@ void main() {
       }
     });
 
+    test('lo que es objeto mide lo mismo en todos los pueblos', () {
+      // Las paredes y los tejados son lo que cambia de una comarca a otra; una
+      // colmena, un cartel, un tonel o las aspas de un molino, no.
+      for (final mark in landmarks) {
+        Map<int, (double, double, double)>? antes;
+        for (final c in TownCharacter.all) {
+          final l = TownLayout.showcase(c, landmark: mark, placed: mark.cost);
+          final hechas = l.pieces.where((p) => p.building == 0).toList();
+          final receta = Mason(0, 0, 1, true);
+          mark.build(receta);
+          final medidas = <int, (double, double, double)>{
+            for (var i = 0; i < hechas.length; i++)
+              if (receta.out[i].fixed)
+                i: (hechas[i].w, hechas[i].d, hechas[i].y1 - hechas[i].y0),
+          };
+          final a = antes;
+          if (a != null) {
+            for (final e in medidas.entries) {
+              final (w, d, h) = e.value;
+              final (w0, d0, h0) = a[e.key]!;
+              final donde = '${mark.id} pieza ${e.key} en ${c.region}';
+              expect(w, closeTo(w0, 1e-6), reason: donde);
+              expect(d, closeTo(d0, 1e-6), reason: donde);
+              expect(h, closeTo(h0, 1e-6), reason: donde);
+            }
+          }
+          antes = medidas;
+        }
+      }
+    });
+
     test('nada vuela: cada pieza se apoya en algo que tiene debajo', () {
       // **Ésta es la prueba que faltaba, y por eso había piezas volando.**
       //
@@ -413,6 +462,7 @@ void main() {
             spread: (propio ? 1.0 : c.spread) * l.scale,
             storey: (propio ? 1.0 : c.storey) * l.scale,
             pitch: propio ? 1.0 : c.pitch,
+            size: l.scale,
           );
           l.build(m);
           final built = m.finish(l.cost);
@@ -454,7 +504,15 @@ void main() {
       for (final l in landmarks) {
         // Con el aprieto puesto: lo que tiene que caber en el solar es lo que
         // se levanta, no lo que está escrito. Ver [Landmark.scale].
-        final m = Mason(0, 0, 7, true, spread: l.scale, storey: l.scale);
+        final m = Mason(
+          0,
+          0,
+          7,
+          true,
+          spread: l.scale,
+          storey: l.scale,
+          size: l.scale,
+        );
         l.build(m);
         var reach = 0.0;
         for (final s in m.finish(l.cost)) {

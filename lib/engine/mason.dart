@@ -92,7 +92,12 @@ class Spec {
     required this.y1,
     required this.alongX,
     this.motif = Motif.none,
+    this.fixed = false,
   });
+
+  /// Si es un objeto que mide lo mismo en todos los pueblos: ver
+  /// [Mason.size].
+  final bool fixed;
   final PieceKind kind;
   final double cx, cz, w, d, y0, y1;
   final bool alongX;
@@ -135,6 +140,7 @@ class Mason {
     this.spread = 1.0,
     this.storey = 1.0,
     this.pitch = 1.0,
+    this.size = 1.0,
   });
 
   final double cx, cz;
@@ -159,7 +165,42 @@ class Mason {
   /// door still reaches it.
   final double spread, storey, pitch;
 
+  /// **Lo que no es casa no se estira.** Las paredes, los pisos y los tejados
+  /// son lo que hace distinto a cada pueblo, y se estiran con [spread] y
+  /// [storey]. Pero una colmena, un cartel, un tonel, un pan o las aspas de
+  /// un molino miden lo mismo en todas partes: estirados, en la Sierra salían
+  /// colmenas altas como un hombre y en la Costa carteles aplastados. Esas
+  /// piezas ([fixedKinds], o las que se piden con `fixed`) van a su sitio
+  /// estirado —el cartel sigue en su pared, a su altura— pero con su tamaño
+  /// de la receta por [size], que es sólo la escala de la obra.
+  final double size;
+
+  /// Las piezas que son objetos y no arquitectura: miden siempre lo mismo.
+  static const Set<PieceKind> fixedKinds = {
+    PieceKind.awning,
+    PieceKind.counter,
+    PieceKind.sign,
+    PieceKind.barrel,
+    PieceKind.haystack,
+    PieceKind.cloth,
+    PieceKind.millstone,
+    PieceKind.hens,
+    PieceKind.hive,
+    PieceKind.banner,
+    PieceKind.wheel,
+    PieceKind.sail,
+    PieceKind.tree,
+  };
+
   final List<Spec> out = [];
+
+  /// Dónde está el conjunto fijo que se está armando: ver [anchor].
+  (double, double)? _ancla;
+
+  /// Lo que sigue con `fixed`, hasta [unanchor], es un conjunto —un horno con
+  /// su boca y su tiro— cuyo centro está en ([dx], [dz]) de la receta.
+  void anchor(double dx, double dz) => _ancla = (dx, dz);
+  void unanchor() => _ancla = null;
 
   /// Every roof laid so far, so a dormer knows where its tiles are.
   final List<_Roof> _roofs = [];
@@ -182,18 +223,37 @@ class Mason {
     double y1, {
     bool? along,
     Motif motif = Motif.none,
+    bool fixed = false,
   }) {
+    // Un objeto: a su sitio estirado, con su tamaño. Uno «fijo» del todo
+    // —un horno, un tonel sobre otro— tampoco estira la altura a la que
+    // empieza, porque se apila sobre otros objetos y no sobre la casa.
+    final objeto = fixed || fixedKinds.contains(kind);
+    final valla = kind == PieceKind.palisade;
+    // Las partes de un conjunto fijo —el horno y su boca— guardan entre sí
+    // las distancias de la receta: sólo el conjunto va a su sitio estirado.
+    final ancla = fixed ? _ancla : null;
+    final px = ancla == null
+        ? dx * spread
+        : ancla.$1 * spread + (dx - ancla.$1) * size;
+    final pz = ancla == null
+        ? dz * spread
+        : ancla.$2 * spread + (dz - ancla.$2) * size;
+    final base = fixed ? y0 * size : y0 * storey;
+    final ya = objeto || valla ? base : y0 * storey;
+    final yb = objeto || valla ? base + (y1 - y0) * size : y1 * storey;
     out.add(
       Spec(
         motif: motif,
         kind: kind,
-        cx: cx + dx * spread,
-        cz: cz + dz * spread,
-        w: w * spread,
-        d: d * spread,
-        y0: y0 * storey,
-        y1: y1 * storey,
+        cx: cx + px,
+        cz: cz + pz,
+        w: objeto ? w * size : w * spread,
+        d: objeto ? d * size : d * spread,
+        y0: ya,
+        y1: yb,
         alongX: along ?? alongX,
+        fixed: objeto,
       ),
     );
   }
@@ -211,12 +271,24 @@ class Mason {
     double? at,
     bool? along,
     Motif motif = Motif.none,
+    bool fixed = false,
   }) {
     // A roof is the one thing whose height is not the town's height: how steep
     // this place builds is a fourth number, on top of the other three.
     if (k == PieceKind.roof || k == PieceKind.thatch) ht *= pitch;
     final base = at ?? y;
-    _add(k, dx, dz, w, d, base, base + ht, along: along, motif: motif);
+    _add(
+      k,
+      dx,
+      dz,
+      w,
+      d,
+      base,
+      base + ht,
+      along: along,
+      motif: motif,
+      fixed: fixed,
+    );
     if (k == PieceKind.roof || k == PieceKind.thatch) {
       _roofs.add(_Roof(dx, dz, w, d, base, ht, along ?? alongX));
     }
@@ -383,6 +455,7 @@ class Mason {
     bool? along,
     double? at,
     bool rise = false,
+    bool fixed = false,
   }) {
     final base = at ?? y;
     final a = along ?? alongX;
@@ -395,6 +468,7 @@ class Mason {
       base,
       base + ht,
       along: a,
+      fixed: fixed,
     );
     if (rise && at == null) y += ht;
   }
@@ -438,15 +512,11 @@ class Mason {
     double dx = 0,
     double dz = 0,
     required double at,
-  }) => _add(
-    PieceKind.sail,
-    dx,
-    dz,
-    diameter,
-    diameter,
-    at - diameter / 2,
-    at + diameter / 2,
-  );
+  }) {
+    // El eje, a la altura estirada de la torre; las aspas, de su tamaño.
+    final y0 = at - diameter * size / (2 * storey);
+    _add(PieceKind.sail, dx, dz, diameter, diameter, y0, y0 + diameter);
+  }
 
   /// A single upright: the leg of a well roof, a gallows, the end of a
   /// trellis.
@@ -502,7 +572,7 @@ class Mason {
     0.7,
     0.42,
     dx: dx,
-    dz: front + 0.2,
+    dz: front + 0.2 * size / spread,
     at: at,
     ridge: true,
     motif: motif,
@@ -526,6 +596,8 @@ class Mason {
     at: at,
     ridge: true,
     motif: motif,
+    // Sobre el suelo o sobre otro tonel: también su altura es la suya.
+    fixed: true,
   );
 
   /// Un almiar.
@@ -593,7 +665,7 @@ class Mason {
     reach + 0.15,
     drop,
     dx: dx,
-    dz: front + (reach - 0.15) / 2,
+    dz: front + (reach - 0.15) / 2 * size / spread,
     at: at,
     ridge: true,
   );
@@ -610,7 +682,7 @@ class Mason {
     0.32,
     0.46,
     dx: dx,
-    dz: front + 0.16,
+    dz: front + 0.16 * size / spread,
     at: at,
     ridge: true,
   );

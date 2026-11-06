@@ -13,6 +13,20 @@ días.
 
 Entre paréntesis, cuántas piezas cuesta.
 
+**Qué cambia de un pueblo a otro y qué no:**
+- **Cambia** (se estira según la región): la arquitectura. Zócalos, pisos,
+  paredes, tejados, chimeneas, cúpulas, arcos, escaleras, parapetos, y el
+  largo de las empalizadas.
+- **No cambia** (mide siempre lo mismo, con las medidas de la receta, que son
+  las de Marca, la región más pareja): los objetos. Colmenas, carteles,
+  toneles y tinajas, el mostrador y los panes, el toldo, almiares,
+  tendederos, la muela, las gallinas, banderas, árboles, las aspas y la rueda
+  del molino, y la altura de las empalizadas. También los conjuntos que son
+  objetos aunque estén hechos de ladrillo: el horno de la panadería, el horno
+  de la alfarería y la caldera de la cervecería.
+- Los objetos siguen yendo a su lugar: un cartel queda en su pared, a su
+  altura, aunque la pared sea más alta o más baja.
+
 ## Pendiente de revisar
 
 ### Chicas

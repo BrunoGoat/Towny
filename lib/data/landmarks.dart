@@ -103,7 +103,15 @@ class Landmark {
   double? _reach;
 
   double _measure() {
-    final m = Mason(0, 0, 0x5EED, true, spread: scale, storey: scale);
+    final m = Mason(
+      0,
+      0,
+      0x5EED,
+      true,
+      spread: scale,
+      storey: scale,
+      size: scale,
+    );
     build(m);
     var r = 0.0;
     for (final s in m.finish(cost)) {
@@ -285,16 +293,36 @@ final List<Landmark> landmarks = [
       m.plinth(2.0, 1.7, 0.22);
       m.floor(1.7, 1.45, 1.0);
       m.box(PieceKind.thatch, 2.05, 1.8, 0.62);
+      m.anchor(1.6, 0);
       var y = 0.0;
       for (final (lado, alto) in const [
         (1.2, 0.55),
         (0.95, 0.2),
         (0.62, 0.16),
       ]) {
-        m.box(PieceKind.chimney, lado, lado, alto, dx: 1.6, at: y, ridge: true);
+        m.box(
+          PieceKind.chimney,
+          lado,
+          lado,
+          alto,
+          dx: 1.6,
+          at: y,
+          ridge: true,
+          fixed: true,
+        );
         y += alto;
       }
-      m.box(PieceKind.chimney, 0.22, 0.22, 0.42, dx: 1.6, at: y, ridge: true);
+      m.box(
+        PieceKind.chimney,
+        0.22,
+        0.22,
+        0.42,
+        dx: 1.6,
+        at: y,
+        ridge: true,
+        fixed: true,
+      );
+      m.unanchor();
       m.barrel(0.42, 0.55, dx: -0.55, dz: 1.2, motif: Motif.clay);
       m.barrel(0.34, 0.42, dx: 0.0, dz: 1.3, motif: Motif.clay);
       m.barrel(0.42, 0.55, dx: 0.5, dz: 1.2, motif: Motif.clay);
@@ -364,6 +392,9 @@ final List<Landmark> landmarks = [
         dz: frente + 0.2,
         at: base + 0.6,
         ridge: true,
+        // A la altura de siempre, sobre el mostrador, sea alta o baja la
+        // planta.
+        fixed: true,
       );
       m.box(
         PieceKind.counter,
@@ -390,6 +421,7 @@ final List<Landmark> landmarks = [
       // cierra en una sola hilada, el tiro y la boca. Con más escalones se
       // leía como una pirámide.
       const ox = 1.0;
+      m.anchor(ox, -0.15);
       m.box(
         PieceKind.parapet,
         1.3,
@@ -399,6 +431,7 @@ final List<Landmark> landmarks = [
         dz: -0.15,
         at: base,
         ridge: true,
+        fixed: true,
       );
       final poyo = base + 0.36;
       m.box(
@@ -410,6 +443,7 @@ final List<Landmark> landmarks = [
         dz: -0.15,
         at: poyo,
         ridge: true,
+        fixed: true,
       );
       m.box(
         PieceKind.chimney,
@@ -420,6 +454,7 @@ final List<Landmark> landmarks = [
         dz: -0.15,
         at: poyo + 0.44,
         ridge: true,
+        fixed: true,
       );
       m.box(
         PieceKind.chimney,
@@ -430,8 +465,19 @@ final List<Landmark> landmarks = [
         dz: -0.2,
         at: poyo + 0.64,
         ridge: true,
+        fixed: true,
       );
-      m.arcade(0.44, 0.32, 0.1, dx: ox, dz: 0.41, at: poyo, along: true);
+      m.arcade(
+        0.44,
+        0.32,
+        0.1,
+        dx: ox,
+        dz: 0.41,
+        at: poyo,
+        along: true,
+        fixed: true,
+      );
+      m.unanchor();
     },
   ),
 
@@ -573,9 +619,38 @@ final List<Landmark> landmarks = [
       m.floor(2.35, 1.85, 1.05);
       m.roof(2.75, 2.3, 0.85);
       m.chimney(0.36, 1.15, dx: -0.75);
-      m.box(PieceKind.chimney, 1.1, 1.1, 0.7, dx: 2.0, at: 0, ridge: true);
-      m.box(PieceKind.chimney, 0.8, 0.8, 0.22, dx: 2.0, at: 0.7, ridge: true);
-      m.box(PieceKind.chimney, 0.26, 0.26, 0.6, dx: 2.0, at: 0.92, ridge: true);
+      m.anchor(2.0, 0);
+      m.box(
+        PieceKind.chimney,
+        1.1,
+        1.1,
+        0.7,
+        dx: 2.0,
+        at: 0,
+        ridge: true,
+        fixed: true,
+      );
+      m.box(
+        PieceKind.chimney,
+        0.8,
+        0.8,
+        0.22,
+        dx: 2.0,
+        at: 0.7,
+        ridge: true,
+        fixed: true,
+      );
+      m.box(
+        PieceKind.chimney,
+        0.26,
+        0.26,
+        0.6,
+        dx: 2.0,
+        at: 0.92,
+        ridge: true,
+        fixed: true,
+      );
+      m.unanchor();
       m.sign(Motif.jug, dx: 0.7, front: 0.95, at: 1.0);
       m.barrel(0.5, 0.62, dx: -1.45, dz: 1.55);
       m.barrel(0.5, 0.62, dx: -0.85, dz: 1.6);
