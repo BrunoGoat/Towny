@@ -3026,6 +3026,7 @@ class TownPainter extends CustomPainter {
         case PieceKind.tools:
         case PieceKind.kiln:
         case PieceKind.pottery:
+        case PieceKind.basket:
           break;
         default:
           porCasa.putIfAbsent(pc.building, () => []).add(pc);
@@ -3672,14 +3673,13 @@ class TownPainter extends CustomPainter {
   }
 
   /// Dónde está cada animal de un rebaño en el instante [t]: (x, z, rumbo,
-  /// tamaño). Dos ovejas grandes, cada una en su mitad del corral, y un
-  /// corderito.
+  /// tamaño). Dos ovejas grandes y un corderito, cada uno en su rincón del
+  /// corral.
   ///
   /// Se mueven como en los juegos de bloques: un rato quietas pastando,
   /// unos pasos cortos hasta otro sitio, y otra vez quietas. Mucho
-  /// movimiento se robaba la atención del pueblo. El corderito anda por la
-  /// zona de su madre, cerca pero no pegado, y arranca un poco después que
-  /// ella.
+  /// movimiento se robaba la atención del pueblo. El corderito anda en su
+  /// rincón, al lado del de su madre, y arranca un poco después que ella.
   static List<(double, double, double, double)> rebano(
     TownPiece piece,
     double t,
@@ -3687,10 +3687,6 @@ class TownPainter extends CustomPainter {
     final x0 = piece.x0, z0 = piece.z0;
     final w = piece.x1 - piece.x0, d = piece.z1 - piece.z0;
     const paso = 2.2;
-    (double, double) adentro(double x, double z) => (
-      x.clamp(piece.x0 + 0.2, piece.x1 - 0.2),
-      z.clamp(piece.z0 + 0.2, piece.z1 - 0.2),
-    );
     (double, double, double) anda(
       int k,
       double u0,
@@ -3727,29 +3723,13 @@ class TownPainter extends CustomPainter {
       );
     }
 
-    final (ax, az, ar) = anda(0, 0.12, 0.42, 0.2, 0.8);
-    final (bx, bz, br) = anda(1, 0.62, 0.88, 0.42, 0.85);
-    // El corderito: sus metas son las de la madre, corridas tres cuartos de metro
-    // largo para un lado que cambia cada vez, para que no la toque.
-    (double, double) cerca(int m) {
-      final fase = hash01(piece.seed, 89, m) * 6.28;
-      final hx = x0 + w * (0.12 + 0.3 * hash01(piece.seed, 85, m));
-      final hz = z0 + d * (0.2 + 0.6 * hash01(piece.seed, 87, m));
-      return adentro(hx + math.cos(fase) * 0.75, hz + math.sin(fase) * 0.75);
-    }
-
-    var (cx, cz, cr) = anda(0, 0, 1, 0, 1, atraso: 1.3, destino: cerca);
-    // Si en el camino se le arrima demasiado a una grande, se corre lo justo
-    // para no tocarla: nunca una oveja metida dentro de otra.
-    for (final (ox, oz) in [(ax, az), (bx, bz)]) {
-      final dx = cx - ox, dz = cz - oz;
-      final dist = math.sqrt(dx * dx + dz * dz);
-      const minimo = 0.66;
-      if (dist < minimo) {
-        final (ux, uz) = dist < 1e-6 ? (1.0, 0.0) : (dx / dist, dz / dist);
-        (cx, cz) = adentro(ox + ux * minimo, oz + uz * minimo);
-      }
-    }
+    // Cada una tiene su rincón del corral y no sale de él: la madre atrás a
+    // la izquierda, la otra grande a la derecha y el corderito adelante a
+    // la izquierda, cerca de su madre. Como los rincones no se pisan, nunca
+    // se chocan y no hace falta correr a ninguna de golpe.
+    final (ax, az, ar) = anda(0, 0.08, 0.36, 0.12, 0.36);
+    final (bx, bz, br) = anda(1, 0.7, 0.92, 0.42, 0.88);
+    final (cx, cz, cr) = anda(2, 0.08, 0.4, 0.74, 0.9, atraso: 1.3);
     return [(ax, az, ar, 1.0), (bx, bz, br, 1.0), (cx, cz, cr, 0.68)];
   }
 

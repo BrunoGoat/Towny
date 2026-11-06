@@ -157,6 +157,9 @@ enum PieceKind {
   /// Los cacharros a la venta sobre su tarima de tablas: dos cántaros con
   /// asas.
   pottery,
+
+  /// Un canasto de mimbre con la ropa blanca encima.
+  basket,
 }
 
 /// One piece of a building, before it is given to an achievement.
@@ -298,6 +301,7 @@ class Mason {
     PieceKind.tools,
     PieceKind.kiln,
     PieceKind.pottery,
+    PieceKind.basket,
     PieceKind.banner,
     PieceKind.wheel,
     PieceKind.sail,

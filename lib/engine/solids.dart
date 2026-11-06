@@ -221,6 +221,9 @@ List<Solid> solidsOf(
     case PieceKind.pottery:
       return _cacharros(i, x0, y0, z0, x1, y1, z1);
 
+    case PieceKind.basket:
+      return _canasto(i, x0, y0, z0, x1, y1, z1);
+
     case PieceKind.well:
       return _pozo(i, piece, x0, y0, z0, x1, y1, z1);
 
@@ -4664,4 +4667,51 @@ List<Solid> _cacharros(
   cantaro(x0 + w * 0.28, h, barro);
   cantaro(x0 + w * 0.72, h * 0.82, barroClaro);
   return out;
+}
+
+/// El canasto de mimbre: la canasta un poco más ancha arriba, y encima la
+/// ropa blanca amontonada, que sobresale.
+List<Solid> _canasto(
+  int i,
+  double x0,
+  double y0,
+  double z0,
+  double x1,
+  double y1,
+  double z1,
+) {
+  const mimbre = 0xFFB08A50, ropa = 0xFFE9E4D8;
+  final h = y1 - y0, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
+  final r = math.min(x1 - x0, z1 - z0) / 2;
+  final borde = y0 + h * 0.7;
+  return [
+    Solid(
+      i,
+      boxFaces(
+        cx - r * 0.85,
+        y0,
+        cz - r * 0.85,
+        cx + r * 0.85,
+        borde,
+        cz + r * 0.85,
+        Surface.own,
+        ao: 0.95,
+        tint: mimbre,
+      ),
+    ),
+    Solid(
+      i,
+      boxFaces(
+        cx - r * 0.7,
+        borde,
+        cz - r * 0.7,
+        cx + r * 0.7,
+        y1,
+        cz + r * 0.7,
+        Surface.own,
+        ao: 1.02,
+        tint: ropa,
+      ),
+    ),
+  ];
 }

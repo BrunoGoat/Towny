@@ -97,7 +97,6 @@ mercados, lonjas), los arcos altos de los campanarios y la boca de un horno.
 ### Chicas
 
 - Gallinero (6)
-- Lavadero (8)
 - Potro de herrar (12)
 
 ### Medianas
@@ -209,8 +208,9 @@ mercados, lonjas), los arcos altos de los campanarios y la boca de un horno.
 
 - Corral (9): cerrado por los cuatro lados con una cerca baja de palos. Adentro
   dos ovejas y un corderito que se mueven como en los juegos de bloques: un
-  rato quietas, unos pasos cortos y otra vez quietas; el corderito anda cerca
-  de su madre pero por su cuenta. El pilón con agua. Al lado, el cobertizo de
+  rato quietas, unos pasos cortos y otra vez quietas; cada una en su rincón
+  del corral, para que nunca se choquen, y el corderito en el suyo, al lado
+  del de su madre. El pilón con agua. Al lado, el cobertizo de
   tablas, cuadrado, con su ventanuco y un tejado de una sola caída, y la horca
   y la pala apoyadas en el frente. Es un objeto: mide lo mismo en todos los
   pueblos.
@@ -221,3 +221,8 @@ mercados, lonjas), los arcos altos de los campanarios y la boca de un horno.
   de cocer: un bloque cuadrado de ladrillo con la boca abierta y el fuego
   adentro, y su tiro. Delante, sobre una tarima, dos cántaros hechos de tres
   cajas (panza, cuello y boca) con sus asas, a escala.
+
+- Lavadero (4): la pila larga de piedra con el agua y, delante, el escalón
+  de piedra bajo y recto donde se arrodilla la que lava. Atrás, el tendedero
+  con la ropa colgada; al costado, el canasto de mimbre con la ropa blanca.
+  Sin tejado ni postes. Es un objeto: mide lo mismo en todos los pueblos.

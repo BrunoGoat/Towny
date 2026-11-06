@@ -771,23 +771,63 @@ final List<Landmark> landmarks = [
   Landmark(
     'lavadero',
     'Lavadero',
-    8,
+    4,
     0,
     'Agua corriente, jabón y conversación. Aquí se enteran todos de '
         'todo.',
     (m) {
-      // Una pileta larga de piedra con su agua, la losa de delante donde se
-      // refriega, y un tejado a dos aguas sobre dos postes; el caño echa el
-      // agua en una punta.
-      m.plinth(2.8, 1.7, 0.18);
-      final base = m.y;
-      m.box(PieceKind.parapet, 2.2, 0.95, 0.36, at: base, ridge: true);
-      m.box(PieceKind.water, 1.95, 0.7, 0.04, at: base + 0.3, ridge: true);
-      m.box(PieceKind.parapet, 2.2, 0.3, 0.3, dz: 0.62, at: base);
-      m.post(0.2, 1.45, dx: -1.2, at: base);
-      m.post(0.2, 1.45, dx: 1.2, at: base);
-      m.roof(2.8, 1.75, 0.5, at: base + 1.45);
-      m.post(0.12, 0.62, dx: -0.95, dz: -0.35, at: base + 0.3);
+      // Lo que dice «lavadero» y no «una pileta con techo»:
+      // - la pila larga de piedra con el agua;
+      // - delante, a lo largo, el escalón de piedra bajo donde se arrodilla
+      //   la que lava;
+      // - atrás, el tendedero con la ropa colgada, y al costado el canasto
+      //   con la ropa blanca.
+      // Sin el tejado sobre postes, que ya tienen el pozo y el colmenar. Es
+      // un objeto: mide lo mismo en todos los pueblos.
+      m.anchor(0, 0);
+      m.box(
+        PieceKind.well,
+        2.0,
+        0.8,
+        0.42,
+        dz: -0.2,
+        at: 0,
+        ridge: true,
+        fixed: true,
+      );
+      m.box(
+        PieceKind.parapet,
+        2.0,
+        0.34,
+        0.16,
+        dz: -0.2 + 0.4 + 0.17,
+        at: 0,
+        ridge: true,
+        fixed: true,
+      );
+      m.box(
+        PieceKind.cloth,
+        2.1,
+        0.2,
+        1.05,
+        dz: -1.05,
+        at: 0,
+        ridge: true,
+        fixed: true,
+        along: true,
+      );
+      m.box(
+        PieceKind.basket,
+        0.42,
+        0.42,
+        0.36,
+        dx: 1.35,
+        dz: 0.75,
+        at: 0,
+        ridge: true,
+        fixed: true,
+      );
+      m.unanchor();
     },
   ),
 
