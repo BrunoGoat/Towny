@@ -603,21 +603,20 @@ const Map<FiestaKind, FiestaInfo> fiestaInfo = {
     es: 'La ronda',
     en: 'The round',
     aboutEs:
-        'Un paseo: la cámara visita cada pueblo de cerca, uno por uno; en cada '
-        'plaza se enciende una luz y suena una nota. Al final sube a mirar el '
-        'valle entero.',
+        'Un paseo: la cámara visita cada pueblo de cerca, uno por uno, siguiendo '
+        'un hilo de oro que va de plaza en plaza; en cada una se enciende una '
+        'luz y suena una nota. Al final sube al valle, con el hilo tendido '
+        'entre todos, da una vuelta y vuelve a tu pueblo.',
     aboutEn:
-        'A stroll: the camera visits each town up close, one by one; a light '
-        'comes on in each plaza and a note sounds. At the end it rises to see '
-        'the whole valley.',
+        'A stroll: the camera visits each town up close, one by one, following '
+        'a golden thread from plaza to plaza; a light comes on in each and a '
+        'note sounds. At the end it rises to the valley, the thread strung '
+        'between them all, circles a while and returns to your town.',
     size: FiestaSize.grand,
     camera: FiestaCamera.tour,
     reach: 0.9,
-    seconds: 2 * Fiesta.rondaStep + 2.6,
+    seconds: 2 * Fiesta.rondaStep + 5.5,
     perTown: Fiesta.rondaStep,
-    lineEs: 'Una vuelta por todos los pueblos.',
-    lineEn: 'A round of every town.',
-    lineAt: 0.4,
   ),
 };
 
@@ -752,7 +751,7 @@ class Fiesta extends ChangeNotifier {
     for (final k in FiestaKind.values) {
       if (k.name == id) return k;
     }
-    return FiestaKind.chispas;
+    return FiestaKind.ronda;
   }
 
   Future<void> choose(FiestaKind k) => Appearance.instance.setFiesta(k.name);
@@ -903,10 +902,7 @@ class Fiesta extends ChangeNotifier {
             () => snd.fiesta('fiesta_nota${(k * 2) % 8}', level: 0.7),
           );
         }
-        _at(
-          rondaStep * n + 0.6,
-          () => snd.fiesta('fiesta_campanas', level: 0.6),
-        );
+        _at(rondaFin(n), () => snd.fiesta('fiesta_campanas', level: 0.6));
     }
   }
 
@@ -956,19 +952,37 @@ class Fiesta extends ChangeNotifier {
         return (n - 1).toDouble();
       case FiestaKind.ronda:
         if (t > rondaStep * n) return null;
-        final k = (t / rondaStep).floor();
+        final k = (t / rondaStep).floor().clamp(0, n - 1);
         if (k == 0) return 0;
-        return (k - 1) + ((t - k * rondaStep) / 1.1).clamp(0.0, 1.0);
+        return (k - 1) + rondaTravel(k, t);
       default:
         return null;
     }
   }
 
-  /// Lo que la ronda se queda en cada pueblo.
-  static const double rondaStep = 2.3;
+  /// Lo que la ronda tarda con cada pueblo: el viaje hasta él y el rato
+  /// que se queda.
+  static const double rondaStep = 2.6;
 
-  /// Cuándo llega la ronda a su pueblo número [k] del recorrido.
-  static double rondaArrive(int k) => k == 0 ? 0.5 : k * rondaStep + 0.9;
+  /// Lo que tarda el viaje de un pueblo al siguiente.
+  static const double rondaVuelo = 1.4;
+
+  /// Por dónde va el viaje hasta el pueblo número [k] del recorrido, de 0 a
+  /// 1, suave al salir y al llegar. Lo usan la cámara y el hilo, que así van
+  /// juntos: la cámara va detrás de la punta del hilo.
+  static double rondaTravel(int k, double t) {
+    final u = ((t - k * rondaStep) / rondaVuelo).clamp(0.0, 1.0);
+    return u * u * (3 - 2 * u);
+  }
+
+  /// Cuándo llega la ronda a su pueblo número [k]: cuando llega la cámara,
+  /// y no antes, que si no el brillo se lo pierde.
+  static double rondaArrive(int k) =>
+      k == 0 ? 0.45 : k * rondaStep + rondaVuelo;
+
+  /// Cuándo, ya arriba en el valle, se encienden todos a la vez y sale el
+  /// título: lo que tarda la cámara en subir.
+  static double rondaFin(int n) => rondaStep * n + 1.4;
 
   static double fugazAt(int i) => 0.9 + 0.55 * i;
   static double faroAt(int k) => 0.5 + 0.45 * k;

@@ -1940,8 +1940,55 @@ class _Fiesta {
 
   // --------------------------------------------------------------------- ronda
 
+  /// Un tramo de hilo de oro, de la plaza [a] a la [b], tendido hasta
+  /// [head] (de 0 a 1), con [pulso] de brillo de más.
+  void _tramo(
+    FiestaTown a,
+    FiestaTown b,
+    double head,
+    double pulso,
+    double fade,
+  ) {
+    if (head <= 0 || fade <= 0) return;
+    final pts = <Offset>[];
+    const steps = 40;
+    for (var j = 0; j <= steps; j++) {
+      final w = _thread(a, b, head * j / steps);
+      final q = _at(w.x, w.y, w.z);
+      if (q != null) pts.add(q);
+    }
+    if (pts.length < 2) return;
+    final path = Path()..addPolygon(pts, false);
+    _paint
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 10 + 6 * pulso
+      ..color = _oro.withValues(alpha: 0.22 * fade)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    c.drawPath(path, _paint);
+    _paint
+      ..strokeWidth = 2.0 + 1.2 * pulso
+      ..color = _oroClaro.withValues(alpha: fade)
+      ..maskFilter = null;
+    c.drawPath(path, _paint);
+    _paint.style = PaintingStyle.fill;
+    if (head < 1) {
+      _glow(pts.last, 18, _oro, 0.85 * fade);
+      _dot(pts.last, 2.8, const Color(0xFFFFFFFF), fade);
+    }
+  }
+
   void ronda() {
     final n = s.towns.length;
+    final fin = Fiesta.rondaFin(n);
+    // Al encenderse todos, el hilo entero late una vez.
+    final pulso = _window(t, fin, fin + 0.3, fin + 0.6, fin + 2.0);
+    // El hilo: un tramo por viaje, que se tiende a la par de la cámara y se
+    // queda, así desde el valle se ve el recorrido entero.
+    for (var k = 1; k < n; k++) {
+      final a = s.towns[s.path[k - 1]], b = s.towns[s.path[k]];
+      _tramo(a, b, Fiesta.rondaTravel(k, t), pulso, _out);
+    }
     for (var k = 0; k < n; k++) {
       final town = s.towns[s.path[k]];
       final a = t - Fiesta.rondaArrive(k);
@@ -1950,7 +1997,7 @@ class _Fiesta {
       if (o == null) continue;
       final m = _k(town);
       // Al llegar, la plaza se enciende y queda una luz cálida.
-      final luz = _window(a, 0, 0.3, 1.0, 2.4) * 0.32 + 0.1;
+      final luz = _window(a, 0, 0.3, 1.0, 2.4) * 0.32 + 0.1 + 0.3 * pulso;
       _glow(o, 55 * math.min(m, 1.6), const Color(0xFFFFD27A), luz * _out);
       if (a < 1.6) {
         _ringPx(
@@ -1964,7 +2011,6 @@ class _Fiesta {
       _fuente(town, k + 300, a - 0.05, 0.5, 0.8);
     }
     // Y al final, desde arriba, todas a la vez.
-    final fin = Fiesta.rondaStep * n + 0.6;
     for (final town in s.towns) {
       final a = t - fin;
       if (a < 0 || a > 2.4) continue;

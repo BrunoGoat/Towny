@@ -1443,11 +1443,11 @@ class _FiestaUi extends CustomPainter {
         simbolo = s.towns[s.path[k]].symbol;
       }
     }
-    final fin = Fiesta.rondaStep * n + 0.6;
-    final todos = _window(t, fin, fin + 0.5, s.length - 1.0, s.length - 0.3);
+    final fin = Fiesta.rondaFin(n);
+    final todos = _window(t, fin, fin + 0.6, s.length - 1.2, s.length - 0.3);
     if (todos > a) {
       a = todos;
-      nombre = tr('Todo el valle', 'The whole valley');
+      nombre = tr('Todo el valle creció hoy', 'The whole valley grew today');
       simbolo = null;
     }
     if (nombre == null || a <= 0.01) return;

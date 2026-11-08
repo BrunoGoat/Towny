@@ -710,6 +710,24 @@ class _TownViewState extends State<TownView>
         (fiesta.info.camera == FiestaCamera.follow ||
             fiesta.info.camera == FiestaCamera.tour);
     if (siguiendo) _followFiesta(fiesta.t);
+    // La ronda, ya arriba: una vuelta lenta al valle mientras se lee el
+    // título.
+    if (fiesta != null &&
+        fiesta.info.camera == FiestaCamera.tour &&
+        Fiesta.followAt(fiesta, fiesta.t) == null) {
+      _cam.yawTarget += dt * 0.14;
+    }
+    // Y cuando termina, de vuelta al pueblo donde cayó la pieza, como quien
+    // vuelve a casa después de la fiesta.
+    final fiestaAntes = _fiestaAntes;
+    _fiestaAntes = fiesta;
+    if (fiesta == null &&
+        fiestaAntes != null &&
+        fiestaAntes.info.camera == FiestaCamera.tour &&
+        _entries.length > 1) {
+      _frameTown();
+      _glide = 0.8;
+    }
     if (widget.store.justFounded && _founding >= 1.0) {
       widget.store.justFounded = false;
       // La cámara mira el claro desde cerca: lo que va a pasar pasa ahí, y de
@@ -1241,8 +1259,11 @@ class _TownViewState extends State<TownView>
     // ([FiestaInfo.reach]): se ven los pueblos más de cerca, y lo cortado
     // es un costado, nunca arriba —donde va el cielo— ni abajo —donde están
     // los botones—.
-    final margen = how == FiestaCamera.orbit
-        ? size.width * 0.12
+    // Las que giran —la fiesta mayor, y la ronda al final— no: con la
+    // vuelta, el de la punta se iría de la pantalla.
+    final gira = how == FiestaCamera.orbit || how == FiestaCamera.tour;
+    final margen = gira
+        ? size.width * (how == FiestaCamera.tour ? 0.07 : 0.12)
         : -size.width * (1 / info.reach - 1) / 2;
     double alto(double d) => 2.0 + d * (cielo ? 0.035 : 0.015);
     bool cabe(double d, double yaw) {
@@ -1327,8 +1348,11 @@ class _TownViewState extends State<TownView>
     d = lejos(yaw);
     // La de la vuelta tiene que caber durante toda la vuelta, no sólo al
     // empezar: lo que gira en diez segundos, a la distancia del peor lado.
-    if (how == FiestaCamera.orbit) {
-      for (var j = 1; j <= 8; j++) {
+    if (gira) {
+      // La ronda gira menos que la fiesta mayor: unos ocho décimos de vuelta
+      // contra casi dos.
+      final tramos = how == FiestaCamera.tour ? 4 : 8;
+      for (var j = 1; j <= tramos; j++) {
         d = math.max(d, lejos(yaw + j * 0.22));
       }
     }
@@ -1402,7 +1426,21 @@ class _TownViewState extends State<TownView>
     _cam.distanceTarget = math.min(_fiestaNear + arco, d);
     _cam.pitchTarget = tour ? 0.40 : 0.32;
     _cam.focusYTarget = 1.5;
+    if (tour) {
+      // La ronda va pegada a la punta del hilo, sin quedarse atrás: así
+      // llega a cada pueblo justo cuando el pueblo se enciende, y no después.
+      // Y a la altura del hilo, que viaja colgado en arco.
+      final h = lejos * 0.16 + 0.6;
+      _cam.focusYTarget = 1.5 + 4 * h * u * (1 - u) * 0.8;
+      _cam.travel = _cam.travelTarget;
+      _cam.focusZ = _cam.focusZTarget;
+      _cam.focusY = _cam.focusYTarget;
+    }
   }
+
+  /// La fiesta que estaba en marcha el cuadro anterior, para enterarse de
+  /// cuándo termina.
+  FiestaShow? _fiestaAntes;
 
   /// El regreso, que es el momento más importante que tiene esta app.
   ///

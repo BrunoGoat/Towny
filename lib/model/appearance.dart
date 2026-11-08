@@ -66,7 +66,7 @@ class Appearance extends ChangeNotifier {
 
   /// Cuál de las fiestas del valle completo sale el día que pasa. Ver
   /// `lib/fx/fiesta.dart`. Es del aparato: se elige mirándolas.
-  String _fiesta = 'chispas';
+  String _fiesta = 'ronda';
   String get fiesta => _fiesta;
 
   Future<void> setFiesta(String id) async {
@@ -370,7 +370,9 @@ class Appearance extends ChangeNotifier {
             's' => Hemisphere.south,
             _ => null,
           };
-        case 'fiesta':
+        // Antes se guardaba en «fiesta» y quedaba elegida la última que se
+        // miraba; ésa no cuenta, y la de fábrica pasa a ser la ronda.
+        case 'fiestaElegida':
           _fiesta = value;
         case 'lang':
           _lang = switch (value) {
@@ -417,7 +419,7 @@ class Appearance extends ChangeNotifier {
     if (_hemisphere != null)
       'hemisphere=${_hemisphere == Hemisphere.south ? 's' : 'n'}',
     if (_lang != null) 'lang=${_lang!.code}',
-    'fiesta=$_fiesta',
+    'fiestaElegida=$_fiesta',
     'seasons=${_seasonsOff ? 0 : 1}',
     'quality=${_cinematic ? 'max' : 'normal'}',
     'fakeSeason=${_fakeSeason ? 1 : 0}',
