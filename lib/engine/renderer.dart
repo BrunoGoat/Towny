@@ -381,10 +381,6 @@ class TownPainter extends CustomPainter {
     _drawParticles(canvas, p);
     fondo.drawAtmosphere(canvas, size, horizonY);
     fondo.drawStarLight(canvas, size, p);
-    final hilo = scene.hilo;
-    if (hilo != null) {
-      paintHiloDelDia(canvas, p, size, scene.palette, hilo, scene.time);
-    }
     final fiesta = scene.fiesta;
     if (fiesta != null) {
       paintFiesta(canvas, p, size, scene.palette, fiesta, fiesta.t);
