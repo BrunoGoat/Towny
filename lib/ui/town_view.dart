@@ -723,6 +723,12 @@ class _TownViewState extends State<TownView>
     _fiestaAntes = fiesta;
     if (fiesta == null &&
         fiestaAntes != null &&
+        fiestaAntes.kind == FiestaKind.ronda) {
+      _hiloEnsayo = (dayKey(DateTime.now()), fiestaAntes.active);
+      _hiloMirado = -99;
+    }
+    if (fiesta == null &&
+        fiestaAntes != null &&
         fiestaAntes.info.camera == FiestaCamera.tour &&
         _entries.length > 1) {
       _frameTown();
@@ -1178,8 +1184,14 @@ class _TownViewState extends State<TownView>
   /// lea, y no le pisa ni el encuadre ni el susurro. Si no, espera nada más a
   /// que la pieza termine de posarse, que su momento no se toca.
   void _allTownsToday(bool otro, {FiestaKind? kind, Duration? espera}) {
+    // Mientras se espera la fiesta, el hilo del día no se pinta: lo tiende
+    // la ronda, y si ya estuviera ahí no habría nada que tender.
+    _fiestaPendiente = true;
     Future.delayed(espera ?? Duration(milliseconds: otro ? 4200 : 1300), () {
-      if (!mounted || _entries.isEmpty) return;
+      if (!mounted || _entries.isEmpty) {
+        _fiestaPendiente = false;
+        return;
+      }
       final k = kind ?? Fiesta.instance.chosen;
       final info = fiestaInfo[k]!;
       // La cámara, según la fiesta. Con un solo pueblo —sólo pasa ensayando—
@@ -1199,16 +1211,12 @@ class _TownViewState extends State<TownView>
       // ignore: avoid_print
       print('FIESTA start ${k.name}');
     }
-    Fiesta.instance.start(k, [
-      for (final e in _entries)
-        FiestaTown(
-          x: e.layout.cx,
-          z: e.layout.cz,
-          radius: math.max(e.layout.radius, 3.0),
-          symbol: e.symbol,
-          name: e.name,
-        ),
-    ], widget.store.active.clamp(0, _entries.length - 1));
+    _fiestaPendiente = false;
+    Fiesta.instance.start(
+      k,
+      _fiestaTowns(),
+      widget.store.active.clamp(0, _entries.length - 1),
+    );
     final line = info.line;
     if (line != null) {
       Future.delayed(Duration(milliseconds: (info.lineAt * 1000).round()), () {
@@ -1441,6 +1449,58 @@ class _TownViewState extends State<TownView>
   /// La fiesta que estaba en marcha el cuadro anterior, para enterarse de
   /// cuándo termina.
   FiestaShow? _fiestaAntes;
+
+  /// Si hay una fiesta pedida que todavía no empezó.
+  bool _fiestaPendiente = false;
+
+  List<FiestaTown> _fiestaTowns() => [
+    for (final e in _entries)
+      FiestaTown(
+        x: e.layout.cx,
+        z: e.layout.cz,
+        radius: math.max(e.layout.radius, 3.0),
+        symbol: e.symbol,
+        name: e.name,
+      ),
+  ];
+
+  /// El hilo del día, ya armado, y de qué valle es.
+  FiestaShow? _hilo;
+  List<TownEntry>? _hiloDe;
+  double _hiloMirado = -99;
+
+  /// El día y el pueblo de la última ronda ensayada: después de un ensayo el
+  /// hilo también se queda, hasta la medianoche, para poder verlo sin tener
+  /// que completar el valle de verdad.
+  (int, int)? _hiloEnsayo;
+
+  /// **El hilo del día**: el de la ronda, tendido entre las plazas lo que
+  /// queda del día en que el valle se completó. Ver `paintHiloDelDia`.
+  ///
+  /// No mientras corre una fiesta —que pinta lo suyo, la ronda su propio
+  /// hilo— ni mientras se espera una. Se mira de nuevo cada dos segundos, y
+  /// así a la medianoche se va solo.
+  FiestaShow? _hiloDelDia() {
+    if (_fiestaPendiente || Fiesta.instance.show != null) return null;
+    if (_entries.length < 2) return null;
+    if (_time - _hiloMirado > 2 || !identical(_hiloDe, _entries)) {
+      _hiloMirado = _time;
+      final now = DateTime.now();
+      final ensayo = _hiloEnsayo;
+      final desde =
+          widget.store.completedToday(now) ??
+          (ensayo != null && ensayo.$1 == dayKey(now) ? ensayo.$2 : null);
+      if (desde == null || desde >= _entries.length) {
+        _hilo = null;
+      } else if (_hilo == null ||
+          _hilo!.active != desde ||
+          !identical(_hiloDe, _entries)) {
+        _hilo = FiestaShow(FiestaKind.ronda, _fiestaTowns(), desde, now);
+      }
+      _hiloDe = _entries;
+    }
+    return _hilo;
+  }
 
   /// El regreso, que es el momento más importante que tiene esta app.
   ///
@@ -2308,6 +2368,7 @@ class _TownViewState extends State<TownView>
       cinematic:
           Appearance.instance.cinematic && !PerfGuard.instance.off('calidad'),
       fiesta: Fiesta.instance.show,
+      hilo: _hiloDelDia(),
     );
 
     return Listener(

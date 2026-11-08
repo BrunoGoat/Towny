@@ -82,6 +82,31 @@ void paintFiesta(
   }
 }
 
+/// **El hilo del día**: el hilo de oro de la ronda, que se queda tendido
+/// entre las plazas lo que queda del día en que el valle se completó.
+///
+/// Quieto y más tenue que en la fiesta, con una chispa que lo recorre de
+/// vez en cuando, de punta a punta, como quien pasa la noticia. A la
+/// medianoche deja de pintarse y no queda nada en su sitio: el día que no
+/// se completa no falta ningún hilo, simplemente no lo hay.
+///
+/// [hilo] es una fiesta de la ronda que no corre: sólo se usan sus pueblos
+/// y su recorrido. [time] es el reloj del pueblo, en segundos.
+void paintHiloDelDia(
+  Canvas canvas,
+  Projector p,
+  Size size,
+  Palette pal,
+  FiestaShow hilo,
+  double time,
+) {
+  _Fiesta(canvas, p, size, pal, hilo, time).hiloQuieto();
+}
+
+/// Lo que brilla el hilo una vez tendido, contra el de la fiesta. La ronda
+/// termina en este mismo brillo, para que al acabar no salte nada.
+const double _hiloBrillo = 0.75;
+
 /// Los colores de los cohetes, uno por pueblo. Cálidos y limpios: nada de
 /// neón, que este cielo es de pueblo.
 const List<Color> _fuegoColores = [
@@ -1987,7 +2012,15 @@ class _Fiesta {
     // queda, así desde el valle se ve el recorrido entero.
     for (var k = 1; k < n; k++) {
       final a = s.towns[s.path[k - 1]], b = s.towns[s.path[k]];
-      _tramo(a, b, Fiesta.rondaTravel(k, t), pulso, _out);
+      // Al terminar no se apaga: se queda en el brillo del hilo del día, que
+      // sigue tendido después (ver [paintHiloDelDia]).
+      _tramo(
+        a,
+        b,
+        Fiesta.rondaTravel(k, t),
+        pulso,
+        _hiloBrillo + (1 - _hiloBrillo) * _out,
+      );
     }
     for (var k = 0; k < n; k++) {
       final town = s.towns[s.path[k]];
@@ -2022,5 +2055,29 @@ class _Fiesta {
         (1 - a / 2.4) * _out,
       );
     }
+  }
+
+  /// El hilo del día. Ver [paintHiloDelDia].
+  void hiloQuieto() {
+    final n = s.towns.length;
+    if (n < 2) return;
+    // Respira muy despacio, para que se vea que está vivo sin llamar la
+    // atención.
+    final respira = _hiloBrillo * (0.88 + 0.12 * math.sin(t * 0.8));
+    for (var k = 1; k < n; k++) {
+      _tramo(s.towns[s.path[k - 1]], s.towns[s.path[k]], 1, 0, respira);
+    }
+    // Y una chispa que lo recorre entero cada tanto, de tu pueblo al último.
+    const vuelta = 9.0, viaje = 3.2;
+    final fase = t % vuelta;
+    if (fase > viaje) return;
+    final pos = fase / viaje * (n - 1);
+    final k = pos.floor().clamp(0, n - 2);
+    final w = _thread(s.towns[s.path[k]], s.towns[s.path[k + 1]], pos - k);
+    final q = _at(w.x, w.y, w.z);
+    if (q == null) return;
+    final brillo = math.sin(math.pi * fase / viaje);
+    _glow(q, 14, _oro, 0.7 * brillo);
+    _dot(q, 2.2, const Color(0xFFFFFFFF), brillo);
   }
 }

@@ -1120,6 +1120,33 @@ class Store extends ChangeNotifier {
 
   /// Si todos los pueblos despiertos tienen alguna pieza ese día. Hacen falta
   /// dos despiertos por lo menos: ver [PlaceResult.allToday].
+  /// Si hoy el valle está completo —todos los pueblos despiertos con su
+  /// pieza—, cuál fue el pueblo que lo completó: el que recibió su primera
+  /// pieza de hoy más tarde. Nulo si hoy no se completó.
+  ///
+  /// Es de donde sale el hilo de oro que queda tendido el resto del día:
+  /// empieza en ese pueblo, como empezó la ronda.
+  int? completedToday([DateTime? at]) {
+    final when = at ?? DateTime.now();
+    if (!_allHaveToday(when)) return null;
+    final k = dayKey(when);
+    int? quien;
+    DateTime? ultima;
+    for (var i = 0; i < habits.length; i++) {
+      final h = habits[i];
+      if (h.restAt(when) != null) continue;
+      for (final p in h.pieces) {
+        if (dayKey(p.placedAt) != k) continue;
+        if (ultima == null || p.placedAt.isAfter(ultima)) {
+          ultima = p.placedAt;
+          quien = i;
+        }
+        break;
+      }
+    }
+    return quien;
+  }
+
   bool _allHaveToday(DateTime when) {
     var despiertos = 0;
     for (final h in habits) {

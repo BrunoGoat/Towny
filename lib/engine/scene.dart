@@ -98,6 +98,7 @@ class TownScene {
     this.ghost = true,
     this.cinematic = false,
     this.fiesta,
+    this.hilo,
   });
 
   /// La calidad máxima: sombras de verdad, resplandor, rayos de sol y color
@@ -106,6 +107,10 @@ class TownScene {
 
   /// La fiesta del valle completo, si hay una en marcha. Ver [Fiesta].
   final FiestaShow? fiesta;
+
+  /// El hilo de oro que queda tendido entre las plazas el día que el valle
+  /// se completó. Nulo los demás días. Ver `paintHiloDelDia`.
+  final FiestaShow? hilo;
 
   /// Si se dibuja el contorno de la pieza que viene. No en el valle de la
   /// primera vez: ahí todavía no hay pueblo, y un rectángulo de alambre en el

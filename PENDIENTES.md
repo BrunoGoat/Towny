@@ -529,6 +529,10 @@ Por ahora entran todos, para probarlos; se van sacando los que no.
   Falta elegir una y **borrar las otras veintinueve**, con sus sonidos
   (`assets/sfx/fiesta_*.wav`, que salen de `tool/make_fiesta_sfx.py`).
   Los sonidos están hechos por síntesis y nadie los escuchó todavía.
+- [ ] **El hilo del día** *(nuevo)*: el día que el valle se completa, el
+  hilo de oro de la ronda se queda tendido entre las plazas hasta la
+  medianoche, con una chispa que lo recorre cada tanto. Se ve también
+  después de ensayar la ronda en Desarrollo. Falta mirarlo en el teléfono.
 - **El aviso a la hora del plan** (`Habit.vowHour`): hay que decidir qué pasa
   con quien no escribió hora, y con el hábito que se hace a otra hora que la
   prometida.
