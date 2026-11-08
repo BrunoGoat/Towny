@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 
@@ -37,6 +38,21 @@ enum FiestaKind {
   fuegos,
   aurora,
   mayor,
+  globos,
+  fugaces,
+  luciernagas,
+  faros,
+  pregon,
+  cronica,
+  mapa,
+  floracion,
+  musica,
+  hogueras,
+  pompas,
+  fuentes,
+  foto,
+  confeti,
+  ronda,
 }
 
 /// Cuánto ocupa una fiesta: para ordenarlas en la lista y nada más.
@@ -55,6 +71,13 @@ enum FiestaCamera {
 
   /// Sube al valle y le da una vuelta lenta.
   orbit,
+
+  /// Va de pueblo en pueblo a media distancia, detrás de lo que pasa (las
+  /// campanas, el hilo), y al final se aparta para que se vea todo.
+  follow,
+
+  /// Visita cada pueblo de cerca, uno por uno, y al final sube al valle.
+  tour,
 }
 
 class FiestaInfo {
@@ -70,12 +93,18 @@ class FiestaInfo {
     this.lineEn,
     this.lineAt = 0.6,
     this.perTown = 0,
+    this.reach = 0.8,
   });
 
   final String es, en;
   final String aboutEs, aboutEn;
   final FiestaSize size;
   final FiestaCamera camera;
+
+  /// Cuánto se acerca la vista del valle, contra la distancia a la que
+  /// entran todos los pueblos enteros. Menos de uno es más cerca: los de los
+  /// bordes quedan cortados, y a cambio los pueblos se ven y no son puntos.
+  final double reach;
 
   /// Lo que dura con dos pueblos. Ver [perTown].
   final double seconds;
@@ -107,6 +136,7 @@ const Map<FiestaKind, FiestaInfo> fiestaInfo = {
         'comes out of every plaza, one after another.',
     size: FiestaSize.medium,
     camera: FiestaCamera.valley,
+    reach: 0.7,
     seconds: 5.0,
     perTown: 0.25,
     lineEs: 'Hoy cayó una pieza en todos los pueblos.',
@@ -125,6 +155,7 @@ const Map<FiestaKind, FiestaInfo> fiestaInfo = {
         'of them together.',
     size: FiestaSize.minimal,
     camera: FiestaCamera.valley,
+    reach: 0.75,
     seconds: 4.6,
     perTown: 0.55,
     lineEs: 'Suenan las campanas de todo el valle.',
@@ -220,9 +251,9 @@ const Map<FiestaKind, FiestaInfo> fiestaInfo = {
         'plaza to plaza, with a note at each one, until the valley is tied '
         'together.',
     size: FiestaSize.medium,
-    camera: FiestaCamera.valley,
-    seconds: 4.8,
-    perTown: 0.7,
+    camera: FiestaCamera.follow,
+    seconds: 4.3,
+    perTown: 0.75,
     lineEs: 'Un hilo que pasa por todos los pueblos.',
     lineEn: 'One thread through every town.',
     lineAt: 1.0,
@@ -341,6 +372,253 @@ const Map<FiestaKind, FiestaInfo> fiestaInfo = {
     camera: FiestaCamera.orbit,
     seconds: 10.0,
   ),
+  FiestaKind.globos: FiestaInfo(
+    es: 'Globos',
+    en: 'Balloons',
+    aboutEs:
+        'De cada plaza se escapa un puñado de globos de colores, con su hilo '
+        'colgando, que suben meciéndose hasta perderse en el cielo.',
+    aboutEn:
+        'A handful of coloured balloons slip away from every plaza, strings '
+        'dangling, and rise swaying until they are lost in the sky.',
+    size: FiestaSize.medium,
+    camera: FiestaCamera.sky,
+    seconds: 7.5,
+    lineEs: 'Se escapan los globos de todas las plazas.',
+    lineEn: 'Balloons slip away from every plaza.',
+    lineAt: 1.2,
+  ),
+  FiestaKind.fugaces: FiestaInfo(
+    es: 'Estrellas fugaces',
+    en: 'Shooting stars',
+    aboutEs:
+        'Se hace de noche un momento y cruzan el cielo estrellas fugaces, una '
+        'por cada pueblo.',
+    aboutEn:
+        'Night falls for a moment and shooting stars cross the sky, one for '
+        'every town.',
+    size: FiestaSize.medium,
+    camera: FiestaCamera.sky,
+    seconds: 4.8,
+    perTown: 0.55,
+    lineEs: 'Una estrella por cada pueblo. Pedí algo.',
+    lineEn: 'A star for every town. Make a wish.',
+    lineAt: 1.6,
+  ),
+  FiestaKind.luciernagas: FiestaInfo(
+    es: 'Luciérnagas',
+    en: 'Fireflies',
+    aboutEs:
+        'Cae la tarde y de los campos de cada pueblo salen luciérnagas que '
+        'parpadean despacio y se van apagando.',
+    aboutEn:
+        'Dusk falls and fireflies rise from the fields of every town, '
+        'blinking slowly and fading out.',
+    size: FiestaSize.minimal,
+    camera: FiestaCamera.valley,
+    reach: 0.7,
+    seconds: 7.5,
+    lineEs: 'Hasta las luciérnagas salieron a ver.',
+    lineEn: 'Even the fireflies came out to see.',
+    lineAt: 1.8,
+  ),
+  FiestaKind.faros: FiestaInfo(
+    es: 'Faros',
+    en: 'Beacons',
+    aboutEs:
+        'Cada pueblo enciende una columna de luz que sube de su plaza al '
+        'cielo, de uno en uno, y al final laten todas juntas.',
+    aboutEn:
+        'Each town lights a column of light rising from its plaza into the '
+        'sky, one at a time, and at the end they all pulse together.',
+    size: FiestaSize.grand,
+    camera: FiestaCamera.sky,
+    seconds: 6.5,
+    perTown: 0.45,
+    lineEs: 'Cada pueblo enciende su luz.',
+    lineEn: 'Every town lights its beacon.',
+    lineAt: 1.0,
+  ),
+  FiestaKind.pregon: FiestaInfo(
+    es: 'El pregón',
+    en: 'The proclamation',
+    aboutEs:
+        'Suenan las trompetas y baja un pergamino que se desenrolla: el pregón '
+        'del día, con el nombre y la marca de cada pueblo.',
+    aboutEn:
+        'Trumpets sound and a scroll comes down and unrolls: the day\'s '
+        'proclamation, with the name and mark of every town.',
+    size: FiestaSize.medium,
+    camera: FiestaCamera.stay,
+    seconds: 6.8,
+  ),
+  FiestaKind.cronica: FiestaInfo(
+    es: 'La crónica',
+    en: 'The chronicle',
+    aboutEs:
+        'Lo más sobrio: sobre el pueblo se escribe a mano, con tinta, una sola '
+        'línea, como quien la anota en la crónica del valle.',
+    aboutEn:
+        'The most understated: a single line is handwritten in ink over the '
+        'town, as if being entered in the valley chronicle.',
+    size: FiestaSize.minimal,
+    camera: FiestaCamera.stay,
+    seconds: 6.0,
+  ),
+  FiestaKind.mapa: FiestaInfo(
+    es: 'El mapa del valle',
+    en: 'The valley map',
+    aboutEs:
+        'El valle se vuelve un mapa antiguo: tinta que dibuja los caminos '
+        'entre los pueblos, un círculo en cada uno, la rosa de los vientos y '
+        'la fecha en una cartela.',
+    aboutEn:
+        'The valley turns into an old map: ink drawing the roads between the '
+        'towns, a circle round each one, the compass rose and the date in a '
+        'cartouche.',
+    size: FiestaSize.medium,
+    camera: FiestaCamera.valley,
+    reach: 0.85,
+    seconds: 7.5,
+  ),
+  FiestaKind.floracion: FiestaInfo(
+    es: 'Floración',
+    en: 'Bloom',
+    aboutEs:
+        'Alrededor de cada plaza se abre un anillo de flores, pueblo por '
+        'pueblo, cada uno con su nota.',
+    aboutEn:
+        'A ring of flowers opens around every plaza, town by town, each with '
+        'its note.',
+    size: FiestaSize.minimal,
+    camera: FiestaCamera.valley,
+    reach: 0.7,
+    seconds: 6.5,
+    perTown: 0.35,
+    lineEs: 'El valle florece.',
+    lineEn: 'The valley blooms.',
+    lineAt: 1.2,
+  ),
+  FiestaKind.musica: FiestaInfo(
+    es: 'La música',
+    en: 'The music',
+    aboutEs:
+        'Suena un pasacalle y de cada plaza suben notas de música que se '
+        'mecen al compás.',
+    aboutEn:
+        'A street tune plays and musical notes rise from every plaza, '
+        'swaying in time.',
+    size: FiestaSize.medium,
+    camera: FiestaCamera.valley,
+    reach: 0.7,
+    seconds: 7.5,
+    lineEs: 'Suena música en todas las plazas.',
+    lineEn: 'Music in every plaza.',
+    lineAt: 1.0,
+  ),
+  FiestaKind.hogueras: FiestaInfo(
+    es: 'Hogueras',
+    en: 'Bonfires',
+    aboutEs:
+        'Cae la noche y en cada plaza se enciende una hoguera, como en San '
+        'Juan, con las brasas subiendo al cielo.',
+    aboutEn:
+        'Night falls and a bonfire is lit in every plaza, like on Midsummer '
+        'night, embers rising into the sky.',
+    size: FiestaSize.grand,
+    camera: FiestaCamera.sky,
+    reach: 0.75,
+    seconds: 8.0,
+    lineEs: 'Hogueras en todas las plazas.',
+    lineEn: 'Bonfires in every plaza.',
+    lineAt: 1.4,
+  ),
+  FiestaKind.pompas: FiestaInfo(
+    es: 'Pompas de jabón',
+    en: 'Soap bubbles',
+    aboutEs:
+        'De cada plaza salen pompas de jabón irisadas que flotan sobre el '
+        'pueblo y revientan sin hacer ruido.',
+    aboutEn:
+        'Iridescent soap bubbles drift up from every plaza, float over the '
+        'town and pop without a sound.',
+    size: FiestaSize.medium,
+    camera: FiestaCamera.valley,
+    reach: 0.7,
+    seconds: 7.0,
+    lineEs: 'Hoy hasta el aire juega.',
+    lineEn: 'Today even the air is playing.',
+    lineAt: 1.4,
+  ),
+  FiestaKind.fuentes: FiestaInfo(
+    es: 'Las fuentes',
+    en: 'The fountains',
+    aboutEs:
+        'Las fuentes de todas las plazas tiran un chorro alto a la vez, y el '
+        'agua cae brillando al sol.',
+    aboutEn:
+        'The fountains in every plaza shoot a tall jet at once, and the water '
+        'falls glittering in the sun.',
+    size: FiestaSize.medium,
+    camera: FiestaCamera.valley,
+    reach: 0.7,
+    seconds: 6.0,
+    lineEs: 'Las fuentes de todo el valle, a la vez.',
+    lineEn: 'Every fountain in the valley, all at once.',
+    lineAt: 1.0,
+  ),
+  FiestaKind.foto: FiestaInfo(
+    es: 'La foto del día',
+    en: 'The photo of the day',
+    aboutEs:
+        'La cámara sube al valle, salta el flash y el valle queda en una foto '
+        'con su borde blanco y la fecha escrita a mano. Se queda un rato y se '
+        'va.',
+    aboutEn:
+        'The camera rises to the valley, the flash goes off and the valley is '
+        'kept in a photo with its white border and the date written by hand. '
+        'It stays a moment and goes.',
+    size: FiestaSize.medium,
+    camera: FiestaCamera.sky,
+    reach: 0.8,
+    seconds: 6.5,
+  ),
+  FiestaKind.confeti: FiestaInfo(
+    es: 'Confeti',
+    en: 'Confetti',
+    aboutEs:
+        'Dos tiros de confeti desde las esquinas de abajo, papelitos de '
+        'colores que suben, giran y caen sobre el pueblo.',
+    aboutEn:
+        'Two bursts of confetti from the bottom corners, coloured scraps that '
+        'fly up, spin and fall over the town.',
+    size: FiestaSize.medium,
+    camera: FiestaCamera.stay,
+    seconds: 5.5,
+    lineEs: '¡Todos los pueblos, hoy!',
+    lineEn: 'Every town, today!',
+    lineAt: 0.5,
+  ),
+  FiestaKind.ronda: FiestaInfo(
+    es: 'La ronda',
+    en: 'The round',
+    aboutEs:
+        'Un paseo: la cámara visita cada pueblo de cerca, uno por uno; en cada '
+        'plaza se enciende una luz y suena una nota. Al final sube a mirar el '
+        'valle entero.',
+    aboutEn:
+        'A stroll: the camera visits each town up close, one by one; a light '
+        'comes on in each plaza and a note sounds. At the end it rises to see '
+        'the whole valley.',
+    size: FiestaSize.grand,
+    camera: FiestaCamera.tour,
+    reach: 0.9,
+    seconds: 2 * Fiesta.rondaStep + 2.6,
+    perTown: Fiesta.rondaStep,
+    lineEs: 'Una vuelta por todos los pueblos.',
+    lineEn: 'A round of every town.',
+    lineAt: 0.4,
+  ),
 };
 
 /// Un pueblo, para la fiesta: dónde está y qué marca lleva.
@@ -386,7 +664,9 @@ class FiestaShow {
   /// el número después del `#` de la dirección, para poder sacarle una foto
   /// exacta a cada uno.
   List<double>? steps;
-  double get length => info.secondsFor(towns.length);
+  double get length => kind == FiestaKind.hilo
+      ? Fiesta.hiloReach(towns.length - 1, towns.length) + 2.6
+      : info.secondsFor(towns.length);
   bool get over => steps == null && t >= length;
 
   /// El orden en que se recorre el valle: desde el tuyo, siempre al más
@@ -445,6 +725,16 @@ class Fiesta extends ChangeNotifier {
 
   FiestaShow? _show;
 
+  /// La foto del valle, para la fiesta de la foto: la saca la pantalla de
+  /// inicio en el momento del flash, que es la que tiene el pueblo delante.
+  ui.Image? photo;
+
+  void keepPhoto(ui.Image img) {
+    photo?.dispose();
+    photo = img;
+    notifyListeners();
+  }
+
   /// La que está en marcha, o nula. Se apaga sola al terminar.
   FiestaShow? get show {
     final s = _show;
@@ -482,6 +772,8 @@ class Fiesta extends ChangeNotifier {
     DateTime? day,
   }) {
     final s = FiestaShow(kind, towns, active, day ?? DateTime.now());
+    photo?.dispose();
+    photo = null;
     if (const bool.fromEnvironment('FIESTA_URL')) {
       final q = Uri.base.queryParameters['pasos'];
       if (q != null) {
@@ -535,9 +827,9 @@ class Fiesta extends ChangeNotifier {
         _at(0.0, () => snd.fiesta('fiesta_brisa'));
       case FiestaKind.hilo:
         for (var i = 0; i < n; i++) {
-          _at(hiloReach(i), () => snd.fiesta('fiesta_nota${i % 8}'));
+          _at(hiloReach(i, n), () => snd.fiesta('fiesta_nota${i % 8}'));
         }
-        _at(hiloReach(n - 1) + 0.5, () => snd.fiesta('fiesta_campanas'));
+        _at(hiloReach(n - 1, n) + 0.5, () => snd.fiesta('fiesta_campanas'));
       case FiestaKind.palomas:
         _at(0.2, () => snd.fiesta('fiesta_aleteo'));
       case FiestaKind.farolillos:
@@ -566,6 +858,55 @@ class Fiesta extends ChangeNotifier {
           _at(c.at, () => snd.fiesta('fiesta_silbido'));
           _at(c.at + c.rise, () => snd.fiesta('fiesta_cohete'));
         }
+      case FiestaKind.globos:
+        _at(0.3, () => snd.fiesta('fiesta_brisa'));
+      case FiestaKind.fugaces:
+        for (var i = 0; i < n; i++) {
+          _at(
+            fugazAt(i) + 0.1,
+            () => snd.fiesta('fiesta_nota${(i * 3 + 2) % 8}', level: 0.5),
+          );
+        }
+      case FiestaKind.luciernagas:
+        _at(0.2, () => snd.fiesta('fiesta_grillos'));
+      case FiestaKind.faros:
+        for (var k = 0; k < n; k++) {
+          _at(faroAt(k), () => snd.fiesta('fiesta_faro'));
+        }
+        _at(faroAt(n) + 0.1, () => snd.fiesta('fiesta_campanas', level: 0.6));
+      case FiestaKind.pregon:
+        _at(0.05, () => snd.fiesta('fiesta_pregon'));
+      case FiestaKind.cronica:
+        _at(0.5, () => snd.fiesta('fiesta_pluma'));
+      case FiestaKind.mapa:
+        _at(0.4, () => snd.fiesta('fiesta_pluma'));
+      case FiestaKind.floracion:
+        for (var k = 0; k < n; k++) {
+          _at(floraAt(k), () => snd.fiesta('fiesta_nota${k % 8}', level: 0.6));
+        }
+      case FiestaKind.musica:
+        _at(0.2, () => snd.fiesta('fiesta_pasacalle'));
+      case FiestaKind.hogueras:
+        _at(0.4, () => snd.fiesta('fiesta_fuego'));
+      case FiestaKind.pompas:
+        _at(0.3, () => snd.fiesta('fiesta_pompas'));
+      case FiestaKind.fuentes:
+        _at(0.25, () => snd.fiesta('fiesta_agua'));
+      case FiestaKind.foto:
+        _at(fotoFlash - 0.05, () => snd.fiesta('fiesta_foto'));
+      case FiestaKind.confeti:
+        _at(0.08, () => snd.fiesta('fiesta_confeti'));
+      case FiestaKind.ronda:
+        for (var k = 0; k < n; k++) {
+          _at(
+            rondaArrive(k),
+            () => snd.fiesta('fiesta_nota${(k * 2) % 8}', level: 0.7),
+          );
+        }
+        _at(
+          rondaStep * n + 0.6,
+          () => snd.fiesta('fiesta_campanas', level: 0.6),
+        );
     }
   }
 
@@ -585,12 +926,65 @@ class Fiesta extends ChangeNotifier {
 
   static double campanaAt(int i) => 0.35 + 0.55 * i;
 
+  /// Por dónde del recorrido del valle va la cámara a los [t] segundos, en
+  /// las fiestas que siguen algo de pueblo en pueblo: 2,5 es a mitad de
+  /// camino entre el tercero y el cuarto. Nulo cuando ya no sigue nada y le
+  /// toca mirar el valle entero.
+  static double? followAt(FiestaShow s, double t) {
+    final n = s.towns.length;
+    if (n == 0) return null;
+    double tramo(double t0, double t1, int k) =>
+        k + ((t - t0) / (t1 - t0)).clamp(0.0, 1.0);
+    switch (s.kind) {
+      case FiestaKind.campanas:
+        // Llega a cada campana un poco antes de que suene.
+        if (t > campanaAt(n) - 0.2) return null;
+        for (var k = 0; k < n - 1; k++) {
+          if (t < campanaAt(k + 1) - 0.25) {
+            return tramo(campanaAt(k), campanaAt(k + 1) - 0.25, k);
+          }
+        }
+        return (n - 1).toDouble();
+      case FiestaKind.hilo:
+        // Detrás de la cabeza del hilo.
+        if (t > hiloReach(n - 1, n) + 0.15) return null;
+        for (var k = 0; k < n - 1; k++) {
+          if (t < hiloReach(k + 1, n)) {
+            return tramo(hiloReach(k, n), hiloReach(k + 1, n), k);
+          }
+        }
+        return (n - 1).toDouble();
+      case FiestaKind.ronda:
+        if (t > rondaStep * n) return null;
+        final k = (t / rondaStep).floor();
+        if (k == 0) return 0;
+        return (k - 1) + ((t - k * rondaStep) / 1.1).clamp(0.0, 1.0);
+      default:
+        return null;
+    }
+  }
+
+  /// Lo que la ronda se queda en cada pueblo.
+  static const double rondaStep = 2.3;
+
+  /// Cuándo llega la ronda a su pueblo número [k] del recorrido.
+  static double rondaArrive(int k) => k == 0 ? 0.5 : k * rondaStep + 0.9;
+
+  static double fugazAt(int i) => 0.9 + 0.55 * i;
+  static double faroAt(int k) => 0.5 + 0.45 * k;
+  static double floraAt(int k) => 0.35 + 0.35 * k;
+  static const double fotoFlash = 0.6;
+
   static const double cuentaFill = 1.15;
   static const double cuentaJoin = 2.6;
 
   static const double selloLands = 0.5;
 
-  static double hiloReach(int i) => 0.5 + 0.7 * i;
+  /// Cuándo llega el hilo a su pueblo número [i], en un valle de [n]: un
+  /// segundo de plaza a plaza, que es lo que deja seguirlo con la cámara sin
+  /// marear; con muchos pueblos, más deprisa, para que no se haga eterno.
+  static double hiloReach(int i, int n) =>
+      0.6 + i * (n <= 1 ? 1.0 : (6.0 / (n - 1)).clamp(0.6, 1.1));
 
   static double estrellaAt(int i) => 0.6 + 0.45 * i;
   static const double estrellaRise = 0.9;

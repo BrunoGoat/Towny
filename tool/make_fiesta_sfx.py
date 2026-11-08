@@ -263,5 +263,108 @@ def main():
     write('fiesta_aurora', o, peak=0.5)
 
 
+def mas():
+    """Las de la segunda tanda: de la 16 a la 30."""
+    rng = np.random.default_rng
+
+    # Grillos: chirridos cortos a pares, de tres grillos que no se ponen de
+    # acuerdo, sobre un aire de noche.
+    t = T(7.0)
+    o = lowpass(rng(61).uniform(-1, 1, len(t)), 400) * 0.25 * np.sin(np.pi * t / 7.0)
+    for g, (f, cada, fase) in enumerate([(4300, 0.62, 0.0), (4700, 0.81, 0.3), (3900, 0.95, 0.55)]):
+        tt = fase + 0.4
+        while tt < 6.4:
+            for p_ in range(3):
+                ch = T(0.035)
+                pulso = np.sin(2 * np.pi * f * ch) * np.sin(np.pi * ch / 0.035) ** 2
+                at(o, tt + p_ * 0.045, pulso, 0.35 * np.sin(np.pi * tt / 7.0))
+            tt += cada
+    write('fiesta_grillos', o, peak=0.4)
+
+    # El faro: una luz que se enciende, un soplo que sube y una nota limpia.
+    t = T(1.6)
+    sube = 330 * 2 ** (np.minimum(t, 0.4) / 0.4)
+    ph = 2 * np.pi * np.cumsum(sube) / SR
+    o = (np.sin(ph) * 0.5 + np.sin(2 * ph) * 0.15) * np.minimum(1, t / 0.05) * np.exp(-t / 0.6)
+    o += lowpass(rng(62).uniform(-1, 1, len(t)), 2500) * np.exp(-t / 0.15) * 0.3
+    write('fiesta_faro', o, peak=0.5)
+
+    # El pregón: dos trompetas en fanfarria, y el papel al desenrollarse.
+    def trompeta(f, dur):
+        tt = T(dur)
+        vib = 1 + 0.004 * np.sin(2 * np.pi * 6 * tt) * np.minimum(1, tt / 0.2)
+        ph2 = 2 * np.pi * f * np.cumsum(vib) / SR
+        x = sum(np.sin(k * ph2) / k ** 0.9 for k in range(1, 8))
+        env = np.minimum(1, tt / 0.03) * np.clip((dur - tt) / 0.05, 0, 1)
+        return lowpass(x * env, 3200)
+    o = np.zeros(int(2.6 * SR))
+    for (st, d_, t0) in [(0, .16, 0), (0, .16, .18), (0, .16, .36), (4, .5, .54), (7, .9, 1.06)]:
+        f = 392 * 2 ** (st / 12)
+        at(o, t0, trompeta(f, d_), 0.5)
+        at(o, t0, trompeta(f * 1.26, d_), 0.3)
+    papel = lowpass(rng(63).uniform(-1, 1, int(0.9 * SR)), 1800)
+    papel *= np.abs(np.sin(np.linspace(0, 40, len(papel)))) * np.hanning(len(papel))
+    at(o, 1.0, papel, 0.25)
+    write('fiesta_pregon', o, peak=0.7)
+
+    # La pluma: el rasgueo de una pluma sobre papel, a golpes de letra.
+    t = T(3.2)
+    ras = highpass(rng(64).uniform(-1, 1, len(t)), 2500)
+    golpes = np.zeros_like(t)
+    tt = 0.0
+    r2 = rng(65)
+    while tt < 3.0:
+        d_ = r2.uniform(0.05, 0.16)
+        i0, i1 = int(tt * SR), int((tt + d_) * SR)
+        golpes[i0:i1] = np.hanning(i1 - i0) * r2.uniform(0.4, 1.0)
+        tt += d_ + r2.uniform(0.01, 0.08)
+    write('fiesta_pluma', ras * golpes, peak=0.3)
+
+    # El fuego: crepitar y un rumor bajo.
+    t = T(7.0)
+    o = lowpass(rng(66).uniform(-1, 1, len(t)), 300) * 1.2 * np.minimum(1, t / 1.0) * np.clip((7 - t) / 1.5, 0, 1)
+    r2 = rng(67)
+    for _ in range(160):
+        t0 = r2.uniform(0.3, 6.2)
+        n = int(0.004 * SR)
+        i0 = int(t0 * SR)
+        o[i0:i0 + n] += r2.uniform(-1, 1, n) * np.exp(-np.arange(n) / (n / 3)) * r2.uniform(0.3, 1.0)
+    write('fiesta_fuego', o, peak=0.45)
+
+    # Las pompas: plops chiquitos y agudos, sueltos.
+    o = np.zeros(int(6.5 * SR))
+    r2 = rng(68)
+    for _ in range(22):
+        tt = T(0.07)
+        f = r2.uniform(900, 1700)
+        plop = np.sin(2 * np.pi * f * tt * (1 + 3 * tt)) * np.exp(-tt / 0.015)
+        at(o, r2.uniform(0.5, 6.0), plop, r2.uniform(0.3, 0.8))
+    write('fiesta_pompas', o, peak=0.4)
+
+    # El agua: el chorro que sube, se sostiene y cae.
+    t = T(3.6)
+    o = lowpass(highpass(rng(69).uniform(-1, 1, len(t)), 500), 5000)
+    o *= np.minimum(1, t / 0.25) * np.clip((3.6 - t) / 1.2, 0, 1)
+    write('fiesta_agua', o, peak=0.35)
+
+    # La foto: el clic del obturador.
+    t = T(0.25)
+    clic = lowpass(rng(70).uniform(-1, 1, len(t)), 5000)
+    o = clic * (np.exp(-t / 0.006) + 0.6 * np.exp(-np.maximum(0, t - 0.07) / 0.008) * (t > 0.07))
+    write('fiesta_foto', o, peak=0.6)
+
+    # El confeti: el tiro, y el papel cayendo.
+    t = T(2.4)
+    o = lowpass(rng(71).uniform(-1, 1, len(t)), 900) * np.exp(-t / 0.05) * 1.5
+    papel = highpass(rng(72).uniform(-1, 1, len(t)), 3000) * 0.12
+    papel *= np.clip(t / 0.2, 0, 1) * np.clip((2.4 - t) / 1.5, 0, 1) * (0.6 + 0.4 * np.sin(2 * np.pi * 13 * t) ** 2)
+    write('fiesta_confeti', o + papel, peak=0.6)
+
+
 if __name__ == '__main__':
+    import sys
+    if 'mas' in sys.argv:
+        mas()
+        raise SystemExit
     main()
+    mas()

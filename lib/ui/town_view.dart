@@ -705,6 +705,11 @@ class _TownViewState extends State<TownView>
     if (fiesta != null && fiesta.info.camera == FiestaCamera.orbit) {
       _cam.yawTarget += dt * 0.16;
     }
+    final siguiendo =
+        fiesta != null &&
+        (fiesta.info.camera == FiestaCamera.follow ||
+            fiesta.info.camera == FiestaCamera.tour);
+    if (siguiendo) _followFiesta(fiesta.t);
     if (widget.store.justFounded && _founding >= 1.0) {
       widget.store.justFounded = false;
       // La cámara mira el claro desde cerca: lo que va a pasar pasa ahí, y de
@@ -774,7 +779,7 @@ class _TownViewState extends State<TownView>
     // del tiempo. Un toque corta el planeo: quien mueve la cámara la quiere ya.
     if (_glide > 0) _glide -= dt;
     if (_following != null && !_aimAtFollowed()) _stopFollowing();
-    _cam.step(dt, rate: _glide > 0 ? 1.5 : 7.5);
+    _cam.step(dt, rate: _glide > 0 ? 1.5 : (siguiendo ? 2.6 : 7.5));
     _watchTheHorizon();
     _fx.update(dt);
     if (_finished != null) {
@@ -1162,7 +1167,7 @@ class _TownViewState extends State<TownView>
       // La cámara, según la fiesta. Con un solo pueblo —sólo pasa ensayando—
       // no hay valle que mirar y se queda donde está.
       final vuela = _entries.length > 1 && info.camera != FiestaCamera.stay;
-      if (vuela) _frameFiesta(info.camera);
+      if (vuela) _frameFiesta(info);
       // Si la cámara se mueve, la fiesta empieza cuando llega: lo que pase
       // durante el vuelo no lo ve nadie.
       Future.delayed(Duration(milliseconds: vuela ? 1100 : 0), () {
@@ -1200,7 +1205,8 @@ class _TownViewState extends State<TownView>
   /// pueblo, y más bajo que el valle de siempre —que es casi un mapa— para
   /// que los pueblos queden en una franja y arriba haya cielo, que es donde
   /// pasa casi todo.
-  void _frameFiesta(FiestaCamera how) {
+  void _frameFiesta(FiestaInfo info) {
+    final how = info.camera;
     frameValley();
     final size = context.size;
     if (size == null || size.isEmpty) return;
@@ -1224,14 +1230,20 @@ class _TownViewState extends State<TownView>
         puntos.add(V3(e.layout.cx + dx, 0, e.layout.cz + dz));
       }
     }
-    final cielo = how != FiestaCamera.valley;
+    final cielo = how == FiestaCamera.sky || how == FiestaCamera.orbit;
     final pitch = cielo ? 0.13 : 0.24;
     // Hasta dónde puede quedar cada pueblo en la pantalla: de canto a canto
     // con un margen, y de alto en la franja de abajo —arriba va el cielo, y
     // debajo de todo, los botones—.
     final arriba = size.height * (cielo ? 0.47 : 0.36);
     final abajo = size.height * 0.76;
-    final margen = size.width * (how == FiestaCamera.orbit ? 0.12 : 0.06);
+    // De canto a canto se deja que los de las puntas se salgan un poco
+    // ([FiestaInfo.reach]): se ven los pueblos más de cerca, y lo cortado
+    // es un costado, nunca arriba —donde va el cielo— ni abajo —donde están
+    // los botones—.
+    final margen = how == FiestaCamera.orbit
+        ? size.width * 0.12
+        : -size.width * (1 / info.reach - 1) / 2;
     double alto(double d) => 2.0 + d * (cielo ? 0.035 : 0.015);
     bool cabe(double d, double yaw) {
       final c = OrbitCamera()
@@ -1242,11 +1254,20 @@ class _TownViewState extends State<TownView>
         ..pitch = pitch
         ..distance = d;
       final p = c.projector(size.width, size.height, 0);
-      for (final v in puntos) {
-        final q = p.project(v);
+      for (var j = 0; j < puntos.length; j++) {
+        final q = p.project(puntos[j]);
         if (q == null) return false;
         if (q.x < margen || q.x > size.width - margen) return false;
         if (q.y < arriba || q.y > abajo) return false;
+        // Y el centro de cada pueblo, siempre dentro y con aire: se puede
+        // cortar un costado del pueblo, no el pueblo.
+        // Con muchos pueblos, el de una punta puede quedar a medias: si no,
+        // entran todos pero como puntos.
+        final aire = _entries.length <= 3 ? 0.14 : 0.04;
+        if (j % 5 == 0 &&
+            (q.x < size.width * aire || q.x > size.width * (1 - aire))) {
+          return false;
+        }
       }
       return true;
     }
@@ -1267,11 +1288,38 @@ class _TownViewState extends State<TownView>
     // Desde dónde: el lado desde el que el valle queda más de canto —los
     // pueblos en fila y no uno detrás de otro—, que es el que deja acercarse
     // más. A igualdad, el que menos gira desde donde se estaba mirando.
-    var yaw = _cam.yawTarget, d = double.infinity;
+    // Y uno al lado del otro mejor que uno detrás de otro: de frente se
+    // puede acercar más, pero el de delante sale enorme y el de atrás
+    // chiquito, y el valle se lee como un pueblo con otro al fondo.
+    double fila(double yaw, double d) {
+      final c = OrbitCamera()
+        ..travel = cx
+        ..focusZ = cz
+        ..focusY = alto(d)
+        ..yaw = yaw
+        ..pitch = pitch
+        ..distance = d;
+      final p = c.projector(size.width, size.height, 0);
+      var lo = double.infinity, hi = -double.infinity;
+      for (final e in _entries) {
+        final q = p.project(V3(e.layout.cx, 0, e.layout.cz));
+        if (q == null) continue;
+        lo = math.min(lo, q.y);
+        hi = math.max(hi, q.y);
+      }
+      return hi > lo ? (hi - lo) / (abajo - arriba) : 0;
+    }
+
+    var yaw = _cam.yawTarget, d = double.infinity, mejor = double.infinity;
     for (var k = 0; k < 24; k++) {
       final y = _cam.yawTarget + k * math.pi / 12;
-      final dd = lejos(y) * (1 + 0.02 * angleDelta(_cam.yawTarget, y).abs());
-      if (dd < d) {
+      final dd = lejos(y);
+      final nota =
+          dd *
+          (1 + 1.2 * fila(y, dd)) *
+          (1 + 0.02 * angleDelta(_cam.yawTarget, y).abs());
+      if (nota < mejor) {
+        mejor = nota;
         d = dd;
         yaw = y;
       }
@@ -1288,13 +1336,72 @@ class _TownViewState extends State<TownView>
       // ignore: avoid_print
       print('FIESTA cam d=$d yaw=$yaw');
     }
+    _cam.yawTarget += angleDelta(_cam.yawTarget, yaw);
+    _fiestaView = (cx, cz, d, pitch, alto(d), _cam.yawTarget);
+    _cam.wallLength = math.max(_cam.wallLength, d * 2);
+    if (how == FiestaCamera.follow || how == FiestaCamera.tour) {
+      // Empieza en tu pueblo; el resto lo lleva [_followFiesta].
+      final r = math.max(
+        _entries[widget.store.active.clamp(0, _entries.length - 1)]
+            .layout
+            .radius,
+        4.0,
+      );
+      _fiestaNear = how == FiestaCamera.tour
+          ? clampD(r * 4.0, 28, d * 0.55)
+          : clampD(d * 0.58, 45, d);
+      _followFiesta(0, force: true);
+      return;
+    }
     _cam.travelTarget = cx;
     _cam.focusZTarget = cz;
     _cam.pitchTarget = pitch;
-    _cam.yawTarget += angleDelta(_cam.yawTarget, yaw);
     _cam.distanceTarget = d;
     _cam.focusYTarget = alto(d);
-    _cam.wallLength = math.max(_cam.wallLength, d * 2);
+  }
+
+  /// El valle entero tal como lo mira la fiesta: centro, distancia,
+  /// inclinación, altura del foco y giro. Ver [_frameFiesta].
+  (double, double, double, double, double, double)? _fiestaView;
+
+  /// La distancia a la que se mira cada pueblo cuando la fiesta va de uno
+  /// en otro.
+  double _fiestaNear = 40;
+
+  /// En las fiestas que siguen algo de pueblo en pueblo, poner la cámara
+  /// donde va eso; y cuando ya no sigue nada, en el valle entero.
+  void _followFiesta(double t, {bool force = false}) {
+    final view = _fiestaView;
+    if (view == null) return;
+    final show = Fiesta.instance.show;
+    final pos = show == null ? (force ? 0.0 : null) : Fiesta.followAt(show, t);
+    final (cx, cz, d, pitch, alto, _) = view;
+    if (pos == null) {
+      _cam.travelTarget = cx;
+      _cam.focusZTarget = cz;
+      _cam.pitchTarget = pitch;
+      _cam.distanceTarget = d;
+      _cam.focusYTarget = alto;
+      return;
+    }
+    final orden =
+        show?.path ?? [widget.store.active.clamp(0, _entries.length - 1)];
+    final k = pos.floor().clamp(0, orden.length - 1);
+    final k2 = math.min(k + 1, orden.length - 1);
+    final u = pos - pos.floor();
+    final a = _entries[orden[k]].layout, b = _entries[orden[k2]].layout;
+    final tour = show?.info.camera == FiestaCamera.tour;
+    _cam.travelTarget = a.cx + (b.cx - a.cx) * u;
+    _cam.focusZTarget = a.cz + (b.cz - a.cz) * u;
+    // A mitad de camino entre dos pueblos lejanos, se aleja un poco para que
+    // el viaje no sea sólo pasto.
+    final lejos = math.sqrt(
+      (a.cx - b.cx) * (a.cx - b.cx) + (a.cz - b.cz) * (a.cz - b.cz),
+    );
+    final arco = math.sin(u * math.pi) * lejos * (tour ? 0.35 : 0.12);
+    _cam.distanceTarget = math.min(_fiestaNear + arco, d);
+    _cam.pitchTarget = tour ? 0.40 : 0.32;
+    _cam.focusYTarget = 1.5;
   }
 
   /// El regreso, que es el momento más importante que tiene esta app.

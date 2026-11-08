@@ -46,11 +46,37 @@ void paintFiesta(
       f.aurora();
     case FiestaKind.mayor:
       f.mayor();
+    case FiestaKind.globos:
+      f.globos();
+    case FiestaKind.fugaces:
+      f.fugaces();
+    case FiestaKind.luciernagas:
+      f.luciernagas();
+    case FiestaKind.faros:
+      f.faros();
+    case FiestaKind.mapa:
+      f.mapa();
+    case FiestaKind.floracion:
+      f.floracion();
+    case FiestaKind.musica:
+      f.musica();
+    case FiestaKind.hogueras:
+      f.hogueras();
+    case FiestaKind.pompas:
+      f.pompas();
+    case FiestaKind.fuentes:
+      f.fuentes();
+    case FiestaKind.ronda:
+      f.ronda();
     case FiestaKind.cuentas ||
         FiestaKind.luz ||
         FiestaKind.sello ||
         FiestaKind.banderines ||
-        FiestaKind.petalos:
+        FiestaKind.petalos ||
+        FiestaKind.pregon ||
+        FiestaKind.cronica ||
+        FiestaKind.foto ||
+        FiestaKind.confeti:
       // Son de la interfaz.
       break;
   }
@@ -175,12 +201,28 @@ class _Fiesta {
     if (reach < 1) return;
   }
 
+  /// Dónde cae el horizonte en la pantalla: un punto del suelo muy lejos,
+  /// delante de la cámara.
+  double _horizon() {
+    final f = p.forward;
+    final l = math.sqrt(f.x * f.x + f.z * f.z);
+    if (l < 1e-6) return 0;
+    final q = p.project(
+      V3(p.eye.x + f.x / l * 1e5, 0, p.eye.z + f.z / l * 1e5),
+    );
+    return q == null ? size.height * 0.3 : q.y.clamp(0.0, size.height);
+  }
+
   /// Unas estrellas finas en el cielo oscurecido.
   void _stars(double amount) {
     if (amount <= 0.01) return;
+    // Sólo en el cielo de verdad: por encima del horizonte y de los montes,
+    // que tapan su buen trozo.
+    final techo = _horizon() - size.height * 0.07;
+    if (techo <= 8) return;
     for (var i = 0; i < 46; i++) {
       final x = hash01(i, 71) * size.width;
-      final y = math.pow(hash01(i, 72), 1.6) * size.height * 0.42;
+      final y = math.pow(hash01(i, 72), 1.3) * techo;
       final tw = 0.55 + 0.45 * math.sin(t * (1.5 + hash01(i, 73) * 2) + i);
       _dot(
         Offset(x, y.toDouble()),
@@ -400,14 +442,14 @@ class _Fiesta {
 
   void hilo() {
     final n = s.towns.length;
-    final fin = Fiesta.hiloReach(n - 1);
+    final fin = Fiesta.hiloReach(n - 1, n);
     // Después de cerrarse, el hilo entero late una vez y se va.
     final pulso = _window(t, fin, fin + 0.25, fin + 0.6, fin + 2.2);
     final resto = t < fin + 0.6 ? 1.0 : 1 - _ease((t - fin - 0.6) / 1.6);
     if (resto <= 0) return;
     for (var k = 0; k < n - 1; k++) {
       final a = s.towns[s.path[k]], b = s.towns[s.path[k + 1]];
-      final t0 = Fiesta.hiloReach(k), t1 = Fiesta.hiloReach(k + 1);
+      final t0 = Fiesta.hiloReach(k, n), t1 = Fiesta.hiloReach(k + 1, n);
       if (t < t0) break;
       final head = _ease((t - t0) / (t1 - t0));
       final pts = <Offset>[];
@@ -455,7 +497,7 @@ class _Fiesta {
     // El destello al llegar a cada plaza.
     for (var k = 0; k < n; k++) {
       final town = s.towns[s.path[k]];
-      final a = t - Fiesta.hiloReach(k);
+      final a = t - Fiesta.hiloReach(k, n);
       if (a < 0) continue;
       final o = _at(town.x, 0.4, town.z);
       if (o == null) continue;
@@ -1093,5 +1135,846 @@ class _Fiesta {
   void mayor() {
     chispas(0.8, every: 0.35);
     fuegos(nightFrom: 4.9);
+  }
+
+  // ------------------------------------------------------------------- globos
+
+  static const List<Color> _globoColores = [
+    Color(0xFFE5484D),
+    Color(0xFFF2C14E),
+    Color(0xFF3D7CC9),
+    Color(0xFF4E9F6B),
+    Color(0xFFF4EFE6),
+    Color(0xFFE98A3A),
+    Color(0xFF8E5BB5),
+  ];
+
+  void globos() {
+    final h = size.height;
+    for (var k = 0; k < s.path.length; k++) {
+      final i = s.path[k];
+      final o = _at(s.towns[i].x, 0, s.towns[i].z);
+      if (o == null) continue;
+      final m = _k(s.towns[i]).clamp(0.8, 1.5);
+      for (var j = 0; j < 6; j++) {
+        final a = t - (0.25 + 0.18 * k + 0.32 * j + hash01(i, j, 40) * 0.25);
+        if (a < 0) continue;
+        final vel = h * (0.085 + 0.045 * hash01(i, j, 41));
+        final y = o.dy - 10 * m - vel * a - vel * 0.08 * a * a;
+        if (y < -60) continue;
+        final sway = math.sin(a * (1.4 + hash01(i, j, 42)) + j * 2.1);
+        final x =
+            o.dx +
+            hashJitter(26 * m, i, j, 43) +
+            sway * 10 +
+            a * 9 * (hash01(i, j, 44) - 0.4);
+        final lejos = ((o.dy - y) / h).clamp(0.0, 1.0);
+        final w =
+            (10.0 * m) * (1 - 0.5 * lejos) * (0.85 + 0.3 * hash01(i, j, 45));
+        final alpha = _ease(a / 0.4) * _out * (1 - _ease((lejos - 0.65) / 0.3));
+        if (alpha <= 0.01) continue;
+        final col = _globoColores[(i * 3 + j) % _globoColores.length];
+        final q = Offset(x, y);
+        // El hilo, que cuelga y se mece al revés que el globo.
+        final cuelga = Path()..moveTo(q.dx, q.dy + w * 1.15);
+        for (var u = 1; u <= 6; u++) {
+          final yy = q.dy + w * 1.15 + u * w * 0.55;
+          cuelga.lineTo(
+            q.dx - sway * u * 0.9 + math.sin(u * 1.3 + t * 3) * 1.2,
+            yy,
+          );
+        }
+        _paint
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.9
+          ..color = const Color(0xFF3B3326).withValues(alpha: 0.7 * alpha);
+        c.drawPath(cuelga, _paint);
+        _paint.style = PaintingStyle.fill;
+        // La sombra mínima, y el globo con su brillo.
+        final cuerpo = Rect.fromCenter(
+          center: q,
+          width: w * 1.7,
+          height: w * 2.1,
+        );
+        _paint
+          ..color = const Color(0xFFFFFFFF)
+          ..shader = Gradient.radial(
+            q.translate(-w * 0.35, -w * 0.45),
+            w * 1.6,
+            [
+              Color.lerp(
+                col,
+                const Color(0xFFFFFFFF),
+                0.45,
+              )!.withValues(alpha: alpha),
+              col.withValues(alpha: alpha),
+              Color.lerp(
+                col,
+                const Color(0xFF000000),
+                0.25,
+              )!.withValues(alpha: alpha),
+            ],
+            const [0, 0.5, 1],
+          );
+        c.drawOval(cuerpo, _paint);
+        _paint.shader = null;
+        // El nudo.
+        final nudo = Path()
+          ..moveTo(q.dx, q.dy + w * 1.0)
+          ..lineTo(q.dx - w * 0.18, q.dy + w * 1.22)
+          ..lineTo(q.dx + w * 0.18, q.dy + w * 1.22)
+          ..close();
+        _paint.color = Color.lerp(
+          col,
+          const Color(0xFF000000),
+          0.2,
+        )!.withValues(alpha: alpha);
+        c.drawPath(nudo, _paint);
+        _dot(
+          q.translate(-w * 0.38, -w * 0.5),
+          w * 0.18,
+          const Color(0xFFFFFFFF),
+          0.7 * alpha,
+        );
+      }
+    }
+  }
+
+  // ------------------------------------------------------------------ fugaces
+
+  void fugaces() {
+    final noche = _window(t, 0, 1.0, length - 1.4, length);
+    _night(noche * 0.9, reach: 1.0, tint: const Color(0xFF070B22));
+    _stars(noche);
+    final w = size.width, h = size.height;
+    final n = s.towns.length;
+    for (var i = 0; i < n; i++) {
+      final a = t - Fiesta.fugazAt(i);
+      if (a < -0.2) continue;
+      // La plaza de su pueblo se ilumina un poco mientras pasa: es la suya.
+      final town = s.towns[s.path[i]];
+      final o = _at(town.x, 0, town.z);
+      if (o != null) {
+        _glow(
+          o,
+          36 * _k(town),
+          const Color(0xFFCFE0FF),
+          0.45 * _window(a, -0.1, 0.2, 0.6, 1.6) * noche,
+        );
+      }
+      const vida = 1.0;
+      if (a < 0 || a > vida) continue;
+      final x0 = w * (0.25 + 0.75 * hash01(i, 50));
+      final y0 = h * (0.03 + 0.16 * hash01(i, 51));
+      final ang = math.pi * (0.78 + 0.08 * hash01(i, 52));
+      final dir = Offset(math.cos(ang), math.sin(ang).abs() * 0.75 + 0.25);
+      final d = dir / dir.distance;
+      final vel = 430 + 160 * hash01(i, 53);
+      final head = Offset(x0, y0) + d * vel * a;
+      final cola = 150 + 90 * hash01(i, 54);
+      final u = a / vida;
+      final brillo = math.sin(math.pi * u.clamp(0.0, 1.0));
+      final tail = head - d * cola * (0.4 + 0.6 * brillo);
+      _paint
+        ..color = const Color(0xFFFFFFFF)
+        ..shader = Gradient.linear(tail, head, [
+          const Color(0x00FFFFFF),
+          const Color(0xFFE9F0FF).withValues(alpha: 0.95 * brillo),
+        ])
+        ..strokeWidth = 2.8
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.5);
+      c.drawLine(tail, head, _paint);
+      _paint
+        ..maskFilter = null
+        ..strokeWidth = 1.4;
+      c.drawLine(Offset.lerp(tail, head, 0.4)!, head, _paint);
+      _paint
+        ..shader = null
+        ..style = PaintingStyle.fill;
+      _glow(head, 22, const Color(0xFFDDE8FF), 0.8 * brillo);
+      _dot(head, 2.6, const Color(0xFFFFFFFF), brillo);
+    }
+  }
+
+  // --------------------------------------------------------------- luciérnagas
+
+  void luciernagas() {
+    final tarde = _window(t, 0, 1.4, length - 1.6, length);
+    _night(tarde * 0.8, reach: 1.0, tint: const Color(0xFF0D1A2C));
+    _stars(tarde * 0.5);
+    for (var k = 0; k < s.path.length; k++) {
+      final i = s.path[k];
+      final town = s.towns[i];
+      final o = _at(town.x, 0, town.z);
+      if (o == null) continue;
+      final m = _k(town).clamp(0.8, 1.8);
+      for (var j = 0; j < 36; j++) {
+        final a = t - (0.5 + 0.2 * k + hash01(i, j, 60) * 1.6);
+        if (a < 0) continue;
+        final ang = hash01(i, j, 61) * math.pi * 2;
+        final rr = 0.35 + 0.65 * math.sqrt(hash01(i, j, 62));
+        final bx = o.dx + math.cos(ang) * rr * 70 * m;
+        final by = o.dy + math.sin(ang) * rr * 26 * m;
+        final f1 = 0.4 + 0.5 * hash01(i, j, 63),
+            f2 = 0.3 + 0.5 * hash01(i, j, 64);
+        final q = Offset(
+          bx + math.sin(a * f1 * 2 + j) * 12 * m,
+          by - a * 5 * m + math.cos(a * f2 * 2 + j * 1.7) * 7 * m - 6 * m,
+        );
+        // Parpadean despacio, cada una a su ritmo, como las de verdad.
+        final ritmo = 1.2 + 1.4 * hash01(i, j, 65);
+        final pulso = math
+            .pow(math.max(0, math.sin(a * ritmo + j * 2.3)), 2.5)
+            .toDouble();
+        final alpha = pulso * _ease(a / 0.8) * tarde;
+        if (alpha <= 0.02) continue;
+        _glow(q, 13 * math.min(m, 1.4), const Color(0xFFB6FF3C), 0.6 * alpha);
+        _dot(q, 1.8 * math.min(m, 1.4), const Color(0xFFF2FFB0), alpha);
+      }
+    }
+  }
+
+  // --------------------------------------------------------------------- faros
+
+  void faros() {
+    final n = s.towns.length;
+    final noche = _window(t, 0, 0.8, length - 1.2, length);
+    _night(noche * 0.72, reach: 1.0, tint: const Color(0xFF0B1230));
+    final fin = Fiesta.faroAt(n) + 0.1;
+    final todos = _window(t, fin, fin + 0.25, fin + 0.6, fin + 1.6);
+    for (var k = 0; k < n; k++) {
+      final town = s.towns[s.path[k]];
+      final o = _at(town.x, 0, town.z);
+      if (o == null) continue;
+      final a = t - Fiesta.faroAt(k);
+      if (a < 0) continue;
+      final m = _k(town).clamp(0.8, 1.6);
+      final sube = _easeOut(a / 0.5);
+      final alto = o.dy * sube;
+      final flick = 0.9 + 0.1 * math.sin(t * 13 + k * 3);
+      final fuerza =
+          (0.75 + 0.6 * todos) * flick * _out * math.min(1, a / 0.15);
+      final abajo = 9 * m, arriba = 26 * m;
+      final haz = Path()
+        ..moveTo(o.dx - abajo, o.dy)
+        ..lineTo(o.dx - arriba, o.dy - alto)
+        ..lineTo(o.dx + arriba, o.dy - alto)
+        ..lineTo(o.dx + abajo, o.dy)
+        ..close();
+      _paint
+        ..color = const Color(0xFFFFFFFF)
+        ..blendMode = BlendMode.plus
+        ..shader = Gradient.linear(
+          o,
+          o.translate(0, -math.max(1.0, alto)),
+          [
+            const Color(0xFFFFE6A0).withValues(alpha: 0.55 * fuerza),
+            const Color(0xFFFFE6A0).withValues(alpha: 0.18 * fuerza),
+            const Color(0x00FFE6A0),
+          ],
+          const [0, 0.5, 1],
+        )
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+      c.drawPath(haz, _paint);
+      // El alma del haz, fina y blanca.
+      _paint
+        ..maskFilter = null
+        ..shader = Gradient.linear(o, o.translate(0, -math.max(1.0, alto)), [
+          const Color(0xFFFFFFFF).withValues(alpha: 0.8 * fuerza),
+          const Color(0x00FFFFFF),
+        ]);
+      c.drawRect(
+        Rect.fromLTRB(o.dx - 1.6 * m, o.dy - alto, o.dx + 1.6 * m, o.dy),
+        _paint,
+      );
+      _paint
+        ..shader = null
+        ..blendMode = BlendMode.srcOver;
+      _glow(o, 40 * m, _oro, 0.6 * fuerza);
+      _glow(
+        o,
+        12 * m,
+        const Color(0xFFFFFFFF),
+        0.8 * fuerza * math.exp(-a * 3),
+      );
+    }
+  }
+
+  // ---------------------------------------------------------------------- mapa
+
+  /// Una línea a mano: con su temblor, para que sea tinta y no regla.
+  Path _aMano(List<Offset> pts, int seed, {double temblor = 1.4}) {
+    final path = Path();
+    for (var k = 0; k < pts.length; k++) {
+      final q =
+          pts[k] +
+          Offset(
+            hashJitter(temblor, seed, k, 1),
+            hashJitter(temblor, seed, k, 2),
+          );
+      if (k == 0) {
+        path.moveTo(q.dx, q.dy);
+      } else {
+        path.lineTo(q.dx, q.dy);
+      }
+    }
+    return path;
+  }
+
+  void mapa() {
+    final papel = _window(t, 0, 1.0, length - 1.3, length);
+    // El papel: el valle se tiñe de pergamino, con los bordes tostados.
+    // Primero se aclara, como un dibujo viejo y desvaído, y después se tiñe.
+    _paint.color = const Color(0xFFF1E2BE).withValues(alpha: 0.55 * papel);
+    c.drawRect(Offset.zero & size, _paint);
+    _paint
+      ..color = const Color(0xFFE6CF9C).withValues(alpha: 0.75 * papel)
+      ..blendMode = BlendMode.multiply;
+    c.drawRect(Offset.zero & size, _paint);
+    _paint
+      ..blendMode = BlendMode.srcOver
+      ..color = const Color(0xFFFFFFFF)
+      ..shader = Gradient.radial(
+        size.center(Offset.zero),
+        size.longestSide * 0.62,
+        [
+          const Color(0x00F3E6C4),
+          const Color(0xFF7A5328).withValues(alpha: 0.5 * papel),
+        ],
+        const [0.55, 1],
+      );
+    c.drawRect(Offset.zero & size, _paint);
+    _paint.shader = null;
+    const tinta = Color(0xFF3B2614);
+    final n = s.towns.length;
+    final pies = [for (final i in s.path) _at(s.towns[i].x, 0, s.towns[i].z)];
+    // Los caminos, a trazos, de pueblo en pueblo.
+    for (var k = 0; k < n - 1; k++) {
+      final a = pies[k], b = pies[k + 1];
+      if (a == null || b == null) continue;
+      final u = _ease((t - 0.8 - k * 0.45) / 0.7);
+      if (u <= 0) continue;
+      final d = b - a;
+      final l = d.distance;
+      if (l < 1) continue;
+      final perp = Offset(-d.dy, d.dx) / l;
+      final pts = <Offset>[];
+      const pasos = 28;
+      for (var j = 0; j <= pasos * u; j++) {
+        final v = j / pasos;
+        pts.add(
+          a +
+              d * v +
+              perp * math.sin(v * math.pi) * l * 0.12 * (k.isEven ? 1 : -1),
+        );
+      }
+      // A trazos: un tramo sí y otro no.
+      _paint
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.7
+        ..strokeCap = StrokeCap.round
+        ..color = tinta.withValues(alpha: 0.85 * papel);
+      for (var j = 0; j + 1 < pts.length; j += 2) {
+        c.drawLine(pts[j], pts[j + 1], _paint);
+      }
+      _paint.style = PaintingStyle.fill;
+    }
+    // Un círculo a mano en cada pueblo, doble, como quien lo marca.
+    for (var k = 0; k < n; k++) {
+      final o = pies[k];
+      if (o == null) continue;
+      final u = _ease((t - 0.7 - k * 0.45) / 0.6);
+      if (u <= 0) continue;
+      final m = _k(s.towns[s.path[k]]);
+      final r = 30 * m;
+      for (var vuelta = 0; vuelta < 2; vuelta++) {
+        final pts = <Offset>[];
+        final giro = 0.3 + vuelta * 0.5;
+        for (var j = 0; j <= 30 * u; j++) {
+          final a = giro + j / 30 * math.pi * 2.15;
+          final rr = r * (1 + 0.06 * vuelta + 0.04 * math.sin(a * 3 + k));
+          pts.add(o + Offset(math.cos(a) * rr, math.sin(a) * rr * 0.62));
+        }
+        _paint
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = vuelta == 0 ? 1.8 : 1.0
+          ..color = tinta.withValues(alpha: (vuelta == 0 ? 0.85 : 0.5) * papel);
+        c.drawPath(_aMano(pts, k * 7 + vuelta, temblor: 0.8), _paint);
+      }
+      _paint.style = PaintingStyle.fill;
+    }
+  }
+
+  // ----------------------------------------------------------------- floración
+
+  static const List<Color> _flores = [
+    Color(0xFFF7A8C4),
+    Color(0xFFFFFFFF),
+    Color(0xFFF7D154),
+    Color(0xFFB79CF0),
+    Color(0xFFEF6B6B),
+    Color(0xFFFFB86B),
+  ];
+
+  void floracion() {
+    for (var k = 0; k < s.path.length; k++) {
+      final i = s.path[k];
+      final town = s.towns[i];
+      final a = t - Fiesta.floraAt(k);
+      if (a < 0) continue;
+      final m = _k(town).clamp(0.7, 2.0);
+      final o = _at(town.x, 0, town.z);
+      if (o != null) {
+        _glow(
+          o,
+          70 * m,
+          const Color(0xFFFFF0B8),
+          0.35 * _window(a, 0, 0.3, 0.6, 2.0),
+        );
+      }
+      // El campo de alrededor, no el pueblo: las flores salen en el prado,
+      // fuera de las casas, abriéndose en corro alrededor.
+      const n = 46;
+      for (var j = 0; j < n; j++) {
+        final ang = hash01(i, j, 70) * math.pi * 2;
+        final b = a - ang / (math.pi * 2) * 0.8;
+        if (b < 0) continue;
+        final rr = town.radius * (1.25 + 0.75 * hash01(i, j, 71));
+        final q = _at(
+          town.x + math.cos(ang) * rr,
+          0,
+          town.z + math.sin(ang) * rr,
+        );
+        if (q == null) continue;
+        final abre = b < 0.5 ? _spring(b / 0.5) : 1.0;
+        final sz = (1.3 + 0.8 * hash01(i, j, 72)) * math.min(m, 1.6) * abre;
+        final col = _flores[(i + j * 5) % _flores.length];
+        final alpha = _out;
+        for (var p2 = 0; p2 < 5; p2++) {
+          final pa = p2 / 5 * math.pi * 2 + j;
+          _dot(
+            q + Offset(math.cos(pa), math.sin(pa) * 0.7) * sz,
+            sz * 0.7,
+            col,
+            alpha,
+          );
+        }
+        _dot(q, sz * 0.45, const Color(0xFFF2B630), alpha);
+      }
+    }
+  }
+
+  double _spring(double x) {
+    if (x <= 0) return 0;
+    if (x >= 2.5) return 1;
+    return 1 - math.exp(-5.5 * x) * math.cos(9 * x);
+  }
+
+  // -------------------------------------------------------------------- música
+
+  void _nota(Offset q, double s0, bool doble, double alpha) {
+    if (alpha <= 0.01) return;
+    void dibuja(Offset o, Color col) {
+      _paint.color = col;
+      c.save();
+      c.translate(o.dx, o.dy);
+      c.rotate(-0.35);
+      c.drawOval(
+        Rect.fromCenter(
+          center: Offset.zero,
+          width: s0 * 1.25,
+          height: s0 * 0.9,
+        ),
+        _paint,
+      );
+      c.restore();
+      final tallo = Offset(o.dx + s0 * 0.55, o.dy);
+      _paint
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1.2, s0 * 0.16);
+      c.drawLine(tallo, tallo.translate(0, -s0 * 2.4), _paint);
+      if (doble) {
+        final o2 = o.translate(s0 * 1.6, -s0 * 0.4);
+        final t2 = Offset(o2.dx + s0 * 0.55, o2.dy);
+        c.drawLine(t2, t2.translate(0, -s0 * 2.4), _paint);
+        _paint.strokeWidth = math.max(2, s0 * 0.42);
+        c.drawLine(
+          tallo.translate(0, -s0 * 2.3),
+          t2.translate(0, -s0 * 2.3),
+          _paint,
+        );
+        _paint.style = PaintingStyle.fill;
+        c.save();
+        c.translate(o2.dx, o2.dy);
+        c.rotate(-0.35);
+        c.drawOval(
+          Rect.fromCenter(
+            center: Offset.zero,
+            width: s0 * 1.25,
+            height: s0 * 0.9,
+          ),
+          _paint,
+        );
+        c.restore();
+      } else {
+        final top = tallo.translate(0, -s0 * 2.4);
+        final bandera = Path()
+          ..moveTo(top.dx, top.dy)
+          ..quadraticBezierTo(
+            top.dx + s0 * 1.1,
+            top.dy + s0 * 0.6,
+            top.dx + s0 * 0.7,
+            top.dy + s0 * 1.5,
+          );
+        c.drawPath(bandera, _paint);
+      }
+      _paint.style = PaintingStyle.fill;
+    }
+
+    dibuja(
+      q.translate(1, 1.5),
+      const Color(0xFF2B2118).withValues(alpha: 0.3 * alpha),
+    );
+    dibuja(q, const Color(0xFFFFF6E0).withValues(alpha: alpha));
+  }
+
+  void musica() {
+    const pulso = 60 / 132;
+    for (var k = 0; k < s.path.length; k++) {
+      final i = s.path[k];
+      final town = s.towns[i];
+      final o = _at(town.x, 0, town.z);
+      if (o == null) continue;
+      final m = _k(town).clamp(0.8, 1.6);
+      for (var j = 0; j < 16; j++) {
+        final born = 0.3 + 0.12 * k + j * pulso * 0.9 + hash01(i, j, 80) * 0.15;
+        if (born > length - 2.2) break;
+        final a = t - born;
+        if (a < 0 || a > 2.8) continue;
+        final lado = j.isEven ? 1 : -1;
+        // Se mecen al compás: un lado en cada pulso.
+        final vaiven = math.sin((t / pulso) * math.pi) * 6 * m;
+        final q =
+            o +
+            Offset(
+              lado * (8 + 14 * hash01(i, j, 81)) * m + vaiven + a * lado * 6,
+              -14 * m - a * 34 * m,
+            );
+        final latido = 1 + 0.12 * math.pow(math.cos((t / pulso) * math.pi), 8);
+        final alpha = _ease(a / 0.3) * (1 - _ease((a - 2.0) / 0.8)) * _out;
+        _nota(q, 4.2 * m * latido, j % 3 == 1, alpha);
+      }
+    }
+  }
+
+  // ------------------------------------------------------------------ hogueras
+
+  void hogueras() {
+    final noche = _window(t, 0, 1.2, length - 1.4, length);
+    _night(noche * 0.85, reach: 1.0, tint: const Color(0xFF0C0A1E));
+    _stars(noche * 0.8);
+    for (var k = 0; k < s.path.length; k++) {
+      final i = s.path[k];
+      final town = s.towns[i];
+      final o = _at(town.x, 0, town.z);
+      if (o == null) continue;
+      final a = t - (0.4 + 0.3 * k);
+      if (a < 0) continue;
+      final m = _k(town).clamp(0.8, 1.8);
+      final prende = _easeOut(a / 0.9) * _out;
+      // La luz del fuego sobre la plaza.
+      _paint
+        ..color = const Color(0xFFFFFFFF)
+        ..blendMode = BlendMode.plus;
+      _glow(
+        o,
+        90 * m * (0.9 + 0.1 * math.sin(t * 9 + k)),
+        const Color(0xFFFF8A3D),
+        0.5 * prende,
+      );
+      _paint.blendMode = BlendMode.srcOver;
+      // Los leños.
+      _paint
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = 2.6 * m
+        ..color = const Color(
+          0xFF3A2414,
+        ).withValues(alpha: math.min(1, a * 3) * _out);
+      c.drawLine(
+        o.translate(-8 * m, 2 * m),
+        o.translate(7 * m, -3 * m),
+        _paint,
+      );
+      c.drawLine(
+        o.translate(8 * m, 2 * m),
+        o.translate(-7 * m, -3 * m),
+        _paint,
+      );
+      _paint.style = PaintingStyle.fill;
+      // Las llamas: tres capas que tiemblan cada una a su ritmo.
+      for (final (capa, col, ancho, alto) in [
+        (0, const Color(0xFFD9381E), 11.0, 30.0),
+        (1, const Color(0xFFFF8A2A), 8.0, 23.0),
+        (2, const Color(0xFFFFD66B), 4.6, 13.0),
+      ]) {
+        final tiembla =
+            1 +
+            0.18 * math.sin(t * (11 + capa * 3) + i) +
+            0.1 * math.sin(t * 23 + capa);
+        final w = ancho * m * prende, hh = alto * m * prende * tiembla;
+        final lean = math.sin(t * 2.3 + i) * 2.5 * m;
+        final llama = Path()
+          ..moveTo(o.dx - w, o.dy - 2 * m)
+          ..quadraticBezierTo(
+            o.dx - w * 0.9,
+            o.dy - hh * 0.55,
+            o.dx + lean,
+            o.dy - hh,
+          )
+          ..quadraticBezierTo(
+            o.dx + w * 0.9,
+            o.dy - hh * 0.55,
+            o.dx + w,
+            o.dy - 2 * m,
+          )
+          ..close();
+        _paint
+          ..color = col.withValues(alpha: 0.92)
+          ..maskFilter = MaskFilter.blur(
+            BlurStyle.normal,
+            capa == 0 ? 2.5 : 1.2,
+          );
+        c.drawPath(llama, _paint);
+      }
+      _paint.maskFilter = null;
+      // Las brasas que suben al cielo.
+      for (var j = 0; j < 22; j++) {
+        final life = 1.6 + 1.2 * hash01(i, j, 90);
+        final b = (a - hash01(i, j, 91) * 2.2) % (life + 0.4);
+        if (b < 0 || b > life || a < 0.3) continue;
+        final q =
+            o +
+            Offset(
+              hashJitter(6 * m, i, j, 92) + math.sin(b * 3 + j) * 8 * m,
+              -20 * m - b * (40 + 30 * hash01(i, j, 93)) * m,
+            );
+        final u = b / life;
+        final col = Color.lerp(
+          const Color(0xFFFFE08A),
+          const Color(0xFFFF5A1F),
+          u,
+        )!;
+        _glow(q, 5 * m, col, 0.5 * (1 - u) * _out);
+        _dot(q, 1.1 * math.min(m, 1.4), col, (1 - u) * _out);
+      }
+    }
+  }
+
+  // -------------------------------------------------------------------- pompas
+
+  void pompas() {
+    for (var k = 0; k < s.path.length; k++) {
+      final i = s.path[k];
+      final town = s.towns[i];
+      final o = _at(town.x, 0, town.z);
+      if (o == null) continue;
+      final m = _k(town).clamp(0.8, 1.7);
+      for (var j = 0; j < 16; j++) {
+        final born = 0.3 + 0.15 * k + hash01(i, j, 100) * (length - 3.2);
+        final life = 2.0 + 1.6 * hash01(i, j, 101);
+        final a = t - born;
+        if (a < 0 || a > life + 0.3) continue;
+        final r = (5 + 8 * hash01(i, j, 102)) * m;
+        final q =
+            o +
+            Offset(
+              hashJitter(30 * m, i, j, 103) +
+                  math.sin(a * 1.7 + j) * 12 * m +
+                  a * 10,
+              -12 * m - a * (24 + 18 * hash01(i, j, 104)) * m,
+            );
+        if (a > life) {
+          // Revienta: un aro que se abre y unas gotitas.
+          final u = (a - life) / 0.3;
+          _paint
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.2
+            ..color = const Color(
+              0xFFFFFFFF,
+            ).withValues(alpha: (1 - u) * 0.8 * _out);
+          c.drawCircle(q, r * (1 + u * 0.6), _paint);
+          _paint.style = PaintingStyle.fill;
+          for (var g = 0; g < 5; g++) {
+            final ga = g / 5 * math.pi * 2 + j;
+            _dot(
+              q + Offset(math.cos(ga), math.sin(ga)) * r * (1.2 + u),
+              1.0,
+              const Color(0xFFFFFFFF),
+              (1 - u) * _out,
+            );
+          }
+          continue;
+        }
+        final alpha = _ease(a / 0.3) * _out;
+        // El brillo irisado: un barrido de colores pastel muy transparentes,
+        // que gira despacio. Se gira el lienzo y no el barrido: con ángulos
+        // fuera de la vuelta, el motor de la web no pinta el cuadro.
+        c.save();
+        c.translate(q.dx, q.dy);
+        c.rotate((a * 2 + j) % (math.pi * 2));
+        _paint
+          ..color = const Color(0xFFFFFFFF)
+          ..shader = Gradient.sweep(
+            Offset.zero,
+            [
+              const Color(0xFFFFB3D9).withValues(alpha: 0.28 * alpha),
+              const Color(0xFFB3E5FF).withValues(alpha: 0.22 * alpha),
+              const Color(0xFFD9FFB3).withValues(alpha: 0.26 * alpha),
+              const Color(0xFFFFE6B3).withValues(alpha: 0.22 * alpha),
+              const Color(0xFFFFB3D9).withValues(alpha: 0.28 * alpha),
+            ],
+            const [0, 0.25, 0.5, 0.75, 1],
+          );
+        c.drawCircle(Offset.zero, r, _paint);
+        _paint.shader = null;
+        c.restore();
+        _paint
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.1
+          ..color = const Color(0xFFFFFFFF).withValues(alpha: 0.65 * alpha);
+        c.drawCircle(q, r, _paint);
+        // El reflejo de la ventana, arriba a la izquierda.
+        _paint
+          ..strokeWidth = 1.6
+          ..color = const Color(0xFFFFFFFF).withValues(alpha: 0.85 * alpha);
+        c.drawArc(
+          Rect.fromCircle(center: q, radius: r * 0.7),
+          math.pi * 1.1,
+          0.7,
+          false,
+          _paint,
+        );
+        _paint.style = PaintingStyle.fill;
+      }
+    }
+  }
+
+  // ------------------------------------------------------------------- fuentes
+
+  void fuentes() {
+    for (var k = 0; k < s.path.length; k++) {
+      final i = s.path[k];
+      final town = s.towns[i];
+      final o = _at(town.x, 0, town.z);
+      if (o == null) continue;
+      final m = _k(town).clamp(0.9, 1.9);
+      final a = t - (0.2 + 0.08 * k);
+      if (a < 0) continue;
+      const dura = 3.2;
+      // La neblina del chorro, celeste.
+      final niebla = _window(a, 0, 0.4, dura, dura + 0.9) * _out;
+      _glow(
+        o.translate(0, -50 * m),
+        58 * m,
+        const Color(0xFFBFE6FF),
+        0.32 * niebla,
+      );
+      // Un ramillete: un chorro alto en el medio y arcos que se abren
+      // alrededor, como las fuentes de las plazas grandes.
+      for (var j = 0; j < 150; j++) {
+        final arco = j % 3 != 0;
+        final alto =
+            (arco
+                ? 62 + 30 * hash01(i, j, 114)
+                : 128 + 22 * hash01(i, j, 115)) *
+            m;
+        const sube = 0.55;
+        final g = 2 * alto / (sube * sube);
+        final v0 = g * sube;
+        final born = hash01(i, j, 110) * dura;
+        final b = a - born;
+        final vida = 2 * sube * (arco ? 1.0 : 0.92);
+        if (b < 0 || b > vida) continue;
+        final ang = hash01(i, j, 112) * math.pi * 2;
+        final abre = arco ? (34 + 18 * hash01(i, j, 113)) * m : 5 * m;
+        final vx = math.cos(ang) * abre / vida;
+        final vz = math.sin(ang) * abre * 0.35 / vida;
+        Offset en(double bb) =>
+            o + Offset(vx * bb, -v0 * bb + 0.5 * g * bb * bb + vz * bb - 4 * m);
+        final q = en(b), q0 = en(math.max(0, b - 0.045));
+        final glint = math.sin(b * 31 + j) > 0.6 ? 1.0 : 0.7;
+        final col = Color.lerp(
+          const Color(0xFFFFFFFF),
+          const Color(0xFF9FD4FF),
+          hash01(i, j, 116) * 0.6,
+        )!;
+        _paint
+          ..color = col.withValues(alpha: 0.9 * glint * _out)
+          ..strokeWidth = (arco ? 1.6 : 2.2) * math.min(m, 1.5)
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round;
+        c.drawLine(q0, q, _paint);
+        _paint.style = PaintingStyle.fill;
+        if (glint > 0.9) {
+          _glow(q, 4 * m, const Color(0xFFFFFFFF), 0.4 * _out);
+        }
+      }
+      // Y la salpicadura en el pilón.
+      if (a > 0.5 && a < dura + 1.0) {
+        for (var w = 0; w < 3; w++) {
+          final u = ((a * 1.4 + w / 3) % 1.0);
+          _ringPx(
+            town,
+            (10 + 40 * u) * m,
+            1.4,
+            const Color(0xFFEAF7FF),
+            (1 - u) * 0.75 * _out,
+          );
+        }
+      }
+    }
+  }
+
+  // --------------------------------------------------------------------- ronda
+
+  void ronda() {
+    final n = s.towns.length;
+    for (var k = 0; k < n; k++) {
+      final town = s.towns[s.path[k]];
+      final a = t - Fiesta.rondaArrive(k);
+      if (a < 0) continue;
+      final o = _at(town.x, 0, town.z);
+      if (o == null) continue;
+      final m = _k(town);
+      // Al llegar, la plaza se enciende y queda una luz cálida.
+      final luz = _window(a, 0, 0.3, 1.0, 2.4) * 0.32 + 0.1;
+      _glow(o, 55 * math.min(m, 1.6), const Color(0xFFFFD27A), luz * _out);
+      if (a < 1.6) {
+        _ringPx(
+          town,
+          (12 + 70 * _easeOut(a / 1.6)) * m,
+          2.2,
+          _oroClaro,
+          (1 - a / 1.6) * _out,
+        );
+      }
+      _fuente(town, k + 300, a - 0.05, 0.5, 0.8);
+    }
+    // Y al final, desde arriba, todas a la vez.
+    final fin = Fiesta.rondaStep * n + 0.6;
+    for (final town in s.towns) {
+      final a = t - fin;
+      if (a < 0 || a > 2.4) continue;
+      _ringPx(
+        town,
+        (14 + 90 * _easeOut(a / 2.4)) * _k(town),
+        2.6,
+        _oro,
+        (1 - a / 2.4) * _out,
+      );
+    }
   }
 }

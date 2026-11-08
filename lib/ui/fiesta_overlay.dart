@@ -51,12 +51,21 @@ class _FiestaOverlayState extends State<FiestaOverlay>
     super.dispose();
   }
 
-  static const _back = {FiestaKind.luz, FiestaKind.petalos};
+  static const _back = {
+    FiestaKind.luz,
+    FiestaKind.petalos,
+    FiestaKind.cronica,
+    FiestaKind.mapa,
+  };
   static const _front = {
     FiestaKind.cuentas,
     FiestaKind.sello,
     FiestaKind.banderines,
     FiestaKind.mayor,
+    FiestaKind.pregon,
+    FiestaKind.foto,
+    FiestaKind.confeti,
+    FiestaKind.ronda,
   };
 
   @override
@@ -69,7 +78,7 @@ class _FiestaOverlayState extends State<FiestaOverlay>
     return IgnorePointer(
       child: CustomPaint(
         size: Size.infinite,
-        painter: _FiestaUi(s, s.t, media.padding),
+        painter: _FiestaUi(s, s.t, media.padding, Fiesta.instance.photo),
       ),
     );
   }
@@ -131,11 +140,12 @@ String _month(int m) => tr(
 );
 
 class _FiestaUi extends CustomPainter {
-  _FiestaUi(this.s, this.t, this.pad);
+  _FiestaUi(this.s, this.t, this.pad, this.photo);
 
   final FiestaShow s;
   final double t;
   final EdgeInsets pad;
+  final ui.Image? photo;
 
   final Paint _p = Paint()..isAntiAlias = true;
 
@@ -154,6 +164,18 @@ class _FiestaUi extends CustomPainter {
         _petalos(canvas, size);
       case FiestaKind.mayor:
         _mayor(canvas, size);
+      case FiestaKind.pregon:
+        _pregon(canvas, size);
+      case FiestaKind.cronica:
+        _cronica(canvas, size);
+      case FiestaKind.mapa:
+        _mapa(canvas, size);
+      case FiestaKind.foto:
+        _foto(canvas, size);
+      case FiestaKind.confeti:
+        _confeti(canvas, size);
+      case FiestaKind.ronda:
+        _ronda(canvas, size);
       default:
         break;
     }
@@ -863,6 +885,606 @@ class _FiestaUi extends CustomPainter {
         letterSpacing: 2.4,
         color: const Color(0xFF9A927F).withValues(alpha: a3),
       ),
+    );
+  }
+
+  // ------------------------------------------------------------------- pregón
+
+  void _pregon(Canvas c, Size size) {
+    final w = size.width, h = size.height;
+    final n = s.towns.length;
+    final env = _window(t, 0, 0.3, s.length - 0.9, s.length);
+    if (env <= 0) return;
+    _p.color = const Color(0xFF000000).withValues(alpha: 0.32 * env);
+    c.drawRect(Offset.zero & size, _p);
+    final ancho = math.min(w * 0.8, 330.0);
+    final altoPapel = math.min(h * 0.66, 150.0 + 26.0 * n);
+    final x0 = (w - ancho) / 2;
+    // Baja enrollado, se desenrolla, y al final se enrolla y se va.
+    final baja = _easeOut(t / 0.45);
+    final sube = _ease((t - (s.length - 1.0)) / 0.8);
+    final y0 = pad.top + 70 - (1 - baja) * 140 - sube * (altoPapel + 220);
+    final abre =
+        _easeOut((t - 0.45) / 0.9) * (1 - _ease((t - (s.length - 1.6)) / 0.6));
+    final alto = altoPapel * abre;
+    const papel = Color(0xFFF1E3C2);
+    const tinta = Color(0xFF3B2614);
+    const rojo = Color(0xFF8A2A1F);
+    // El papel, con los bordes tostados.
+    final hoja = Rect.fromLTWH(x0, y0, ancho, alto);
+    if (alto > 1) {
+      _p
+        ..color = const Color(0xFF000000).withValues(alpha: 0.3)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+      c.drawRect(hoja.shift(const Offset(0, 6)), _p);
+      _p
+        ..maskFilter = null
+        ..color = const Color(0xFFFFFFFF)
+        ..shader = ui.Gradient.linear(
+          hoja.topLeft,
+          hoja.topRight,
+          [const Color(0xFFD9C08E), papel, papel, const Color(0xFFD9C08E)],
+          const [0, 0.12, 0.88, 1],
+        );
+      c.drawRect(hoja, _p);
+      _p.shader = null;
+      c.save();
+      c.clipRect(hoja);
+      var y = y0 + 34;
+      void linea(String text, TextStyle st, {double gap = 27}) {
+        _text(c, text, Offset(w / 2, y), st, maxWidth: ancho - 30);
+        y += gap;
+      }
+
+      linea(
+        tr('¡OÍD, VECINOS!', 'HEAR YE, NEIGHBOURS!'),
+        const TextStyle(
+          fontFamily: 'EBGaramond',
+          fontSize: 19,
+          letterSpacing: 2.4,
+          color: rojo,
+        ),
+        gap: 30,
+      );
+      final d = s.day;
+      linea(
+        tr(
+          'Que hoy, ${d.day} de ${_month(d.month)},',
+          'That today, ${_month(d.month)} ${d.day},',
+        ),
+        const TextStyle(
+          fontFamily: 'EBGaramond',
+          fontSize: 15.5,
+          fontStyle: FontStyle.italic,
+          color: tinta,
+        ),
+        gap: 32,
+      );
+      for (var k = 0; k < n; k++) {
+        final town = s.towns[k];
+        final aparece = _ease((t - 1.0 - 0.18 * k) / 0.4);
+        final tp = TextPainter(
+          text: TextSpan(
+            text: town.name,
+            style: TextStyle(
+              fontFamily: 'EBGaramond',
+              fontSize: 17,
+              color: tinta.withValues(alpha: aparece),
+            ),
+          ),
+          textDirection: TextDirection.ltr,
+        )..layout(maxWidth: ancho - 80);
+        final total = 22 + tp.width;
+        final xs = w / 2 - total / 2;
+        HabitSigils.draw(
+          c,
+          Rect.fromCenter(center: Offset(xs + 8, y), width: 15, height: 15),
+          town.symbol,
+          rojo.withValues(alpha: aparece),
+        );
+        tp.paint(c, Offset(xs + 22, y - tp.height / 2));
+        y += 26;
+      }
+      y += 6;
+      linea(
+        tr('todos los pueblos del valle', 'every town in the valley'),
+        const TextStyle(
+          fontFamily: 'EBGaramond',
+          fontSize: 15.5,
+          fontStyle: FontStyle.italic,
+          color: tinta,
+        ),
+        gap: 22,
+      );
+      linea(
+        tr('tienen su pieza.', 'has its piece.'),
+        const TextStyle(
+          fontFamily: 'EBGaramond',
+          fontSize: 15.5,
+          fontStyle: FontStyle.italic,
+          color: tinta,
+        ),
+      );
+      c.restore();
+    }
+    // Los dos rodillos: el de arriba fijo, el de abajo baja al desenrollar.
+    for (final yy in [y0, y0 + alto]) {
+      final rod = RRect.fromRectAndRadius(
+        Rect.fromCenter(
+          center: Offset(w / 2, yy),
+          width: ancho + 22,
+          height: 14,
+        ),
+        const Radius.circular(7),
+      );
+      _p
+        ..color = const Color(0xFFFFFFFF)
+        ..shader = ui.Gradient.linear(
+          rod.outerRect.topCenter,
+          rod.outerRect.bottomCenter,
+          [
+            const Color(0xFFE2C995),
+            const Color(0xFFB8955A),
+            const Color(0xFF7A5A2C),
+          ],
+          const [0, 0.5, 1],
+        );
+      c.drawRRect(rod, _p);
+      _p.shader = null;
+      for (final sx in [-1, 1]) {
+        _p.color = const Color(0xFF5A3A1A);
+        c.drawCircle(Offset(w / 2 + sx * (ancho / 2 + 13), yy), 5, _p);
+      }
+    }
+  }
+
+  // ------------------------------------------------------------------ crónica
+
+  void _cronica(Canvas c, Size size) {
+    final w = size.width, h = size.height;
+    final env = _window(t, 0, 0.6, s.length - 1.2, s.length);
+    if (env <= 0) return;
+    final cy = h * 0.36;
+    // Una franja de papel de lado a lado, que se funde arriba y abajo, para
+    // que la tinta se lea sobre cualquier pueblo.
+    final banda = Rect.fromLTRB(0, cy - 78, w, cy + 82);
+    _p
+      ..color = const Color(0xFFFFFFFF)
+      ..shader = ui.Gradient.linear(
+        banda.topCenter,
+        banda.bottomCenter,
+        [
+          const Color(0x00F6EEDC),
+          const Color(0xFFF6EEDC).withValues(alpha: 0.9 * env),
+          const Color(0xFFF6EEDC).withValues(alpha: 0.9 * env),
+          const Color(0x00F6EEDC),
+        ],
+        const [0, 0.28, 0.72, 1],
+      );
+    c.drawRect(banda, _p);
+    _p.shader = null;
+    const tinta = Color(0xFF2B1D12);
+    final d = s.day;
+    final lineas = [
+      (
+        tr('${d.day} de ${_month(d.month)}.', '${_month(d.month)} ${d.day}.'),
+        const TextStyle(
+          fontFamily: 'EBGaramond',
+          fontSize: 17,
+          fontStyle: FontStyle.italic,
+          color: tinta,
+        ),
+        0.45,
+      ),
+      (
+        tr('Hoy, todo el valle.', 'Today, the whole valley.'),
+        const TextStyle(
+          fontFamily: 'EBGaramond',
+          fontSize: 30,
+          fontStyle: FontStyle.italic,
+          color: tinta,
+        ),
+        1.15,
+      ),
+    ];
+    var y = cy - 40;
+    for (final (texto, estilo, desde) in lineas) {
+      final tp = TextPainter(
+        text: TextSpan(
+          text: texto,
+          style: estilo.copyWith(color: tinta.withValues(alpha: env)),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      final x = (w - tp.width) / 2;
+      // Se escribe de izquierda a derecha, al paso de una pluma.
+      final u = ((t - desde) / (0.08 * texto.length)).clamp(0.0, 1.0);
+      if (u > 0) {
+        c.save();
+        c.clipRect(
+          Rect.fromLTWH(x - 4, y - 4, (tp.width + 8) * u, tp.height + 8),
+        );
+        tp.paint(c, Offset(x, y));
+        c.restore();
+        if (u < 1) {
+          // La punta de la pluma, con su gota.
+          final punta = Offset(x + tp.width * u, y + tp.height * 0.72);
+          _p.color = tinta.withValues(alpha: 0.85 * env);
+          c.drawCircle(punta, 1.8, _p);
+        }
+      }
+      y += tp.height + 6;
+    }
+    // Y el rasgo de debajo, como quien firma.
+    final r = _easeOut((t - 2.9) / 0.7);
+    if (r > 0) {
+      final path = Path()..moveTo(w / 2 - 70, y + 8);
+      path.cubicTo(
+        w / 2 - 20,
+        y + 2,
+        w / 2 + 10,
+        y + 16,
+        w / 2 + 70 * (2 * r - 1),
+        y + 6 + 4 * r,
+      );
+      _p
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.4
+        ..strokeCap = StrokeCap.round
+        ..color = tinta.withValues(alpha: 0.75 * env);
+      final metric = path.computeMetrics().first;
+      c.drawPath(metric.extractPath(0, metric.length * r), _p);
+      _p.style = PaintingStyle.fill;
+    }
+  }
+
+  // --------------------------------------------------------------------- mapa
+
+  void _mapa(Canvas c, Size size) {
+    final w = size.width, h = size.height;
+    final env = _window(t, 0, 1.0, s.length - 1.3, s.length);
+    if (env <= 0) return;
+    const tinta = Color(0xFF3B2614);
+    // La cartela con el título, arriba.
+    final ca = _ease((t - 2.4) / 0.8) * env;
+    if (ca > 0) {
+      final cy = pad.top + 118;
+      final rect = Rect.fromCenter(
+        center: Offset(w / 2, cy),
+        width: math.min(w * 0.6, 260),
+        height: 54,
+      );
+      _p.color = const Color(0xFFF3E4BE).withValues(alpha: 0.92 * ca);
+      c.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(4)), _p);
+      _p
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.2
+        ..color = tinta.withValues(alpha: 0.8 * ca);
+      c.drawRRect(
+        RRect.fromRectAndRadius(rect.deflate(3), const Radius.circular(3)),
+        _p,
+      );
+      _p.style = PaintingStyle.fill;
+      for (final sx in [-1.0, 1.0]) {
+        final punta = Offset(w / 2 + sx * (rect.width / 2 + 10), cy);
+        final rombo = Path()
+          ..moveTo(punta.dx, punta.dy - 5)
+          ..lineTo(punta.dx + 5 * sx, punta.dy)
+          ..lineTo(punta.dx, punta.dy + 5)
+          ..lineTo(punta.dx - 5 * sx, punta.dy)
+          ..close();
+        _p.color = tinta.withValues(alpha: 0.8 * ca);
+        c.drawPath(rombo, _p);
+      }
+      final d = s.day;
+      _text(
+        c,
+        tr('El valle', 'The valley'),
+        Offset(w / 2, cy - 9),
+        TextStyle(
+          fontFamily: 'EBGaramond',
+          fontSize: 18,
+          letterSpacing: 3,
+          color: tinta.withValues(alpha: ca),
+        ),
+      );
+      _text(
+        c,
+        tr(
+          'a ${d.day} de ${_month(d.month)} de ${d.year}',
+          '${_month(d.month)} ${d.day}, ${d.year}',
+        ),
+        Offset(w / 2, cy + 12),
+        TextStyle(
+          fontFamily: 'EBGaramond',
+          fontSize: 12.5,
+          fontStyle: FontStyle.italic,
+          color: tinta.withValues(alpha: ca),
+        ),
+      );
+    }
+    // La rosa de los vientos, abajo a la izquierda.
+    final ra = _ease((t - 1.6) / 0.9) * env;
+    if (ra > 0) {
+      final o = Offset(w - 54, h - pad.bottom - 262);
+      final r = 26.0;
+      c.save();
+      c.translate(o.dx, o.dy);
+      c.rotate((1 - ra) * -0.6);
+      _p
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1
+        ..color = tinta.withValues(alpha: 0.75 * ra);
+      c.drawCircle(Offset.zero, r * 0.72, _p);
+      c.drawCircle(Offset.zero, r * 0.78, _p);
+      _p.style = PaintingStyle.fill;
+      for (var k = 0; k < 8; k++) {
+        final a = k * math.pi / 4 - math.pi / 2;
+        final largo = k.isEven ? r : r * 0.55;
+        final punta = Offset(math.cos(a), math.sin(a)) * largo;
+        final lado =
+            Offset(math.cos(a + math.pi / 2), math.sin(a + math.pi / 2)) *
+            (r * 0.13);
+        final mitad1 = Path()
+          ..moveTo(0, 0)
+          ..lineTo(punta.dx, punta.dy)
+          ..lineTo(lado.dx, lado.dy)
+          ..close();
+        final mitad2 = Path()
+          ..moveTo(0, 0)
+          ..lineTo(punta.dx, punta.dy)
+          ..lineTo(-lado.dx, -lado.dy)
+          ..close();
+        _p.color = tinta.withValues(alpha: 0.85 * ra);
+        c.drawPath(mitad1, _p);
+        _p.color = const Color(0xFFF3E4BE).withValues(alpha: 0.9 * ra);
+        c.drawPath(mitad2, _p);
+        _p
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.8
+          ..color = tinta.withValues(alpha: 0.85 * ra);
+        c.drawPath(mitad2, _p);
+        _p.style = PaintingStyle.fill;
+      }
+      c.restore();
+      _text(
+        c,
+        'N',
+        o.translate(0, -r - 10),
+        TextStyle(
+          fontFamily: 'EBGaramond',
+          fontSize: 13,
+          color: tinta.withValues(alpha: ra),
+        ),
+      );
+    }
+  }
+
+  // --------------------------------------------------------------------- foto
+
+  void _foto(Canvas c, Size size) {
+    final w = size.width, h = size.height;
+    final flash = Fiesta.fotoFlash;
+    // Antes del flash: el visor, cuatro esquinas.
+    if (t < flash + 0.1) {
+      final a = _ease(t / 0.3);
+      final m = Rect.fromLTWH(w * 0.08, h * 0.2, w * 0.84, h * 0.56);
+      _p
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..color = const Color(0xFFFFFFFF).withValues(alpha: 0.85 * a);
+      const l = 22.0;
+      for (final (p, dx, dy) in [
+        (m.topLeft, 1.0, 1.0),
+        (m.topRight, -1.0, 1.0),
+        (m.bottomLeft, 1.0, -1.0),
+        (m.bottomRight, -1.0, -1.0),
+      ]) {
+        c.drawLine(p, p.translate(l * dx, 0), _p);
+        c.drawLine(p, p.translate(0, l * dy), _p);
+      }
+      _p.style = PaintingStyle.fill;
+    }
+    // El flash.
+    final f = t - flash;
+    if (f >= 0 && f < 0.5) {
+      _p.color = const Color(0xFFFFFFFF).withValues(alpha: 1 - _ease(f / 0.5));
+      c.drawRect(Offset.zero & size, _p);
+    }
+    final img = photo;
+    if (img == null || f < 0.05) return;
+    // La foto: sale del tamaño de la pantalla y se queda en una copia con su
+    // borde, ladeada, con la fecha a mano.
+    final u = _easeOut((f - 0.05) / 0.8);
+    final se = _ease((t - (s.length - 1.2)) / 1.1);
+    final anchoFinal = w * 0.7;
+    final ancho = w + (anchoFinal - w) * u;
+    final borde = 10 * u, pie = 46 * u;
+    final altoImg = ancho * (img.height / img.width);
+    // Al achicarse se queda con la franja del medio, que es donde está el
+    // valle: arriba hay botones y abajo, la barra.
+    final altoVisto = altoImg * (1 - 0.38 * u);
+    final centro = Offset(w / 2, h / 2 + (h * 0.42 - h / 2) * u + se * h * 0.7);
+    c.save();
+    c.translate(centro.dx, centro.dy);
+    c.rotate(-0.06 * u + 0.25 * se);
+    final marco = Rect.fromCenter(
+      center: Offset(0, pie / 2 - borde / 2),
+      width: ancho + borde * 2,
+      height: altoVisto + borde + pie,
+    );
+    final alpha = 1 - se;
+    _p
+      ..color = const Color(0xFF000000).withValues(alpha: 0.35 * u * alpha)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
+    c.drawRect(marco.shift(const Offset(4, 8)), _p);
+    _p
+      ..maskFilter = null
+      ..color = const Color(0xFFFBF8F1).withValues(alpha: alpha);
+    c.drawRect(marco, _p);
+    final dst = Rect.fromLTWH(-ancho / 2, marco.top + borde, ancho, altoVisto);
+    final src = Rect.fromCenter(
+      center: Offset(img.width / 2, img.height * 0.46),
+      width: img.width.toDouble(),
+      height: img.height * (altoVisto / altoImg),
+    );
+    _p
+      ..color = const Color(0xFFFFFFFF).withValues(alpha: alpha)
+      ..filterQuality = FilterQuality.medium;
+    c.drawImageRect(img, src, dst, _p);
+    final d = s.day;
+    if (u > 0.6) {
+      _text(
+        c,
+        tr(
+          'Todo el valle · ${d.day} ${_month(d.month).substring(0, 3)} ${d.year}',
+          'The whole valley · ${_month(d.month).substring(0, 3)} ${d.day} ${d.year}',
+        ),
+        Offset(0, marco.bottom - pie / 2 + 2),
+        TextStyle(
+          fontFamily: 'ArchitectsDaughter',
+          fontSize: 15,
+          color: const Color(
+            0xFF2E3A66,
+          ).withValues(alpha: _ease((u - 0.6) / 0.4) * alpha),
+        ),
+      );
+    }
+    c.restore();
+  }
+
+  // ------------------------------------------------------------------- confeti
+
+  static const List<Color> _papeles = [
+    Color(0xFFE5484D),
+    Color(0xFFF2C14E),
+    Color(0xFF3D7CC9),
+    Color(0xFF4E9F6B),
+    Color(0xFFF4EFE6),
+    Color(0xFFE98A3A),
+    Color(0xFF8E5BB5),
+    Color(0xFFF59AB5),
+  ];
+
+  void _confeti(Canvas c, Size size) {
+    final w = size.width, h = size.height;
+    final out = 1 - _ease((t - (s.length - 1.2)) / 1.2);
+    final base = h - pad.bottom - 150;
+    for (var lado = 0; lado < 2; lado++) {
+      final x0 = lado == 0 ? 6.0 : w - 6;
+      final hacia = lado == 0 ? 1.0 : -1.0;
+      // El fogonazo del tiro.
+      final fl = math.exp(-t * 9);
+      _p.color = const Color(0xFFFFF2C4).withValues(alpha: 0.6 * fl);
+      c.drawCircle(Offset(x0, base), 30 * fl + 4, _p);
+      for (var j = 0; j < 95; j++) {
+        final a = t - hash01(lado, j, 1) * 0.12;
+        if (a < 0) continue;
+        // Sale disparado y frena en el aire; después cae despacio, girando.
+        final ang = math.pi * (0.30 + 0.22 * hash01(lado, j, 2));
+        final v = 900 + 650 * hash01(lado, j, 3);
+        const k = 3.4;
+        const caida = 85.0;
+        final e = (1 - math.exp(-k * a)) / k;
+        final x =
+            x0 +
+            hacia * math.cos(ang) * v * e +
+            math.sin(a * (2 + hash01(lado, j, 4) * 2) + j) *
+                14 *
+                math.min(1, a);
+        final y = base - math.sin(ang) * v * e + caida * a + 0.0;
+        if (y > h + 20) continue;
+        final flip = math.cos(a * (5 + 5 * hash01(lado, j, 5)) + j);
+        final rot = a * (3 + 4 * hash01(lado, j, 6)) * (j.isEven ? 1 : -1);
+        final col = _papeles[(j + lado * 3) % _papeles.length];
+        c.save();
+        c.translate(x, y);
+        c.rotate(rot);
+        c.scale(1, 0.15 + 0.85 * flip.abs());
+        _p.color = Color.lerp(
+          col,
+          const Color(0xFF000000),
+          flip < 0 ? 0.2 : 0,
+        )!.withValues(alpha: out);
+        if (j % 7 == 0) {
+          // Unas cuantas serpentinas: una tira rizada.
+          final tira = Path()..moveTo(0, 0);
+          for (var q = 1; q <= 6; q++) {
+            tira.lineTo(math.sin(q * 1.4 + a * 4) * 4, q * 4.0);
+          }
+          _p
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2.2;
+          c.drawPath(tira, _p);
+          _p.style = PaintingStyle.fill;
+        } else {
+          c.drawRect(const Rect.fromLTWH(-3, -4.5, 6, 9), _p);
+        }
+        c.restore();
+      }
+    }
+  }
+
+  // --------------------------------------------------------------------- ronda
+
+  void _ronda(Canvas c, Size size) {
+    final w = size.width;
+    final n = s.towns.length;
+    // El cartel del pueblo en el que se está, debajo de la barra de arriba.
+    String? nombre;
+    String? simbolo;
+    var a = 0.0;
+    for (var k = 0; k < n; k++) {
+      final llega = Fiesta.rondaArrive(k);
+      final va = _window(t, llega, llega + 0.35, llega + 1.25, llega + 1.6);
+      if (va > a) {
+        a = va;
+        nombre = s.towns[s.path[k]].name;
+        simbolo = s.towns[s.path[k]].symbol;
+      }
+    }
+    final fin = Fiesta.rondaStep * n + 0.6;
+    final todos = _window(t, fin, fin + 0.5, s.length - 1.0, s.length - 0.3);
+    if (todos > a) {
+      a = todos;
+      nombre = tr('Todo el valle', 'The whole valley');
+      simbolo = null;
+    }
+    if (nombre == null || a <= 0.01) return;
+    final cy = pad.top + 128 - 8 * (1 - a);
+    const crema = Color(0xFFF7F1E3);
+    final tp = TextPainter(
+      text: TextSpan(
+        text: nombre,
+        style: TextStyle(
+          fontFamily: 'EBGaramond',
+          fontSize: 28,
+          color: crema.withValues(alpha: a),
+          shadows: const [Shadow(color: Color(0xAA000000), blurRadius: 10)],
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: w - 60);
+    final conMarca = simbolo != null;
+    final total = tp.width + (conMarca ? 30 : 0);
+    final x = (w - total) / 2;
+    if (conMarca) {
+      HabitSigils.draw(
+        c,
+        Rect.fromCenter(center: Offset(x + 10, cy), width: 20, height: 20),
+        simbolo,
+        crema.withValues(alpha: a),
+      );
+    }
+    tp.paint(c, Offset(x + (conMarca ? 30 : 0), cy - tp.height / 2));
+    final raya = 40 * a;
+    _p
+      ..color = const Color(0xFFE9C46A).withValues(alpha: 0.9 * a)
+      ..strokeWidth = 1;
+    c.drawLine(
+      Offset(w / 2 - raya, cy + 22),
+      Offset(w / 2 + raya, cy + 22),
+      _p,
     );
   }
 

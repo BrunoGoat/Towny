@@ -523,11 +523,12 @@ Por ahora entran todos, para probarlos; se van sacando los que no.
   Desarrollo?
 - [ ] **La fiesta del valle completo** *(nueva)*: el día que todos los
   pueblos despiertos tienen a la vez su pieza (cuentan todos, sean de todos
-  los días o no; los dormidos no; con un solo pueblo no pasa). Hay **quince
+  los días o no; los dormidos no; con un solo pueblo no pasa). Hay **treinta
   maneras** de celebrarlo, en `lib/fx/fiesta.dart`, y se miran en Ajustes →
   Desarrollo → *La fiesta del valle*: la última que se mira queda elegida.
-  Falta elegir una y **borrar las otras catorce**, con sus sonidos
+  Falta elegir una y **borrar las otras veintinueve**, con sus sonidos
   (`assets/sfx/fiesta_*.wav`, que salen de `tool/make_fiesta_sfx.py`).
+  Los sonidos están hechos por síntesis y nadie los escuchó todavía.
 - **El aviso a la hora del plan** (`Habit.vowHour`): hay que decidir qué pasa
   con quien no escribió hora, y con el hábito que se hace a otra hora que la
   prometida.

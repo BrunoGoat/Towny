@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show RenderRepaintBoundary;
 
 import '../data/landmarks.dart';
 import '../engine/palette.dart';
+import '../fx/fiesta.dart';
 import '../fx/sensory.dart';
 import '../l10n/lang.dart';
 import '../model/advice_book.dart';
@@ -128,6 +130,7 @@ class _HomeScreenState extends State<HomeScreen>
     _flight = AnimationController(vsync: this, duration: CloudFlight.span);
     widget.store.addListener(_onStore);
     Appearance.instance.addListener(_onStore);
+    Fiesta.instance.addListener(_fotoDelValle);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _greet();
       _lookForNews();
@@ -153,12 +156,46 @@ class _HomeScreenState extends State<HomeScreen>
   void dispose() {
     widget.store.removeListener(_onStore);
     Appearance.instance.removeListener(_onStore);
+    Fiesta.instance.removeListener(_fotoDelValle);
     _whisperTimer?.cancel();
     _abierta.dispose();
     _signTimer?.cancel();
     _tryNoteGone?.cancel();
     _flight.dispose();
     super.dispose();
+  }
+
+  /// El pueblo tal como se pinta, para poder sacarle una foto.
+  final GlobalKey _townShot = GlobalKey();
+
+  /// La fiesta a la que ya se le sacó la foto, para no sacarle dos.
+  FiestaShow? _fotografiada;
+
+  /// La fiesta de la foto: en el momento del flash, una foto del valle tal
+  /// como se ve —sin los botones, que no son del valle—, que la fiesta
+  /// después enseña como una copia en papel.
+  void _fotoDelValle() {
+    final show = Fiesta.instance.show;
+    if (show == null || show.kind != FiestaKind.foto) return;
+    if (identical(show, _fotografiada)) return;
+    _fotografiada = show;
+    Future.delayed(
+      Duration(milliseconds: (Fiesta.fotoFlash * 1000).round()),
+      () async {
+        final b = _townShot.currentContext?.findRenderObject();
+        if (b is! RenderRepaintBoundary || !mounted) return;
+        try {
+          final img = await b.toImage(pixelRatio: 1.0);
+          if (identical(Fiesta.instance.show, show)) {
+            Fiesta.instance.keepPhoto(img);
+          } else {
+            img.dispose();
+          }
+        } catch (_) {
+          // Sin foto, la fiesta se queda en el flash. No es para tanto.
+        }
+      },
+    );
   }
 
   /// Los ensayos de la llegada del maestro ya hechos. Ver
@@ -417,61 +454,64 @@ class _HomeScreenState extends State<HomeScreen>
       body: Stack(
         children: [
           Positioned.fill(
-            child: TownView(
-              store: store,
-              controller: _wall,
-              onTownLandmark: (mark, ordinal) {
-                if (Appearance.instance.rapid) return;
-                setState(() => _revealTown = (mark, ordinal));
-              },
-              onPlaced: (piece) {
-                // In the testing mode the pieces come far too fast for a card
-                // to be anything but in the way.
-                if (Appearance.instance.rapid) return;
-                setState(() {});
-                _askWhatToBuild();
-              },
-              onFolkTapped: (card) => setState(() {
-                _folk = card;
-                _selected = null;
-              }),
-              onFolkLost: () {
-                if (_folk != null) {
-                  setState(() {
-                    _folk = null;
-                    _tryNote = null;
-                  });
-                }
-              },
-              onStoneTapped: (brick) => setState(() {
-                _selected = brick;
-                _selectedTown = widget.store.habit.id;
-              }),
-              onCameraMoved: _dismissSign,
-              onFlewOut: _flyToValley,
-              onNothingTapped: () {
-                if (_selected != null) setState(() => _selected = null);
-              },
-              onSkyTapped: _wishOn,
-              onTownTapped: (i) {
-                store.select(i);
-                _announceTown();
-              },
-              onBoardTapped: _readBoard,
-              onSageTapped: _openSage,
-              // El del pueblo que se mira: el de otro pueblo, lejos, no.
-              onWorkshopTapped: (town) {
-                if (town == widget.store.active) _openBuilder();
-              },
-              onWhisper: _showWhisper,
-              onPaletteChanged: (p) {
-                final next = UiTheme(p);
-                if (next.dark != _theme.dark ||
-                    next.accent != _theme.accent ||
-                    next.palette.skyTop != _theme.palette.skyTop) {
-                  setState(() => _theme = next);
-                }
-              },
+            child: RepaintBoundary(
+              key: _townShot,
+              child: TownView(
+                store: store,
+                controller: _wall,
+                onTownLandmark: (mark, ordinal) {
+                  if (Appearance.instance.rapid) return;
+                  setState(() => _revealTown = (mark, ordinal));
+                },
+                onPlaced: (piece) {
+                  // In the testing mode the pieces come far too fast for a card
+                  // to be anything but in the way.
+                  if (Appearance.instance.rapid) return;
+                  setState(() {});
+                  _askWhatToBuild();
+                },
+                onFolkTapped: (card) => setState(() {
+                  _folk = card;
+                  _selected = null;
+                }),
+                onFolkLost: () {
+                  if (_folk != null) {
+                    setState(() {
+                      _folk = null;
+                      _tryNote = null;
+                    });
+                  }
+                },
+                onStoneTapped: (brick) => setState(() {
+                  _selected = brick;
+                  _selectedTown = widget.store.habit.id;
+                }),
+                onCameraMoved: _dismissSign,
+                onFlewOut: _flyToValley,
+                onNothingTapped: () {
+                  if (_selected != null) setState(() => _selected = null);
+                },
+                onSkyTapped: _wishOn,
+                onTownTapped: (i) {
+                  store.select(i);
+                  _announceTown();
+                },
+                onBoardTapped: _readBoard,
+                onSageTapped: _openSage,
+                // El del pueblo que se mira: el de otro pueblo, lejos, no.
+                onWorkshopTapped: (town) {
+                  if (town == widget.store.active) _openBuilder();
+                },
+                onWhisper: _showWhisper,
+                onPaletteChanged: (p) {
+                  final next = UiTheme(p);
+                  if (next.dark != _theme.dark ||
+                      next.accent != _theme.accent ||
+                      next.palette.skyTop != _theme.palette.skyTop) {
+                    setState(() => _theme = next);
+                  }
+                },
+              ),
             ),
           ),
 
