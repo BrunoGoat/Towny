@@ -521,6 +521,13 @@ Por ahora entran todos, para probarlos; se van sacando los que no.
 - **El botón «Probar una actividad»**: hoy sale siempre al seguir a alguien.
   Una vez revisadas las actividades, ¿se queda, o pasa a Ajustes →
   Desarrollo?
+- [ ] **La fiesta del valle completo** *(nueva)*: el día que todos los
+  pueblos despiertos tienen a la vez su pieza, con la que faltaba la cámara
+  sube al valle, salen chispas de cada plaza, suena el hito y dice «Hoy cayó
+  una pieza en todos los pueblos». Cuentan todos, sean de todos los días o no;
+  los dormidos no; con un solo pueblo no pasa. Se ensaya en Ajustes →
+  Desarrollo → *Fiesta del valle completo*. Falta mirarla y decidir si se
+  queda así.
 - **El aviso a la hora del plan** (`Habit.vowHour`): hay que decidir qué pasa
   con quien no escribió hora, y con el hábito que se hace a otra hora que la
   prometida.

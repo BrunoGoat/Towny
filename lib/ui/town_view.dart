@@ -193,6 +193,11 @@ TownOrder townOrder(Habit h, {required List<Habit> valley, int? placed}) {
 }
 
 class TownView extends StatefulWidget {
+  /// Para la hoja de desarrollo: cada vez que sube, el pueblo que se está
+  /// mirando ensaya la fiesta de «hoy cayó una pieza en todos los pueblos»,
+  /// sin poner ninguna pieza ni apuntar nada.
+  static final ValueNotifier<int> rehearseAllToday = ValueNotifier(0);
+
   const TownView({
     super.key,
     required this.store,
@@ -362,6 +367,7 @@ class _TownViewState extends State<TownView>
   void initState() {
     super.initState();
     widget.controller._state = this;
+    TownView.rehearseAllToday.addListener(_rehearseAllToday);
     _palette = _buildPalette();
     _rebuildLayout();
     _frameTown();
@@ -574,6 +580,7 @@ class _TownViewState extends State<TownView>
   @override
   void dispose() {
     widget.store.removeListener(_onStoreChanged);
+    TownView.rehearseAllToday.removeListener(_rehearseAllToday);
     BoardSlots.instance.removeListener(_renotice);
     widget.controller._state = null;
     _ticker.dispose();
@@ -1097,6 +1104,52 @@ class _TownViewState extends State<TownView>
       });
       widget.onWhisper(titulo, duration: const Duration(seconds: 7));
     }
+    if (result != null && result.allToday) {
+      final otro = done || result.returned || result.unlocked || titulo != null;
+      _allTownsToday(otro);
+    }
+  }
+
+  /// El ensayo de la hoja de desarrollo: la fiesta entera, ya mismo.
+  void _rehearseAllToday() {
+    _touched();
+    _allTownsToday(false, espera: const Duration(milliseconds: 400));
+  }
+
+  /// Hoy cayó una pieza en todos los pueblos.
+  ///
+  /// No es una racha ni cuenta nada hacia atrás: mañana no se debe nada, y
+  /// el día que no pase no se dice. Es sólo que hoy el valle entero recibió
+  /// lo suyo a la vez, y eso se ve desde arriba: la cámara sube a mirar el
+  /// valle y salen chispas de cada plaza, una detrás de otra, como fuegos que
+  /// se van encendiendo.
+  ///
+  /// Si esta misma pieza ya trajo otra cosa —un edificio en pie, una vuelta,
+  /// un solar, un título— eso va primero y es suyo: el valle espera a que se
+  /// lea, y no le pisa ni el encuadre ni el susurro. Si no, espera nada más a
+  /// que la pieza termine de posarse, que su momento no se toca.
+  void _allTownsToday(bool otro, {Duration? espera}) {
+    Future.delayed(espera ?? Duration(milliseconds: otro ? 4200 : 1300), () {
+      if (!mounted || _entries.isEmpty) return;
+      // Con un solo pueblo —sólo pasa ensayando— no hay valle que mirar.
+      if (_entries.length > 1) frameValley();
+      for (var i = 0; i < _entries.length; i++) {
+        final l = _entries[i].layout;
+        Future.delayed(Duration(milliseconds: 500 + 240 * i), () {
+          if (mounted) _fx.celebrate(V3(l.cx, 0, l.cz), 2.2, count: 40);
+        });
+      }
+      Future.delayed(const Duration(milliseconds: 600), () {
+        if (mounted) Sensory.instance.milestone();
+      });
+      widget.onWhisper(
+        tr(
+          'Hoy cayó una pieza en todos los pueblos.',
+          'Every town got its piece today.',
+        ),
+        duration: const Duration(seconds: 5),
+      );
+    });
   }
 
   /// El regreso, que es el momento más importante que tiene esta app.

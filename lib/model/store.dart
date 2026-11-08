@@ -33,6 +33,7 @@ class PlaceResult {
     this.woke = false,
     this.unlocked = false,
     this.identityWon,
+    this.allToday = false,
   });
 
   final Piece piece;
@@ -63,6 +64,17 @@ class PlaceResult {
   /// Pasa una sola vez por pueblo y no se ve venir: no hay cuenta atrás en
   /// ninguna pantalla, así que lo único que hay es el día en que aparece.
   final String? identityWon;
+
+  /// True cuando **esta** pieza fue la que completó el día: con ella, todos
+  /// los pueblos despiertos del valle tienen a la vez su pieza de hoy.
+  ///
+  /// Cuentan todos, sean de todos los días o no: lo que se celebra es que el
+  /// valle entero tenga lo suyo al mismo tiempo. Pasa como mucho una vez por
+  /// día, y sólo con dos pueblos o más: con uno solo sería lo mismo que la
+  /// primera pieza del día, que no es noticia. Los dormidos no cuentan —una
+  /// pausa no se le debe a nadie—, y el día que no se completa no se dice
+  /// nada: lo que no pasa no se nombra.
+  final bool allToday;
 }
 
 /// Everything the app remembers: the habits, and the towns they have built.
@@ -1088,6 +1100,9 @@ class Store extends ChangeNotifier {
     _writeUpWorks(h);
     final abrio = _checkUnlock();
     final titulo = _winIdentity(h, when);
+    // Si ésta era la que faltaba, es la primera de hoy en su pueblo: antes
+    // de ella no estaban todos, así que el día se completa una sola vez.
+    final completo = !hadToday && _allHaveToday(when);
 
     _save();
     notifyListeners();
@@ -1099,7 +1114,20 @@ class Store extends ChangeNotifier {
       woke: wasResting,
       unlocked: abrio,
       identityWon: titulo,
+      allToday: completo,
     );
+  }
+
+  /// Si todos los pueblos despiertos tienen alguna pieza ese día. Hacen falta
+  /// dos despiertos por lo menos: ver [PlaceResult.allToday].
+  bool _allHaveToday(DateTime when) {
+    var despiertos = 0;
+    for (final h in habits) {
+      if (h.restAt(when) != null) continue;
+      despiertos++;
+      if (_countOnFor(h, when) == 0) return false;
+    }
+    return despiertos >= 2;
   }
 
   /// Si con esta pieza el pueblo ya puede llamarte lo que escribiste, se apunta

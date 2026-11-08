@@ -30,6 +30,7 @@ import 'overlays.dart';
 import 'reel_screen.dart';
 import 'sage_screen.dart';
 import 'style.dart';
+import 'town_view.dart' show TownView;
 
 /// Qué pueblos tienen historia bastante como para mirarla crecer.
 List<int> _conCronica(Store store) => [
@@ -291,6 +292,31 @@ class _SettingsSheetState extends State<SettingsSheet> {
                     Future<void>.delayed(
                       const Duration(milliseconds: 260),
                       ShootingStar.force,
+                    );
+                  },
+                ),
+                _Row(
+                  theme: t,
+                  icon: Icons.celebration_outlined,
+                  title: tr(
+                    'Fiesta del valle completo',
+                    'Full valley celebration',
+                  ),
+                  subtitle: tr(
+                    'Lo que pasa el día que todos los pueblos tienen su pieza a '
+                        'la vez: la cámara sube al valle, chispas en cada plaza, '
+                        'el sonido de los hitos y la frase. No pone ninguna pieza.',
+                    'What happens the day every town has its piece at once: the '
+                        'camera rises to the valley, sparks in every plaza, the '
+                        "milestone sound and the line. It doesn't place a piece.",
+                  ),
+                  // Cierra los ajustes primero, como la fugaz: la fiesta es en
+                  // el valle, no detrás de esta hoja.
+                  act: (nav) {
+                    nav.pop();
+                    Future<void>.delayed(
+                      const Duration(milliseconds: 260),
+                      () => TownView.rehearseAllToday.value++,
                     );
                   },
                 ),

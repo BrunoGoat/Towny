@@ -805,4 +805,34 @@ void main() {
       expect(s.adrift, isNull);
     });
   });
+
+  group('el valle completo', () {
+    test('se celebra con la pieza que faltaba, y una sola vez', () async {
+      final s = await freshStore();
+      s.addHabit('Correr', 'run');
+      s.addHabit('Nadar', 'wave');
+      final hoy = DateTime.now();
+      expect(s.lay(s.habits[0], hoy).allToday, isFalse);
+      expect(s.lay(s.habits[1], hoy).allToday, isFalse);
+      expect(s.lay(s.habits[2], hoy).allToday, isTrue);
+      // Otra más el mismo día ya no completa nada.
+      expect(s.lay(s.habits[0], hoy).allToday, isFalse);
+    });
+
+    test('los dormidos no cuentan', () async {
+      final s = await freshStore();
+      s.addHabit('Correr', 'run');
+      s.addHabit('Nadar', 'wave');
+      s.rest(s.habits[2], DateTime.now().add(const Duration(days: 10)));
+      // Después de dormirlo: la pausa empieza en ese instante.
+      final hoy = DateTime.now();
+      s.lay(s.habits[0], hoy);
+      expect(s.lay(s.habits[1], hoy).allToday, isTrue);
+    });
+
+    test('con un solo pueblo no hay fiesta', () async {
+      final s = await freshStore();
+      expect(s.lay(s.habits[0], DateTime.now()).allToday, isFalse);
+    });
+  });
 }
