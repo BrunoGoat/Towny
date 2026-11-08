@@ -22,6 +22,7 @@ import '../engine/solids.dart';
 import '../engine/town.dart';
 import '../engine/world.dart';
 import '../fx/effects.dart';
+import '../fx/fiesta.dart';
 import '../fx/sensory.dart';
 import '../l10n/lang.dart';
 import '../model/appearance.dart';
@@ -193,11 +194,6 @@ TownOrder townOrder(Habit h, {required List<Habit> valley, int? placed}) {
 }
 
 class TownView extends StatefulWidget {
-  /// Para la hoja de desarrollo: cada vez que sube, el pueblo que se está
-  /// mirando ensaya la fiesta de «hoy cayó una pieza en todos los pueblos»,
-  /// sin poner ninguna pieza ni apuntar nada.
-  static final ValueNotifier<int> rehearseAllToday = ValueNotifier(0);
-
   const TownView({
     super.key,
     required this.store,
@@ -367,7 +363,21 @@ class _TownViewState extends State<TownView>
   void initState() {
     super.initState();
     widget.controller._state = this;
-    TownView.rehearseAllToday.addListener(_rehearseAllToday);
+    Fiesta.instance.rehearsal.addListener(_rehearseFiesta);
+    Fiesta.instance.addListener(_fiestaChanged);
+    // Para mirar las fiestas desde el navegador sin tocar nada: sólo en un
+    // build hecho para eso (FIESTA_URL), nunca en el de verdad.
+    if (const bool.fromEnvironment('FIESTA_URL')) {
+      final q = Uri.base.queryParameters['fiesta'];
+      final k = FiestaKind.values.where((v) => v.name == q).firstOrNull;
+      if (k != null) {
+        final espera =
+            int.tryParse(Uri.base.queryParameters['tras'] ?? '') ?? 6000;
+        Future.delayed(Duration(milliseconds: espera), () {
+          if (mounted) _allTownsToday(false, kind: k, espera: Duration.zero);
+        });
+      }
+    }
     _palette = _buildPalette();
     _rebuildLayout();
     _frameTown();
@@ -580,11 +590,16 @@ class _TownViewState extends State<TownView>
   @override
   void dispose() {
     widget.store.removeListener(_onStoreChanged);
-    TownView.rehearseAllToday.removeListener(_rehearseAllToday);
+    Fiesta.instance.rehearsal.removeListener(_rehearseFiesta);
+    Fiesta.instance.removeListener(_fiestaChanged);
     BoardSlots.instance.removeListener(_renotice);
     widget.controller._state = null;
     _ticker.dispose();
     super.dispose();
+  }
+
+  void _fiestaChanged() {
+    if (mounted) setState(() {});
   }
 
   void _onStoreChanged() {
@@ -685,6 +700,11 @@ class _TownViewState extends State<TownView>
     _last = elapsed;
     final dt = dtRaw.clamp(0.0005, 0.05);
     _time += dt;
+    // La fiesta mayor le da una vuelta lenta al valle mientras dura.
+    final fiesta = Fiesta.instance.show;
+    if (fiesta != null && fiesta.info.camera == FiestaCamera.orbit) {
+      _cam.yawTarget += dt * 0.16;
+    }
     if (widget.store.justFounded && _founding >= 1.0) {
       widget.store.justFounded = false;
       // La cámara mira el claro desde cerca: lo que va a pasar pasa ahí, y de
@@ -1110,46 +1130,171 @@ class _TownViewState extends State<TownView>
     }
   }
 
-  /// El ensayo de la hoja de desarrollo: la fiesta entera, ya mismo.
-  void _rehearseAllToday() {
+  /// Un ensayo pedido desde la hoja de desarrollo: esa fiesta, ya mismo.
+  void _rehearseFiesta() {
+    final pedido = Fiesta.instance.rehearsal.value;
+    if (pedido == null) return;
     _touched();
-    _allTownsToday(false, espera: const Duration(milliseconds: 400));
+    _allTownsToday(
+      false,
+      kind: pedido.$1,
+      espera: const Duration(milliseconds: 350),
+    );
   }
 
   /// Hoy cayó una pieza en todos los pueblos.
   ///
   /// No es una racha ni cuenta nada hacia atrás: mañana no se debe nada, y
   /// el día que no pase no se dice. Es sólo que hoy el valle entero recibió
-  /// lo suyo a la vez, y eso se ve desde arriba: la cámara sube a mirar el
-  /// valle y salen chispas de cada plaza, una detrás de otra, como fuegos que
-  /// se van encendiendo.
+  /// lo suyo a la vez. Cómo se celebra lo dice [Fiesta.chosen]: hay quince
+  /// maneras, de una fila de cuentas a la fiesta mayor, y ésta es la parte
+  /// que sabe dónde está cada pueblo y mueve la cámara.
   ///
   /// Si esta misma pieza ya trajo otra cosa —un edificio en pie, una vuelta,
   /// un solar, un título— eso va primero y es suyo: el valle espera a que se
   /// lea, y no le pisa ni el encuadre ni el susurro. Si no, espera nada más a
   /// que la pieza termine de posarse, que su momento no se toca.
-  void _allTownsToday(bool otro, {Duration? espera}) {
+  void _allTownsToday(bool otro, {FiestaKind? kind, Duration? espera}) {
     Future.delayed(espera ?? Duration(milliseconds: otro ? 4200 : 1300), () {
       if (!mounted || _entries.isEmpty) return;
-      // Con un solo pueblo —sólo pasa ensayando— no hay valle que mirar.
-      if (_entries.length > 1) frameValley();
-      for (var i = 0; i < _entries.length; i++) {
-        final l = _entries[i].layout;
-        Future.delayed(Duration(milliseconds: 500 + 240 * i), () {
-          if (mounted) _fx.celebrate(V3(l.cx, 0, l.cz), 2.2, count: 40);
-        });
-      }
-      Future.delayed(const Duration(milliseconds: 600), () {
-        if (mounted) Sensory.instance.milestone();
+      final k = kind ?? Fiesta.instance.chosen;
+      final info = fiestaInfo[k]!;
+      // La cámara, según la fiesta. Con un solo pueblo —sólo pasa ensayando—
+      // no hay valle que mirar y se queda donde está.
+      final vuela = _entries.length > 1 && info.camera != FiestaCamera.stay;
+      if (vuela) _frameFiesta(info.camera);
+      // Si la cámara se mueve, la fiesta empieza cuando llega: lo que pase
+      // durante el vuelo no lo ve nadie.
+      Future.delayed(Duration(milliseconds: vuela ? 1100 : 0), () {
+        if (mounted) _startFiesta(k, info);
       });
-      widget.onWhisper(
-        tr(
-          'Hoy cayó una pieza en todos los pueblos.',
-          'Every town got its piece today.',
-        ),
-        duration: const Duration(seconds: 5),
-      );
     });
+  }
+
+  void _startFiesta(FiestaKind k, FiestaInfo info) {
+    if (const bool.fromEnvironment('FIESTA_URL')) {
+      // ignore: avoid_print
+      print('FIESTA start ${k.name}');
+    }
+    Fiesta.instance.start(k, [
+      for (final e in _entries)
+        FiestaTown(
+          x: e.layout.cx,
+          z: e.layout.cz,
+          radius: math.max(e.layout.radius, 3.0),
+          symbol: e.symbol,
+          name: e.name,
+        ),
+    ], widget.store.active.clamp(0, _entries.length - 1));
+    final line = info.line;
+    if (line != null) {
+      Future.delayed(Duration(milliseconds: (info.lineAt * 1000).round()), () {
+        if (mounted) {
+          widget.onWhisper(line, duration: const Duration(seconds: 5));
+        }
+      });
+    }
+  }
+
+  /// El encuadre de la fiesta: el valle entero, desde el medio y no desde tu
+  /// pueblo, y más bajo que el valle de siempre —que es casi un mapa— para
+  /// que los pueblos queden en una franja y arriba haya cielo, que es donde
+  /// pasa casi todo.
+  void _frameFiesta(FiestaCamera how) {
+    frameValley();
+    final size = context.size;
+    if (size == null || size.isEmpty) return;
+    var cx = 0.0, cz = 0.0;
+    for (final e in _entries) {
+      cx += e.layout.cx;
+      cz += e.layout.cz;
+    }
+    cx /= _entries.length;
+    cz /= _entries.length;
+    final puntos = <V3>[];
+    for (final e in _entries) {
+      final r = e.layout.radius;
+      for (final (dx, dz) in [
+        (0.0, 0.0),
+        (-r, 0.0),
+        (r, 0.0),
+        (0.0, -r),
+        (0.0, r),
+      ]) {
+        puntos.add(V3(e.layout.cx + dx, 0, e.layout.cz + dz));
+      }
+    }
+    final cielo = how != FiestaCamera.valley;
+    final pitch = cielo ? 0.13 : 0.24;
+    // Hasta dónde puede quedar cada pueblo en la pantalla: de canto a canto
+    // con un margen, y de alto en la franja de abajo —arriba va el cielo, y
+    // debajo de todo, los botones—.
+    final arriba = size.height * (cielo ? 0.47 : 0.36);
+    final abajo = size.height * 0.76;
+    final margen = size.width * (how == FiestaCamera.orbit ? 0.12 : 0.06);
+    double alto(double d) => 2.0 + d * (cielo ? 0.035 : 0.015);
+    bool cabe(double d, double yaw) {
+      final c = OrbitCamera()
+        ..travel = cx
+        ..focusZ = cz
+        ..focusY = alto(d)
+        ..yaw = yaw
+        ..pitch = pitch
+        ..distance = d;
+      final p = c.projector(size.width, size.height, 0);
+      for (final v in puntos) {
+        final q = p.project(v);
+        if (q == null) return false;
+        if (q.x < margen || q.x > size.width - margen) return false;
+        if (q.y < arriba || q.y > abajo) return false;
+      }
+      return true;
+    }
+
+    double lejos(double yaw) {
+      var lo = 10.0, hi = OrbitCamera.maxDistance;
+      for (var i = 0; i < 26; i++) {
+        final mid = (lo + hi) / 2;
+        if (cabe(mid, yaw)) {
+          hi = mid;
+        } else {
+          lo = mid;
+        }
+      }
+      return hi;
+    }
+
+    // Desde dónde: el lado desde el que el valle queda más de canto —los
+    // pueblos en fila y no uno detrás de otro—, que es el que deja acercarse
+    // más. A igualdad, el que menos gira desde donde se estaba mirando.
+    var yaw = _cam.yawTarget, d = double.infinity;
+    for (var k = 0; k < 24; k++) {
+      final y = _cam.yawTarget + k * math.pi / 12;
+      final dd = lejos(y) * (1 + 0.02 * angleDelta(_cam.yawTarget, y).abs());
+      if (dd < d) {
+        d = dd;
+        yaw = y;
+      }
+    }
+    d = lejos(yaw);
+    // La de la vuelta tiene que caber durante toda la vuelta, no sólo al
+    // empezar: lo que gira en diez segundos, a la distancia del peor lado.
+    if (how == FiestaCamera.orbit) {
+      for (var j = 1; j <= 8; j++) {
+        d = math.max(d, lejos(yaw + j * 0.22));
+      }
+    }
+    if (const bool.fromEnvironment('FIESTA_URL')) {
+      // ignore: avoid_print
+      print('FIESTA cam d=$d yaw=$yaw');
+    }
+    _cam.travelTarget = cx;
+    _cam.focusZTarget = cz;
+    _cam.pitchTarget = pitch;
+    _cam.yawTarget += angleDelta(_cam.yawTarget, yaw);
+    _cam.distanceTarget = d;
+    _cam.focusYTarget = alto(d);
+    _cam.wallLength = math.max(_cam.wallLength, d * 2);
   }
 
   /// El regreso, que es el momento más importante que tiene esta app.
@@ -2017,6 +2162,7 @@ class _TownViewState extends State<TownView>
       day: dayKey(DateTime.now()),
       cinematic:
           Appearance.instance.cinematic && !PerfGuard.instance.off('calidad'),
+      fiesta: Fiesta.instance.show,
     );
 
     return Listener(

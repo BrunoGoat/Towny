@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import '../data/constellations.dart';
 import '../fx/effects.dart';
+import '../fx/fiesta.dart';
 import 'camera.dart';
 import 'folk.dart';
 import 'palette.dart';
@@ -96,11 +97,15 @@ class TownScene {
     this.soloFolk,
     this.ghost = true,
     this.cinematic = false,
+    this.fiesta,
   });
 
   /// La calidad máxima: sombras de verdad, resplandor, rayos de sol y color
   /// de cine. Ver [Cinema].
   final bool cinematic;
+
+  /// La fiesta del valle completo, si hay una en marcha. Ver [Fiesta].
+  final FiestaShow? fiesta;
 
   /// Si se dibuja el contorno de la pieza que viene. No en el valle de la
   /// primera vez: ahí todavía no hay pueblo, y un rectángulo de alambre en el

@@ -52,7 +52,10 @@ void main() {
       final listed = {for (final b in Sensory.catalogue) b.file};
       final onDisk = await _wavsInAssets();
       final missing = onDisk.difference(listed)
-        ..removeWhere((f) => f.startsWith('mus_'));
+        // La música va por su lado, y los de la fiesta del valle completo
+        // también mientras se elige cuál queda (ver `lib/fx/fiesta.dart`):
+        // suenan con `Sensory.fiesta`, que obedece al interruptor de efectos.
+        ..removeWhere((f) => f.startsWith('mus_') || f.startsWith('fiesta_'));
       expect(
         missing,
         isEmpty,

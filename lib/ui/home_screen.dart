@@ -23,6 +23,7 @@ import 'board_glyph.dart';
 import 'cadence_sheet.dart';
 import 'cloud_flight.dart';
 import 'cost_change_notice.dart';
+import 'fiesta_overlay.dart';
 import 'first_run.dart';
 import 'folk_gallery_screen.dart';
 import 'habits_sheet.dart';
@@ -474,6 +475,10 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
 
+          // La fiesta del valle completo: lo que va sobre el pueblo y debajo
+          // de los botones (la luz, los pétalos).
+          const Positioned.fill(child: FiestaOverlay(back: true)),
+
           // --- top: the numbers, set straight on the scene
           Positioned(
             top: 0,
@@ -748,6 +753,10 @@ class _HomeScreenState extends State<HomeScreen>
                     CloudFlight(t: _flight.value, palette: t.palette),
               ),
             ),
+
+          // Y lo que va encima de todo: las cuentas, el sello, los banderines,
+          // las franjas de cine.
+          const Positioned.fill(child: FiestaOverlay(back: false)),
 
           if (_revealTown != null)
             Positioned.fill(

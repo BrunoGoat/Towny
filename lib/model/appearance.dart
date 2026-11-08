@@ -64,6 +64,17 @@ class Appearance extends ChangeNotifier {
   bool get fakeHour => _fakeHour;
   double get fakeHourAt => _fakeHourAt;
 
+  /// Cuál de las fiestas del valle completo sale el día que pasa. Ver
+  /// `lib/fx/fiesta.dart`. Es del aparato: se elige mirándolas.
+  String _fiesta = 'chispas';
+  String get fiesta => _fiesta;
+
+  Future<void> setFiesta(String id) async {
+    if (id == _fiesta) return;
+    _fiesta = id;
+    await _keep(travels: false);
+  }
+
   Future<void> setFakeHour(bool v) async {
     if (v == _fakeHour) return;
     _fakeHour = v;
@@ -359,6 +370,8 @@ class Appearance extends ChangeNotifier {
             's' => Hemisphere.south,
             _ => null,
           };
+        case 'fiesta':
+          _fiesta = value;
         case 'lang':
           _lang = switch (value) {
             'es' => Lang.es,
@@ -404,6 +417,7 @@ class Appearance extends ChangeNotifier {
     if (_hemisphere != null)
       'hemisphere=${_hemisphere == Hemisphere.south ? 's' : 'n'}',
     if (_lang != null) 'lang=${_lang!.code}',
+    'fiesta=$_fiesta',
     'seasons=${_seasonsOff ? 0 : 1}',
     'quality=${_cinematic ? 'max' : 'normal'}',
     'fakeSeason=${_fakeSeason ? 1 : 0}',

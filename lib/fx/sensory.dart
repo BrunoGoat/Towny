@@ -415,6 +415,14 @@ class Sensory {
     }
   }
 
+  /// Un sonido de la fiesta del valle completo, por su nombre de archivo sin
+  /// la extensión. Ver `lib/fx/fiesta.dart`. Van con los efectos: si los
+  /// efectos están callados, la fiesta también.
+  void fiesta(String file, {double level = 0.8}) {
+    if (!_wants.hears('fiesta')) return;
+    _fire('$file.wav', level * _effectsGain);
+  }
+
   void repair() {
     _say('repair');
     _haptic(HapticFeedback.lightImpact);

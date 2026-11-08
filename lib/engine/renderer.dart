@@ -14,6 +14,7 @@ import 'backdrop.dart';
 import 'bsp.dart';
 import 'camera.dart';
 import 'cinema.dart';
+import 'fiesta_painter.dart';
 import 'folk.dart';
 import 'folk_body.dart';
 import 'fountain.dart';
@@ -380,6 +381,10 @@ class TownPainter extends CustomPainter {
     _drawParticles(canvas, p);
     fondo.drawAtmosphere(canvas, size, horizonY);
     fondo.drawStarLight(canvas, size, p);
+    final fiesta = scene.fiesta;
+    if (fiesta != null) {
+      paintFiesta(canvas, p, size, scene.palette, fiesta, fiesta.t);
+    }
     return p;
   }
 

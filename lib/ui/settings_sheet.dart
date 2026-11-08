@@ -9,6 +9,7 @@ import '../engine/render_debug.dart';
 import '../engine/season.dart';
 import '../engine/shooting_star.dart';
 import '../engine/town.dart';
+import '../fx/fiesta.dart';
 import '../fx/notifier.dart';
 import '../fx/sensory.dart';
 import '../l10n/lang.dart';
@@ -30,7 +31,6 @@ import 'overlays.dart';
 import 'reel_screen.dart';
 import 'sage_screen.dart';
 import 'style.dart';
-import 'town_view.dart' show TownView;
 
 /// Qué pueblos tienen historia bastante como para mirarla crecer.
 List<int> _conCronica(Store store) => [
@@ -295,31 +295,56 @@ class _SettingsSheetState extends State<SettingsSheet> {
                     );
                   },
                 ),
-                _Row(
-                  theme: t,
-                  icon: Icons.celebration_outlined,
-                  title: tr(
-                    'Fiesta del valle completo',
-                    'Full valley celebration',
+              ],
+            ),
+            _Section(
+              theme: t,
+              title: tr('LA FIESTA DEL VALLE', 'THE VALLEY FAIR'),
+              icon: Icons.celebration_outlined,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+                  child: Text(
+                    tr(
+                      'Lo que pasa el día que todos los pueblos tienen su pieza '
+                          'a la vez. Tocá una para verla: no pone ninguna pieza, '
+                          'y la última que mirás queda elegida.',
+                      'What happens the day every town has its piece at once. '
+                          "Tap one to see it: it doesn't place a piece, and the "
+                          'last one you watch is the one chosen.',
+                    ),
+                    style: TextStyle(
+                      color: t.fg.withValues(alpha: 0.6),
+                      fontSize: 12,
+                      height: 1.4,
+                    ),
                   ),
-                  subtitle: tr(
-                    'Lo que pasa el día que todos los pueblos tienen su pieza a '
-                        'la vez: la cámara sube al valle, chispas en cada plaza, '
-                        'el sonido de los hitos y la frase. No pone ninguna pieza.',
-                    'What happens the day every town has its piece at once: the '
-                        'camera rises to the valley, sparks in every plaza, the '
-                        "milestone sound and the line. It doesn't place a piece.",
-                  ),
-                  // Cierra los ajustes primero, como la fugaz: la fiesta es en
-                  // el valle, no detrás de esta hoja.
-                  act: (nav) {
-                    nav.pop();
-                    Future<void>.delayed(
-                      const Duration(milliseconds: 260),
-                      () => TownView.rehearseAllToday.value++,
-                    );
-                  },
                 ),
+                for (final (i, k) in FiestaKind.values.indexed)
+                  _Row(
+                    theme: t,
+                    icon: k == Fiesta.instance.chosen
+                        ? Icons.check_circle
+                        : switch (fiestaInfo[k]!.size) {
+                            FiestaSize.minimal => Icons.circle_outlined,
+                            FiestaSize.medium => Icons.auto_awesome_outlined,
+                            FiestaSize.grand => Icons.celebration_outlined,
+                          },
+                    title:
+                        '${i + 1}. ${fiestaInfo[k]!.name}'
+                        '${k == Fiesta.instance.chosen ? tr(' · elegida', ' · chosen') : ''}',
+                    subtitle: fiestaInfo[k]!.about,
+                    // Cierra los ajustes primero, como la fugaz: la fiesta es
+                    // en el valle, no detrás de esta hoja.
+                    act: (nav) {
+                      nav.pop();
+                      Fiesta.instance.choose(k);
+                      Future<void>.delayed(
+                        const Duration(milliseconds: 260),
+                        () => Fiesta.instance.rehearse(k),
+                      );
+                    },
+                  ),
               ],
             ),
             _Section(
